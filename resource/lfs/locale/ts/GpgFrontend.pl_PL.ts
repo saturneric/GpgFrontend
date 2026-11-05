@@ -77,108 +77,125 @@
 <context>
     <name>AddSubkeySheet</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="40"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="61"/>
         <source>Add a subkey</source>
         <translation>Dodaj podklucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="47"/>
         <source>A subkey does one job for the key. Its algorithm matches the primary key&apos;s.</source>
-        <translation>Podklucz pełni jedną funkcję dla klucza. Jego algorytm jest zgodny z algorytmem klucza głównego.</translation>
+        <translation type="vanished">Podklucz pełni jedną funkcję dla klucza. Jego algorytm jest zgodny z algorytmem klucza głównego.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="57"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="68"/>
         <source>Expert mode</source>
         <translation>Tryb eksperta</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="82"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="80"/>
+        <source>Used for</source>
+        <translation>Używany do</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="92"/>
         <source>Encryption</source>
         <translation>Szyfrowanie</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="83"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="93"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="121"/>
         <source>Others encrypt to it; you decrypt with it.</source>
         <translation>Inni szyfrują nim do Ciebie; Ty nim odszyfrowujesz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="84"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="94"/>
         <source>Signing</source>
         <translation>Podpisywanie</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="85"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="95"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="118"/>
         <source>You sign messages and files with it.</source>
         <translation>Podpisujesz nim wiadomości i pliki.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="86"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="96"/>
         <source>Authentication</source>
         <translation>Uwierzytelnianie</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="87"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="97"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="120"/>
         <source>You log in with it, over SSH for one.</source>
         <translation>Logujesz się nim, na przykład przez SSH.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="105"/>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="120"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="149"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="163"/>
         <source>Expires after</source>
         <translation>Wygasa po</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="127"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="170"/>
         <source>Protect it with a passphrase</source>
         <translation>Chroń go hasłem</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="136"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="185"/>
         <source>Cancel</source>
         <translation>Anuluj</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="142"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="191"/>
         <source>Add</source>
         <translation>Dodaj</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="191"/>
+        <source>Adding…</source>
+        <translation>Dodawanie…</translation>
     </message>
 </context>
 <context>
     <name>AddUidSheet</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="24"/>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="48"/>
         <source>Add a user ID</source>
         <translation>Dodaj identyfikator użytkownika</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="30"/>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="54"/>
         <source>Another name or address the key stands for. Share the key afterwards, so others learn of it.</source>
         <translation>Inna nazwa lub adres, który reprezentuje klucz. Udostępnij klucz później, aby inni się o nim dowiedzieli.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="38"/>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="62"/>
         <source>Name</source>
         <translation>Nazwa</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="45"/>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="69"/>
         <source>Email</source>
         <translation>E-mail</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="53"/>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="77"/>
         <source>Comment (optional)</source>
         <translation>Komentarz (opcjonalnie)</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="61"/>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="90"/>
         <source>Cancel</source>
         <translation>Anuluj</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="67"/>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="97"/>
         <source>Add</source>
         <translation>Dodaj</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="97"/>
+        <source>Adding…</source>
+        <translation>Dodawanie…</translation>
     </message>
 </context>
 <context>
@@ -192,14 +209,27 @@
 <context>
     <name>BottomSheet</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/BottomSheet.qml" line="129"/>
+        <location filename="../../../../src/mob/qml/components/BottomSheet.qml" line="245"/>
         <source>Show less</source>
         <translation>Pokaż mniej</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/BottomSheet.qml" line="130"/>
+        <location filename="../../../../src/mob/qml/components/BottomSheet.qml" line="246"/>
         <source>Show more</source>
         <translation>Pokaż więcej</translation>
+    </message>
+</context>
+<context>
+    <name>CategoryButton</name>
+    <message>
+        <location filename="../../../../src/mob/qml/components/CategoryButton.qml" line="16"/>
+        <source>All keys</source>
+        <translation>Wszystkie klucze</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/CategoryButton.qml" line="30"/>
+        <source>Category: %1. Choose another</source>
+        <translation>Kategoria: %1. Wybierz inną</translation>
     </message>
 </context>
 <context>
@@ -210,101 +240,179 @@
         <translation>Dodaj klucze do %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="50"/>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="129"/>
         <source>Add keys</source>
-        <translation>Dodaj klucze</translation>
+        <translation type="vanished">Dodaj klucze</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="59"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="52"/>
         <source>Edit</source>
         <translation>Edytuj</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="64"/>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="156"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="57"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="154"/>
         <source>Delete</source>
         <translation>Usuń</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="107"/>
         <source>Take %1 out</source>
-        <translation>Wyjmij %1</translation>
+        <translation type="vanished">Wyjmij %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="111"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="107"/>
         <source>%1 is out of %2.</source>
         <translation>%1 nie należy już do %2.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="124"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="120"/>
         <source>No keys in it yet</source>
         <translation>Nie ma tu jeszcze kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="125"/>
         <source>Add keys here, many at once, or long-press a key in the key list.</source>
-        <translation>Dodaj tu klucze, nawet wiele naraz, albo przytrzymaj klucz na liście kluczy.</translation>
+        <translation type="vanished">Dodaj tu klucze, nawet wiele naraz, albo przytrzymaj klucz na liście kluczy.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="138"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="103"/>
+        <source>Remove %1 from the category</source>
+        <translation>Usuń %1 z kategorii</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="121"/>
+        <source>Use + to add keys you have, many at once, or long-press a key in the key list.</source>
+        <translation>Użyj +, aby dodać swoje klucze, nawet wiele naraz, albo przytrzymaj klucz na liście kluczy.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="129"/>
+        <source>Add keys to the category</source>
+        <translation>Dodaj klucze do kategorii</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="136"/>
         <source>Add</source>
         <translation>Dodaj</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="141"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="139"/>
         <source>%n key(s) added.</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>Dodano %n klucz.</numerusform>
+            <numerusform>Dodano %n klucze.</numerusform>
+            <numerusform>Dodano %n kluczy.</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="153"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="151"/>
         <source>Delete “%1”?</source>
         <translation>Usunąć „%1”?</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="154"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="152"/>
         <source>Only the category goes: its keys stay, in the key list and in their other categories.</source>
         <translation>Usuwana jest tylko kategoria — jej klucze zostają na liście kluczy i w pozostałych kategoriach.</translation>
     </message>
 </context>
 <context>
-    <name>CategorySheet</name>
+    <name>CategoryListSheet</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="38"/>
-        <source>Edit category</source>
-        <translation>Edytuj kategorię</translation>
+        <location filename="../../../../src/mob/qml/components/CategoryListSheet.qml" line="31"/>
+        <source>All keys</source>
+        <translation>Wszystkie klucze</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="38"/>
+        <location filename="../../../../src/mob/qml/components/CategoryListSheet.qml" line="35"/>
+        <source>Show keys in</source>
+        <translation>Pokaż klucze w</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/CategoryListSheet.qml" line="86"/>
+        <source>Keys in %1</source>
+        <translation>Klucze w %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/CategoryListSheet.qml" line="114"/>
         <source>New category</source>
         <translation>Nowa kategoria</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="44"/>
-        <source>Sort keys into your own groups. A key can be in several. The desktop shows the same categories.</source>
-        <translation>Grupuj klucze we własnych grupach. Klucz może należeć do kilku. Wersja desktopowa pokazuje te same kategorie.</translation>
+        <location filename="../../../../src/mob/qml/components/CategoryListSheet.qml" line="130"/>
+        <source>Manage categories</source>
+        <translation>Zarządzaj kategoriami</translation>
+    </message>
+</context>
+<context>
+    <name>CategorySheet</name>
+    <message>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="49"/>
+        <source>Edit category</source>
+        <translation>Edytuj kategorię</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="52"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="49"/>
+        <source>New category</source>
+        <translation>Nowa kategoria</translation>
+    </message>
+    <message>
+        <source>Sort keys into your own groups. A key can be in several. The desktop shows the same categories.</source>
+        <translation type="vanished">Grupuj klucze we własnych grupach. Klucz może należeć do kilku. Wersja desktopowa pokazuje te same kategorie.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="72"/>
+        <source>A key can be in several categories. The desktop shows the same ones.</source>
+        <translation>Klucz może należeć do kilku kategorii. Wersja desktopowa pokazuje te same.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="81"/>
+        <source>Name</source>
+        <translation>Nazwa</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="89"/>
         <source>Name, for example Work</source>
         <translation>Nazwa, na przykład Praca</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="103"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="102"/>
+        <source>Colour</source>
+        <translation>Kolor</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="175"/>
+        <source>Colour %1</source>
+        <translation>Kolor %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="193"/>
+        <source>Colour as HEX, for example #2A82DA</source>
+        <translation>Kolor jako HEX, na przykład #2A82DA</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="201"/>
+        <source>Pick…</source>
+        <translation>Wybierz…</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="214"/>
+        <source>Six hex digits, as #2A82DA.</source>
+        <translation>Sześć cyfr szesnastkowych, np. #2A82DA.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="223"/>
+        <source>Category colour</source>
+        <translation>Kolor kategorii</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="237"/>
         <source>Cancel</source>
         <translation>Anuluj</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="109"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="242"/>
         <source>Save</source>
         <translation>Zapisz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="109"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="242"/>
         <source>Create</source>
         <translation>Utwórz</translation>
     </message>
@@ -454,148 +562,183 @@
 <context>
     <name>FileDetailsSheet</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="25"/>
         <source>This file can no longer be opened.</source>
-        <translation>Nie można już otworzyć tego pliku.</translation>
+        <translation type="vanished">Nie można już otworzyć tego pliku.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="26"/>
         <source>It is waiting in the queue.</source>
-        <translation>Czeka w kolejce.</translation>
+        <translation type="vanished">Czeka w kolejce.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="27"/>
         <source>It is being worked on.</source>
-        <translation>Trwa przetwarzanie.</translation>
+        <translation type="vanished">Trwa przetwarzanie.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="91"/>
         <source>%1 · Shared with GpgFrontend by another app. This is a copy, deleted when you remove it from the list or close the app.</source>
-        <translation>%1 · Udostępnione aplikacji GpgFrontend przez inną aplikację. To kopia; zostanie usunięta, gdy usuniesz ją z listy lub zamkniesz aplikację.</translation>
+        <translation type="vanished">%1 · Udostępnione aplikacji GpgFrontend przez inną aplikację. To kopia; zostanie usunięta, gdy usuniesz ją z listy lub zamkniesz aplikację.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="95"/>
         <source>%1 · A file you added. Removing it from the list does not delete it.</source>
-        <translation>%1 · Plik dodany przez Ciebie. Usunięcie go z listy nie usuwa pliku.</translation>
+        <translation type="vanished">%1 · Plik dodany przez Ciebie. Usunięcie go z listy nie usuwa pliku.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="98"/>
         <source>Encrypted from %1</source>
-        <translation>Zaszyfrowane z %1</translation>
+        <translation type="vanished">Zaszyfrowane z %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="100"/>
         <source>Decrypted from %1</source>
-        <translation>Odszyfrowane z %1</translation>
+        <translation type="vanished">Odszyfrowane z %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="100"/>
         <source>Signature of %1</source>
-        <translation>Podpis pliku %1</translation>
+        <translation type="vanished">Podpis pliku %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="102"/>
         <source>%1 · %2. Saved as %3; the copy here is deleted when you remove it from the list or close the app.</source>
-        <translation>%1 · %2. Zapisano jako %3; kopia tutaj zostanie usunięta, gdy usuniesz ją z listy lub zamkniesz aplikację.</translation>
+        <translation type="vanished">%1 · %2. Zapisano jako %3; kopia tutaj zostanie usunięta, gdy usuniesz ją z listy lub zamkniesz aplikację.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="106"/>
         <source>%1 · %2. A temporary copy GpgFrontend made: save it to keep it. It is deleted when you remove it from the list or close the app.</source>
-        <translation>%1 · %2. Kopia tymczasowa utworzona przez GpgFrontend: zapisz ją, aby ją zachować. Zostanie usunięta, gdy usuniesz ją z listy lub zamkniesz aplikację.</translation>
+        <translation type="vanished">%1 · %2. Kopia tymczasowa utworzona przez GpgFrontend: zapisz ją, aby ją zachować. Zostanie usunięta, gdy usuniesz ją z listy lub zamkniesz aplikację.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="122"/>
         <source>By its name: %1</source>
-        <translation>Po nazwie: %1</translation>
+        <translation type="vanished">Po nazwie: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="131"/>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="160"/>
         <source>This file can no longer be opened. It may have been moved or deleted, or access to it has ended.</source>
         <translation>Nie można już otworzyć tego pliku. Mógł zostać przeniesiony lub usunięty albo dostęp do niego się zakończył.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="146"/>
         <source>Last result</source>
-        <translation>Ostatni wynik</translation>
+        <translation type="vanished">Ostatni wynik</translation>
+    </message>
+    <message>
+        <source>Cancelled</source>
+        <translation type="vanished">Anulowano</translation>
+    </message>
+    <message>
+        <source>Done</source>
+        <translation type="vanished">Gotowe</translation>
+    </message>
+    <message>
+        <source>Done, with warnings</source>
+        <translation type="vanished">Gotowe, z ostrzeżeniami</translation>
+    </message>
+    <message>
+        <source>Failed</source>
+        <translation type="vanished">Niepowodzenie</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="69"/>
+        <source>Could not be read.</source>
+        <translation>Nie można odczytać.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="82"/>
+        <source>File</source>
+        <translation>Plik</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="87"/>
+        <source>Name</source>
+        <translation>Nazwa</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="94"/>
+        <source>Size</source>
+        <translation>Rozmiar</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="106"/>
+        <source>SHA-256</source>
+        <translation>SHA-256</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="110"/>
+        <source>Working it out…</source>
+        <translation>Obliczanie…</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="134"/>
+        <source>Copy the SHA-256</source>
+        <translation>Kopiuj SHA-256</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="149"/>
-        <source>Cancelled</source>
-        <translation>Anulowano</translation>
+        <source>Copied.</source>
+        <translation>Skopiowano.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="151"/>
-        <source>Done</source>
-        <translation>Gotowe</translation>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="172"/>
+        <source>Temporary, not saved. It is deleted when you remove it or close the app. Save it to keep it.</source>
+        <translation>Kopia tymczasowa, niezapisana. Zostanie usunięta, gdy usuniesz ją z listy lub zamkniesz aplikację. Zapisz ją, aby ją zachować.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="152"/>
-        <source>Done, with warnings</source>
-        <translation>Gotowe, z ostrzeżeniami</translation>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="174"/>
+        <source>A copy another app shared. It is deleted when you remove it or close the app.</source>
+        <translation>Kopia udostępniona przez inną aplikację. Zostanie usunięta, gdy usuniesz ją z listy lub zamkniesz aplikację.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="152"/>
-        <source>Failed</source>
-        <translation>Niepowodzenie</translation>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="184"/>
+        <source>Saved as %1.</source>
+        <translation>Zapisano jako %1.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="175"/>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="199"/>
         <source>Save as</source>
         <translation>Zapisz jako</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="182"/>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="211"/>
         <source>Share</source>
         <translation>Udostępnij</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="190"/>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="223"/>
         <source>Open with…</source>
         <translation>Otwórz za pomocą…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="198"/>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="249"/>
+        <source>Close</source>
+        <translation>Zamknij</translation>
+    </message>
+    <message>
         <source>Encrypt</source>
-        <translation>Zaszyfruj</translation>
+        <translation type="vanished">Zaszyfruj</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="200"/>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="221"/>
         <source>It is OpenPGP data already.</source>
-        <translation>To już są dane OpenPGP.</translation>
+        <translation type="vanished">To już są dane OpenPGP.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="208"/>
         <source>Decrypt</source>
-        <translation>Odszyfruj</translation>
+        <translation type="vanished">Odszyfruj</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="211"/>
         <source>Its name is not one of encrypted data.</source>
-        <translation>Nazwa nie wskazuje na zaszyfrowane dane.</translation>
+        <translation type="vanished">Nazwa nie wskazuje na zaszyfrowane dane.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="219"/>
         <source>Sign</source>
-        <translation>Podpisywanie</translation>
+        <translation type="vanished">Podpisywanie</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="229"/>
         <source>Verify</source>
-        <translation>Weryfikacja</translation>
+        <translation type="vanished">Weryfikacja</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="231"/>
         <source>Check a detached signature against its file.</source>
-        <translation>Sprawdź odrębny podpis względem jego pliku.</translation>
+        <translation type="vanished">Sprawdź odrębny podpis względem jego pliku.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="232"/>
         <source>Its name is not one of a signature or signed data.</source>
-        <translation>Nazwa nie wskazuje na podpis ani podpisane dane.</translation>
+        <translation type="vanished">Nazwa nie wskazuje na podpis ani podpisane dane.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="241"/>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="237"/>
         <source>Remove from list</source>
         <translation>Usuń z listy</translation>
     </message>
@@ -608,485 +751,534 @@
         <translation>Najpierw zakończ lub anuluj monit o hasło.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="144"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="142"/>
         <source>Not started: the files are no longer in the list.</source>
         <translation>Nie rozpoczęto: plików nie ma już na liście.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="169"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="167"/>
         <source>This file was removed from the list.</source>
         <translation>Ten plik został usunięty z listy.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="190"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="188"/>
         <source>“%1” can no longer be opened. Pick it again.</source>
         <translation>Nie można już otworzyć „%1”. Wybierz go ponownie.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="194"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="192"/>
         <source>Its file is no longer in the list. Add it again.</source>
         <translation>Jego pliku nie ma już na liście. Dodaj go ponownie.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="196"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="194"/>
         <source>It is already waiting or running.</source>
         <translation>To zadanie już czeka lub trwa.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="205"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="203"/>
         <source>None of them can run again as they are. Open each to see why.</source>
         <translation>Żadne nie może zostać ponownie uruchomione w obecnej postaci. Otwórz każde, aby poznać powód.</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="280"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="278"/>
         <source>%n file(s) saved.</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>Zapisano %n plik.</numerusform>
+            <numerusform>Zapisano %n pliki.</numerusform>
+            <numerusform>Zapisano %n plików.</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="281"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="279"/>
         <source>%n skipped.</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n pominięto.</numerusform>
+            <numerusform>%n pominięto.</numerusform>
+            <numerusform>%n pominięto.</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="282"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="280"/>
         <source>%n could not be saved.</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>Nie udało się zapisać: %n.</numerusform>
+            <numerusform>Nie udało się zapisać: %n.</numerusform>
+            <numerusform>Nie udało się zapisać: %n.</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="303"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="301"/>
         <source>Removed from the list. The original files are not deleted.</source>
         <translation>Usunięto z listy. Oryginalne pliki nie są usuwane.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="309"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="307"/>
         <source>This file could not be shared. Save it instead.</source>
         <translation>Nie udało się udostępnić tego pliku. Zamiast tego zapisz go.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="317"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="316"/>
         <source>Copying in… %1%</source>
         <translation>Kopiowanie… %1%</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="318"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="317"/>
         <source>Can no longer be opened</source>
         <translation>Nie można już otworzyć</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="320"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="319"/>
         <source>Waiting…</source>
         <translation>Oczekiwanie…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="322"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="321"/>
         <source>Cancelled</source>
         <translation>Anulowano</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="323"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="322"/>
         <source>%1. Tap for details.</source>
         <translation>%1. Dotknij, aby zobaczyć szczegóły.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="329"/>
-        <source>Signature: %1</source>
-        <translation>Podpis: %1</translation>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="328"/>
+        <source>%1 · Signature: %2</source>
+        <translation>%1 · Podpis: %2</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="330"/>
-        <source>No signature found</source>
-        <translation>Nie znaleziono podpisu</translation>
+        <source>%1 · No signature found</source>
+        <translation>%1 · Nie znaleziono podpisu</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="333"/>
+        <source>%1 · Temporary, not saved</source>
+        <translation>%1 · Tymczasowy, niezapisany</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="366"/>
+        <source>A chosen file is busy or can no longer be opened.</source>
+        <translation>Wybrany plik jest zajęty lub nie można go już otworzyć.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="370"/>
+        <source>Only for encrypted files.</source>
+        <translation>Tylko dla zaszyfrowanych plików.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="372"/>
+        <source>For one signature or signed file at a time.</source>
+        <translation>Dla jednego podpisu lub podpisanego pliku naraz.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="374"/>
+        <source>Not for files that are OpenPGP data already.</source>
+        <translation>Nie dotyczy plików, które są już danymi OpenPGP.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="439"/>
+        <source>Save to a folder</source>
+        <translation>Zapisz w folderze</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="523"/>
+        <source>%n temporary file(s) not saved yet. Deleted when removed from the list or when the app closes.</source>
+        <translation>
+            <numerusform>Niezapisane pliki tymczasowe: %n. Są usuwane po usunięciu z listy lub po zamknięciu aplikacji.</numerusform>
+            <numerusform>Niezapisane pliki tymczasowe: %n. Są usuwane po usunięciu z listy lub po zamknięciu aplikacji.</numerusform>
+            <numerusform>Niezapisane pliki tymczasowe: %n. Są usuwane po usunięciu z listy lub po zamknięciu aplikacji.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Signature: %1</source>
+        <translation type="vanished">Podpis: %1</translation>
+    </message>
+    <message>
+        <source>No signature found</source>
+        <translation type="vanished">Nie znaleziono podpisu</translation>
+    </message>
+    <message>
         <source>Encrypted from %1</source>
-        <translation>Zaszyfrowano z %1</translation>
+        <translation type="vanished">Zaszyfrowano z %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="334"/>
         <source>Decrypted from %1</source>
-        <translation>Odszyfrowano z %1</translation>
+        <translation type="vanished">Odszyfrowano z %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="335"/>
         <source>Signature of %1</source>
-        <translation>Podpis %1</translation>
+        <translation type="vanished">Podpis %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="337"/>
         <source>Saved as %1</source>
-        <translation>Zapisano jako %1</translation>
+        <translation type="vanished">Zapisano jako %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="337"/>
         <source>Temporary</source>
-        <translation>Tymczasowy</translation>
+        <translation type="vanished">Tymczasowy</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="338"/>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="343"/>
         <source>%1 · %2 · %3</source>
-        <translation>%1 · %2 · %3</translation>
+        <translation type="vanished">%1 · %2 · %3</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="341"/>
         <source>Shared with GpgFrontend</source>
-        <translation>Udostępnione aplikacji GpgFrontend</translation>
+        <translation type="vanished">Udostępnione aplikacji GpgFrontend</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="342"/>
         <source>Added</source>
-        <translation>Dodano</translation>
+        <translation type="vanished">Dodano</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="344"/>
         <source>%1 · %2</source>
-        <translation>%1 · %2</translation>
+        <translation type="vanished">%1 · %2</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="389"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="391"/>
         <source>Close search</source>
         <translation>Zamknij wyszukiwanie</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="399"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="401"/>
         <source>Search file names</source>
         <translation>Szukaj nazw plików</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="406"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="408"/>
         <source>%1 selected</source>
         <translation>Wybrano: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="407"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="409"/>
         <source>Files</source>
         <translation>Pliki</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="411"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="413"/>
         <source>Done choosing</source>
         <translation>Gotowe</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="419"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="421"/>
         <source>Select all</source>
         <translation>Zaznacz wszystko</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="427"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="429"/>
         <source>Search</source>
         <translation>Szukaj</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="436"/>
         <source>Results</source>
-        <translation>Wyniki</translation>
+        <translation type="vanished">Wyniki</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="455"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="457"/>
         <source>Sort by name</source>
         <translation>Sortuj według nazwy</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="461"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="463"/>
         <source>Sort by size</source>
         <translation>Sortuj według rozmiaru</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="467"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="469"/>
         <source>Sort by recently added</source>
         <translation>Sortuj według ostatnio dodanych</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="473"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="475"/>
         <source>Save all to a folder…</source>
         <translation>Zapisz wszystko w folderze…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="479"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="481"/>
         <source>Stop waiting operations</source>
         <translation>Zatrzymaj oczekujące operacje</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="485"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="487"/>
         <source>Clear list</source>
         <translation>Wyczyść listę</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="508"/>
         <source>All</source>
-        <translation>Wszystkie</translation>
+        <translation type="vanished">Wszystkie</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="509"/>
         <source>Encrypted</source>
-        <translation>Zaszyfrowane</translation>
+        <translation type="vanished">Zaszyfrowane</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="510"/>
         <source>Signatures</source>
-        <translation>Podpisy</translation>
+        <translation type="vanished">Podpisy</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="511"/>
         <source>Made here</source>
-        <translation>Utworzone tutaj</translation>
+        <translation type="vanished">Utworzone tutaj</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="512"/>
         <source>Not saved</source>
-        <translation>Niezapisane</translation>
+        <translation type="vanished">Niezapisane</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="530"/>
         <source>Show %1</source>
-        <translation>Pokaż %1</translation>
+        <translation type="vanished">Pokaż %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="560"/>
         <source>1 file made here is not saved. It is deleted when the app closes.</source>
-        <translation>1 plik utworzony tutaj nie został zapisany. Zostanie usunięty po zamknięciu aplikacji.</translation>
+        <translation type="vanished">1 plik utworzony tutaj nie został zapisany. Zostanie usunięty po zamknięciu aplikacji.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="562"/>
         <source>%1 files made here are not saved. They are deleted when the app closes.</source>
-        <translation>%1 plików utworzonych tutaj nie zostało zapisanych. Zostaną usunięte po zamknięciu aplikacji.</translation>
+        <translation type="vanished">%1 plików utworzonych tutaj nie zostało zapisanych. Zostaną usunięte po zamknięciu aplikacji.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="571"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="533"/>
         <source>Save</source>
         <translation>Zapisz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="571"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="533"/>
         <source>Save all</source>
         <translation>Zapisz wszystko</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="573"/>
         <source>Save the files made here into a folder</source>
-        <translation>Zapisz pliki utworzone tutaj w folderze</translation>
+        <translation type="vanished">Zapisz pliki utworzone tutaj w folderze</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="592"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="554"/>
         <source>“%1” could not be copied in.</source>
         <translation>Nie można skopiować „%1”.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="597"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="559"/>
         <source>No app here can open this file. Save it instead.</source>
         <translation>Żadna aplikacja nie może otworzyć tego pliku. Zapisz go zamiast tego.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="600"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="562"/>
         <source>Saved.</source>
         <translation>Zapisano.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="601"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="563"/>
         <source>The file could not be saved.</source>
         <translation>Nie udało się zapisać pliku.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="665"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="628"/>
         <source>Already in the folder</source>
         <translation>Już jest w folderze</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="666"/>
         <source>%1 names are taken</source>
-        <translation>%1 nazw jest zajętych</translation>
+        <translation type="vanished">%1 nazw jest zajętych</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="669"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="632"/>
         <source>The folder has a file named “%1”.</source>
         <translation>W folderze jest plik o nazwie „%1”.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="670"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="633"/>
         <source>The folder has files of these names: %1</source>
         <translation>W folderze są pliki o nazwach: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="678"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="641"/>
         <source>Skip</source>
         <translation>Pomiń</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="684"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="647"/>
         <source>Replace</source>
         <translation>Zastąp</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="690"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="653"/>
         <source>Keep both</source>
         <translation>Zachowaj oba</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="773"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="740"/>
         <source>Choose %1</source>
         <translation>Wybierz %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="787"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="764"/>
         <source>Actions for %1</source>
         <translation>Działania dla %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="804"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="782"/>
         <source>No files match</source>
         <translation>Brak pasujących plików</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="806"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="783"/>
         <source>No file name contains “%1”.</source>
         <translation>Żadna nazwa pliku nie zawiera „%1”.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="807"/>
         <source>None of the files is of this kind.</source>
-        <translation>Żaden z plików nie jest tego rodzaju.</translation>
+        <translation type="vanished">Żaden z plików nie jest tego rodzaju.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="810"/>
         <source>Show all files</source>
-        <translation>Pokaż wszystkie pliki</translation>
+        <translation type="vanished">Pokaż wszystkie pliki</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="826"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="795"/>
         <source>No files yet</source>
         <translation>Brak plików</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="827"/>
         <source>Add files to encrypt, decrypt, sign or verify them. GpgFrontend only sees the files you add here.</source>
-        <translation>Dodaj pliki, aby je zaszyfrować, odszyfrować, podpisać lub zweryfikować. GpgFrontend widzi tylko pliki dodane tutaj.</translation>
+        <translation type="vanished">Dodaj pliki, aby je zaszyfrować, odszyfrować, podpisać lub zweryfikować. GpgFrontend widzi tylko pliki dodane tutaj.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="832"/>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="975"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="808"/>
         <source>Add files</source>
         <translation>Dodaj pliki</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="875"/>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1054"/>
         <source>Sign</source>
-        <translation>Podpisywanie</translation>
+        <translation type="vanished">Podpisywanie</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="884"/>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1061"/>
         <source>Verify</source>
-        <translation>Weryfikacja</translation>
+        <translation type="vanished">Weryfikacja</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="905"/>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1013"/>
         <source>Encrypt</source>
-        <translation>Szyfrowanie</translation>
+        <translation type="vanished">Szyfrowanie</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="915"/>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1020"/>
         <source>Encrypt &amp;&amp; Sign</source>
-        <translation>Szyfruj &amp;&amp; Podpisz</translation>
+        <translation type="vanished">Szyfruj &amp;&amp; Podpisz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="925"/>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1029"/>
         <source>Encrypt with a passphrase</source>
-        <translation>Szyfrowanie hasłem</translation>
+        <translation type="vanished">Szyfrowanie hasłem</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="935"/>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1038"/>
         <source>Decrypt</source>
-        <translation>Odszyfrowanie</translation>
+        <translation type="vanished">Odszyfrowanie</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="945"/>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1045"/>
         <source>Decrypt &amp;&amp; Verify</source>
-        <translation>Odszyfruj &amp;&amp; Zweryfikuj</translation>
+        <translation type="vanished">Odszyfruj &amp;&amp; Zweryfikuj</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="960"/>
         <source>Save to a folder…</source>
-        <translation>Zapisz w folderze…</translation>
+        <translation type="vanished">Zapisz w folderze…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="966"/>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1093"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="447"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="912"/>
         <source>Remove from list</source>
         <translation>Usuń z listy</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1071"/>
+        <source>1 temporary file has not been saved. It is deleted when you remove it or close the app.</source>
+        <translation type="vanished">1 plik tymczasowy nie został zapisany. Zostanie usunięty po usunięciu go z listy lub zamknięciu aplikacji.</translation>
+    </message>
+    <message>
+        <source>%1 temporary files have not been saved. They are deleted when you remove them or close the app.</source>
+        <translation type="vanished">%1 plików tymczasowych nie zostało zapisanych. Zostaną usunięte, gdy je usuniesz lub zamkniesz aplikację.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="535"/>
+        <source>Save the temporary files into a folder</source>
+        <translation>Zapisz pliki tymczasowe w folderze</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="629"/>
+        <source>%n name(s) taken</source>
+        <translation>
+            <numerusform>%n nazwa zajęta</numerusform>
+            <numerusform>%n nazwy zajęte</numerusform>
+            <numerusform>%n nazw zajętych</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="796"/>
+        <source>Use + to add files to encrypt, decrypt, sign or verify. GpgFrontend only sees the files you add here.</source>
+        <translation>Użyj +, aby dodać pliki do szyfrowania, odszyfrowania, podpisywania lub weryfikacji. GpgFrontend widzi tylko pliki dodane tutaj.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="821"/>
+        <source>PGP</source>
+        <translation>PGP</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="823"/>
+        <source>PGP operations</source>
+        <translation>Operacje PGP</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="845"/>
+        <source>Select files first, or use Select all.</source>
+        <translation>Najpierw wybierz pliki lub użyj opcji Wybierz wszystko.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="890"/>
         <source>Save as</source>
         <translation>Zapisz jako</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1077"/>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1120"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="896"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="941"/>
         <source>Share</source>
         <translation>Udostępnij</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1083"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="902"/>
         <source>Open with…</source>
         <translation>Otwórz za pomocą…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1089"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="908"/>
         <source>Details</source>
         <translation>Szczegóły</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1112"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="933"/>
         <source>Open the decrypted file in another app?</source>
         <translation>Otworzyć odszyfrowany plik w innej aplikacji?</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1113"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="934"/>
         <source>Share the decrypted file?</source>
         <translation>Udostępnić odszyfrowany plik?</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1115"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="936"/>
         <source>A copy stays in GpgFrontend&apos;s private storage for up to 24 hours so the receiving app can read it. You can remove it sooner under Temporary shared files in Settings.</source>
         <translation>Kopia pozostaje w prywatnej pamięci GpgFrontend przez maksymalnie 24 godziny, aby aplikacja odbierająca mogła ją odczytać. Możesz ją usunąć wcześniej w sekcji Tymczasowe udostępnione pliki w Ustawieniach.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1120"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="941"/>
         <source>Open</source>
         <translation>Otwórz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1129"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="950"/>
         <source>Clear the list?</source>
         <translation>Wyczyścić listę?</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1130"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="951"/>
         <source>Files GpgFrontend made are deleted unless you saved them. The files you added are not deleted.</source>
         <translation>Pliki utworzone przez GpgFrontend są usuwane, chyba że je zapiszesz. Dodane przez Ciebie pliki nie są usuwane.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1132"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="953"/>
         <source>Clear</source>
         <translation>Wyczyść</translation>
     </message>
@@ -1117,100 +1309,138 @@
 <context>
     <name>GenerateSheet</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="95"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="108"/>
         <source>The key could not be generated: %1</source>
         <translation>Nie udało się wygenerować klucza: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="101"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="112"/>
         <source>Create a key</source>
         <translation>Utwórz klucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="120"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="133"/>
         <source>Others see this name and email when they encrypt to you.</source>
         <translation>Inni zobaczą tę nazwę i e-mail, gdy będą do Ciebie szyfrować.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="127"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="140"/>
         <source>Name</source>
         <translation>Nazwa</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="134"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="147"/>
         <source>Email</source>
         <translation>E-mail</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="142"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="155"/>
         <source>Fill in anonymously</source>
         <translation>Wypełnij anonimowo</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="145"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="158"/>
         <source>Makes up a name and an address that reach nobody.</source>
         <translation>Tworzy nazwę i adres, które do nikogo nie docierają.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="159"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="172"/>
         <source>Profile</source>
         <translation>Profil</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="178"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="189"/>
         <source>Expert mode</source>
         <translation>Tryb ekspercki</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="190"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="201"/>
         <source>Primary key</source>
         <translation>Klucz główny</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="209"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="218"/>
         <source>Add a subkey</source>
         <translation>Dodaj podklucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="228"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="235"/>
         <source>Protect it with a passphrase</source>
         <translation>Chroń go hasłem</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="247"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="254"/>
         <source>Cancel</source>
         <translation>Anuluj</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="254"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="261"/>
         <source>Create</source>
         <translation>Utwórz</translation>
     </message>
 </context>
 <context>
+    <name>GeneratedKeySheet</name>
+    <message>
+        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="27"/>
+        <source>Key created</source>
+        <translation>Klucz utworzony</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="50"/>
+        <source>Type</source>
+        <translation>Typ</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="57"/>
+        <source>Algorithm</source>
+        <translation>Algorytm</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="66"/>
+        <source>Expires</source>
+        <translation>Wygasa</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="67"/>
+        <source>Never</source>
+        <translation>Nigdy</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="78"/>
+        <source>Open the key</source>
+        <translation>Otwórz klucz</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="92"/>
+        <source>Done</source>
+        <translation>Gotowe</translation>
+    </message>
+</context>
+<context>
     <name>GpgFrontend</name>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1797"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1866"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1799"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1868"/>
         <source>Expiring Soon</source>
         <translation>Wygasa wkrótce</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1801"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1870"/>
         <source>Expired</source>
         <translation>Wygasł</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1803"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1872"/>
         <source>Revoked</source>
         <translation>Unieważniony</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1805"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1874"/>
         <source>Disabled</source>
         <translation>Wyłączony</translation>
     </message>
@@ -2104,122 +2334,122 @@
 <context>
     <name>GpgFrontend::KeyGenProfile</name>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="213"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="214"/>
         <source>DSA-2048 + ELG-2048 (Deprecated)</source>
         <translation>DSA-2048 + ELG-2048 (Przestarzałe)</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="215"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="216"/>
         <source>Old algorithms kept only to read very old keys. Do not use for new keys.</source>
         <translation>Stare algorytmy zachowane wyłącznie do odczytu bardzo starych kluczy. Nie używać ich do nowych kluczy.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="223"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="224"/>
         <source>Ed25519 / X25519 (Modern &amp; Fast)</source>
         <translation>Ed25519 / X25519 (Nowoczesne i szybkie)</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="225"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="226"/>
         <source>Small, fast keys that every current OpenPGP program understands. The best choice for most people.</source>
         <translation>Małe, szybkie klucze, które rozumie każdy współczesny program OpenPGP. Najlepszy wybór dla większości osób.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="230"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="231"/>
         <source>Ed448 / X448 (High Security)</source>
         <translation>Ed448 / X448 (Wysokie bezpieczeństwo)</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="232"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="233"/>
         <source>A larger curve with a higher security margin. Some older programs cannot use it.</source>
         <translation>Większa krzywa z wyższym marginesem bezpieczeństwa. Niektóre starsze programy nie mogą jej używać.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="237"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="238"/>
         <source>RSA-3072 (Balanced Compatibility)</source>
         <translation>RSA-3072 (Zrównoważona kompatybilność)</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="239"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="240"/>
         <source>Works with almost every OpenPGP program, including old ones. Slower and larger than elliptic curves.</source>
         <translation>Działa z niemal każdym programem OpenPGP, w tym ze starymi. Wolniejszy i większy niż krzywe eliptyczne.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="244"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="245"/>
         <source>RSA-4096 (High Compatibility)</source>
         <translation>RSA-4096 (Wysoka kompatybilność)</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="246"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="247"/>
         <source>The widest compatibility with a larger safety margin. Slow to generate and use.</source>
         <translation>Najszersza kompatybilność z większym marginesem bezpieczeństwa. Wolny w generowaniu i użyciu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="250"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="251"/>
         <source>NIST P-384 (Standard ECC)</source>
         <translation>NIST P-384 (Standardowe ECC)</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="252"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="253"/>
         <source>Elliptic curves from the NIST standard, for places that require them.</source>
         <translation>Krzywe eliptyczne ze standardu NIST, dla miejsc, które ich wymagają.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="256"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="257"/>
         <source>Brainpool P-256 (EU Standard ECC)</source>
         <translation>Brainpool P-256 (ECC standard UE)</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="258"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="259"/>
         <source>Elliptic curves required by some European standards and authorities.</source>
         <translation>Krzywe eliptyczne wymagane przez niektóre europejskie standardy i organy.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="265"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="266"/>
         <source>Ed25519 / ML-KEM-768 + X25519 (PQC Encryption Hybrid)</source>
         <translation>Ed25519 / ML-KEM-768 + X25519 (hybrydowe szyfrowanie PQC)</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="268"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="269"/>
         <source>Messages to you stay safe even against future quantum computers. Needs a recent OpenPGP program on the sender&apos;s side.</source>
         <translation>Wiadomości do Ciebie pozostają bezpieczne nawet wobec przyszłych komputerów kwantowych. Wymaga aktualnego programu OpenPGP po stronie nadawcy.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="275"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="276"/>
         <source>Ed448 / ML-KEM-1024 + X448 (PQC Encryption Hybrid)</source>
         <translation>Ed448 / ML-KEM-1024 + X448 (hybrydowe szyfrowanie PQC)</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="278"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="279"/>
         <source>Quantum-resistant encryption at the highest level. Needs a recent OpenPGP program on the sender&apos;s side.</source>
         <translation>Szyfrowanie odporne na komputery kwantowe na najwyższym poziomie. Wymaga aktualnego programu OpenPGP po stronie nadawcy.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="286"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="287"/>
         <source>ML-DSA-65 + Ed25519 / ML-KEM-768 + X25519 (Full PQC Hybrid)</source>
         <translation>ML-DSA-65 + Ed25519 / ML-KEM-768 + X25519 (pełna hybryda PQC)</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="289"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="290"/>
         <source>Quantum-resistant signatures and encryption. Uses the new v6 key format, which few programs read yet.</source>
         <translation>Podpisy i szyfrowanie odporne na komputery kwantowe. Używa nowego formatu klucza v6, który czyta jeszcze niewiele programów.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="295"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="296"/>
         <source>ML-DSA-87 + Ed448 / ML-KEM-1024 + X448 (Full PQC Hybrid)</source>
         <translation>ML-DSA-87 + Ed448 / ML-KEM-1024 + X448 (pełna hybryda PQC)</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="298"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="299"/>
         <source>Quantum-resistant at the highest level. Uses the new v6 key format, which few programs read yet.</source>
         <translation>Odporność na komputery kwantowe na najwyższym poziomie. Używa nowego formatu klucza v6, który czyta jeszcze niewiele programów.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="302"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="303"/>
         <source>RSA-2048 (Legacy Compatibility)</source>
         <translation>RSA-2048 (zgodność ze starszymi systemami)</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="304"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="305"/>
         <source>Only for systems that accept nothing newer. Its safety margin is shrinking.</source>
         <translation>Tylko dla systemów, które nie akceptują niczego nowszego. Jego margines bezpieczeństwa się zmniejsza.</translation>
     </message>
@@ -2245,76 +2475,99 @@
         <translation>API %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="122"/>
+        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="135"/>
         <source>Version code</source>
         <translation>Kod wersji</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="124"/>
+        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="137"/>
         <source>Processor</source>
         <translation>Procesor</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="126"/>
+        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="139"/>
         <source>Needs at least</source>
         <translation>Wymaga co najmniej</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="129"/>
+        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="142"/>
         <source>Made for</source>
         <translation>Przeznaczono dla</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="131"/>
+        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="144"/>
         <source>NDK</source>
         <translation>NDK</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="136"/>
+        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="149"/>
         <source>Compiler</source>
         <translation>Kompilator</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="149"/>
+        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="162"/>
         <source>Unknown</source>
         <translation>Nieznany</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="152"/>
+        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="165"/>
         <source>Engine version</source>
         <translation>Wersja silnika</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="153"/>
+        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="166"/>
         <source>Rust compiler</source>
         <translation>Kompilator Rust</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="154"/>
+        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="167"/>
         <source>Target</source>
         <translation>Cel</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="155"/>
+        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="168"/>
         <source>Build profile</source>
         <translation>Profil kompilacji</translation>
     </message>
 </context>
 <context>
+    <name>GpgFrontend::Mobile::ErrorWording</name>
+    <message>
+        <location filename="../../../../src/mob/model/ErrorWording.cpp" line="49"/>
+        <source>Cancelled.</source>
+        <translation>Anulowano.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/ErrorWording.cpp" line="55"/>
+        <source>Incorrect passphrase. Please try again.</source>
+        <translation>Nieprawidłowe hasło. Proszę spróbować ponownie.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/ErrorWording.cpp" line="60"/>
+        <source>No passphrase was given. Please try again.</source>
+        <translation>Nie podano hasła. Proszę spróbować ponownie.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/ErrorWording.cpp" line="65"/>
+        <source>This cannot be used. Check what you entered and try again.</source>
+        <translation>Nie można tego użyć. Proszę sprawdzić wprowadzone dane i spróbować ponownie.</translation>
+    </message>
+</context>
+<context>
     <name>GpgFrontend::Mobile::FileWorkspace</name>
     <message>
-        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="872"/>
-        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="883"/>
+        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="911"/>
+        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="922"/>
         <source>The file could not be read.</source>
         <translation>Nie można odczytać pliku.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="892"/>
+        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="931"/>
         <source>The signed file is no longer in the list.</source>
         <translation>Podpisanego pliku nie ma już na liście.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="899"/>
+        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="938"/>
         <source>The signed file could not be read.</source>
         <translation>Nie można odczytać podpisanego pliku.</translation>
     </message>
@@ -2379,7 +2632,7 @@
     <message>
         <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="115"/>
         <source>This key database is gone.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ta baza kluczy już nie istnieje.</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="128"/>
@@ -2441,6 +2694,14 @@
         <location filename="../../../../src/mob/model/KeyGroupsController.cpp" line="155"/>
         <source>The group could not be renamed.</source>
         <translation>Nie udało się zmienić nazwy grupy.</translation>
+    </message>
+</context>
+<context>
+    <name>GpgFrontend::Mobile::KeyListController</name>
+    <message>
+        <location filename="../../../../src/mob/model/KeyListController.cpp" line="154"/>
+        <source>The keys took too long to load.</source>
+        <translation>Ładowanie kluczy trwało zbyt długo.</translation>
     </message>
 </context>
 <context>
@@ -2528,7 +2789,7 @@
 <context>
     <name>GpgFrontend::Mobile::StartupController</name>
     <message>
-        <location filename="../../../../src/mob/startup/StartupController.cpp" line="199"/>
+        <location filename="../../../../src/mob/startup/StartupController.cpp" line="201"/>
         <source>The OpenPGP engine could not start: %1</source>
         <translation>Nie można uruchomić silnika OpenPGP: %1</translation>
     </message>
@@ -2699,222 +2960,271 @@
         <translation>Preferowany klucz podpisujący</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="231"/>
         <source>Last operation</source>
-        <translation>Ostatnia operacja</translation>
+        <translation type="vanished">Ostatnia operacja</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="238"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="230"/>
+        <source>Encrypt &amp; Sign</source>
+        <translation>&amp;Szyfruj i podpisuj</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="232"/>
+        <source>Offer encrypting and signing in one operation.</source>
+        <translation>Oferuj szyfrowanie i podpisywanie w jednej operacji.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="240"/>
+        <source>Decrypt &amp; Verify</source>
+        <translation>&amp;Odszyfruj i weryfikuj</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="241"/>
+        <source>Offer decrypting and checking signatures in one operation.</source>
+        <translation>Oferuj odszyfrowanie i sprawdzanie podpisów w jednej operacji.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="250"/>
+        <source>Encrypt with a passphrase</source>
+        <translation>Szyfruj hasłem</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="252"/>
+        <source>Offer encrypting to a passphrase instead of to keys.</source>
+        <translation>Oferuj szyfrowanie hasłem zamiast kluczami.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="263"/>
+        <source>Encrypt button</source>
+        <translation>Przycisk Szyfruj</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="264"/>
+        <source>What the Encrypt button does.</source>
+        <translation>Co robi przycisk Szyfruj.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="272"/>
+        <source>Decrypt button</source>
+        <translation>Przycisk Odszyfruj</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="273"/>
+        <source>What the Decrypt button does.</source>
+        <translation>Co robi przycisk Odszyfruj.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="281"/>
         <source>Undoable operations</source>
         <translation>Operacje możliwe do cofnięcia</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="245"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="288"/>
         <source>Restore text editor pages</source>
         <translation>Przywracaj strony edytora tekstu</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="253"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="296"/>
         <source>Default workspace view</source>
         <translation>Domyślny widok obszaru roboczego</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="261"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="304"/>
         <source>File panel starting folder</source>
         <translation>Folder początkowy panelu plików</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="270"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="313"/>
         <source>Show the file type column</source>
         <translation>Pokaż kolumnę typu pliku</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="278"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="321"/>
         <source>Days before a key counts as expiring soon</source>
         <translation>Dni, po których klucz jest uznawany za wkrótce wygasający</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="286"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="329"/>
         <source>Fetch missing keys automatically</source>
         <translation>Automatycznie pobieraj brakujące klucze</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="295"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="338"/>
         <source>Which modules to load</source>
         <translation>Które moduły ładować</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="305"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="348"/>
         <source>Language</source>
         <translation>Język</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="313"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="356"/>
         <source>Theme</source>
         <translation>Motyw</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="321"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="364"/>
         <source>Show the first-run wizard</source>
         <translation>Pokaż kreatora pierwszego uruchomienia</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="331"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="374"/>
         <source>Log level</source>
         <translation>Poziom logowania</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="340"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="383"/>
         <source>Log lines kept in memory</source>
         <translation>Liczba wierszy logu w pamięci</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="351"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="394"/>
         <source>Secure level</source>
         <translation>Poziom bezpieczeństwa</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="359"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="402"/>
         <source>Application key protection</source>
         <translation>Ochrona klucza aplikacji</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="371"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="414"/>
         <source>System credential store (legacy)</source>
         <translation>Systemowy magazyn poświadczeń (przestarzały)</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="381"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="424"/>
         <source>Where profile files are opened</source>
         <translation>Gdzie otwierane są pliki profilu</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="391"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="434"/>
         <source>Never check for updates</source>
         <translation>Nigdy nie sprawdzaj aktualizacji</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="398"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="441"/>
         <source>Use a proxy</source>
         <translation>Użyj serwera proxy</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="404"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="447"/>
         <source>Proxy type</source>
         <translation>Typ proxy</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="410"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="453"/>
         <source>Proxy host</source>
         <translation>Host proxy</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="416"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="459"/>
         <source>Proxy port</source>
         <translation>Port proxy</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="422"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="465"/>
         <source>Proxy user name</source>
         <translation>Nazwa użytkownika proxy</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="429"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="472"/>
         <source>Proxy password</source>
         <translation>Hasło proxy</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="438"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="481"/>
         <source>Workspace folder</source>
         <translation>Folder obszaru roboczego</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="559"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="612"/>
         <source>OpenPGP engine and GnuPG</source>
         <translation>Silnik OpenPGP i GnuPG</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="562"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="615"/>
         <source>rPGP passphrase handling</source>
         <translation>Obsługa haseł rPGP</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="565"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="618"/>
         <source>Everyday behaviour</source>
         <translation>Codzienne działanie</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="568"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="621"/>
         <source>Language and appearance</source>
         <translation>Język i wygląd</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="571"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="624"/>
         <source>Diagnostics</source>
         <translation>Diagnostyka</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="574"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="627"/>
         <source>Key protection</source>
         <translation>Ochrona kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="577"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="630"/>
         <source>Network and proxy</source>
         <translation>Sieć i serwer proxy</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="580"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="633"/>
         <source>Workspace</source>
         <translation>Obszar roboczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="583"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="636"/>
         <source>Remembered layout</source>
         <translation>Zapamiętany układ</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="594"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="647"/>
         <source>Which engine runs, which GnuPG it uses, and how GnuPG behaves.</source>
         <translation>Który mechanizm działa, którego GnuPG używa i jak zachowuje się GnuPG.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="598"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="651"/>
         <source>How long passphrases are kept and how keys are derived.</source>
         <translation>Jak długo przechowywane są hasła i jak wyprowadzane są klucze.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="602"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="655"/>
         <source>Confirmations, recipients, the editor and the file panel.</source>
         <translation>Potwierdzenia, odbiorcy, edytor i panel plików.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="606"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="659"/>
         <source>Language, theme and the first-run wizard.</source>
         <translation>Język, motyw i kreator pierwszego uruchomienia.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="610"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="663"/>
         <source>How much is written to the log.</source>
         <translation>Ile jest zapisywane w dzienniku.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="613"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="666"/>
         <source>How this profile&apos;s own key is protected.</source>
         <translation>Jak chroniony jest własny klucz tego profilu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="617"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="670"/>
         <source>Update checks and the proxy.</source>
         <translation>Sprawdzanie aktualizacji i serwer proxy.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="620"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="673"/>
         <source>Where files are kept.</source>
         <translation>Gdzie przechowywane są pliki.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="623"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="676"/>
         <source>Remembered tab orders and column choices.</source>
         <translation>Zapamiętana kolejność kart i wybór kolumn.</translation>
     </message>
@@ -3244,29 +3554,29 @@ Czy chcesz kontynuować?</translation>
 <context>
     <name>GpgFrontend::UI::AboutDialog</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="194"/>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="204"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="175"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="185"/>
         <source>About</source>
         <translation>O programie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="205"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="186"/>
         <source>Build Information</source>
         <translation>Informacje o kompilacji</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="207"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="770"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="188"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="771"/>
         <source>Status</source>
         <translation>Status</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="210"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="191"/>
         <source>Rust Engine</source>
         <translation>Silnik Rust</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="206"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="187"/>
         <source>Translators</source>
         <translation>Tłumacze</translation>
     </message>
@@ -3856,62 +4166,62 @@ Czy chcesz kontynuować?</translation>
 <context>
     <name>GpgFrontend::UI::BuildInfoTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="351"/>
+        <location filename="../../../../src/core/utils/BuildInfoUtils.cpp" line="137"/>
         <source>GpgFrontend:</source>
         <translation>GpgFrontend:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="352"/>
+        <location filename="../../../../src/core/utils/BuildInfoUtils.cpp" line="139"/>
         <source>Qt:</source>
         <translation>Qt:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="353"/>
+        <location filename="../../../../src/core/utils/BuildInfoUtils.cpp" line="141"/>
         <source>GPGME:</source>
         <translation>GPGME:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="354"/>
+        <location filename="../../../../src/core/utils/BuildInfoUtils.cpp" line="143"/>
         <source>Assuan:</source>
         <translation>Assuan:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="355"/>
+        <location filename="../../../../src/core/utils/BuildInfoUtils.cpp" line="145"/>
         <source>Libarchive:</source>
         <translation>Libarchive:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="356"/>
+        <location filename="../../../../src/core/utils/BuildInfoUtils.cpp" line="147"/>
         <source>OpenSSL:</source>
         <translation>OpenSSL:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="357"/>
+        <location filename="../../../../src/core/utils/BuildInfoUtils.cpp" line="149"/>
         <source>Sodium:</source>
         <translation>Sodium:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="358"/>
+        <location filename="../../../../src/core/utils/BuildInfoUtils.cpp" line="151"/>
         <source>Git Branch:</source>
         <translation>Gałąź Git:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="359"/>
+        <location filename="../../../../src/core/utils/BuildInfoUtils.cpp" line="153"/>
         <source>Git Commit:</source>
         <translation>Commit Git:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="360"/>
+        <location filename="../../../../src/core/utils/BuildInfoUtils.cpp" line="155"/>
         <source>Built at:</source>
         <translation>Zbudowano:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="364"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="338"/>
         <source>Copy Build Information</source>
         <translation>Skopiuj informacje o kompilacji</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="371"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="345"/>
         <source>Build Information</source>
         <translation>Informacje o kompilacji</translation>
     </message>
@@ -6951,67 +7261,67 @@ Wyniki pojawią się tutaj jako podsumowanie.</translation>
 <context>
     <name>GpgFrontend::UI::InfoTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="282"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="263"/>
         <source>Developer</source>
         <translation>Deweloper</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="260"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="241"/>
         <source>A user-friendly OpenPGP tool for encryption, signing, and key management.</source>
         <translation>Przyjazne dla użytkownika narzędzie OpenPGP do szyfrowania, podpisywania i zarządzania kluczami.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="278"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="259"/>
         <source>Developed and maintained by Saturneric.</source>
         <translation>Tworzone i utrzymywane przez Saturneric.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="279"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="260"/>
         <source>Report an issue on GitHub</source>
         <translation>Zgłoś problem na GitHubie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="279"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="260"/>
         <source>About and contact information</source>
         <translation>Informacje o programie i kontakt</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="288"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="269"/>
         <source>Website:</source>
         <translation>Strona internetowa:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="291"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="272"/>
         <source>Documentation:</source>
         <translation>Dokumentacja:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="292"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="273"/>
         <source>User guides and overview</source>
         <translation>Przewodniki użytkownika i przegląd</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="294"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="275"/>
         <source>Source code:</source>
         <translation>Kod źródłowy:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="297"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="278"/>
         <source>Release notes:</source>
         <translation>Informacje o wydaniu:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="298"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="279"/>
         <source>Changelog and downloads</source>
         <translation>Dziennik zmian i pliki do pobrania</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="302"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="283"/>
         <source>Resources</source>
         <translation>Zasoby</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="309"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="290"/>
         <source>GpgFrontend is free software, licensed under &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GPL-3.0-or-later&lt;/a&gt;.</source>
         <translation>GpgFrontend jest wolnym oprogramowaniem na licencji &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GPL-3.0-or-later&lt;/a&gt;.</translation>
     </message>
@@ -7378,112 +7688,112 @@ Wyniki pojawią się tutaj jako podsumowanie.</translation>
 <context>
     <name>GpgFrontend::UI::KeyCategoryRules</name>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="248"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="250"/>
         <source>The name is too long.</source>
         <translation>Nazwa jest zbyt długa.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="252"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="254"/>
         <source>A category with this name already exists.</source>
         <translation>Kategoria o tej nazwie już istnieje.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="267"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="269"/>
         <source>Red</source>
         <translation>Czerwony</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="268"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="270"/>
         <source>Orange</source>
         <translation>Pomarańczowy</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="270"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="272"/>
         <source>Amber</source>
         <translation>Bursztynowy</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="272"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="274"/>
         <source>Yellow</source>
         <translation>Żółty</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="274"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="276"/>
         <source>Lime</source>
         <translation>Limonkowy</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="276"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="278"/>
         <source>Green</source>
         <translation>Zielony</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="278"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="280"/>
         <source>Emerald</source>
         <translation>Szmaragdowy</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="280"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="282"/>
         <source>Teal</source>
         <translation>Morski</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="282"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="284"/>
         <source>Cyan</source>
         <translation>Cyjan</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="285"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="287"/>
         <source>Sky</source>
         <translation>Błękitny</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="286"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="288"/>
         <source>Blue</source>
         <translation>Niebieski</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="288"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="290"/>
         <source>Indigo</source>
         <translation>Indygo</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="290"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="292"/>
         <source>Violet</source>
         <translation>Fioletowy</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="292"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="294"/>
         <source>Purple</source>
         <translation>Purpurowy</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="294"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="296"/>
         <source>Fuchsia</source>
         <translation>Fuksja</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="296"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="298"/>
         <source>Pink</source>
         <translation>Różowy</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="298"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="300"/>
         <source>Rose</source>
         <translation>Różany</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="300"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="302"/>
         <source>Brown</source>
         <translation>Brązowy</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="302"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="304"/>
         <source>Navy</source>
         <translation>Granatowy</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="304"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="306"/>
         <source>Stone</source>
         <translation>Kamienny</translation>
     </message>
@@ -7521,97 +7831,97 @@ Wyniki pojawią się tutaj jako podsumowanie.</translation>
         <translation>np. Klucze osobiste</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="159"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="160"/>
         <source>Open Directory</source>
         <translation>Otwórz katalog</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="171"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="172"/>
         <source>Illegal GnuPG Key Database Path</source>
         <translation>Nieprawidłowa ścieżka bazy kluczy GnuPG</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="172"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="173"/>
         <source>Target GnuPG Key Database Path is not an exists readable directory.</source>
         <translation>Docelowa ścieżka bazy kluczy GnuPG nie jest istniejącym, odczytywalnym katalogiem.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="228"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="229"/>
         <source>Add Key Database</source>
         <translation>Dodaj bazę kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="229"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="230"/>
         <source>New key database in your profile</source>
         <translation>Nowa baza kluczy w Twoim profilu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="231"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="232"/>
         <source>GpgFrontend picks the folder and keeps it inside your profile, so this key database travels with it. Just choose a name.</source>
         <translation>GpgFrontend sam wybiera folder i przechowuje go wewnątrz Twojego profilu, więc ta baza kluczy podróżuje razem z nim. Podaj tylko nazwę.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="236"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="237"/>
         <source>Rename Key Database</source>
         <translation>Zmień nazwę bazy kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="237"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="238"/>
         <source>Rename this key database</source>
         <translation>Zmień nazwę tej bazy kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="238"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="239"/>
         <source>The folder it is kept in is named after it, and is renamed too.</source>
         <translation>Folder, w którym jest przechowywana, nosi jej nazwę, więc również zostanie przemianowany.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="243"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="244"/>
         <source>Add Key Database On This Computer</source>
         <translation>Dodaj bazę kluczy na tym komputerze</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="244"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="245"/>
         <source>New key database on this computer</source>
         <translation>Nowa baza kluczy na tym komputerze</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="246"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="247"/>
         <source>Choose a folder yourself. A key database outside your profile belongs to this computer alone, and a profile package never carries it.</source>
         <translation>Wybierz folder samodzielnie. Baza kluczy poza Twoim profilem należy wyłącznie do tego komputera i pakiet profilu nigdy jej nie przenosi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="252"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="253"/>
         <source>Edit Key Database</source>
         <translation>Edytuj bazę kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="253"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="254"/>
         <source>Key database on this computer</source>
         <translation>Baza kluczy na tym komputerze</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="255"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="256"/>
         <source>This key database belongs to this computer alone, and a profile package never carries it.</source>
         <translation>Ta baza kluczy należy wyłącznie do tego komputera i pakiet profilu nigdy jej nie przenosi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="305"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="296"/>
         <source>Choose a name first</source>
         <translation>Najpierw wybierz nazwę</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="306"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="297"/>
         <source>No folder chosen yet</source>
         <translation>Nie wybrano jeszcze folderu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="353"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="344"/>
         <source>The key database name cannot be empty.</source>
         <translation>Nazwa bazy kluczy nie może być pusta.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="362"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="353"/>
         <source>&quot;%1&quot; is reserved for the Built-in Key Database. Turn that one on in its section of the Key Databases settings, or pick another name.</source>
         <translation>„%1” jest zarezerwowana dla wbudowanej bazy kluczy. Włącz ją w jej sekcji ustawień baz kluczy albo wybierz inną nazwę.</translation>
     </message>
@@ -7620,12 +7930,12 @@ Wyniki pojawią się tutaj jako podsumowanie.</translation>
         <translation type="vanished">„%1” to nazwa bazy kluczy, którą GpgFrontend wyznacza na podstawie Twojego silnika OpenPGP. Włącz ją, zaznaczając odpowiednie pole w ustawieniach baz kluczy, albo wybierz inną nazwę.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="370"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="361"/>
         <source>The key database path cannot be empty.</source>
         <translation>Ścieżka bazy kluczy nie może być pusta.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="381"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="372"/>
         <source>A key database with the name &apos;%1&apos; already exists. Please choose a different name.</source>
         <translation>Baza kluczy o nazwie „%1” już istnieje. Wybierz inną nazwę.</translation>
     </message>
@@ -7633,71 +7943,71 @@ Wyniki pojawią się tutaj jako podsumowanie.</translation>
 <context>
     <name>GpgFrontend::UI::KeyDatabasesTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="524"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="520"/>
         <source>Unreadable Key Database Settings</source>
         <translation>Nieodczytywalne ustawienia baz kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="525"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="521"/>
         <source>Your saved key database list exists but could not be read. This usually means it was written by another installation, or with a different application key.</source>
         <translation>Twoja zapisana lista baz kluczy istnieje, ale nie udało się jej odczytać. Zwykle oznacza to, że została zapisana przez inną instalację lub przy użyciu innego klucza aplikacji.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="529"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="525"/>
         <source>Saving now replaces it with the list shown here. The previous list cannot be recovered afterwards.</source>
         <translation>Zapisanie teraz zastąpi ją listą pokazaną tutaj. Poprzedniej listy nie będzie można później odzyskać.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="845"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1405"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="841"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1401"/>
         <source>Remove Reference</source>
         <translation>Usuń odwołanie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="847"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="843"/>
         <source>Forget this key database. Its folder is left as it is.</source>
         <translation>Zapomnij o tej bazie kluczy. Jej folder pozostanie bez zmian.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="849"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1398"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="845"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1394"/>
         <source>Move to Recycle Bin</source>
         <translation>Przenieś do kosza</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="851"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="847"/>
         <source>Remove this key database from the list. Its folder and keys stay in the Recycle Bin.</source>
         <translation>Usuń tę bazę kluczy z listy. Jej folder i klucze pozostaną w koszu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1095"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1091"/>
         <source>No Key Database Selected</source>
         <translation>Nie wybrano bazy kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1096"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1092"/>
         <source>Please select a key database to edit.</source>
         <translation>Wybierz bazę kluczy do edycji.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1049"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1180"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1278"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1344"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1714"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1045"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1176"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1274"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1340"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1710"/>
         <source>Duplicate Key Database Paths</source>
         <translation>Zduplikowane ścieżki baz kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1181"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1177"/>
         <source>The edited key database path duplicates a previously existing one.</source>
         <translation>Edytowana ścieżka bazy kluczy duplikuje już istniejącą.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1172"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1267"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1336"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1707"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1168"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1263"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1332"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1703"/>
         <source>Invalid Key Database Paths</source>
         <translation>Nieprawidłowe ścieżki baz kluczy</translation>
     </message>
@@ -7706,12 +8016,12 @@ Wyniki pojawią się tutaj jako podsumowanie.</translation>
         <translation type="vanished">Użyj domyślnej bazy kluczy tego komputera</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="353"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="349"/>
         <source>Add Key Database</source>
         <translation>Dodaj bazę kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="355"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="351"/>
         <source>Add Key Database On This Computer</source>
         <translation>Dodaj bazę kluczy na tym komputerze</translation>
     </message>
@@ -7728,68 +8038,68 @@ Wyniki pojawią się tutaj jako podsumowanie.</translation>
         <translation type="vanished">Zawsze jako kanał 0. Nigdy nie jest uwzględniana w pakiecie profilu: kto otworzy Twój profil gdzie indziej, dostanie własną.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="957"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="953"/>
         <source>This folder could not be resolved on this computer.</source>
         <translation>Nie udało się ustalić tego folderu na tym komputerze.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="986"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="982"/>
         <source>No key databases of your own yet. One you add here is kept inside your profile and travels with it.</source>
         <translation>Nie masz jeszcze własnych baz kluczy. Baza dodana tutaj jest przechowywana wewnątrz Twojego profilu i podróżuje razem z nim.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="988"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="984"/>
         <source>Kept inside your profile, and carried by a profile package.</source>
         <translation>Przechowywana wewnątrz Twojego profilu i przenoszona przez pakiet profilu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="996"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="992"/>
         <source>Nothing here yet. A key database you add on this tab stays on this computer: a profile package never carries it, and it is always opened after the ones inside your profile.</source>
         <translation>Nic tu jeszcze nie ma. Baza kluczy dodana na tej karcie pozostaje na tym komputerze: pakiet profilu nigdy jej nie przenosi, a otwierana jest zawsze po bazach znajdujących się w Twoim profilu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="999"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="995"/>
         <source>Key databases outside your profile. They belong to this computer alone: a profile package never carries them, and they are always opened after the ones inside your profile.</source>
         <translation>Bazy kluczy poza Twoim profilem. Należą wyłącznie do tego komputera: pakiet profilu nigdy ich nie przenosi, a otwierane są zawsze po bazach znajdujących się w Twoim profilu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1027"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1223"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1316"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1659"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1023"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1219"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1312"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1655"/>
         <source>Currently, GpgFrontend supports a maximum of %1 key databases. Please remove an existing database to add a new one.</source>
         <translation>Obecnie GpgFrontend obsługuje maksymalnie %1 baz kluczy. Usuń istniejącą bazę, aby dodać nową.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1050"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1046"/>
         <source>A key database on this page already uses this computer&apos;s default key database folder. Remove it first, then turn this on.</source>
         <translation>Baza kluczy na tej stronie używa już domyślnego folderu bazy kluczy tego komputera. Najpierw ją usuń, a następnie włącz tę opcję.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1073"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1385"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1069"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1381"/>
         <source>Key Database Required</source>
         <translation>Wymagana baza kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1074"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1070"/>
         <source>GpgFrontend needs at least one key database. Add another one first, then turn this off.</source>
         <translation>GpgFrontend potrzebuje co najmniej jednej bazy kluczy. Najpierw dodaj inną, a dopiero potem wyłącz tę opcję.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1141"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1150"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1244"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1137"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1146"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1240"/>
         <source>Key Database Folder Already Exists</source>
         <translation>Folder bazy kluczy już istnieje</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1142"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1138"/>
         <source>A folder named &quot;%1&quot; is in the Recycle Bin. Restore it or delete it permanently, or choose another name.</source>
         <translation>Folder o nazwie &quot;%1&quot; znajduje się w koszu. Przywróć go lub usuń trwale albo wybierz inną nazwę.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1151"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1147"/>
         <source>A folder named after &apos;%1&apos; is already there. Its contents are not ours to replace, so choose another name.</source>
         <translation>Folder o nazwie „%1” już tam istnieje. Nie możemy zastąpić jego zawartości, więc wybierz inną nazwę.</translation>
     </message>
@@ -7802,30 +8112,30 @@ Wyniki pojawią się tutaj jako podsumowanie.</translation>
         <translation type="vanished">GpgFrontend nie mógł zmienić nazwy folderu, w którym przechowywana jest ta baza kluczy. Może on być nadal w użyciu; spróbuj ponownie po ponownym uruchomieniu GpgFrontend.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1173"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1268"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1337"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1708"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1169"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1264"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1333"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1704"/>
         <source>The edited key database path is not a valid path that GpgFrontend can use</source>
         <translation>Edytowana ścieżka bazy kluczy nie jest prawidłową ścieżką, której GpgFrontend może użyć</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1026"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1222"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1315"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1658"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1022"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1218"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1311"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1654"/>
         <source>Maximum Key Database Limit Reached</source>
         <translation>Osiągnięto limit baz kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1245"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1241"/>
         <source>A folder named &quot;%1&quot; already exists. It is in the Recycle Bin: restore it, or delete it permanently before adding a new one.</source>
         <translation>Folder o nazwie &quot;%1&quot; już istnieje. Znajduje się w koszu: przywróć go lub usuń trwale przed dodaniem nowego.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1279"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1345"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1715"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1275"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1341"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1711"/>
         <source>The newly added key database path duplicates a previously existing one.</source>
         <translation>Nowo dodana ścieżka bazy kluczy duplikuje już istniejącą.</translation>
     </message>
@@ -7834,21 +8144,21 @@ Wyniki pojawią się tutaj jako podsumowanie.</translation>
         <translation type="vanished">Nieprawidłowa ścieżka bazy kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="232"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="794"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="228"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="790"/>
         <source>Used when an operation does not explicitly select a key database.</source>
         <translation>Używana, gdy operacja nie wskazuje jawnie bazy kluczy.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="234"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="316"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="358"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="230"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="312"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="354"/>
         <source>Use as Default</source>
         <translation>Użyj jako domyślnej</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="236"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="264"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="232"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="260"/>
         <source>Copy Folder Path</source>
         <translation>Kopiuj ścieżkę folderu</translation>
     </message>
@@ -7877,24 +8187,24 @@ Wyniki pojawią się tutaj jako podsumowanie.</translation>
         <translation type="vanished">Przenieś tę bazę kluczy na początek listy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="238"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="261"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="234"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="257"/>
         <source>Open</source>
         <translation>Otwórz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="240"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="263"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="236"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="259"/>
         <source>Open this key database&apos;s folder in the file manager</source>
         <translation>Otwórz folder tej bazy kluczy w menedżerze plików</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="241"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="237"/>
         <source>Edit</source>
         <translation>Edytuj</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="242"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="238"/>
         <source>Edit this key database</source>
         <translation>Edytuj tę bazę kluczy</translation>
     </message>
@@ -7907,130 +8217,130 @@ Wyniki pojawią się tutaj jako podsumowanie.</translation>
         <translation type="vanished">Usuń tę bazę kluczy z listy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="281"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="277"/>
         <source>Built-in Key Database</source>
         <translation>Wbudowana baza kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="283"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="279"/>
         <source>Key engine:</source>
         <translation>Silnik kluczy:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="289"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="285"/>
         <source>Key engine for the built-in database</source>
         <translation>Silnik kluczy dla wbudowanej bazy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="293"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="289"/>
         <source>Applies only to the built-in database. Other databases always open with their own engine.</source>
         <translation>Dotyczy tylko wbudowanej bazy. Pozostałe bazy są otwierane z własnym silnikiem.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="297"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="293"/>
         <source>Location:</source>
         <translation>Lokalizacja:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="302"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="298"/>
         <source>Built-in key database location</source>
         <translation>Lokalizacja wbudowanej bazy kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="304"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="300"/>
         <source>Copy</source>
         <translation>Kopiuj</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="305"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="301"/>
         <source>Copy the full path</source>
         <translation>Kopiuj pełną ścieżkę</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="307"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="303"/>
         <source>Copy the built-in key database location</source>
         <translation>Kopiuj lokalizację wbudowanej bazy kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="313"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="813"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="309"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="809"/>
         <source>Default</source>
         <translation>Domyślna</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="319"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="315"/>
         <source>Use the built-in key database as default</source>
         <translation>Użyj wbudowanej bazy kluczy jako domyślnej</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="323"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="319"/>
         <source>In Profile</source>
         <translation>W profilu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="325"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="321"/>
         <source>Local Only</source>
         <translation>Tylko lokalne</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="327"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="323"/>
         <source>Recycle Bin</source>
         <translation>Kosz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="333"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="329"/>
         <source>Key databases kept inside your profile</source>
         <translation>Bazy kluczy przechowywane w Twoim profilu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="336"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="332"/>
         <source>Key databases removed from In Profile, with their keys still on this computer</source>
         <translation>Bazy kluczy usunięte z sekcji W profilu, których klucze nadal znajdują się na tym komputerze</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="340"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="336"/>
         <source>Key databases outside your profile. They never go to the Recycle Bin.</source>
         <translation>Bazy kluczy poza Twoim profilem. Nigdy nie trafiają do kosza.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="344"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="340"/>
         <source>These folders are no longer referenced by the current configuration. Their keys are still stored on this computer.</source>
         <translation>Bieżąca konfiguracja nie odwołuje się już do tych folderów. Ich klucze nadal są przechowywane na tym komputerze.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="346"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="342"/>
         <source>Restore</source>
         <translation>Przywróć</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="348"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="344"/>
         <source>Add this key database back to In Profile</source>
         <translation>Dodaj tę bazę kluczy z powrotem do „W profilu”</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="349"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1750"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1762"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="345"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1746"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1758"/>
         <source>Delete Permanently</source>
         <translation>Usuń trwale</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="351"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="347"/>
         <source>Delete this folder and every key in it, now</source>
         <translation>Usuń teraz ten folder i wszystkie znajdujące się w nim klucze</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="360"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="356"/>
         <source>Use the selected key database as default</source>
         <translation>Użyj wybranej bazy kluczy jako domyślnej</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="364"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="360"/>
         <source>Smart cards stay with the previous default database until GpgFrontend restarts. To move them sooner, apply this change, then use &quot;Restart All Gpg-Agents&quot; in the Smart Card Controller.</source>
         <translation>Karty inteligentne pozostają przy poprzedniej domyślnej bazie kluczy do czasu ponownego uruchomienia GpgFrontend. Aby przenieść je wcześniej, zastosuj tę zmianę, a następnie użyj opcji „Uruchom ponownie wszystkie agenty Gpg” w kontrolerze kart inteligentnych.</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="688"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="684"/>
         <source>%1: %n operation(s)</source>
         <translation>
             <numerusform>%1: %n operacji</numerusform>
@@ -8039,130 +8349,130 @@ Wyniki pojawią się tutaj jako podsumowanie.</translation>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="730"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="726"/>
         <source>The OpenPGP engine on this computer does not report a key database, so there is no built-in one to use.</source>
         <translation>Silnik OpenPGP na tym komputerze nie zgłasza bazy kluczy, więc nie ma wbudowanej bazy do użycia.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="742"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="738"/>
         <source>Always available on this computer, and always listed first.</source>
         <translation>Zawsze dostępna na tym komputerze i zawsze wyświetlana jako pierwsza.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="743"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="739"/>
         <source>Always listed first. Never included in a profile package: whoever opens your profile elsewhere gets their own.</source>
         <translation>Zawsze wymieniana jako pierwsza. Nigdy nie jest częścią pakietu profilu: kto otworzy Twój profil gdzie indziej, otrzyma własną.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="757"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="753"/>
         <source>No engine in this build can open it.</source>
         <translation>Żaden silnik w tej kompilacji nie może jej otworzyć.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1399"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1395"/>
         <source>Remove &quot;%1&quot; from your key databases when you apply? Its folder and keys stay on this computer, in the Recycle Bin, where you can restore it.</source>
         <translation>Usunąć „%1” z Twoich baz kluczy po zastosowaniu? Jej folder i klucze pozostaną na tym komputerze, w Koszu, skąd możesz ją przywrócić.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1406"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1402"/>
         <source>Remove the reference to &quot;%1&quot; when you apply? Only the reference goes: its folder is not deleted, and does not go to the Recycle Bin.</source>
         <translation>Usunąć odwołanie do „%1” po zastosowaniu? Usuwane jest tylko odwołanie: jej folder nie zostanie usunięty i nie trafi do Kosza.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1599"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1595"/>
         <source>Removed from your key databases, and moved here when you press OK. Restore keeps it where it was.</source>
         <translation>Usunięta z Twoich baz kluczy i przeniesiona tutaj po naciśnięciu OK. Przywrócenie pozostawia ją tam, gdzie była.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1605"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1601"/>
         <source>Unknown</source>
         <translation>Nieznana</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1610"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1606"/>
         <source>Neither engine&apos;s files are in this folder. You are asked which engine to open it with when you restore it.</source>
         <translation>W tym folderze nie ma plików żadnego z silników. Podczas przywracania zostaniesz zapytany, którym silnikiem go otworzyć.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1648"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1644"/>
         <source>Key Database Name Taken</source>
         <translation>Nazwa bazy kluczy jest zajęta</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1649"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1645"/>
         <source>A key database named &quot;%1&quot; is already in the list. Rename or remove that one first, then restore this folder.</source>
         <translation>Baza kluczy o nazwie „%1” już znajduje się na liście. Najpierw zmień jej nazwę lub usuń ją, a następnie przywróć ten folder.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1684"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1680"/>
         <source>Choose an Engine</source>
         <translation>Wybierz silnik</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1685"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1681"/>
         <source>GpgFrontend cannot tell which engine wrote &quot;%1&quot;. Open it with:</source>
         <translation>GpgFrontend nie potrafi ustalić, który silnik utworzył „%1”. Otwórz go za pomocą:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1697"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1693"/>
         <source>Engine Not Available</source>
         <translation>Silnik niedostępny</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1698"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1694"/>
         <source>&quot;%1&quot; was written by %2, which this build of GpgFrontend cannot open.</source>
         <translation>&quot;%1&quot; została zapisana przez %2, którego ta kompilacja GpgFrontend nie może otworzyć.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1751"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1747"/>
         <source>Delete &quot;%1&quot; and everything in it?</source>
         <translation>Usunąć &quot;%1&quot; i wszystko, co się w nim znajduje?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1754"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1750"/>
         <source>All keys in this folder, including secret keys, are deleted immediately. This cannot be undone, and Cancel in Settings does not bring them back.</source>
         <translation>Wszystkie klucze w tym folderze, w tym klucze prywatne, są natychmiast usuwane. Tej operacji nie można cofnąć, a przycisk Anuluj w Ustawieniach ich nie przywróci.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1757"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1753"/>
         <source>It is removed from your key databases now, without waiting for OK.</source>
         <translation>Jest teraz usuwana z Twoich baz kluczy, bez czekania na naciśnięcie OK.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1776"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1772"/>
         <source>Your saved key database list could not be read. Press OK in Settings first, then delete &quot;%1&quot; from the Recycle Bin.</source>
         <translation>Nie można odczytać zapisanej listy Twoich baz kluczy. Najpierw naciśnij OK w Ustawieniach, a następnie usuń „%1” z Kosza.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1792"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1788"/>
         <source>Deleting Key Database Folder</source>
         <translation>Usuwanie folderu bazy kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1828"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1824"/>
         <source>The current configuration still refers to this folder.</source>
         <translation>Bieżąca konfiguracja nadal odwołuje się do tego folderu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1858"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1854"/>
         <source>Key database folder deleted.</source>
         <translation>Folder bazy kluczy został usunięty.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1775"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1826"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1862"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1771"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1822"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1858"/>
         <source>Folder Not Deleted</source>
         <translation>Folder nie został usunięty</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1863"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1859"/>
         <source>&quot;%1&quot; was only partly deleted.</source>
         <translation>&quot;%1&quot; został usunięty tylko częściowo.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1827"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1864"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1823"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1860"/>
         <source>&quot;%1&quot; was not deleted.</source>
         <translation>&quot;%1&quot; nie został usunięty.</translation>
     </message>
@@ -8171,17 +8481,17 @@ Wyniki pojawią się tutaj jako podsumowanie.</translation>
         <translation type="vanished">Podana ścieżka bazy kluczy wskazuje na istniejący plik. Podaj ścieżkę, która nie istnieje lub wskazuje na katalog.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1253"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1249"/>
         <source>Failed to Create Key Database Directory</source>
         <translation>Nie udało się utworzyć katalogu bazy kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1254"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1250"/>
         <source>GpgFrontend failed to create a directory at the specified key database path. Please check the path and your permissions.</source>
         <translation>GpgFrontend nie mógł utworzyć katalogu pod podaną ścieżką bazy kluczy. Sprawdź ścieżkę i swoje uprawnienia.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1386"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1382"/>
         <source>GpgFrontend needs at least one key database, so the last one cannot be removed.</source>
         <translation>GpgFrontend potrzebuje co najmniej jednej bazy kluczy, więc nie można usunąć ostatniej.</translation>
     </message>
@@ -9410,72 +9720,72 @@ Te klucze nie są już dostępne. Czy chcesz usunąć je z grupy?</translation>
 <context>
     <name>GpgFrontend::UI::KeyGroupMetadataRules</name>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="68"/>
+        <location filename="../../../../src/core/function/openpgp/KeyGroupRepository.cpp" line="73"/>
         <source>Name must contain at least five characters.</source>
         <translation>Nazwa musi zawierać co najmniej pięć znaków.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="73"/>
+        <location filename="../../../../src/core/function/openpgp/KeyGroupRepository.cpp" line="78"/>
         <source>Email does not look like an address. Leave it empty if the group has none.</source>
         <translation>E-mail nie wygląda na adres. Zostaw puste, jeśli grupa go nie ma.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="85"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="40"/>
         <source>This group is empty.</source>
         <translation>Ta grupa jest pusta.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="95"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="50"/>
         <source>1 key</source>
         <translation>1 klucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="97"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="52"/>
         <source>%1 keys</source>
         <translation>kluczy: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="102"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="57"/>
         <source>1 nested group</source>
         <translation>1 grupa zagnieżdżona</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="105"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="60"/>
         <source>%1 nested groups</source>
         <translation>grup zagnieżdżonych: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="111"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="66"/>
         <source> and </source>
         <translation> i </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="115"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="70"/>
         <source>Contains %1.</source>
         <translation>Zawiera %1.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="121"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="76"/>
         <source>1 member is no longer in your keyring.</source>
         <translation>1 członek nie znajduje się już w Twojej bazie kluczy.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="124"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="79"/>
         <source>%1 members are no longer in your keyring.</source>
         <translation>%1 członków nie znajduje się już w Twojej bazie kluczy.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="137"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="92"/>
         <source>1 checked key will be added to this group.</source>
         <translation>1 zaznaczony klucz zostanie dodany do tej grupy.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="140"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="95"/>
         <source>%1 checked keys will be added to this group.</source>
         <translation>Do tej grupy zostanie dodanych zaznaczonych kluczy: %1.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="148"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="103"/>
         <source>Delete the key group &quot;%1&quot;?
 
 The group is removed. The keys in it are not touched and stay in your keyring.</source>
@@ -9484,7 +9794,7 @@ The group is removed. The keys in it are not touched and stay in your keyring.</
 Grupa zostanie usunięta. Zawarte w niej klucze nie zostaną zmienione i pozostaną w Twojej bazie kluczy.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="156"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="111"/>
         <source>It is also a member of: %1. Those groups will lose it.</source>
         <translation>Jest ona również członkiem: %1. Tamte grupy ją stracą.</translation>
     </message>
@@ -9633,12 +9943,12 @@ Grupa zostanie usunięta. Zawarte w niej klucze nie zostaną zmienione i pozosta
 <context>
     <name>GpgFrontend::UI::KeyList</name>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="671"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="641"/>
         <source>Refresh</source>
         <translation>Odśwież</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="673"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="643"/>
         <source>Refresh the key list to synchronize changes.</source>
         <translation>Odśwież listę kluczy, aby zsynchronizować zmiany.</translation>
     </message>
@@ -9647,48 +9957,48 @@ Grupa zostanie usunięta. Zawarte w niej klucze nie zostaną zmienione i pozosta
         <translation type="vanished">Synchronizuj klucz publiczny</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="835"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="805"/>
         <source>Key ID</source>
         <translation>Identyfikator klucza</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="845"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="815"/>
         <source>Subkeys</source>
         <translation>Podklucze</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="853"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="823"/>
         <source>No optional columns</source>
         <translation>Brak kolumn opcjonalnych</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1534"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1504"/>
         <source>Edit Category...</source>
         <translation>Edytuj kategorię...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1643"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1613"/>
         <source>Refreshing Key List...</source>
         <translation>Odświeżanie listy kluczy...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1722"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1692"/>
         <source>Import Keys</source>
         <translation>Importuj klucze</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1648"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1618"/>
         <source>Key List Refreshed.</source>
         <translation>Listę kluczy odświeżono.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="837"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="807"/>
         <source>Algorithm</source>
         <translation>Algorytm</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="400"/>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1513"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1483"/>
         <source>New Category...</source>
         <translation>Nowa kategoria...</translation>
     </message>
@@ -9697,48 +10007,48 @@ Grupa zostanie usunięta. Zawarte w niej klucze nie zostaną zmienione i pozosta
         <translation type="vanished">Zsynchronizuj klucze publiczne z serwerem kluczy ustawionym jako domyślny.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="675"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="645"/>
         <source>Uncheck All</source>
         <translation>Odznacz wszystkie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="676"/>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1015"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="646"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="985"/>
         <source>Uncheck all keys in the current tab.</source>
         <translation>Odznacz wszystkie klucze w bieżącej karcie.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="678"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="648"/>
         <source>Check All</source>
         <translation>Zaznacz wszystkie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="679"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="649"/>
         <source>Check all keys in the current tab.</source>
         <translation>Zaznacz wszystkie klucze w bieżącej karcie.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="682"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="652"/>
         <source>Search keys by user ID, key ID, fingerprint...</source>
         <translation>Szukaj kluczy według identyfikatora użytkownika, identyfikatora klucza, odcisku klucza...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="684"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="654"/>
         <source>Columns</source>
         <translation>Kolumny</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="685"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="655"/>
         <source>Choose visible key table columns.</source>
         <translation>Wybierz widoczne kolumny tabeli kluczy.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="689"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="659"/>
         <source>Create a key group from checked encryption-capable keys.</source>
         <translation>Utwórz grupę kluczy z zaznaczonych kluczy zdolnych do szyfrowania.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="802"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="772"/>
         <source>Switch between key databases.</source>
         <translation>Przełączaj między bazami kluczy.</translation>
     </message>
@@ -9747,42 +10057,42 @@ Grupa zostanie usunięta. Zawarte w niej klucze nie zostaną zmienione i pozosta
         <translation type="vanished">Kanał %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="783"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="753"/>
         <source>No key database available</source>
         <translation>Brak dostępnej bazy kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="792"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="762"/>
         <source>Key Database</source>
         <translation>Baza kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="803"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="773"/>
         <source>Click to switch key databases.</source>
         <translation>Kliknij, aby przełączyć między bazami kluczy.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="841"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="811"/>
         <source>Expire Date</source>
         <translation>Data wygaśnięcia</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="843"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="813"/>
         <source>Owner Trust</source>
         <translation>Zaufanie do właściciela</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="849"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="819"/>
         <source>Status</source>
         <translation>Status</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="858"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="828"/>
         <source>Reset Column Widths</source>
         <translation>Przywróć szerokości kolumn</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1017"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="987"/>
         <source>%n key(s) checked</source>
         <translation>
             <numerusform>Zaznaczono %n klucz</numerusform>
@@ -9791,7 +10101,7 @@ Grupa zostanie usunięta. Zawarte w niej klucze nie zostaną zmienione i pozosta
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1025"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="995"/>
         <source>%n of them are not shown by the current category or search filter.</source>
         <translation>
             <numerusform>%n z nich nie jest widoczny w bieżącej kategorii lub filtrze wyszukiwania.</numerusform>
@@ -9800,27 +10110,27 @@ Grupa zostanie usunięta. Zawarte w niej klucze nie zostaną zmienione i pozosta
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1130"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1100"/>
         <source>The key database &quot;%1&quot; is no longer available; showing the default one.</source>
         <translation>Baza kluczy „%1” nie jest już dostępna; wyświetlana jest domyślna.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1441"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1411"/>
         <source>Delete Category</source>
         <translation>Usuń kategorię</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1442"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1412"/>
         <source>Delete category &quot;%1&quot;? This removes the grouping only; the keys themselves are not affected.</source>
         <translation>Usunąć kategorię „%1”? Usuwane jest tylko grupowanie; same klucze nie są dotykane.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1519"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1489"/>
         <source>Set Colour...</source>
         <translation>Ustaw kolor...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1523"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1493"/>
         <source>Reset Colour</source>
         <translation>Przywróć kolor</translation>
     </message>
@@ -9829,12 +10139,12 @@ Grupa zostanie usunięta. Zawarte w niej klucze nie zostaną zmienione i pozosta
         <translation type="vanished">Zmień nazwę kategorii...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1538"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1508"/>
         <source>Delete Category...</source>
         <translation>Usuń kategorię...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1555"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1525"/>
         <source>Choose Category Colour</source>
         <translation>Wybierz kolor kategorii</translation>
     </message>
@@ -9855,24 +10165,24 @@ Grupa zostanie usunięta. Zawarte w niej klucze nie zostaną zmienione i pozosta
         <translation type="vanished">Zmień nazwę kategorii</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1724"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1694"/>
         <source>You&apos;ve dropped something on the key list.
 GpgFrontend will now try to import key(s).</source>
         <translation>Upuszczono coś na listę kluczy.
 GpgFrontend spróbuje teraz zaimportować klucz(-e).</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1729"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1699"/>
         <source>Ask before importing keys next time.</source>
         <translation>Pytaj przed importem kluczy następnym razem.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1858"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1828"/>
         <source>No key matches &quot;%1&quot;</source>
         <translation>Żaden klucz nie pasuje do „%1”</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1859"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1829"/>
         <source>%n key(s) match &quot;%1&quot;</source>
         <translation>
             <numerusform>%n klucz pasuje do „%1”</numerusform>
@@ -9881,17 +10191,17 @@ GpgFrontend spróbuje teraz zaimportować klucz(-e).</translation>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="839"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="809"/>
         <source>Create Date</source>
         <translation>Data utworzenia</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="847"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="817"/>
         <source>Comment</source>
         <translation>Komentarz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="687"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="657"/>
         <source>New Key Group</source>
         <translation>Nowa grupa kluczy</translation>
     </message>
@@ -9924,63 +10234,63 @@ GpgFrontend spróbuje teraz zaimportować klucz(-e).</translation>
         <translation>Wszystkie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="92"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="99"/>
         <source>Key Group</source>
         <translation>Grupa kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="98"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="103"/>
         <source>Only Public Key</source>
         <translation>Klucze publiczne</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="106"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="107"/>
         <source>Has Private Key</source>
         <translation>Klucze prywatne</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="114"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="113"/>
         <source>Expiring Soon</source>
         <translation>Wkrótce wygasną</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="120"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="115"/>
         <source>No Primary Key</source>
         <translation>Bez klucza głównego</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="130"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="117"/>
         <source>Revoked</source>
         <translation>Unieważnione</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="137"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="119"/>
         <source>Expired</source>
         <translation>Wygasłe</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="144"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="121"/>
         <source>Disabled</source>
         <translation>Wyłączone</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="193"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="168"/>
         <source>KeyPair Management</source>
         <translation>Zarządzanie parami kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="251"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="226"/>
         <source>Copy</source>
         <translation>Skopiuj</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="261"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="236"/>
         <source>Export</source>
         <translation>Eksportuj</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="269"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="733"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="244"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="708"/>
         <source>Key Operations</source>
         <translation>Operacje na kluczach</translation>
     </message>
@@ -9989,279 +10299,279 @@ GpgFrontend spróbuje teraz zaimportować klucz(-e).</translation>
         <translation type="vanished">Serwer kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="279"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1418"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="254"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1393"/>
         <source>Category</source>
         <translation>Kategoria</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="336"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="311"/>
         <source>Open</source>
         <translation>Otwórz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="336"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="311"/>
         <source>Open Key File</source>
         <translation>Otwórz plik klucza</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="342"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="317"/>
         <source>Close</source>
         <translation>Zamknij</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="347"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="322"/>
         <source>New Keypair</source>
         <translation>Nowa para kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="348"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="323"/>
         <source>Generate KeyPair</source>
         <translation>Wygeneruj parę kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="365"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="340"/>
         <source>New Subkey</source>
         <translation>Nowy podklucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="366"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="341"/>
         <source>Generate Subkey For Selected KeyPair</source>
         <translation>Wygeneruj podklucz dla wybranej pary kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="375"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="616"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="350"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="591"/>
         <source>File</source>
         <translation>Plik</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="376"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="351"/>
         <source>Import New Key From File</source>
         <translation>Importuj nowy klucz z pliku</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="382"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="357"/>
         <source>Clipboard</source>
         <translation>Schowek</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="383"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="358"/>
         <source>Import New Key From Clipboard</source>
         <translation>Importuj nowy klucz ze schowka</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="391"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="366"/>
         <source>Key Package</source>
         <translation>Pakiet kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="392"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="367"/>
         <source>Import Key(s) From a Key Package</source>
         <translation>Importuj klucze z pakietu kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="397"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="372"/>
         <source>Export To Clipboard</source>
         <translation>Eksportuj do schowka</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="398"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="373"/>
         <source>Export Checked Key(s) To Clipboard</source>
         <translation>Eksportuj zaznaczone klucze do schowka</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="403"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="378"/>
         <source>Export As Key Package</source>
         <translation>Eksportuj jako pakiet kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="404"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="379"/>
         <source>Export Checked Key(s) To a Key Package</source>
         <translation>Eksportuj zaznaczone klucze do pakietu kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="409"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="384"/>
         <source>Export As OpenSSH</source>
         <translation>Eksportuj jako OpenSSH</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="419"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="394"/>
         <source>Delete the Selected keys</source>
         <translation>Usuń wybrane klucze</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="410"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="385"/>
         <source>Export a single key in OpenSSH format to a file</source>
         <translation>Wyeksportuj pojedynczy klucz w formacie OpenSSH do pliku</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="355"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="330"/>
         <source>Quick Generate</source>
         <translation>Szybkie generowanie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="356"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="331"/>
         <source>Generate a key pair in one click, with the default profile and user ID pattern from Settings</source>
         <translation>Wygeneruj parę kluczy jednym kliknięciem, używając domyślnego profilu i wzorca identyfikatora użytkownika z Ustawień</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="418"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="393"/>
         <source>Delete Selected Keys</source>
         <translation>Usuń wybrane klucze</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="425"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="400"/>
         <source>Refresh Key List</source>
         <translation>Odśwież listę kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="426"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="401"/>
         <source>Re-read the keyring from disk</source>
         <translation>Wczytaj ponownie bazę kluczy z dysku</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="434"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="409"/>
         <source>Find Key</source>
         <translation>Znajdź klucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="434"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="409"/>
         <source>Jump to the search box</source>
         <translation>Przejdź do pola wyszukiwania</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="441"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="416"/>
         <source>Delete Checked Keys</source>
         <translation>Usuń zaznaczone klucze</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="442"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="417"/>
         <source>Delete the Checked keys</source>
         <translation>Usuń zaznaczone klucze</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="447"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="422"/>
         <source>Show Key Details</source>
         <translation>Pokaż szczegóły klucza</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="448"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="423"/>
         <source>Show Details for this Key</source>
         <translation>Pokaż szczegóły tego klucza</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="453"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="428"/>
         <source>Set Owner Trust Level</source>
         <translation>Ustaw poziom zaufania do właściciela</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="454"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="429"/>
         <source>Set how much you trust this key to certify others</source>
         <translation>Ustaw, jak bardzo ufasz temu kluczowi przy poświadczaniu innych</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="495"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="470"/>
         <source>Copy Fingerprint</source>
         <translation>Skopiuj odcisk klucza</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="496"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="471"/>
         <source>Copy this key&apos;s full fingerprint to the clipboard</source>
         <translation>Skopiuj pełny odcisk tego klucza do schowka</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="500"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="475"/>
         <source>Fingerprint</source>
         <translation>Odcisk klucza</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="503"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="478"/>
         <source>Copy Key ID</source>
         <translation>Skopiuj identyfikator klucza</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="504"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="479"/>
         <source>Copy this key&apos;s ID to the clipboard</source>
         <translation>Skopiuj identyfikator tego klucza do schowka</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="508"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="483"/>
         <source>Key ID</source>
         <translation>Identyfikator klucza</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="512"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="487"/>
         <source>Copy Email</source>
         <translation>Skopiuj adres e-mail</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="513"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="488"/>
         <source>Copy this key&apos;s email address to the clipboard</source>
         <translation>Skopiuj adres e-mail tego klucza do schowka</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="517"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="492"/>
         <source>Email</source>
         <translation>E-mail</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="521"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="496"/>
         <source>Copy Public Key Block</source>
         <translation>Skopiuj blok klucza publicznego</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="522"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="497"/>
         <source>Copy this key&apos;s armored public key block to the clipboard, ready to paste or send</source>
         <translation>Skopiuj opakowany blok klucza publicznego tego klucza do schowka, gotowy do wklejenia lub wysłania</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="532"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="507"/>
         <source>Certify Key...</source>
         <translation>Poświadcz klucz...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="533"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="508"/>
         <source>Sign this key&apos;s identity with your key</source>
         <translation>Podpisz tożsamość tego klucza swoim kluczem</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="546"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="521"/>
         <source>Set Expiry...</source>
         <translation>Ustaw wygaśnięcie...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="546"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="521"/>
         <source>Change when this key expires</source>
         <translation>Zmień moment wygaśnięcia tego klucza</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="558"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="533"/>
         <source>Export Public Key...</source>
         <translation>Eksportuj klucz publiczny...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="559"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="534"/>
         <source>Save this key&apos;s public half to a file you can send</source>
         <translation>Zapisz publiczną połowę tego klucza do pliku, który możesz wysłać</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="568"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="543"/>
         <source>Export Private Key...</source>
         <translation>Eksportuj klucz prywatny...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="569"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="544"/>
         <source>Save this key&apos;s private half to a file — keep it to yourself</source>
         <translation>Zapisz prywatną połowę tego klucza do pliku — zachowaj ją dla siebie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="578"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="553"/>
         <source>Generate Revocation Certificate...</source>
         <translation>Wygeneruj certyfikat unieważnienia...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="579"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="554"/>
         <source>Create a certificate that can revoke this key, to store somewhere safe in case you ever lose control of it</source>
         <translation>Utwórz certyfikat mogący unieważnić ten klucz i przechowuj go w bezpiecznym miejscu na wypadek utraty nad nim kontroli</translation>
     </message>
@@ -10286,141 +10596,141 @@ GpgFrontend spróbuje teraz zaimportować klucz(-e).</translation>
         <translation type="vanished">Pobierz najnowszą kopię tych kluczy z serwera kluczy, wraz z nowymi podpisami i unieważnieniami</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="591"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="566"/>
         <source>Set Owner Trust for Checked Keys...</source>
         <translation>Ustaw zaufanie do właściciela dla zaznaczonych kluczy...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="592"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="567"/>
         <source>Give every checked key the same owner trust level</source>
         <translation>Nadaj każdemu zaznaczonemu kluczowi ten sam poziom zaufania do właściciela</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="597"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="572"/>
         <source>Extend Expiry of Checked Keys...</source>
         <translation>Przedłuż wygaśnięcie zaznaczonych kluczy...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="598"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="573"/>
         <source>Push back the expiry date of every checked private key in one step</source>
         <translation>Przesuń datę wygaśnięcia każdego zaznaczonego klucza prywatnego w jednym kroku</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="604"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="579"/>
         <source>Back Up All Private Keys...</source>
         <translation>Kopia zapasowa wszystkich kluczy prywatnych...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="605"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="580"/>
         <source>Export every private key in this keyring to a single key package</source>
         <translation>Wyeksportuj wszystkie klucze prywatne z tej bazy kluczy do jednego pakietu kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="620"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="595"/>
         <source>Edit</source>
         <translation>Edytuj</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="629"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="689"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="604"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="664"/>
         <source>Key</source>
         <translation>Klucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="630"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="605"/>
         <source>Generate Key</source>
         <translation>Wygeneruj klucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="635"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="712"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="610"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="687"/>
         <source>Import Key</source>
         <translation>Importuj klucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="642"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="719"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="720"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="617"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="694"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="695"/>
         <source>Export Key</source>
         <translation>Eksportuj klucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="658"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="746"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="633"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="721"/>
         <source>Delete</source>
         <translation>Usuń</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="663"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="638"/>
         <source>Operations</source>
         <translation>Operacje</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="674"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="649"/>
         <source>Bulk</source>
         <translation>Masowe</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="713"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="688"/>
         <source>Import key</source>
         <translation>Importuj klucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="734"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="709"/>
         <source>Certify, set expiry, add a subkey, set trust, revoke</source>
         <translation>Poświadcz, ustaw wygaśnięcie, dodaj podklucz, ustaw zaufanie, unieważnij</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="747"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="722"/>
         <source>Delete the selected or the checked keys</source>
         <translation>Usuń wybrane lub zaznaczone klucze</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="753"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="728"/>
         <source>View</source>
         <translation>Widok</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="867"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="842"/>
         <source>Deleting Keys</source>
         <translation>Usuwanie kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="868"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="843"/>
         <source>Are you sure that you want to delete the following keys?</source>
         <translation>Czy na pewno chcesz usunąć następujące klucze?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="870"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="845"/>
         <source>The action can not be undone.</source>
         <translation>Tej operacji nie można cofnąć.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="927"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="939"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1146"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1157"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1170"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="902"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="914"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1121"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1132"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1145"/>
         <source>Error</source>
         <translation>Błąd</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="956"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="931"/>
         <source>%1 is empty</source>
         <translation>%1 jest pusty</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="960"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="935"/>
         <source>%1 copied to clipboard</source>
         <translation>Skopiowano %1 do schowka</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1015"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="990"/>
         <source>Nothing to Extend</source>
         <translation>Nie ma czego przedłużać</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1016"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="991"/>
         <source>None of the %n selected key(s) has a private key, so their expiry cannot be changed. Expiry is set on keys you own.</source>
         <translation>
             <numerusform>Żaden z %n wybranego klucza nie ma klucza prywatnego, więc nie można zmienić jego daty wygaśnięcia. Datę wygaśnięcia ustawia się tylko na kluczach, które posiadasz.</numerusform>
@@ -10465,88 +10775,88 @@ GpgFrontend spróbuje teraz zaimportować klucz(-e).</translation>
         <translation type="vanished">Przesyłanie zakończone</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="968"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="943"/>
         <source>Undefined</source>
         <translation>Nieokreślone</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="968"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="943"/>
         <source>Never</source>
         <translation>Nigdy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="968"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="943"/>
         <source>Marginal</source>
         <translation>Marginalne</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="968"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="943"/>
         <source>Full</source>
         <translation>Pełne</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="969"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="944"/>
         <source>Ultimate</source>
         <translation>Ostateczne</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="973"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="948"/>
         <source>Modify Owner Trust Level</source>
         <translation>Zmień poziom zaufania do właściciela</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="974"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="949"/>
         <source>Trust level to apply to %1 checked key(s):</source>
         <translation>Poziom zaufania do zastosowania dla zaznaczonych kluczy (%1):</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="993"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1069"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="968"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1044"/>
         <source>Partially Failed</source>
         <translation>Częściowe niepowodzenie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="994"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="969"/>
         <source>Failed to set owner trust on %1 key(s).</source>
         <translation>Nie udało się ustawić poziomu zaufania do właściciela dla %1 kluczy.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1023"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="998"/>
         <source>Extend Expiry of Checked Keys</source>
         <translation>Przedłuż wygaśnięcie zaznaczonych kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1026"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1001"/>
         <source>New expiry date to apply to %1 private key(s):</source>
         <translation>Nowa data wygaśnięcia do zastosowania dla kluczy prywatnych (%1):</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1034"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1009"/>
         <source>Never expires</source>
         <translation>Nigdy nie wygasa</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1053"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1028"/>
         <source>Extending Expiry</source>
         <translation>Przedłużanie wygaśnięcia</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1070"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1045"/>
         <source>Failed to update expiry on %1 key(s).</source>
         <translation>Nie udało się zaktualizować daty wygaśnięcia %1 kluczy.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1088"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1063"/>
         <source>No Private Keys</source>
         <translation>Brak kluczy prywatnych</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1089"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1064"/>
         <source>There are no private keys in this keyring to back up.</source>
         <translation>W tej bazie kluczy nie ma kluczy prywatnych do wykonania kopii zapasowej.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1102"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1077"/>
         <source>private key(s) backed up</source>
         <translation>klucze prywatne objęte kopią zapasową</translation>
     </message>
@@ -10559,17 +10869,17 @@ GpgFrontend spróbuje teraz zaimportować klucz(-e).</translation>
         <translation type="vanished">Wprowadź PIN, aby odszyfrować klucz:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1417"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1392"/>
         <source>Category (%1 keys)</source>
         <translation>Kategoria (kluczy: %1)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1429"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1404"/>
         <source>Remove From This Category</source>
         <translation>Usuń z tej kategorii</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1465"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1440"/>
         <source>New Category...</source>
         <translation>Nowa kategoria...</translation>
     </message>
@@ -10582,17 +10892,17 @@ GpgFrontend spróbuje teraz zaimportować klucz(-e).</translation>
         <translation type="vanished">Nazwa kategorii:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1496"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1471"/>
         <source>%1 keys · %2 private · %3 expiring soon · %4 expired or revoked</source>
         <translation>Klucze: %1 · prywatne: %2 · wygasające wkrótce: %3 · wygasłe lub unieważnione: %4</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1503"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1478"/>
         <source>%1 key(s) expire within %2 days. See the &quot;Expiring Soon&quot; tab.</source>
         <translation>%1 kluczy wygasa w ciągu %2 dni. Zobacz kartę „Wygasa wkrótce”.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1507"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1482"/>
         <source>No key expires within the next %1 days.</source>
         <translation>Żaden klucz nie wygasa w ciągu najbliższych %1 dni.</translation>
     </message>
@@ -10601,47 +10911,47 @@ GpgFrontend spróbuje teraz zaimportować klucz(-e).</translation>
         <translation type="vanished">Prześlij zaznaczone klucze publiczne na serwer kluczy ustawiony jako domyślny</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="901"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1185"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="876"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1160"/>
         <source>key(s) exported</source>
         <translation>klucze wyeksportowano</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="917"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1136"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="892"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1111"/>
         <source>Exporting</source>
         <translation>Eksportowanie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="928"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="940"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1147"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1158"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="903"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="915"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1122"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1133"/>
         <source>Unknown error occurred</source>
         <translation>Wystąpił nieznany błąd</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1117"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1092"/>
         <source>Invalid Operation</source>
         <translation>Nieprawidłowa operacja</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1118"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1093"/>
         <source>If a key pair does not have a private key then it will not be able to generate sub-keys.</source>
         <translation>Jeśli para kluczy nie ma klucza prywatnego, nie będzie mogła generować podkluczy.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1171"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1146"/>
         <source>This key may not be able to export as OpenSSH format. Please check the key-size of the subkey(s) used to sign.</source>
         <translation>Ten klucz może nie dać się wyeksportować w formacie OpenSSH. Sprawdź rozmiar podkluczy używanych do podpisywania.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1180"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1155"/>
         <source>Export OpenSSH Key To File</source>
         <translation>Eksportuj klucz OpenSSH do pliku</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1181"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1156"/>
         <source>OpenSSH Public Key Files</source>
         <translation>Pliki kluczy publicznych OpenSSH</translation>
     </message>
@@ -10670,7 +10980,7 @@ GpgFrontend spróbuje teraz zaimportować klucz(-e).</translation>
         <translation type="vanished">Plik docelowy jest zbyt duży dla hasła pakietu kluczy.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1203"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1178"/>
         <source>key(s) imported</source>
         <translation>klucze zaimportowano</translation>
     </message>
@@ -12121,12 +12431,12 @@ Kliknij klucz w innej karcie prawym przyciskiem i użyj Kategoria, aby go tu umi
 <context>
     <name>GpgFrontend::UI::MainWindow</name>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="175"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="179"/>
         <source>GUI Pinentry Not Found</source>
         <translation>Nie znaleziono graficznego Pinentry</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="176"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="180"/>
         <source>No suitable *graphical* Pinentry program was found on your system.
 
 Please install a GUI-based Pinentry (e.g., &apos;pinentry-qt&apos;, &apos;pinentry-gnome3&apos;, or &apos;pinentry-mac&apos; on macOS).
@@ -12143,28 +12453,28 @@ Bez graficznego Pinentry GnuPG nie może pytać Cię o hasła.
 Po instalacji uruchom GpgFrontend ponownie. Plik konfiguracyjny zostanie zaktualizowany automatycznie.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="202"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="206"/>
         <source>Add To Category</source>
         <translation>Dodaj do kategorii</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="287"/>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="290"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="291"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="294"/>
         <source>A critical error occurred while loading GpgFrontend.</source>
         <translation>Wystąpił błąd krytyczny podczas ładowania GpgFrontend.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="289"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="293"/>
         <source>Loading Failed</source>
         <translation>Ładowanie nie powiodło się</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="470"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="474"/>
         <source>Remove From This Category</source>
         <translation>Usuń z tej kategorii</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="504"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="508"/>
         <source>New Category...</source>
         <translation>Nowa kategoria...</translation>
     </message>
@@ -12177,27 +12487,27 @@ Po instalacji uruchom GpgFrontend ponownie. Plik konfiguracyjny zostanie zaktual
         <translation type="vanished">Nazwa kategorii:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="537"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="541"/>
         <source>Name: %1</source>
         <translation>Nazwa: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="538"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="542"/>
         <source>Path: %1</source>
         <translation>Ścieżka: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="551"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="555"/>
         <source>Invalid Key Databases</source>
         <translation>Nieprawidłowe bazy kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="556"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="560"/>
         <source>Detected %1 invalid key database(s).</source>
         <translation>Wykryto nieprawidłowych baz kluczy: %1.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="559"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="563"/>
         <source>The application cannot load these databases. Please review the details below and fix the issues in the GnuPG Controller.</source>
         <translation>Aplikacja nie może wczytać tych baz. Przejrzyj szczegóły poniżej i napraw problemy w kontrolerze GnuPG.</translation>
     </message>
@@ -12801,187 +13111,187 @@ Czy chcesz pobrać te klucze z serwera kluczy?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="372"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="94"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="95"/>
         <source>Save File</source>
         <translation>Zapisz plik</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="373"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="95"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="96"/>
         <source>Save the current File</source>
         <translation>Zapisz bieżący plik</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="376"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="100"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="101"/>
         <source>Save As</source>
         <translation>Zapisz jako</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="377"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="101"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="102"/>
         <source>Save the current File as...</source>
         <translation>Zapisz bieżący plik jako...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="106"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="107"/>
         <source>Print</source>
         <translation>Drukuj</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="107"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="108"/>
         <source>Print Document</source>
         <translation>Wydrukuj dokument</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="116"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="117"/>
         <source>Close All Tabs</source>
         <translation>Zamknij wszystkie karty</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="117"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="118"/>
         <source>Close every tab</source>
         <translation>Zamknij każdą kartę</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="143"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="144"/>
         <source>New Temporary Profile</source>
         <translation>Nowy profil tymczasowy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="144"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="145"/>
         <source>Start an empty, throwaway profile in a new window. Everything in it is destroyed when that window closes.</source>
         <translation>Uruchom pusty, jednorazowy profil w nowym oknie. Wszystko w nim zostanie zniszczone po zamknięciu tego okna.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="181"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="182"/>
         <source>Quit</source>
         <translation>Zakończ</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="182"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="183"/>
         <source>Quit Program</source>
         <translation>Zakończ program</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="186"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="187"/>
         <source>Undo</source>
         <translation>Cofnij</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="187"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="188"/>
         <source>Undo Last Edit Action</source>
         <translation>Cofnij ostatnią czynność edycji</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="190"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="191"/>
         <source>Redo</source>
         <translation>Ponów</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="191"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="192"/>
         <source>Redo Last Edit Action</source>
         <translation>Ponów ostatnią czynność edycji</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="194"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="195"/>
         <source>Zoom In</source>
         <translation>Powiększ</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="195"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="196"/>
         <source>Zoom in</source>
         <translation>Powiększ</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="199"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="200"/>
         <source>Zoom Out</source>
         <translation>Pomniejsz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="200"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="201"/>
         <source>Zoom out</source>
         <translation>Pomniejsz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="204"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="205"/>
         <source>Paste</source>
         <translation>Wklej</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="205"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="206"/>
         <source>Paste Text From Clipboard</source>
         <translation>Wklej tekst ze schowka</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="209"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="210"/>
         <source>Cut</source>
         <translation>Wytnij</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="210"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="211"/>
         <source>Cut the current selection&apos;s contents to the clipboard</source>
         <translation>Wytnij zawartość bieżącego zaznaczenia do schowka</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="215"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="216"/>
         <source>Copy</source>
         <translation>Skopiuj</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="216"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="217"/>
         <source>Copy the current selection&apos;s contents to the clipboard</source>
         <translation>Skopiuj zawartość bieżącego zaznaczenia do schowka</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="220"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="221"/>
         <source>Quote</source>
         <translation>Cytuj</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="221"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="222"/>
         <source>Quote whole text</source>
         <translation>Zacytuj cały tekst</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="225"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="226"/>
         <source>Select All</source>
         <translation>Zaznacz wszystko</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="226"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="227"/>
         <source>Select the whole text</source>
         <translation>Zaznacz cały tekst</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="230"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="231"/>
         <source>Find</source>
         <translation>Znajdź</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="231"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="232"/>
         <source>Find a word</source>
         <translation>Znajdź słowo</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="235"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="236"/>
         <source>Remove spacing</source>
         <translation>Usuń odstępy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="237"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="238"/>
         <source>Remove double linebreaks, e.g. in pasted text from Web Mailer</source>
         <translation>Usuń podwójne łamania linii, np. w tekście wklejonym z webowego klienta poczty</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="426"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="242"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="243"/>
         <source>Settings</source>
         <translation>Ustawienia</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="427"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="243"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="244"/>
         <source>Open settings dialog</source>
         <translation>Otwórz okno ustawień</translation>
     </message>
@@ -12989,44 +13299,44 @@ Czy chcesz pobrać te klucze z serwera kluczy?</translation>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="386"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="369"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="723"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="252"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="253"/>
         <source>Encrypt</source>
         <translation>Zaszyfruj</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="387"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="253"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="254"/>
         <source>Encrypt Message</source>
         <translation>Zaszyfruj wiadomość</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="404"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="260"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="261"/>
         <source>Encrypt and Sign Message</source>
         <translation>Zaszyfruj i podpisz wiadomość</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="390"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="547"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="266"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="267"/>
         <source>Decrypt</source>
         <translation>Odszyfruj</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="391"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="267"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="268"/>
         <source>Decrypt Message</source>
         <translation>Odszyfruj wiadomość</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="410"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="274"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="275"/>
         <source>Decrypt and Verify Message</source>
         <translation>Odszyfruj i zweryfikuj wiadomość</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="394"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="280"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="281"/>
         <source>Sign</source>
         <translation>Podpisz</translation>
     </message>
@@ -13037,19 +13347,19 @@ Czy chcesz pobrać te klucze z serwera kluczy?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="395"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="281"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="282"/>
         <source>Sign Message</source>
         <translation>Podpisz wiadomość</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="398"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="286"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="287"/>
         <source>Verify</source>
         <translation>Zweryfikuj</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="399"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="287"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="288"/>
         <source>Verify Message</source>
         <translation>Zweryfikuj wiadomość</translation>
     </message>
@@ -13079,96 +13389,96 @@ Czy chcesz pobrać te klucze z serwera kluczy?</translation>
         <translation>Wiadomość</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="293"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="294"/>
         <source>Sym. Encrypt</source>
         <translation>Zaszyfruj symetrycznie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="294"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="295"/>
         <source>Encrypt Message (Symmetric)</source>
         <translation>Zaszyfruj wiadomość (symetrycznie)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="304"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="305"/>
         <source>New Keypair</source>
         <translation>Nowa para kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="305"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="306"/>
         <source>Generate KeyPair</source>
         <translation>Wygeneruj parę kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="313"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="314"/>
         <source>Quick Generate</source>
         <translation>Szybkie generowanie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="314"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="315"/>
         <source>Generate a key pair in one click, with the default profile and user ID pattern from Settings</source>
         <translation>Wygeneruj parę kluczy jednym kliknięciem, używając domyślnego profilu i wzorca identyfikatora użytkownika z Ustawień</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="321"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="480"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="652"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="322"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="481"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="653"/>
         <source>File</source>
         <translation>Plik</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="323"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="324"/>
         <source>Import New Key From File</source>
         <translation>Importuj nowy klucz z pliku</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="329"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="330"/>
         <source>Clipboard</source>
         <translation>Schowek</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="331"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="332"/>
         <source>Import New Key From Clipboard</source>
         <translation>Importuj nowy klucz ze schowka</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="337"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="338"/>
         <source>Editor</source>
         <translation>Edytor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="338"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="339"/>
         <source>Import New Key From Editor</source>
         <translation>Importuj nowy klucz z edytora</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="423"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="343"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="344"/>
         <source>Manage Keys</source>
         <translation>Zarządzaj kluczami</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="424"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="344"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="345"/>
         <source>Open Key Management</source>
         <translation>Otwórz zarządzanie kluczami</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="357"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="358"/>
         <source>Open Smart Card Controller</source>
         <translation>Otwórz kontroler kart inteligentnych</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="358"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="359"/>
         <source>Open Smart Card Controller Dialog</source>
         <translation>Otwórz okno kontrolera kart inteligentnych</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="383"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="384"/>
         <source>Show Application Log</source>
         <translation>Pokaż dziennik aplikacji</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="384"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="385"/>
         <source>Show the application log view</source>
         <translation>Pokaż widok dziennika aplikacji</translation>
     </message>
@@ -13191,49 +13501,49 @@ Czy chcesz pobrać te klucze z serwera kluczy?</translation>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="370"/>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="429"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="482"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="660"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="483"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="661"/>
         <source>Open</source>
         <translation>Otwórz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="487"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="667"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="488"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="668"/>
         <source>Workspace</source>
         <translation>Obszar roboczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="604"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="605"/>
         <source>Advanced</source>
         <translation>Zaawansowane</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="660"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="661"/>
         <source>Open a file or directory</source>
         <translation>Otwórz plik lub katalog</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="668"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="669"/>
         <source>Open a text editor or file panel</source>
         <translation>Otwórz edytor tekstu lub panel plików</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="690"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="691"/>
         <source>Import</source>
         <translation>Importuj</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="691"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="692"/>
         <source>Import a key from file, editor, or clipboard</source>
         <translation>Importuj klucz z pliku, edytora lub schowka</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="716"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="717"/>
         <source>Text Tools</source>
         <translation>Narzędzia tekstowe</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="863"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="865"/>
         <source>Status Panel</source>
         <translation>Panel statusu</translation>
     </message>
@@ -13317,94 +13627,94 @@ Czy chcesz pobrać te klucze z serwera kluczy?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="368"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="62"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="63"/>
         <source>New Text Editor</source>
         <translation>Nowy edytor tekstu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="77"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="78"/>
         <source>New File Panel</source>
         <translation>Nowy panel plików</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="83"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="84"/>
         <source>File...</source>
         <translation>Plik...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="84"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="85"/>
         <source>Open a file in the file panel</source>
         <translation>Otwórz plik w panelu plików</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="89"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="90"/>
         <source>Directory...</source>
         <translation>Katalog...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="90"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="91"/>
         <source>Open a directory in the file panel</source>
         <translation>Otwórz katalog w panelu plików</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="380"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="111"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="112"/>
         <source>Close Tab</source>
         <translation>Zamknij kartę</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="381"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="112"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="113"/>
         <source>Close the current tab</source>
         <translation>Zamknij bieżącą kartę</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="129"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="130"/>
         <source>Manage Profiles...</source>
         <translation>Zarządzaj profilami...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="130"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="131"/>
         <source>See every profile on this computer, and open, rename or remove one</source>
         <translation>Zobacz każdy profil na tym komputerze oraz otwórz, zmień nazwę lub usuń</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="136"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="137"/>
         <source>New Profile...</source>
         <translation>Nowy profil...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="137"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="138"/>
         <source>Start an empty profile on this computer, with its own settings and keys</source>
         <translation>Uruchom pusty profil na tym komputerze, z własnymi ustawieniami i kluczami</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="155"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="156"/>
         <source>Open Profile File...</source>
         <translation>Otwórz plik profilu...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="156"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="157"/>
         <source>Work inside a profile file, leaving it a file. Nothing is added to this computer, and your changes go back into the same file.</source>
         <translation>Pracuj wewnątrz pliku profilu, pozostawiając go plikiem. Na ten komputer nic nie jest dodawane, a Twoje zmiany wracają do tego samego pliku.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="167"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="168"/>
         <source>Import Profile File...</source>
         <translation>Importuj plik profilu...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="168"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="169"/>
         <source>Copy a profile file into a new profile kept on this computer. The file is not used again afterwards.</source>
         <translation>Skopiuj plik profilu do nowego profilu przechowywanego na tym komputerze. Plik nie będzie już później używany.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="174"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="175"/>
         <source>Export This Profile...</source>
         <translation>Eksportuj ten profil...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="175"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="176"/>
         <source>Write the profile this window is using out to a new profile file, to carry elsewhere or keep as a backup</source>
         <translation>Zapisz profil, z którego korzysta to okno, do nowego pliku profilu, aby przenieść gdzie indziej lub zachować jako kopię zapasową</translation>
     </message>
@@ -13418,223 +13728,223 @@ Czy chcesz pobrać te klucze z serwera kluczy?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="403"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="259"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="260"/>
         <source>Encrypt &amp;&amp; Sign</source>
         <translation>Zaszyfruj i podpisz</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="409"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="273"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="274"/>
         <source>Decrypt &amp;&amp; Verify</source>
         <translation>Odszyfruj i zweryfikuj</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="350"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="351"/>
         <source>Open Module Controller</source>
         <translation>Otwórz kontroler modułów</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="351"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="352"/>
         <source>Open Module Controller Dialog</source>
         <translation>Otwórz okno kontrolera modułów</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="366"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="367"/>
         <source>About</source>
         <translation>O programie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="367"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="368"/>
         <source>Show the application&apos;s About box</source>
         <translation>Pokaż okno „O programie”</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="377"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="378"/>
         <source>Open Wizard</source>
         <translation>Otwórz kreator</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="378"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="379"/>
         <source>Open the wizard</source>
         <translation>Otwórz kreator</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="389"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="390"/>
         <source>Append Public Key to Editor</source>
         <translation>Dodaj klucz publiczny do edytora</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="390"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="391"/>
         <source>Append selected Keypair&apos;s Public Key to Editor</source>
         <translation>Dodaj klucz publiczny wybranej pary kluczy do edytora</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="395"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="396"/>
         <source>Append Create DateTime to Editor</source>
         <translation>Dodaj datę i godzinę utworzenia do edytora</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="396"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="397"/>
         <source>Append selected Key&apos;s creation date and time to Editor</source>
         <translation>Dodaj datę i godzinę utworzenia wybranego klucza do edytora</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="401"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="402"/>
         <source>Append Expire DateTime to Editor</source>
         <translation>Dodaj datę i godzinę wygaśnięcia do edytora</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="402"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="403"/>
         <source>Append selected Key&apos;s expiration date and time to Editor</source>
         <translation>Dodaj datę i godzinę wygaśnięcia wybranego klucza do edytora</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="407"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="408"/>
         <source>Append Fingerprint to Editor</source>
         <translation>Dodaj odcisk klucza do edytora</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="408"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="409"/>
         <source>Append selected Key&apos;s Fingerprint to Editor</source>
         <translation>Dodaj odcisk wybranego klucza do edytora</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="413"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="414"/>
         <source>Copy Email</source>
         <translation>Skopiuj adres e-mail</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="414"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="415"/>
         <source>Copy selected Keypair&apos;s to clipboard</source>
         <translation>Skopiuj adres e-mail wybranej pary kluczy do schowka</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="419"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="420"/>
         <source>Copy Default UID</source>
         <translation>Skopiuj domyślny identyfikator użytkownika</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="420"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="421"/>
         <source>Copy selected Keypair&apos;s default UID to clipboard</source>
         <translation>Skopiuj domyślny identyfikator użytkownika wybranej pary kluczy do schowka</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="425"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="426"/>
         <source>Copy Key ID</source>
         <translation>Skopiuj identyfikator klucza</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="426"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="427"/>
         <source>Copy selected Keypair&apos;s ID to clipboard</source>
         <translation>Skopiuj identyfikator wybranej pary kluczy do schowka</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="431"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="432"/>
         <source>Show Key Details</source>
         <translation>Pokaż szczegóły klucza</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="432"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="433"/>
         <source>Show Details for this Key</source>
         <translation>Pokaż szczegóły tego klucza</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="437"/>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="438"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="439"/>
         <source>Set Owner Trust Level</source>
         <translation>Ustaw poziom zaufania do właściciela</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="472"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="473"/>
         <source>Show Open Tabs...</source>
         <translation>Pokaż otwarte karty...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="473"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="474"/>
         <source>Search the open tabs and switch to one</source>
         <translation>Przeszukaj otwarte karty i przełącz się na jedną</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="517"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="707"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="518"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="708"/>
         <source>Edit</source>
         <translation>Edytuj</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="548"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="682"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="549"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="683"/>
         <source>Keys</source>
         <translation>Klucze</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="421"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="551"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="552"/>
         <source>Import Key</source>
         <translation>Importuj klucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="580"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="581"/>
         <source>Profiles</source>
         <translation>Profile</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="585"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="586"/>
         <source>Open Recent</source>
         <translation>Otwórz ostatni</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="619"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="620"/>
         <source>View</source>
         <translation>Widok</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="631"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="632"/>
         <source>Help</source>
         <translation>Pomoc</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="535"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="677"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="536"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="678"/>
         <source>Operations</source>
         <translation>Operacje</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="63"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="64"/>
         <source>Open a new text editor</source>
         <translation>Otwórz nowy edytor tekstu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="78"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="79"/>
         <source>Open a new file panel</source>
         <translation>Otwórz nowy panel plików</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="782"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="783"/>
         <source>Ready</source>
         <translation>Gotowy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="786"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="787"/>
         <source>Key ToolBox</source>
         <translation>Przybornik kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="811"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="812"/>
         <source>Default</source>
         <translation>Domyślne</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="819"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="820"/>
         <source>Key Group</source>
         <translation>Grupa kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="826"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="827"/>
         <source>Only Public Key</source>
         <translation>Tylko klucz publiczny</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="834"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="835"/>
         <source>Has Private Key</source>
         <translation>Ma klucz prywatny</translation>
     </message>
@@ -14513,27 +14823,27 @@ Czy chcesz pobrać te klucze z serwera kluczy?</translation>
         <translation>Wczytywanie... %1 KB</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1007"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1011"/>
         <source>Message</source>
         <translation>Wiadomość</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1008"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1012"/>
         <source>Raw Source</source>
         <translation>Surowe źródło</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1087"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1091"/>
         <source>Protected Document</source>
         <translation>Dokument chroniony</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1113"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1117"/>
         <source>Stop Editing</source>
         <translation>Zatrzymaj edycję</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1114"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1118"/>
         <source>Edit Raw Source</source>
         <translation>Edytuj surowe źródło</translation>
     </message>
@@ -14546,27 +14856,27 @@ Czy chcesz pobrać te klucze z serwera kluczy?</translation>
         <translation type="vanished">Tylko do odczytu. Odblokuj, aby edytować źródło.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1172"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1176"/>
         <source>Text Direction</source>
         <translation>Kierunek tekstu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1179"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1183"/>
         <source>Automatic</source>
         <translation>Automatyczny</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1180"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1184"/>
         <source>Left-to-Right</source>
         <translation>Od lewej do prawej</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1181"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1185"/>
         <source>Right-to-Left</source>
         <translation>Od prawej do lewej</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1195"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1199"/>
         <source>Which way the text runs. Automatic gives every line the direction of its own first letter.</source>
         <translation>W którą stronę biegnie tekst. Tryb automatyczny nadaje każdemu wierszowi kierunek jego pierwszej litery.</translation>
     </message>
@@ -15029,47 +15339,47 @@ Czy chcesz pobrać te klucze z serwera kluczy?</translation>
 <context>
     <name>GpgFrontend::UI::RpgpEngineTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="701"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="675"/>
         <source>Unknown</source>
         <translation>Nieznana</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="710"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="684"/>
         <source>GpgFrontend supports multiple OpenPGP backends. Alongside GnuPG, it can use a Rust-based engine (rPGP), giving you the freedom to choose the backend that best fits your needs. The details below describe the rPGP engine compiled into this build.</source>
         <translation>GpgFrontend obsługuje wiele silników OpenPGP. Obok GnuPG może korzystać z silnika opartego na Ruście (rPGP), dając Ci swobodę wyboru silnika najlepiej dopasowanego do Twoich potrzeb. Szczegóły poniżej opisują silnik rPGP skompilowany w tej wersji.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="720"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="694"/>
         <source>Engine Version:</source>
         <translation>Wersja silnika:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="722"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="696"/>
         <source>Rust Compiler:</source>
         <translation>Kompilator Rust:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="725"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="699"/>
         <source>Target:</source>
         <translation>Cel:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="729"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="703"/>
         <source>Build Profile:</source>
         <translation>Profil kompilacji:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="734"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="708"/>
         <source>rPGP Engine</source>
         <translation>Silnik rPGP</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="741"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="715"/>
         <source>Key Dependencies</source>
         <translation>Kluczowe zależności</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="758"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="732"/>
         <source>Copy Engine Information</source>
         <translation>Skopiuj informacje o silniku</translation>
     </message>
@@ -16324,204 +16634,204 @@ Wybierz Anuluj, aby odrzucić wszystkie zmiany z tego okna i zachować bieżące
 <context>
     <name>GpgFrontend::UI::StatusTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="482"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="456"/>
         <source>GnuPG Home:</source>
         <translation>Katalog domowy GnuPG:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="483"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="457"/>
         <source>Unusable</source>
         <translation>nienadający się do użytku</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="492"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="466"/>
         <source>Portable Mode</source>
         <translation>Tryb przenośny</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="492"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="466"/>
         <source>Installed Mode</source>
         <translation>Tryb zainstalowany</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="498"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="472"/>
         <source>Application</source>
         <translation>Aplikacja</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="506"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="480"/>
         <source>Profile ID:</source>
         <translation>Identyfikator profilu:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="543"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="517"/>
         <source>Profile Key Rotation:</source>
         <translation>Rotacja klucza profilu:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="544"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="518"/>
         <source>On a schedule</source>
         <translation>Według harmonogramu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="545"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="519"/>
         <source>New saved data uses the current period&apos;s key, and the keys that open what earlier periods wrote are kept alongside it.</source>
         <translation>Nowo zapisywane dane używają klucza bieżącego okresu, a klucze otwierające to, co zapisano we wcześniejszych okresach, są przechowywane obok niego.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="555"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="529"/>
         <source>Profile Format Version:</source>
         <translation>Wersja formatu profilu:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="565"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="539"/>
         <source>Profile File:</source>
         <translation>Plik profilu:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="574"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="548"/>
         <source>Imported From:</source>
         <translation>Zaimportowano z:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="607"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="581"/>
         <source>Folders</source>
         <translation>Foldery</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="613"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="587"/>
         <source>Available</source>
         <translation>Dostępne</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="618"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="592"/>
         <source>Active</source>
         <translation>Aktywny</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="618"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="592"/>
         <source>Disabled</source>
         <translation>Wyłączony</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="627"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="601"/>
         <source>Default Pinentry Program</source>
         <translation>Domyślny program Pinentry</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="632"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="606"/>
         <source>OpenPGP Engines</source>
         <translation>Silniki OpenPGP</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="653"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="627"/>
         <source>Needs Attention</source>
         <translation>Wymaga uwagi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="654"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="628"/>
         <source>At a Glance</source>
         <translation>W skrócie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="671"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="645"/>
         <source>More details</source>
         <translation>Więcej szczegółów</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="671"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="645"/>
         <source>Details</source>
         <translation>Szczegóły</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="676"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="650"/>
         <source>Copy Status Information</source>
         <translation>Skopiuj informacje o statusie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="684"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="658"/>
         <source>These values reflect the current startup environment and may help when reporting issues.</source>
         <translation>Te wartości odzwierciedlają bieżące środowisko startowe i mogą pomóc przy zgłaszaniu problemów.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="466"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="440"/>
         <source>Secure Level:</source>
         <translation>Poziom bezpieczeństwa:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="463"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="437"/>
         <source>Application Key Protection:</source>
         <translation>Ochrona klucza aplikacji:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="470"/>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="494"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="444"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="468"/>
         <source>System Credential Store:</source>
         <translation>Systemowy magazyn poświadczeń:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="471"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="445"/>
         <source>Unavailable</source>
         <translation>Niedostępny</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="491"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="465"/>
         <source>Running Mode:</source>
         <translation>Tryb działania:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="617"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="591"/>
         <source>GnuPG Offline Mode:</source>
         <translation>Tryb offline GnuPG:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="625"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="599"/>
         <source>Pinentry Program Path:</source>
         <translation>Ścieżka programu Pinentry:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="584"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="558"/>
         <source>Profile Folder:</source>
         <translation>Folder profilu:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="591"/>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="593"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="565"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="567"/>
         <source>Workspace:</source>
         <translation>Obszar roboczy:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="591"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="565"/>
         <source>None</source>
         <translation>Brak</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="603"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="577"/>
         <source>Profiles Folder:</source>
         <translation>Folder profili:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="578"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="552"/>
         <source>Profile</source>
         <translation>Profil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="517"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="491"/>
         <source>Session Storage:</source>
         <translation>Magazyn sesji:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="528"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="502"/>
         <source>Profile Key:</source>
         <translation>Klucz profilu:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="529"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="503"/>
         <source>Held in memory only</source>
         <translation>Przechowywany tylko w pamięci</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="530"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="504"/>
         <source>The key that protects this profile&apos;s own saved data is never written here. Your OpenPGP keys are a separate thing and do live in the session storage above, because GnuPG needs real files for them.</source>
         <translation>Klucz chroniący własne zapisane dane tego profilu nigdy nie jest tutaj zapisywany. Twoje klucze OpenPGP to co innego i faktycznie żyją w magazynie sesji powyżej, ponieważ GnuPG potrzebuje dla nich prawdziwych plików.</translation>
     </message>
@@ -16605,7 +16915,7 @@ Wybierz Anuluj, aby odrzucić wszystkie zmiany z tego okna i zachować bieżące
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="95"/>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="108"/>
-        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="342"/>
+        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="336"/>
         <source>Add Subkey</source>
         <translation>Dodaj podklucz</translation>
     </message>
@@ -16681,32 +16991,32 @@ Wybierz Anuluj, aby odrzucić wszystkie zmiany z tego okna i zachować bieżące
         <translation>Tryb ekspercki</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="343"/>
+        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="337"/>
         <source>The subkey would expire in less than two minutes. Choose a later date.</source>
         <translation>Podklucz wygaśnie za mniej niż dwie minuty. Wybierz późniejszą datę.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="354"/>
+        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="348"/>
         <source>Generating</source>
         <translation>Generowanie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="365"/>
+        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="359"/>
         <source>Error</source>
         <translation>Błąd</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="366"/>
+        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="360"/>
         <source>Unknown error occurred</source>
         <translation>Wystąpił nieznany błąd</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="392"/>
+        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="386"/>
         <source>Subkey Added</source>
         <translation>Dodano podklucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="393"/>
+        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="387"/>
         <source>The subkey was generated and added to the key pair.</source>
         <translation>Podklucz został wygenerowany i dodany do pary kluczy.</translation>
     </message>
@@ -16820,57 +17130,57 @@ Wybierz Anuluj, aby odrzucić wszystkie zmiany z tego okna i zachować bieżące
         <translation>Nie udało się otworzyć pliku „%1”.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1359"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1364"/>
         <source>Not saved to a file</source>
         <translation>Nie zapisano do pliku</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1361"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1366"/>
         <source>Unsaved changes</source>
         <translation>Niezapisane zmiany</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1429"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1434"/>
         <source>Close</source>
         <translation>Zamknij</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1430"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1435"/>
         <source>Close Others</source>
         <translation>Zamknij inne</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1431"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1436"/>
         <source>Close to the Right</source>
         <translation>Zamknij po prawej</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1432"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1437"/>
         <source>Close to the Left</source>
         <translation>Zamknij po lewej</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1433"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1438"/>
         <source>Close Unmodified</source>
         <translation>Zamknij niezmodyfikowane</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1434"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1439"/>
         <source>Close All</source>
         <translation>Zamknij wszystkie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1439"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1444"/>
         <source>Copy Name</source>
         <translation>Skopiuj nazwę</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1441"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1446"/>
         <source>Copy Path</source>
         <translation>Skopiuj ścieżkę</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1443"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1448"/>
         <source>Reveal in File Browser</source>
         <translation>Pokaż w menedżerze plików</translation>
     </message>
@@ -16906,22 +17216,22 @@ Wybierz Anuluj, aby odrzucić wszystkie zmiany z tego okna i zachować bieżące
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="660"/>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1206"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1211"/>
         <source>Workspace</source>
         <translation>Obszar roboczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1178"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1183"/>
         <source>Directory Permission Denied</source>
         <translation>Brak uprawnień do katalogu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1179"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1184"/>
         <source>You do not have permission to access the directory &quot;%1&quot;.</source>
         <translation>Nie masz uprawnień do dostępu do katalogu „%1”.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1201"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1206"/>
         <source>Root</source>
         <translation>Katalog główny</translation>
     </message>
@@ -16929,17 +17239,17 @@ Wybierz Anuluj, aby odrzucić wszystkie zmiany z tego okna i zachować bieżące
 <context>
     <name>GpgFrontend::UI::TranslatorsTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="389"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="363"/>
         <source>Thanks to all translators</source>
         <translation>Podziękowania dla wszystkich tłumaczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="399"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="373"/>
         <source>Translator information is not available.</source>
         <translation>Informacje o tłumaczach są niedostępne.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="403"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="377"/>
         <source>If you want to help improve localization, please read the &lt;a href=&apos;https://gpgfrontend.bktus.com/appendix/translate-interface/&apos;&gt;translation guide&lt;/a&gt;.!</source>
         <translation>Jeśli chcesz pomóc ulepszać lokalizację, przeczytaj &lt;a href=&apos;https://gpgfrontend.bktus.com/appendix/translate-interface/&apos;&gt;przewodnik tłumaczenia&lt;/a&gt;.!</translation>
     </message>
@@ -17159,10 +17469,10 @@ Otworzyć go w przeglądarce?</translation>
     <message numerus="yes">
         <location filename="../../../../src/mob/qml/KeyCategoriesPage.qml" line="54"/>
         <source>%n key(s)</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n klucz</numerusform>
+            <numerusform>%n klucze</numerusform>
+            <numerusform>%n kluczy</numerusform>
         </translation>
     </message>
     <message>
@@ -17238,58 +17548,70 @@ Otworzyć go w przeglądarce?</translation>
 <context>
     <name>KeyDatabaseSheet</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="44"/>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="160"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="60"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="215"/>
         <source>New key database</source>
         <translation>Nowa baza kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="44"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="60"/>
         <source>Key database</source>
         <translation>Baza kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="57"/>
         <source>Now using %1.</source>
-        <translation>Teraz używana jest %1.</translation>
+        <translation type="vanished">Teraz używana jest %1.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="67"/>
         <source>%1 is made, and in use.</source>
-        <translation>%1 została utworzona i jest używana.</translation>
+        <translation type="vanished">%1 została utworzona i jest używana.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="90"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="98"/>
+        <source>%1 is in use, but its keys could not be read: %2</source>
+        <translation>%1 jest używana, ale nie udało się odczytać jej kluczy: %2</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="149"/>
+        <source>Making %1…</source>
+        <translation>Tworzenie %1…</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="150"/>
+        <source>Switching to %1…</source>
+        <translation>Przełączanie na %1…</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="159"/>
         <source>Kept in your profile, so it travels with a profile you export. Just choose a name.</source>
         <translation>Przechowywana w profilu, więc jest przenoszona razem z eksportowanym profilem. Wystarczy wybrać nazwę.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="92"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="161"/>
         <source>Each key database has its own keys. The one you choose is used from now on.</source>
         <translation>Każda baza kluczy ma własne klucze. Od teraz używana jest ta, którą wybierzesz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="126"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="196"/>
         <source>Name, for example Work</source>
         <translation>Nazwa, na przykład Praca</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="151"/>
         <source>Opening the key databases…</source>
-        <translation>Otwieranie baz kluczy…</translation>
+        <translation type="vanished">Otwieranie baz kluczy…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="168"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="223"/>
         <source>Cancel</source>
         <translation>Anuluj</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="168"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="223"/>
         <source>Close</source>
         <translation>Zamknij</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="176"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="231"/>
         <source>Create</source>
         <translation>Utwórz</translation>
     </message>
@@ -17297,331 +17619,331 @@ Otworzyć go w przeglądarce?</translation>
 <context>
     <name>KeyDetailPage</name>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="41"/>
         <source>That did not work: %1</source>
-        <translation>To nie zadziałało: %1</translation>
+        <translation type="vanished">To nie zadziałało: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="58"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="68"/>
         <source>Subkey added.</source>
         <translation>Dodano podklucz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="59"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="69"/>
         <source>Expiration changed.</source>
         <translation>Zmieniono wygaśnięcie.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="60"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="70"/>
         <source>Subkey revoked.</source>
         <translation>Unieważniono podklucz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="61"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="71"/>
         <source>Subkey deleted.</source>
         <translation>Usunięto podklucz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="62"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="72"/>
         <source>User ID added.</source>
         <translation>Dodano identyfikator użytkownika.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="63"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="73"/>
         <source>Primary user ID changed.</source>
         <translation>Zmieniono główny identyfikator użytkownika.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="64"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="74"/>
         <source>User ID revoked.</source>
         <translation>Unieważniono identyfikator użytkownika.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="65"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="75"/>
         <source>User ID deleted.</source>
         <translation>Usunięto identyfikator użytkownika.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="66"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="76"/>
         <source>Passphrase changed.</source>
         <translation>Zmieniono hasło.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="77"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="88"/>
         <source>This key could not be shared. Copy it instead.</source>
         <translation>Nie udało się udostępnić tego klucza. Zamiast tego skopiuj go.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="84"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="96"/>
         <source>Key</source>
         <translation>Klucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="149"/>
         <source>Your key</source>
-        <translation>Twój klucz</translation>
+        <translation type="vanished">Twój klucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="182"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="186"/>
         <source>Owner</source>
         <translation>Właściciel</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="194"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="198"/>
         <source>Name</source>
         <translation>Nazwa</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="198"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="202"/>
         <source>Email</source>
         <translation>E-mail</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="202"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="206"/>
         <source>Comment</source>
         <translation>Komentarz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="211"/>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="308"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="215"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="312"/>
         <source>Primary key</source>
         <translation>Klucz główny</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="230"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="234"/>
         <source>Key format</source>
         <translation>Format klucza</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="231"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="235"/>
         <source>Version %1</source>
         <translation>Wersja %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="232"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="236"/>
         <source>Never</source>
         <translation>Nigdy</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="235"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="239"/>
         <source>Not here</source>
         <translation>Nie tutaj</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="236"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="240"/>
         <source>On this device</source>
         <translation>Na tym urządzeniu</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="237"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="241"/>
         <source>Subkeys only: the primary key&apos;s is not here</source>
         <translation>Tylko podklucze: klucza głównego nie ma tutaj</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="238"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="242"/>
         <source>Some parts are on a smart card</source>
         <translation>Niektóre części są na karcie inteligentnej</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="245"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="249"/>
         <source>User IDs (%1)</source>
         <translation>Identyfikatory użytkownika (%1)</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="265"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="269"/>
         <source>Primary</source>
         <translation>Główny</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="270"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="274"/>
         <source>Revoked</source>
         <translation>Unieważniony</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="270"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="274"/>
         <source>Invalid</source>
         <translation>Nieprawidłowy</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="282"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="286"/>
         <source>Add user ID</source>
         <translation>Dodaj identyfikator użytkownika</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="291"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="295"/>
         <source>Keys (%1)</source>
         <translation>Klucze (%1)</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="308"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="312"/>
         <source>Subkey</source>
         <translation>Podklucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="331"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="349"/>
         <source>Add subkey</source>
         <translation>Dodaj podklucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="340"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="358"/>
         <source>Categories</source>
         <translation>Kategorie</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="376"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="385"/>
         <source>Take out of %1</source>
         <translation>Wyjmij z %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="377"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="386"/>
         <source>Put in %1</source>
         <translation>Umieść w %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="394"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="393"/>
         <source>New category</source>
         <translation>Nowa kategoria</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="407"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="408"/>
         <source>Operations</source>
         <translation>Operacje</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="422"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="515"/>
+        <source>Share as a file</source>
+        <translation>Udostępnij jako plik</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="531"/>
+        <source>Copy the key as text</source>
+        <translation>Kopiuj klucz jako tekst</translation>
+    </message>
+    <message>
         <source>Do not encrypt to this key</source>
-        <translation>Nie szyfruj do tego klucza</translation>
+        <translation type="vanished">Nie szyfruj do tego klucza</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="422"/>
         <source>Encrypt to this key</source>
-        <translation>Szyfruj do tego klucza</translation>
+        <translation type="vanished">Szyfruj do tego klucza</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="423"/>
         <source>It is among the recipients of your work.</source>
-        <translation>Jest wśród odbiorców Twojej pracy.</translation>
+        <translation type="vanished">Jest wśród odbiorców Twojej pracy.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="424"/>
         <source>Adds it to the recipients of your work.</source>
-        <translation>Dodaje go do odbiorców Twojej pracy.</translation>
+        <translation type="vanished">Dodaje go do odbiorców Twojej pracy.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="437"/>
         <source>Signs your work</source>
-        <translation>Podpisuje Twoją pracę</translation>
+        <translation type="vanished">Podpisuje Twoją pracę</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="437"/>
         <source>Sign with this key</source>
-        <translation>Podpisuj tym kluczem</translation>
+        <translation type="vanished">Podpisuj tym kluczem</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="446"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="421"/>
         <source>Share public key</source>
         <translation>Udostępnij klucz publiczny</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="456"/>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="582"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="431"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="563"/>
         <source>Change expiration</source>
         <translation>Zmień wygaśnięcie</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="457"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="432"/>
         <source>Of the primary key, and so of the whole key.</source>
         <translation>Klucza głównego, a więc całego klucza.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="468"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="443"/>
         <source>Change passphrase</source>
         <translation>Zmień hasło</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="469"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="444"/>
         <source>You are asked for the current one, then the new one.</source>
         <translation>Zostaniesz poproszony o obecne hasło, a następnie o nowe.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="485"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="460"/>
         <source>Delete key</source>
         <translation>Usuń klucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="519"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="494"/>
         <source>Public key</source>
         <translation>Klucz publiczny</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="525"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="500"/>
         <source>Give it to the people who want to encrypt to this key or check its signatures. It holds nothing secret.</source>
         <translation>Przekaż go osobom, które chcą szyfrować do tego klucza lub sprawdzać jego podpisy. Nie zawiera niczego tajnego.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="534"/>
         <source>Copy</source>
-        <translation>Kopiuj</translation>
+        <translation type="vanished">Kopiuj</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="538"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="534"/>
         <source>Copied.</source>
         <translation>Skopiowano.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="549"/>
         <source>Share</source>
-        <translation>Udostępnij</translation>
+        <translation type="vanished">Udostępnij</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="584"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="565"/>
         <source>How long the key lasts, from today.</source>
         <translation>Jak długo klucz jest ważny, licząc od dziś.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="585"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="566"/>
         <source>How long subkey %1 lasts, from today.</source>
         <translation>Jak długo podklucz %1 jest ważny, licząc od dziś.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="652"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="636"/>
         <source>Delete this user ID?</source>
         <translation>Usunąć ten identyfikator użytkownika?</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="653"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="637"/>
         <source>“%1” is deleted from this device only. Copies of the key others have keep it: to withdraw it, revoke it instead.</source>
         <translation>„%1” jest usuwany tylko z tego urządzenia. Kopie klucza u innych osób nadal go zawierają: aby go wycofać, unieważnij go.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="656"/>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="670"/>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="688"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="640"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="654"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="672"/>
         <source>Delete</source>
         <translation>Usuń</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="666"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="650"/>
         <source>Delete subkey %1?</source>
         <translation>Usunąć podklucz %1?</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="667"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="651"/>
         <source>It is deleted from this device only. Copies of the key others have keep it: to end its use, revoke it instead. This cannot be undone.</source>
         <translation>Zostanie usunięty tylko z tego urządzenia. Kopie klucza, które mają inni, nadal go zachowają: aby zakończyć jego używanie, unieważnij go. Tej operacji nie można cofnąć.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="678"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="662"/>
         <source>Delete this key?</source>
         <translation>Usunąć ten klucz?</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="681"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="665"/>
         <source>This is your own key. Without it you can no longer read messages encrypted to it or sign with it. This cannot be undone.</source>
         <translation>To jest twój własny klucz. Bez niego nie odczytasz wiadomości zaszyfrowanych do tego klucza ani nie podpiszesz nim. Tej operacji nie można cofnąć.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="684"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="668"/>
         <source>You will no longer be able to encrypt to this key or check its signatures, until you import it again.</source>
         <translation>Nie będziesz już mógł szyfrować do tego klucza ani sprawdzać jego podpisów, dopóki nie zaimportujesz go ponownie.</translation>
     </message>
@@ -17659,34 +17981,51 @@ Otworzyć go w przeglądarce?</translation>
         <translation>Ważny, nie wygasa</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="53"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="56"/>
         <source>Can</source>
         <translation>Może</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="54"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="57"/>
         <source>encrypt</source>
         <translation>szyfrowanie</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="55"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="58"/>
         <source>sign</source>
         <translation>podpisywanie</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="58"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="61"/>
         <source>Never</source>
         <translation>Nigdy</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="59"/>
-        <source>Yours, on this device</source>
-        <translation>Twój, na tym urządzeniu</translation>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="62"/>
+        <source>On this device</source>
+        <translation>Na tym urządzeniu</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="60"/>
+        <source>Yours, on this device</source>
+        <translation type="vanished">Twój, na tym urządzeniu</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="63"/>
         <source>Not here</source>
         <translation>Nie ma go tutaj</translation>
+    </message>
+</context>
+<context>
+    <name>KeyFinder</name>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyFinder.qml" line="32"/>
+        <source>All keys</source>
+        <translation>Wszystkie klucze</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyFinder.qml" line="47"/>
+        <source>Search name, email or key ID</source>
+        <translation>Szukaj nazwy, e-maila lub identyfikatora klucza</translation>
     </message>
 </context>
 <context>
@@ -17834,78 +18173,108 @@ Otworzyć go w przeglądarce?</translation>
         <translation>Dodaj klucze do %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="45"/>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="131"/>
         <source>Add keys</source>
-        <translation>Dodaj klucze</translation>
+        <translation type="vanished">Dodaj klucze</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="55"/>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="48"/>
         <source>Rename</source>
         <translation>Zmień nazwę</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="60"/>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="157"/>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="53"/>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="175"/>
         <source>Delete</source>
         <translation>Usuń</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="87"/>
         <source>%1. Encrypting to this group encrypts to every key in it.</source>
-        <translation>%1. Szyfrowanie do tej grupy szyfruje do każdego klucza w niej.</translation>
+        <translation type="vanished">%1. Szyfrowanie do tej grupy szyfruje do każdego klucza w niej.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="102"/>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="108"/>
         <source>No longer in your keys</source>
         <translation>Nie ma już na liście kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="103"/>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="109"/>
         <source>Key group</source>
         <translation>Grupa kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="109"/>
         <source>Take %1 out</source>
-        <translation>Usuń %1</translation>
+        <translation type="vanished">Usuń %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="113"/>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="120"/>
         <source>%1 is out of %2.</source>
         <translation>%1 nie należy już do %2.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="126"/>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="133"/>
         <source>No keys in it yet</source>
         <translation>Nie ma w niej jeszcze kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="127"/>
         <source>Encrypting to a key group encrypts to every key in it. Add the keys, many at once.</source>
-        <translation>Szyfrowanie do grupy kluczy szyfruje do każdego klucza w niej. Dodaj klucze, wiele naraz.</translation>
+        <translation type="vanished">Szyfrowanie do grupy kluczy szyfruje do każdego klucza w niej. Dodaj klucze, wiele naraz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="140"/>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="85"/>
+        <source>Member keys (%1)</source>
+        <translation>Klucze w grupie (%1)</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="91"/>
+        <source>About key groups</source>
+        <translation>O grupach kluczy</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="116"/>
+        <source>Remove %1 from the group</source>
+        <translation>Usuń %1 z grupy</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="134"/>
+        <source>Use + to add keys, many at once. Encrypting to a key group encrypts to every key in it.</source>
+        <translation>Użyj +, aby dodać klucze, wiele naraz. Szyfrowanie do grupy kluczy szyfruje do każdego klucza w niej.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="141"/>
+        <source>Add keys to the group</source>
+        <translation>Dodaj klucze do grupy</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="150"/>
+        <source>Key groups</source>
+        <translation>Grupy kluczy</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="151"/>
+        <source>Encrypting to a key group encrypts to every key in it, as if each were chosen. Removing a key from the group keeps the key in your key list.</source>
+        <translation>Szyfrowanie do grupy kluczy szyfruje do każdego klucza w niej, tak jakby każdy został wybrany. Usunięcie klucza z grupy pozostawia go na liście kluczy.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="158"/>
         <source>Add</source>
         <translation>Dodaj</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="143"/>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="161"/>
         <source>%n key(s) added.</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n klucz dodany</numerusform>
+            <numerusform>%n klucze dodane</numerusform>
+            <numerusform>%n kluczy dodanych</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="155"/>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="173"/>
         <source>Delete “%1”?</source>
         <translation>Usunąć „%1”?</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="156"/>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="174"/>
         <source>Only the group goes: its keys stay in the key list.</source>
         <translation>Usuwana jest tylko grupa: jej klucze pozostają na liście kluczy.</translation>
     </message>
@@ -18014,47 +18383,52 @@ Otworzyć go w przeglądarce?</translation>
 <context>
     <name>KeyPickerSheet</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="24"/>
+        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="25"/>
         <source>Add</source>
         <translation>Dodaj</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="64"/>
+        <source>All keys</source>
+        <translation type="vanished">Wszystkie klucze</translation>
+    </message>
+    <message>
         <source>Search name, email or key ID</source>
-        <translation>Szukaj nazwy, e-maila lub identyfikatora klucza</translation>
+        <translation type="vanished">Szukaj nazwy, e-maila lub identyfikatora klucza</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="71"/>
         <source>All</source>
-        <translation>Wszystkie</translation>
+        <translation type="vanished">Wszystkie</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="72"/>
         <source>Mine</source>
-        <translation>Moje</translation>
+        <translation type="vanished">Moje</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="73"/>
         <source>Others&apos;</source>
-        <translation>Inne</translation>
+        <translation type="vanished">Inne</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="141"/>
+        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="104"/>
+        <source>Clear</source>
+        <translation>Wyczyść</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="161"/>
         <source>Already in</source>
         <translation>Już w</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="159"/>
+        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="182"/>
         <source>No key matches.</source>
         <translation>Brak pasującego klucza.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="167"/>
+        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="191"/>
         <source>Cancel</source>
         <translation>Anuluj</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="174"/>
+        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="197"/>
         <source>%1 (%2)</source>
         <translation>%1 (%2)</translation>
     </message>
@@ -18062,77 +18436,82 @@ Otworzyć go w przeglądarce?</translation>
 <context>
     <name>KeyRow</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyRow.qml" line="53"/>
+        <location filename="../../../../src/mob/qml/components/KeyRow.qml" line="43"/>
         <source>Key group</source>
         <translation>Grupa kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyRow.qml" line="54"/>
-        <location filename="../../../../src/mob/qml/components/KeyRow.qml" line="156"/>
         <source>Your key</source>
-        <translation>Twój klucz</translation>
+        <translation type="vanished">Twój klucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyRow.qml" line="56"/>
         <source>Chosen to encrypt to</source>
-        <translation>Wybrany do szyfrowania</translation>
+        <translation type="vanished">Wybrany do szyfrowania</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyRow.qml" line="112"/>
         <source>Do not encrypt to %1</source>
-        <translation>Nie szyfruj dla %1</translation>
+        <translation type="vanished">Nie szyfruj dla %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyRow.qml" line="113"/>
         <source>Encrypt to %1</source>
-        <translation>Szyfruj dla %1</translation>
+        <translation type="vanished">Szyfruj dla %1</translation>
     </message>
 </context>
 <context>
     <name>KeyToolbox</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="74"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="89"/>
         <source>Encrypt to</source>
         <translation>Szyfruj do</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="74"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="89"/>
         <source>Sign with</source>
         <translation>Podpisz kluczem</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="149"/>
         <source>Remove %1</source>
-        <translation>Usuń %1</translation>
+        <translation type="vanished">Usuń %1</translation>
+    </message>
+    <message>
+        <source>Search name, email or key ID</source>
+        <translation type="vanished">Szukaj nazwy, e-maila lub identyfikatora klucza</translation>
+    </message>
+    <message>
+        <source>All keys</source>
+        <translation type="vanished">Wszystkie klucze</translation>
+    </message>
+    <message>
+        <source>Show %1</source>
+        <translation type="vanished">Pokaż %1</translation>
+    </message>
+    <message>
+        <source>About %1</source>
+        <translation type="vanished">O %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="181"/>
+        <source>Some cannot be used</source>
+        <translation>Niektórych nie można użyć</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="162"/>
-        <source>and %n more key(s), ticked below</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="213"/>
+        <source>%n of them cannot be used. Tap to see why.</source>
+        <translation>
+            <numerusform>Nie można użyć %n z nich. Dotknij, aby zobaczyć dlaczego.</numerusform>
+            <numerusform>Nie można użyć %n z nich. Dotknij, aby zobaczyć dlaczego.</numerusform>
+            <numerusform>Nie można użyć %n z nich. Dotknij, aby zobaczyć dlaczego.</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="177"/>
-        <source>Search name, email or key ID</source>
-        <translation>Szukaj nazwy, e-maila lub identyfikatora klucza</translation>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="235"/>
+        <source>Signing as %1</source>
+        <translation>Podpisywanie jako %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="199"/>
-        <source>All keys</source>
-        <translation>Wszystkie klucze</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="225"/>
-        <source>Show %1</source>
-        <translation>Pokaż %1</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="342"/>
-        <source>About %1</source>
-        <translation>O %1</translation>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="306"/>
+        <source>Long-press for the key&apos;s details</source>
+        <translation>Naciśnij i przytrzymaj, aby zobaczyć szczegóły klucza</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="386"/>
@@ -18141,41 +18520,46 @@ Otworzyć go w przeglądarce?</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="387"/>
+        <source>No keys in this category.</source>
+        <translation>Brak kluczy w tej kategorii.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="388"/>
         <source>You have no key of your own to sign with.</source>
         <translation>Nie masz własnego klucza do podpisywania.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="388"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="389"/>
         <source>No keys yet. Import the keys of the people you write to on the Keys page.</source>
         <translation>Nie ma jeszcze kluczy. Zaimportuj klucze osób, do których piszesz, na stronie Klucze.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="407"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="418"/>
         <source>Back to the list</source>
         <translation>Wróć do listy</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="426"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="438"/>
         <source>Open on the Keys page</source>
         <translation>Otwórz na stronie Klucze</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="439"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="452"/>
         <source>Reset keys</source>
         <translation>Zresetuj klucze</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="446"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="460"/>
         <source>Back</source>
         <translation>Wstecz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="457"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="470"/>
         <source>Done</source>
         <translation>Gotowe</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="465"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="477"/>
         <source>Next</source>
         <translation>Dalej</translation>
     </message>
@@ -18183,149 +18567,155 @@ Otworzyć go w przeglądarce?</translation>
 <context>
     <name>KeysPage</name>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="66"/>
         <source>%1 to encrypt to</source>
-        <translation>%1 do szyfrowania</translation>
+        <translation type="vanished">%1 do szyfrowania</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="67"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="90"/>
         <source>Keys</source>
         <translation>Klucze</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="82"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="101"/>
         <source>Key database: %1. Choose another</source>
         <translation>Baza kluczy: %1. Wybierz inną</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="90"/>
         <source>Clear</source>
-        <translation>Wyczyść</translation>
+        <translation type="vanished">Wyczyść</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="92"/>
         <source>Clear the keys to encrypt to</source>
-        <translation>Wyczyść klucze do szyfrowania</translation>
+        <translation type="vanished">Wyczyść klucze do szyfrowania</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="108"/>
         <source>Search name, email or key ID</source>
-        <translation>Szukaj nazwy, e-maila lub identyfikatora klucza</translation>
+        <translation type="vanished">Szukaj nazwy, e-maila lub identyfikatora klucza</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="130"/>
         <source>All keys</source>
-        <translation>Wszystkie klucze</translation>
+        <translation type="vanished">Wszystkie klucze</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="158"/>
         <source>Show %1</source>
-        <translation>Pokaż %1</translation>
+        <translation type="vanished">Pokaż %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="159"/>
         <source>Long-press to manage it</source>
-        <translation>Przytrzymaj, aby zarządzać</translation>
+        <translation type="vanished">Przytrzymaj, aby zarządzać</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="177"/>
         <source>New category</source>
-        <translation>Nowa kategoria</translation>
+        <translation type="vanished">Nowa kategoria</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="223"/>
         <source>%1 cannot be encrypted to.</source>
-        <translation>Nie można użyć %1 do szyfrowania.</translation>
+        <translation type="vanished">Nie można użyć %1 do szyfrowania.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="250"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="188"/>
         <source>Release to refresh</source>
         <translation>Puść, aby odświeżyć</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="251"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="189"/>
         <source>Pull to refresh</source>
         <translation>Pociągnij, aby odświeżyć</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="265"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="212"/>
         <source>No key matches “%1”.</source>
         <translation>Żaden klucz nie pasuje do „%1”.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="266"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="213"/>
         <source>No keys in this category.</source>
         <translation>Brak kluczy w tej kategorii.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="267"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="215"/>
         <source>No keys yet.</source>
         <translation>Nie ma jeszcze kluczy.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="271"/>
         <source>Add keys to it on each key&apos;s page.</source>
-        <translation>Dodaj klucze do kategorii na stronie każdego klucza.</translation>
+        <translation type="vanished">Dodaj klucze do kategorii na stronie każdego klucza.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="272"/>
         <source>Create a key of your own, or import the keys of the people you write to.</source>
-        <translation>Utwórz własny klucz lub zaimportuj klucze osób, do których piszesz.</translation>
+        <translation type="vanished">Utwórz własny klucz lub zaimportuj klucze osób, do których piszesz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="278"/>
         <source>Clear search</source>
-        <translation>Wyczyść wyszukiwanie</translation>
+        <translation type="vanished">Wyczyść wyszukiwanie</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="285"/>
         <source>Import</source>
-        <translation>Importuj</translation>
+        <translation type="vanished">Importuj</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="292"/>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="341"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="282"/>
         <source>Create a key</source>
         <translation>Utwórz klucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="323"/>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="331"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="263"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="272"/>
         <source>Add a key</source>
         <translation>Dodaj klucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="342"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="214"/>
+        <source>The keys could not be read.</source>
+        <translation>Nie można odczytać kluczy.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="219"/>
+        <source>Add keys to it from the category&apos;s page.</source>
+        <translation>Dodaj klucze do kategorii na jej stronie.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="221"/>
+        <source>Use + to create a key of your own or import the keys of the people you write to.</source>
+        <translation>Użyj +, aby utworzyć własny klucz lub zaimportować klucze osób, do których piszesz.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="227"/>
+        <source>Try again</source>
+        <translation>Spróbuj ponownie</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="283"/>
         <source>Create a key for signing and receiving encrypted content.</source>
         <translation>Utwórz klucz do podpisywania i odbierania zaszyfrowanej treści.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="358"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="299"/>
         <source>Quick key</source>
         <translation>Szybki klucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="359"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="300"/>
         <source>An anonymous key from the default profile, at once. Only its passphrase is asked for.</source>
         <translation>Anonimowy klucz z domyślnego profilu, od razu. Pytamy tylko o jego hasło.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="374"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="315"/>
         <source>New key group</source>
         <translation>Nowa grupa kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="375"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="316"/>
         <source>Encrypt to several keys at once, as one recipient.</source>
         <translation>Szyfruj do kilku kluczy naraz, jako jeden odbiorca.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="391"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="332"/>
         <source>Import a key</source>
         <translation>Importuj klucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="392"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="333"/>
         <source>Import from a file or the clipboard.</source>
         <translation>Importuj z pliku lub schowka.</translation>
     </message>
@@ -18335,10 +18725,10 @@ Otworzyć go w przeglądarce?</translation>
     <message numerus="yes">
         <location filename="../../../../src/mob/qml/MainPage.qml" line="50"/>
         <source>%n shared file(s) added, as copies for this session.</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>Dodano %n udostępniony plik jako kopię na tę sesję.</numerusform>
+            <numerusform>Dodano %n udostępnione pliki jako kopie na tę sesję.</numerusform>
+            <numerusform>Dodano %n udostępnionych plików jako kopie na tę sesję.</numerusform>
         </translation>
     </message>
     <message>
@@ -18347,59 +18737,64 @@ Otworzyć go w przeglądarce?</translation>
         <translation>Nie można otworzyć udostępnionego pliku. Najpierw go zapisz, a potem dodaj tutaj.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/MainPage.qml" line="147"/>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="151"/>
         <source>Text</source>
         <translation>Tekst</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/MainPage.qml" line="148"/>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="152"/>
         <source>Files</source>
         <translation>Pliki</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/MainPage.qml" line="149"/>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="153"/>
         <source>Keys</source>
         <translation>Klucze</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/MainPage.qml" line="150"/>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="154"/>
         <source>Settings</source>
         <translation>Ustawienia</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/MainPage.qml" line="247"/>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="251"/>
         <source>Build information</source>
         <translation>Informacje o kompilacji</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/MainPage.qml" line="248"/>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="252"/>
         <source>Build</source>
         <translation>Kompilacja</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/MainPage.qml" line="249"/>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="253"/>
         <source>Android package</source>
         <translation>Pakiet Android</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/MainPage.qml" line="260"/>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="264"/>
         <source>rPGP engine</source>
         <translation>Silnik rPGP</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/MainPage.qml" line="261"/>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="265"/>
         <source>GpgFrontend can use more than one OpenPGP engine. Here, all the work is done by rPGP, an engine written in Rust and built into the application.</source>
         <translation>GpgFrontend może korzystać z więcej niż jednego silnika OpenPGP. Tutaj całą pracę wykonuje rPGP — silnik napisany w języku Rust i wbudowany w aplikację.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/MainPage.qml" line="264"/>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="268"/>
         <source>Engine</source>
         <translation>Silnik</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/MainPage.qml" line="265"/>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="269"/>
         <source>Key dependencies</source>
         <translation>Kluczowe zależności</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="301"/>
+        <source>The key could not be generated: %1</source>
+        <translation>Nie można wygenerować klucza: %1</translation>
     </message>
 </context>
 <context>
@@ -18413,42 +18808,46 @@ Otworzyć go w przeglądarce?</translation>
 <context>
     <name>OperationBar</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/OperationBar.qml" line="62"/>
         <source>Again: %1</source>
-        <translation>Ponownie: %1</translation>
+        <translation type="vanished">Ponownie: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/OperationBar.qml" line="140"/>
         <source>Suggested for this content</source>
-        <translation>Sugerowane dla tej treści</translation>
+        <translation type="vanished">Sugerowane dla tej treści</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/OperationBar.qml" line="180"/>
         <source>More</source>
-        <translation>Więcej</translation>
+        <translation type="vanished">Więcej</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/OperationBar.qml" line="188"/>
         <source>More options</source>
-        <translation>Więcej opcji</translation>
+        <translation type="vanished">Więcej opcji</translation>
     </message>
 </context>
 <context>
     <name>OperationFlow</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/OperationFlow.qml" line="55"/>
+        <location filename="../../../../src/mob/qml/components/OperationFlow.qml" line="56"/>
         <source>Encrypt and sign now</source>
         <translation>Szyfruj i podpisz teraz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/OperationFlow.qml" line="56"/>
+        <location filename="../../../../src/mob/qml/components/OperationFlow.qml" line="57"/>
         <source>Encrypt now</source>
         <translation>Szyfruj teraz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/OperationFlow.qml" line="56"/>
+        <location filename="../../../../src/mob/qml/components/OperationFlow.qml" line="57"/>
         <source>Sign now</source>
         <translation>Podpisz teraz</translation>
+    </message>
+</context>
+<context>
+    <name>OperationMenu</name>
+    <message>
+        <location filename="../../../../src/mob/qml/components/OperationMenu.qml" line="87"/>
+        <source>Again: %1</source>
+        <translation>Ponownie: %1</translation>
     </message>
 </context>
 <context>
@@ -19074,77 +19473,77 @@ Otworzyć go w przeglądarce?</translation>
         <translation>Nie udało się usunąć niektórych plików w folderze, więc nadal istnieje on z częścią zawartości. To, co pozostało, może nie być już użyteczne jako baza kluczy.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="77"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="76"/>
         <source>Starting up...</source>
         <translation>Uruchamianie...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="79"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="78"/>
         <source>Checking the GnuPG environment...</source>
         <translation>Sprawdzanie środowiska GnuPG...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="81"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="80"/>
         <source>Checking the rPGP engine...</source>
         <translation>Sprawdzanie silnika rPGP...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="83"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="82"/>
         <source>Resolving GnuPG paths...</source>
         <translation>Ustalanie ścieżek GnuPG...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="85"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="84"/>
         <source>Preparing the OpenPGP backend engine...</source>
         <translation>Przygotowywanie silnika zaplecza OpenPGP...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="87"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="86"/>
         <source>Building the default engine context...</source>
         <translation>Budowanie domyślnego kontekstu silnika...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="90"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="89"/>
         <source>Loading key databases...</source>
         <translation>Wczytywanie baz kluczy...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="94"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="93"/>
         <source>Loading key database &quot;%1&quot;...</source>
         <translation>Wczytywanie bazy kluczy &quot;%1&quot;...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="97"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="96"/>
         <source>Scanning modules...</source>
         <translation>Skanowanie modułów...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="99"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="98"/>
         <source>Verifying modules...</source>
         <translation>Weryfikowanie modułów...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="102"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="101"/>
         <source>Loading modules...</source>
         <translation>Wczytywanie modułów...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="103"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="102"/>
         <source>Loading module &quot;%1&quot;...</source>
         <translation>Wczytywanie modułu &quot;%1&quot;...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="106"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="105"/>
         <source>Ready.</source>
         <translation>Gotowe.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="180"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="179"/>
         <source>Starting GpgFrontend</source>
         <translation>Uruchamianie GpgFrontend</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="141"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="140"/>
         <source>Preparing OpenPGP Environment</source>
         <translation>Przygotowywanie środowiska OpenPGP</translation>
     </message>
@@ -19165,12 +19564,12 @@ Otworzyć go w przeglądarce?</translation>
         <translation type="vanished">Nie zamykaj tego okna, dopóki trwa inicjalizacja.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="238"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="237"/>
         <source>Cancel</source>
         <translation>Anuluj</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1430"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1463"/>
         <source>Built-in</source>
         <translation>Wbudowany</translation>
     </message>
@@ -19181,10 +19580,10 @@ Otworzyć go w przeglądarce?</translation>
         <location filename="../../../../src/core/profile/ProfileLoader.cpp" line="715"/>
         <location filename="../../../../src/core/profile/ProfileLoader.cpp" line="734"/>
         <location filename="../../../../src/GpgFrontend.cpp" line="155"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="232"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="643"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="799"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="883"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="213"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="624"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="780"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="864"/>
         <source>Cannot Open Profile</source>
         <translation>Nie można otworzyć profilu</translation>
     </message>
@@ -19583,42 +19982,42 @@ Otworzyć go w przeglądarce?</translation>
         <translation>Jeśli nie pamiętasz PIN-u, klucza aplikacji i wszystkiego, co nim zaszyfrowano, nie będzie można odzyskać.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="81"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="77"/>
         <source>Key Database Path Too Long</source>
         <translation>Ścieżka bazy kluczy za długa</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="82"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="78"/>
         <source>This folder&apos;s path is too long for GnuPG&apos;s agent socket, and no short enough link to it could be made, so GnuPG could not start against it. Choose a folder with a shorter path.</source>
         <translation>Ścieżka tego folderu jest za długa dla gniazda agenta GnuPG i nie udało się utworzyć wystarczająco krótkiego dowiązania do niego, więc GnuPG nie mógł z nim wystartować. Wybierz folder o krótszej ścieżce.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="103"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="99"/>
         <source>Active</source>
         <translation>Aktywna</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="104"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="100"/>
         <source>Inactive</source>
         <translation>Nieaktywna</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="117"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="113"/>
         <source>This key database uses %1, which is not available. It was left as it is.</source>
         <translation>Ta baza kluczy używa %1, który nie jest dostępny. Została pozostawiona bez zmian.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="121"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="117"/>
         <source>GpgFrontend could not open this key database at the last start.</source>
         <translation>GpgFrontend nie mógł otworzyć tej bazy kluczy podczas ostatniego uruchomienia.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="193"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="189"/>
         <source>ID</source>
         <translation>ID</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="194"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="190"/>
         <source>Role</source>
         <translation>Rola</translation>
     </message>
@@ -19728,8 +20127,8 @@ Otworzyć go w przeglądarce?</translation>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="230"/>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="178"/>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="38"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="193"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="200"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="189"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="196"/>
         <source>Name</source>
         <translation>Nazwa</translation>
     </message>
@@ -19744,8 +20143,8 @@ Otworzyć go w przeglądarce?</translation>
         <translation>Opis</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="193"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="200"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="189"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="196"/>
         <source>Engine</source>
         <translation>Silnik</translation>
     </message>
@@ -19841,7 +20240,7 @@ Otworzyć go w przeglądarce?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="179"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="194"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="190"/>
         <source>Status</source>
         <translation>Status</translation>
     </message>
@@ -20012,7 +20411,7 @@ Link został skopiowany do schowka:
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="294"/>
         <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="317"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="364"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="363"/>
         <source>Fingerprint</source>
         <translation>Odcisk klucza</translation>
     </message>
@@ -20215,7 +20614,7 @@ Link został skopiowany do schowka:
         <translation>Algorytm klucza głównego</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="339"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="338"/>
         <source>Signature · %1</source>
         <translation>Podpis · %1</translation>
     </message>
@@ -20228,22 +20627,22 @@ Link został skopiowany do schowka:
         <translation type="vanished">SHA-256</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="352"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="351"/>
         <source>Signature Created</source>
         <translation>Utworzono podpis</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="355"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="354"/>
         <source>Mode</source>
         <translation>Tryb</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="362"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="361"/>
         <source>Invalid Signer</source>
         <translation>Nieprawidłowy podpisujący</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="366"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="365"/>
         <source>Reason</source>
         <translation>Powód</translation>
     </message>
@@ -20252,7 +20651,7 @@ Link został skopiowany do schowka:
         <translation type="vanished">Odszyfrowanie</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="381"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="380"/>
         <source>Message Metadata</source>
         <translation>Metadane wiadomości</translation>
     </message>
@@ -20263,9 +20662,9 @@ Link został skopiowany do schowka:
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/SecretPrompt.cpp" line="143"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="224"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="661"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="673"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="205"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="642"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="654"/>
         <source>Open</source>
         <translation>Otwórz</translation>
     </message>
@@ -20282,7 +20681,7 @@ Link został skopiowany do schowka:
         <translation>Zapisz</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="384"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="383"/>
         <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="100"/>
         <location filename="../../../../src/ui/dialog/profile/ProfileExportSummary.cpp" line="243"/>
         <location filename="../../../../src/ui/dialog/profile/ProfilePackageMeta.cpp" line="54"/>
@@ -20294,8 +20693,8 @@ Link został skopiowany do schowka:
         <location filename="../../../../src/ui/dialog/profile/ProfileExportSummary.cpp" line="246"/>
         <location filename="../../../../src/ui/dialog/profile/ProfilePackageMeta.cpp" line="57"/>
         <location filename="../../../../src/ui/dialog/profile/ProfilePackageMeta.cpp" line="123"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="194"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="201"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="190"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="197"/>
         <source>Folder</source>
         <translation>Folder</translation>
     </message>
@@ -20303,7 +20702,7 @@ Link został skopiowany do schowka:
         <location filename="../../../../src/ui/dialog/profile/ProfileExportSummary.cpp" line="213"/>
         <location filename="../../../../src/ui/dialog/profile/ProfileExportSummary.cpp" line="251"/>
         <location filename="../../../../src/ui/dialog/profile/ProfilePackageMeta.cpp" line="65"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="200"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="196"/>
         <source>Size</source>
         <translation>Rozmiar</translation>
     </message>
@@ -20339,13 +20738,13 @@ Link został skopiowany do schowka:
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfilePackageMeta.cpp" line="96"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="190"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="171"/>
         <source>Written by</source>
         <translation>Program</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfilePackageMeta.cpp" line="98"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="191"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="172"/>
         <source>GpgFrontend %1</source>
         <translation>GpgFrontend %1</translation>
     </message>
@@ -20411,18 +20810,18 @@ Link został skopiowany do schowka:
         <translation>Szczegóły klucza</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="644"/>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="988"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="645"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="992"/>
         <source>Must not contain &apos;(&apos;, &apos;)&apos;, &apos;&lt;&apos;, &apos;&gt;&apos; or control characters.</source>
         <translation>Nie może zawierać &apos;(&apos;, &apos;)&apos;, &apos;&lt;&apos;, &apos;&gt;&apos; ani znaków sterujących.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="649"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="650"/>
         <source>A name is required.</source>
         <translation>Nazwa jest wymagana.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="656"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="657"/>
         <source>This is not a valid email address.</source>
         <translation>To nie jest prawidłowy adres e-mail.</translation>
     </message>
@@ -20457,7 +20856,7 @@ Link został skopiowany do schowka:
         <translation>Szyfrowanie do Ciebie również jest chronione przed przyszłymi komputerami kwantowymi; podpisy nadal używają Ed25519. Tylko najnowsze oprogramowanie z obsługą ML-KEM może szyfrować do tego klucza.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="742"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="768"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateSummary.cpp" line="200"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateSummary.cpp" line="243"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateSummary.cpp" line="292"/>
@@ -20501,7 +20900,7 @@ Link został skopiowany do schowka:
         <translation>Klucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="373"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="374"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateSummary.cpp" line="278"/>
         <source>Custom</source>
         <translation>Własny</translation>
@@ -20649,37 +21048,37 @@ Link został skopiowany do schowka:
         <translation>PIN musi mieć co najmniej %1 znaków.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="385"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="384"/>
         <source>Cipher</source>
         <translation>Szyfr</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="386"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="385"/>
         <source>MIME</source>
         <translation>MIME</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="387"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="386"/>
         <source>Yes</source>
         <translation>Tak</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="388"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="387"/>
         <source>No</source>
         <translation>Nie</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="389"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="388"/>
         <source>Integrity</source>
         <translation>Integralność</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="391"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="390"/>
         <source>Protected</source>
         <translation>Chroniona</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="392"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="391"/>
         <source>Not Protected (unsafe)</source>
         <translation>Niechroniona (niebezpieczna)</translation>
     </message>
@@ -20689,12 +21088,12 @@ Link został skopiowany do schowka:
         <translation>Szyfrowanie</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="400"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="399"/>
         <source>Encryption Recipient</source>
         <translation>Odbiorca szyfrowania</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="411"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="410"/>
         <source>Decryption Recipient</source>
         <translation>Odbiorca odszyfrowania</translation>
     </message>
@@ -20815,16 +21214,16 @@ Link został skopiowany do schowka:
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="129"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="149"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="167"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="176"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="705"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="727"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="141"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="157"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="686"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="708"/>
         <source>Cannot Import Profile</source>
         <translation>Nie można zaimportować profilu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="150"/>
+        <location filename="../../../../src/mob/model/ProfilesController.cpp" line="361"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="142"/>
         <source>This profile was made by a newer version of GpgFrontend (%1).</source>
         <translation>Ten profil został utworzony w nowszej wersji GpgFrontend (%1).</translation>
     </message>
@@ -20832,23 +21231,23 @@ Link został skopiowany do schowka:
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateSummary.cpp" line="277"/>
         <location filename="../../../../src/ui/dialog/profile/ProfileExportSummary.cpp" line="211"/>
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="174"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="188"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="169"/>
         <source>Profile</source>
         <translation>Profil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="194"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="175"/>
         <source>Workspace files</source>
         <translation>Pliki obszaru roboczego</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="267"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="196"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="177"/>
         <source>Included</source>
         <translation>Uwzględnione</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="197"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="178"/>
         <source>None in the file</source>
         <translation>Brak w pliku</translation>
     </message>
@@ -20856,236 +21255,237 @@ Link został skopiowany do schowka:
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="263"/>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="55"/>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="40"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="206"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="187"/>
         <source>Keys</source>
         <translation>Klucze</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="209"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="190"/>
         <source>&quot;%1&quot; is unavailable</source>
         <translation>„%1” jest niedostępny</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="211"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="192"/>
         <source>It pointed at keys kept outside the profile, which do not travel. Point it somewhere on this computer to use it.</source>
         <translation>Wskazuje na klucze przechowywane poza profilem, a takie klucze nie są przenoszone. Wskaż inne miejsce na tym komputerze, aby móc go używać.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="219"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="790"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="200"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="771"/>
         <source>&quot;%1&quot; is ready.</source>
         <translation>„%1” jest gotowy.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="218"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="199"/>
         <source>Profile Imported</source>
         <translation>Profil zaimportowany</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="221"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="791"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="202"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="772"/>
         <source>Open it now? It opens in a new window.</source>
         <translation>Otworzyć go teraz? Otwiera się w nowym oknie.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="225"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="206"/>
         <source>Not Now</source>
         <translation>Nie teraz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="272"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="253"/>
         <source>GpgFrontend Profile File</source>
         <translation>Plik profilu GpgFrontend</translation>
     </message>
     <message>
+        <location filename="../../../../src/mob/model/ProfilesController.cpp" line="109"/>
         <location filename="../../../../src/ui/function/KeyDatabaseDisplayNames.cpp" line="95"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="347"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="364"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="328"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="345"/>
         <source>Default</source>
         <translation>Domyślny</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="349"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="366"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="330"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="347"/>
         <source>Portable</source>
         <translation>Przenośny</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="351"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="332"/>
         <source>From a package</source>
         <translation>Z pakietu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="353"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="368"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="334"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="349"/>
         <source>Temporary</source>
         <translation>Tymczasowy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="355"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="336"/>
         <source>Local</source>
         <translation>Lokalny</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="410"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="391"/>
         <source>This file is no longer there:</source>
         <translation>Tego pliku nie ma już tutaj:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="419"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="400"/>
         <source>This window is already using that profile.</source>
         <translation>To okno już używa tego profilu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="429"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="410"/>
         <source>There is no profile called &quot;%1&quot;.</source>
         <translation>Nie ma profilu o nazwie „%1”.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="448"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="429"/>
         <source>&quot;%1&quot; is open in another window (process %2 on %3).</source>
         <translation>„%1” jest otwarty w innym oknie (proces %2 na %3).</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="453"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="434"/>
         <source>&quot;%1&quot; is open in another window.</source>
         <translation>„%1” jest otwarty w innym oknie.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="485"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="466"/>
         <source>Save Changes?</source>
         <translation>Zapisać zmiany?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="486"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="467"/>
         <source>This profile was opened from a file. It is not kept on this computer, and the copy it is running from is about to be deleted.</source>
         <translation>Ten profil został otwarty z pliku. Nie jest przechowywany na tym komputerze, a kopia, na której działa, zaraz zostanie usunięta.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="491"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="472"/>
         <source>Anything you changed is lost unless it is written back into that file.</source>
         <translation>Wszystkie zmiany przepadną, jeśli nie zostaną zapisane z powrotem do tego pliku.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="496"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="477"/>
         <source>Save Changes</source>
         <translation>Zapisz zmiany</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="498"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="479"/>
         <source>Discard</source>
         <translation>Odrzuć</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="499"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="676"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="480"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="657"/>
         <source>Cancel</source>
         <translation>Anuluj</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="585"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="607"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="566"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="588"/>
         <source>Cannot Save Changes</source>
         <translation>Nie można zapisać zmian</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="586"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="567"/>
         <source>The application key is not available, so the profile could not be packed.</source>
         <translation>Klucz aplikacji jest niedostępny, więc nie udało się spakować profilu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="594"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="575"/>
         <source>Saving Profile</source>
         <translation>Zapisywanie profilu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="650"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="631"/>
         <source>&quot;%1&quot; is a profile file. Choose what to do with it.</source>
         <translation>„%1” jest plikiem profilu. Wybierz, co z nim zrobić.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="660"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="641"/>
         <source>What happens next</source>
         <translation>Co się stanie dalej</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="662"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="643"/>
         <source>Work in the file itself</source>
         <translation>Pracuj bezpośrednio w pliku</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="663"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="644"/>
         <source>Nothing is kept on this computer. What you change is written back into the file.</source>
         <translation>Na tym komputerze nic nie jest przechowywane. Wprowadzone zmiany są zapisywane z powrotem do pliku.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="667"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="648"/>
         <source>Copy it into a profile kept here</source>
         <translation>Skopiuj do profilu przechowywanego na tym komputerze</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="668"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="649"/>
         <source>The copy lives on this computer from then on, and the file is not used again.</source>
         <translation>Od tej pory kopia jest przechowywana na tym komputerze, a plik nie jest już używany.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="688"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="669"/>
         <source>Import Profile File</source>
         <translation>Importuj plik profilu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="728"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="709"/>
         <source>A temporary folder could not be made.</source>
         <translation>Nie udało się utworzyć folderu tymczasowego.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="735"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="716"/>
         <source>Reading Profile</source>
         <translation>Odczytywanie profilu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="763"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="779"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="744"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="760"/>
         <source>Cannot Create Profile</source>
         <translation>Nie można utworzyć profilu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="834"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="815"/>
         <source>Destroy Temporary Profile?</source>
         <translation>Zniszczyć profil tymczasowy?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="836"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="817"/>
         <source>Everything in this temporary profile will be destroyed: its keys, settings and files.</source>
         <translation>Wszystko w tym profilu tymczasowym zostanie zniszczone: jego klucze, ustawienia i pliki.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="839"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="820"/>
         <source>To keep it, choose Cancel and use Profiles &gt; Export This Profile first.</source>
         <translation>Aby go zachować, wybierz Anuluj i najpierw użyj Profile &gt; Eksportuj ten profil.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="842"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="823"/>
         <source>Destroy and Close</source>
         <translation>Zniszcz i zamknij</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="857"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="838"/>
         <source>Restart Not Possible</source>
         <translation>Ponowne uruchomienie niemożliwe</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="859"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="840"/>
         <source>These changes need GpgFrontend to restart, and restarting would destroy this temporary profile.</source>
         <translation>Te zmiany wymagają ponownego uruchomienia GpgFrontend, a ponowne uruchomienie zniszczyłoby ten profil tymczasowy.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="863"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="844"/>
         <source>They can&apos;t be applied in a temporary profile.</source>
         <translation>Nie można ich zastosować w profilu tymczasowym.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="864"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="845"/>
         <source>Pages with changes that need this: %1.
 
 Undo those changes, or choose Cancel to discard everything you changed in this dialog.</source>
@@ -21094,26 +21494,26 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
 Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone w tym oknie dialogowym.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="168"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="764"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="780"/>
+        <location filename="../../../../src/core/profile/ProfilePackage.cpp" line="1877"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="745"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="761"/>
         <source>The profile could not be created.</source>
         <translation>Nie udało się utworzyć profilu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="649"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="630"/>
         <source>Open Profile File</source>
         <translation>Otwórz plik profilu</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/SecretPrompt.cpp" line="196"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="666"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="675"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="647"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="656"/>
         <source>Import</source>
         <translation>Importuj</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="789"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="770"/>
         <source>Profile Created</source>
         <translation>Profil utworzony</translation>
     </message>
@@ -21405,7 +21805,7 @@ Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone 
         <translation>Otwórz w innym oknie</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="455"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="456"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateSummary.cpp" line="248"/>
         <location filename="../../../../src/ui/dialog/profile/ProfileListSummary.cpp" line="71"/>
         <source>Never</source>
@@ -21462,74 +21862,74 @@ Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone 
         <translation>dosłowny nawias klamrowy</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="392"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="393"/>
         <source>Give the profile a name.</source>
         <translation>Nadaj profilowi nazwę.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="394"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="395"/>
         <source>The name can be at most %1 characters long.</source>
         <translation>Nazwa może mieć maksymalnie %1 znaków.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="397"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="398"/>
         <source>&quot;Custom&quot; names the choice you have not saved; choose another name.</source>
         <translation>„Własny” oznacza wybór, którego nie zapisano; wybierz inną nazwę.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="401"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="402"/>
         <source>Another profile already has this name.</source>
         <translation>Inny profil ma już tę nazwę.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="465"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="466"/>
         <source>1 year</source>
         <translation>1 rok</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="465"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="466"/>
         <source>%1 years</source>
         <translation>%1 lat</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="467"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="468"/>
         <source>1 month</source>
         <translation>1 miesiąc</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="467"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="468"/>
         <source>%1 months</source>
         <translation>%1 miesięcy</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="469"/>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="472"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="470"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="473"/>
         <source>1 day</source>
         <translation>1 dzień</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="469"/>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="473"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="470"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="474"/>
         <source>%1 days</source>
         <translation>%1 dni</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="979"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="983"/>
         <source>Unknown placeholder. Use {token}, {token:N}, {domain}, {tld}, {date}, {date:FORMAT}, {time}, {timestamp} or {timestamp:ms}.</source>
         <translation>Nieznany symbol zastępczy. Użyj {token}, {token:N}, {domain}, {tld}, {date}, {date:FORMAT}, {time}, {timestamp} lub {timestamp:ms}.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="983"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="987"/>
         <source>A brace is not closed. Write {{ or }} for a literal brace.</source>
         <translation>Nawias klamrowy nie został zamknięty. Wpisz {{ lub }}, aby uzyskać dosłowny nawias klamrowy.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="986"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="990"/>
         <source>The name must not be empty.</source>
         <translation>Nazwa nie może być pusta.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="991"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="995"/>
         <source>This does not make a valid email address.</source>
         <translation>To nie tworzy prawidłowego adresu e-mail.</translation>
     </message>
@@ -21604,41 +22004,54 @@ Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone 
     </message>
 </context>
 <context>
+    <name>SelectedKeysSheet</name>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SelectedKeysSheet.qml" line="69"/>
+        <source>Remove %1</source>
+        <translation>Usuń %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SelectedKeysSheet.qml" line="83"/>
+        <source>Done</source>
+        <translation>Gotowe</translation>
+    </message>
+</context>
+<context>
     <name>SettingSheet</name>
     <message numerus="yes">
         <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="30"/>
         <source>%n day(s)</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n dzień</numerusform>
+            <numerusform>%n dni</numerusform>
+            <numerusform>%n dni</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="34"/>
         <source>%n hour(s)</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n godzina</numerusform>
+            <numerusform>%n godziny</numerusform>
+            <numerusform>%n godzin</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="38"/>
         <source>%n minute(s)</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n minuta</numerusform>
+            <numerusform>%n minuty</numerusform>
+            <numerusform>%n minut</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="40"/>
         <source>%n second(s)</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n sekunda</numerusform>
+            <numerusform>%n sekundy</numerusform>
+            <numerusform>%n sekund</numerusform>
         </translation>
     </message>
     <message>
@@ -21682,10 +22095,10 @@ Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone 
     <message numerus="yes">
         <location filename="../../../../src/mob/qml/SettingsPage.qml" line="55"/>
         <source>%n file(s)</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n plik</numerusform>
+            <numerusform>%n pliki</numerusform>
+            <numerusform>%n plików</numerusform>
         </translation>
     </message>
     <message>
@@ -21695,167 +22108,167 @@ Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone 
     </message>
     <message>
         <location filename="../../../../src/mob/qml/SettingsPage.qml" line="63"/>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="114"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="124"/>
         <source>That value could not be set.</source>
         <translation>Nie udało się ustawić tej wartości.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="138"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="148"/>
         <source>Security</source>
         <translation>Bezpieczeństwo</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="148"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="158"/>
         <source>Clear cached passphrases</source>
         <translation>Wyczyść zapisane hasła</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="149"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="159"/>
         <source>The next operation asks for them again.</source>
         <translation>Następne zachowanie zapyta o nie ponownie.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="152"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="162"/>
         <source>Cached passphrases are cleared.</source>
         <translation>Zapisane hasła zostały wyczyszczone.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="158"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="168"/>
         <source>Operations</source>
         <translation>Operacje</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="167"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="177"/>
         <source>Keys</source>
         <translation>Klucze</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="177"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="187"/>
         <source>Key database</source>
         <translation>Baza kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="178"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="188"/>
         <source>Choose where your keys are kept, or start a new one.</source>
         <translation>Wybierz, gdzie przechowywane są klucze, lub utwórz nową bazę.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="186"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="196"/>
         <source>Key categories</source>
         <translation>Kategorie kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="187"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="197"/>
         <source>Your own groups of keys, shared with the desktop.</source>
         <translation>Twoje własne grupy kluczy, wspólne z wersją desktopową.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="199"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="209"/>
         <source>Key generation profiles</source>
         <translation>Profile generowania kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="200"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="210"/>
         <source>What Create a key offers, shared with the desktop.</source>
         <translation>Co oferuje tworzenie klucza — wspólne z wersją desktopową.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="211"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="221"/>
         <source>Storage</source>
         <translation>Pamięć</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="217"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="227"/>
         <source>Temporary shared files</source>
         <translation>Tymczasowe pliki udostępnione</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="219"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="229"/>
         <source>Kept for up to a day, so the app you share with can open them.</source>
         <translation>Przechowywane do jednego dnia, aby aplikacja, której je udostępnisz, mogła je otworzyć.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="221"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="231"/>
         <source>Tap to remove them now. Apps you shared them with can no longer open them.</source>
         <translation>Dotknij, aby usunąć je teraz. Aplikacje, którym je udostępniono, nie będą mogły ich już otworzyć.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="226"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="236"/>
         <source>No shared files are kept.</source>
         <translation>Nie są przechowywane żadne udostępnione pliki.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="232"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="242"/>
         <source>Profile</source>
         <translation>Profil</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="238"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="248"/>
         <source>Profiles</source>
         <translation>Profile</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="239"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="249"/>
         <source>Open another, start a new one, or keep a backup.</source>
         <translation>Otwórz inną bazę, utwórz nową lub zachowaj kopię zapasową.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="246"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="256"/>
         <source>About</source>
         <translation>O aplikacji</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="252"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="262"/>
         <source>GpgFrontend</source>
         <translation>GpgFrontend</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="260"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="270"/>
         <source>Build information</source>
         <translation>Informacje o kompilacji</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="261"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="271"/>
         <source>What this build is made of, and when.</source>
         <translation>Z czego i kiedy powstała ta kompilacja.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="268"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="278"/>
         <source>rPGP engine</source>
         <translation>Silnik rPGP</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="269"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="279"/>
         <source>The OpenPGP engine that does the work here.</source>
         <translation>Silnik OpenPGP, który wykonuje tu całą pracę.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="277"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="287"/>
         <source>Translators</source>
         <translation>Tłumacze</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="278"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="288"/>
         <source>Who brought GpgFrontend to your language.</source>
         <translation>Kto przetłumaczył GpgFrontend na Twój język.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="300"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="310"/>
         <source>Remove shared files?</source>
         <translation>Usunąć udostępnione pliki?</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="302"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="312"/>
         <source>Apps you shared files with can no longer open them.</source>
         <translation>Aplikacje, którym udostępniono pliki, nie będą mogły ich już otworzyć.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="304"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="314"/>
         <source>Remove</source>
         <translation>Usuń</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="308"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="318"/>
         <source>Shared files are removed, and other apps can no longer open them.</source>
         <translation>Udostępnione pliki zostaną usunięte, a inne aplikacje nie będą mogły ich już otworzyć.</translation>
     </message>
@@ -21944,7 +22357,7 @@ Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone 
 <context>
     <name>Snackbar</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/Snackbar.qml" line="101"/>
+        <location filename="../../../../src/mob/qml/components/Snackbar.qml" line="111"/>
         <source>Shared.</source>
         <translation>Udostępniono.</translation>
     </message>
@@ -21952,17 +22365,17 @@ Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone 
 <context>
     <name>SplashPage</name>
     <message>
-        <location filename="../../../../src/mob/qml/SplashPage.qml" line="35"/>
+        <location filename="../../../../src/mob/qml/SplashPage.qml" line="60"/>
         <source>GpgFrontend</source>
         <translation>GpgFrontend</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SplashPage.qml" line="51"/>
+        <location filename="../../../../src/mob/qml/SplashPage.qml" line="76"/>
         <source>Starting the OpenPGP engine…</source>
         <translation>Uruchamianie silnika OpenPGP…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SplashPage.qml" line="52"/>
+        <location filename="../../../../src/mob/qml/SplashPage.qml" line="77"/>
         <source>Opening your profile…</source>
         <translation>Otwieranie profilu…</translation>
     </message>
@@ -22100,12 +22513,11 @@ Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone 
         <translation>Kopiuj raport</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="656"/>
         <source>This session</source>
-        <translation>Ta sesja</translation>
+        <translation type="vanished">Ta sesja</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="699"/>
+        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="648"/>
         <source>Close</source>
         <translation>Zamknij</translation>
     </message>
@@ -22113,73 +22525,73 @@ Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone 
 <context>
     <name>SubkeySheet</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="36"/>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="69"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="39"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="86"/>
         <source>Primary key</source>
         <translation>Klucz główny</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="37"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="40"/>
         <source>Subkey %1</source>
         <translation>Podklucz %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="68"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="85"/>
         <source>Type</source>
         <translation>Typ</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="70"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="87"/>
         <source>Additional decryption subkey</source>
         <translation>Dodatkowy podklucz odszyfrowujący</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="71"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="88"/>
         <source>Subkey</source>
         <translation>Podklucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="72"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="89"/>
         <source>Never</source>
         <translation>Nigdy</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="73"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="90"/>
         <source>On this device</source>
         <translation>Na tym urządzeniu</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="74"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="91"/>
         <source>Not here</source>
         <translation>Nie tutaj</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="75"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="92"/>
         <source>On a smart card</source>
         <translation>Na karcie inteligentnej</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="91"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="108"/>
         <source>Change expiration</source>
         <translation>Zmień wygaśnięcie</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="101"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="118"/>
         <source>Revoke</source>
         <translation>Unieważnij</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="102"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="119"/>
         <source>No one can use it once they have the updated key. This cannot be undone.</source>
         <translation>Gdy inni otrzymają zaktualizowany klucz, nikt nie będzie mógł go użyć. Tej operacji nie można cofnąć.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="114"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="131"/>
         <source>Delete</source>
         <translation>Usuń</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="115"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="132"/>
         <source>Only here: copies of the key others have keep it. To end its use, revoke it instead.</source>
         <translation>Tylko tutaj: kopie klucza u innych pozostaną. Aby zakończyć jego używanie, zamiast tego go unieważnij.</translation>
     </message>
@@ -22187,217 +22599,233 @@ Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone 
 <context>
     <name>TextPage</name>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="145"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="186"/>
         <source>Not started: the text changed.</source>
         <translation>Nie rozpoczęto: tekst się zmienił.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="162"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="207"/>
         <source>Cancelled.</source>
         <translation>Anulowano.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="163"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="208"/>
         <source>It did not work.</source>
         <translation>Nie udało się.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="194"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="226"/>
+        <source>The text changed while it was being worked on, so the result was not put in.</source>
+        <translation>Tekst zmienił się w trakcie przetwarzania, więc wynik nie został wstawiony.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="228"/>
+        <source>Replace anyway</source>
+        <translation>Zastąp mimo to</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="258"/>
         <source>Shared text added.</source>
         <translation>Dodano udostępniony tekst.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="199"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="263"/>
         <source>This text could not be shared. Copy it instead.</source>
         <translation>Nie udało się udostępnić tego tekstu. Zamiast tego skopiuj go.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="213"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="273"/>
         <source>Decrypted text cleared.</source>
         <translation>Wyczyszczono odszyfrowany tekst.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="214"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="277"/>
         <source>Text cleared.</source>
         <translation>Wyczyszczono tekst.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="214"/>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="583"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="277"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="328"/>
         <source>Undo</source>
         <translation>Cofnij</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="257"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="512"/>
+        <source>Type or paste a message here. The PGP button encrypts, decrypts, signs or verifies it.</source>
+        <translation>Wpisz lub wklej tutaj wiadomość. Przycisk PGP ją zaszyfruje, odszyfruje, podpisze lub zweryfikuje.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="521"/>
+        <source>PGP</source>
+        <translation>PGP</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="523"/>
+        <source>PGP operations</source>
+        <translation>Operacje PGP</translation>
+    </message>
+    <message>
         <source>Encrypt</source>
-        <translation>Szyfruj</translation>
+        <translation type="vanished">Szyfruj</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="266"/>
         <source>Decrypt</source>
-        <translation>Odszyfruj</translation>
+        <translation type="vanished">Odszyfruj</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="282"/>
         <source>Encrypt &amp;&amp; Sign</source>
-        <translation>Szyfruj &amp;&amp; Podpisz</translation>
+        <translation type="vanished">Szyfruj &amp;&amp; Podpisz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="292"/>
         <source>Decrypt &amp;&amp; Verify</source>
-        <translation>Odszyfruj &amp;&amp; Weryfikuj</translation>
+        <translation type="vanished">Odszyfruj &amp;&amp; Weryfikuj</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="302"/>
         <source>Encrypt with a passphrase</source>
-        <translation>Szyfruj hasłem</translation>
+        <translation type="vanished">Szyfruj hasłem</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="321"/>
         <source>Sign</source>
-        <translation>Podpisz</translation>
+        <translation type="vanished">Podpisz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="330"/>
         <source>Verify</source>
-        <translation>Weryfikuj</translation>
+        <translation type="vanished">Weryfikuj</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="337"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="373"/>
         <source>Import key</source>
         <translation>Importuj klucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="344"/>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="619"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="346"/>
         <source>Copy</source>
         <translation>Kopiuj</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="350"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="283"/>
         <source>Copied. It is cleared from the clipboard in a minute.</source>
         <translation>Skopiowano. Zostanie usunięte ze schowka za minutę.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="352"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="285"/>
         <source>Copied.</source>
         <translation>Skopiowano.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="358"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="290"/>
+        <source>Type or paste text first.</source>
+        <translation>Najpierw wpisz lub wklej tekst.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="291"/>
+        <source>An operation is still running.</source>
+        <translation>Operacja jest jeszcze w toku.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="365"/>
         <source>Share</source>
         <translation>Udostępnij</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="365"/>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="798"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="388"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="582"/>
         <source>Clear</source>
         <translation>Wyczyść</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="375"/>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="482"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="321"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="437"/>
         <source>Text</source>
         <translation>Tekst</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="390"/>
         <source>Results</source>
-        <translation>Wyniki</translation>
+        <translation type="vanished">Wyniki</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="418"/>
         <source>Original</source>
-        <translation>Oryginał</translation>
+        <translation type="vanished">Oryginał</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="422"/>
         <source>Result</source>
-        <translation>Wynik</translation>
+        <translation type="vanished">Wynik</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="428"/>
         <source>Edit this text</source>
-        <translation>Edytuj ten tekst</translation>
+        <translation type="vanished">Edytuj ten tekst</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="484"/>
         <source>A result. Choose Edit this text to change it.</source>
-        <translation>Wynik. Wybierz „Edytuj ten tekst”, aby go zmienić.</translation>
+        <translation type="vanished">Wynik. Wybierz „Edytuj ten tekst”, aby go zmienić.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="501"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="453"/>
         <source>Type or paste text</source>
         <translation>Wpisz lub wklej tekst</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="591"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="337"/>
         <source>Redo</source>
         <translation>Ponów</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="603"/>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="744"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="359"/>
         <source>Paste</source>
         <translation>Wklej</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="611"/>
         <source>Select all</source>
-        <translation>Zaznacz wszystko</translation>
+        <translation type="vanished">Zaznacz wszystko</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="627"/>
         <source>Done typing</source>
-        <translation>Zakończ pisanie</translation>
+        <translation type="vanished">Zakończ pisanie</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="724"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="380"/>
         <source>Line numbers</source>
         <translation>Numery wierszy</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="738"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="511"/>
         <source>Nothing to work on yet</source>
         <translation>Nie ma jeszcze nic do zrobienia</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="739"/>
         <source>Paste a message to decrypt or verify, or type one to encrypt or sign.</source>
-        <translation>Wklej wiadomość, aby ją odszyfrować lub zweryfikować, albo wpisz ją, aby ją zaszyfrować lub podpisać.</translation>
+        <translation type="vanished">Wklej wiadomość, aby ją odszyfrować lub zweryfikować, albo wpisz ją, aby ją zaszyfrować lub podpisać.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="752"/>
         <source>Type</source>
-        <translation>Wpisz</translation>
+        <translation type="vanished">Wpisz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="759"/>
         <source>Open a file…</source>
-        <translation>Otwórz plik…</translation>
+        <translation type="vanished">Otwórz plik…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="780"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="564"/>
         <source>Replace the text?</source>
         <translation>Zastąpić tekst?</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="781"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="565"/>
         <source>Another app shared text with GpgFrontend. Put it in place of the text here? The keys you chose stay chosen.</source>
         <translation>Inna aplikacja udostępniła tekst aplikacji GpgFrontend. Umieścić go w miejscu tekstu tutaj? Wybrane klucze pozostaną wybrane.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="783"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="567"/>
         <source>Replace</source>
         <translation>Zastąp</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="795"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="579"/>
         <source>Clear the decrypted text?</source>
         <translation>Wyczyścić odszyfrowany tekst?</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="796"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="580"/>
         <source>It cannot be brought back with Undo. Decrypt the message again to see it. The keys you chose stay chosen.</source>
         <translation>Nie można go przywrócić za pomocą Cofnij. Odszyfruj wiadomość ponownie, aby go zobaczyć. Wybrane klucze pozostaną wybrane.</translation>
     </message>
@@ -22405,22 +22833,22 @@ Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone 
 <context>
     <name>Theme</name>
     <message>
-        <location filename="../../../../src/mob/qml/Theme.qml" line="133"/>
+        <location filename="../../../../src/mob/qml/Theme.qml" line="154"/>
         <source>%1 B</source>
         <translation>%1 B</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Theme.qml" line="134"/>
+        <location filename="../../../../src/mob/qml/Theme.qml" line="155"/>
         <source>%1 kB</source>
         <translation>%1 kB</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Theme.qml" line="136"/>
+        <location filename="../../../../src/mob/qml/Theme.qml" line="157"/>
         <source>%1 MB</source>
         <translation>%1 MB</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Theme.qml" line="137"/>
+        <location filename="../../../../src/mob/qml/Theme.qml" line="158"/>
         <source>%1 GB</source>
         <translation>%1 GB</translation>
     </message>
@@ -22579,7 +23007,7 @@ Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone 
     </message>
     <message>
         <location filename="../../../../src/mob/qml/Wording.qml" line="47"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="121"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="148"/>
         <source>Encrypt with a passphrase</source>
         <translation>Szyfruj z hasłem</translation>
     </message>
@@ -22600,7 +23028,7 @@ Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone 
     </message>
     <message>
         <location filename="../../../../src/mob/qml/Wording.qml" line="59"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="174"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="186"/>
         <source>Not signed</source>
         <translation>Nie podpisano</translation>
     </message>
@@ -22610,402 +23038,426 @@ Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone 
         <translation>Podpisano jako %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="73"/>
         <source>%1 · %2</source>
-        <translation>%1 · %2</translation>
+        <translation type="vanished">%1 · %2</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="78"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="84"/>
+        <source>Public and secret key</source>
+        <translation>Klucz publiczny i prywatny</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="85"/>
+        <source>Public key, secret subkeys only</source>
+        <translation>Klucz publiczny, tylko podklucze prywatne</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="86"/>
+        <source>Public key, secret key on a smart card</source>
+        <translation>Klucz publiczny, klucz prywatny na karcie inteligentnej</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="87"/>
+        <source>Public key only</source>
+        <translation>Tylko klucz publiczny</translation>
+    </message>
+    <message>
+        <source>1 key selected</source>
+        <translation type="vanished">Wybrano 1 klucz</translation>
+    </message>
+    <message>
+        <source>%1 keys selected</source>
+        <translation type="vanished">Zaznaczono %1 kluczy</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/Wording.qml" line="100"/>
+        <source>%n key(s) selected</source>
+        <translation>
+            <numerusform>Zaznaczono %n klucz</numerusform>
+            <numerusform>Zaznaczono %n klucze</numerusform>
+            <numerusform>Zaznaczono %n kluczy</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="105"/>
         <source>No keys yet</source>
         <translation>Nie ma jeszcze kluczy</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/mob/qml/Wording.qml" line="79"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="106"/>
         <source>%n key(s)</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n klucz</numerusform>
+            <numerusform>%n klucze</numerusform>
+            <numerusform>%n kluczy</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="84"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="111"/>
         <source>Has no keys</source>
         <translation>Nie ma kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="85"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="112"/>
         <source>No longer in your keys</source>
         <translation>Nie ma już w Twoich kluczach</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="86"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="236"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="297"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="113"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="248"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="282"/>
         <source>Expired</source>
         <translation>Wygasł</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="87"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="237"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="293"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="114"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="249"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="278"/>
         <source>Revoked</source>
         <translation>Unieważniony</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="88"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="294"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="115"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="279"/>
         <source>Disabled</source>
         <translation>Wyłączony</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="89"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="116"/>
         <source>Cannot be encrypted to</source>
         <translation>Nie można do niego szyfrować</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="90"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="117"/>
         <source>Cannot sign</source>
         <translation>Nie można podpisywać</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="91"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="118"/>
         <source>Not a key of your own</source>
         <translation>To nie jest Twój klucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="99"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="126"/>
         <source>Choose who can read it.</source>
         <translation>Wybierz, kto może to przeczytać.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="100"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="127"/>
         <source>Some chosen keys cannot be used. Remove them or choose others.</source>
         <translation>Niektórych wybranych kluczy nie można użyć. Usuń je lub wybierz inne.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="101"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="128"/>
         <source>Choose a key to sign with.</source>
         <translation>Wybierz klucz do podpisywania.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="102"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="129"/>
         <source>The signing key cannot be used. Choose another.</source>
         <translation>Klucza podpisującego nie można użyć. Wybierz inny.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="109"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="136"/>
         <source>Encrypting…</source>
         <translation>Szyfrowanie…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="110"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="137"/>
         <source>Decrypting…</source>
         <translation>Odszyfrowywanie…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="111"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="138"/>
         <source>Signing…</source>
         <translation>Podpisywanie…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="112"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="139"/>
         <source>Verifying…</source>
         <translation>Weryfikacja…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="119"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="284"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="146"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="269"/>
         <source>Encrypt</source>
         <translation>Szyfrowanie</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="120"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="147"/>
         <source>Encrypt &amp; Sign</source>
         <translation>Szyfruj i &amp;podpisz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="122"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="149"/>
         <source>Decrypt</source>
         <translation>Odszyfruj</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="123"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="150"/>
         <source>Decrypt &amp; Verify</source>
         <translation>Odszyfruj i &amp;zweryfikuj</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="124"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="283"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="151"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="268"/>
         <source>Sign</source>
         <translation>Podpisywanie</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="125"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="152"/>
         <source>Verify</source>
         <translation>Zweryfikuj</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="133"/>
         <source>Sym. Encrypt</source>
-        <translation>Szyfruj sym.</translation>
+        <translation type="vanished">Szyfruj sym.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="154"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="166"/>
         <source>Encrypt Operation</source>
         <translation>Operacja szyfrowania</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="155"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="167"/>
         <source>Decrypt Operation</source>
         <translation>Operacja odszyfrowania</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="156"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="168"/>
         <source>Sign Operation</source>
         <translation>Operacja podpisywania</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="157"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="169"/>
         <source>Verify Operation</source>
         <translation>Operacja weryfikacji</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="163"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="175"/>
         <source>Encrypted</source>
         <translation>Zaszyfrowano</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="164"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="176"/>
         <source>Decrypted</source>
         <translation>Odszyfrowano</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="165"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="177"/>
         <source>Signed</source>
         <translation>Podpisano</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="166"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="178"/>
         <source>Verified</source>
         <translation>Zweryfikowano</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="172"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="184"/>
         <source>Not encrypted</source>
         <translation>Nie zaszyfrowano</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="173"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="185"/>
         <source>Not decrypted</source>
         <translation>Nie odszyfrowano</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="175"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="187"/>
         <source>Not verified</source>
         <translation>Nie zweryfikowano</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="183"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="195"/>
         <source>Waiting</source>
         <translation>Oczekiwanie</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="185"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="197"/>
         <source>Waiting for the passphrase</source>
         <translation>Oczekiwanie na hasło</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="186"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="198"/>
         <source>Cancelled</source>
         <translation>Anulowano</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="192"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="204"/>
         <source>No signature found</source>
         <translation>Nie znaleziono podpisu</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="193"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="205"/>
         <source>Signature checked</source>
         <translation>Sprawdzono podpis</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="194"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="206"/>
         <source>Signature problem</source>
         <translation>Problem z podpisem</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="203"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="215"/>
         <source>Stopped when the app went to the background.</source>
         <translation>Zatrzymano, gdy aplikacja przeszła w tło.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="204"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="216"/>
         <source>Stopped before it started.</source>
         <translation>Zatrzymano przed rozpoczęciem.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="205"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="217"/>
         <source>Its file was removed from the list.</source>
         <translation>Jego plik został usunięty z listy.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="206"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="218"/>
         <source>Stopped when the app closed it.</source>
         <translation>Zatrzymano, gdy aplikacja ją zamknęła.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="215"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="227"/>
         <source>Text</source>
         <translation>Tekst</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="217"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="229"/>
         <source>%1 with %2</source>
         <translation>%1 z %2</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="224"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="236"/>
         <source>Valid</source>
         <translation>Prawidłowy</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="225"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="237"/>
         <source>Invalid: the content or signature was changed</source>
         <translation>Nieprawidłowy: zmieniono treść lub podpis</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="226"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="238"/>
         <source>Valid, but the signature has expired</source>
         <translation>Prawidłowy, ale podpis wygasł</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="227"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="239"/>
         <source>Not valid: the key had expired when it signed</source>
         <translation>Nieprawidłowy: klucz wygasł w chwili podpisywania</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="228"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="240"/>
         <source>Could not be checked</source>
         <translation>Nie można było sprawdzić</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="234"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="246"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="235"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="247"/>
         <source>Not in your keys</source>
         <translation>Brak w Twoich kluczach</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="238"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="250"/>
         <source>Not allowed to sign</source>
         <translation>Brak uprawnień do podpisywania</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="239"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="251"/>
         <source>Has problems</source>
         <translation>Ma problemy</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="245"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="257"/>
         <source>Trusted</source>
         <translation>Zaufany</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="246"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="258"/>
         <source>Not fully trusted</source>
         <translation>Nie w pełni zaufany</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="247"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="259"/>
         <source>Not assessed</source>
         <translation>Nie sprawdzono</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="254"/>
         <source>Encrypted message</source>
-        <translation>Wiadomość zaszyfrowana</translation>
+        <translation type="vanished">Wiadomość zaszyfrowana</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="255"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="270"/>
         <source>Signed text</source>
-        <translation>Tekst podpisany</translation>
+        <translation type="vanished">Tekst podpisany</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="256"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="271"/>
         <source>Signature</source>
-        <translation>Podpis</translation>
+        <translation type="vanished">Podpis</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="257"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="272"/>
         <source>Public key</source>
-        <translation>Klucz publiczny</translation>
+        <translation type="vanished">Klucz publiczny</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="258"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="273"/>
         <source>Private key</source>
-        <translation>Klucz prywatny</translation>
+        <translation type="vanished">Klucz prywatny</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="259"/>
         <source>Plain text</source>
-        <translation>Tekst jawny</translation>
+        <translation type="vanished">Tekst jawny</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="269"/>
         <source>Encrypted or signed data</source>
-        <translation>Dane zaszyfrowane lub podpisane</translation>
+        <translation type="vanished">Dane zaszyfrowane lub podpisane</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="282"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="267"/>
         <source>Certify</source>
         <translation>Certyfikowanie</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="285"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="270"/>
         <source>Authenticate</source>
         <translation>Uwierzytelnianie</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="297"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="282"/>
         <source>Expired on %1</source>
         <translation>Wygasł dnia %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="298"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="283"/>
         <source>Valid until %1</source>
         <translation>Ważny do %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="299"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="284"/>
         <source>Does not expire</source>
         <translation>Nie wygasa</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="304"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="289"/>
         <source>No reason given</source>
         <translation>Nie podano powodu</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="305"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="290"/>
         <source>It may have been compromised</source>
         <translation>Mógł zostać naruszony</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="306"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="291"/>
         <source>A newer subkey replaces it</source>
         <translation>Zastępuje go nowszy podklucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="307"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="292"/>
         <source>It is no longer used</source>
         <translation>Nie jest już używany</translation>
     </message>

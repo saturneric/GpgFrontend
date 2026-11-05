@@ -77,108 +77,125 @@
 <context>
     <name>AddSubkeySheet</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="40"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="61"/>
         <source>Add a subkey</source>
         <translation>Alt anahtar ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="47"/>
         <source>A subkey does one job for the key. Its algorithm matches the primary key&apos;s.</source>
-        <translation>Bir alt anahtar, anahtar için tek bir iş yapar. Algoritması birincil anahtarınkiyle aynıdır.</translation>
+        <translation type="vanished">Bir alt anahtar, anahtar için tek bir iş yapar. Algoritması birincil anahtarınkiyle aynıdır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="57"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="68"/>
         <source>Expert mode</source>
         <translation>Uzman modu</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="82"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="80"/>
+        <source>Used for</source>
+        <translation>Kullanım amacı</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="92"/>
         <source>Encryption</source>
         <translation>Şifreleme</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="83"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="93"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="121"/>
         <source>Others encrypt to it; you decrypt with it.</source>
         <translation>Başkaları ona şifreler, siz onunla şifre çözersiniz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="84"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="94"/>
         <source>Signing</source>
         <translation>İmzalama</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="85"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="95"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="118"/>
         <source>You sign messages and files with it.</source>
         <translation>Onunla mesajları ve dosyaları imzalarsınız.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="86"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="96"/>
         <source>Authentication</source>
         <translation>Kimlik doğrulama</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="87"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="97"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="120"/>
         <source>You log in with it, over SSH for one.</source>
         <translation>Onunla oturum açarsınız, örneğin SSH üzerinden.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="105"/>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="120"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="149"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="163"/>
         <source>Expires after</source>
         <translation>Sona erme süresi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="127"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="170"/>
         <source>Protect it with a passphrase</source>
         <translation>Parola ile koru</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="136"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="185"/>
         <source>Cancel</source>
         <translation>İptal</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="142"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="191"/>
         <source>Add</source>
         <translation>Ekle</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="191"/>
+        <source>Adding…</source>
+        <translation>Ekleniyor…</translation>
     </message>
 </context>
 <context>
     <name>AddUidSheet</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="24"/>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="48"/>
         <source>Add a user ID</source>
         <translation>Kullanıcı kimliği ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="30"/>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="54"/>
         <source>Another name or address the key stands for. Share the key afterwards, so others learn of it.</source>
         <translation>Anahtarın temsil ettiği başka bir ad veya adres. Anahtarı daha sonra paylaşın; böylece başkaları da öğrensin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="38"/>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="62"/>
         <source>Name</source>
         <translation>Ad</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="45"/>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="69"/>
         <source>Email</source>
         <translation>E-posta</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="53"/>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="77"/>
         <source>Comment (optional)</source>
         <translation>Yorum (isteğe bağlı)</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="61"/>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="90"/>
         <source>Cancel</source>
         <translation>İptal</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="67"/>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="97"/>
         <source>Add</source>
         <translation>Ekle</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="97"/>
+        <source>Adding…</source>
+        <translation>Ekleniyor…</translation>
     </message>
 </context>
 <context>
@@ -192,14 +209,27 @@
 <context>
     <name>BottomSheet</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/BottomSheet.qml" line="129"/>
+        <location filename="../../../../src/mob/qml/components/BottomSheet.qml" line="245"/>
         <source>Show less</source>
         <translation>Daha az göster</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/BottomSheet.qml" line="130"/>
+        <location filename="../../../../src/mob/qml/components/BottomSheet.qml" line="246"/>
         <source>Show more</source>
         <translation>Daha fazla göster</translation>
+    </message>
+</context>
+<context>
+    <name>CategoryButton</name>
+    <message>
+        <location filename="../../../../src/mob/qml/components/CategoryButton.qml" line="16"/>
+        <source>All keys</source>
+        <translation>Tüm anahtarlar</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/CategoryButton.qml" line="30"/>
+        <source>Category: %1. Choose another</source>
+        <translation>Kategori: %1. Başka bir tane seçin</translation>
     </message>
 </context>
 <context>
@@ -210,99 +240,177 @@
         <translation>%1 içine anahtar ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="50"/>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="129"/>
         <source>Add keys</source>
-        <translation>Anahtar ekle</translation>
+        <translation type="vanished">Anahtar ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="59"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="52"/>
         <source>Edit</source>
         <translation>Düzenle</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="64"/>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="156"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="57"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="154"/>
         <source>Delete</source>
         <translation>Sil</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="107"/>
         <source>Take %1 out</source>
-        <translation>%1 öğesini çıkar</translation>
+        <translation type="vanished">%1 öğesini çıkar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="111"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="107"/>
         <source>%1 is out of %2.</source>
         <translation>%1 artık %2 içinde değil.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="124"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="120"/>
         <source>No keys in it yet</source>
         <translation>Henüz içinde anahtar yok</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="125"/>
         <source>Add keys here, many at once, or long-press a key in the key list.</source>
-        <translation>Buraya tek seferde çok sayıda anahtar ekleyin veya anahtar listesinde bir anahtara uzun basın.</translation>
+        <translation type="vanished">Buraya tek seferde çok sayıda anahtar ekleyin veya anahtar listesinde bir anahtara uzun basın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="138"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="103"/>
+        <source>Remove %1 from the category</source>
+        <translation>%1 öğesini kategoriden çıkar</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="121"/>
+        <source>Use + to add keys you have, many at once, or long-press a key in the key list.</source>
+        <translation>Sahip olduğunuz anahtarları tek seferde çok sayıda eklemek için + kullanın veya anahtar listesinde bir anahtara uzun basın.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="129"/>
+        <source>Add keys to the category</source>
+        <translation>Kategoriye anahtar ekle</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="136"/>
         <source>Add</source>
         <translation>Ekle</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="141"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="139"/>
         <source>%n key(s) added.</source>
         <translation>
             <numerusform>%n anahtar eklendi.</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="153"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="151"/>
         <source>Delete “%1”?</source>
         <translation>“%1” silinsin mi?</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="154"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="152"/>
         <source>Only the category goes: its keys stay, in the key list and in their other categories.</source>
         <translation>Yalnızca kategori kaldırılır: anahtarları anahtar listesinde ve diğer kategorilerinde kalır.</translation>
     </message>
 </context>
 <context>
-    <name>CategorySheet</name>
+    <name>CategoryListSheet</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="38"/>
-        <source>Edit category</source>
-        <translation>Kategoriyi düzenle</translation>
+        <location filename="../../../../src/mob/qml/components/CategoryListSheet.qml" line="31"/>
+        <source>All keys</source>
+        <translation>Tüm anahtarlar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="38"/>
+        <location filename="../../../../src/mob/qml/components/CategoryListSheet.qml" line="35"/>
+        <source>Show keys in</source>
+        <translation>Anahtarları şurada göster</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/CategoryListSheet.qml" line="86"/>
+        <source>Keys in %1</source>
+        <translation>%1 içindeki anahtarlar</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/CategoryListSheet.qml" line="114"/>
         <source>New category</source>
         <translation>Yeni kategori</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="44"/>
-        <source>Sort keys into your own groups. A key can be in several. The desktop shows the same categories.</source>
-        <translation>Anahtarları kendi gruplarınıza ayırın. Bir anahtar birkaç grupta olabilir. Masaüstü aynı kategorileri gösterir.</translation>
+        <location filename="../../../../src/mob/qml/components/CategoryListSheet.qml" line="130"/>
+        <source>Manage categories</source>
+        <translation>Kategorileri yönet</translation>
+    </message>
+</context>
+<context>
+    <name>CategorySheet</name>
+    <message>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="49"/>
+        <source>Edit category</source>
+        <translation>Kategoriyi düzenle</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="52"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="49"/>
+        <source>New category</source>
+        <translation>Yeni kategori</translation>
+    </message>
+    <message>
+        <source>Sort keys into your own groups. A key can be in several. The desktop shows the same categories.</source>
+        <translation type="vanished">Anahtarları kendi gruplarınıza ayırın. Bir anahtar birkaç grupta olabilir. Masaüstü aynı kategorileri gösterir.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="72"/>
+        <source>A key can be in several categories. The desktop shows the same ones.</source>
+        <translation>Bir anahtar birkaç kategoride olabilir. Masaüstü de aynı kategorileri gösterir.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="81"/>
+        <source>Name</source>
+        <translation>Ad</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="89"/>
         <source>Name, for example Work</source>
         <translation>Ad, örneğin İş</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="103"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="102"/>
+        <source>Colour</source>
+        <translation>Renk</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="175"/>
+        <source>Colour %1</source>
+        <translation>Renk %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="193"/>
+        <source>Colour as HEX, for example #2A82DA</source>
+        <translation>HEX olarak renk, örneğin #2A82DA</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="201"/>
+        <source>Pick…</source>
+        <translation>Seç…</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="214"/>
+        <source>Six hex digits, as #2A82DA.</source>
+        <translation>Altı onaltılık basamak, örneğin #2A82DA.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="223"/>
+        <source>Category colour</source>
+        <translation>Kategori rengi</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="237"/>
         <source>Cancel</source>
         <translation>İptal</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="109"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="242"/>
         <source>Save</source>
         <translation>Kaydet</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="109"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="242"/>
         <source>Create</source>
         <translation>Oluştur</translation>
     </message>
@@ -452,148 +560,183 @@
 <context>
     <name>FileDetailsSheet</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="25"/>
         <source>This file can no longer be opened.</source>
-        <translation>Bu dosya artık açılamıyor.</translation>
+        <translation type="vanished">Bu dosya artık açılamıyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="26"/>
         <source>It is waiting in the queue.</source>
-        <translation>Sırada bekliyor.</translation>
+        <translation type="vanished">Sırada bekliyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="27"/>
         <source>It is being worked on.</source>
-        <translation>Üzerinde çalışılıyor.</translation>
+        <translation type="vanished">Üzerinde çalışılıyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="91"/>
         <source>%1 · Shared with GpgFrontend by another app. This is a copy, deleted when you remove it from the list or close the app.</source>
-        <translation>%1 · Başka bir uygulama tarafından GpgFrontend ile paylaşıldı. Bu bir kopyadır; listeden kaldırdığınızda veya uygulamayı kapattığınızda silinir.</translation>
+        <translation type="vanished">%1 · Başka bir uygulama tarafından GpgFrontend ile paylaşıldı. Bu bir kopyadır; listeden kaldırdığınızda veya uygulamayı kapattığınızda silinir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="95"/>
         <source>%1 · A file you added. Removing it from the list does not delete it.</source>
-        <translation>%1 · Sizin eklediğiniz bir dosya. Listeden kaldırmak dosyayı silmez.</translation>
+        <translation type="vanished">%1 · Sizin eklediğiniz bir dosya. Listeden kaldırmak dosyayı silmez.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="98"/>
         <source>Encrypted from %1</source>
-        <translation>%1 dosyasından şifrelendi</translation>
+        <translation type="vanished">%1 dosyasından şifrelendi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="100"/>
         <source>Decrypted from %1</source>
-        <translation>%1 dosyasından şifresi çözüldü</translation>
+        <translation type="vanished">%1 dosyasından şifresi çözüldü</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="100"/>
         <source>Signature of %1</source>
-        <translation>%1 dosyasının imzası</translation>
+        <translation type="vanished">%1 dosyasının imzası</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="102"/>
         <source>%1 · %2. Saved as %3; the copy here is deleted when you remove it from the list or close the app.</source>
-        <translation>%1 · %2. %3 olarak kaydedildi; buradaki kopya, listeden kaldırdığınızda veya uygulamayı kapattığınızda silinir.</translation>
+        <translation type="vanished">%1 · %2. %3 olarak kaydedildi; buradaki kopya, listeden kaldırdığınızda veya uygulamayı kapattığınızda silinir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="106"/>
         <source>%1 · %2. A temporary copy GpgFrontend made: save it to keep it. It is deleted when you remove it from the list or close the app.</source>
-        <translation>%1 · %2. GpgFrontend&apos;in oluşturduğu geçici bir kopya: saklamak için kaydedin. Listeden kaldırdığınızda veya uygulamayı kapattığınızda silinir.</translation>
+        <translation type="vanished">%1 · %2. GpgFrontend&apos;in oluşturduğu geçici bir kopya: saklamak için kaydedin. Listeden kaldırdığınızda veya uygulamayı kapattığınızda silinir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="122"/>
         <source>By its name: %1</source>
-        <translation>Adına göre: %1</translation>
+        <translation type="vanished">Adına göre: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="131"/>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="160"/>
         <source>This file can no longer be opened. It may have been moved or deleted, or access to it has ended.</source>
         <translation>Bu dosya artık açılamıyor. Taşınmış veya silinmiş olabilir ya da dosyaya erişim sona ermiş olabilir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="146"/>
         <source>Last result</source>
-        <translation>Son sonuç</translation>
+        <translation type="vanished">Son sonuç</translation>
+    </message>
+    <message>
+        <source>Cancelled</source>
+        <translation type="vanished">İptal edildi</translation>
+    </message>
+    <message>
+        <source>Done</source>
+        <translation type="vanished">Tamamlandı</translation>
+    </message>
+    <message>
+        <source>Done, with warnings</source>
+        <translation type="vanished">Tamamlandı, uyarılarla</translation>
+    </message>
+    <message>
+        <source>Failed</source>
+        <translation type="vanished">Başarısız</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="69"/>
+        <source>Could not be read.</source>
+        <translation>Okunamadı.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="82"/>
+        <source>File</source>
+        <translation>Dosya</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="87"/>
+        <source>Name</source>
+        <translation>Ad</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="94"/>
+        <source>Size</source>
+        <translation>Boyut</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="106"/>
+        <source>SHA-256</source>
+        <translation>SHA-256</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="110"/>
+        <source>Working it out…</source>
+        <translation>Hesaplanıyor…</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="134"/>
+        <source>Copy the SHA-256</source>
+        <translation>SHA-256&apos;yı kopyala</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="149"/>
-        <source>Cancelled</source>
-        <translation>İptal edildi</translation>
+        <source>Copied.</source>
+        <translation>Kopyalandı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="151"/>
-        <source>Done</source>
-        <translation>Tamamlandı</translation>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="172"/>
+        <source>Temporary, not saved. It is deleted when you remove it or close the app. Save it to keep it.</source>
+        <translation>Geçici, kaydedilmedi. Kaldırdığınızda veya uygulamayı kapattığınızda silinir. Saklamak için kaydedin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="152"/>
-        <source>Done, with warnings</source>
-        <translation>Tamamlandı, uyarılarla</translation>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="174"/>
+        <source>A copy another app shared. It is deleted when you remove it or close the app.</source>
+        <translation>Başka bir uygulamanın paylaştığı kopya. Kaldırdığınızda veya uygulamayı kapattığınızda silinir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="152"/>
-        <source>Failed</source>
-        <translation>Başarısız</translation>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="184"/>
+        <source>Saved as %1.</source>
+        <translation>%1 olarak kaydedildi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="175"/>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="199"/>
         <source>Save as</source>
         <translation>Farklı kaydet</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="182"/>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="211"/>
         <source>Share</source>
         <translation>Paylaş</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="190"/>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="223"/>
         <source>Open with…</source>
         <translation>Birlikte aç…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="198"/>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="249"/>
+        <source>Close</source>
+        <translation>Kapat</translation>
+    </message>
+    <message>
         <source>Encrypt</source>
-        <translation>Şifrele</translation>
+        <translation type="vanished">Şifrele</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="200"/>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="221"/>
         <source>It is OpenPGP data already.</source>
-        <translation>Zaten OpenPGP verisi.</translation>
+        <translation type="vanished">Zaten OpenPGP verisi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="208"/>
         <source>Decrypt</source>
-        <translation>Şifre çöz</translation>
+        <translation type="vanished">Şifre çöz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="211"/>
         <source>Its name is not one of encrypted data.</source>
-        <translation>Adı şifrelenmiş veriye benzemiyor.</translation>
+        <translation type="vanished">Adı şifrelenmiş veriye benzemiyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="219"/>
         <source>Sign</source>
-        <translation>İmzala</translation>
+        <translation type="vanished">İmzala</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="229"/>
         <source>Verify</source>
-        <translation>Doğrula</translation>
+        <translation type="vanished">Doğrula</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="231"/>
         <source>Check a detached signature against its file.</source>
-        <translation>Ayrık bir imzayı dosyasıyla doğrulayın.</translation>
+        <translation type="vanished">Ayrık bir imzayı dosyasıyla doğrulayın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="232"/>
         <source>Its name is not one of a signature or signed data.</source>
-        <translation>Adı bir imza veya imzalanmış veriye benzemiyor.</translation>
+        <translation type="vanished">Adı bir imza veya imzalanmış veriye benzemiyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="241"/>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="237"/>
         <source>Remove from list</source>
         <translation>Listeden kaldır</translation>
     </message>
@@ -606,479 +749,524 @@
         <translation>Önce parola istemini tamamlayın veya iptal edin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="144"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="142"/>
         <source>Not started: the files are no longer in the list.</source>
         <translation>Başlamadı: dosyalar artık listede değil.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="169"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="167"/>
         <source>This file was removed from the list.</source>
         <translation>Bu dosya listeden kaldırıldı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="190"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="188"/>
         <source>“%1” can no longer be opened. Pick it again.</source>
         <translation>“%1” artık açılamıyor. Yeniden seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="194"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="192"/>
         <source>Its file is no longer in the list. Add it again.</source>
         <translation>Dosyası artık listede değil. Yeniden ekleyin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="196"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="194"/>
         <source>It is already waiting or running.</source>
         <translation>Zaten bekliyor veya çalışıyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="205"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="203"/>
         <source>None of them can run again as they are. Open each to see why.</source>
         <translation>Hiçbiri olduğu gibi yeniden çalıştırılamaz. Nedenini görmek için her birini açın.</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="280"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="278"/>
         <source>%n file(s) saved.</source>
         <translation>
             <numerusform>%n dosya kaydedildi.</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="281"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="279"/>
         <source>%n skipped.</source>
         <translation>
             <numerusform>%n atlandı.</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="282"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="280"/>
         <source>%n could not be saved.</source>
         <translation>
             <numerusform>%n tanesi kaydedilemedi.</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="303"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="301"/>
         <source>Removed from the list. The original files are not deleted.</source>
         <translation>Listeden kaldırıldı. Özgün dosyalar silinmedi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="309"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="307"/>
         <source>This file could not be shared. Save it instead.</source>
         <translation>Bu dosya paylaşılamadı. Bunun yerine kaydedin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="317"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="316"/>
         <source>Copying in… %1%</source>
         <translation>İçe kopyalanıyor… %1%</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="318"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="317"/>
         <source>Can no longer be opened</source>
         <translation>Artık açılamıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="320"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="319"/>
         <source>Waiting…</source>
         <translation>Bekliyor…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="322"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="321"/>
         <source>Cancelled</source>
         <translation>İptal edildi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="323"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="322"/>
         <source>%1. Tap for details.</source>
         <translation>%1. Ayrıntılar için dokunun.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="329"/>
-        <source>Signature: %1</source>
-        <translation>İmza: %1</translation>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="328"/>
+        <source>%1 · Signature: %2</source>
+        <translation>%1 · İmza: %2</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="330"/>
-        <source>No signature found</source>
-        <translation>İmza bulunamadı</translation>
+        <source>%1 · No signature found</source>
+        <translation>%1 · İmza bulunamadı</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="333"/>
+        <source>%1 · Temporary, not saved</source>
+        <translation>%1 · Geçici, kaydedilmedi</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="366"/>
+        <source>A chosen file is busy or can no longer be opened.</source>
+        <translation>Seçilen bir dosya meşgul veya artık açılamıyor.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="370"/>
+        <source>Only for encrypted files.</source>
+        <translation>Yalnızca şifrelenmiş dosyalar için.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="372"/>
+        <source>For one signature or signed file at a time.</source>
+        <translation>Her seferinde bir imza veya imzalı dosya için.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="374"/>
+        <source>Not for files that are OpenPGP data already.</source>
+        <translation>Zaten OpenPGP verisi olan dosyalar için değildir.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="439"/>
+        <source>Save to a folder</source>
+        <translation>Bir klasöre kaydet</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="523"/>
+        <source>%n temporary file(s) not saved yet. Deleted when removed from the list or when the app closes.</source>
+        <translation>
+            <numerusform>%n geçici dosya henüz kaydedilmedi. Listeden kaldırıldığında veya uygulama kapandığında silinir.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Signature: %1</source>
+        <translation type="vanished">İmza: %1</translation>
+    </message>
+    <message>
+        <source>No signature found</source>
+        <translation type="vanished">İmza bulunamadı</translation>
+    </message>
+    <message>
         <source>Encrypted from %1</source>
-        <translation>%1 kaynağından şifrelendi</translation>
+        <translation type="vanished">%1 kaynağından şifrelendi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="334"/>
         <source>Decrypted from %1</source>
-        <translation>%1 kaynağından şifresi çözüldü</translation>
+        <translation type="vanished">%1 kaynağından şifresi çözüldü</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="335"/>
         <source>Signature of %1</source>
-        <translation>%1 imzası</translation>
+        <translation type="vanished">%1 imzası</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="337"/>
         <source>Saved as %1</source>
-        <translation>%1 olarak kaydedildi</translation>
+        <translation type="vanished">%1 olarak kaydedildi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="337"/>
         <source>Temporary</source>
-        <translation>Geçici</translation>
+        <translation type="vanished">Geçici</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="338"/>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="343"/>
         <source>%1 · %2 · %3</source>
-        <translation>%1 · %2 · %3</translation>
+        <translation type="vanished">%1 · %2 · %3</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="341"/>
         <source>Shared with GpgFrontend</source>
-        <translation>GpgFrontend ile paylaşıldı</translation>
+        <translation type="vanished">GpgFrontend ile paylaşıldı</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="342"/>
         <source>Added</source>
-        <translation>Eklendi</translation>
+        <translation type="vanished">Eklendi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="344"/>
         <source>%1 · %2</source>
-        <translation>%1 · %2</translation>
+        <translation type="vanished">%1 · %2</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="389"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="391"/>
         <source>Close search</source>
         <translation>Aramayı kapat</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="399"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="401"/>
         <source>Search file names</source>
         <translation>Dosya adlarında ara</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="406"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="408"/>
         <source>%1 selected</source>
         <translation>%1 seçildi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="407"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="409"/>
         <source>Files</source>
         <translation>Dosyalar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="411"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="413"/>
         <source>Done choosing</source>
         <translation>Seçimi bitir</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="419"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="421"/>
         <source>Select all</source>
         <translation>Tümünü seç</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="427"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="429"/>
         <source>Search</source>
         <translation>Ara</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="436"/>
         <source>Results</source>
-        <translation>Sonuçlar</translation>
+        <translation type="vanished">Sonuçlar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="455"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="457"/>
         <source>Sort by name</source>
         <translation>Ada göre sırala</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="461"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="463"/>
         <source>Sort by size</source>
         <translation>Boyuta göre sırala</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="467"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="469"/>
         <source>Sort by recently added</source>
         <translation>Son eklenene göre sırala</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="473"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="475"/>
         <source>Save all to a folder…</source>
         <translation>Tümünü bir klasöre kaydet…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="479"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="481"/>
         <source>Stop waiting operations</source>
         <translation>Bekleyen işlemleri durdur</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="485"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="487"/>
         <source>Clear list</source>
         <translation>Listeyi temizle</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="508"/>
         <source>All</source>
-        <translation>Tümü</translation>
+        <translation type="vanished">Tümü</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="509"/>
         <source>Encrypted</source>
-        <translation>Şifrelenmiş</translation>
+        <translation type="vanished">Şifrelenmiş</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="510"/>
         <source>Signatures</source>
-        <translation>İmzalar</translation>
+        <translation type="vanished">İmzalar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="511"/>
         <source>Made here</source>
-        <translation>Burada oluşturulan</translation>
+        <translation type="vanished">Burada oluşturulan</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="512"/>
         <source>Not saved</source>
-        <translation>Kaydedilmedi</translation>
+        <translation type="vanished">Kaydedilmedi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="530"/>
         <source>Show %1</source>
-        <translation>%1 göster</translation>
+        <translation type="vanished">%1 göster</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="560"/>
         <source>1 file made here is not saved. It is deleted when the app closes.</source>
-        <translation>Burada oluşturulan 1 dosya kaydedilmedi. Uygulama kapanınca silinir.</translation>
+        <translation type="vanished">Burada oluşturulan 1 dosya kaydedilmedi. Uygulama kapanınca silinir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="562"/>
         <source>%1 files made here are not saved. They are deleted when the app closes.</source>
-        <translation>Burada oluşturulan %1 dosya kaydedilmedi. Uygulama kapanınca silinir.</translation>
+        <translation type="vanished">Burada oluşturulan %1 dosya kaydedilmedi. Uygulama kapanınca silinir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="571"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="533"/>
         <source>Save</source>
         <translation>Kaydet</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="571"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="533"/>
         <source>Save all</source>
         <translation>Tümünü kaydet</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="573"/>
         <source>Save the files made here into a folder</source>
-        <translation>Burada oluşturulan dosyaları bir klasöre kaydet</translation>
+        <translation type="vanished">Burada oluşturulan dosyaları bir klasöre kaydet</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="592"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="554"/>
         <source>“%1” could not be copied in.</source>
         <translation>“%1” içeri kopyalanamadı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="597"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="559"/>
         <source>No app here can open this file. Save it instead.</source>
         <translation>Burada hiçbir uygulama bu dosyayı açamıyor. Bunun yerine kaydedin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="600"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="562"/>
         <source>Saved.</source>
         <translation>Kaydedildi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="601"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="563"/>
         <source>The file could not be saved.</source>
         <translation>Dosya kaydedilemedi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="665"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="628"/>
         <source>Already in the folder</source>
         <translation>Zaten klasörde</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="666"/>
         <source>%1 names are taken</source>
-        <translation>%1 ad zaten kullanılıyor</translation>
+        <translation type="vanished">%1 ad zaten kullanılıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="669"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="632"/>
         <source>The folder has a file named “%1”.</source>
         <translation>Klasörde “%1” adlı bir dosya var.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="670"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="633"/>
         <source>The folder has files of these names: %1</source>
         <translation>Klasörde şu adlarda dosyalar var: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="678"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="641"/>
         <source>Skip</source>
         <translation>Atla</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="684"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="647"/>
         <source>Replace</source>
         <translation>Değiştir</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="690"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="653"/>
         <source>Keep both</source>
         <translation>İkisini de tut</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="773"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="740"/>
         <source>Choose %1</source>
         <translation>%1 seç</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="787"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="764"/>
         <source>Actions for %1</source>
         <translation>%1 için işlemler</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="804"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="782"/>
         <source>No files match</source>
         <translation>Eşleşen dosya yok</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="806"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="783"/>
         <source>No file name contains “%1”.</source>
         <translation>Hiçbir dosya adı “%1” içermiyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="807"/>
         <source>None of the files is of this kind.</source>
-        <translation>Dosyaların hiçbiri bu türden değil.</translation>
+        <translation type="vanished">Dosyaların hiçbiri bu türden değil.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="810"/>
         <source>Show all files</source>
-        <translation>Tüm dosyaları göster</translation>
+        <translation type="vanished">Tüm dosyaları göster</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="826"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="795"/>
         <source>No files yet</source>
         <translation>Henüz dosya yok</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="827"/>
         <source>Add files to encrypt, decrypt, sign or verify them. GpgFrontend only sees the files you add here.</source>
-        <translation>Dosyaları şifrelemek, şifresini çözmek, imzalamak veya doğrulamak için ekleyin. GpgFrontend yalnızca buraya eklediğiniz dosyaları görür.</translation>
+        <translation type="vanished">Dosyaları şifrelemek, şifresini çözmek, imzalamak veya doğrulamak için ekleyin. GpgFrontend yalnızca buraya eklediğiniz dosyaları görür.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="832"/>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="975"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="808"/>
         <source>Add files</source>
         <translation>Dosya ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="875"/>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1054"/>
         <source>Sign</source>
-        <translation>İmzala</translation>
+        <translation type="vanished">İmzala</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="884"/>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1061"/>
         <source>Verify</source>
-        <translation>Doğrula</translation>
+        <translation type="vanished">Doğrula</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="905"/>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1013"/>
         <source>Encrypt</source>
-        <translation>Şifrele</translation>
+        <translation type="vanished">Şifrele</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="915"/>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1020"/>
         <source>Encrypt &amp;&amp; Sign</source>
-        <translation>Şifrele &amp;&amp; İmzala</translation>
+        <translation type="vanished">Şifrele &amp;&amp; İmzala</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="925"/>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1029"/>
         <source>Encrypt with a passphrase</source>
-        <translation>Parola ile şifrele</translation>
+        <translation type="vanished">Parola ile şifrele</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="935"/>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1038"/>
         <source>Decrypt</source>
-        <translation>Şifre çöz</translation>
+        <translation type="vanished">Şifre çöz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="945"/>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1045"/>
         <source>Decrypt &amp;&amp; Verify</source>
-        <translation>Şifresini çöz &amp;&amp; Doğrula</translation>
+        <translation type="vanished">Şifresini çöz &amp;&amp; Doğrula</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="960"/>
         <source>Save to a folder…</source>
-        <translation>Bir klasöre kaydet…</translation>
+        <translation type="vanished">Bir klasöre kaydet…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="966"/>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1093"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="447"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="912"/>
         <source>Remove from list</source>
         <translation>Listeden kaldır</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1071"/>
+        <source>1 temporary file has not been saved. It is deleted when you remove it or close the app.</source>
+        <translation type="vanished">1 geçici dosya kaydedilmedi. Kaldırdığınızda veya uygulamayı kapattığınızda silinir.</translation>
+    </message>
+    <message>
+        <source>%1 temporary files have not been saved. They are deleted when you remove them or close the app.</source>
+        <translation type="vanished">%1 geçici dosya kaydedilmedi. Bunları kaldırdığınızda veya uygulamayı kapattığınızda silinirler.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="535"/>
+        <source>Save the temporary files into a folder</source>
+        <translation>Geçici dosyaları bir klasöre kaydet</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="629"/>
+        <source>%n name(s) taken</source>
+        <translation>
+            <numerusform>%n ad zaten kullanılıyor</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="796"/>
+        <source>Use + to add files to encrypt, decrypt, sign or verify. GpgFrontend only sees the files you add here.</source>
+        <translation>Şifrelemek, şifresini çözmek, imzalamak veya doğrulamak için dosya eklemek üzere + kullanın. GpgFrontend yalnızca buraya eklediğiniz dosyaları görür.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="821"/>
+        <source>PGP</source>
+        <translation>PGP</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="823"/>
+        <source>PGP operations</source>
+        <translation>PGP işlemleri</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="845"/>
+        <source>Select files first, or use Select all.</source>
+        <translation>Önce dosyaları seçin veya Tümünü seç&apos;i kullanın.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="890"/>
         <source>Save as</source>
         <translation>Farklı kaydet</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1077"/>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1120"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="896"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="941"/>
         <source>Share</source>
         <translation>Paylaş</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1083"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="902"/>
         <source>Open with…</source>
         <translation>Birlikte aç…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1089"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="908"/>
         <source>Details</source>
         <translation>Ayrıntılar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1112"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="933"/>
         <source>Open the decrypted file in another app?</source>
         <translation>Şifresi çözülen dosya başka bir uygulamada açılsın mı?</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1113"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="934"/>
         <source>Share the decrypted file?</source>
         <translation>Şifresi çözülen dosya paylaşılsın mı?</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1115"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="936"/>
         <source>A copy stays in GpgFrontend&apos;s private storage for up to 24 hours so the receiving app can read it. You can remove it sooner under Temporary shared files in Settings.</source>
         <translation>Bir kopya, alıcı uygulamanın okuyabilmesi için GpgFrontend&apos;in özel depolama alanında 24 saate kadar kalır. Ayarlar&apos;daki Geçici paylaşılan dosyalar bölümünden daha erken kaldırabilirsiniz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1120"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="941"/>
         <source>Open</source>
         <translation>Aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1129"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="950"/>
         <source>Clear the list?</source>
         <translation>Liste temizlensin mi?</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1130"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="951"/>
         <source>Files GpgFrontend made are deleted unless you saved them. The files you added are not deleted.</source>
         <translation>GpgFrontend&apos;in oluşturduğu dosyalar, siz kaydetmediğiniz sürece silinir. Sizin eklediğiniz dosyalar silinmez.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1132"/>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="953"/>
         <source>Clear</source>
         <translation>Temizle</translation>
     </message>
@@ -1109,100 +1297,138 @@
 <context>
     <name>GenerateSheet</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="95"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="108"/>
         <source>The key could not be generated: %1</source>
         <translation>Anahtar oluşturulamadı: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="101"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="112"/>
         <source>Create a key</source>
         <translation>Anahtar oluştur</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="120"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="133"/>
         <source>Others see this name and email when they encrypt to you.</source>
         <translation>Başkaları size şifreli ileti gönderirken bu adı ve e-postayı görür.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="127"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="140"/>
         <source>Name</source>
         <translation>Ad</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="134"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="147"/>
         <source>Email</source>
         <translation>E-posta</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="142"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="155"/>
         <source>Fill in anonymously</source>
         <translation>Anonim olarak doldur</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="145"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="158"/>
         <source>Makes up a name and an address that reach nobody.</source>
         <translation>Kimseye ulaşmayan bir ad ve adres uydurur.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="159"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="172"/>
         <source>Profile</source>
         <translation>Profil</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="178"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="189"/>
         <source>Expert mode</source>
         <translation>Uzman modu</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="190"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="201"/>
         <source>Primary key</source>
         <translation>Birincil anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="209"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="218"/>
         <source>Add a subkey</source>
         <translation>Alt anahtar ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="228"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="235"/>
         <source>Protect it with a passphrase</source>
         <translation>Geçiş parolasıyla koru</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="247"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="254"/>
         <source>Cancel</source>
         <translation>İptal</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="254"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="261"/>
         <source>Create</source>
         <translation>Oluştur</translation>
     </message>
 </context>
 <context>
+    <name>GeneratedKeySheet</name>
+    <message>
+        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="27"/>
+        <source>Key created</source>
+        <translation>Anahtar oluşturuldu</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="50"/>
+        <source>Type</source>
+        <translation>Tür</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="57"/>
+        <source>Algorithm</source>
+        <translation>Algoritma</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="66"/>
+        <source>Expires</source>
+        <translation>Bitiş</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="67"/>
+        <source>Never</source>
+        <translation>Asla</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="78"/>
+        <source>Open the key</source>
+        <translation>Anahtarı aç</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="92"/>
+        <source>Done</source>
+        <translation>Bitti</translation>
+    </message>
+</context>
+<context>
     <name>GpgFrontend</name>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1797"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1866"/>
         <source>OK</source>
         <translation>Tamam</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1799"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1868"/>
         <source>Expiring Soon</source>
         <translation>Yakında sona eriyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1801"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1870"/>
         <source>Expired</source>
         <translation>Süresi doldu</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1803"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1872"/>
         <source>Revoked</source>
         <translation>İptal edildi</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1805"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1874"/>
         <source>Disabled</source>
         <translation>Devre dışı</translation>
     </message>
@@ -2092,122 +2318,122 @@
 <context>
     <name>GpgFrontend::KeyGenProfile</name>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="213"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="214"/>
         <source>DSA-2048 + ELG-2048 (Deprecated)</source>
         <translation>DSA-2048 + ELG-2048 (Kullanımdan Kaldırıldı)</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="215"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="216"/>
         <source>Old algorithms kept only to read very old keys. Do not use for new keys.</source>
         <translation>Yalnızca çok eski anahtarları okumak için tutulan eski algoritmalar. Yeni anahtarlar için kullanmayın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="223"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="224"/>
         <source>Ed25519 / X25519 (Modern &amp; Fast)</source>
         <translation>Ed25519 / X25519 (Modern &amp; Hızlı)</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="225"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="226"/>
         <source>Small, fast keys that every current OpenPGP program understands. The best choice for most people.</source>
         <translation>Her güncel OpenPGP programının anladığı küçük, hızlı anahtarlar. Çoğu kişi için en iyi seçim.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="230"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="231"/>
         <source>Ed448 / X448 (High Security)</source>
         <translation>Ed448 / X448 (Yüksek Güvenlik)</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="232"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="233"/>
         <source>A larger curve with a higher security margin. Some older programs cannot use it.</source>
         <translation>Daha yüksek güvenlik payına sahip daha büyük bir eğri. Bazı eski programlar bunu kullanamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="237"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="238"/>
         <source>RSA-3072 (Balanced Compatibility)</source>
         <translation>RSA-3072 (Dengeli Uyumluluk)</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="239"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="240"/>
         <source>Works with almost every OpenPGP program, including old ones. Slower and larger than elliptic curves.</source>
         <translation>Eski olanlar dahil neredeyse her OpenPGP programıyla çalışır. Eliptik eğrilerden daha yavaş ve daha büyüktür.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="244"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="245"/>
         <source>RSA-4096 (High Compatibility)</source>
         <translation>RSA-4096 (Yüksek Uyumluluk)</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="246"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="247"/>
         <source>The widest compatibility with a larger safety margin. Slow to generate and use.</source>
         <translation>Daha büyük bir güvenlik payıyla en geniş uyumluluk. Oluşturması ve kullanması yavaştır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="250"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="251"/>
         <source>NIST P-384 (Standard ECC)</source>
         <translation>NIST P-384 (Standart ECC)</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="252"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="253"/>
         <source>Elliptic curves from the NIST standard, for places that require them.</source>
         <translation>Bunları gerektiren yerler için NIST standardındaki eliptik eğriler.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="256"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="257"/>
         <source>Brainpool P-256 (EU Standard ECC)</source>
         <translation>Brainpool P-256 (AB Standart ECC)</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="258"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="259"/>
         <source>Elliptic curves required by some European standards and authorities.</source>
         <translation>Bazı Avrupa standartları ve kurumları tarafından gerektirilen eliptik eğriler.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="265"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="266"/>
         <source>Ed25519 / ML-KEM-768 + X25519 (PQC Encryption Hybrid)</source>
         <translation>Ed25519 / ML-KEM-768 + X25519 (PQC Şifreleme Hibrit)</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="268"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="269"/>
         <source>Messages to you stay safe even against future quantum computers. Needs a recent OpenPGP program on the sender&apos;s side.</source>
         <translation>Size gelen mesajlar gelecekteki kuantum bilgisayarlarına karşı bile güvende kalır. Gönderen tarafında güncel bir OpenPGP programı gerektirir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="275"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="276"/>
         <source>Ed448 / ML-KEM-1024 + X448 (PQC Encryption Hybrid)</source>
         <translation>Ed448 / ML-KEM-1024 + X448 (PQC Şifreleme Hibrit)</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="278"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="279"/>
         <source>Quantum-resistant encryption at the highest level. Needs a recent OpenPGP program on the sender&apos;s side.</source>
         <translation>En üst düzeyde kuantum dirençli şifreleme. Gönderen tarafında güncel bir OpenPGP programı gerektirir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="286"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="287"/>
         <source>ML-DSA-65 + Ed25519 / ML-KEM-768 + X25519 (Full PQC Hybrid)</source>
         <translation>ML-DSA-65 + Ed25519 / ML-KEM-1024 + X448 (Tam PQC Hibrit)</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="289"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="290"/>
         <source>Quantum-resistant signatures and encryption. Uses the new v6 key format, which few programs read yet.</source>
         <translation>Kuantum dirençli imzalar ve şifreleme. Henüz az sayıda programın okuyabildiği yeni v6 anahtar biçimini kullanır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="295"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="296"/>
         <source>ML-DSA-87 + Ed448 / ML-KEM-1024 + X448 (Full PQC Hybrid)</source>
         <translation>ML-DSA-87 + Ed448 / ML-KEM-1024 + X448 (Tam PQC Hibrit)</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="298"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="299"/>
         <source>Quantum-resistant at the highest level. Uses the new v6 key format, which few programs read yet.</source>
         <translation>En üst düzeyde kuantum direnci. Henüz az sayıda programın okuyabildiği yeni v6 anahtar biçimini kullanır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="302"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="303"/>
         <source>RSA-2048 (Legacy Compatibility)</source>
         <translation>RSA-2048 (Eski Sistem Uyumluluğu)</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="304"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="305"/>
         <source>Only for systems that accept nothing newer. Its safety margin is shrinking.</source>
         <translation>Yalnızca daha yenisini kabul etmeyen sistemler için. Güvenlik marjı giderek azalıyor.</translation>
     </message>
@@ -2233,76 +2459,99 @@
         <translation>API %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="122"/>
+        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="135"/>
         <source>Version code</source>
         <translation>Sürüm kodu</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="124"/>
+        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="137"/>
         <source>Processor</source>
         <translation>İşlemci</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="126"/>
+        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="139"/>
         <source>Needs at least</source>
         <translation>En az gerektirir</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="129"/>
+        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="142"/>
         <source>Made for</source>
         <translation>Şunun için yapıldı</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="131"/>
+        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="144"/>
         <source>NDK</source>
         <translation>NDK</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="136"/>
+        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="149"/>
         <source>Compiler</source>
         <translation>Derleyici</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="149"/>
+        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="162"/>
         <source>Unknown</source>
         <translation>Bilinmiyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="152"/>
+        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="165"/>
         <source>Engine version</source>
         <translation>Motor sürümü</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="153"/>
+        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="166"/>
         <source>Rust compiler</source>
         <translation>Rust derleyicisi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="154"/>
+        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="167"/>
         <source>Target</source>
         <translation>Hedef</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="155"/>
+        <location filename="../../../../src/mob/model/AboutInfo.cpp" line="168"/>
         <source>Build profile</source>
         <translation>Derleme profili</translation>
     </message>
 </context>
 <context>
+    <name>GpgFrontend::Mobile::ErrorWording</name>
+    <message>
+        <location filename="../../../../src/mob/model/ErrorWording.cpp" line="49"/>
+        <source>Cancelled.</source>
+        <translation>İptal edildi.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/ErrorWording.cpp" line="55"/>
+        <source>Incorrect passphrase. Please try again.</source>
+        <translation>Parola yanlış. Lütfen tekrar deneyin.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/ErrorWording.cpp" line="60"/>
+        <source>No passphrase was given. Please try again.</source>
+        <translation>Parola girilmedi. Lütfen tekrar deneyin.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/ErrorWording.cpp" line="65"/>
+        <source>This cannot be used. Check what you entered and try again.</source>
+        <translation>Bu kullanılamaz. Girdiklerinizi kontrol edip tekrar deneyin.</translation>
+    </message>
+</context>
+<context>
     <name>GpgFrontend::Mobile::FileWorkspace</name>
     <message>
-        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="872"/>
-        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="883"/>
+        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="911"/>
+        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="922"/>
         <source>The file could not be read.</source>
         <translation>Dosya okunamadı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="892"/>
+        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="931"/>
         <source>The signed file is no longer in the list.</source>
         <translation>İmzalı dosya artık listede değil.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="899"/>
+        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="938"/>
         <source>The signed file could not be read.</source>
         <translation>İmzalı dosya okunamadı.</translation>
     </message>
@@ -2367,7 +2616,7 @@
     <message>
         <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="115"/>
         <source>This key database is gone.</source>
-        <translation type="unfinished"></translation>
+        <translation>Bu anahtar veritabanı artık yok.</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="128"/>
@@ -2429,6 +2678,14 @@
         <location filename="../../../../src/mob/model/KeyGroupsController.cpp" line="155"/>
         <source>The group could not be renamed.</source>
         <translation>Grup yeniden adlandırılamadı.</translation>
+    </message>
+</context>
+<context>
+    <name>GpgFrontend::Mobile::KeyListController</name>
+    <message>
+        <location filename="../../../../src/mob/model/KeyListController.cpp" line="154"/>
+        <source>The keys took too long to load.</source>
+        <translation>Anahtarların yüklenmesi çok uzun sürdü.</translation>
     </message>
 </context>
 <context>
@@ -2516,7 +2773,7 @@
 <context>
     <name>GpgFrontend::Mobile::StartupController</name>
     <message>
-        <location filename="../../../../src/mob/startup/StartupController.cpp" line="199"/>
+        <location filename="../../../../src/mob/startup/StartupController.cpp" line="201"/>
         <source>The OpenPGP engine could not start: %1</source>
         <translation>OpenPGP motoru başlatılamadı: %1</translation>
     </message>
@@ -2687,222 +2944,271 @@
         <translation>Tercih edilen imzalama anahtarı</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="231"/>
         <source>Last operation</source>
-        <translation>Son işlem</translation>
+        <translation type="vanished">Son işlem</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="238"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="230"/>
+        <source>Encrypt &amp; Sign</source>
+        <translation>Şifrele ve &amp;İmzala</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="232"/>
+        <source>Offer encrypting and signing in one operation.</source>
+        <translation>Tek işlemde şifreleme ve imzalamayı sun.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="240"/>
+        <source>Decrypt &amp; Verify</source>
+        <translation>Şifre çöz ve &amp;Doğrula</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="241"/>
+        <source>Offer decrypting and checking signatures in one operation.</source>
+        <translation>Tek işlemde şifre çözme ve imza denetimini sun.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="250"/>
+        <source>Encrypt with a passphrase</source>
+        <translation>Geçiş parolasıyla şifrele</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="252"/>
+        <source>Offer encrypting to a passphrase instead of to keys.</source>
+        <translation>Anahtarlar yerine geçiş parolasına şifrelemeyi sun.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="263"/>
+        <source>Encrypt button</source>
+        <translation>Şifrele düğmesi</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="264"/>
+        <source>What the Encrypt button does.</source>
+        <translation>Şifrele düğmesinin ne yaptığı.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="272"/>
+        <source>Decrypt button</source>
+        <translation>Şifre çöz düğmesi</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="273"/>
+        <source>What the Decrypt button does.</source>
+        <translation>Şifre çöz düğmesinin ne yaptığı.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="281"/>
         <source>Undoable operations</source>
         <translation>Geri alınabilir işlemler</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="245"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="288"/>
         <source>Restore text editor pages</source>
         <translation>Metin düzenleyici sayfalarını geri yükle</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="253"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="296"/>
         <source>Default workspace view</source>
         <translation>Varsayılan çalışma alanı görünümü</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="261"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="304"/>
         <source>File panel starting folder</source>
         <translation>Dosya paneli başlangıç klasörü</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="270"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="313"/>
         <source>Show the file type column</source>
         <translation>Dosya türü sütununu göster</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="278"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="321"/>
         <source>Days before a key counts as expiring soon</source>
         <translation>Anahtarın süresi yakında doluyor sayılması için gün sayısı</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="286"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="329"/>
         <source>Fetch missing keys automatically</source>
         <translation>Eksik anahtarları otomatik olarak getir</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="295"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="338"/>
         <source>Which modules to load</source>
         <translation>Yüklenecek modüller</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="305"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="348"/>
         <source>Language</source>
         <translation>Dil</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="313"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="356"/>
         <source>Theme</source>
         <translation>Tema</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="321"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="364"/>
         <source>Show the first-run wizard</source>
         <translation>İlk çalıştırma sihirbazını göster</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="331"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="374"/>
         <source>Log level</source>
         <translation>Günlük düzeyi</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="340"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="383"/>
         <source>Log lines kept in memory</source>
         <translation>Bellekte tutulan günlük satırları</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="351"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="394"/>
         <source>Secure level</source>
         <translation>Güvenli düzey</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="359"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="402"/>
         <source>Application key protection</source>
         <translation>Uygulama anahtarı koruması</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="371"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="414"/>
         <source>System credential store (legacy)</source>
         <translation>Sistem kimlik bilgisi deposu (eski)</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="381"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="424"/>
         <source>Where profile files are opened</source>
         <translation>Profil dosyalarının açıldığı yer</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="391"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="434"/>
         <source>Never check for updates</source>
         <translation>Güncellemeleri hiçbir zaman denetleme</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="398"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="441"/>
         <source>Use a proxy</source>
         <translation>Proxy kullan</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="404"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="447"/>
         <source>Proxy type</source>
         <translation>Proxy türü</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="410"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="453"/>
         <source>Proxy host</source>
         <translation>Proxy sunucusu</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="416"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="459"/>
         <source>Proxy port</source>
         <translation>Proxy bağlantı noktası</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="422"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="465"/>
         <source>Proxy user name</source>
         <translation>Proxy kullanıcı adı</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="429"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="472"/>
         <source>Proxy password</source>
         <translation>Proxy parolası</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="438"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="481"/>
         <source>Workspace folder</source>
         <translation>Çalışma alanı klasörü</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="559"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="612"/>
         <source>OpenPGP engine and GnuPG</source>
         <translation>OpenPGP motoru ve GnuPG</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="562"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="615"/>
         <source>rPGP passphrase handling</source>
         <translation>rPGP parola işleme</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="565"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="618"/>
         <source>Everyday behaviour</source>
         <translation>Günlük davranış</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="568"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="621"/>
         <source>Language and appearance</source>
         <translation>Dil ve görünüm</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="571"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="624"/>
         <source>Diagnostics</source>
         <translation>Tanılama</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="574"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="627"/>
         <source>Key protection</source>
         <translation>Anahtar koruması</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="577"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="630"/>
         <source>Network and proxy</source>
         <translation>Ağ ve vekil sunucu</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="580"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="633"/>
         <source>Workspace</source>
         <translation>Çalışma alanı</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="583"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="636"/>
         <source>Remembered layout</source>
         <translation>Hatırlanan yerleşim</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="594"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="647"/>
         <source>Which engine runs, which GnuPG it uses, and how GnuPG behaves.</source>
         <translation>Hangi motorun çalıştığı, hangi GnuPG&apos;yi kullandığı ve GnuPG&apos;nin nasıl davrandığı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="598"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="651"/>
         <source>How long passphrases are kept and how keys are derived.</source>
         <translation>Parolaların ne kadar süre saklandığı ve anahtarların nasıl türetildiği.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="602"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="655"/>
         <source>Confirmations, recipients, the editor and the file panel.</source>
         <translation>Onaylar, alıcılar, düzenleyici ve dosya paneli.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="606"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="659"/>
         <source>Language, theme and the first-run wizard.</source>
         <translation>Dil, tema ve ilk çalıştırma sihirbazı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="610"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="663"/>
         <source>How much is written to the log.</source>
         <translation>Günlüğe ne kadar yazıldığı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="613"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="666"/>
         <source>How this profile&apos;s own key is protected.</source>
         <translation>Bu profilin kendi anahtarının nasıl korunduğu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="617"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="670"/>
         <source>Update checks and the proxy.</source>
         <translation>Güncelleme denetimleri ve vekil sunucu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="620"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="673"/>
         <source>Where files are kept.</source>
         <translation>Dosyaların nerede tutulduğu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/SettingCatalog.h" line="623"/>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="676"/>
         <source>Remembered tab orders and column choices.</source>
         <translation>Hatırlanan sekme sıraları ve sütun seçimleri.</translation>
     </message>
@@ -3232,29 +3538,29 @@ Devam etmek istiyor musunuz?</translation>
 <context>
     <name>GpgFrontend::UI::AboutDialog</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="194"/>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="204"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="175"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="185"/>
         <source>About</source>
         <translation>Hakkında</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="205"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="186"/>
         <source>Build Information</source>
         <translation>Derleme bilgisi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="206"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="187"/>
         <source>Translators</source>
         <translation>Çevirmenler</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="207"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="770"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="188"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="771"/>
         <source>Status</source>
         <translation>Durum</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="210"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="191"/>
         <source>Rust Engine</source>
         <translation>Rust motoru</translation>
     </message>
@@ -3816,62 +4122,62 @@ Devam etmek istiyor musunuz?</translation>
 <context>
     <name>GpgFrontend::UI::BuildInfoTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="351"/>
+        <location filename="../../../../src/core/utils/BuildInfoUtils.cpp" line="137"/>
         <source>GpgFrontend:</source>
         <translation>GpgFrontend:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="352"/>
+        <location filename="../../../../src/core/utils/BuildInfoUtils.cpp" line="139"/>
         <source>Qt:</source>
         <translation>Qt:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="353"/>
+        <location filename="../../../../src/core/utils/BuildInfoUtils.cpp" line="141"/>
         <source>GPGME:</source>
         <translation>GPGME:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="354"/>
+        <location filename="../../../../src/core/utils/BuildInfoUtils.cpp" line="143"/>
         <source>Assuan:</source>
         <translation>Assuan:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="355"/>
+        <location filename="../../../../src/core/utils/BuildInfoUtils.cpp" line="145"/>
         <source>Libarchive:</source>
         <translation>Libarchive:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="356"/>
+        <location filename="../../../../src/core/utils/BuildInfoUtils.cpp" line="147"/>
         <source>OpenSSL:</source>
         <translation>OpenSSL:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="357"/>
+        <location filename="../../../../src/core/utils/BuildInfoUtils.cpp" line="149"/>
         <source>Sodium:</source>
         <translation>Sodium:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="358"/>
+        <location filename="../../../../src/core/utils/BuildInfoUtils.cpp" line="151"/>
         <source>Git Branch:</source>
         <translation>Git dalı:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="359"/>
+        <location filename="../../../../src/core/utils/BuildInfoUtils.cpp" line="153"/>
         <source>Git Commit:</source>
         <translation>Git işlemesi:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="360"/>
+        <location filename="../../../../src/core/utils/BuildInfoUtils.cpp" line="155"/>
         <source>Built at:</source>
         <translation>Derlenme zamanı:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="364"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="338"/>
         <source>Copy Build Information</source>
         <translation>Derleme bilgisini kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="371"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="345"/>
         <source>Build Information</source>
         <translation>Derleme bilgisi</translation>
     </message>
@@ -6893,67 +7199,67 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
 <context>
     <name>GpgFrontend::UI::InfoTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="260"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="241"/>
         <source>A user-friendly OpenPGP tool for encryption, signing, and key management.</source>
         <translation>Şifreleme, imzalama ve anahtar yönetimi için kullanıcı dostu bir OpenPGP aracı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="278"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="259"/>
         <source>Developed and maintained by Saturneric.</source>
         <translation>Saturneric tarafından geliştirilip sürdürülür.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="279"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="260"/>
         <source>Report an issue on GitHub</source>
         <translation>GitHub&apos;da bir sorun bildirin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="279"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="260"/>
         <source>About and contact information</source>
         <translation>Hakkında ve iletişim bilgileri</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="282"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="263"/>
         <source>Developer</source>
         <translation>Geliştirici</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="288"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="269"/>
         <source>Website:</source>
         <translation>Web sitesi:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="291"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="272"/>
         <source>Documentation:</source>
         <translation>Belgeler:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="292"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="273"/>
         <source>User guides and overview</source>
         <translation>Kullanıcı kılavuzları ve genel bakış</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="294"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="275"/>
         <source>Source code:</source>
         <translation>Kaynak kodu:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="297"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="278"/>
         <source>Release notes:</source>
         <translation>Sürüm notları:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="298"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="279"/>
         <source>Changelog and downloads</source>
         <translation>Değişiklik günlüğü ve indirmeler</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="302"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="283"/>
         <source>Resources</source>
         <translation>Kaynaklar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="309"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="290"/>
         <source>GpgFrontend is free software, licensed under &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GPL-3.0-or-later&lt;/a&gt;.</source>
         <translation>GpgFrontend, &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GPL-3.0-or-later&lt;/a&gt; lisansı altında özgür bir yazılımdır.</translation>
     </message>
@@ -7229,112 +7535,112 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
 <context>
     <name>GpgFrontend::UI::KeyCategoryRules</name>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="248"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="250"/>
         <source>The name is too long.</source>
         <translation>Ad çok uzun.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="252"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="254"/>
         <source>A category with this name already exists.</source>
         <translation>Bu ada sahip bir kategori zaten mevcut.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="267"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="269"/>
         <source>Red</source>
         <translation>Kırmızı</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="268"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="270"/>
         <source>Orange</source>
         <translation>Turuncu</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="270"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="272"/>
         <source>Amber</source>
         <translation>Amber</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="272"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="274"/>
         <source>Yellow</source>
         <translation>Sarı</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="274"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="276"/>
         <source>Lime</source>
         <translation>Lime</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="276"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="278"/>
         <source>Green</source>
         <translation>Yeşil</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="278"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="280"/>
         <source>Emerald</source>
         <translation>Zümrüt</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="280"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="282"/>
         <source>Teal</source>
         <translation>Deniz Mavisi</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="282"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="284"/>
         <source>Cyan</source>
         <translation>Camgöbeği</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="285"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="287"/>
         <source>Sky</source>
         <translation>Gök Mavisi</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="286"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="288"/>
         <source>Blue</source>
         <translation>Mavi</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="288"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="290"/>
         <source>Indigo</source>
         <translation>Çivit mavisi</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="290"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="292"/>
         <source>Violet</source>
         <translation>Menekşe</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="292"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="294"/>
         <source>Purple</source>
         <translation>Mor</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="294"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="296"/>
         <source>Fuchsia</source>
         <translation>Fuşya</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="296"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="298"/>
         <source>Pink</source>
         <translation>Pembe</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="298"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="300"/>
         <source>Rose</source>
         <translation>Gül</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="300"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="302"/>
         <source>Brown</source>
         <translation>Kahverengi</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="302"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="304"/>
         <source>Navy</source>
         <translation>Lacivert</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="304"/>
+        <location filename="../../../../src/core/function/openpgp/KeyCategoryRepository.cpp" line="306"/>
         <source>Stone</source>
         <translation>Taş</translation>
     </message>
@@ -7372,97 +7678,97 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
         <translation>örn. Kişisel anahtarlar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="159"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="160"/>
         <source>Open Directory</source>
         <translation>Dizini aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="171"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="172"/>
         <source>Illegal GnuPG Key Database Path</source>
         <translation>Geçersiz GnuPG anahtar veritabanı yolu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="172"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="173"/>
         <source>Target GnuPG Key Database Path is not an exists readable directory.</source>
         <translation>Hedef GnuPG anahtar veritabanı yolu, var olan okunabilir bir dizin değil.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="228"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="229"/>
         <source>Add Key Database</source>
         <translation>Anahtar veritabanı ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="229"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="230"/>
         <source>New key database in your profile</source>
         <translation>Profilinizde yeni anahtar veritabanı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="231"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="232"/>
         <source>GpgFrontend picks the folder and keeps it inside your profile, so this key database travels with it. Just choose a name.</source>
         <translation>GpgFrontend klasörü kendisi seçer ve profilinizin içinde tutar; böylece bu anahtar veritabanı profille birlikte taşınır. Yalnızca bir ad seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="236"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="237"/>
         <source>Rename Key Database</source>
         <translation>Anahtar veritabanını yeniden adlandır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="237"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="238"/>
         <source>Rename this key database</source>
         <translation>Bu anahtar veritabanını yeniden adlandır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="238"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="239"/>
         <source>The folder it is kept in is named after it, and is renamed too.</source>
         <translation>Tutulduğu klasör onun adını taşır ve o klasör de yeniden adlandırılır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="243"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="244"/>
         <source>Add Key Database On This Computer</source>
         <translation>Bu bilgisayara anahtar veritabanı ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="244"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="245"/>
         <source>New key database on this computer</source>
         <translation>Bu bilgisayarda yeni anahtar veritabanı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="246"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="247"/>
         <source>Choose a folder yourself. A key database outside your profile belongs to this computer alone, and a profile package never carries it.</source>
         <translation>Klasörü kendiniz seçin. Profilinizin dışındaki bir anahtar veritabanı yalnızca bu bilgisayara aittir ve bir profil paketi onu hiçbir zaman taşımaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="252"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="253"/>
         <source>Edit Key Database</source>
         <translation>Anahtar veritabanını düzenle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="253"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="254"/>
         <source>Key database on this computer</source>
         <translation>Bu bilgisayardaki anahtar veritabanı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="255"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="256"/>
         <source>This key database belongs to this computer alone, and a profile package never carries it.</source>
         <translation>Bu anahtar veritabanı yalnızca bu bilgisayara aittir ve bir profil paketi onu hiçbir zaman taşımaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="305"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="296"/>
         <source>Choose a name first</source>
         <translation>Önce bir ad seçin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="306"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="297"/>
         <source>No folder chosen yet</source>
         <translation>Henüz klasör seçilmedi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="353"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="344"/>
         <source>The key database name cannot be empty.</source>
         <translation>Anahtar veritabanı adı boş olamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="362"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="353"/>
         <source>&quot;%1&quot; is reserved for the Built-in Key Database. Turn that one on in its section of the Key Databases settings, or pick another name.</source>
         <translation>&quot;%1&quot;, Yerleşik Anahtar Veritabanı için ayrılmıştır. Onu Anahtar Veritabanları ayarlarının kendi bölümünde açın veya başka bir ad seçin.</translation>
     </message>
@@ -7471,12 +7777,12 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
         <translation type="vanished">&quot;%1&quot;, GpgFrontend&apos;in OpenPGP motorunuzdan türettiği anahtar veritabanının adıdır. Onu Anahtar veritabanı ayarlarındaki onay kutusuyla açın veya başka bir ad seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="370"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="361"/>
         <source>The key database path cannot be empty.</source>
         <translation>Anahtar veritabanı yolu boş olamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="381"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="372"/>
         <source>A key database with the name &apos;%1&apos; already exists. Please choose a different name.</source>
         <translation>&apos;%1&apos; adlı bir anahtar veritabanı zaten var. Lütfen farklı bir ad seçin.</translation>
     </message>
@@ -7488,27 +7794,27 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
         <translation type="vanished">Bu bilgisayarın varsayılan anahtar veritabanını kullan</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="353"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="349"/>
         <source>Add Key Database</source>
         <translation>Anahtar veritabanı ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="355"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="351"/>
         <source>Add Key Database On This Computer</source>
         <translation>Bu bilgisayara anahtar veritabanı ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="524"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="520"/>
         <source>Unreadable Key Database Settings</source>
         <translation>Okunamayan anahtar veritabanı ayarları</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="525"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="521"/>
         <source>Your saved key database list exists but could not be read. This usually means it was written by another installation, or with a different application key.</source>
         <translation>Kayıtlı anahtar veritabanı listeniz mevcut ancak okunamadı. Bu genellikle başka bir kurulum tarafından veya farklı bir uygulama anahtarıyla yazıldığı anlamına gelir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="529"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="525"/>
         <source>Saving now replaces it with the list shown here. The previous list cannot be recovered afterwards.</source>
         <translation>Şimdi kaydetmek, onu burada gösterilen listeyle değiştirir. Önceki liste daha sonra kurtarılamaz.</translation>
     </message>
@@ -7525,86 +7831,86 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
         <translation type="vanished">Her zaman kanal 0. Bir profil paketine hiçbir zaman dahil edilmez: profilinizi başka bir yerde açan kişi kendisininkini alır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="957"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="953"/>
         <source>This folder could not be resolved on this computer.</source>
         <translation>Bu klasör bu bilgisayarda çözümlenemedi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="986"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="982"/>
         <source>No key databases of your own yet. One you add here is kept inside your profile and travels with it.</source>
         <translation>Henüz kendinize ait anahtar veritabanı yok. Buraya eklediğiniz veritabanı profilinizin içinde tutulur ve profille birlikte taşınır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="988"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="984"/>
         <source>Kept inside your profile, and carried by a profile package.</source>
         <translation>Profilinizin içinde tutulur ve bir profil paketiyle taşınır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="996"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="992"/>
         <source>Nothing here yet. A key database you add on this tab stays on this computer: a profile package never carries it, and it is always opened after the ones inside your profile.</source>
         <translation>Henüz burada bir şey yok. Bu sekmede eklediğiniz bir anahtar veritabanı bu bilgisayarda kalır: bir profil paketi onu hiçbir zaman taşımaz ve her zaman profilinizin içindekilerden sonra açılır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="999"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="995"/>
         <source>Key databases outside your profile. They belong to this computer alone: a profile package never carries them, and they are always opened after the ones inside your profile.</source>
         <translation>Profilinizin dışındaki anahtar veritabanları. Yalnızca bu bilgisayara aittirler: bir profil paketi onları hiçbir zaman taşımaz ve her zaman profilinizin içindekilerden sonra açılırlar.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1026"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1222"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1315"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1658"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1022"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1218"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1311"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1654"/>
         <source>Maximum Key Database Limit Reached</source>
         <translation>Azami anahtar veritabanı sınırına ulaşıldı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1027"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1223"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1316"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1659"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1023"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1219"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1312"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1655"/>
         <source>Currently, GpgFrontend supports a maximum of %1 key databases. Please remove an existing database to add a new one.</source>
         <translation>GpgFrontend şu anda en fazla %1 anahtar veritabanını destekler. Yeni bir tane eklemek için lütfen mevcut bir veritabanını kaldırın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1050"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1046"/>
         <source>A key database on this page already uses this computer&apos;s default key database folder. Remove it first, then turn this on.</source>
         <translation>Bu sayfadaki bir anahtar veritabanı zaten bu bilgisayarın varsayılan anahtar veritabanı klasörünü kullanıyor. Önce onu kaldırın, ardından bunu etkinleştirin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1073"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1385"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1069"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1381"/>
         <source>Key Database Required</source>
         <translation>Anahtar veritabanı gerekli</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1074"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1070"/>
         <source>GpgFrontend needs at least one key database. Add another one first, then turn this off.</source>
         <translation>GpgFrontend en az bir anahtar veritabanına ihtiyaç duyar. Önce başka bir tane ekleyin, sonra bunu kapatın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1095"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1091"/>
         <source>No Key Database Selected</source>
         <translation>Anahtar veritabanı seçilmedi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1096"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1092"/>
         <source>Please select a key database to edit.</source>
         <translation>Lütfen düzenlemek için bir anahtar veritabanı seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1141"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1150"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1244"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1137"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1146"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1240"/>
         <source>Key Database Folder Already Exists</source>
         <translation>Anahtar veritabanı klasörü zaten var</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1142"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1138"/>
         <source>A folder named &quot;%1&quot; is in the Recycle Bin. Restore it or delete it permanently, or choose another name.</source>
         <translation>&quot;%1&quot; adlı bir klasör Geri Dönüşüm Kutusu&apos;nda. Onu geri yükleyin veya kalıcı olarak silin ya da başka bir ad seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1151"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1147"/>
         <source>A folder named after &apos;%1&apos; is already there. Its contents are not ours to replace, so choose another name.</source>
         <translation>&apos;%1&apos; adını taşıyan bir klasör zaten var. İçeriğini bizim değiştirmemiz doğru olmaz, bu yüzden başka bir ad seçin.</translation>
     </message>
@@ -7617,66 +7923,66 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
         <translation type="vanished">GpgFrontend, bu anahtar veritabanının tutulduğu klasörü yeniden adlandıramadı. Klasör hâlâ kullanımda olabilir; GpgFrontend&apos;i yeniden başlattıktan sonra yeniden deneyin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1172"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1267"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1336"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1707"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1168"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1263"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1332"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1703"/>
         <source>Invalid Key Database Paths</source>
         <translation>Geçersiz anahtar veritabanı yolları</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1173"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1268"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1337"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1708"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1169"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1264"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1333"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1704"/>
         <source>The edited key database path is not a valid path that GpgFrontend can use</source>
         <translation>Düzenlenen anahtar veritabanı yolu, GpgFrontend&apos;in kullanabileceği geçerli bir yol değil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1049"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1180"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1278"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1344"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1714"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1045"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1176"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1274"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1340"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1710"/>
         <source>Duplicate Key Database Paths</source>
         <translation>Yinelenen anahtar veritabanı yolları</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="845"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1405"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="841"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1401"/>
         <source>Remove Reference</source>
         <translation>Referansı Kaldır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="847"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="843"/>
         <source>Forget this key database. Its folder is left as it is.</source>
         <translation>Bu anahtar veritabanını unutun. Klasörü olduğu gibi kalır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="849"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1398"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="845"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1394"/>
         <source>Move to Recycle Bin</source>
         <translation>Geri Dönüşüm Kutusu&apos;na Taşı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="851"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="847"/>
         <source>Remove this key database from the list. Its folder and keys stay in the Recycle Bin.</source>
         <translation>Bu anahtar veritabanını listeden kaldırın. Klasörü ve anahtarları Geri Dönüşüm Kutusu&apos;nda kalır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1181"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1177"/>
         <source>The edited key database path duplicates a previously existing one.</source>
         <translation>Düzenlenen anahtar veritabanı yolu, daha önce var olan bir yolu yineliyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1245"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1241"/>
         <source>A folder named &quot;%1&quot; already exists. It is in the Recycle Bin: restore it, or delete it permanently before adding a new one.</source>
         <translation>&quot;%1&quot; adlı bir klasör zaten var. Geri Dönüşüm Kutusu&apos;nda: yeni bir tane eklemeden önce onu geri yükleyin veya kalıcı olarak silin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1279"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1345"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1715"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1275"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1341"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1711"/>
         <source>The newly added key database path duplicates a previously existing one.</source>
         <translation>Yeni eklenen anahtar veritabanı yolu, daha önce var olan bir yolu yineliyor.</translation>
     </message>
@@ -7685,21 +7991,21 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
         <translation type="vanished">Geçersiz anahtar veritabanı yolu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="232"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="794"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="228"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="790"/>
         <source>Used when an operation does not explicitly select a key database.</source>
         <translation>Bir işlem açıkça bir anahtar veritabanı seçmediğinde kullanılır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="234"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="316"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="358"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="230"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="312"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="354"/>
         <source>Use as Default</source>
         <translation>Varsayılan Olarak Kullan</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="236"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="264"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="232"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="260"/>
         <source>Copy Folder Path</source>
         <translation>Klasör Yolunu Kopyala</translation>
     </message>
@@ -7728,24 +8034,24 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
         <translation type="vanished">Bu anahtar veritabanını listenin en üstüne taşı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="238"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="261"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="234"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="257"/>
         <source>Open</source>
         <translation>Aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="240"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="263"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="236"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="259"/>
         <source>Open this key database&apos;s folder in the file manager</source>
         <translation>Bu anahtar veritabanının klasörünü dosya yöneticisinde aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="241"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="237"/>
         <source>Edit</source>
         <translation>Düzenle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="242"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="238"/>
         <source>Edit this key database</source>
         <translation>Bu anahtar veritabanını düzenle</translation>
     </message>
@@ -7758,260 +8064,260 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
         <translation type="vanished">Bu anahtar veritabanını listeden kaldır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="281"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="277"/>
         <source>Built-in Key Database</source>
         <translation>Yerleşik Anahtar Veritabanı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="283"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="279"/>
         <source>Key engine:</source>
         <translation>Anahtar motoru:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="289"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="285"/>
         <source>Key engine for the built-in database</source>
         <translation>Yerleşik veritabanı için anahtar motoru</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="293"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="289"/>
         <source>Applies only to the built-in database. Other databases always open with their own engine.</source>
         <translation>Yalnızca yerleşik veritabanı için geçerlidir. Diğer veritabanları her zaman kendi motorlarıyla açılır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="297"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="293"/>
         <source>Location:</source>
         <translation>Konum:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="302"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="298"/>
         <source>Built-in key database location</source>
         <translation>Yerleşik anahtar veritabanı konumu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="304"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="300"/>
         <source>Copy</source>
         <translation>Kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="305"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="301"/>
         <source>Copy the full path</source>
         <translation>Tam yolu kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="307"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="303"/>
         <source>Copy the built-in key database location</source>
         <translation>Yerleşik anahtar veritabanı konumunu kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="313"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="813"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="309"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="809"/>
         <source>Default</source>
         <translation>Varsayılan</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="319"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="315"/>
         <source>Use the built-in key database as default</source>
         <translation>Yerleşik anahtar veritabanını varsayılan olarak kullan</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="323"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="319"/>
         <source>In Profile</source>
         <translation>Profilde</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="325"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="321"/>
         <source>Local Only</source>
         <translation>Yalnızca yerel</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="327"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="323"/>
         <source>Recycle Bin</source>
         <translation>Geri Dönüşüm Kutusu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="333"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="329"/>
         <source>Key databases kept inside your profile</source>
         <translation>Profilinizin içinde tutulan anahtar veritabanları</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="336"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="332"/>
         <source>Key databases removed from In Profile, with their keys still on this computer</source>
         <translation>Profil İçi&apos;nden kaldırılan ve anahtarları hâlâ bu bilgisayarda bulunan anahtar veritabanları</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="340"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="336"/>
         <source>Key databases outside your profile. They never go to the Recycle Bin.</source>
         <translation>Profilinizin dışındaki anahtar veritabanları. Hiçbir zaman Geri Dönüşüm Kutusu&apos;na gitmezler.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="344"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="340"/>
         <source>These folders are no longer referenced by the current configuration. Their keys are still stored on this computer.</source>
         <translation>Bu klasörlere artık geçerli yapılandırma tarafından başvurulmuyor. Anahtarları hâlâ bu bilgisayarda saklanıyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="346"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="342"/>
         <source>Restore</source>
         <translation>Geri Yükle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="348"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="344"/>
         <source>Add this key database back to In Profile</source>
         <translation>Bu anahtar veritabanını yeniden Profil&apos;e ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="349"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1750"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1762"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="345"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1746"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1758"/>
         <source>Delete Permanently</source>
         <translation>Kalıcı Olarak Sil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="351"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="347"/>
         <source>Delete this folder and every key in it, now</source>
         <translation>Bu klasörü ve içindeki tüm anahtarları şimdi sil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="360"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="356"/>
         <source>Use the selected key database as default</source>
         <translation>Seçili anahtar veritabanını varsayılan olarak kullan</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="364"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="360"/>
         <source>Smart cards stay with the previous default database until GpgFrontend restarts. To move them sooner, apply this change, then use &quot;Restart All Gpg-Agents&quot; in the Smart Card Controller.</source>
         <translation>Akıllı kartlar, GpgFrontend yeniden başlatılana kadar önceki varsayılan veritabanında kalır. Daha erken taşımak için bu değişikliği uygulayın, ardından Akıllı Kart Denetleyicisi&apos;nde &quot;Tüm Gpg-Agent&apos;ları Yeniden Başlat&quot; seçeneğini kullanın.</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="688"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="684"/>
         <source>%1: %n operation(s)</source>
         <translation>
             <numerusform>%1: %n işlem</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="730"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="726"/>
         <source>The OpenPGP engine on this computer does not report a key database, so there is no built-in one to use.</source>
         <translation>Bu bilgisayardaki OpenPGP motoru bir anahtar veritabanı bildirmiyor, bu nedenle kullanılacak yerleşik bir veritabanı yok.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="742"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="738"/>
         <source>Always available on this computer, and always listed first.</source>
         <translation>Bu bilgisayarda her zaman kullanılabilir ve her zaman ilk sırada listelenir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="743"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="739"/>
         <source>Always listed first. Never included in a profile package: whoever opens your profile elsewhere gets their own.</source>
         <translation>Her zaman ilk sırada listelenir. Bir profil paketine asla dahil edilmez: profilinizi başka bir yerde açan kişi kendi anahtar veritabanını alır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="757"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="753"/>
         <source>No engine in this build can open it.</source>
         <translation>Bu derlemede hiçbir motor bunu açamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1399"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1395"/>
         <source>Remove &quot;%1&quot; from your key databases when you apply? Its folder and keys stay on this computer, in the Recycle Bin, where you can restore it.</source>
         <translation>Uyguladığınızda &quot;%1&quot; anahtar veritabanlarınızdan kaldırılsın mı? Klasörü ve anahtarları bu bilgisayarda, Geri Dönüşüm Kutusu&apos;nda kalır ve oradan geri yükleyebilirsiniz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1406"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1402"/>
         <source>Remove the reference to &quot;%1&quot; when you apply? Only the reference goes: its folder is not deleted, and does not go to the Recycle Bin.</source>
         <translation>Uyguladığınızda &quot;%1&quot; başvurusu kaldırılsın mı? Yalnızca başvuru kaldırılır: klasörü silinmez ve Geri Dönüşüm Kutusu&apos;na gitmez.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1599"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1595"/>
         <source>Removed from your key databases, and moved here when you press OK. Restore keeps it where it was.</source>
         <translation>Anahtar veritabanlarınızdan kaldırıldı ve Tamam&apos;a bastığınızda buraya taşınır. Geri yükleme onu olduğu yerde tutar.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1605"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1601"/>
         <source>Unknown</source>
         <translation>Bilinmiyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1610"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1606"/>
         <source>Neither engine&apos;s files are in this folder. You are asked which engine to open it with when you restore it.</source>
         <translation>Bu klasörde hiçbir motorun dosyaları yok. Geri yüklediğinizde hangi motorla açılacağı sorulur.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1648"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1644"/>
         <source>Key Database Name Taken</source>
         <translation>Anahtar Veritabanı Adı Zaten Kullanılıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1649"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1645"/>
         <source>A key database named &quot;%1&quot; is already in the list. Rename or remove that one first, then restore this folder.</source>
         <translation>&quot;%1&quot; adlı bir anahtar veritabanı zaten listede. Önce onu yeniden adlandırın veya kaldırın, sonra bu klasörü geri yükleyin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1684"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1680"/>
         <source>Choose an Engine</source>
         <translation>Bir Motor Seçin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1685"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1681"/>
         <source>GpgFrontend cannot tell which engine wrote &quot;%1&quot;. Open it with:</source>
         <translation>GpgFrontend, &quot;%1&quot; veritabanını hangi motorun oluşturduğunu belirleyemiyor. Şununla açın:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1697"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1693"/>
         <source>Engine Not Available</source>
         <translation>Motor Kullanılamıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1698"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1694"/>
         <source>&quot;%1&quot; was written by %2, which this build of GpgFrontend cannot open.</source>
         <translation>&quot;%1&quot;, GpgFrontend&apos;in bu derlemesinin açamadığı %2 tarafından yazıldı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1751"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1747"/>
         <source>Delete &quot;%1&quot; and everything in it?</source>
         <translation>&quot;%1&quot; ve içindeki her şey silinsin mi?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1754"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1750"/>
         <source>All keys in this folder, including secret keys, are deleted immediately. This cannot be undone, and Cancel in Settings does not bring them back.</source>
         <translation>Bu klasördeki gizli anahtarlar dahil tüm anahtarlar hemen silinir. Bu işlem geri alınamaz ve Ayarlar&apos;daki İptal bunları geri getirmez.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1757"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1753"/>
         <source>It is removed from your key databases now, without waiting for OK.</source>
         <translation>Tamam&apos;ı beklemeden şimdi anahtar veritabanlarınızdan kaldırılır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1776"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1772"/>
         <source>Your saved key database list could not be read. Press OK in Settings first, then delete &quot;%1&quot; from the Recycle Bin.</source>
         <translation>Kaydedilmiş anahtar veritabanı listeniz okunamadı. Önce Ayarlar&apos;da Tamam&apos;a basın, sonra &quot;%1&quot; öğesini Geri Dönüşüm Kutusu&apos;ndan silin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1792"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1788"/>
         <source>Deleting Key Database Folder</source>
         <translation>Anahtar Veritabanı Klasörü Siliniyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1828"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1824"/>
         <source>The current configuration still refers to this folder.</source>
         <translation>Geçerli yapılandırma hâlâ bu klasöre başvuruyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1858"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1854"/>
         <source>Key database folder deleted.</source>
         <translation>Anahtar veritabanı klasörü silindi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1775"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1826"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1862"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1771"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1822"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1858"/>
         <source>Folder Not Deleted</source>
         <translation>Klasör Silinmedi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1863"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1859"/>
         <source>&quot;%1&quot; was only partly deleted.</source>
         <translation>&quot;%1&quot; yalnızca kısmen silindi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1827"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1864"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1823"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1860"/>
         <source>&quot;%1&quot; was not deleted.</source>
         <translation>&quot;%1&quot; silinmedi.</translation>
     </message>
@@ -8020,17 +8326,17 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
         <translation type="vanished">Belirtilen anahtar veritabanı yolu var olan bir dosyayı gösteriyor. Lütfen var olmayan veya bir dizini gösteren bir yol belirtin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1253"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1249"/>
         <source>Failed to Create Key Database Directory</source>
         <translation>Anahtar veritabanı dizini oluşturulamadı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1254"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1250"/>
         <source>GpgFrontend failed to create a directory at the specified key database path. Please check the path and your permissions.</source>
         <translation>GpgFrontend, belirtilen anahtar veritabanı yolunda bir dizin oluşturamadı. Lütfen yolu ve izinlerinizi kontrol edin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1386"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1382"/>
         <source>GpgFrontend needs at least one key database, so the last one cannot be removed.</source>
         <translation>GpgFrontend en az bir anahtar veritabanına ihtiyaç duyar, bu nedenle sonuncusu kaldırılamaz.</translation>
     </message>
@@ -9259,72 +9565,72 @@ Bu anahtarlar artık kullanılamıyor. Bunları gruptan kaldırmak istiyor musun
 <context>
     <name>GpgFrontend::UI::KeyGroupMetadataRules</name>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="68"/>
+        <location filename="../../../../src/core/function/openpgp/KeyGroupRepository.cpp" line="73"/>
         <source>Name must contain at least five characters.</source>
         <translation>Ad en az beş karakter içermelidir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="73"/>
+        <location filename="../../../../src/core/function/openpgp/KeyGroupRepository.cpp" line="78"/>
         <source>Email does not look like an address. Leave it empty if the group has none.</source>
         <translation>E-posta bir adrese benzemiyor. Grubun e-postası yoksa boş bırakın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="85"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="40"/>
         <source>This group is empty.</source>
         <translation>Bu grup boş.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="95"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="50"/>
         <source>1 key</source>
         <translation>1 anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="97"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="52"/>
         <source>%1 keys</source>
         <translation>%1 anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="102"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="57"/>
         <source>1 nested group</source>
         <translation>1 iç içe grup</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="105"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="60"/>
         <source>%1 nested groups</source>
         <translation>%1 iç içe grup</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="111"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="66"/>
         <source> and </source>
         <translation> ve </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="115"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="70"/>
         <source>Contains %1.</source>
         <translation>İçerir: %1.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="121"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="76"/>
         <source>1 member is no longer in your keyring.</source>
         <translation>1 üye artık anahtarlığınızda yok.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="124"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="79"/>
         <source>%1 members are no longer in your keyring.</source>
         <translation>%1 üye artık anahtarlığınızda yok.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="137"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="92"/>
         <source>1 checked key will be added to this group.</source>
         <translation>İşaretli 1 anahtar bu gruba eklenecek.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="140"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="95"/>
         <source>%1 checked keys will be added to this group.</source>
         <translation>İşaretli %1 anahtar bu gruba eklenecek.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="148"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="103"/>
         <source>Delete the key group &quot;%1&quot;?
 
 The group is removed. The keys in it are not touched and stay in your keyring.</source>
@@ -9333,7 +9639,7 @@ The group is removed. The keys in it are not touched and stay in your keyring.</
 Grup kaldırılır. İçindeki anahtarlara dokunulmaz ve anahtarlığınızda kalırlar.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="156"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupMetadataRules.cpp" line="111"/>
         <source>It is also a member of: %1. Those groups will lose it.</source>
         <translation>Ayrıca şunların üyesidir: %1. Bu gruplar onu kaybeder.</translation>
     </message>
@@ -9483,63 +9789,63 @@ Grup kaldırılır. İçindeki anahtarlara dokunulmaz ve anahtarlığınızda ka
     <name>GpgFrontend::UI::KeyList</name>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="400"/>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1513"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1483"/>
         <source>New Category...</source>
         <translation>Yeni kategori...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="671"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="641"/>
         <source>Refresh</source>
         <translation>Yenile</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="673"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="643"/>
         <source>Refresh the key list to synchronize changes.</source>
         <translation>Değişiklikleri eşitlemek için anahtar listesini yenileyin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="675"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="645"/>
         <source>Uncheck All</source>
         <translation>Tümünün işaretini kaldır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="676"/>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1015"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="646"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="985"/>
         <source>Uncheck all keys in the current tab.</source>
         <translation>Geçerli sekmedeki tüm anahtarların işaretini kaldırın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="678"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="648"/>
         <source>Check All</source>
         <translation>Tümünü işaretle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="679"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="649"/>
         <source>Check all keys in the current tab.</source>
         <translation>Geçerli sekmedeki tüm anahtarları işaretleyin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="682"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="652"/>
         <source>Search keys by user ID, key ID, fingerprint...</source>
         <translation>Kullanıcı kimliğine, anahtar kimliğine, parmak izine göre anahtar arayın...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="684"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="654"/>
         <source>Columns</source>
         <translation>Sütunlar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="685"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="655"/>
         <source>Choose visible key table columns.</source>
         <translation>Görünür anahtar tablosu sütunlarını seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="687"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="657"/>
         <source>New Key Group</source>
         <translation>Yeni anahtar grubu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="689"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="659"/>
         <source>Create a key group from checked encryption-capable keys.</source>
         <translation>Şifreleme yapabilen işaretli anahtarlardan bir anahtar grubu oluşturun.</translation>
     </message>
@@ -9548,116 +9854,116 @@ Grup kaldırılır. İçindeki anahtarlara dokunulmaz ve anahtarlığınızda ka
         <translation type="vanished">Kanal %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="783"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="753"/>
         <source>No key database available</source>
         <translation>Kullanılabilir anahtar veritabanı yok</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="792"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="762"/>
         <source>Key Database</source>
         <translation>Anahtar veritabanı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="802"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="772"/>
         <source>Switch between key databases.</source>
         <translation>Anahtar veritabanları arasında geçiş yapın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="803"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="773"/>
         <source>Click to switch key databases.</source>
         <translation>Anahtar veritabanları arasında geçiş yapmak için tıklayın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="835"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="805"/>
         <source>Key ID</source>
         <translation>Anahtar kimliği</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="837"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="807"/>
         <source>Algorithm</source>
         <translation>Algoritma</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="839"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="809"/>
         <source>Create Date</source>
         <translation>Oluşturma tarihi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="841"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="811"/>
         <source>Expire Date</source>
         <translation>Sona erme tarihi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="843"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="813"/>
         <source>Owner Trust</source>
         <translation>Sahip güveni</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="845"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="815"/>
         <source>Subkeys</source>
         <translation>Alt anahtarlar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="847"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="817"/>
         <source>Comment</source>
         <translation>Yorum</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="849"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="819"/>
         <source>Status</source>
         <translation>Durum</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="853"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="823"/>
         <source>No optional columns</source>
         <translation>İsteğe bağlı sütun yok</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="858"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="828"/>
         <source>Reset Column Widths</source>
         <translation>Sütun genişliklerini sıfırla</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1017"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="987"/>
         <source>%n key(s) checked</source>
         <translation>
             <numerusform>%n anahtar işaretli</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1025"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="995"/>
         <source>%n of them are not shown by the current category or search filter.</source>
         <translation>
             <numerusform>Bunların %n tanesi geçerli kategori veya arama filtresiyle gösterilmiyor.</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1130"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1100"/>
         <source>The key database &quot;%1&quot; is no longer available; showing the default one.</source>
         <translation>&quot;%1&quot; anahtar veritabanı artık kullanılamıyor; varsayılan olan gösteriliyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1441"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1411"/>
         <source>Delete Category</source>
         <translation>Kategoriyi sil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1442"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1412"/>
         <source>Delete category &quot;%1&quot;? This removes the grouping only; the keys themselves are not affected.</source>
         <translation>&quot;%1&quot; kategorisi silinsin mi? Bu yalnızca gruplandırmayı kaldırır; anahtarların kendisi etkilenmez.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1519"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1489"/>
         <source>Set Colour...</source>
         <translation>Rengi ayarla...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1523"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1493"/>
         <source>Reset Colour</source>
         <translation>Rengi sıfırla</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1534"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1504"/>
         <source>Edit Category...</source>
         <translation>Kategoriyi düzenle...</translation>
     </message>
@@ -9666,12 +9972,12 @@ Grup kaldırılır. İçindeki anahtarlara dokunulmaz ve anahtarlığınızda ka
         <translation type="vanished">Kategoriyi yeniden adlandır...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1538"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1508"/>
         <source>Delete Category...</source>
         <translation>Kategoriyi sil...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1555"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1525"/>
         <source>Choose Category Colour</source>
         <translation>Kategori rengini seç</translation>
     </message>
@@ -9692,39 +9998,39 @@ Grup kaldırılır. İçindeki anahtarlara dokunulmaz ve anahtarlığınızda ka
         <translation type="vanished">Kategoriyi yeniden adlandır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1643"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1613"/>
         <source>Refreshing Key List...</source>
         <translation>Anahtar listesi yenileniyor...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1648"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1618"/>
         <source>Key List Refreshed.</source>
         <translation>Anahtar listesi yenilendi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1722"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1692"/>
         <source>Import Keys</source>
         <translation>Anahtarları içe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1724"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1694"/>
         <source>You&apos;ve dropped something on the key list.
 GpgFrontend will now try to import key(s).</source>
         <translation>Anahtar listesine bir şey bıraktınız.
 GpgFrontend şimdi anahtarları içe aktarmayı deneyecek.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1729"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1699"/>
         <source>Ask before importing keys next time.</source>
         <translation>Bir dahaki sefere anahtarları içe aktarmadan önce sorun.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1858"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1828"/>
         <source>No key matches &quot;%1&quot;</source>
         <translation>&quot;%1&quot; ile eşleşen anahtar yok</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1859"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1829"/>
         <source>%n key(s) match &quot;%1&quot;</source>
         <translation>
             <numerusform>&quot;%1&quot; ile eşleşen %n anahtar</numerusform>
@@ -9739,612 +10045,612 @@ GpgFrontend şimdi anahtarları içe aktarmayı deneyecek.</translation>
         <translation>Tümü</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="92"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="99"/>
         <source>Key Group</source>
         <translation>Anahtar grubu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="98"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="103"/>
         <source>Only Public Key</source>
         <translation>Yalnızca açık anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="106"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="107"/>
         <source>Has Private Key</source>
         <translation>Gizli anahtarı var</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="114"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="113"/>
         <source>Expiring Soon</source>
         <translation>Yakında sona eriyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="120"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="115"/>
         <source>No Primary Key</source>
         <translation>Birincil anahtar yok</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="130"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="117"/>
         <source>Revoked</source>
         <translation>İptal edildi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="137"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="119"/>
         <source>Expired</source>
         <translation>Süresi doldu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="144"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="121"/>
         <source>Disabled</source>
         <translation>Devre dışı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="193"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="168"/>
         <source>KeyPair Management</source>
         <translation>Anahtar çifti yönetimi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="251"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="226"/>
         <source>Copy</source>
         <translation>Kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="261"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="236"/>
         <source>Export</source>
         <translation>Dışa aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="269"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="733"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="244"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="708"/>
         <source>Key Operations</source>
         <translation>Anahtar işlemleri</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="279"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1418"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="254"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1393"/>
         <source>Category</source>
         <translation>Kategori</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="336"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="311"/>
         <source>Open</source>
         <translation>Aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="336"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="311"/>
         <source>Open Key File</source>
         <translation>Anahtar dosyasını aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="342"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="317"/>
         <source>Close</source>
         <translation>Kapat</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="347"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="322"/>
         <source>New Keypair</source>
         <translation>Yeni anahtar çifti</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="348"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="323"/>
         <source>Generate KeyPair</source>
         <translation>Anahtar çifti oluştur</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="355"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="330"/>
         <source>Quick Generate</source>
         <translation>Hızlı Oluştur</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="356"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="331"/>
         <source>Generate a key pair in one click, with the default profile and user ID pattern from Settings</source>
         <translation>Ayarlar&apos;daki varsayılan profil ve kullanıcı kimliği deseniyle tek tıkla bir anahtar çifti oluşturun</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="365"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="340"/>
         <source>New Subkey</source>
         <translation>Yeni alt anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="366"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="341"/>
         <source>Generate Subkey For Selected KeyPair</source>
         <translation>Seçili anahtar çifti için alt anahtar oluştur</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="375"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="616"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="350"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="591"/>
         <source>File</source>
         <translation>Dosya</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="376"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="351"/>
         <source>Import New Key From File</source>
         <translation>Dosyadan yeni anahtar içe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="382"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="357"/>
         <source>Clipboard</source>
         <translation>Pano</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="383"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="358"/>
         <source>Import New Key From Clipboard</source>
         <translation>Panodan yeni anahtar içe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="391"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="366"/>
         <source>Key Package</source>
         <translation>Anahtar paketi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="392"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="367"/>
         <source>Import Key(s) From a Key Package</source>
         <translation>Bir anahtar paketinden anahtar içe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="397"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="372"/>
         <source>Export To Clipboard</source>
         <translation>Panoya dışa aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="398"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="373"/>
         <source>Export Checked Key(s) To Clipboard</source>
         <translation>İşaretli anahtarları panoya dışa aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="403"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="378"/>
         <source>Export As Key Package</source>
         <translation>Anahtar paketi olarak dışa aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="404"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="379"/>
         <source>Export Checked Key(s) To a Key Package</source>
         <translation>İşaretli anahtarları bir anahtar paketine dışa aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="409"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="384"/>
         <source>Export As OpenSSH</source>
         <translation>OpenSSH olarak dışa aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="410"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="385"/>
         <source>Export a single key in OpenSSH format to a file</source>
         <translation>Tek bir anahtarı OpenSSH biçiminde bir dosyaya dışa aktarın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="418"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="393"/>
         <source>Delete Selected Keys</source>
         <translation>Seçili anahtarları sil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="419"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="394"/>
         <source>Delete the Selected keys</source>
         <translation>Seçili anahtarları silin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="425"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="400"/>
         <source>Refresh Key List</source>
         <translation>Anahtar listesini yenile</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="426"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="401"/>
         <source>Re-read the keyring from disk</source>
         <translation>Anahtarlığı diskten yeniden okuyun</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="434"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="409"/>
         <source>Find Key</source>
         <translation>Anahtar bul</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="434"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="409"/>
         <source>Jump to the search box</source>
         <translation>Arama kutusuna gidin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="441"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="416"/>
         <source>Delete Checked Keys</source>
         <translation>İşaretli anahtarları sil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="442"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="417"/>
         <source>Delete the Checked keys</source>
         <translation>İşaretli anahtarları silin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="447"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="422"/>
         <source>Show Key Details</source>
         <translation>Anahtar ayrıntılarını göster</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="448"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="423"/>
         <source>Show Details for this Key</source>
         <translation>Bu anahtarın ayrıntılarını gösterin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="453"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="428"/>
         <source>Set Owner Trust Level</source>
         <translation>Sahip güven düzeyini ayarla</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="454"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="429"/>
         <source>Set how much you trust this key to certify others</source>
         <translation>Bu anahtarın başkalarını tasdik etmesine ne kadar güvendiğinizi ayarlayın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="495"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="470"/>
         <source>Copy Fingerprint</source>
         <translation>Parmak izini kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="496"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="471"/>
         <source>Copy this key&apos;s full fingerprint to the clipboard</source>
         <translation>Bu anahtarın tam parmak izini panoya kopyalayın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="500"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="475"/>
         <source>Fingerprint</source>
         <translation>Parmak izi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="503"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="478"/>
         <source>Copy Key ID</source>
         <translation>Anahtar kimliğini kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="504"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="479"/>
         <source>Copy this key&apos;s ID to the clipboard</source>
         <translation>Bu anahtarın kimliğini panoya kopyalayın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="508"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="483"/>
         <source>Key ID</source>
         <translation>Anahtar kimliği</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="512"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="487"/>
         <source>Copy Email</source>
         <translation>E-postayı kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="513"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="488"/>
         <source>Copy this key&apos;s email address to the clipboard</source>
         <translation>Bu anahtarın e-posta adresini panoya kopyalayın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="517"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="492"/>
         <source>Email</source>
         <translation>E-posta</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="521"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="496"/>
         <source>Copy Public Key Block</source>
         <translation>Açık anahtar bloğunu kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="522"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="497"/>
         <source>Copy this key&apos;s armored public key block to the clipboard, ready to paste or send</source>
         <translation>Bu anahtarın okunabilir ASCII açık anahtar bloğunu, yapıştırmaya veya göndermeye hazır olarak panoya kopyalayın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="532"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="507"/>
         <source>Certify Key...</source>
         <translation>Anahtarı tasdik et...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="533"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="508"/>
         <source>Sign this key&apos;s identity with your key</source>
         <translation>Bu anahtarın kimliğini kendi anahtarınızla imzalayın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="546"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="521"/>
         <source>Set Expiry...</source>
         <translation>Sona ermeyi ayarla...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="546"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="521"/>
         <source>Change when this key expires</source>
         <translation>Bu anahtarın ne zaman sona ereceğini değiştirin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="558"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="533"/>
         <source>Export Public Key...</source>
         <translation>Açık anahtarı dışa aktar...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="559"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="534"/>
         <source>Save this key&apos;s public half to a file you can send</source>
         <translation>Bu anahtarın açık yarısını gönderebileceğiniz bir dosyaya kaydedin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="568"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="543"/>
         <source>Export Private Key...</source>
         <translation>Gizli anahtarı dışa aktar...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="569"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="544"/>
         <source>Save this key&apos;s private half to a file — keep it to yourself</source>
         <translation>Bu anahtarın gizli yarısını bir dosyaya kaydedin; kendinize saklayın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="578"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="553"/>
         <source>Generate Revocation Certificate...</source>
         <translation>İptal sertifikası oluştur...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="579"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="554"/>
         <source>Create a certificate that can revoke this key, to store somewhere safe in case you ever lose control of it</source>
         <translation>Bu anahtarı iptal edebilecek bir sertifika oluşturun; kontrolünü kaybetmeniz durumunda güvenli bir yerde saklamak üzere</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="591"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="566"/>
         <source>Set Owner Trust for Checked Keys...</source>
         <translation>İşaretli anahtarlar için sahip güvenini ayarla...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="592"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="567"/>
         <source>Give every checked key the same owner trust level</source>
         <translation>İşaretli her anahtara aynı sahip güven düzeyini verin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="597"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="572"/>
         <source>Extend Expiry of Checked Keys...</source>
         <translation>İşaretli anahtarların sona ermesini uzat...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="598"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="573"/>
         <source>Push back the expiry date of every checked private key in one step</source>
         <translation>İşaretli her gizli anahtarın sona erme tarihini tek adımda erteleyin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="604"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="579"/>
         <source>Back Up All Private Keys...</source>
         <translation>Tüm gizli anahtarları yedekle...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="605"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="580"/>
         <source>Export every private key in this keyring to a single key package</source>
         <translation>Bu anahtarlıktaki her gizli anahtarı tek bir anahtar paketine dışa aktarın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="620"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="595"/>
         <source>Edit</source>
         <translation>Düzenle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="629"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="689"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="604"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="664"/>
         <source>Key</source>
         <translation>Anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="630"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="605"/>
         <source>Generate Key</source>
         <translation>Anahtar oluştur</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="635"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="712"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="610"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="687"/>
         <source>Import Key</source>
         <translation>Anahtarı içe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="642"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="719"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="720"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="617"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="694"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="695"/>
         <source>Export Key</source>
         <translation>Anahtarı dışa aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="658"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="746"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="633"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="721"/>
         <source>Delete</source>
         <translation>Sil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="663"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="638"/>
         <source>Operations</source>
         <translation>İşlemler</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="674"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="649"/>
         <source>Bulk</source>
         <translation>Toplu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="713"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="688"/>
         <source>Import key</source>
         <translation>Anahtarı içe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="734"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="709"/>
         <source>Certify, set expiry, add a subkey, set trust, revoke</source>
         <translation>Tasdik edin, sona ermeyi ayarlayın, bir alt anahtar ekleyin, güveni ayarlayın, iptal edin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="747"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="722"/>
         <source>Delete the selected or the checked keys</source>
         <translation>Seçili veya işaretli anahtarları silin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="753"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="728"/>
         <source>View</source>
         <translation>Görünüm</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="867"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="842"/>
         <source>Deleting Keys</source>
         <translation>Anahtarlar siliniyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="868"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="843"/>
         <source>Are you sure that you want to delete the following keys?</source>
         <translation>Aşağıdaki anahtarları silmek istediğinizden emin misiniz?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="870"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="845"/>
         <source>The action can not be undone.</source>
         <translation>Bu işlem geri alınamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="901"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1185"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="876"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1160"/>
         <source>key(s) exported</source>
         <translation>anahtar dışa aktarıldı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="917"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1136"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="892"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1111"/>
         <source>Exporting</source>
         <translation>Dışa aktarılıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="927"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="939"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1146"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1157"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1170"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="902"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="914"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1121"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1132"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1145"/>
         <source>Error</source>
         <translation>Hata</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="928"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="940"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1147"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1158"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="903"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="915"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1122"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1133"/>
         <source>Unknown error occurred</source>
         <translation>Bilinmeyen bir hata oluştu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="956"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="931"/>
         <source>%1 is empty</source>
         <translation>%1 boş</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="960"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="935"/>
         <source>%1 copied to clipboard</source>
         <translation>%1 panoya kopyalandı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="968"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="943"/>
         <source>Undefined</source>
         <translation>Tanımsız</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="968"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="943"/>
         <source>Never</source>
         <translation>Hiçbir zaman</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="968"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="943"/>
         <source>Marginal</source>
         <translation>Sınırlı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="968"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="943"/>
         <source>Full</source>
         <translation>Tam</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="969"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="944"/>
         <source>Ultimate</source>
         <translation>Nihai</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="973"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="948"/>
         <source>Modify Owner Trust Level</source>
         <translation>Sahip güven düzeyini değiştir</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="974"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="949"/>
         <source>Trust level to apply to %1 checked key(s):</source>
         <translation>%1 işaretli anahtara uygulanacak güven düzeyi:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="993"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1069"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="968"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1044"/>
         <source>Partially Failed</source>
         <translation>Kısmen başarısız</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="994"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="969"/>
         <source>Failed to set owner trust on %1 key(s).</source>
         <translation>%1 anahtarda sahip güveni ayarlanamadı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1015"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="990"/>
         <source>Nothing to Extend</source>
         <translation>Uzatılacak bir şey yok</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1016"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="991"/>
         <source>None of the %n selected key(s) has a private key, so their expiry cannot be changed. Expiry is set on keys you own.</source>
         <translation>
             <numerusform>Seçili %n anahtarın hiçbirinin gizli anahtarı yok, bu nedenle sona ermeleri değiştirilemez. Sona erme, sahip olduğunuz anahtarlarda ayarlanır.</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1023"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="998"/>
         <source>Extend Expiry of Checked Keys</source>
         <translation>İşaretli anahtarların sona ermesini uzat</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1026"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1001"/>
         <source>New expiry date to apply to %1 private key(s):</source>
         <translation>%1 gizli anahtara uygulanacak yeni sona erme tarihi:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1034"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1009"/>
         <source>Never expires</source>
         <translation>Hiçbir zaman sona ermez</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1053"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1028"/>
         <source>Extending Expiry</source>
         <translation>Sona erme uzatılıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1070"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1045"/>
         <source>Failed to update expiry on %1 key(s).</source>
         <translation>%1 anahtarda sona erme güncellenemedi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1088"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1063"/>
         <source>No Private Keys</source>
         <translation>Gizli anahtar yok</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1089"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1064"/>
         <source>There are no private keys in this keyring to back up.</source>
         <translation>Bu anahtarlıkta yedeklenecek gizli anahtar yok.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1102"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1077"/>
         <source>private key(s) backed up</source>
         <translation>gizli anahtar yedeklendi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1117"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1092"/>
         <source>Invalid Operation</source>
         <translation>Geçersiz işlem</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1118"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1093"/>
         <source>If a key pair does not have a private key then it will not be able to generate sub-keys.</source>
         <translation>Bir anahtar çiftinin gizli anahtarı yoksa alt anahtar oluşturamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1171"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1146"/>
         <source>This key may not be able to export as OpenSSH format. Please check the key-size of the subkey(s) used to sign.</source>
         <translation>Bu anahtar OpenSSH biçiminde dışa aktarılamayabilir. Lütfen imzalamada kullanılan alt anahtarların anahtar boyutunu kontrol edin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1180"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1155"/>
         <source>Export OpenSSH Key To File</source>
         <translation>OpenSSH anahtarını dosyaya dışa aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1181"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1156"/>
         <source>OpenSSH Public Key Files</source>
         <translation>OpenSSH açık anahtar dosyaları</translation>
     </message>
@@ -10381,22 +10687,22 @@ GpgFrontend şimdi anahtarları içe aktarmayı deneyecek.</translation>
         <translation type="vanished">Anahtarın şifresini çözmek için lütfen PIN girin:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1203"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1178"/>
         <source>key(s) imported</source>
         <translation>anahtar içe aktarıldı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1417"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1392"/>
         <source>Category (%1 keys)</source>
         <translation>Kategori (%1 anahtar)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1429"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1404"/>
         <source>Remove From This Category</source>
         <translation>Bu kategoriden kaldır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1465"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1440"/>
         <source>New Category...</source>
         <translation>Yeni kategori...</translation>
     </message>
@@ -10409,17 +10715,17 @@ GpgFrontend şimdi anahtarları içe aktarmayı deneyecek.</translation>
         <translation type="vanished">Kategori adı:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1496"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1471"/>
         <source>%1 keys · %2 private · %3 expiring soon · %4 expired or revoked</source>
         <translation>%1 anahtar · %2 gizli · %3 yakında sona eriyor · %4 süresi dolmuş veya iptal edilmiş</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1503"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1478"/>
         <source>%1 key(s) expire within %2 days. See the &quot;Expiring Soon&quot; tab.</source>
         <translation>%1 anahtar %2 gün içinde sona eriyor. &quot;Yakında sona eriyor&quot; sekmesine bakın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1507"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1482"/>
         <source>No key expires within the next %1 days.</source>
         <translation>Önümüzdeki %1 gün içinde sona erecek anahtar yok.</translation>
     </message>
@@ -11862,12 +12168,12 @@ Başka bir sekmede bir anahtara sağ tıklayın ve onu buraya koymak için Kateg
 <context>
     <name>GpgFrontend::UI::MainWindow</name>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="175"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="179"/>
         <source>GUI Pinentry Not Found</source>
         <translation>Grafik Pinentry bulunamadı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="176"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="180"/>
         <source>No suitable *graphical* Pinentry program was found on your system.
 
 Please install a GUI-based Pinentry (e.g., &apos;pinentry-qt&apos;, &apos;pinentry-gnome3&apos;, or &apos;pinentry-mac&apos; on macOS).
@@ -11884,28 +12190,28 @@ Grafik Pinentry olmadan GnuPG sizden parola veya parola ifadesi isteyemez.
 Kurduktan sonra lütfen GpgFrontend&apos;i yeniden başlatın. Yapılandırma dosyası otomatik olarak güncellenecektir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="202"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="206"/>
         <source>Add To Category</source>
         <translation>Kategoriye ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="287"/>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="290"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="291"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="294"/>
         <source>A critical error occurred while loading GpgFrontend.</source>
         <translation>GpgFrontend yüklenirken kritik bir hata oluştu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="289"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="293"/>
         <source>Loading Failed</source>
         <translation>Yükleme başarısız</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="470"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="474"/>
         <source>Remove From This Category</source>
         <translation>Bu kategoriden kaldır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="504"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="508"/>
         <source>New Category...</source>
         <translation>Yeni kategori...</translation>
     </message>
@@ -11918,27 +12224,27 @@ Kurduktan sonra lütfen GpgFrontend&apos;i yeniden başlatın. Yapılandırma do
         <translation type="vanished">Kategori adı:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="537"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="541"/>
         <source>Name: %1</source>
         <translation>Ad: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="538"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="542"/>
         <source>Path: %1</source>
         <translation>Yol: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="551"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="555"/>
         <source>Invalid Key Databases</source>
         <translation>Geçersiz anahtar veritabanları</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="556"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="560"/>
         <source>Detected %1 invalid key database(s).</source>
         <translation>%1 geçersiz anahtar veritabanı algılandı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="559"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="563"/>
         <source>The application cannot load these databases. Please review the details below and fix the issues in the GnuPG Controller.</source>
         <translation>Uygulama bu veritabanlarını yükleyemiyor. Lütfen aşağıdaki ayrıntıları gözden geçirin ve sorunları GnuPG kontrolcüsünde giderin.</translation>
     </message>
@@ -11949,51 +12255,51 @@ Kurduktan sonra lütfen GpgFrontend&apos;i yeniden başlatın. Yapılandırma do
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="368"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="62"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="63"/>
         <source>New Text Editor</source>
         <translation>Yeni metin düzenleyici</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="370"/>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="429"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="482"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="660"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="483"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="661"/>
         <source>Open</source>
         <translation>Aç</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="372"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="94"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="95"/>
         <source>Save File</source>
         <translation>Dosyayı kaydet</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="373"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="95"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="96"/>
         <source>Save the current File</source>
         <translation>Geçerli dosyayı kaydet</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="376"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="100"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="101"/>
         <source>Save As</source>
         <translation>Farklı kaydet</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="377"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="101"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="102"/>
         <source>Save the current File as...</source>
         <translation>Geçerli dosyayı farklı kaydet...</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="380"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="111"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="112"/>
         <source>Close Tab</source>
         <translation>Sekmeyi kapat</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="381"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="112"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="113"/>
         <source>Close the current tab</source>
         <translation>Geçerli sekmeyi kapat</translation>
     </message>
@@ -12001,74 +12307,74 @@ Kurduktan sonra lütfen GpgFrontend&apos;i yeniden başlatın. Yapılandırma do
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="386"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="369"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="723"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="252"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="253"/>
         <source>Encrypt</source>
         <translation>Şifrele</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="387"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="253"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="254"/>
         <source>Encrypt Message</source>
         <translation>İletiyi şifrele</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="390"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="547"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="266"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="267"/>
         <source>Decrypt</source>
         <translation>Şifresini çöz</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="391"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="267"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="268"/>
         <source>Decrypt Message</source>
         <translation>İletinin şifresini çöz</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="394"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="280"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="281"/>
         <source>Sign</source>
         <translation>İmzala</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="395"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="281"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="282"/>
         <source>Sign Message</source>
         <translation>İletiyi imzala</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="398"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="286"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="287"/>
         <source>Verify</source>
         <translation>Doğrula</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="399"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="287"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="288"/>
         <source>Verify Message</source>
         <translation>İletiyi doğrula</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="403"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="259"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="260"/>
         <source>Encrypt &amp;&amp; Sign</source>
         <translation>Şifrele &amp;&amp; imzala</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="404"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="260"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="261"/>
         <source>Encrypt and Sign Message</source>
         <translation>İletiyi şifrele ve imzala</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="409"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="273"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="274"/>
         <source>Decrypt &amp;&amp; Verify</source>
         <translation>Şifresini çöz &amp;&amp; doğrula</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="410"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="274"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="275"/>
         <source>Decrypt and Verify Message</source>
         <translation>İletinin şifresini çöz ve doğrula</translation>
     </message>
@@ -12084,31 +12390,31 @@ Kurduktan sonra lütfen GpgFrontend&apos;i yeniden başlatın. Yapılandırma do
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="421"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="551"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="552"/>
         <source>Import Key</source>
         <translation>Anahtarı içe aktar</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="423"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="343"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="344"/>
         <source>Manage Keys</source>
         <translation>Anahtarları yönet</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="424"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="344"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="345"/>
         <source>Open Key Management</source>
         <translation>Anahtar yönetimini aç</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="426"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="242"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="243"/>
         <source>Settings</source>
         <translation>Ayarlar</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="427"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="243"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="244"/>
         <source>Open settings dialog</source>
         <translation>Ayarlar iletişim kutusunu aç</translation>
     </message>
@@ -12656,554 +12962,554 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
         <translation>Bitti</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="63"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="64"/>
         <source>Open a new text editor</source>
         <translation>Yeni bir metin düzenleyici aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="77"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="78"/>
         <source>New File Panel</source>
         <translation>Yeni dosya paneli</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="78"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="79"/>
         <source>Open a new file panel</source>
         <translation>Yeni bir dosya paneli aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="83"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="84"/>
         <source>File...</source>
         <translation>Dosya...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="84"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="85"/>
         <source>Open a file in the file panel</source>
         <translation>Dosya panelinde bir dosya aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="89"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="90"/>
         <source>Directory...</source>
         <translation>Dizin...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="90"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="91"/>
         <source>Open a directory in the file panel</source>
         <translation>Dosya panelinde bir dizin aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="106"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="107"/>
         <source>Print</source>
         <translation>Yazdır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="107"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="108"/>
         <source>Print Document</source>
         <translation>Belgeyi yazdır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="116"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="117"/>
         <source>Close All Tabs</source>
         <translation>Tüm Sekmeleri Kapat</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="117"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="118"/>
         <source>Close every tab</source>
         <translation>Her sekmeyi kapat</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="129"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="130"/>
         <source>Manage Profiles...</source>
         <translation>Profilleri yönet...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="130"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="131"/>
         <source>See every profile on this computer, and open, rename or remove one</source>
         <translation>Bu bilgisayardaki her profili görün ve birini açın, yeniden adlandırın veya kaldırın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="136"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="137"/>
         <source>New Profile...</source>
         <translation>Yeni profil...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="137"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="138"/>
         <source>Start an empty profile on this computer, with its own settings and keys</source>
         <translation>Bu bilgisayarda kendi ayarları ve anahtarları olan boş bir profil başlatın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="143"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="144"/>
         <source>New Temporary Profile</source>
         <translation>Yeni Geçici Profil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="144"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="145"/>
         <source>Start an empty, throwaway profile in a new window. Everything in it is destroyed when that window closes.</source>
         <translation>Yeni bir pencerede boş, tek kullanımlık bir profil başlatın. O pencere kapandığında içindeki her şey yok edilir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="155"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="156"/>
         <source>Open Profile File...</source>
         <translation>Profil dosyasını aç...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="156"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="157"/>
         <source>Work inside a profile file, leaving it a file. Nothing is added to this computer, and your changes go back into the same file.</source>
         <translation>Bir profil dosyasının içinde, onu dosya olarak bırakarak çalışın. Bu bilgisayara hiçbir şey eklenmez ve değişiklikleriniz aynı dosyaya geri yazılır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="167"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="168"/>
         <source>Import Profile File...</source>
         <translation>Profil dosyasını içe aktar...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="168"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="169"/>
         <source>Copy a profile file into a new profile kept on this computer. The file is not used again afterwards.</source>
         <translation>Bir profil dosyasını bu bilgisayarda tutulan yeni bir profile kopyalayın. Dosya bundan sonra bir daha kullanılmaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="174"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="175"/>
         <source>Export This Profile...</source>
         <translation>Bu profili dışa aktar...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="175"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="176"/>
         <source>Write the profile this window is using out to a new profile file, to carry elsewhere or keep as a backup</source>
         <translation>Bu pencerenin kullandığı profili, başka bir yere götürmek veya yedek olarak saklamak için yeni bir profil dosyasına yazın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="181"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="182"/>
         <source>Quit</source>
         <translation>Çık</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="182"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="183"/>
         <source>Quit Program</source>
         <translation>Programdan çık</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="186"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="187"/>
         <source>Undo</source>
         <translation>Geri al</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="187"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="188"/>
         <source>Undo Last Edit Action</source>
         <translation>Son düzenleme işlemini geri al</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="190"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="191"/>
         <source>Redo</source>
         <translation>Yinele</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="191"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="192"/>
         <source>Redo Last Edit Action</source>
         <translation>Son düzenleme işlemini yinele</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="194"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="195"/>
         <source>Zoom In</source>
         <translation>Yakınlaştır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="195"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="196"/>
         <source>Zoom in</source>
         <translation>Yakınlaştır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="199"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="200"/>
         <source>Zoom Out</source>
         <translation>Uzaklaştır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="200"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="201"/>
         <source>Zoom out</source>
         <translation>Uzaklaştır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="204"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="205"/>
         <source>Paste</source>
         <translation>Yapıştır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="205"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="206"/>
         <source>Paste Text From Clipboard</source>
         <translation>Panodan metin yapıştır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="209"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="210"/>
         <source>Cut</source>
         <translation>Kes</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="210"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="211"/>
         <source>Cut the current selection&apos;s contents to the clipboard</source>
         <translation>Geçerli seçimin içeriğini panoya kes</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="215"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="216"/>
         <source>Copy</source>
         <translation>Kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="216"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="217"/>
         <source>Copy the current selection&apos;s contents to the clipboard</source>
         <translation>Geçerli seçimin içeriğini panoya kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="220"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="221"/>
         <source>Quote</source>
         <translation>Alıntıla</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="221"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="222"/>
         <source>Quote whole text</source>
         <translation>Tüm metni alıntıla</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="225"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="226"/>
         <source>Select All</source>
         <translation>Tümünü seç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="226"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="227"/>
         <source>Select the whole text</source>
         <translation>Tüm metni seç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="230"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="231"/>
         <source>Find</source>
         <translation>Bul</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="231"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="232"/>
         <source>Find a word</source>
         <translation>Bir sözcük bul</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="235"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="236"/>
         <source>Remove spacing</source>
         <translation>Boşlukları kaldır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="237"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="238"/>
         <source>Remove double linebreaks, e.g. in pasted text from Web Mailer</source>
         <translation>Çift satır sonlarını kaldırın, örn. Web Mailer&apos;dan yapıştırılan metinde</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="293"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="294"/>
         <source>Sym. Encrypt</source>
         <translation>Sim. şifrele</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="294"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="295"/>
         <source>Encrypt Message (Symmetric)</source>
         <translation>İletiyi şifrele (simetrik)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="304"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="305"/>
         <source>New Keypair</source>
         <translation>Yeni anahtar çifti</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="305"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="306"/>
         <source>Generate KeyPair</source>
         <translation>Anahtar çifti oluştur</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="313"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="314"/>
         <source>Quick Generate</source>
         <translation>Hızlı Oluştur</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="314"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="315"/>
         <source>Generate a key pair in one click, with the default profile and user ID pattern from Settings</source>
         <translation>Ayarlar&apos;daki varsayılan profil ve kullanıcı kimliği deseniyle tek tıkla bir anahtar çifti oluşturun</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="321"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="480"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="652"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="322"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="481"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="653"/>
         <source>File</source>
         <translation>Dosya</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="323"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="324"/>
         <source>Import New Key From File</source>
         <translation>Dosyadan yeni anahtar içe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="329"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="330"/>
         <source>Clipboard</source>
         <translation>Pano</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="331"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="332"/>
         <source>Import New Key From Clipboard</source>
         <translation>Panodan yeni anahtar içe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="337"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="338"/>
         <source>Editor</source>
         <translation>Düzenleyici</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="338"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="339"/>
         <source>Import New Key From Editor</source>
         <translation>Düzenleyiciden yeni anahtar içe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="350"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="351"/>
         <source>Open Module Controller</source>
         <translation>Modül kontrolcüsünü aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="351"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="352"/>
         <source>Open Module Controller Dialog</source>
         <translation>Modül kontrolcüsü iletişim kutusunu aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="357"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="358"/>
         <source>Open Smart Card Controller</source>
         <translation>Akıllı kart kontrolcüsünü aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="358"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="359"/>
         <source>Open Smart Card Controller Dialog</source>
         <translation>Akıllı kart kontrolcüsü iletişim kutusunu aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="366"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="367"/>
         <source>About</source>
         <translation>Hakkında</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="367"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="368"/>
         <source>Show the application&apos;s About box</source>
         <translation>Uygulamanın Hakkında kutusunu göster</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="377"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="378"/>
         <source>Open Wizard</source>
         <translation>Sihirbazı aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="378"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="379"/>
         <source>Open the wizard</source>
         <translation>Sihirbazı aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="383"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="384"/>
         <source>Show Application Log</source>
         <translation>Uygulama günlüğünü göster</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="384"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="385"/>
         <source>Show the application log view</source>
         <translation>Uygulama günlüğü görünümünü göster</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="389"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="390"/>
         <source>Append Public Key to Editor</source>
         <translation>Açık anahtarı düzenleyiciye ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="390"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="391"/>
         <source>Append selected Keypair&apos;s Public Key to Editor</source>
         <translation>Seçili anahtar çiftinin açık anahtarını düzenleyiciye ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="395"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="396"/>
         <source>Append Create DateTime to Editor</source>
         <translation>Oluşturma tarih ve saatini düzenleyiciye ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="396"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="397"/>
         <source>Append selected Key&apos;s creation date and time to Editor</source>
         <translation>Seçili anahtarın oluşturulma tarih ve saatini düzenleyiciye ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="401"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="402"/>
         <source>Append Expire DateTime to Editor</source>
         <translation>Sona erme tarih ve saatini düzenleyiciye ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="402"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="403"/>
         <source>Append selected Key&apos;s expiration date and time to Editor</source>
         <translation>Seçili anahtarın sona erme tarih ve saatini düzenleyiciye ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="407"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="408"/>
         <source>Append Fingerprint to Editor</source>
         <translation>Parmak izini düzenleyiciye ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="408"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="409"/>
         <source>Append selected Key&apos;s Fingerprint to Editor</source>
         <translation>Seçili anahtarın parmak izini düzenleyiciye ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="413"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="414"/>
         <source>Copy Email</source>
         <translation>E-postayı kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="414"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="415"/>
         <source>Copy selected Keypair&apos;s to clipboard</source>
         <translation>Seçili anahtar çiftinin e-postasını panoya kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="419"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="420"/>
         <source>Copy Default UID</source>
         <translation>Varsayılan kullanıcı kimliğini kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="420"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="421"/>
         <source>Copy selected Keypair&apos;s default UID to clipboard</source>
         <translation>Seçili anahtar çiftinin varsayılan kullanıcı kimliğini panoya kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="425"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="426"/>
         <source>Copy Key ID</source>
         <translation>Anahtar kimliğini kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="426"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="427"/>
         <source>Copy selected Keypair&apos;s ID to clipboard</source>
         <translation>Seçili anahtar çiftinin kimliğini panoya kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="431"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="432"/>
         <source>Show Key Details</source>
         <translation>Anahtar ayrıntılarını göster</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="432"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="433"/>
         <source>Show Details for this Key</source>
         <translation>Bu anahtarın ayrıntılarını göster</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="437"/>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="438"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="439"/>
         <source>Set Owner Trust Level</source>
         <translation>Sahip güven düzeyini ayarla</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="472"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="473"/>
         <source>Show Open Tabs...</source>
         <translation>Açık Sekmeleri Göster...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="473"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="474"/>
         <source>Search the open tabs and switch to one</source>
         <translation>Açık sekmelerde ara ve birine geç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="487"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="667"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="488"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="668"/>
         <source>Workspace</source>
         <translation>Çalışma alanı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="517"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="707"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="518"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="708"/>
         <source>Edit</source>
         <translation>Düzen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="535"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="677"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="536"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="678"/>
         <source>Operations</source>
         <translation>İşlemler</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="548"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="682"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="549"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="683"/>
         <source>Keys</source>
         <translation>Anahtarlar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="580"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="581"/>
         <source>Profiles</source>
         <translation>Profiller</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="585"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="586"/>
         <source>Open Recent</source>
         <translation>Son açılanlar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="604"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="605"/>
         <source>Advanced</source>
         <translation>Gelişmiş</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="619"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="620"/>
         <source>View</source>
         <translation>Görünüm</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="631"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="632"/>
         <source>Help</source>
         <translation>Yardım</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="660"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="661"/>
         <source>Open a file or directory</source>
         <translation>Bir dosya veya dizin aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="668"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="669"/>
         <source>Open a text editor or file panel</source>
         <translation>Bir metin düzenleyici veya dosya paneli aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="690"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="691"/>
         <source>Import</source>
         <translation>İçe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="691"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="692"/>
         <source>Import a key from file, editor, or clipboard</source>
         <translation>Dosyadan, düzenleyiciden veya panodan bir anahtar içe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="716"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="717"/>
         <source>Text Tools</source>
         <translation>Metin araçları</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="782"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="783"/>
         <source>Ready</source>
         <translation>Hazır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="786"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="787"/>
         <source>Key ToolBox</source>
         <translation>Anahtar araç kutusu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="811"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="812"/>
         <source>Default</source>
         <translation>Varsayılan</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="819"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="820"/>
         <source>Key Group</source>
         <translation>Anahtar grubu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="826"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="827"/>
         <source>Only Public Key</source>
         <translation>Yalnızca açık anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="834"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="835"/>
         <source>Has Private Key</source>
         <translation>Gizli anahtarı var</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="863"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="865"/>
         <source>Status Panel</source>
         <translation>Durum paneli</translation>
     </message>
@@ -14019,27 +14325,27 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
         <translation>Yükleniyor... %1 KB</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1007"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1011"/>
         <source>Message</source>
         <translation>İleti</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1008"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1012"/>
         <source>Raw Source</source>
         <translation>Ham kaynak</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1087"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1091"/>
         <source>Protected Document</source>
         <translation>Korumalı belge</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1113"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1117"/>
         <source>Stop Editing</source>
         <translation>Düzenlemeyi durdur</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1114"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1118"/>
         <source>Edit Raw Source</source>
         <translation>Ham kaynağı düzenle</translation>
     </message>
@@ -14052,27 +14358,27 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
         <translation type="vanished">Salt okunur. Kaynağı düzenlemek için kilidi açın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1172"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1176"/>
         <source>Text Direction</source>
         <translation>Metin yönü</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1179"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1183"/>
         <source>Automatic</source>
         <translation>Otomatik</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1180"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1184"/>
         <source>Left-to-Right</source>
         <translation>Soldan sağa</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1181"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1185"/>
         <source>Right-to-Left</source>
         <translation>Sağdan sola</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1195"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1199"/>
         <source>Which way the text runs. Automatic gives every line the direction of its own first letter.</source>
         <translation>Metnin aktığı yön. Otomatik, her satıra kendi ilk harfinin yönünü verir.</translation>
     </message>
@@ -14514,47 +14820,47 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
 <context>
     <name>GpgFrontend::UI::RpgpEngineTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="701"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="675"/>
         <source>Unknown</source>
         <translation>Bilinmiyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="710"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="684"/>
         <source>GpgFrontend supports multiple OpenPGP backends. Alongside GnuPG, it can use a Rust-based engine (rPGP), giving you the freedom to choose the backend that best fits your needs. The details below describe the rPGP engine compiled into this build.</source>
         <translation>GpgFrontend birden fazla OpenPGP arka ucunu destekler. GnuPG ile birlikte Rust tabanlı bir motor (rPGP) kullanabilir; bu da size gereksinimlerinize en uygun arka ucu seçme özgürlüğü verir. Aşağıdaki ayrıntılar, bu derlemeyle gelen rPGP motorunu açıklar.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="720"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="694"/>
         <source>Engine Version:</source>
         <translation>Motor sürümü:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="722"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="696"/>
         <source>Rust Compiler:</source>
         <translation>Rust derleyicisi:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="725"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="699"/>
         <source>Target:</source>
         <translation>Hedef:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="729"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="703"/>
         <source>Build Profile:</source>
         <translation>Derleme profili:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="734"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="708"/>
         <source>rPGP Engine</source>
         <translation>rPGP motoru</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="741"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="715"/>
         <source>Key Dependencies</source>
         <translation>Önemli bağımlılıklar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="758"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="732"/>
         <source>Copy Engine Information</source>
         <translation>Motor bilgilerini kopyala</translation>
     </message>
@@ -15765,204 +16071,204 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
 <context>
     <name>GpgFrontend::UI::StatusTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="463"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="437"/>
         <source>Application Key Protection:</source>
         <translation>Uygulama anahtarı koruması:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="466"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="440"/>
         <source>Secure Level:</source>
         <translation>Güvenlik düzeyi:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="470"/>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="494"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="444"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="468"/>
         <source>System Credential Store:</source>
         <translation>Sistem kimlik bilgisi deposu:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="471"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="445"/>
         <source>Unavailable</source>
         <translation>Kullanılamıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="482"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="456"/>
         <source>GnuPG Home:</source>
         <translation>GnuPG ana dizini:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="483"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="457"/>
         <source>Unusable</source>
         <translation>Kullanılamaz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="491"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="465"/>
         <source>Running Mode:</source>
         <translation>Çalışma modu:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="492"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="466"/>
         <source>Portable Mode</source>
         <translation>Taşınabilir mod</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="492"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="466"/>
         <source>Installed Mode</source>
         <translation>Kurulu mod</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="498"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="472"/>
         <source>Application</source>
         <translation>Uygulama</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="506"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="480"/>
         <source>Profile ID:</source>
         <translation>Profil kimliği:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="517"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="491"/>
         <source>Session Storage:</source>
         <translation>Oturum deposu:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="528"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="502"/>
         <source>Profile Key:</source>
         <translation>Profil anahtarı:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="529"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="503"/>
         <source>Held in memory only</source>
         <translation>Yalnızca bellekte tutuluyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="530"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="504"/>
         <source>The key that protects this profile&apos;s own saved data is never written here. Your OpenPGP keys are a separate thing and do live in the session storage above, because GnuPG needs real files for them.</source>
         <translation>Bu profilin kendi kayıtlı verilerini koruyan anahtar buraya hiçbir zaman yazılmaz. OpenPGP anahtarlarınız ayrıdır ve yukarıdaki oturum deposunda durur, çünkü GnuPG onlar için gerçek dosyalara ihtiyaç duyar.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="543"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="517"/>
         <source>Profile Key Rotation:</source>
         <translation>Profil anahtarı döndürme:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="544"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="518"/>
         <source>On a schedule</source>
         <translation>Zamanlamaya göre</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="545"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="519"/>
         <source>New saved data uses the current period&apos;s key, and the keys that open what earlier periods wrote are kept alongside it.</source>
         <translation>Yeni kaydedilen veriler geçerli dönemin anahtarını kullanır ve önceki dönemlerin yazdıklarını açan anahtarlar onun yanında tutulur.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="555"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="529"/>
         <source>Profile Format Version:</source>
         <translation>Profil biçim sürümü:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="565"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="539"/>
         <source>Profile File:</source>
         <translation>Profil dosyası:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="574"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="548"/>
         <source>Imported From:</source>
         <translation>İçe aktarıldığı yer:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="578"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="552"/>
         <source>Profile</source>
         <translation>Profil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="584"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="558"/>
         <source>Profile Folder:</source>
         <translation>Profil klasörü:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="591"/>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="593"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="565"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="567"/>
         <source>Workspace:</source>
         <translation>Çalışma alanı:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="591"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="565"/>
         <source>None</source>
         <translation>Yok</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="603"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="577"/>
         <source>Profiles Folder:</source>
         <translation>Profiller klasörü:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="607"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="581"/>
         <source>Folders</source>
         <translation>Klasörler</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="613"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="587"/>
         <source>Available</source>
         <translation>Kullanılabilir</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="617"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="591"/>
         <source>GnuPG Offline Mode:</source>
         <translation>GnuPG çevrimdışı modu:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="618"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="592"/>
         <source>Active</source>
         <translation>Etkin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="618"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="592"/>
         <source>Disabled</source>
         <translation>Devre dışı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="625"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="599"/>
         <source>Pinentry Program Path:</source>
         <translation>Pinentry program yolu:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="627"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="601"/>
         <source>Default Pinentry Program</source>
         <translation>Varsayılan Pinentry programı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="632"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="606"/>
         <source>OpenPGP Engines</source>
         <translation>OpenPGP motorları</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="653"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="627"/>
         <source>Needs Attention</source>
         <translation>Dikkat gerekiyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="654"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="628"/>
         <source>At a Glance</source>
         <translation>Bir bakışta</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="671"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="645"/>
         <source>More details</source>
         <translation>Daha fazla ayrıntı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="671"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="645"/>
         <source>Details</source>
         <translation>Ayrıntılar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="676"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="650"/>
         <source>Copy Status Information</source>
         <translation>Durum bilgisini kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="684"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="658"/>
         <source>These values reflect the current startup environment and may help when reporting issues.</source>
         <translation>Bu değerler geçerli başlangıç ortamını yansıtır ve sorun bildirirken yardımcı olabilir.</translation>
     </message>
@@ -16046,7 +16352,7 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="95"/>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="108"/>
-        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="342"/>
+        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="336"/>
         <source>Add Subkey</source>
         <translation>Alt anahtar ekle</translation>
     </message>
@@ -16122,32 +16428,32 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
         <translation>Uzman Modu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="343"/>
+        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="337"/>
         <source>The subkey would expire in less than two minutes. Choose a later date.</source>
         <translation>Alt anahtar iki dakikadan kısa süre içinde sona erecek. Daha ileri bir tarih seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="354"/>
+        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="348"/>
         <source>Generating</source>
         <translation>Oluşturuluyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="365"/>
+        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="359"/>
         <source>Error</source>
         <translation>Hata</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="366"/>
+        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="360"/>
         <source>Unknown error occurred</source>
         <translation>Bilinmeyen bir hata oluştu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="392"/>
+        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="386"/>
         <source>Subkey Added</source>
         <translation>Alt Anahtar Eklendi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="393"/>
+        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="387"/>
         <source>The subkey was generated and added to the key pair.</source>
         <translation>Alt anahtar oluşturuldu ve anahtar çiftine eklendi.</translation>
     </message>
@@ -16244,47 +16550,47 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
 <context>
     <name>GpgFrontend::UI::TextEditTabWidget</name>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1429"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1434"/>
         <source>Close</source>
         <translation>Kapat</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1430"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1435"/>
         <source>Close Others</source>
         <translation>Diğerlerini kapat</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1431"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1436"/>
         <source>Close to the Right</source>
         <translation>Sağdakileri kapat</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1432"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1437"/>
         <source>Close to the Left</source>
         <translation>Soldakileri kapat</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1433"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1438"/>
         <source>Close Unmodified</source>
         <translation>Değiştirilmemişleri kapat</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1434"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1439"/>
         <source>Close All</source>
         <translation>Tümünü kapat</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1439"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1444"/>
         <source>Copy Name</source>
         <translation>Adı kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1441"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1446"/>
         <source>Copy Path</source>
         <translation>Yolu kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1443"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1448"/>
         <source>Reveal in File Browser</source>
         <translation>Dosya gezgininde göster</translation>
     </message>
@@ -16333,32 +16639,32 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="660"/>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1206"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1211"/>
         <source>Workspace</source>
         <translation>Çalışma alanı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1178"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1183"/>
         <source>Directory Permission Denied</source>
         <translation>Dizin izni reddedildi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1179"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1184"/>
         <source>You do not have permission to access the directory &quot;%1&quot;.</source>
         <translation>&quot;%1&quot; dizinine erişim izniniz yok.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1201"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1206"/>
         <source>Root</source>
         <translation>Kök</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1359"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1364"/>
         <source>Not saved to a file</source>
         <translation>Dosyaya kaydedilmedi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1361"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1366"/>
         <source>Unsaved changes</source>
         <translation>Kaydedilmemiş değişiklikler</translation>
     </message>
@@ -16366,17 +16672,17 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
 <context>
     <name>GpgFrontend::UI::TranslatorsTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="389"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="363"/>
         <source>Thanks to all translators</source>
         <translation>Tüm çevirmenlere teşekkürler</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="399"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="373"/>
         <source>Translator information is not available.</source>
         <translation>Çevirmen bilgisi kullanılamıyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="403"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="377"/>
         <source>If you want to help improve localization, please read the &lt;a href=&apos;https://gpgfrontend.bktus.com/appendix/translate-interface/&apos;&gt;translation guide&lt;/a&gt;.!</source>
         <translation>Yerelleştirmeyi iyileştirmeye yardımcı olmak istiyorsanız lütfen &lt;a href=&apos;https://gpgfrontend.bktus.com/appendix/translate-interface/&apos;&gt;çeviri kılavuzunu&lt;/a&gt; okuyun.!</translation>
     </message>
@@ -16673,58 +16979,70 @@ Tarayıcınızda açılsın mı?</translation>
 <context>
     <name>KeyDatabaseSheet</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="44"/>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="160"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="60"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="215"/>
         <source>New key database</source>
         <translation>Yeni anahtar veritabanı</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="44"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="60"/>
         <source>Key database</source>
         <translation>Anahtar veritabanı</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="57"/>
         <source>Now using %1.</source>
-        <translation>Artık %1 kullanılıyor.</translation>
+        <translation type="vanished">Artık %1 kullanılıyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="67"/>
         <source>%1 is made, and in use.</source>
-        <translation>%1 oluşturuldu ve kullanımda.</translation>
+        <translation type="vanished">%1 oluşturuldu ve kullanımda.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="90"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="98"/>
+        <source>%1 is in use, but its keys could not be read: %2</source>
+        <translation>%1 kullanımda, ancak anahtarları okunamadı: %2</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="149"/>
+        <source>Making %1…</source>
+        <translation>%1 oluşturuluyor…</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="150"/>
+        <source>Switching to %1…</source>
+        <translation>%1&apos;e geçiliyor…</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="159"/>
         <source>Kept in your profile, so it travels with a profile you export. Just choose a name.</source>
         <translation>Profilinizde saklanır, böylece dışa aktardığınız bir profille birlikte taşınır. Yalnızca bir ad seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="92"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="161"/>
         <source>Each key database has its own keys. The one you choose is used from now on.</source>
         <translation>Her anahtar veritabanının kendi anahtarları vardır. Seçtiğiniz bundan sonra kullanılır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="126"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="196"/>
         <source>Name, for example Work</source>
         <translation>Ad, örneğin İş</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="151"/>
         <source>Opening the key databases…</source>
-        <translation>Anahtar veritabanları açılıyor…</translation>
+        <translation type="vanished">Anahtar veritabanları açılıyor…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="168"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="223"/>
         <source>Cancel</source>
         <translation>İptal</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="168"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="223"/>
         <source>Close</source>
         <translation>Kapat</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="176"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="231"/>
         <source>Create</source>
         <translation>Oluştur</translation>
     </message>
@@ -16732,331 +17050,331 @@ Tarayıcınızda açılsın mı?</translation>
 <context>
     <name>KeyDetailPage</name>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="41"/>
         <source>That did not work: %1</source>
-        <translation>Bu işe yaramadı: %1</translation>
+        <translation type="vanished">Bu işe yaramadı: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="58"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="68"/>
         <source>Subkey added.</source>
         <translation>Alt anahtar eklendi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="59"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="69"/>
         <source>Expiration changed.</source>
         <translation>Son kullanma tarihi değiştirildi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="60"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="70"/>
         <source>Subkey revoked.</source>
         <translation>Alt anahtar iptal edildi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="61"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="71"/>
         <source>Subkey deleted.</source>
         <translation>Alt anahtar silindi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="62"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="72"/>
         <source>User ID added.</source>
         <translation>Kullanıcı kimliği eklendi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="63"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="73"/>
         <source>Primary user ID changed.</source>
         <translation>Birincil kullanıcı kimliği değiştirildi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="64"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="74"/>
         <source>User ID revoked.</source>
         <translation>Kullanıcı kimliği iptal edildi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="65"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="75"/>
         <source>User ID deleted.</source>
         <translation>Kullanıcı kimliği silindi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="66"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="76"/>
         <source>Passphrase changed.</source>
         <translation>Parola değiştirildi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="77"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="88"/>
         <source>This key could not be shared. Copy it instead.</source>
         <translation>Bu anahtar paylaşılamadı. Bunun yerine kopyalayın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="84"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="96"/>
         <source>Key</source>
         <translation>Anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="149"/>
         <source>Your key</source>
-        <translation>Anahtarınız</translation>
+        <translation type="vanished">Anahtarınız</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="182"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="186"/>
         <source>Owner</source>
         <translation>Sahip</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="194"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="198"/>
         <source>Name</source>
         <translation>Ad</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="198"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="202"/>
         <source>Email</source>
         <translation>E-posta</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="202"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="206"/>
         <source>Comment</source>
         <translation>Yorum</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="211"/>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="308"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="215"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="312"/>
         <source>Primary key</source>
         <translation>Birincil anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="230"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="234"/>
         <source>Key format</source>
         <translation>Anahtar biçimi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="231"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="235"/>
         <source>Version %1</source>
         <translation>Sürüm %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="232"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="236"/>
         <source>Never</source>
         <translation>Asla</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="235"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="239"/>
         <source>Not here</source>
         <translation>Burada değil</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="236"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="240"/>
         <source>On this device</source>
         <translation>Bu cihazda</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="237"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="241"/>
         <source>Subkeys only: the primary key&apos;s is not here</source>
         <translation>Yalnızca alt anahtarlar: birincil anahtarınki burada değil</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="238"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="242"/>
         <source>Some parts are on a smart card</source>
         <translation>Bazı parçalar akıllı kartta</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="245"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="249"/>
         <source>User IDs (%1)</source>
         <translation>Kullanıcı kimlikleri (%1)</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="265"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="269"/>
         <source>Primary</source>
         <translation>Birincil</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="270"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="274"/>
         <source>Revoked</source>
         <translation>İptal edildi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="270"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="274"/>
         <source>Invalid</source>
         <translation>Geçersiz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="282"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="286"/>
         <source>Add user ID</source>
         <translation>Kullanıcı kimliği ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="291"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="295"/>
         <source>Keys (%1)</source>
         <translation>Anahtarlar (%1)</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="308"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="312"/>
         <source>Subkey</source>
         <translation>Alt anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="331"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="349"/>
         <source>Add subkey</source>
         <translation>Alt anahtar ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="340"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="358"/>
         <source>Categories</source>
         <translation>Kategoriler</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="376"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="385"/>
         <source>Take out of %1</source>
         <translation>%1 içinden çıkar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="377"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="386"/>
         <source>Put in %1</source>
         <translation>%1 içine koy</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="394"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="393"/>
         <source>New category</source>
         <translation>Yeni kategori</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="407"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="408"/>
         <source>Operations</source>
         <translation>İşlemler</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="422"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="515"/>
+        <source>Share as a file</source>
+        <translation>Dosya olarak paylaş</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="531"/>
+        <source>Copy the key as text</source>
+        <translation>Anahtarı metin olarak kopyala</translation>
+    </message>
+    <message>
         <source>Do not encrypt to this key</source>
-        <translation>Bu anahtara şifreleme</translation>
+        <translation type="vanished">Bu anahtara şifreleme</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="422"/>
         <source>Encrypt to this key</source>
-        <translation>Bu anahtara şifrele</translation>
+        <translation type="vanished">Bu anahtara şifrele</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="423"/>
         <source>It is among the recipients of your work.</source>
-        <translation>İşinizin alıcıları arasında.</translation>
+        <translation type="vanished">İşinizin alıcıları arasında.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="424"/>
         <source>Adds it to the recipients of your work.</source>
-        <translation>İşinizin alıcılarına ekler.</translation>
+        <translation type="vanished">İşinizin alıcılarına ekler.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="437"/>
         <source>Signs your work</source>
-        <translation>İşinizi imzalar</translation>
+        <translation type="vanished">İşinizi imzalar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="437"/>
         <source>Sign with this key</source>
-        <translation>Bu anahtarla imzala</translation>
+        <translation type="vanished">Bu anahtarla imzala</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="446"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="421"/>
         <source>Share public key</source>
         <translation>Açık anahtarı paylaş</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="456"/>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="582"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="431"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="563"/>
         <source>Change expiration</source>
         <translation>Son kullanma tarihini değiştir</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="457"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="432"/>
         <source>Of the primary key, and so of the whole key.</source>
         <translation>Birincil anahtarın, dolayısıyla tüm anahtarın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="468"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="443"/>
         <source>Change passphrase</source>
         <translation>Parolayı değiştir</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="469"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="444"/>
         <source>You are asked for the current one, then the new one.</source>
         <translation>Önce mevcut parola, sonra yeni parola sorulur.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="485"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="460"/>
         <source>Delete key</source>
         <translation>Anahtarı sil</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="519"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="494"/>
         <source>Public key</source>
         <translation>Açık anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="525"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="500"/>
         <source>Give it to the people who want to encrypt to this key or check its signatures. It holds nothing secret.</source>
         <translation>Bu anahtara şifreleme yapmak veya imzalarını kontrol etmek isteyen kişilere verin. İçinde gizli bir şey yoktur.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="534"/>
         <source>Copy</source>
-        <translation>Kopyala</translation>
+        <translation type="vanished">Kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="538"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="534"/>
         <source>Copied.</source>
         <translation>Kopyalandı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="549"/>
         <source>Share</source>
-        <translation>Paylaş</translation>
+        <translation type="vanished">Paylaş</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="584"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="565"/>
         <source>How long the key lasts, from today.</source>
         <translation>Anahtarın bugünden itibaren ne kadar geçerli olduğu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="585"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="566"/>
         <source>How long subkey %1 lasts, from today.</source>
         <translation>%1 alt anahtarının bugünden itibaren ne kadar geçerli olduğu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="652"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="636"/>
         <source>Delete this user ID?</source>
         <translation>Bu kullanıcı kimliği silinsin mi?</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="653"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="637"/>
         <source>“%1” is deleted from this device only. Copies of the key others have keep it: to withdraw it, revoke it instead.</source>
         <translation>“%1” yalnızca bu cihazdan silinir. Anahtarın başkalarındaki kopyalarında kalır: geri çekmek için iptal edin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="656"/>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="670"/>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="688"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="640"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="654"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="672"/>
         <source>Delete</source>
         <translation>Sil</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="666"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="650"/>
         <source>Delete subkey %1?</source>
         <translation>%1 alt anahtarı silinsin mi?</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="667"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="651"/>
         <source>It is deleted from this device only. Copies of the key others have keep it: to end its use, revoke it instead. This cannot be undone.</source>
         <translation>Yalnızca bu cihazdan silinir. Başkalarındaki anahtar kopyaları onu korur; kullanımını sona erdirmek için bunun yerine anahtarı iptal edin. Bu işlem geri alınamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="678"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="662"/>
         <source>Delete this key?</source>
         <translation>Bu anahtar silinsin mi?</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="681"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="665"/>
         <source>This is your own key. Without it you can no longer read messages encrypted to it or sign with it. This cannot be undone.</source>
         <translation>Bu sizin kendi anahtarınız. Onsuz, bu anahtarla şifrelenmiş mesajları artık okuyamaz veya onunla imzalayamazsınız. Bu işlem geri alınamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="684"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="668"/>
         <source>You will no longer be able to encrypt to this key or check its signatures, until you import it again.</source>
         <translation>Bu anahtarı yeniden içe aktarıncaya kadar, bu anahtarla şifreleme yapamayacak veya imzalarını denetleyemeyeceksiniz.</translation>
     </message>
@@ -17094,34 +17412,51 @@ Tarayıcınızda açılsın mı?</translation>
         <translation>Geçerli, süresi dolmaz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="53"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="56"/>
         <source>Can</source>
         <translation>Yapabilir</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="54"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="57"/>
         <source>encrypt</source>
         <translation>şifreleme</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="55"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="58"/>
         <source>sign</source>
         <translation>imzalama</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="58"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="61"/>
         <source>Never</source>
         <translation>Asla</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="59"/>
-        <source>Yours, on this device</source>
-        <translation>Bu cihazda, size ait</translation>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="62"/>
+        <source>On this device</source>
+        <translation>Bu cihazda</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="60"/>
+        <source>Yours, on this device</source>
+        <translation type="vanished">Bu cihazda, size ait</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="63"/>
         <source>Not here</source>
         <translation>Burada değil</translation>
+    </message>
+</context>
+<context>
+    <name>KeyFinder</name>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyFinder.qml" line="32"/>
+        <source>All keys</source>
+        <translation>Tüm anahtarlar</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyFinder.qml" line="47"/>
+        <source>Search name, email or key ID</source>
+        <translation>Ad, e-posta veya anahtar kimliği ara</translation>
     </message>
 </context>
 <context>
@@ -17269,76 +17604,106 @@ Tarayıcınızda açılsın mı?</translation>
         <translation>%1 grubuna anahtar ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="45"/>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="131"/>
         <source>Add keys</source>
-        <translation>Anahtar ekle</translation>
+        <translation type="vanished">Anahtar ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="55"/>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="48"/>
         <source>Rename</source>
         <translation>Yeniden adlandır</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="60"/>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="157"/>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="53"/>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="175"/>
         <source>Delete</source>
         <translation>Sil</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="87"/>
         <source>%1. Encrypting to this group encrypts to every key in it.</source>
-        <translation>%1. Bu gruba şifrelemek, içindeki her anahtara şifrelemek demektir.</translation>
+        <translation type="vanished">%1. Bu gruba şifrelemek, içindeki her anahtara şifrelemek demektir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="102"/>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="108"/>
         <source>No longer in your keys</source>
         <translation>Artık anahtarlarınız arasında değil</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="103"/>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="109"/>
         <source>Key group</source>
         <translation>Anahtar grubu</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="109"/>
         <source>Take %1 out</source>
-        <translation>%1 anahtarını çıkar</translation>
+        <translation type="vanished">%1 anahtarını çıkar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="113"/>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="120"/>
         <source>%1 is out of %2.</source>
         <translation>%1, %2 grubundan çıkarıldı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="126"/>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="133"/>
         <source>No keys in it yet</source>
         <translation>Henüz içinde anahtar yok</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="127"/>
         <source>Encrypting to a key group encrypts to every key in it. Add the keys, many at once.</source>
-        <translation>Bir anahtar grubuna şifrelemek, içindeki her anahtara şifrelemek demektir. Anahtarları ekleyin, hepsini birden.</translation>
+        <translation type="vanished">Bir anahtar grubuna şifrelemek, içindeki her anahtara şifrelemek demektir. Anahtarları ekleyin, hepsini birden.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="140"/>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="85"/>
+        <source>Member keys (%1)</source>
+        <translation>Üye anahtarlar (%1)</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="91"/>
+        <source>About key groups</source>
+        <translation>Anahtar grupları hakkında</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="116"/>
+        <source>Remove %1 from the group</source>
+        <translation>%1 anahtarını gruptan çıkar</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="134"/>
+        <source>Use + to add keys, many at once. Encrypting to a key group encrypts to every key in it.</source>
+        <translation>Anahtar eklemek için + kullanın, hepsini birden. Bir anahtar grubuna şifrelemek, içindeki her anahtara şifrelemek demektir.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="141"/>
+        <source>Add keys to the group</source>
+        <translation>Gruba anahtar ekle</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="150"/>
+        <source>Key groups</source>
+        <translation>Anahtar grupları</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="151"/>
+        <source>Encrypting to a key group encrypts to every key in it, as if each were chosen. Removing a key from the group keeps the key in your key list.</source>
+        <translation>Bir anahtar grubuna şifrelemek, her biri seçilmiş gibi içindeki her anahtara şifrelemek demektir. Bir anahtarı gruptan çıkarmak, anahtarı anahtar listenizde tutar.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="158"/>
         <source>Add</source>
         <translation>Ekle</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="143"/>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="161"/>
         <source>%n key(s) added.</source>
         <translation>
             <numerusform>%n anahtar eklendi.</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="155"/>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="173"/>
         <source>Delete “%1”?</source>
         <translation>“%1” silinsin mi?</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="156"/>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="174"/>
         <source>Only the group goes: its keys stay in the key list.</source>
         <translation>Yalnızca grup silinir: anahtarları anahtar listesinde kalır.</translation>
     </message>
@@ -17426,7 +17791,7 @@ Tarayıcınızda açılsın mı?</translation>
     <message>
         <location filename="../../../../src/mob/qml/components/KeyPartFacts.qml" line="61"/>
         <source>Expires</source>
-        <translation type="unfinished"></translation>
+        <translation>Sona erme</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/components/KeyPartFacts.qml" line="66"/>
@@ -17436,7 +17801,7 @@ Tarayıcınızda açılsın mı?</translation>
     <message>
         <location filename="../../../../src/mob/qml/components/KeyPartFacts.qml" line="70"/>
         <source>Secret part</source>
-        <translation type="unfinished"></translation>
+        <translation>Gizli kısım</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/components/KeyPartFacts.qml" line="74"/>
@@ -17447,47 +17812,52 @@ Tarayıcınızda açılsın mı?</translation>
 <context>
     <name>KeyPickerSheet</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="24"/>
+        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="25"/>
         <source>Add</source>
         <translation>Ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="64"/>
+        <source>All keys</source>
+        <translation type="vanished">Tüm anahtarlar</translation>
+    </message>
+    <message>
         <source>Search name, email or key ID</source>
-        <translation>Ad, e-posta veya anahtar kimliği ara</translation>
+        <translation type="vanished">Ad, e-posta veya anahtar kimliği ara</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="71"/>
         <source>All</source>
-        <translation>Tümü</translation>
+        <translation type="vanished">Tümü</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="72"/>
         <source>Mine</source>
-        <translation>Benim</translation>
+        <translation type="vanished">Benim</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="73"/>
         <source>Others&apos;</source>
-        <translation>Diğerleri</translation>
+        <translation type="vanished">Diğerleri</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="141"/>
+        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="104"/>
+        <source>Clear</source>
+        <translation>Temizle</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="161"/>
         <source>Already in</source>
         <translation>Zaten ekli</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="159"/>
+        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="182"/>
         <source>No key matches.</source>
         <translation>Eşleşen anahtar yok.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="167"/>
+        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="191"/>
         <source>Cancel</source>
         <translation>İptal</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="174"/>
+        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="197"/>
         <source>%1 (%2)</source>
         <translation>%1 (%2)</translation>
     </message>
@@ -17495,75 +17865,86 @@ Tarayıcınızda açılsın mı?</translation>
 <context>
     <name>KeyRow</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyRow.qml" line="53"/>
+        <location filename="../../../../src/mob/qml/components/KeyRow.qml" line="43"/>
         <source>Key group</source>
         <translation>Anahtar grubu</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyRow.qml" line="54"/>
-        <location filename="../../../../src/mob/qml/components/KeyRow.qml" line="156"/>
         <source>Your key</source>
-        <translation>Anahtarınız</translation>
+        <translation type="vanished">Anahtarınız</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyRow.qml" line="56"/>
         <source>Chosen to encrypt to</source>
-        <translation>Şifrelemek için seçildi</translation>
+        <translation type="vanished">Şifrelemek için seçildi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyRow.qml" line="112"/>
         <source>Do not encrypt to %1</source>
-        <translation>%1&apos;e şifrelemeyi kaldır</translation>
+        <translation type="vanished">%1&apos;e şifrelemeyi kaldır</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyRow.qml" line="113"/>
         <source>Encrypt to %1</source>
-        <translation>%1&apos;e şifrele</translation>
+        <translation type="vanished">%1&apos;e şifrele</translation>
     </message>
 </context>
 <context>
     <name>KeyToolbox</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="74"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="89"/>
         <source>Encrypt to</source>
         <translation>Şifreleme hedefi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="74"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="89"/>
         <source>Sign with</source>
         <translation>Şununla imzala</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="149"/>
         <source>Remove %1</source>
-        <translation>%1 öğesini kaldır</translation>
+        <translation type="vanished">%1 öğesini kaldır</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="162"/>
         <source>and %n more key(s), ticked below</source>
-        <translation>
+        <translation type="vanished">
             <numerusform>ve aşağıda işaretli %n anahtar daha</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="177"/>
         <source>Search name, email or key ID</source>
-        <translation>Ad, e-posta veya anahtar kimliği ara</translation>
+        <translation type="vanished">Ad, e-posta veya anahtar kimliği ara</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="199"/>
         <source>All keys</source>
-        <translation>Tüm anahtarlar</translation>
+        <translation type="vanished">Tüm anahtarlar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="225"/>
         <source>Show %1</source>
-        <translation>%1 göster</translation>
+        <translation type="vanished">%1 göster</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="342"/>
         <source>About %1</source>
-        <translation>%1 hakkında</translation>
+        <translation type="vanished">%1 hakkında</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="181"/>
+        <source>Some cannot be used</source>
+        <translation>Bazıları kullanılamıyor</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="213"/>
+        <source>%n of them cannot be used. Tap to see why.</source>
+        <translation>
+            <numerusform>%n tanesi kullanılamıyor. Nedenini görmek için dokunun.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="235"/>
+        <source>Signing as %1</source>
+        <translation>%1 olarak imzalanıyor</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="306"/>
+        <source>Long-press for the key&apos;s details</source>
+        <translation>Anahtar ayrıntıları için uzun basın</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="386"/>
@@ -17572,41 +17953,46 @@ Tarayıcınızda açılsın mı?</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="387"/>
+        <source>No keys in this category.</source>
+        <translation>Bu kategoride anahtar yok.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="388"/>
         <source>You have no key of your own to sign with.</source>
         <translation>İmzalamak için kendinize ait bir anahtarınız yok.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="388"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="389"/>
         <source>No keys yet. Import the keys of the people you write to on the Keys page.</source>
         <translation>Henüz anahtar yok. Yazıştığınız kişilerin anahtarlarını Anahtarlar sayfasından içe aktarın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="407"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="418"/>
         <source>Back to the list</source>
         <translation>Listeye dön</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="426"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="438"/>
         <source>Open on the Keys page</source>
         <translation>Anahtarlar sayfasında aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="439"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="452"/>
         <source>Reset keys</source>
         <translation>Anahtarları sıfırla</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="446"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="460"/>
         <source>Back</source>
         <translation>Geri</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="457"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="470"/>
         <source>Done</source>
         <translation>Bitti</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="465"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="477"/>
         <source>Next</source>
         <translation>İleri</translation>
     </message>
@@ -17614,149 +18000,155 @@ Tarayıcınızda açılsın mı?</translation>
 <context>
     <name>KeysPage</name>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="66"/>
         <source>%1 to encrypt to</source>
-        <translation>Şifrelenecek: %1</translation>
+        <translation type="vanished">Şifrelenecek: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="67"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="90"/>
         <source>Keys</source>
         <translation>Anahtarlar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="82"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="101"/>
         <source>Key database: %1. Choose another</source>
         <translation>Anahtar veritabanı: %1. Başka bir veritabanı seç</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="90"/>
         <source>Clear</source>
-        <translation>Temizle</translation>
+        <translation type="vanished">Temizle</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="92"/>
         <source>Clear the keys to encrypt to</source>
-        <translation>Şifrelenecek anahtarları temizle</translation>
+        <translation type="vanished">Şifrelenecek anahtarları temizle</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="108"/>
         <source>Search name, email or key ID</source>
-        <translation>Ad, e-posta veya anahtar kimliği ara</translation>
+        <translation type="vanished">Ad, e-posta veya anahtar kimliği ara</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="130"/>
         <source>All keys</source>
-        <translation>Tüm anahtarlar</translation>
+        <translation type="vanished">Tüm anahtarlar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="158"/>
         <source>Show %1</source>
-        <translation>%1 göster</translation>
+        <translation type="vanished">%1 göster</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="159"/>
         <source>Long-press to manage it</source>
-        <translation>Yönetmek için uzun basın</translation>
+        <translation type="vanished">Yönetmek için uzun basın</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="177"/>
         <source>New category</source>
-        <translation>Yeni kategori</translation>
+        <translation type="vanished">Yeni kategori</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="223"/>
         <source>%1 cannot be encrypted to.</source>
-        <translation>%1 anahtarına şifreleme yapılamaz.</translation>
+        <translation type="vanished">%1 anahtarına şifreleme yapılamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="250"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="188"/>
         <source>Release to refresh</source>
         <translation>Yenilemek için bırakın</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="251"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="189"/>
         <source>Pull to refresh</source>
         <translation>Yenilemek için çekin</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="265"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="212"/>
         <source>No key matches “%1”.</source>
         <translation>“%1” ile eşleşen anahtar yok.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="266"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="213"/>
         <source>No keys in this category.</source>
         <translation>Bu kategoride anahtar yok.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="267"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="215"/>
         <source>No keys yet.</source>
         <translation>Henüz anahtar yok.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="271"/>
         <source>Add keys to it on each key&apos;s page.</source>
-        <translation>Anahtarları her anahtarın sayfasından bu kategoriye ekleyin.</translation>
+        <translation type="vanished">Anahtarları her anahtarın sayfasından bu kategoriye ekleyin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="272"/>
         <source>Create a key of your own, or import the keys of the people you write to.</source>
-        <translation>Kendi anahtarınızı oluşturun veya yazıştığınız kişilerin anahtarlarını içe aktarın.</translation>
+        <translation type="vanished">Kendi anahtarınızı oluşturun veya yazıştığınız kişilerin anahtarlarını içe aktarın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="278"/>
         <source>Clear search</source>
-        <translation>Aramayı temizle</translation>
+        <translation type="vanished">Aramayı temizle</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="285"/>
         <source>Import</source>
-        <translation>İçe aktar</translation>
+        <translation type="vanished">İçe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="292"/>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="341"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="282"/>
         <source>Create a key</source>
         <translation>Anahtar oluştur</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="323"/>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="331"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="263"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="272"/>
         <source>Add a key</source>
         <translation>Anahtar ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="342"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="214"/>
+        <source>The keys could not be read.</source>
+        <translation>Anahtarlar okunamadı.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="219"/>
+        <source>Add keys to it from the category&apos;s page.</source>
+        <translation>Anahtarları kategorinin sayfasından ekleyin.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="221"/>
+        <source>Use + to create a key of your own or import the keys of the people you write to.</source>
+        <translation>Kendi anahtarınızı oluşturmak veya yazıştığınız kişilerin anahtarlarını içe aktarmak için + kullanın.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="227"/>
+        <source>Try again</source>
+        <translation>Tekrar deneyin</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="283"/>
         <source>Create a key for signing and receiving encrypted content.</source>
         <translation>İmzalama ve şifreli içerik almak için bir anahtar oluşturun.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="358"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="299"/>
         <source>Quick key</source>
         <translation>Hızlı anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="359"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="300"/>
         <source>An anonymous key from the default profile, at once. Only its passphrase is asked for.</source>
         <translation>Varsayılan profilden anında anonim bir anahtar. Yalnızca parolası sorulur.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="374"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="315"/>
         <source>New key group</source>
         <translation>Yeni anahtar grubu</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="375"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="316"/>
         <source>Encrypt to several keys at once, as one recipient.</source>
         <translation>Tek bir alıcı olarak aynı anda birkaç anahtara şifreleyin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="391"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="332"/>
         <source>Import a key</source>
         <translation>Anahtar içe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="392"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="333"/>
         <source>Import from a file or the clipboard.</source>
         <translation>Bir dosyadan veya panodan içe aktarın.</translation>
     </message>
@@ -17776,59 +18168,64 @@ Tarayıcınızda açılsın mı?</translation>
         <translation>Paylaşılan bir dosya açılamadı. Önce kaydedin, sonra buraya ekleyin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/MainPage.qml" line="147"/>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="151"/>
         <source>Text</source>
         <translation>Metin</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/MainPage.qml" line="148"/>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="152"/>
         <source>Files</source>
         <translation>Dosyalar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/MainPage.qml" line="149"/>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="153"/>
         <source>Keys</source>
         <translation>Anahtarlar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/MainPage.qml" line="150"/>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="154"/>
         <source>Settings</source>
         <translation>Ayarlar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/MainPage.qml" line="247"/>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="251"/>
         <source>Build information</source>
         <translation>Derleme bilgileri</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/MainPage.qml" line="248"/>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="252"/>
         <source>Build</source>
         <translation>Derleme</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/MainPage.qml" line="249"/>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="253"/>
         <source>Android package</source>
         <translation>Android paketi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/MainPage.qml" line="260"/>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="264"/>
         <source>rPGP engine</source>
         <translation>rPGP motoru</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/MainPage.qml" line="261"/>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="265"/>
         <source>GpgFrontend can use more than one OpenPGP engine. Here, all the work is done by rPGP, an engine written in Rust and built into the application.</source>
         <translation>GpgFrontend birden fazla OpenPGP motoru kullanabilir. Burada tüm işler, Rust ile yazılmış ve uygulamaya dahil edilmiş bir motor olan rPGP tarafından yapılır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/MainPage.qml" line="264"/>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="268"/>
         <source>Engine</source>
         <translation>Motor</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/MainPage.qml" line="265"/>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="269"/>
         <source>Key dependencies</source>
         <translation>Temel bağımlılıklar</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="301"/>
+        <source>The key could not be generated: %1</source>
+        <translation>Anahtar oluşturulamadı: %1</translation>
     </message>
 </context>
 <context>
@@ -17842,42 +18239,46 @@ Tarayıcınızda açılsın mı?</translation>
 <context>
     <name>OperationBar</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/OperationBar.qml" line="62"/>
         <source>Again: %1</source>
-        <translation>Yeniden: %1</translation>
+        <translation type="vanished">Yeniden: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/OperationBar.qml" line="140"/>
         <source>Suggested for this content</source>
-        <translation>Bu içerik için önerilen</translation>
+        <translation type="vanished">Bu içerik için önerilen</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/OperationBar.qml" line="180"/>
         <source>More</source>
-        <translation>Daha fazla</translation>
+        <translation type="vanished">Daha fazla</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/OperationBar.qml" line="188"/>
         <source>More options</source>
-        <translation>Diğer seçenekler</translation>
+        <translation type="vanished">Diğer seçenekler</translation>
     </message>
 </context>
 <context>
     <name>OperationFlow</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/OperationFlow.qml" line="55"/>
+        <location filename="../../../../src/mob/qml/components/OperationFlow.qml" line="56"/>
         <source>Encrypt and sign now</source>
         <translation>Şimdi şifrele ve imzala</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/OperationFlow.qml" line="56"/>
+        <location filename="../../../../src/mob/qml/components/OperationFlow.qml" line="57"/>
         <source>Encrypt now</source>
         <translation>Şimdi şifrele</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/OperationFlow.qml" line="56"/>
+        <location filename="../../../../src/mob/qml/components/OperationFlow.qml" line="57"/>
         <source>Sign now</source>
         <translation>Şimdi imzala</translation>
+    </message>
+</context>
+<context>
+    <name>OperationMenu</name>
+    <message>
+        <location filename="../../../../src/mob/qml/components/OperationMenu.qml" line="87"/>
+        <source>Again: %1</source>
+        <translation>Yeniden: %1</translation>
     </message>
 </context>
 <context>
@@ -18495,87 +18896,87 @@ Tarayıcınızda açılsın mı?</translation>
         <translation>Beklenmeyen motor arızası</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="77"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="76"/>
         <source>Starting up...</source>
         <translation>Başlatılıyor...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="79"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="78"/>
         <source>Checking the GnuPG environment...</source>
         <translation>GnuPG ortamı kontrol ediliyor...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="81"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="80"/>
         <source>Checking the rPGP engine...</source>
         <translation>rPGP motoru kontrol ediliyor...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="83"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="82"/>
         <source>Resolving GnuPG paths...</source>
         <translation>GnuPG yolları çözümleniyor...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="85"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="84"/>
         <source>Preparing the OpenPGP backend engine...</source>
         <translation>OpenPGP arka uç motoru hazırlanıyor...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="87"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="86"/>
         <source>Building the default engine context...</source>
         <translation>Varsayılan motor bağlamı oluşturuluyor...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="90"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="89"/>
         <source>Loading key databases...</source>
         <translation>Anahtar veritabanları yükleniyor...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="94"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="93"/>
         <source>Loading key database &quot;%1&quot;...</source>
         <translation>&quot;%1&quot; anahtar veritabanı yükleniyor...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="97"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="96"/>
         <source>Scanning modules...</source>
         <translation>Modüller taranıyor...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="99"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="98"/>
         <source>Verifying modules...</source>
         <translation>Modüller doğrulanıyor...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="102"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="101"/>
         <source>Loading modules...</source>
         <translation>Modüller yükleniyor...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="103"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="102"/>
         <source>Loading module &quot;%1&quot;...</source>
         <translation>&quot;%1&quot; modülü yükleniyor...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="106"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="105"/>
         <source>Ready.</source>
         <translation>Hazır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="141"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="140"/>
         <source>Preparing OpenPGP Environment</source>
         <translation>OpenPGP ortamı hazırlanıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="180"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="179"/>
         <source>Starting GpgFrontend</source>
         <translation>GpgFrontend başlatılıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="238"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="237"/>
         <source>Cancel</source>
         <translation>İptal</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1430"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1463"/>
         <source>Built-in</source>
         <translation>Yerleşik</translation>
     </message>
@@ -18621,10 +19022,10 @@ Tarayıcınızda açılsın mı?</translation>
         <location filename="../../../../src/core/profile/ProfileLoader.cpp" line="715"/>
         <location filename="../../../../src/core/profile/ProfileLoader.cpp" line="734"/>
         <location filename="../../../../src/GpgFrontend.cpp" line="155"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="232"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="643"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="799"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="883"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="213"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="624"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="780"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="864"/>
         <source>Cannot Open Profile</source>
         <translation>Profil açılamıyor</translation>
     </message>
@@ -18696,7 +19097,7 @@ Tarayıcınızda açılsın mı?</translation>
         <translation>Paketlenmemiş bir kitaplıktan yüklendi ve buna hiçbir şey kefil olmuyor. Yayımlanan derlemeler yalnızca imzalı paketlerle gelir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="384"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="383"/>
         <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="100"/>
         <location filename="../../../../src/ui/dialog/profile/ProfileExportSummary.cpp" line="243"/>
         <location filename="../../../../src/ui/dialog/profile/ProfilePackageMeta.cpp" line="54"/>
@@ -18744,8 +19145,8 @@ Tarayıcınızda açılsın mı?</translation>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="230"/>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="178"/>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="38"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="193"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="200"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="189"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="196"/>
         <source>Name</source>
         <translation>Ad</translation>
     </message>
@@ -18931,7 +19332,7 @@ Bağlantı panonuza kopyalandı:
         <translation>Bu profilin dışında tutulan anahtarlar, örneğin sistem GnuPG anahtarlığı, oldukları yerde kalır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="385"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="384"/>
         <source>Cipher</source>
         <translation>Şifreleme</translation>
     </message>
@@ -18955,8 +19356,8 @@ Bağlantı panonuza kopyalandı:
         <location filename="../../../../src/ui/dialog/profile/ProfileExportSummary.cpp" line="246"/>
         <location filename="../../../../src/ui/dialog/profile/ProfilePackageMeta.cpp" line="57"/>
         <location filename="../../../../src/ui/dialog/profile/ProfilePackageMeta.cpp" line="123"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="194"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="201"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="190"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="197"/>
         <source>Folder</source>
         <translation>Klasör</translation>
     </message>
@@ -18964,7 +19365,7 @@ Bağlantı panonuza kopyalandı:
         <location filename="../../../../src/ui/dialog/profile/ProfileExportSummary.cpp" line="213"/>
         <location filename="../../../../src/ui/dialog/profile/ProfileExportSummary.cpp" line="251"/>
         <location filename="../../../../src/ui/dialog/profile/ProfilePackageMeta.cpp" line="65"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="200"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="196"/>
         <source>Size</source>
         <translation>Boyut</translation>
     </message>
@@ -19168,13 +19569,13 @@ Bağlantı panonuza kopyalandı:
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfilePackageMeta.cpp" line="96"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="190"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="171"/>
         <source>Written by</source>
         <translation>Yazan</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfilePackageMeta.cpp" line="98"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="191"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="172"/>
         <source>GpgFrontend %1</source>
         <translation>GpgFrontend %1</translation>
     </message>
@@ -19205,9 +19606,9 @@ Bağlantı panonuza kopyalandı:
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/SecretPrompt.cpp" line="143"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="224"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="661"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="673"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="205"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="642"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="654"/>
         <source>Open</source>
         <translation>Aç</translation>
     </message>
@@ -19265,18 +19666,18 @@ Bağlantı panonuza kopyalandı:
         <translation>Anahtar Ayrıntıları</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="644"/>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="988"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="645"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="992"/>
         <source>Must not contain &apos;(&apos;, &apos;)&apos;, &apos;&lt;&apos;, &apos;&gt;&apos; or control characters.</source>
         <translation>&apos;(&apos;, &apos;)&apos;, &apos;&lt;&apos;, &apos;&gt;&apos; veya kontrol karakterleri içermemelidir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="649"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="650"/>
         <source>A name is required.</source>
         <translation>Bir ad gereklidir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="656"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="657"/>
         <source>This is not a valid email address.</source>
         <translation>Bu geçerli bir e-posta adresi değil.</translation>
     </message>
@@ -19311,7 +19712,7 @@ Bağlantı panonuza kopyalandı:
         <translation>Size yönelik şifreleme gelecekteki kuantum bilgisayarlara karşı da korunur; imzalar hâlâ Ed25519 kullanır. Bu anahtara yalnızca ML-KEM desteği olan güncel yazılımlar şifreleme yapabilir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="742"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="768"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateSummary.cpp" line="200"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateSummary.cpp" line="243"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateSummary.cpp" line="292"/>
@@ -19355,7 +19756,7 @@ Bağlantı panonuza kopyalandı:
         <translation>Anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="373"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="374"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateSummary.cpp" line="278"/>
         <source>Custom</source>
         <translation>Özel</translation>
@@ -19503,42 +19904,42 @@ Bağlantı panonuza kopyalandı:
         <translation>PIN en az %1 karakter olmalıdır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="81"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="77"/>
         <source>Key Database Path Too Long</source>
         <translation>Anahtar veritabanı yolu çok uzun</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="82"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="78"/>
         <source>This folder&apos;s path is too long for GnuPG&apos;s agent socket, and no short enough link to it could be made, so GnuPG could not start against it. Choose a folder with a shorter path.</source>
         <translation>Bu klasörün yolu GnuPG agent soketi için çok uzun ve ona yeterince kısa bir bağlantı oluşturulamadı, bu yüzden GnuPG bu klasörle başlatılamadı. Daha kısa yollu bir klasör seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="103"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="99"/>
         <source>Active</source>
         <translation>Etkin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="104"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="100"/>
         <source>Inactive</source>
         <translation>Etkin değil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="117"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="113"/>
         <source>This key database uses %1, which is not available. It was left as it is.</source>
         <translation>Bu anahtar veritabanı %1 kullanıyor, ancak bu kullanılamıyor. Olduğu gibi bırakıldı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="121"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="117"/>
         <source>GpgFrontend could not open this key database at the last start.</source>
         <translation>GpgFrontend bu anahtar veritabanını son başlatmada açamadı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="193"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="189"/>
         <source>ID</source>
         <translation>Kimlik</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="194"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="190"/>
         <source>Role</source>
         <translation>Rol</translation>
     </message>
@@ -19547,8 +19948,8 @@ Bağlantı panonuza kopyalandı:
         <translation type="vanished">Kanal</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="193"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="200"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="189"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="196"/>
         <source>Engine</source>
         <translation>Motor</translation>
     </message>
@@ -19644,7 +20045,7 @@ Bağlantı panonuza kopyalandı:
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="179"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="194"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="190"/>
         <source>Status</source>
         <translation>Durum</translation>
     </message>
@@ -19765,7 +20166,7 @@ Bağlantı panonuza kopyalandı:
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateSummary.cpp" line="277"/>
         <location filename="../../../../src/ui/dialog/profile/ProfileExportSummary.cpp" line="211"/>
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="174"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="188"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="169"/>
         <source>Profile</source>
         <translation>Profil</translation>
     </message>
@@ -20130,7 +20531,7 @@ Bağlantı panonuza kopyalandı:
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="294"/>
         <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="317"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="364"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="363"/>
         <source>Fingerprint</source>
         <translation>Parmak izi</translation>
     </message>
@@ -20165,7 +20566,7 @@ Bağlantı panonuza kopyalandı:
         <translation>Birincil anahtar algoritması</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="339"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="338"/>
         <source>Signature · %1</source>
         <translation>İmza · %1</translation>
     </message>
@@ -20178,22 +20579,22 @@ Bağlantı panonuza kopyalandı:
         <translation type="vanished">SHA-256</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="352"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="351"/>
         <source>Signature Created</source>
         <translation>İmza oluşturuldu</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="355"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="354"/>
         <source>Mode</source>
         <translation>Mod</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="362"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="361"/>
         <source>Invalid Signer</source>
         <translation>Geçersiz imzalayan</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="366"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="365"/>
         <source>Reason</source>
         <translation>Neden</translation>
     </message>
@@ -20202,37 +20603,37 @@ Bağlantı panonuza kopyalandı:
         <translation type="vanished">Şifresini çöz</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="381"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="380"/>
         <source>Message Metadata</source>
         <translation>İleti üst verisi</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="386"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="385"/>
         <source>MIME</source>
         <translation>MIME</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="387"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="386"/>
         <source>Yes</source>
         <translation>Evet</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="388"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="387"/>
         <source>No</source>
         <translation>Hayır</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="389"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="388"/>
         <source>Integrity</source>
         <translation>Bütünlük</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="391"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="390"/>
         <source>Protected</source>
         <translation>Korumalı</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="392"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="391"/>
         <source>Not Protected (unsafe)</source>
         <translation>Korumasız (güvenli değil)</translation>
     </message>
@@ -20242,12 +20643,12 @@ Bağlantı panonuza kopyalandı:
         <translation>Şifrele</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="400"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="399"/>
         <source>Encryption Recipient</source>
         <translation>Şifreleme alıcısı</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="411"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="410"/>
         <source>Decryption Recipient</source>
         <translation>Şifre çözme alıcısı</translation>
     </message>
@@ -20366,39 +20767,39 @@ Bağlantı panonuza kopyalandı:
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="129"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="149"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="167"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="176"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="705"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="727"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="141"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="157"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="686"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="708"/>
         <source>Cannot Import Profile</source>
         <translation>Profil içe aktarılamıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="150"/>
+        <location filename="../../../../src/mob/model/ProfilesController.cpp" line="361"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="142"/>
         <source>This profile was made by a newer version of GpgFrontend (%1).</source>
         <translation>Bu profil GpgFrontend&apos;in daha yeni bir sürümüyle oluşturuldu (%1).</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="168"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="764"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="780"/>
+        <location filename="../../../../src/core/profile/ProfilePackage.cpp" line="1877"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="745"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="761"/>
         <source>The profile could not be created.</source>
         <translation>Profil oluşturulamadı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="194"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="175"/>
         <source>Workspace files</source>
         <translation>Çalışma alanı dosyaları</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="267"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="196"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="177"/>
         <source>Included</source>
         <translation>Dahil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="197"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="178"/>
         <source>None in the file</source>
         <translation>Dosyada yok</translation>
     </message>
@@ -20406,253 +20807,254 @@ Bağlantı panonuza kopyalandı:
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="263"/>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="55"/>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="40"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="206"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="187"/>
         <source>Keys</source>
         <translation>Anahtarlar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="209"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="190"/>
         <source>&quot;%1&quot; is unavailable</source>
         <translation>&quot;%1&quot; kullanılamıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="211"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="192"/>
         <source>It pointed at keys kept outside the profile, which do not travel. Point it somewhere on this computer to use it.</source>
         <translation>Profilin dışında tutulan ve birlikte taşınmayan anahtarları gösteriyordu. Kullanmak için onu bu bilgisayarda bir yere yöneltin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="218"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="199"/>
         <source>Profile Imported</source>
         <translation>Profil içe aktarıldı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="219"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="790"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="200"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="771"/>
         <source>&quot;%1&quot; is ready.</source>
         <translation>&quot;%1&quot; hazır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="221"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="791"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="202"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="772"/>
         <source>Open it now? It opens in a new window.</source>
         <translation>Şimdi açılsın mı? Yeni bir pencerede açılır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="225"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="206"/>
         <source>Not Now</source>
         <translation>Şimdi değil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="272"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="253"/>
         <source>GpgFrontend Profile File</source>
         <translation>GpgFrontend profil dosyası</translation>
     </message>
     <message>
+        <location filename="../../../../src/mob/model/ProfilesController.cpp" line="109"/>
         <location filename="../../../../src/ui/function/KeyDatabaseDisplayNames.cpp" line="95"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="347"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="364"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="328"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="345"/>
         <source>Default</source>
         <translation>Varsayılan</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="349"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="366"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="330"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="347"/>
         <source>Portable</source>
         <translation>Taşınabilir</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="351"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="332"/>
         <source>From a package</source>
         <translation>Bir paketten</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="353"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="368"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="334"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="349"/>
         <source>Temporary</source>
         <translation>Geçici</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="355"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="336"/>
         <source>Local</source>
         <translation>Yerel</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="410"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="391"/>
         <source>This file is no longer there:</source>
         <translation>Bu dosya artık yok:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="419"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="400"/>
         <source>This window is already using that profile.</source>
         <translation>Bu pencere zaten o profili kullanıyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="429"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="410"/>
         <source>There is no profile called &quot;%1&quot;.</source>
         <translation>&quot;%1&quot; adlı bir profil yok.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="448"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="429"/>
         <source>&quot;%1&quot; is open in another window (process %2 on %3).</source>
         <translation>&quot;%1&quot; başka bir pencerede açık (%3 üzerindeki %2 süreci).</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="453"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="434"/>
         <source>&quot;%1&quot; is open in another window.</source>
         <translation>&quot;%1&quot; başka bir pencerede açık.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="485"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="466"/>
         <source>Save Changes?</source>
         <translation>Değişiklikler kaydedilsin mi?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="486"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="467"/>
         <source>This profile was opened from a file. It is not kept on this computer, and the copy it is running from is about to be deleted.</source>
         <translation>Bu profil bir dosyadan açıldı. Bu bilgisayarda saklanmıyor ve çalıştığı kopya silinmek üzere.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="491"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="472"/>
         <source>Anything you changed is lost unless it is written back into that file.</source>
         <translation>Değiştirdiğiniz her şey, o dosyaya geri yazılmadıkça kaybolur.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="496"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="477"/>
         <source>Save Changes</source>
         <translation>Değişiklikleri kaydet</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="498"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="479"/>
         <source>Discard</source>
         <translation>At</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="499"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="676"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="480"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="657"/>
         <source>Cancel</source>
         <translation>İptal</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="585"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="607"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="566"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="588"/>
         <source>Cannot Save Changes</source>
         <translation>Değişiklikler kaydedilemiyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="586"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="567"/>
         <source>The application key is not available, so the profile could not be packed.</source>
         <translation>Uygulama anahtarı kullanılamıyor, bu nedenle profil paketlenemedi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="594"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="575"/>
         <source>Saving Profile</source>
         <translation>Profil kaydediliyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="649"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="630"/>
         <source>Open Profile File</source>
         <translation>Profil dosyasını aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="650"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="631"/>
         <source>&quot;%1&quot; is a profile file. Choose what to do with it.</source>
         <translation>&quot;%1&quot; bir profil dosyası. Bununla ne yapılacağını seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="660"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="641"/>
         <source>What happens next</source>
         <translation>Bundan sonra ne olur</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="662"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="643"/>
         <source>Work in the file itself</source>
         <translation>Dosyanın kendisinde çalış</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="663"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="644"/>
         <source>Nothing is kept on this computer. What you change is written back into the file.</source>
         <translation>Bu bilgisayarda hiçbir şey saklanmaz. Değiştirdiğiniz şey dosyaya geri yazılır.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/SecretPrompt.cpp" line="196"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="666"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="675"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="647"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="656"/>
         <source>Import</source>
         <translation>İçe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="667"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="648"/>
         <source>Copy it into a profile kept here</source>
         <translation>Burada tutulan bir profile kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="668"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="649"/>
         <source>The copy lives on this computer from then on, and the file is not used again.</source>
         <translation>Kopya bundan sonra bu bilgisayarda kalır ve dosya bir daha kullanılmaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="688"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="669"/>
         <source>Import Profile File</source>
         <translation>Profil dosyasını içe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="728"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="709"/>
         <source>A temporary folder could not be made.</source>
         <translation>Geçici bir klasör oluşturulamadı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="735"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="716"/>
         <source>Reading Profile</source>
         <translation>Profil okunuyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="763"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="779"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="744"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="760"/>
         <source>Cannot Create Profile</source>
         <translation>Profil oluşturulamıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="789"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="770"/>
         <source>Profile Created</source>
         <translation>Profil oluşturuldu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="834"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="815"/>
         <source>Destroy Temporary Profile?</source>
         <translation>Geçici Profil Yok Edilsin mi?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="836"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="817"/>
         <source>Everything in this temporary profile will be destroyed: its keys, settings and files.</source>
         <translation>Bu geçici profildeki her şey yok edilecek: anahtarları, ayarları ve dosyaları.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="839"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="820"/>
         <source>To keep it, choose Cancel and use Profiles &gt; Export This Profile first.</source>
         <translation>Saklamak için İptal&apos;i seçin ve önce Profiller &gt; Bu Profili Dışa Aktar&apos;ı kullanın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="842"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="823"/>
         <source>Destroy and Close</source>
         <translation>Yok Et ve Kapat</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="857"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="838"/>
         <source>Restart Not Possible</source>
         <translation>Yeniden Başlatma Mümkün Değil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="859"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="840"/>
         <source>These changes need GpgFrontend to restart, and restarting would destroy this temporary profile.</source>
         <translation>Bu değişiklikler GpgFrontend&apos;in yeniden başlatılmasını gerektiriyor ve yeniden başlatma bu geçici profili yok eder.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="863"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="844"/>
         <source>They can&apos;t be applied in a temporary profile.</source>
         <translation>Geçici bir profilde uygulanamazlar.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="864"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="845"/>
         <source>Pages with changes that need this: %1.
 
 Undo those changes, or choose Cancel to discard everything you changed in this dialog.</source>
@@ -20790,7 +21192,7 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
         <translation>Başka bir pencerede aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="455"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="456"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateSummary.cpp" line="248"/>
         <location filename="../../../../src/ui/dialog/profile/ProfileListSummary.cpp" line="71"/>
         <source>Never</source>
@@ -20847,74 +21249,74 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
         <translation>gerçek bir küme parantezi</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="392"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="393"/>
         <source>Give the profile a name.</source>
         <translation>Profile bir ad verin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="394"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="395"/>
         <source>The name can be at most %1 characters long.</source>
         <translation>Ad en fazla %1 karakter uzunluğunda olabilir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="397"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="398"/>
         <source>&quot;Custom&quot; names the choice you have not saved; choose another name.</source>
         <translation>&quot;Özel&quot; kaydetmediğiniz seçeneği adlandırır; başka bir ad seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="401"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="402"/>
         <source>Another profile already has this name.</source>
         <translation>Başka bir profilde zaten bu ad var.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="465"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="466"/>
         <source>1 year</source>
         <translation>1 yıl</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="465"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="466"/>
         <source>%1 years</source>
         <translation>%1 yıl</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="467"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="468"/>
         <source>1 month</source>
         <translation>1 ay</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="467"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="468"/>
         <source>%1 months</source>
         <translation>%1 ay</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="469"/>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="472"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="470"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="473"/>
         <source>1 day</source>
         <translation>1 gün</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="469"/>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="473"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="470"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="474"/>
         <source>%1 days</source>
         <translation>%1 gün</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="979"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="983"/>
         <source>Unknown placeholder. Use {token}, {token:N}, {domain}, {tld}, {date}, {date:FORMAT}, {time}, {timestamp} or {timestamp:ms}.</source>
         <translation>Bilinmeyen yer tutucu. {token}, {token:N}, {domain}, {tld}, {date}, {date:FORMAT}, {time}, {timestamp} veya {timestamp:ms} kullanın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="983"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="987"/>
         <source>A brace is not closed. Write {{ or }} for a literal brace.</source>
         <translation>Bir süslü parantez kapatılmamış. Gerçek bir süslü parantez için {{ veya }} yazın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="986"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="990"/>
         <source>The name must not be empty.</source>
         <translation>Ad boş olmamalıdır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="991"/>
+        <location filename="../../../../src/core/function/KeyGenProfile.cpp" line="995"/>
         <source>This does not make a valid email address.</source>
         <translation>Bu, geçerli bir e-posta adresi oluşturmaz.</translation>
     </message>
@@ -20986,6 +21388,19 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
         <location filename="../../../../src/mob/qml/components/SecretField.qml" line="35"/>
         <source>Show</source>
         <translation>Göster</translation>
+    </message>
+</context>
+<context>
+    <name>SelectedKeysSheet</name>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SelectedKeysSheet.qml" line="69"/>
+        <source>Remove %1</source>
+        <translation>%1 öğesini kaldır</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SelectedKeysSheet.qml" line="83"/>
+        <source>Done</source>
+        <translation>Bitti</translation>
     </message>
 </context>
 <context>
@@ -21070,167 +21485,167 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
     </message>
     <message>
         <location filename="../../../../src/mob/qml/SettingsPage.qml" line="63"/>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="114"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="124"/>
         <source>That value could not be set.</source>
         <translation>Bu değer ayarlanamadı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="138"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="148"/>
         <source>Security</source>
         <translation>Güvenlik</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="148"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="158"/>
         <source>Clear cached passphrases</source>
         <translation>Önbellekteki parolaları temizle</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="149"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="159"/>
         <source>The next operation asks for them again.</source>
         <translation>Sonraki işlem bunları yeniden sorar.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="152"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="162"/>
         <source>Cached passphrases are cleared.</source>
         <translation>Önbellekteki parolalar temizlendi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="158"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="168"/>
         <source>Operations</source>
         <translation>İşlemler</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="167"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="177"/>
         <source>Keys</source>
         <translation>Anahtarlar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="177"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="187"/>
         <source>Key database</source>
         <translation>Anahtar veritabanı</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="178"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="188"/>
         <source>Choose where your keys are kept, or start a new one.</source>
         <translation>Anahtarlarınızın nerede saklanacağını seçin veya yeni bir tane oluşturun.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="186"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="196"/>
         <source>Key categories</source>
         <translation>Anahtar kategorileri</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="187"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="197"/>
         <source>Your own groups of keys, shared with the desktop.</source>
         <translation>Masaüstüyle paylaşılan kendi anahtar gruplarınız.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="199"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="209"/>
         <source>Key generation profiles</source>
         <translation>Anahtar oluşturma profilleri</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="200"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="210"/>
         <source>What Create a key offers, shared with the desktop.</source>
         <translation>Anahtar oluşturma seçenekleri masaüstüyle aynıdır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="211"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="221"/>
         <source>Storage</source>
         <translation>Depolama</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="217"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="227"/>
         <source>Temporary shared files</source>
         <translation>Geçici paylaşılan dosyalar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="219"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="229"/>
         <source>Kept for up to a day, so the app you share with can open them.</source>
         <translation>En fazla bir gün saklanır; böylece paylaştığınız uygulama bunları açabilir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="221"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="231"/>
         <source>Tap to remove them now. Apps you shared them with can no longer open them.</source>
         <translation>Şimdi kaldırmak için dokunun. Paylaştığınız uygulamalar artık bunları açamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="226"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="236"/>
         <source>No shared files are kept.</source>
         <translation>Hiçbir paylaşılan dosya saklanmaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="232"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="242"/>
         <source>Profile</source>
         <translation>Profil</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="238"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="248"/>
         <source>Profiles</source>
         <translation>Profiller</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="239"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="249"/>
         <source>Open another, start a new one, or keep a backup.</source>
         <translation>Başka bir tane açın, yeni bir tane oluşturun veya yedek alın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="246"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="256"/>
         <source>About</source>
         <translation>Hakkında</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="252"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="262"/>
         <source>GpgFrontend</source>
         <translation>GpgFrontend</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="260"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="270"/>
         <source>Build information</source>
         <translation>Derleme bilgileri</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="261"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="271"/>
         <source>What this build is made of, and when.</source>
         <translation>Bu derlemenin nelerden oluştuğu ve ne zaman yapıldığı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="268"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="278"/>
         <source>rPGP engine</source>
         <translation>rPGP motoru</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="269"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="279"/>
         <source>The OpenPGP engine that does the work here.</source>
         <translation>Burada işi yapan OpenPGP motoru.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="277"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="287"/>
         <source>Translators</source>
         <translation>Çevirmenler</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="278"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="288"/>
         <source>Who brought GpgFrontend to your language.</source>
         <translation>GpgFrontend&apos;i dilinize kazandıranlar.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="300"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="310"/>
         <source>Remove shared files?</source>
         <translation>Paylaşılan dosyalar kaldırılsın mı?</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="302"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="312"/>
         <source>Apps you shared files with can no longer open them.</source>
         <translation>Dosya paylaştığınız uygulamalar artık bunları açamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="304"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="314"/>
         <source>Remove</source>
         <translation>Kaldır</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="308"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="318"/>
         <source>Shared files are removed, and other apps can no longer open them.</source>
         <translation>Paylaşılan dosyalar kaldırıldı ve diğer uygulamalar artık bunları açamaz.</translation>
     </message>
@@ -21319,7 +21734,7 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
 <context>
     <name>Snackbar</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/Snackbar.qml" line="101"/>
+        <location filename="../../../../src/mob/qml/components/Snackbar.qml" line="111"/>
         <source>Shared.</source>
         <translation>Paylaşıldı.</translation>
     </message>
@@ -21327,17 +21742,17 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
 <context>
     <name>SplashPage</name>
     <message>
-        <location filename="../../../../src/mob/qml/SplashPage.qml" line="35"/>
+        <location filename="../../../../src/mob/qml/SplashPage.qml" line="60"/>
         <source>GpgFrontend</source>
         <translation>GpgFrontend</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SplashPage.qml" line="51"/>
+        <location filename="../../../../src/mob/qml/SplashPage.qml" line="76"/>
         <source>Starting the OpenPGP engine…</source>
         <translation>OpenPGP motoru başlatılıyor…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SplashPage.qml" line="52"/>
+        <location filename="../../../../src/mob/qml/SplashPage.qml" line="77"/>
         <source>Opening your profile…</source>
         <translation>Profiliniz açılıyor…</translation>
     </message>
@@ -21475,12 +21890,11 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
         <translation>Raporu kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="656"/>
         <source>This session</source>
-        <translation>Bu oturum</translation>
+        <translation type="vanished">Bu oturum</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="699"/>
+        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="648"/>
         <source>Close</source>
         <translation>Kapat</translation>
     </message>
@@ -21488,73 +21902,73 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
 <context>
     <name>SubkeySheet</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="36"/>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="69"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="39"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="86"/>
         <source>Primary key</source>
         <translation>Birincil anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="37"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="40"/>
         <source>Subkey %1</source>
         <translation>Alt anahtar %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="68"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="85"/>
         <source>Type</source>
         <translation>Tür</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="70"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="87"/>
         <source>Additional decryption subkey</source>
         <translation>Ek şifre çözme alt anahtarı</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="71"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="88"/>
         <source>Subkey</source>
         <translation>Alt anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="72"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="89"/>
         <source>Never</source>
         <translation>Asla</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="73"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="90"/>
         <source>On this device</source>
         <translation>Bu cihazda</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="74"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="91"/>
         <source>Not here</source>
         <translation>Burada değil</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="75"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="92"/>
         <source>On a smart card</source>
         <translation>Akıllı kartta</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="91"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="108"/>
         <source>Change expiration</source>
         <translation>Son kullanmayı değiştir</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="101"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="118"/>
         <source>Revoke</source>
         <translation>İptal et</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="102"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="119"/>
         <source>No one can use it once they have the updated key. This cannot be undone.</source>
         <translation>Güncellenmiş anahtarı alan hiç kimse onu kullanamaz. Bu işlem geri alınamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="114"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="131"/>
         <source>Delete</source>
         <translation>Sil</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="115"/>
+        <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="132"/>
         <source>Only here: copies of the key others have keep it. To end its use, revoke it instead.</source>
         <translation>Yalnızca burada: başkalarındaki anahtar kopyaları anahtarı yaşatmaya devam eder. Kullanımını sona erdirmek için onu iptal edin.</translation>
     </message>
@@ -21562,217 +21976,233 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
 <context>
     <name>TextPage</name>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="145"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="186"/>
         <source>Not started: the text changed.</source>
         <translation>Başlamadı: metin değişti.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="162"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="207"/>
         <source>Cancelled.</source>
         <translation>İptal edildi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="163"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="208"/>
         <source>It did not work.</source>
         <translation>Başarısız oldu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="194"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="226"/>
+        <source>The text changed while it was being worked on, so the result was not put in.</source>
+        <translation>Metin işlenirken değiştiği için sonuç metne yerleştirilmedi.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="228"/>
+        <source>Replace anyway</source>
+        <translation>Yine de değiştir</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="258"/>
         <source>Shared text added.</source>
         <translation>Paylaşılan metin eklendi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="199"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="263"/>
         <source>This text could not be shared. Copy it instead.</source>
         <translation>Bu metin paylaşılamadı. Bunun yerine kopyalayın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="213"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="273"/>
         <source>Decrypted text cleared.</source>
         <translation>Çözülen metin temizlendi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="214"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="277"/>
         <source>Text cleared.</source>
         <translation>Metin temizlendi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="214"/>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="583"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="277"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="328"/>
         <source>Undo</source>
         <translation>Geri al</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="257"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="512"/>
+        <source>Type or paste a message here. The PGP button encrypts, decrypts, signs or verifies it.</source>
+        <translation>Buraya bir mesaj yazın veya yapıştırın. PGP düğmesi onu şifreler, şifresini çözer, imzalar veya doğrular.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="521"/>
+        <source>PGP</source>
+        <translation>PGP</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="523"/>
+        <source>PGP operations</source>
+        <translation>PGP işlemleri</translation>
+    </message>
+    <message>
         <source>Encrypt</source>
-        <translation>Şifrele</translation>
+        <translation type="vanished">Şifrele</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="266"/>
         <source>Decrypt</source>
-        <translation>Şifre Çöz</translation>
+        <translation type="vanished">Şifre Çöz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="282"/>
         <source>Encrypt &amp;&amp; Sign</source>
-        <translation>Şifrele &amp;&amp; İmzala</translation>
+        <translation type="vanished">Şifrele &amp;&amp; İmzala</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="292"/>
         <source>Decrypt &amp;&amp; Verify</source>
-        <translation>Şifresini çöz &amp;&amp; Doğrula</translation>
+        <translation type="vanished">Şifresini çöz &amp;&amp; Doğrula</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="302"/>
         <source>Encrypt with a passphrase</source>
-        <translation>Parola ile şifrele</translation>
+        <translation type="vanished">Parola ile şifrele</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="321"/>
         <source>Sign</source>
-        <translation>İmzala</translation>
+        <translation type="vanished">İmzala</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="330"/>
         <source>Verify</source>
-        <translation>Doğrula</translation>
+        <translation type="vanished">Doğrula</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="337"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="373"/>
         <source>Import key</source>
         <translation>Anahtarı içe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="344"/>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="619"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="346"/>
         <source>Copy</source>
         <translation>Kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="350"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="283"/>
         <source>Copied. It is cleared from the clipboard in a minute.</source>
         <translation>Kopyalandı. Bir dakika içinde panodan silinecek.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="352"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="285"/>
         <source>Copied.</source>
         <translation>Kopyalandı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="358"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="290"/>
+        <source>Type or paste text first.</source>
+        <translation>Önce metin yazın veya yapıştırın.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="291"/>
+        <source>An operation is still running.</source>
+        <translation>Bir işlem hâlâ sürüyor.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="365"/>
         <source>Share</source>
         <translation>Paylaş</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="365"/>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="798"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="388"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="582"/>
         <source>Clear</source>
         <translation>Temizle</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="375"/>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="482"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="321"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="437"/>
         <source>Text</source>
         <translation>Metin</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="390"/>
         <source>Results</source>
-        <translation>Sonuçlar</translation>
+        <translation type="vanished">Sonuçlar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="418"/>
         <source>Original</source>
-        <translation>Orijinal</translation>
+        <translation type="vanished">Orijinal</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="422"/>
         <source>Result</source>
-        <translation>Sonuç</translation>
+        <translation type="vanished">Sonuç</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="428"/>
         <source>Edit this text</source>
-        <translation>Bu metni düzenle</translation>
+        <translation type="vanished">Bu metni düzenle</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="484"/>
         <source>A result. Choose Edit this text to change it.</source>
-        <translation>Bir sonuç. Değiştirmek için Bu metni düzenle&apos;yi seçin.</translation>
+        <translation type="vanished">Bir sonuç. Değiştirmek için Bu metni düzenle&apos;yi seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="501"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="453"/>
         <source>Type or paste text</source>
         <translation>Metin yazın veya yapıştırın</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="591"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="337"/>
         <source>Redo</source>
         <translation>Yinele</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="603"/>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="744"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="359"/>
         <source>Paste</source>
         <translation>Yapıştır</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="611"/>
         <source>Select all</source>
-        <translation>Tümünü seç</translation>
+        <translation type="vanished">Tümünü seç</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="627"/>
         <source>Done typing</source>
-        <translation>Yazmayı bitir</translation>
+        <translation type="vanished">Yazmayı bitir</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="724"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="380"/>
         <source>Line numbers</source>
         <translation>Satır numaraları</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="738"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="511"/>
         <source>Nothing to work on yet</source>
         <translation>Henüz işlenecek bir şey yok</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="739"/>
         <source>Paste a message to decrypt or verify, or type one to encrypt or sign.</source>
-        <translation>Şifresini çözmek veya doğrulamak için bir ileti yapıştırın ya da şifrelemek veya imzalamak için bir ileti yazın.</translation>
+        <translation type="vanished">Şifresini çözmek veya doğrulamak için bir ileti yapıştırın ya da şifrelemek veya imzalamak için bir ileti yazın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="752"/>
         <source>Type</source>
-        <translation>Yaz</translation>
+        <translation type="vanished">Yaz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="759"/>
         <source>Open a file…</source>
-        <translation>Dosya aç…</translation>
+        <translation type="vanished">Dosya aç…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="780"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="564"/>
         <source>Replace the text?</source>
         <translation>Metin değiştirilsin mi?</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="781"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="565"/>
         <source>Another app shared text with GpgFrontend. Put it in place of the text here? The keys you chose stay chosen.</source>
         <translation>Başka bir uygulama GpgFrontend ile metin paylaştı. Buradaki metnin yerine konulsun mu? Seçtiğiniz anahtarlar seçili kalır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="783"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="567"/>
         <source>Replace</source>
         <translation>Değiştir</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="795"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="579"/>
         <source>Clear the decrypted text?</source>
         <translation>Şifresi çözülen metin temizlensin mi?</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TextPage.qml" line="796"/>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="580"/>
         <source>It cannot be brought back with Undo. Decrypt the message again to see it. The keys you chose stay chosen.</source>
         <translation>Geri Al ile geri getirilemez. Görmek için mesajın şifresini yeniden çözün. Seçtiğiniz anahtarlar seçili kalır.</translation>
     </message>
@@ -21780,22 +22210,22 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
 <context>
     <name>Theme</name>
     <message>
-        <location filename="../../../../src/mob/qml/Theme.qml" line="133"/>
+        <location filename="../../../../src/mob/qml/Theme.qml" line="154"/>
         <source>%1 B</source>
         <translation>%1 B</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Theme.qml" line="134"/>
+        <location filename="../../../../src/mob/qml/Theme.qml" line="155"/>
         <source>%1 kB</source>
         <translation>%1 kB</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Theme.qml" line="136"/>
+        <location filename="../../../../src/mob/qml/Theme.qml" line="157"/>
         <source>%1 MB</source>
         <translation>%1 MB</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Theme.qml" line="137"/>
+        <location filename="../../../../src/mob/qml/Theme.qml" line="158"/>
         <source>%1 GB</source>
         <translation>%1 GB</translation>
     </message>
@@ -21954,7 +22384,7 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
     </message>
     <message>
         <location filename="../../../../src/mob/qml/Wording.qml" line="47"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="121"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="148"/>
         <source>Encrypt with a passphrase</source>
         <translation>Parola ile şifrele</translation>
     </message>
@@ -21975,7 +22405,7 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
     </message>
     <message>
         <location filename="../../../../src/mob/qml/Wording.qml" line="59"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="174"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="186"/>
         <source>Not signed</source>
         <translation>İmzalanmadı</translation>
     </message>
@@ -21985,400 +22415,422 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
         <translation>%1 olarak imzalandı</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="73"/>
         <source>%1 · %2</source>
-        <translation>%1 · %2</translation>
+        <translation type="vanished">%1 · %2</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="78"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="84"/>
+        <source>Public and secret key</source>
+        <translation>Açık ve gizli anahtar</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="85"/>
+        <source>Public key, secret subkeys only</source>
+        <translation>Açık anahtar, yalnızca gizli alt anahtarlar</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="86"/>
+        <source>Public key, secret key on a smart card</source>
+        <translation>Açık anahtar, gizli anahtar akıllı kartta</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="87"/>
+        <source>Public key only</source>
+        <translation>Yalnızca açık anahtar</translation>
+    </message>
+    <message>
+        <source>1 key selected</source>
+        <translation type="vanished">1 anahtar seçildi</translation>
+    </message>
+    <message>
+        <source>%1 keys selected</source>
+        <translation type="vanished">%1 anahtar seçildi</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/Wording.qml" line="100"/>
+        <source>%n key(s) selected</source>
+        <translation>
+            <numerusform>%n anahtar seçildi</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="105"/>
         <source>No keys yet</source>
         <translation>Henüz anahtar yok</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/mob/qml/Wording.qml" line="79"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="106"/>
         <source>%n key(s)</source>
         <translation>
             <numerusform>%n anahtar</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="84"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="111"/>
         <source>Has no keys</source>
         <translation>Anahtarı yok</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="85"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="112"/>
         <source>No longer in your keys</source>
         <translation>Artık anahtarlarınızda değil</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="86"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="236"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="297"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="113"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="248"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="282"/>
         <source>Expired</source>
         <translation>Süresi doldu</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="87"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="237"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="293"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="114"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="249"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="278"/>
         <source>Revoked</source>
         <translation>İptal edildi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="88"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="294"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="115"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="279"/>
         <source>Disabled</source>
         <translation>Devre dışı</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="89"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="116"/>
         <source>Cannot be encrypted to</source>
         <translation>Şifrelenemez</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="90"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="117"/>
         <source>Cannot sign</source>
         <translation>İmzalayamaz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="91"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="118"/>
         <source>Not a key of your own</source>
         <translation>Kendi anahtarınız değil</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="99"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="126"/>
         <source>Choose who can read it.</source>
         <translation>Kimin okuyabileceğini seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="100"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="127"/>
         <source>Some chosen keys cannot be used. Remove them or choose others.</source>
         <translation>Seçilen bazı anahtarlar kullanılamıyor. Bunları kaldırın veya başkalarını seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="101"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="128"/>
         <source>Choose a key to sign with.</source>
         <translation>İmzalamak için bir anahtar seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="102"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="129"/>
         <source>The signing key cannot be used. Choose another.</source>
         <translation>İmzalama anahtarı kullanılamıyor. Başka bir tane seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="109"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="136"/>
         <source>Encrypting…</source>
         <translation>Şifreleniyor…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="110"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="137"/>
         <source>Decrypting…</source>
         <translation>Şifresi çözülüyor…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="111"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="138"/>
         <source>Signing…</source>
         <translation>İmzalanıyor…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="112"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="139"/>
         <source>Verifying…</source>
         <translation>Doğrulanıyor…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="119"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="284"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="146"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="269"/>
         <source>Encrypt</source>
         <translation>Şifrele</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="120"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="147"/>
         <source>Encrypt &amp; Sign</source>
         <translation>Şifrele &amp; İmzala</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="122"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="149"/>
         <source>Decrypt</source>
         <translation>Şifre Çöz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="123"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="150"/>
         <source>Decrypt &amp; Verify</source>
         <translation>Şifre Çöz &amp; Doğrula</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="124"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="283"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="151"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="268"/>
         <source>Sign</source>
         <translation>İmzala</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="125"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="152"/>
         <source>Verify</source>
         <translation>Doğrula</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="133"/>
         <source>Sym. Encrypt</source>
-        <translation>Sim. Şifrele</translation>
+        <translation type="vanished">Sim. Şifrele</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="154"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="166"/>
         <source>Encrypt Operation</source>
         <translation>Şifreleme İşlemi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="155"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="167"/>
         <source>Decrypt Operation</source>
         <translation>Şifre Çözme İşlemi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="156"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="168"/>
         <source>Sign Operation</source>
         <translation>İmzalama İşlemi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="157"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="169"/>
         <source>Verify Operation</source>
         <translation>Doğrulama İşlemi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="163"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="175"/>
         <source>Encrypted</source>
         <translation>Şifrelendi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="164"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="176"/>
         <source>Decrypted</source>
         <translation>Şifresi çözüldü</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="165"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="177"/>
         <source>Signed</source>
         <translation>İmzalandı</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="166"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="178"/>
         <source>Verified</source>
         <translation>Doğrulandı</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="172"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="184"/>
         <source>Not encrypted</source>
         <translation>Şifrelenmedi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="173"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="185"/>
         <source>Not decrypted</source>
         <translation>Şifresi çözülmedi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="175"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="187"/>
         <source>Not verified</source>
         <translation>Doğrulanmadı</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="183"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="195"/>
         <source>Waiting</source>
         <translation>Bekliyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="185"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="197"/>
         <source>Waiting for the passphrase</source>
         <translation>Parola bekleniyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="186"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="198"/>
         <source>Cancelled</source>
         <translation>İptal edildi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="192"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="204"/>
         <source>No signature found</source>
         <translation>İmza bulunamadı</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="193"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="205"/>
         <source>Signature checked</source>
         <translation>İmza kontrol edildi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="194"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="206"/>
         <source>Signature problem</source>
         <translation>İmza sorunu</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="203"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="215"/>
         <source>Stopped when the app went to the background.</source>
         <translation>Uygulama arka plana geçince durduruldu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="204"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="216"/>
         <source>Stopped before it started.</source>
         <translation>Başlamadan durduruldu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="205"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="217"/>
         <source>Its file was removed from the list.</source>
         <translation>Dosyası listeden kaldırıldı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="206"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="218"/>
         <source>Stopped when the app closed it.</source>
         <translation>Uygulama kapatınca durduruldu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="215"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="227"/>
         <source>Text</source>
         <translation>Metin</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="217"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="229"/>
         <source>%1 with %2</source>
         <translation>%2 ile %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="224"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="236"/>
         <source>Valid</source>
         <translation>Geçerli</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="225"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="237"/>
         <source>Invalid: the content or signature was changed</source>
         <translation>Geçersiz: içerik veya imza değiştirilmiş</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="226"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="238"/>
         <source>Valid, but the signature has expired</source>
         <translation>Geçerli, ancak imzanın süresi dolmuş</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="227"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="239"/>
         <source>Not valid: the key had expired when it signed</source>
         <translation>Geçerli değil: imzalandığında anahtarın süresi dolmuştu</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="228"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="240"/>
         <source>Could not be checked</source>
         <translation>Kontrol edilemedi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="234"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="246"/>
         <source>OK</source>
         <translation>Tamam</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="235"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="247"/>
         <source>Not in your keys</source>
         <translation>Anahtarlarınız arasında değil</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="238"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="250"/>
         <source>Not allowed to sign</source>
         <translation>İmzalamaya izin verilmiyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="239"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="251"/>
         <source>Has problems</source>
         <translation>Sorunlu</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="245"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="257"/>
         <source>Trusted</source>
         <translation>Güvenilir</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="246"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="258"/>
         <source>Not fully trusted</source>
         <translation>Tam güvenilir değil</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="247"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="259"/>
         <source>Not assessed</source>
         <translation>Değerlendirilmedi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="254"/>
         <source>Encrypted message</source>
-        <translation>Şifrelenmiş mesaj</translation>
+        <translation type="vanished">Şifrelenmiş mesaj</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="255"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="270"/>
         <source>Signed text</source>
-        <translation>İmzalı metin</translation>
+        <translation type="vanished">İmzalı metin</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="256"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="271"/>
         <source>Signature</source>
-        <translation>İmza</translation>
+        <translation type="vanished">İmza</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="257"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="272"/>
         <source>Public key</source>
-        <translation>Açık anahtar</translation>
+        <translation type="vanished">Açık anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="258"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="273"/>
         <source>Private key</source>
-        <translation>Özel anahtar</translation>
+        <translation type="vanished">Özel anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="259"/>
         <source>Plain text</source>
-        <translation>Düz metin</translation>
+        <translation type="vanished">Düz metin</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="269"/>
         <source>Encrypted or signed data</source>
-        <translation>Şifrelenmiş veya imzalı veri</translation>
+        <translation type="vanished">Şifrelenmiş veya imzalı veri</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="282"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="267"/>
         <source>Certify</source>
         <translation>Sertifikala</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="285"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="270"/>
         <source>Authenticate</source>
         <translation>Kimlik doğrula</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="297"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="282"/>
         <source>Expired on %1</source>
         <translation>%1 tarihinde süresi doldu</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="298"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="283"/>
         <source>Valid until %1</source>
         <translation>%1 tarihine kadar geçerli</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="299"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="284"/>
         <source>Does not expire</source>
         <translation>Süresi dolmaz</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="304"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="289"/>
         <source>No reason given</source>
         <translation>Sebep belirtilmedi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="305"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="290"/>
         <source>It may have been compromised</source>
         <translation>Güvenliği ihlal edilmiş olabilir</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="306"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="291"/>
         <source>A newer subkey replaces it</source>
         <translation>Yerini daha yeni bir alt anahtar alır</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="307"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="292"/>
         <source>It is no longer used</source>
         <translation>Artık kullanılmıyor</translation>
     </message>
