@@ -130,6 +130,24 @@ TEST(SdkStorageTest, AnEmptyValueIsTheSameAsNoValue) {
   }
 }
 
+// A handle the caller may not read used to resolve to no bytes, and no bytes
+// means "remove": the stored value was deleted and the call reported success.
+TEST(SdkStorageTest, AnInvalidHandleNeitherStoresNorRemoves) {
+  for (const auto store : kStores) {
+    ASSERT_EQ(Set(CtxA(), store, "kept", "value"), 0);
+
+    auto foreign = GFBuf::Copy(CtxB(), "another module's buffer");
+    EXPECT_NE(GFStorageCacheSet(CtxA(), store, "kept", foreign.View(), 0), 0)
+        << "store " << store;
+    EXPECT_NE(GFStorageCacheSet(CtxA(), store, "kept", nullptr, 0), 0)
+        << "store " << store;
+
+    EXPECT_EQ(Get(CtxA(), store, "kept"), std::optional<QByteArray>("value"))
+        << "store " << store;
+    EXPECT_EQ(GFStorageCacheRemove(CtxA(), store, "kept"), 0);
+  }
+}
+
 // Any module granted "storage" could read another module's secure entries
 // by guessing the key.
 TEST(SdkStorageTest, AKeyBelongsToOneModule) {

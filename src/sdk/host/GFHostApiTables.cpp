@@ -43,6 +43,7 @@
 #include "core/module/ModuleSettingsPolicy.h"
 #include "private/GFHostContext.h"
 #include "private/GFHostGate.h"
+#include "private/GFHostTransfer.h"
 #include "private/GFSDKGpgInternal.h"
 #include "private/GFSDKPrivate.h"
 #include "ui/UIModuleManager.h"
@@ -767,10 +768,16 @@ auto StorageCacheSet(GFHostContextRef ctx, int store, const char* key,
   GATE(ctx, GF_HOST_CAP_STORAGE, "storage.cache_set", -1);
   if (key == nullptr) return -1;
 
-  const auto* data = static_cast<const char*>(GFBufferData(value));
-  const auto size = GFBufferSize(value);
-  GpgFrontend::GFBuffer bytes(size);
-  if (size > 0 && data != nullptr) memcpy(bytes.Data(), data, size);
+  // A stale or foreign handle reads as no bytes at all, and an empty value
+  // means "remove", so it used to delete what was stored and report success.
+  // Only a live handle of the caller's own is a value; an empty one still
+  // removes.
+  const auto resolved = gf_sdk_internal::ReadBuffer(value, "storage.cache_set");
+  if (!resolved) return -1;
+  GpgFrontend::GFBuffer bytes(resolved->Size());
+  if (resolved->Size() > 0) {
+    memcpy(bytes.Data(), resolved->Data(), resolved->Size());
+  }
 
   if (store != GF_STORE_SESSION && store != GF_STORE_DURABLE &&
       store != GF_STORE_SECURE_DURABLE) {
