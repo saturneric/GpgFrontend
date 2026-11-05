@@ -465,9 +465,13 @@ SettingsDialog* MainWindow::open_settings_dialog() {
 
     if (restart_mode_ == kNonRestartCode) return;
 
-    auto restart = [this]() {
-      auto ok = edit_->MaybeSaveAnyTab();
-      if (ok) emit SignalRestartApplication(restart_mode_);
+    // Taken and disarmed here, as the wizard does: `finished` fires on Cancel
+    // too, so a restart left armed after a declined save prompt went off the
+    // next time Settings was closed, whatever the user did there.
+    const auto mode = restart_mode_;
+    restart_mode_ = kNonRestartCode;
+    auto restart = [this, mode]() {
+      if (edit_->MaybeSaveAnyTab()) emit SignalRestartApplication(mode);
     };
 
     // Not while key database changes are still being applied: the restart
@@ -476,7 +480,12 @@ SettingsDialog* MainWindow::open_settings_dialog() {
       restart();
       return;
     }
+    // One pending restart at most, however often Settings is closed meanwhile.
+    static const auto kPendingName =
+        QStringLiteral("gf-pending-settings-restart");
+    delete findChild<QObject*>(kPendingName, Qt::FindDirectChildrenOnly);
     auto* once = new QObject(this);
+    once->setObjectName(kPendingName);
     connect(UISignalStation::GetInstance(),
             &UISignalStation::SignalKeyDatabaseChangesApplied, once,
             [once, restart]() {
