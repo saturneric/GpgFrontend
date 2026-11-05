@@ -176,6 +176,65 @@ void StartFileHashComputation(const QString& path, HashCallback callback) {
 
 namespace GpgFrontend::UI {
 
+namespace {
+
+/**
+ * @brief Keeps the window that started an operation from acting while it runs.
+ *
+ * The waiting dialog is modal, but only once it is shown: not for its first
+ * moments, and never while an external pinentry holds focus. Until then the
+ * initiating window took clicks and could be closed, so a second Finish made
+ * a second key, and a closed dialog was deleted under the nested loop still
+ * running inside it. Input and close requests to that window, or to a window
+ * containing it, are swallowed; other windows, a passphrase prompt among them,
+ * are untouched.
+ */
+class InitiatorBusyGuard : public QObject {
+ public:
+  explicit InitiatorBusyGuard(QWidget* initiator)
+      : window_(initiator != nullptr ? initiator->window() : nullptr) {
+    if (window_ != nullptr) qApp->installEventFilter(this);
+  }
+  ~InitiatorBusyGuard() override {
+    if (window_ != nullptr) qApp->removeEventFilter(this);
+  }
+
+  InitiatorBusyGuard(const InitiatorBusyGuard&) = delete;
+  auto operator=(const InitiatorBusyGuard&) -> InitiatorBusyGuard& = delete;
+
+ protected:
+  auto eventFilter(QObject* watched, QEvent* event) -> bool override {
+    if (window_.isNull() || !watched->isWidgetType()) return false;
+    auto* widget = static_cast<QWidget*>(watched);
+
+    switch (event->type()) {
+      case QEvent::Close:
+        if (widget->isWindow() &&
+            (widget == window_ || widget->isAncestorOf(window_))) {
+          event->ignore();
+          return true;
+        }
+        return false;
+      case QEvent::MouseButtonPress:
+      case QEvent::MouseButtonRelease:
+      case QEvent::MouseButtonDblClick:
+      case QEvent::KeyPress:
+      case QEvent::KeyRelease:
+      case QEvent::ShortcutOverride:
+      case QEvent::Shortcut:
+      case QEvent::Wheel:
+        return widget->window() == window_;
+      default:
+        return false;
+    }
+  }
+
+ private:
+  QPointer<QWidget> window_;
+};
+
+}  // namespace
+
 auto OperaStartContext(QWidget* parent) -> QObject* {
   return parent != nullptr ? static_cast<QObject*>(parent)
                            : static_cast<QObject*>(qApp);
@@ -682,9 +741,11 @@ void GpgOperaHelper::WaitForMultipleOperas(QWidget* parent,
   // close only request cancellation, and the dialog finishes once every
   // operation has reported. The callers clean up the staged output right after
   // this returns, and an operation still running would keep writing into it.
+  const InitiatorBusyGuard busy(parent);
   QEventLoop looper;
   QPointer<WaitingDialog> const dialog =
       new WaitingDialog(title, operas.size() > 1, parent, cancel_channel >= 0);
+  if (cancel_channel < 0) dialog->SetUserClosable(false);
   connect(dialog, &QDialog::finished, &looper, &QEventLoop::quit);
   connect(dialog, &QObject::destroyed, &looper, &QEventLoop::quit);
   if (cancel_channel >= 0) {
@@ -815,9 +876,13 @@ void GpgOperaHelper::WaitForOpera(QWidget* parent, const QString& title,
   // A cancelable dialog cannot be closed by the user: Escape and the window's
   // close only request cancellation, and the dialog finishes once the
   // operation has reported.
+  const InitiatorBusyGuard busy(parent);
   QEventLoop looper;
   QPointer<WaitingDialog> const dialog =
       new WaitingDialog(title, false, parent, cancel_channel >= 0);
+  // Not cancelable means not closable either: Escape used to close it and
+  // end the wait while the operation was still running.
+  if (cancel_channel < 0) dialog->SetUserClosable(false);
 
   QObject::connect(dialog, &QDialog::finished, &looper, &QEventLoop::quit);
 
