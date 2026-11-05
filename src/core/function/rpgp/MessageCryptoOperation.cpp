@@ -58,7 +58,7 @@ auto EncryptRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
   // 1. Vector to hold the actual memory of the UTF-8 strings
   QList<GFBuffer> key_blocks_utf8 =
       GetPublicKeysByKeyIdsForEncryption(*key_db, recipients);
-  if (key_blocks_utf8.empty()) {
+  if (key_blocks_utf8.empty() || HasUnusableKey(ctx_.GetChannel(), keys)) {
     LOG_E() << "No valid recipients found for encryption.";
     data_object->Swap({
         GpgEncryptResult(NoUsableRecipientsResult(recipients)),
@@ -268,7 +268,7 @@ auto EncryptSignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
 
   QList<GFBuffer> key_blocks_utf8 =
       GetPublicKeysByKeyIdsForEncryption(*key_db, recipients);
-  if (key_blocks_utf8.empty()) {
+  if (key_blocks_utf8.empty() || HasUnusableKey(ctx.GetChannel(), keys)) {
     LOG_E() << "No valid recipients found for encryption.";
     data_object->Swap({
         GpgEncryptResult(NoUsableRecipientsResult(recipients)),

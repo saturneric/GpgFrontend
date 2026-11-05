@@ -158,6 +158,12 @@ auto EncryptFileGpgDataImpl(OpenPGPContext& ctx_,
   }
 
   auto& g_ctx = GpgCtx(ctx_);
+  // Converting leaves disabled and missing keys out without a word, and the
+  // file would be encrypted without them.
+  if (HasUnusableKey(ctx_.GetChannel(), keys)) {
+    data_object->Swap({GpgEncryptResult(GFEncryptResult{})});
+    return GPG_ERR_UNUSABLE_PUBKEY;
+  }
   auto recipients = Convert2GpgKeyList(ctx_.GetChannel(), keys);
 
   QList<gpgme_key_t> gpg_recipients;
@@ -427,6 +433,11 @@ auto EncryptSignFileGpgDataGnuPGImpl(
     data_object->Swap(
         {GpgEncryptResult(GFEncryptResult{}), GpgSignResult(GFSignResult{})});
     return data_err;
+  }
+  if (HasUnusableKey(ctx_.GetChannel(), keys)) {
+    data_object->Swap(
+        {GpgEncryptResult(GFEncryptResult{}), GpgSignResult(GFSignResult{})});
+    return GPG_ERR_UNUSABLE_PUBKEY;
   }
   auto recipients = Convert2GpgKeyList(ctx_.GetChannel(), keys);
 

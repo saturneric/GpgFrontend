@@ -92,6 +92,12 @@ auto EncryptGnuPGImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
                       const DataObjectPtr& data_object) -> GpgError {
   auto& g_ctx = GpgCtx(ctx_);
 
+  // Converting leaves disabled and missing keys out without a word, and the
+  // message would go out without them.
+  if (HasUnusableKey(ctx_.GetChannel(), keys)) {
+    data_object->Swap({GpgEncryptResult(GFEncryptResult{}), GFBuffer()});
+    return GPG_ERR_UNUSABLE_PUBKEY;
+  }
   auto recipients = Convert2GpgKeyList(ctx_.GetChannel(), keys);
 
   QList<gpgme_key_t> gpg_recipients;
@@ -226,6 +232,11 @@ auto EncryptSignGnuPGImpl(OpenPGPContext& ctx_,
   GpgError err;
   auto& g_ctx = GpgCtx(ctx_);
 
+  if (HasUnusableKey(ctx_.GetChannel(), keys)) {
+    data_object->Swap({GpgEncryptResult(GFEncryptResult{}),
+                       GpgSignResult(GFSignResult{}), GFBuffer()});
+    return GPG_ERR_UNUSABLE_PUBKEY;
+  }
   auto recipients = Convert2GpgKeyList(ctx_.GetChannel(), keys);
   QList<gpgme_key_t> gpg_recipients;
   for (const auto& key : recipients) {

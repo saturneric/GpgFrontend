@@ -304,10 +304,13 @@ auto GetPublicKeysByKeyIdsForEncryption(GFKeyDatabase& key_db,
 
   for (const auto& key : keys) {
     auto key_block = key_db.GetKeyBlocks(key.Fingerprint());
+    // All or none: a recipient skipped here was missing from the result, so
+    // the report said only the intended recipients could decrypt while one of
+    // them could not. Empty is what every caller refuses on.
     if (!key_block || key_block->public_key.Empty()) {
       LOG_W() << "No valid public key block found for key with fpr: "
               << key.Fingerprint();
-      continue;
+      return {};
     }
 
     // Honor a user-pinned encryption subkey instead of auto-selecting.
@@ -324,10 +327,12 @@ auto GetSecretKeysByKeyIdForSigning(GFKeyDatabase& key_db,
 
   for (const auto& k : key) {
     auto key_block = key_db.GetKeyBlocks(k->Fingerprint());
+    // All or none, as for recipients: a signer skipped here meant signing
+    // with fewer keys than asked while reporting success.
     if (!key_block || key_block->secret_key.Empty()) {
       LOG_W() << "No valid secret key block found for key with fpr: "
               << k->Fingerprint();
-      continue;
+      return {};
     }
 
     // Honor a user-pinned signing subkey instead of auto-selecting.

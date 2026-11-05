@@ -425,6 +425,14 @@ TEST_P(GpgCoreEngineTest, SignWithPublicOnlyKeyFails) {
     EXPECT_FALSE(err.Ok())
         << "encrypt+sign with a public-only signer succeeded";
   }
+  // One usable signer beside it does not make the request satisfiable: the
+  // rPGP engine signed with the usable one alone and called it a success.
+  {
+    auto [err, data_object] =
+        MessageCryptoOperation::GetInstance(Channel()).EncryptSignSync(
+            {other}, {other, public_only}, text, true);
+    EXPECT_FALSE(err.Ok()) << "encrypt+sign left a requested signer out";
+  }
 
   DeleteKey(public_only);
   DeleteKey(other);

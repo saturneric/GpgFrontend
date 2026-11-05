@@ -1125,6 +1125,23 @@ auto GF_CORE_EXPORT ConvertKey2GpgKeyList(int channel,
   return recipients;
 }
 
+auto GF_CORE_EXPORT HasUnusableKey(int channel,
+                                   const GpgAbstractKeyPtrList& keys) -> bool {
+  for (const auto& key : keys) {
+    if (key == nullptr || key->IsDisabled()) return true;
+    if (key->KeyType() != GpgAbstractKeyType::kGPG_KEYGROUP) continue;
+
+    // A member missing from the repository is as unusable as a disabled one.
+    const auto key_ids = qSharedPointerDynamicCast<GpgKeyGroup>(key)->KeyIds();
+    const auto members =
+        AbstractKeyRepository::GetInstance(channel).GetKeys(key_ids);
+    if (members.size() != key_ids.size() || HasUnusableKey(channel, members)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 auto GF_CORE_EXPORT Convert2GpgKeyList(int channel,
                                        const GpgAbstractKeyPtrList& keys)
     -> QList<GpgKey> {
