@@ -55,6 +55,8 @@ Page {
         id: scroller
 
         anchors.fill: parent
+        // Under the bar, which takes the page's colour, nothing shows.
+        clip: true
         contentWidth: availableWidth
         implicitWidth: 0
 
