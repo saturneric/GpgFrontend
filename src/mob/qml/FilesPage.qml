@@ -344,11 +344,13 @@ Page {
         return Material.secondaryTextColor
     }
 
-    // A file's icon, by what its name says it holds.
+    // A file's icon, by what it holds (its name, confirmed by its first
+    // bytes), whether it was added or made here.
     function symbolOf(file) {
         switch (file.content) {
         case "message": return "lock"
         case "signature": return "signature"
+        case "key": return "key"
         default: return "draft"
         }
     }

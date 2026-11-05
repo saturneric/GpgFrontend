@@ -761,12 +761,16 @@ TEST_F(FileWorkspaceTest, FilesAreFoundByRowNameAndWhatTheyMade) {
 }
 
 // As the desktop tells files apart: by the name, nothing read.
-TEST_F(FileWorkspaceTest, WhatAFileIsComesFromItsName) {
+// What a file is: its name a hint, its first bytes the proof, whether it
+// was added or made here.
+TEST_F(FileWorkspaceTest, WhatAFileIsComesFromItsNameAndItsBytes) {
+  // Armored, it says what it is under any name.
   const auto letter =
       Add("-----BEGIN PGP MESSAGE-----\n\nhQ==\n", "letter.txt");
-  EXPECT_EQ(Entry(letter).value("content").toString(), "");
+  EXPECT_EQ(Entry(letter).value("content").toString(), "message");
+  // Named as OpenPGP data and not: nothing in particular.
   const auto named = Add("only text", "named.gpg");
-  EXPECT_EQ(Entry(named).value("content").toString(), "message");
+  EXPECT_EQ(Entry(named).value("content").toString(), "");
 
   const auto source = Add("binary out", "data.txt");
   Do([&](auto* f) { f->encrypt({source}, {fred_}); });

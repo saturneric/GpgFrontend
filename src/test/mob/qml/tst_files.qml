@@ -156,6 +156,35 @@ Item {
             files.workspace.clear()
         }
 
+        // What an added file is: its name a hint, its first bytes the
+        // proof, as for a file made here; nothing is decrypted to tell.
+        function test_an_added_file_is_what_it_holds() {
+            const ws = files.workspace
+            const vectors = "../../../../resource/lfs/test/rpgp_vectors/"
+            const kinds = {
+                "enc_v1seipd_mdc.pgp": "message",       // binary, PKESK first
+                "enc_symmetric_v1.pgp": "message",      // binary, SKESK first
+                "sig_good_detached.sig": "signature",   // binary signature
+                "sig_good_cleartext.asc": "message",    // armored, signed
+                "garbage.bin": "",                      // nothing in particular
+            }
+            const urls = Object.keys(kinds).map(n => Qt.resolvedUrl(vectors + n))
+            urls.push(Qt.resolvedUrl("data/not_really.gpg"),  // text, named .gpg
+                      Qt.resolvedUrl("data/picture.gpg"),     // a PNG, named .gpg
+                      Qt.resolvedUrl("data/alice_key.txt"))   // a key, named .txt
+            kinds["not_really.gpg"] = ""
+            kinds["picture.gpg"] = ""
+            kinds["alice_key.txt"] = "key"
+            ws.addFiles(urls)
+            for (const name of Object.keys(kinds)) {
+                const entry = ws.entry(ws.idNamed(name))
+                compare(entry.content, kinds[name], name)
+            }
+            // The icon follows what it is.
+            compare(files.symbolOf({"content": "key"}), "key")
+            ws.clear()
+        }
+
         function test_the_list_is_searched() {
             files.workspace.addFiles([Qt.resolvedUrl("tst_files.qml"),
                                       Qt.resolvedUrl("tst_text.qml")])

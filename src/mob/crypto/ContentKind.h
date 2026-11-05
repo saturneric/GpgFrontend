@@ -56,6 +56,27 @@ auto ClassifyText(const QString& text) -> QString;
  */
 auto ClassifyFileName(const QString& name) -> QString;
 
+/**
+ * @brief What a file holds, from its name and its first bytes @p head: the
+ * name is a hint, the content confirms or refutes it.
+ *
+ * Armored text says what it is under any name (ClassifyText()). Binary data
+ * named as OpenPGP (.gpg, .pgp, .sig) is believed only when its first packet,
+ * as the rPGP inspector frames it, is one such a file starts with; a file
+ * named so that is not OpenPGP data is nothing in particular. Binary data
+ * under another name is not looked into: a picture's first byte can pass for
+ * a packet. Without the inspector (or with nothing read) the name decides.
+ *
+ * "message" (encrypted or signed data), "signature", "key", or empty.
+ * Nothing is decrypted, and like ClassifyFileName() it is a label, never a
+ * gate.
+ */
+auto ClassifyFileHead(const QString& name, const QByteArray& head) -> QString;
+
+/// ClassifyFileHead() of the file at @p path (a local path or a content
+/// URI), reading no more than its first bytes.
+auto ClassifyFile(const QString& name, const QString& path) -> QString;
+
 /// ClassifyText() for QML.
 class ContentKind : public QObject {
   Q_OBJECT

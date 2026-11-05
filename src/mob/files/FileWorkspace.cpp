@@ -229,7 +229,8 @@ auto FileWorkspace::addFiles(const QList<QUrl>& urls) -> QVariantList {
     entry->url = url;
     entry->name = DisplayName(url);
     std::tie(entry->available, entry->size) = Probe(url);
-    entry->content = ClassifyFileName(entry->name);
+    // What it holds, by its name and its first bytes, as a file made here.
+    entry->content = ClassifyFile(entry->name, LocalOrContent(url));
     entry->added = QDateTime::currentDateTimeUtc();
     insert(std::move(entry));
   }
@@ -272,7 +273,9 @@ auto FileWorkspace::receiveFiles(const QList<QUrl>& urls) -> QVariantList {
           }
           entry->available = true;
           entry->size = QFileInfo(path).size();
-          self->changed(id, {kAvailableRole, kProgressRole, kSizeRole});
+          entry->content = ClassifyFile(entry->name, path);
+          self->changed(id, {kAvailableRole, kProgressRole, kSizeRole,
+                             kContentRole});
         },
         [self, id](qint64 copied, qint64 total) {
           self->copying(id, copied, total);
@@ -478,7 +481,7 @@ auto FileWorkspace::relink(int id, const QUrl& url) -> bool {
   entry->url = url;
   entry->name = DisplayName(url);
   std::tie(entry->available, entry->size) = Probe(url);
-  entry->content = ClassifyFileName(entry->name);
+  entry->content = ClassifyFile(entry->name, LocalOrContent(url));
   changed(id, {kNameRole, kAvailableRole, kSizeRole, kContentRole});
   return true;
 }
@@ -1146,8 +1149,8 @@ void FileWorkspace::end(const QVariantMap& result, bool produces,
     output->name = unique_name(job_output_name_);
     output->origin = QStringLiteral("made");
     output->size = QFileInfo(job_output_.Path()).size();
-    output->content = ClassifyFileName(output->name);
     output->file = std::move(job_output_);
+    output->content = ClassifyFile(output->name, output->file.Path());
     output->plaintext = job.op == Op::kDecrypt;
     output->source_id = job.id;
     output->operation = OpName(static_cast<int>(job.op));
