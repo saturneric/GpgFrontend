@@ -1619,12 +1619,11 @@ auto WriteSessionPointer(const QString &anchor, const QJsonObject &state)
   if (anchor.isEmpty()) return false;
   if (!QDir().mkpath(anchor)) return false;
 
-  QFile file(SessionPointerPathFor(anchor));
-  if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) return false;
-
-  file.write(QJsonDocument(state).toJson(QJsonDocument::Compact));
-  file.close();
-  return true;
+  // Replaced whole, never truncated in place: a crash in between left an
+  // empty pointer, and the session it named was then never cleaned up.
+  return WriteFileGFBuffer(
+      SessionPointerPathFor(anchor),
+      GFBuffer(QJsonDocument(state).toJson(QJsonDocument::Compact)));
 }
 
 auto ReadSessionPointer(const QString &anchor) -> QJsonObject {

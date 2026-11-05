@@ -158,8 +158,13 @@ auto WriteFile(const QString& file_name, const QByteArray& data) -> bool {
     LOG_W() << "failed to open file for writing: " << file_name;
     return false;
   }
-  file.write(data);
+  // A short write -- a full disk -- is a failure, not a smaller file.
+  const auto written = file.write(data);
   file.close();
+  if (written != data.size() || file.error() != QFileDevice::NoError) {
+    LOG_W() << "failed to write the whole file:" << file_name;
+    return false;
+  }
   return true;
 }
 
@@ -170,6 +175,10 @@ auto ReadFileGFBuffer(const QString& file_name) -> std::tuple<bool, GFBuffer> {
   }
 
   auto file_size = file.size();
+  // An empty file is read, and is empty. Only something that is not a regular
+  // file reports no size it can be read by.
+  if (file_size == 0 && QFileInfo(file_name).isFile())
+    return {true, GFBuffer()};
   if (file_size <= 0) return {false, GFBuffer()};
 
   GFBuffer buf(static_cast<size_t>(file_size));
