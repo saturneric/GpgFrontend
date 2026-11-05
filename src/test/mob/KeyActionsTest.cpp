@@ -317,16 +317,37 @@ TEST_F(KeyActionsTest, SubkeysAreAddedReDatedRevokedAndDeleted) {
         [&]() { list = actions_->describe(fpr).value("subkeys").toList(); });
     return list;
   };
-  const auto before = subkeys().size();
+  const auto before = subkeys();
+  // The subkey with @p fingerprint, as the key now lists it. The new one is
+  // found by its fingerprint: where the engine puts it among the others is
+  // its own matter (made in the same second, it went before the key's
+  // encryption subkey).
+  const auto find = [&](const QString& fingerprint) {
+    for (const auto& s : subkeys()) {
+      if (s.toMap().value("fingerprint").toString() == fingerprint)
+        return s.toMap();
+    }
+    return QVariantMap{};
+  };
 
   // A signing subkey, of the primary key's own family, for a year.
   const auto added =
       Act([&](auto* a) { a->addSubkey(fpr, "sign", "1y", false); });
   ASSERT_TRUE(added.succeeded)
       << added.detail.value("error").toString().toStdString();
-  auto list = subkeys();
-  ASSERT_EQ(list.size(), before + 1);
-  auto newest = list.last().toMap();
+  const auto list = subkeys();
+  ASSERT_EQ(list.size(), before.size() + 1);
+  // The one whose fingerprint was not there before (the others' indexes may
+  // have moved).
+  QStringList known;
+  for (const auto& s : before)
+    known << s.toMap().value("fingerprint").toString();
+  QVariantMap newest;
+  for (const auto& s : list) {
+    if (!known.contains(s.toMap().value("fingerprint").toString()))
+      newest = s.toMap();
+  }
+  ASSERT_FALSE(newest.isEmpty());
   EXPECT_TRUE(newest.value("usage").toMap().value("sign").toBool());
   EXPECT_FALSE(newest.value("usage").toMap().value("encrypt").toBool());
   const auto expires = newest.value("expires").toDateTime();
@@ -339,19 +360,20 @@ TEST_F(KeyActionsTest, SubkeysAreAddedReDatedRevokedAndDeleted) {
       Act([&](auto* a) { a->setExpiration(fpr, sub, "forever"); });
   ASSERT_TRUE(dated.succeeded)
       << dated.detail.value("error").toString().toStdString();
-  EXPECT_FALSE(
-      subkeys().last().toMap().value("expires").toDateTime().isValid());
+  EXPECT_FALSE(find(sub).value("expires").toDateTime().isValid());
 
   // Revoked: still listed, and marked so.
   const auto revoked =
       Act([&](auto* a) { a->revokeSubkey(fpr, sub, 3, "no longer used"); });
-  ASSERT_TRUE(revoked.succeeded);
-  EXPECT_TRUE(subkeys().last().toMap().value("revoked").toBool());
+  ASSERT_TRUE(revoked.succeeded)
+      << revoked.detail.value("error").toString().toStdString();
+  EXPECT_TRUE(find(sub).value("revoked").toBool());
 
   // Deleted: gone.
   const auto deleted = Act([&](auto* a) { a->deleteSubkey(fpr, sub); });
   ASSERT_TRUE(deleted.succeeded);
-  EXPECT_EQ(subkeys().size(), before);
+  EXPECT_EQ(subkeys().size(), before.size());
+  EXPECT_TRUE(find(sub).isEmpty());
 
   // The primary key is no subkey to delete or revoke.
   const auto primary = Act([&](auto* a) { a->deleteSubkey(fpr, fpr); });
@@ -512,7 +534,17 @@ TEST_F(KeyActionsTest, AnExpertKeyIsMadeOfWhatWasChosen) {
   ASSERT_TRUE(added.succeeded)
       << added.detail.value("error").toString().toStdString();
   RunOnMainThread([&]() { key = actions_->describe(fpr); });
-  const auto newest = key.value("subkeys").toList().last().toMap();
+  // The new one by its fingerprint: where the engine lists it is its own
+  // matter (made in the same second, it can go before the others).
+  QStringList known;
+  for (const auto& s : subkeys)
+    known << s.toMap().value("fingerprint").toString();
+  QVariantMap newest;
+  for (const auto& s : key.value("subkeys").toList()) {
+    if (!known.contains(s.toMap().value("fingerprint").toString()))
+      newest = s.toMap();
+  }
+  ASSERT_FALSE(newest.isEmpty());
   EXPECT_TRUE(newest.value("usage").toMap().value("authenticate").toBool());
   EXPECT_FALSE(newest.value("usage").toMap().value("sign").toBool());
 
