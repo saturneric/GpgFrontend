@@ -63,6 +63,14 @@ Page {
             done.show(qsTr("That value could not be set."))
     }
 
+    // Settings of the old operation buttons: the PGP button's menu now
+    // offers every operation, so they decide nothing here. Still kept (a
+    // profile carries them), never shown.
+    readonly property var retired: ["mobile/show_encrypt_sign",
+                                    "mobile/show_decrypt_verify",
+                                    "mobile/default_encrypt_operation",
+                                    "mobile/default_decrypt_operation"]
+
     // The model's rows of one section, each its name and its value.
     component SettingRows: Repeater {
         id: rows
@@ -75,6 +83,7 @@ Page {
             id: row
 
             required property int index
+            required property string key
             required property string title
             required property string description
             required property string type
@@ -90,6 +99,7 @@ Page {
             objectName: "setting_" + index
             Layout.fillWidth: true
             visible: section === rows.section && (!named || choices.length > 1)
+                     && !page.retired.includes(key)
             text: title
             // A switch says what it does; a value speaks for itself.
             detail: type === "bool" ? description : ""

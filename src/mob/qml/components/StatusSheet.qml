@@ -433,9 +433,9 @@ BottomSheet {
             required property var modelData
 
             Layout.fillWidth: true
-            Layout.leftMargin: -24
-            Layout.rightMargin: -24
-            leftPadding: 24
+            Layout.leftMargin: -Theme.sheetPad
+            Layout.rightMargin: -Theme.sheetPad
+            leftPadding: Theme.sheetPad
             singleLineTitle: true
             symbol: modelData.phase === "done" ? "check_circle"
                     : modelData.phase === "failed" ? "error"
@@ -636,57 +636,6 @@ BottomSheet {
                 interval: 1500
                 onTriggered: copyReport.copied = false
             }
-        }
-    }
-
-    SectionHeader {
-        Layout.leftMargin: -24
-        leftPadding: 24
-        objectName: "statusHistoryHeader"
-        // Only when there is something else: the operation shown is not
-        // listed again under it.
-        visible: {
-            if (!sheet.expanded || !sheet.host || sheet.host.revision < 0) return false
-            for (let i = 0; i < history.count; ++i) {
-                const row = history.itemAt(i)
-                if (row && row.listed) return true
-            }
-            return false
-        }
-        text: qsTr("This session")
-    }
-
-    // What else was done, newest first; a batch once, by its first
-    // operation, and not the one shown above. Laid out in the sheet's own column: a list sized to its
-    // content inside the sheet's scrolling made the sheet's height loop.
-    Repeater {
-        id: history
-
-        model: sheet.expanded ? sheet.log : null
-
-        ListRow {
-            required property int operationId
-            required property int batchId
-            required property string operation
-            required property string phase
-            required property var targets
-            required property var report
-
-            readonly property bool listed: operationId === batchId
-                                           && batchId !== (sheet.record.batchId || 0)
-
-            Layout.fillWidth: true
-            Layout.leftMargin: -24
-            Layout.rightMargin: -24
-            visible: listed
-            singleLineTitle: true
-            leftPadding: 24
-            symbol: Theme.reportSymbol(report || {})
-            symbolColor: Theme.reportColor(report || {}, Material.secondaryTextColor)
-            text: Wording.title({"operation": operation, "phase": phase,
-                                 "report": report})
-            detail: Wording.target({"targets": targets})
-            onClicked: sheet.shownId = operationId
         }
     }
 
