@@ -43,6 +43,7 @@
 #include "core/typedef/GpgTypedef.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
+#include "core/utils/RustUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
 #include "ui/function/ExportKey.h"
@@ -275,10 +276,42 @@ void KeyPairOperaTab::slot_import_revoke_cert() {
     return;
   }
 
-  emit UISignalStation::GetInstance() -> SignalKeyRevoked(m_key_->ID());
+  // Only a certificate for the key on screen. The import revokes whatever
+  // key the certificate names, which the user picked from this key's window
+  // and never saw.
+  const auto target = RevocationCertificateTarget(buffer);
+  const auto fpr = m_key_->Fingerprint().toUpper();
+  const auto matches =
+      !target.isEmpty() &&
+      (target == fpr || (target.size() == 16 && fpr.endsWith(target)));
+  if (!matches) {
+    QMessageBox::critical(
+        this, tr("Error"),
+        target.isEmpty()
+            ? tr("This file is not a key revocation certificate.")
+            : tr("This certificate revokes a different key (%1), not the "
+                 "one shown here.")
+                  .arg(target));
+    return;
+  }
 
-  // import revocation certificate
-  ImportKeys(nullptr, current_gpg_context_channel_, buffer, true);
+  const auto info =
+      KeyImportExportOperation::GetInstance(current_gpg_context_channel_)
+          .ImportRevCert(buffer);
+  if (info == nullptr || (info->new_revocations == 0 && info->imported == 0)) {
+    QMessageBox::critical(
+        this, tr("Error"),
+        tr("The revocation certificate could not be imported, so the key "
+           "has not been revoked."));
+    return;
+  }
+
+  // Only now: this closes the window, and it used to fire before the import
+  // and whatever its outcome.
+  QMessageBox::information(this, tr("Key Revoked"),
+                           tr("The key has been revoked."));
+  emit UISignalStation::GetInstance() -> SignalKeyRevoked(m_key_->ID());
+  emit UISignalStation::GetInstance() -> SignalKeyDatabaseRefresh();
 }
 
 }  // namespace GpgFrontend::UI
