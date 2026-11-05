@@ -32,6 +32,8 @@ Page {
     signal categoriesRequested()
     // The profiles on this phone (not the key generation ones above).
     signal profileManagerRequested()
+    // Another key database is in use: what is open of the last one goes.
+    signal keyDatabaseSwitched()
 
     header: AppBar {
         title: qsTr("Settings")
@@ -372,6 +374,7 @@ Page {
     KeyDatabaseSwitchSheet {
         id: databaseSwitch
         databases: keyDatabases
+        onFinished: page.keyDatabaseSwitched()
     }
 
     MessageAlert {

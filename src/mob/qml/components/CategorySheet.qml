@@ -33,9 +33,11 @@ BottomSheet {
         hex.text = color
         problem.text = ""
         open()
-        // The one thing to type: ready for it.
-        name.forceActiveFocus()
     }
+
+    // The one thing to type: ready for it once the sheet is up (asked
+    // before, the focus went back to the page as another sheet closed).
+    onOpened: name.forceActiveFocus()
 
     function save() {
         const why = categoryId.length > 0

@@ -22,6 +22,12 @@ Item {
         anchors.fill: parent
     }
 
+    // A page's own sheet, as the Keys page has several.
+    BottomSheet {
+        id: pageSheet
+        title: "A page's sheet"
+    }
+
     TestCase {
         name: "Back"
         when: windowShown
@@ -75,6 +81,24 @@ Item {
             compare(steps, 4)
             tryVerify(() => !sheets.sheetOpen)
             verify(!sheets.back())
+        }
+
+        // Any sheet up is known (Theme.openSheets), a page's own too: Back,
+        // asked of the page (MainPage.back()), goes to the one on top, never
+        // to the page under it -- even when the sheet lost the focus. A sheet
+        // at work is not let go.
+        function test_back_goes_to_the_sheet_on_top() {
+            pageSheet.open()
+            tryVerify(() => pageSheet.opened)
+            const open = Theme.openSheets
+            compare(open[open.length - 1], pageSheet)
+            pageSheet.interactive = false
+            open[open.length - 1].back()
+            verify(pageSheet.opened)
+            pageSheet.interactive = true
+            open[open.length - 1].back()
+            tryVerify(() => !pageSheet.visible)
+            verify(Theme.openSheets.indexOf(pageSheet) < 0)
         }
 
         // Escape, as a hardware keyboard sends it, is Back too.

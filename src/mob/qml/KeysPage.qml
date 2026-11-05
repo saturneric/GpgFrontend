@@ -23,6 +23,8 @@ Page {
     signal categoriesManageRequested()
     // A key group to open (by its id); @p pick: ask for its keys at once.
     signal groupOpened(string id, bool pick)
+    // Another key database is in use: what is open of the last one goes.
+    signal keyDatabaseSwitched()
 
     // The key category shown; empty for every key.
     property string category: ""
@@ -84,6 +86,7 @@ Page {
     KeyDatabaseSwitchSheet {
         id: databaseSwitch
         databases: keyDatabases
+        onFinished: page.keyDatabaseSwitched()
     }
 
     // The categories to show, in the order the list offers them: the
@@ -285,6 +288,8 @@ Page {
             text: qsTr("Create a key")
             detail: qsTr("Create a key for signing and receiving encrypted "
                          + "content.")
+            // One key made at a time: its sheet could not be closed.
+            enabled: !page.creatingKey
             onClicked: {
                 addSheet.close()
                 page.generateRequested()
@@ -298,6 +303,7 @@ Page {
             symbol: "redo"
             symbolColor: Material.accentColor
             text: qsTr("Quick key")
+            enabled: !page.creatingKey
             detail: qsTr("An anonymous key from the default profile, at once. "
                          + "Only its passphrase is asked for.")
             onClicked: {

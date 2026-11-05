@@ -14,10 +14,15 @@ Page {
     // and the application may close. In order: what is open over the page,
     // then what the page is in the middle of, then the page itself.
     function back() {
-        // A sheet takes Back itself, unless it is busy and must not close;
-        // either way Back is not for the page under it, or the application.
-        if (importSheet.opened || generateSheet.opened || generatedSheet.opened) return true
+        // The sheet on top takes Back itself (one step, or nothing while it
+        // is busy); either way Back is not for the page under it, or the
+        // application. Every sheet, a page's own too, not only some.
         if (sheets.back()) return true
+        const open = Theme.openSheets
+        if (open.length > 0) {
+            open[open.length - 1].back()
+            return true
+        }
         if (tabs.currentIndex === 0 && textPage.back()) return true
         if (tabs.currentIndex === 1 && filesPage.back()) return true
         if (stack.depth > 1 && tabs.currentIndex === 2) {
@@ -26,6 +31,8 @@ Page {
             return true
         }
         if (settingsStack.depth > 1 && tabs.currentIndex === 3) {
+            // A key page reached from Settings is as busy as on the Keys tab.
+            if (settingsStack.currentItem && settingsStack.currentItem.busy) return true
             settingsStack.pop()
             return true
         }
@@ -42,10 +49,12 @@ Page {
     function takeShares() {
         const got = ShareInbox.take()
         if (got.files === undefined) return
-        sheets.closeAll()
+        // A sheet at work (a key being made) stays, and so does its tab: the
+        // files are in the list when the person gets there.
+        const stays = main.closeSheets()
         const count = got.files.length
         if (count > 0) {
-            tabs.currentIndex = 1
+            if (!stays) tabs.currentIndex = 1
             filesPage.notice.show(
                 qsTr("%n shared file(s) added, as copies for this session.", "", count))
         }
@@ -53,7 +62,7 @@ Page {
             filesPage.notice.show(qsTr("A shared file could not be opened. Save it "
                                        + "first, then add it here."))
         if (got.text.length > 0) {
-            if (count === 0) tabs.currentIndex = 0
+            if (count === 0 && !stays) tabs.currentIndex = 0
             textPage.receive(got.text)
         }
     }
@@ -76,10 +85,37 @@ Page {
     // the page.
     Component.onDestruction: ShareInbox.SignalArrived.disconnect(main.takeShares)
 
-    // The key @p key (the key list's roles) on the Keys page.
+    // Closes every sheet open, on any page, but one at work, which may not
+    // be let go; true when such a sheet stays.
+    function closeSheets() {
+        sheets.closeAll()
+        let stays = false
+        for (const sheet of Theme.openSheets.slice()) {
+            if (sheet.interactive === false) stays = true
+            else sheet.close()
+        }
+        return stays
+    }
+
+    // Back to the first page of the Keys and the Settings tabs, but for a
+    // page at work (it ends what it does first).
+    function popToRoot(view) {
+        while (view.depth > 1 && !(view.currentItem && view.currentItem.busy)) view.pop()
+    }
+
+    // Another key database: the pages of keys, groups and categories of
+    // the last one would act on this one's keys of the same fingerprint.
+    function keyDatabaseSwitched() {
+        closeSheets()
+        popToRoot(stack)
+        popToRoot(settingsStack)
+    }
+
+    // The key @p key (the key list's roles) on the Keys page; a page there
+    // at work stays under it.
     function showKey(key) {
         tabs.currentIndex = 2
-        while (stack.depth > 1) stack.pop()
+        popToRoot(stack)
         stack.push(keyDetail, {"key": key})
     }
 
@@ -119,6 +155,7 @@ Page {
                 onGroupOpened: function(id, pick) {
                     stack.push(keyGroupPage, {"groupId": id, "pickOnOpen": pick})
                 }
+                onKeyDatabaseSwitched: main.keyDatabaseSwitched()
             }
         }
 
@@ -133,6 +170,7 @@ Page {
                 onCategoriesRequested: settingsStack.push(categoriesPage)
                 onProfilesRequested: settingsStack.push(profilesPage)
                 onProfileManagerRequested: settingsStack.push(profileManager)
+                onKeyDatabaseSwitched: main.keyDatabaseSwitched()
             }
         }
     }
@@ -166,6 +204,7 @@ Page {
         textSurface: textPage
         filesSurface: filesPage
         onShowFileRequested: function(id) {
+            main.closeSheets()
             tabs.currentIndex = 1
             filesPage.showFile(id)
         }

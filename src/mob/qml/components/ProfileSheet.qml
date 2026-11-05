@@ -33,6 +33,11 @@ BottomSheet {
         problem.text = error || ""
         taken = false
         open()
+    }
+
+    // Ready to type once the sheet is up, not before (the focus went back
+    // to the page as another sheet closed).
+    onOpened: {
         if (mode === "create") name.forceActiveFocus()
         else secret.forceActiveFocus()
     }
