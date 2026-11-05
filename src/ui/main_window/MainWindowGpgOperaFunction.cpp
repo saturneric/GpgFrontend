@@ -1029,6 +1029,18 @@ void MainWindow::SlotFileVerify(const QStringList& paths) {
         data_file_path = sign_file_path;
         sign_file_path.clear();
       } else {
+        // Checked like any other input: an unreadable or relative path used
+        // to go straight to the engine, which was handed nothing to read.
+        const auto [readable, reason] = TargetFilePreCheck(text, true);
+        if (QFileInfo(text).isRelative() || !readable) {
+          QMessageBox::critical(
+              this, tr("Error"),
+              tr("Cannot read the data file \"%1\": %2")
+                  .arg(text, QFileInfo(text).isRelative()
+                                 ? tr("the path is not absolute")
+                                 : reason));
+          return;
+        }
         data_file_path = text;
       }
       data_file_info = QFileInfo(data_file_path);

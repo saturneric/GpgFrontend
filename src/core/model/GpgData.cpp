@@ -57,9 +57,7 @@ GpgData::GpgData() {
   gpgme_data_t data;
 
   auto err = gpgme_data_new(&data);
-  assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
-
-  data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
+  Adopt(err, data);
 }
 
 GpgData::GpgData(const GFBuffer& buffer) : cached_buffer_(buffer) {
@@ -68,9 +66,7 @@ GpgData::GpgData(const GFBuffer& buffer) : cached_buffer_(buffer) {
   auto err = gpgme_data_new_from_mem(
       &data, reinterpret_cast<const char*>(cached_buffer_.Data()),
       cached_buffer_.Size(), 0);
-  assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
-
-  data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
+  Adopt(err, data);
 }
 
 GpgData::GpgData(const void* buffer, size_t size, bool copy) {
@@ -78,18 +74,14 @@ GpgData::GpgData(const void* buffer, size_t size, bool copy) {
 
   auto err = gpgme_data_new_from_mem(&data, static_cast<const char*>(buffer),
                                      size, static_cast<int>(copy));
-  assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
-
-  data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
+  Adopt(err, data);
 }
 
 GpgData::GpgData(int fd) : fd_(fd), data_cbs_() {
   gpgme_data_t data;
 
   auto err = gpgme_data_new_from_fd(&data, fd_);
-  assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
-
-  data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
+  Adopt(err, data);
 }
 
 GpgData::GpgData(const QString& path, bool read) {
@@ -97,13 +89,24 @@ GpgData::GpgData(const QString& path, bool read) {
 
   // support unicode path
   QFile file(path);
-  file.open(read ? QIODevice::ReadOnly : QIODevice::WriteOnly);
-  fp_ = fdopen(Platform::DuplicateFd(file.handle()), read ? "rb" : "wb");
+  if (!file.open(read ? QIODevice::ReadOnly : QIODevice::WriteOnly)) {
+    LOG_W() << "cannot open" << path << ":" << file.errorString();
+    error_ = file.error() == QFileDevice::PermissionsError ? GPG_ERR_EACCES
+             : read && !file.exists()                      ? GPG_ERR_ENOENT
+                                                           : GPG_ERR_EIO;
+    return;
+  }
+  const auto fd = Platform::DuplicateFd(file.handle());
+  fp_ = fd < 0 ? nullptr : fdopen(fd, read ? "rb" : "wb");
+  if (fp_ == nullptr) {
+    if (fd >= 0) Platform::CloseFd(fd);
+    LOG_W() << "cannot open a stream on" << path;
+    error_ = GPG_ERR_EIO;
+    return;
+  }
 
   auto err = gpgme_data_new_from_stream(&data, fp_);
-  assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
-
-  data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
+  Adopt(err, data);
 }
 
 GpgData::GpgData(QSharedPointer<GFDataExchanger> ex)
@@ -116,9 +119,7 @@ GpgData::GpgData(QSharedPointer<GFDataExchanger> ex)
   data_cbs_.release = GFReleaseExCb;
 
   auto err = gpgme_data_new_from_cbs(&data, &data_cbs_, data_ex_.get());
-  assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
-
-  data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
+  Adopt(err, data);
 }
 
 GpgData::~GpgData() {
@@ -132,26 +133,39 @@ GpgData::~GpgData() {
 }
 
 auto GpgData::Read2GFBuffer() -> GFBuffer {
+  if (data_ref_ == nullptr) return {};
+
   gpgme_off_t ret = gpgme_data_seek(*this, 0, SEEK_SET);
-  GFBuffer buffer;
-
   if (ret != 0) {
-    const GpgError err = gpgme_err_code_from_errno(errno);
-    assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
-  } else {
-    std::vector<char, SMASecAllocator<char>> buf(kSecBufferSize +
-                                                 (sizeof(std::byte) * 8));
+    LOG_E() << "cannot rewind gpgme data, errno:" << errno;
+    return {};
+  }
 
-    while ((ret = gpgme_data_read(*this, buf.data(), kSecBufferSize)) > 0) {
-      buffer.Append(buf.data(), ret);
-    }
+  GFBuffer buffer;
+  std::vector<char, SMASecAllocator<char>> buf(kSecBufferSize +
+                                               (sizeof(std::byte) * 8));
+  while ((ret = gpgme_data_read(*this, buf.data(), kSecBufferSize)) > 0) {
+    buffer.Append(buf.data(), ret);
+  }
 
-    if (ret < 0) {
-      const GpgError err = gpgme_err_code_from_errno(errno);
-      assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
-    }
+  // Part of the output is not the output: handing it on as if it were, which
+  // release builds did, presents a truncated plaintext as the whole of it.
+  if (ret < 0) {
+    LOG_E() << "cannot read gpgme data back, errno:" << errno;
+    return {};
   }
   return buffer;
+}
+
+auto GpgData::Error() const -> GpgError { return error_; }
+
+void GpgData::Adopt(GpgError err, gpgme_data_t data) {
+  if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) {
+    LOG_W() << "cannot create gpgme data:" << gpgme_strerror(err);
+    error_ = err;
+    return;
+  }
+  data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
 }
 
 GpgData::operator gpgme_data_t() { return data_ref_.get(); }

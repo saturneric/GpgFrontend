@@ -1043,6 +1043,34 @@ TEST_P(GpgCoreEngineTest, EncryptDecryptDirectoryRoundTrip) {
   DeleteKey(key);
 }
 
+// A file that could not be opened reached gpgme as a NULL stream. Every file
+// operation must report it as a failure instead.
+TEST_P(GpgCoreEngineTest, FileOperationsOnAMissingFileFail) {
+  auto key = GenerateFullKey("missing_file");
+  ASSERT_TRUE(key != nullptr);
+
+  QTemporaryDir work_dir;
+  ASSERT_TRUE(work_dir.isValid());
+  const auto missing = work_dir.filePath("does-not-exist.txt");
+  const auto out = work_dir.filePath("out");
+  auto& op = FileCryptoOperation::GetInstance(Channel());
+
+  EXPECT_NE(
+      gpg_err_code(std::get<0>(op.EncryptFileSync({key}, missing, true, out))),
+      GPG_ERR_NO_ERROR);
+  EXPECT_NE(gpg_err_code(std::get<0>(op.DecryptFileSync(missing, out))),
+            GPG_ERR_NO_ERROR);
+  EXPECT_NE(gpg_err_code(std::get<0>(
+                op.SignFileSync({key}, missing, true, out + ".sig"))),
+            GPG_ERR_NO_ERROR);
+  EXPECT_NE(gpg_err_code(std::get<0>(op.VerifyFileSync(missing, {}))),
+            GPG_ERR_NO_ERROR);
+  EXPECT_NE(gpg_err_code(std::get<0>(op.DecryptVerifyFileSync(missing, out))),
+            GPG_ERR_NO_ERROR);
+
+  DeleteKey(key);
+}
+
 #ifndef Q_OS_WINDOWS
 // A file the archiver cannot read used to be left out of the archive while the
 // encryption still reported success, a backup quietly missing a file.
