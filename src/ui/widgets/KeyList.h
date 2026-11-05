@@ -735,13 +735,6 @@ class KeyList : public QWidget {
   /**
    * @brief
    *
-   * @param inBuffer
-   */
-  void import_keys(const QByteArray& in_buffer);
-
-  /**
-   * @brief
-   *
    */
   void uncheck_all();
 
