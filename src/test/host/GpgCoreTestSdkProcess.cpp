@@ -92,6 +92,23 @@ TEST(SdkProcessTest, RunCommandsRunsEveryCommandInTheBatch) {
   EXPECT_EQ(second.out, QString("two"));
 }
 
+// exitCode() of a process that never started, or did not exit by itself, is
+// not the command's answer; it used to arrive as 0, a success.
+TEST(SdkProcessTest, ACommandThatDidNotFinishIsAFailure) {
+  Outcome missing;
+  gf::sdk::RunCommand(Ctx(), "/nonexistent/gpgfrontend-test-binary", {},
+                      &Record, &missing);
+  EXPECT_EQ(missing.calls, 1);
+  EXPECT_NE(missing.exit_code, 0) << "a command that never started succeeded";
+
+  Outcome killed;
+  ASSERT_EQ(gf::sdk::RunCommand(Ctx(), "/bin/sh", {"-c", "kill -9 $$"}, &Record,
+                                &killed),
+            0);
+  EXPECT_EQ(killed.calls, 1);
+  EXPECT_NE(killed.exit_code, 0) << "a killed command succeeded";
+}
+
 #endif
 
 TEST(SdkProcessTest, AnEmptyBatchIsRefused) {
