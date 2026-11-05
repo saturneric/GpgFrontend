@@ -89,7 +89,7 @@ Popup {
                                        : Math.min(fullHeight, windowHeight * 0.6)
     // What its content asks for: header, content, foot, insets.
     readonly property real naturalHeight: header.implicitHeight
-        + body.implicitHeight
+        + body.implicitHeight + scroller.topMargin
         + statusSlot.implicitHeight + statusSlot.Layout.topMargin
         + (footerRow.visible ? footerRow.implicitHeight + footerRow.Layout.topMargin
                                + footerRow.Layout.bottomMargin
@@ -273,7 +273,9 @@ Popup {
                     Layout.rightMargin: Theme.sheetPad - 8
                     Layout.topMargin: 4
                     // The title to the content; to its description, less.
-                    Layout.bottomMargin: descriptionLabel.visible ? 0 : Theme.sheetTitleGap
+                    // Less the room the content keeps for a field's label.
+                    Layout.bottomMargin: descriptionLabel.visible
+                                         ? 0 : Theme.sheetTitleGap - scroller.labelRoom
                     visible: sheet.title.length > 0 || children.length > 1
                     spacing: 8
 
@@ -298,7 +300,7 @@ Popup {
                     Layout.leftMargin: Theme.sheetPad
                     Layout.rightMargin: Theme.sheetPad
                     Layout.topMargin: Theme.sheetTitleGap - 8
-                    Layout.bottomMargin: Theme.sheetIntroGap
+                    Layout.bottomMargin: Theme.sheetIntroGap - scroller.labelRoom
                     visible: sheet.description.length > 0
                     text: sheet.description
                     wrapMode: Text.Wrap
@@ -313,13 +315,21 @@ Popup {
         Flickable {
             id: scroller
 
+            // Room above the content for what rises over its top: a text
+            // field's label floats up out of the field, and the clip cut it
+            // off on a sheet whose first item is a field ("Name, for example
+            // Project team"). Taken from the gap under the title, so the
+            // sheet looks as it did. A list scrolls itself and needs none.
+            readonly property int labelRoom: sheet.listMode ? 0 : 8
+
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.preferredHeight: body.implicitHeight
+            Layout.preferredHeight: body.implicitHeight + topMargin
+            topMargin: labelRoom
             contentHeight: sheet.listMode ? height : body.implicitHeight
             clip: true
             boundsBehavior: Flickable.StopAtBounds
-            interactive: !sheet.listMode && contentHeight > height + 1
+            interactive: !sheet.listMode && contentHeight + topMargin > height + 1
             ScrollIndicator.vertical: ScrollIndicator {
                 visible: !sheet.listMode
             }
@@ -335,7 +345,7 @@ Popup {
                 if (!up) return
                 const at = item.mapToItem(body, 0, 0)
                 if (at.y < contentY)
-                    contentY = Math.max(0, at.y - 8)
+                    contentY = Math.max(-topMargin, at.y - 8)
                 else if (at.y + item.height > contentY + height)
                     contentY = Math.min(contentHeight - height,
                                         at.y + item.height - height + 8)

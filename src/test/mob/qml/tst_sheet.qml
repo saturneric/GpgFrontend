@@ -77,6 +77,18 @@ Item {
         text: " \n "
     }
 
+    // A sheet whose first item is a text field, as Rename key group.
+    BottomSheet {
+        id: named
+        title: "Rename key group"
+        TextField {
+            objectName: "namedField"
+            Layout.fillWidth: true
+            placeholderText: "Name, for example Project team"
+            text: "Team"
+        }
+    }
+
     TestCase {
         name: "BottomSheet"
         when: windowShown
@@ -218,6 +230,25 @@ Item {
             turnsPrimary.kind = "secondary"
             verify(Qt.colorEqual(turnsPrimary.background.color,
                                  madeSecondary.background.color))
+        }
+
+        // A text field first in a sheet keeps its floating label whole: the
+        // content's clip leaves room above the field, and the title's gap
+        // is no larger for it.
+        function test_a_field_first_in_a_sheet_keeps_its_label() {
+            named.open()
+            tryVerify(() => named.opened)
+            const field = findChild(named.contentItem, "namedField")
+            verify(field !== null)
+            let scroller = field.parent
+            while (scroller && scroller.contentY === undefined) scroller = scroller.parent
+            verify(scroller !== null)
+            // The field's top is at least the label's rise inside the clip.
+            const top = field.mapToItem(scroller, 0, 0).y
+            verify(top >= 8, "field top " + top)
+            verify(!scroller.interactive, "nothing to scroll")
+            named.close()
+            tryVerify(() => !named.visible)
         }
     }
 }
