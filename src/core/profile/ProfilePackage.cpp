@@ -336,11 +336,38 @@ auto WriteProfilePackage(const ArchiveMemberProvider &next,
     }
   }
 
-  if (QFileInfo::exists(dest_path) && !QFile::remove(dest_path)) {
-    return abandon("the existing package could not be replaced");
+  // Never remove-then-rename: if the rename then failed (a Windows sharing
+  // violation from antivirus or a sync client is enough), abandon() deleted
+  // the new copy too, and the old one was already gone. The old package is
+  // moved aside instead, and is only deleted once the new one is in place.
+  QString backup_path;
+  if (QFileInfo::exists(dest_path)) {
+    backup_path =
+        QString("%1/.%2.bak-%3")
+            .arg(QFileInfo(dest_path).absolutePath(),
+                 QFileInfo(dest_path).fileName(),
+                 QUuid::createUuid().toString(QUuid::WithoutBraces).left(8));
+    if (!QFile::rename(dest_path, backup_path)) {
+      return abandon("the existing package could not be replaced");
+    }
   }
   if (!QFile::rename(temporary_path, dest_path)) {
-    return abandon("the package could not be moved into place");
+    if (backup_path.isEmpty() || QFile::rename(backup_path, dest_path)) {
+      return abandon("the package could not be moved into place");
+    }
+    // Neither name could be restored. Both copies are kept, and the message
+    // says where, rather than deleting the only complete one.
+    LOG_E() << "package left at" << temporary_path << "and the previous one at"
+            << backup_path;
+    result.error =
+        QString(
+            "the package could not be moved into place; the new package "
+            "is at %1 and the previous one at %2")
+            .arg(temporary_path, backup_path);
+    return result;
+  }
+  if (!backup_path.isEmpty() && !QFile::remove(backup_path)) {
+    LOG_W() << "the previous package could not be removed:" << backup_path;
   }
 
   result.ok = true;

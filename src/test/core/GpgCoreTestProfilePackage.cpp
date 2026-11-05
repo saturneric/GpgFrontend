@@ -635,6 +635,38 @@ TEST(ProfilePackageRoundTripTest, AProtectedPackageComesBackByteForByte) {
   EXPECT_EQ(settings.value("basic/language").toString(), "en_US");
 }
 
+// Saving over an existing package moves the old one aside and removes it only
+// once the new one is in place. It used to remove it first, so a failed rename
+// lost both copies. On success nothing of the old one, nor the temporary,
+// remains beside it.
+TEST(ProfilePackageRoundTripTest, SavingOverAPackageReplacesItCleanly) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto root = dir.path() + "/work";
+  MakeProfile(root);
+  const auto package = dir.path() + "/work.gfp";
+  {
+    QFile old(package);
+    ASSERT_TRUE(old.open(QIODevice::WriteOnly));
+    old.write("an older package");
+  }
+
+  auto request = ExportRequestFor(root, dir.path(), package);
+  request.protection = ProfilePackageProtection::kPIN;
+  request.passphrase = GFBuffer(QString("correct horse battery staple"));
+  const auto written = ExportProfilePackage(request);
+  ASSERT_TRUE(written.ok) << written.error.toStdString();
+
+  QFile replaced(package);
+  ASSERT_TRUE(replaced.open(QIODevice::ReadOnly));
+  EXPECT_NE(replaced.readAll(), QByteArray("an older package"));
+
+  const auto leftovers =
+      QDir(dir.path()).entryList({".work.gfp.*"}, QDir::Files | QDir::Hidden);
+  EXPECT_TRUE(leftovers.isEmpty()) << leftovers.join(", ").toStdString();
+}
+
 // A package whose layout this build cannot read is refused before it is
 // adopted; one at this build's schema is not.
 TEST(ProfilePackageRoundTripTest, APackageFromANewerBuildIsTooNew) {
