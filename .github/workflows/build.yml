@@ -1279,8 +1279,9 @@ jobs:
   # is installed at the exact version and Qt with the pinned install-qt-action
   # the desktop jobs use.
   #
-  # Like build-macos, it holds no secrets: the APK leaves here unsigned, after
-  # the checks that need the build tree, and is signed by sign-android below.
+  # Like build-macos, it holds no secrets: the APK and the app bundle (AAB)
+  # leave here unsigned, after the checks that need the build tree, and are
+  # signed by sign-android below.
   build-android:
     # Named by the ABI alone: by default every matrix value is listed.
     name: build-android (${{ matrix.arch }})
@@ -1290,8 +1291,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # One APK per ABI: ARM for phones, x86_64 for emulators and
-          # Chromebooks.
+          # One APK and one AAB per ABI: ARM for phones, x86_64 for
+          # emulators and Chromebooks.
           - arch: arm64
             abi: arm64-v8a
             qt_arch: android_arm64_v8a
@@ -1342,7 +1343,7 @@ jobs:
           toolchain: stable
           targets: ${{ matrix.rust_target }}
 
-      - name: Build The APK
+      - name: Build The APK And AAB
         env:
           QT_ARCH: ${{ matrix.qt_arch }}
         run: |
@@ -1357,6 +1358,7 @@ jobs:
             -DQT_HOST_PATH="$qt/gcc_64"
           cmake --build build --parallel
           cmake --build build --target apk
+          cmake --build build --target aab
 
       - name: Check The Libraries
         run: |
@@ -1380,13 +1382,33 @@ jobs:
           mkdir -p build/unsigned
           cp "$apk" build/unsigned/unsigned.apk
 
+      # A bundle is not installed as it is: Play (or bundletool) cuts APKs
+      # from it, and aligns them then. What it must hold is its manifest and
+      # this ABI's libraries, and no signature yet.
+      - name: Check The AAB
+        env:
+          ABI: ${{ matrix.abi }}
+        run: |
+          set -euo pipefail
+          aab="build/artifacts/GpgFrontend-${ABI}-unsigned.aab"
+          entries="$(unzip -Z1 "$aab")"
+          grep -qx "base/manifest/AndroidManifest.xml" <<< "$entries"
+          grep -q "^base/lib/${ABI}/.*\.so$" <<< "$entries"
+          if grep -q "^META-INF/" <<< "$entries"; then
+            echo "::error::$aab is already signed" >&2
+            exit 1
+          fi
+          cp "$aab" build/unsigned/unsigned.aab
+
       - name: Upload Unsigned Artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           # NOT "gpgfrontend-*": that is the pattern the release job downloads,
-          # and an unsigned APK must never reach a release.
-          name: unsigned-android-apk-${{ matrix.arch }}
-          path: build/unsigned/unsigned.apk
+          # and an unsigned package must never reach a release.
+          name: unsigned-android-${{ matrix.arch }}
+          path: |
+            build/unsigned/unsigned.apk
+            build/unsigned/unsigned.aab
           if-no-files-found: error
 
       # Separate, as build-macos does: it reaches provenance without passing
@@ -1398,9 +1420,11 @@ jobs:
           path: build/artifacts/build-info.json
           if-no-files-found: error
 
-  # Signs the APK with the release key. Every APK is signed by the same key,
-  # so a newer build installs over an older one on a phone. Like sign-macos:
-  # no checkout, no build, and nothing read from the artifact but the APK.
+  # Signs the APK and the AAB with the release key. Every APK is signed by the
+  # same key, so a newer build installs over an older one on a phone. The APK
+  # takes apksigner (Android 11+ wants its v2+ schemes); the AAB takes
+  # jarsigner, the only signer for a bundle. Like sign-macos: no checkout, no
+  # build, and nothing read from the artifact but the two packages.
   sign-android:
     needs: build-android
     # Two independent gates on which refs may ever request the signing key: this
@@ -1454,15 +1478,17 @@ jobs:
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "build-tools;36.0.0"
 
-      - name: Download Unsigned APK
+      - name: Download Unsigned Packages
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: unsigned-android-apk-${{ matrix.arch }}
+          name: unsigned-android-${{ matrix.arch }}
           path: ${{ runner.temp }}/unsigned
 
-      # The name comes from GitHub context and the matrix, never from the
-      # artifact, as in sign-macos.
-      - name: Sign And Verify The APK
+      # The names come from GitHub context and the matrix, never from the
+      # artifact, as in sign-macos. One step, so the keystore is written once.
+      # jarsigner without -strict: a self-signed release certificate is
+      # normal on Android, and -strict fails on its chain warning.
+      - name: Sign And Verify The APK And AAB
         env:
           ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -1487,7 +1513,27 @@ jobs:
           "$bt/apksigner" verify --verbose --print-certs "$apk" |
             grep -E "^Verified using|^Signer #1 certificate (DN|SHA-256)"
 
-      - name: Upload Signed APK
+          aab="$out/GpgFrontend-${GITHUB_SHA:0:7}-android-${ARCH}.aab"
+          jarsigner -keystore "$ks" \
+            -storepass:env ANDROID_KEYSTORE_PASSWORD \
+            -keypass:env ANDROID_KEY_PASSWORD \
+            -digestalg SHA-256 \
+            -signedjar "$aab" "$RUNNER_TEMP/unsigned/unsigned.aab" \
+            "$ANDROID_KEY_ALIAS"
+          jarsigner -verify "$aab" | grep -x "jar verified."
+
+          # Both packages by the one key, compared in apksigner's notation.
+          apk_cert="$("$bt/apksigner" verify --print-certs "$apk" |
+            sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
+          aab_cert="$(keytool -printcert -jarfile "$aab" |
+            sed -n 's/^[[:space:]]*SHA256: //p' | tr -d ':' | tr 'A-F' 'a-f')"
+          echo "AAB signer certificate SHA-256: $aab_cert"
+          if [ -z "$apk_cert" ] || [ "$apk_cert" != "$aab_cert" ]; then
+            echo "::error::the APK and the AAB were not signed by the same key" >&2
+            exit 1
+          fi
+
+      - name: Upload Signed Packages
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: gpgfrontend-android-${{ matrix.arch }}
