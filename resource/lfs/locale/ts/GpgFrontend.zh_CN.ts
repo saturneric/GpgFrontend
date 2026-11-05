@@ -9,67 +9,67 @@
         <translation>关于</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/AboutPage.qml" line="55"/>
+        <location filename="../../../../src/mob/qml/AboutPage.qml" line="57"/>
         <source>GpgFrontend</source>
         <translation>GpgFrontend</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/AboutPage.qml" line="64"/>
+        <location filename="../../../../src/mob/qml/AboutPage.qml" line="66"/>
         <source>Version %1</source>
         <translation>版本 %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/AboutPage.qml" line="70"/>
+        <location filename="../../../../src/mob/qml/AboutPage.qml" line="72"/>
         <source>Engine</source>
         <translation>引擎</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/AboutPage.qml" line="76"/>
+        <location filename="../../../../src/mob/qml/AboutPage.qml" line="78"/>
         <source>OpenPGP on this device</source>
         <translation>本设备上的 OpenPGP</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/AboutPage.qml" line="77"/>
+        <location filename="../../../../src/mob/qml/AboutPage.qml" line="79"/>
         <source>Keys, encryption and signatures are handled on this device by the rPGP engine.</source>
         <translation>密钥、加密和签名均由 rPGP 引擎在本设备上处理。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/AboutPage.qml" line="83"/>
+        <location filename="../../../../src/mob/qml/AboutPage.qml" line="85"/>
         <source>License</source>
         <translation>许可证</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/AboutPage.qml" line="89"/>
+        <location filename="../../../../src/mob/qml/AboutPage.qml" line="91"/>
         <source>GNU General Public License 3.0 or later</source>
         <translation>GNU 通用公共许可证 3.0 或更高版本</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/AboutPage.qml" line="90"/>
+        <location filename="../../../../src/mob/qml/AboutPage.qml" line="92"/>
         <source>GpgFrontend is free software: you may use, study, share and change it under this license.</source>
         <translation>GpgFrontend 是自由软件：您可以在本许可证下使用、研究、分享和修改它。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/AboutPage.qml" line="97"/>
+        <location filename="../../../../src/mob/qml/AboutPage.qml" line="99"/>
         <source>Included works</source>
         <translation>包含的作品</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/AboutPage.qml" line="98"/>
+        <location filename="../../../../src/mob/qml/AboutPage.qml" line="100"/>
         <source>Material Symbols (Apache License 2.0) and JetBrains Mono (SIL Open Font License 1.1).</source>
         <translation>Material Symbols（Apache 许可证 2.0）和 JetBrains Mono（SIL 开放字体许可证 1.1）。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/AboutPage.qml" line="104"/>
+        <location filename="../../../../src/mob/qml/AboutPage.qml" line="106"/>
         <source>Project</source>
         <translation>项目</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/AboutPage.qml" line="110"/>
+        <location filename="../../../../src/mob/qml/AboutPage.qml" line="112"/>
         <source>Website</source>
         <translation>网站</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/AboutPage.qml" line="114"/>
+        <location filename="../../../../src/mob/qml/AboutPage.qml" line="116"/>
         <source>Address copied.</source>
         <translation>地址已复制。</translation>
     </message>
@@ -77,7 +77,7 @@
 <context>
     <name>AddSubkeySheet</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="61"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="73"/>
         <source>Add a subkey</source>
         <translation>添加子密钥</translation>
     </message>
@@ -86,71 +86,76 @@
         <translation type="vanished">子密钥为主密钥承担一项用途。其算法与主密钥一致。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="68"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="80"/>
         <source>Expert mode</source>
         <translation>专家模式</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="80"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="95"/>
         <source>Used for</source>
         <translation>用途</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="92"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="107"/>
         <source>Encryption</source>
         <translation>加密</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="93"/>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="121"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="108"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="139"/>
         <source>Others encrypt to it; you decrypt with it.</source>
         <translation>他人用它加密；您用它解密。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="94"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="109"/>
         <source>Signing</source>
         <translation>签名</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="95"/>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="118"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="110"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="136"/>
         <source>You sign messages and files with it.</source>
         <translation>您用它为消息和文件签名。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="96"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="111"/>
         <source>Authentication</source>
         <translation>认证</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="97"/>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="120"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="112"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="138"/>
         <source>You log in with it, over SSH for one.</source>
         <translation>您用它登录，例如通过 SSH。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="149"/>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="163"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="168"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="186"/>
         <source>Expires after</source>
         <translation>有效期</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="170"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="193"/>
         <source>Protect it with a passphrase</source>
         <translation>用口令保护它</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="185"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="211"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="191"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="218"/>
         <source>Add</source>
         <translation>添加</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="191"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="218"/>
+        <source>Try again</source>
+        <translation>重试</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="217"/>
         <source>Adding…</source>
         <translation>正在添加…</translation>
     </message>
@@ -163,37 +168,37 @@
         <translation>添加用户 ID</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="54"/>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="49"/>
         <source>Another name or address the key stands for. Share the key afterwards, so others learn of it.</source>
         <translation>密钥代表的另一个名称或地址。之后分享密钥，让他人获知。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="62"/>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="56"/>
         <source>Name</source>
         <translation>名称</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="69"/>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="63"/>
         <source>Email</source>
         <translation>电子邮件</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="77"/>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="71"/>
         <source>Comment (optional)</source>
         <translation>注释（可选）</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="90"/>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="84"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="97"/>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="91"/>
         <source>Add</source>
         <translation>添加</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="97"/>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="91"/>
         <source>Adding…</source>
         <translation>正在添加…</translation>
     </message>
@@ -209,12 +214,12 @@
 <context>
     <name>BottomSheet</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/BottomSheet.qml" line="245"/>
+        <location filename="../../../../src/mob/qml/components/BottomSheet.qml" line="254"/>
         <source>Show less</source>
         <translation>收起</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/BottomSheet.qml" line="246"/>
+        <location filename="../../../../src/mob/qml/components/BottomSheet.qml" line="255"/>
         <source>Show more</source>
         <translation>显示更多</translation>
     </message>
@@ -250,7 +255,7 @@
     </message>
     <message>
         <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="57"/>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="154"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="155"/>
         <source>Delete</source>
         <translation>删除</translation>
     </message>
@@ -259,12 +264,12 @@
         <translation type="vanished">移出 %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="107"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="108"/>
         <source>%1 is out of %2.</source>
         <translation>%1 已移出 %2。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="120"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="121"/>
         <source>No keys in it yet</source>
         <translation>其中还没有密钥</translation>
     </message>
@@ -273,39 +278,39 @@
         <translation type="vanished">在此添加密钥，可一次添加多个，或在密钥列表中长按某个密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="103"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="104"/>
         <source>Remove %1 from the category</source>
         <translation>从分类中移除 %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="121"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="122"/>
         <source>Use + to add keys you have, many at once, or long-press a key in the key list.</source>
         <translation>使用 + 添加您已有的密钥，可一次添加多个，或在密钥列表中长按某个密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="129"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="130"/>
         <source>Add keys to the category</source>
         <translation>向分类中添加密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="136"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="137"/>
         <source>Add</source>
         <translation>添加</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="139"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="140"/>
         <source>%n key(s) added.</source>
         <translation>
             <numerusform>已添加 %n 个密钥。</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="151"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="152"/>
         <source>Delete “%1”?</source>
         <translation>删除“%1”？</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="152"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="153"/>
         <source>Only the category goes: its keys stay, in the key list and in their other categories.</source>
         <translation>仅删除分类：其中的密钥会保留，仍在密钥列表及其其他分类中。</translation>
     </message>
@@ -323,17 +328,17 @@
         <translation>显示密钥于</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategoryListSheet.qml" line="86"/>
+        <location filename="../../../../src/mob/qml/components/CategoryListSheet.qml" line="89"/>
         <source>Keys in %1</source>
         <translation>%1 中的密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategoryListSheet.qml" line="114"/>
+        <location filename="../../../../src/mob/qml/components/CategoryListSheet.qml" line="117"/>
         <source>New category</source>
         <translation>新建分类</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategoryListSheet.qml" line="130"/>
+        <location filename="../../../../src/mob/qml/components/CategoryListSheet.qml" line="133"/>
         <source>Manage categories</source>
         <translation>管理分类</translation>
     </message>
@@ -355,62 +360,62 @@
         <translation type="vanished">将密钥整理到您自己的分组中。一个密钥可以属于多个分组。桌面版显示相同的分类。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="72"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="50"/>
         <source>A key can be in several categories. The desktop shows the same ones.</source>
         <translation>一个密钥可以属于多个分类。桌面版显示相同的分类。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="81"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="74"/>
         <source>Name</source>
         <translation>名称</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="89"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="82"/>
         <source>Name, for example Work</source>
         <translation>名称，例如“工作”</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="102"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="95"/>
         <source>Colour</source>
         <translation>颜色</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="175"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="168"/>
         <source>Colour %1</source>
         <translation>颜色 %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="193"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="186"/>
         <source>Colour as HEX, for example #2A82DA</source>
         <translation>十六进制颜色，例如 #2A82DA</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="201"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="194"/>
         <source>Pick…</source>
         <translation>选择…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="214"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="207"/>
         <source>Six hex digits, as #2A82DA.</source>
         <translation>六位十六进制数字，如 #2A82DA。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="223"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="216"/>
         <source>Category colour</source>
         <translation>分类颜色</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="237"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="230"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="242"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="235"/>
         <source>Save</source>
         <translation>保存</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="242"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="235"/>
         <source>Create</source>
         <translation>创建</translation>
     </message>
@@ -1274,22 +1279,22 @@
 <context>
     <name>FingerprintView</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/FingerprintView.qml" line="15"/>
+        <location filename="../../../../src/mob/qml/components/FingerprintView.qml" line="18"/>
         <source>Fingerprint</source>
         <translation>指纹</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FingerprintView.qml" line="35"/>
+        <location filename="../../../../src/mob/qml/components/FingerprintView.qml" line="93"/>
         <source>Copy the fingerprint</source>
         <translation>复制指纹</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FingerprintView.qml" line="49"/>
+        <location filename="../../../../src/mob/qml/components/FingerprintView.qml" line="73"/>
         <source>Fingerprint %1</source>
         <translation>指纹 %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FingerprintView.qml" line="67"/>
+        <location filename="../../../../src/mob/qml/components/FingerprintView.qml" line="105"/>
         <source>Copied.</source>
         <translation>已复制。</translation>
     </message>
@@ -1307,62 +1312,62 @@
         <translation>创建密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="133"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="113"/>
         <source>Others see this name and email when they encrypt to you.</source>
         <translation>他人加密给你时会看到此名称和电子邮件。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="140"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="134"/>
         <source>Name</source>
         <translation>名称</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="147"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="141"/>
         <source>Email</source>
         <translation>电子邮件</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="155"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="149"/>
         <source>Fill in anonymously</source>
         <translation>匿名填写</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="158"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="152"/>
         <source>Makes up a name and an address that reach nobody.</source>
         <translation>编造一个无人能联系到的名称和地址。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="172"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="166"/>
         <source>Profile</source>
         <translation>配置文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="189"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="183"/>
         <source>Expert mode</source>
         <translation>专家模式</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="201"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="195"/>
         <source>Primary key</source>
         <translation>主密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="218"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="212"/>
         <source>Add a subkey</source>
         <translation>添加子密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="235"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="229"/>
         <source>Protect it with a passphrase</source>
         <translation>使用口令保护</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="254"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="248"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="261"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="255"/>
         <source>Create</source>
         <translation>创建</translation>
     </message>
@@ -1370,37 +1375,34 @@
 <context>
     <name>GeneratedKeySheet</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="27"/>
+        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="28"/>
         <source>Key created</source>
         <translation>密钥已创建</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="50"/>
+        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="47"/>
         <source>Type</source>
         <translation>类型</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="57"/>
         <source>Algorithm</source>
-        <translation>算法</translation>
+        <translation type="vanished">算法</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="66"/>
         <source>Expires</source>
-        <translation>过期时间</translation>
+        <translation type="vanished">过期时间</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="67"/>
         <source>Never</source>
-        <translation>永不</translation>
+        <translation type="vanished">永不</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="78"/>
+        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="69"/>
         <source>Open the key</source>
         <translation>打开密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="92"/>
+        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="83"/>
         <source>Done</source>
         <translation>完成</translation>
     </message>
@@ -2544,18 +2546,18 @@
 <context>
     <name>GpgFrontend::Mobile::FileWorkspace</name>
     <message>
-        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="911"/>
-        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="922"/>
+        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="920"/>
+        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="931"/>
         <source>The file could not be read.</source>
         <translation>无法读取该文件。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="931"/>
+        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="940"/>
         <source>The signed file is no longer in the list.</source>
         <translation>已签名的文件已不在列表中。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="938"/>
+        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="947"/>
         <source>The signed file could not be read.</source>
         <translation>无法读取已签名的文件。</translation>
     </message>
@@ -18437,13 +18439,13 @@ Open it in your browser?</source>
 <context>
     <name>KeyDatabaseSheet</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="60"/>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="215"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="69"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="136"/>
         <source>New key database</source>
         <translation>新建密钥数据库</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="60"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="69"/>
         <source>Key database</source>
         <translation>密钥数据库</translation>
     </message>
@@ -18456,32 +18458,29 @@ Open it in your browser?</source>
         <translation type="vanished">%1 已创建并正在使用。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="98"/>
         <source>%1 is in use, but its keys could not be read: %2</source>
-        <translation>%1 正在使用，但无法读取其密钥：%2</translation>
+        <translation type="vanished">%1 正在使用，但无法读取其密钥：%2</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="149"/>
         <source>Making %1…</source>
-        <translation>正在创建 %1…</translation>
+        <translation type="vanished">正在创建 %1…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="150"/>
         <source>Switching to %1…</source>
-        <translation>正在切换到 %1…</translation>
+        <translation type="vanished">正在切换到 %1…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="159"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="71"/>
         <source>Kept in your profile, so it travels with a profile you export. Just choose a name.</source>
         <translation>保存在您的配置文件中，会随您导出的配置文件一起迁移。只需选择一个名称。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="161"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="73"/>
         <source>Each key database has its own keys. The one you choose is used from now on.</source>
         <translation>每个密钥数据库都有自己的密钥。从今以后将使用您选择的那个。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="196"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="117"/>
         <source>Name, for example Work</source>
         <translation>名称，例如 Work</translation>
     </message>
@@ -18490,19 +18489,62 @@ Open it in your browser?</source>
         <translation type="vanished">正在打开密钥数据库…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="223"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="145"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="223"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="145"/>
         <source>Close</source>
         <translation>关闭</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="231"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="152"/>
         <source>Create</source>
         <translation>创建</translation>
+    </message>
+</context>
+<context>
+    <name>KeyDatabaseSwitchSheet</name>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSwitchSheet.qml" line="91"/>
+        <source>%1 is in use, but its keys could not be read: %2</source>
+        <translation>%1 正在使用，但无法读取其密钥：%2</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSwitchSheet.qml" line="127"/>
+        <source>Key database not made</source>
+        <translation>未能创建密钥数据库</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSwitchSheet.qml" line="128"/>
+        <source>Key database not switched</source>
+        <translation>未能切换密钥数据库</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSwitchSheet.qml" line="129"/>
+        <source>Making key database</source>
+        <translation>正在创建密钥数据库</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSwitchSheet.qml" line="129"/>
+        <source>Switching key database</source>
+        <translation>正在切换密钥数据库</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSwitchSheet.qml" line="148"/>
+        <source>Making %1…</source>
+        <translation>正在创建 %1…</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSwitchSheet.qml" line="149"/>
+        <source>Switching to %1…</source>
+        <translation>正在切换到 %1…</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSwitchSheet.qml" line="165"/>
+        <source>Close</source>
+        <translation>关闭</translation>
     </message>
 </context>
 <context>
@@ -18571,138 +18613,138 @@ Open it in your browser?</source>
         <translation type="vanished">你的密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="186"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="199"/>
         <source>Owner</source>
         <translation>所有者</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="198"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="211"/>
         <source>Name</source>
         <translation>名称</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="202"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="215"/>
         <source>Email</source>
         <translation>电子邮件</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="206"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="219"/>
         <source>Comment</source>
         <translation>注释</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="215"/>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="312"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="228"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="329"/>
         <source>Primary key</source>
         <translation>主密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="234"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="251"/>
         <source>Key format</source>
         <translation>密钥格式</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="235"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="252"/>
         <source>Version %1</source>
         <translation>版本 %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="236"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="253"/>
         <source>Never</source>
         <translation>永不</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="239"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="256"/>
         <source>Not here</source>
         <translation>不在此处</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="240"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="257"/>
         <source>On this device</source>
         <translation>在此设备上</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="241"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="258"/>
         <source>Subkeys only: the primary key&apos;s is not here</source>
         <translation>仅子密钥：主密钥不在此处</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="242"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="259"/>
         <source>Some parts are on a smart card</source>
         <translation>部分内容在智能卡上</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="249"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="266"/>
         <source>User IDs (%1)</source>
         <translation>用户 ID (%1)</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="269"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="286"/>
         <source>Primary</source>
         <translation>主要</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="274"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="291"/>
         <source>Revoked</source>
         <translation>已吊销</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="274"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="291"/>
         <source>Invalid</source>
         <translation>无效</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="286"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="303"/>
         <source>Add user ID</source>
         <translation>添加用户 ID</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="295"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="312"/>
         <source>Keys (%1)</source>
         <translation>密钥 (%1)</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="312"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="329"/>
         <source>Subkey</source>
         <translation>子密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="349"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="366"/>
         <source>Add subkey</source>
         <translation>添加子密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="358"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="375"/>
         <source>Categories</source>
         <translation>分类</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="385"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="402"/>
         <source>Take out of %1</source>
         <translation>从 %1 中移出</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="386"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="403"/>
         <source>Put in %1</source>
         <translation>放入 %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="393"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="410"/>
         <source>New category</source>
         <translation>新建分类</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="408"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="425"/>
         <source>Operations</source>
         <translation>操作</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="515"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="532"/>
         <source>Share as a file</source>
         <translation>作为文件分享</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="531"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="548"/>
         <source>Copy the key as text</source>
         <translation>将密钥复制为文本</translation>
     </message>
@@ -18731,43 +18773,43 @@ Open it in your browser?</source>
         <translation type="vanished">用此密钥签名</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="421"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="438"/>
         <source>Share public key</source>
         <translation>分享公钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="431"/>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="563"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="448"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="580"/>
         <source>Change expiration</source>
         <translation>更改到期时间</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="432"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="449"/>
         <source>Of the primary key, and so of the whole key.</source>
         <translation>主密钥的到期时间，也就是整个密钥的到期时间。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="443"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="460"/>
         <source>Change passphrase</source>
         <translation>更改口令</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="444"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="461"/>
         <source>You are asked for the current one, then the new one.</source>
         <translation>会先要求输入当前口令，再要求输入新口令。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="460"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="477"/>
         <source>Delete key</source>
         <translation>删除密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="494"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="511"/>
         <source>Public key</source>
         <translation>公钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="500"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="517"/>
         <source>Give it to the people who want to encrypt to this key or check its signatures. It holds nothing secret.</source>
         <translation>把它交给想要使用此密钥加密或核对其签名的人。它不含任何机密。</translation>
     </message>
@@ -18776,7 +18818,7 @@ Open it in your browser?</source>
         <translation type="vanished">复制</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="534"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="551"/>
         <source>Copied.</source>
         <translation>已复制。</translation>
     </message>
@@ -18785,54 +18827,54 @@ Open it in your browser?</source>
         <translation type="vanished">分享</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="565"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="582"/>
         <source>How long the key lasts, from today.</source>
         <translation>密钥从今天起有效多长时间。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="566"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="583"/>
         <source>How long subkey %1 lasts, from today.</source>
         <translation>子密钥 %1 从今天起有效多长时间。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="636"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="653"/>
         <source>Delete this user ID?</source>
         <translation>删除此用户 ID？</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="637"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="654"/>
         <source>“%1” is deleted from this device only. Copies of the key others have keep it: to withdraw it, revoke it instead.</source>
         <translation>“%1”仅从本设备删除。他人持有的密钥副本仍保留它：要撤回，请改为吊销。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="640"/>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="654"/>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="672"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="657"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="671"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="689"/>
         <source>Delete</source>
         <translation>删除</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="650"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="667"/>
         <source>Delete subkey %1?</source>
         <translation>删除子密钥 %1？</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="651"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="668"/>
         <source>It is deleted from this device only. Copies of the key others have keep it: to end its use, revoke it instead. This cannot be undone.</source>
         <translation>仅从此设备删除。其他人持有的密钥副本仍会保留它：若要终止使用，请改为吊销。此操作无法撤销。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="662"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="679"/>
         <source>Delete this key?</source>
         <translation>删除此密钥？</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="665"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="682"/>
         <source>This is your own key. Without it you can no longer read messages encrypted to it or sign with it. This cannot be undone.</source>
         <translation>这是你自己的密钥。没有它，你将无法再读取加密给此密钥的消息，也无法再用它签名。此操作无法撤销。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="668"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="685"/>
         <source>You will no longer be able to encrypt to this key or check its signatures, until you import it again.</source>
         <translation>在再次导入此密钥之前，你将无法再加密给此密钥，也无法检查它的签名。</translation>
     </message>
@@ -18840,57 +18882,85 @@ Open it in your browser?</source>
 <context>
     <name>KeyFacts</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="20"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="28"/>
         <source>Revoked</source>
         <translation>已吊销</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="21"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="29"/>
         <source>Disabled</source>
         <translation>已禁用</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="24"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="32"/>
         <source>Expired on %1</source>
         <translation>已于 %1 过期</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="24"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="32"/>
         <source>Expired</source>
         <translation>已过期</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="27"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="35"/>
         <source>Valid until %1</source>
         <translation>有效期至 %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="28"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="36"/>
         <source>Valid, does not expire</source>
         <translation>有效，永不过期</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="56"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="62"/>
+        <source>Key ID</source>
+        <translation>密钥 ID</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="70"/>
         <source>Can</source>
         <translation>可</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="57"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="83"/>
+        <source>Primary key</source>
+        <translation>主密钥</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="83"/>
+        <source>Subkey</source>
+        <translation>子密钥</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="94"/>
+        <source>Created</source>
+        <translation>创建时间</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="100"/>
+        <source>Expires</source>
+        <translation>过期时间</translation>
+    </message>
+    <message>
         <source>encrypt</source>
-        <translation>加密</translation>
+        <translation type="vanished">加密</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="58"/>
         <source>sign</source>
-        <translation>签名</translation>
+        <translation type="vanished">签名</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="61"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="102"/>
         <source>Never</source>
         <translation>永不</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="62"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="108"/>
+        <source>Secret part</source>
+        <translation>私钥部分</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="109"/>
         <source>On this device</source>
         <translation>在此设备上</translation>
     </message>
@@ -18899,7 +18969,7 @@ Open it in your browser?</source>
         <translation type="vanished">你的，在此设备上</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="63"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="109"/>
         <source>Not here</source>
         <translation>不在此设备</translation>
     </message>
@@ -18935,27 +19005,27 @@ Open it in your browser?</source>
         <translation>保存</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGenProfileEditPage.qml" line="109"/>
+        <location filename="../../../../src/mob/qml/KeyGenProfileEditPage.qml" line="111"/>
         <source>Name</source>
         <translation>名称</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGenProfileEditPage.qml" line="120"/>
+        <location filename="../../../../src/mob/qml/KeyGenProfileEditPage.qml" line="122"/>
         <source>What it is for (optional)</source>
         <translation>用途（可选）</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGenProfileEditPage.qml" line="131"/>
+        <location filename="../../../../src/mob/qml/KeyGenProfileEditPage.qml" line="133"/>
         <source>Primary key</source>
         <translation>主密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGenProfileEditPage.qml" line="150"/>
+        <location filename="../../../../src/mob/qml/KeyGenProfileEditPage.qml" line="152"/>
         <source>Subkey</source>
         <translation>子密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGenProfileEditPage.qml" line="158"/>
+        <location filename="../../../../src/mob/qml/KeyGenProfileEditPage.qml" line="160"/>
         <source>Add a subkey</source>
         <translation>添加子密钥</translation>
     </message>
@@ -19184,27 +19254,27 @@ Open it in your browser?</source>
         <translation>新建密钥组</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyGroupSheet.qml" line="61"/>
+        <location filename="../../../../src/mob/qml/components/KeyGroupSheet.qml" line="56"/>
         <source>Encrypting to a key group encrypts to every key in it. The desktop shows the same groups.</source>
         <translation>加密到密钥组时，会加密到其中的每个密钥。桌面版显示相同的密钥组。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyGroupSheet.qml" line="69"/>
+        <location filename="../../../../src/mob/qml/components/KeyGroupSheet.qml" line="63"/>
         <source>Name, for example Project team</source>
         <translation>名称，例如项目团队</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyGroupSheet.qml" line="84"/>
+        <location filename="../../../../src/mob/qml/components/KeyGroupSheet.qml" line="78"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyGroupSheet.qml" line="90"/>
+        <location filename="../../../../src/mob/qml/components/KeyGroupSheet.qml" line="84"/>
         <source>Save</source>
         <translation>保存</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyGroupSheet.qml" line="90"/>
+        <location filename="../../../../src/mob/qml/components/KeyGroupSheet.qml" line="84"/>
         <source>Create</source>
         <translation>创建</translation>
     </message>
@@ -19300,22 +19370,22 @@ Open it in your browser?</source>
         <translation>清除</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="161"/>
+        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="163"/>
         <source>Already in</source>
         <translation>已加入</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="182"/>
+        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="184"/>
         <source>No key matches.</source>
         <translation>没有匹配的密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="191"/>
+        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="193"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="197"/>
+        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="199"/>
         <source>%1 (%2)</source>
         <translation>%1（%2）</translation>
     </message>
@@ -19323,7 +19393,7 @@ Open it in your browser?</source>
 <context>
     <name>KeyRow</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyRow.qml" line="43"/>
+        <location filename="../../../../src/mob/qml/components/KeyRow.qml" line="44"/>
         <source>Key group</source>
         <translation>密钥组</translation>
     </message>
@@ -19347,12 +19417,12 @@ Open it in your browser?</source>
 <context>
     <name>KeyToolbox</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="89"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="93"/>
         <source>Encrypt to</source>
         <translation>加密至</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="89"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="93"/>
         <source>Sign with</source>
         <translation>签名使用</translation>
     </message>
@@ -19383,74 +19453,74 @@ Open it in your browser?</source>
         <translation type="vanished">关于 %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="181"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="189"/>
         <source>Some cannot be used</source>
         <translation>部分密钥无法使用</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="213"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="221"/>
         <source>%n of them cannot be used. Tap to see why.</source>
         <translation>
             <numerusform>其中 %n 个无法使用。点按查看原因。</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="235"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="243"/>
         <source>Signing as %1</source>
         <translation>以 %1 身份签名</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="306"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="315"/>
         <source>Long-press for the key&apos;s details</source>
         <translation>长按查看密钥详情</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="386"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="397"/>
         <source>No key matches “%1”.</source>
         <translation>没有匹配“%1”的密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="387"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="398"/>
         <source>No keys in this category.</source>
         <translation>此类别中没有密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="388"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="399"/>
         <source>You have no key of your own to sign with.</source>
         <translation>你没有可用于签名的自己的密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="389"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="400"/>
         <source>No keys yet. Import the keys of the people you write to on the Keys page.</source>
         <translation>还没有密钥。请在“密钥”页面导入你要联系的人的密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="418"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="432"/>
         <source>Back to the list</source>
         <translation>返回列表</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="438"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="479"/>
         <source>Open on the Keys page</source>
         <translation>在“密钥”页面打开</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="452"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="489"/>
         <source>Reset keys</source>
         <translation>重置密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="460"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="497"/>
         <source>Back</source>
         <translation>返回</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="470"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="507"/>
         <source>Done</source>
         <translation>完成</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="477"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="514"/>
         <source>Next</source>
         <translation>下一步</translation>
     </message>
@@ -19462,12 +19532,12 @@ Open it in your browser?</source>
         <translation type="vanished">%1 个加密对象</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="90"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="98"/>
         <source>Keys</source>
         <translation>密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="101"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="109"/>
         <source>Key database: %1. Choose another</source>
         <translation>密钥数据库：%1。选择其他</translation>
     </message>
@@ -19504,27 +19574,27 @@ Open it in your browser?</source>
         <translation type="vanished">无法加密到 %1。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="188"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="197"/>
         <source>Release to refresh</source>
         <translation>松开以刷新</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="189"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="198"/>
         <source>Pull to refresh</source>
         <translation>下拉以刷新</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="212"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="221"/>
         <source>No key matches “%1”.</source>
         <translation>没有匹配“%1”的密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="213"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="222"/>
         <source>No keys in this category.</source>
         <translation>此分类中没有密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="215"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="224"/>
         <source>No keys yet.</source>
         <translation>还没有密钥。</translation>
     </message>
@@ -19545,68 +19615,68 @@ Open it in your browser?</source>
         <translation type="vanished">导入</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="282"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="292"/>
         <source>Create a key</source>
         <translation>创建密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="263"/>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="272"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="273"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="282"/>
         <source>Add a key</source>
         <translation>添加密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="214"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="223"/>
         <source>The keys could not be read.</source>
         <translation>无法读取密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="219"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="228"/>
         <source>Add keys to it from the category&apos;s page.</source>
         <translation>请从分类页面添加密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="221"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="230"/>
         <source>Use + to create a key of your own or import the keys of the people you write to.</source>
         <translation>使用 + 创建你自己的密钥，或导入你通信对象的密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="227"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="236"/>
         <source>Try again</source>
         <translation>重试</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="283"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="293"/>
         <source>Create a key for signing and receiving encrypted content.</source>
         <translation>创建用于签名和接收加密内容的密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="299"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="309"/>
         <source>Quick key</source>
         <translation>快速密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="300"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="310"/>
         <source>An anonymous key from the default profile, at once. Only its passphrase is asked for.</source>
         <translation>立即从默认配置文件创建一个匿名密钥。只需输入其口令。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="315"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="325"/>
         <source>New key group</source>
         <translation>新建密钥组</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="316"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="326"/>
         <source>Encrypt to several keys at once, as one recipient.</source>
         <translation>一次加密给多个密钥，作为一个接收者。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="332"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="342"/>
         <source>Import a key</source>
         <translation>导入密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="333"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="343"/>
         <source>Import from a file or the clipboard.</source>
         <translation>从文件或剪贴板导入。</translation>
     </message>
@@ -19927,52 +19997,52 @@ Open it in your browser?</source>
         <translation>打开配置文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="80"/>
+        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="68"/>
         <source>A profile has its own keys and settings. The new one starts empty.</source>
         <translation>配置文件拥有自己的密钥和设置。新建的配置文件初始为空。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="83"/>
+        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="71"/>
         <source>The file holds your keys and settings, sealed with this passphrase. Without it, the file cannot be opened, and it cannot be recovered.</source>
         <translation>该文件保存着您的密钥和设置，并使用此口令加密。没有口令，文件将无法打开，也无法恢复。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="86"/>
+        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="74"/>
         <source>Enter the passphrase the file was sealed with.</source>
         <translation>请输入加密该文件时使用的口令。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="94"/>
+        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="88"/>
         <source>Name, for example Work</source>
         <translation>名称，例如 工作</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="105"/>
+        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="99"/>
         <source>Passphrase</source>
         <translation>口令</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="116"/>
+        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="110"/>
         <source>Passphrase again</source>
         <translation>再次输入口令</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="131"/>
+        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="125"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="137"/>
+        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="131"/>
         <source>Create</source>
         <translation>创建</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="138"/>
+        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="132"/>
         <source>Choose where</source>
         <translation>选择位置</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="139"/>
+        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="133"/>
         <source>Import</source>
         <translation>导入</translation>
     </message>
@@ -19995,67 +20065,67 @@ Open it in your browser?</source>
         <translation>“%1”已导入</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="73"/>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="75"/>
         <source>On this phone</source>
         <translation>此手机上</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="87"/>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="89"/>
         <source>In use</source>
         <translation>使用中</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="94"/>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="96"/>
         <source>Open “%1”?</source>
         <translation>打开“%1”？</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="110"/>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="112"/>
         <source>New profile</source>
         <translation>新建配置文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="117"/>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="119"/>
         <source>Backup</source>
         <translation>备份</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="124"/>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="126"/>
         <source>Export this profile</source>
         <translation>导出此配置文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="125"/>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="127"/>
         <source>One file with its keys and settings, sealed with a passphrase. The desktop opens it too.</source>
         <translation>一个文件，包含其密钥和设置，用口令加密保护。桌面版也能打开。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="135"/>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="137"/>
         <source>Import a profile</source>
         <translation>导入配置文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="136"/>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="138"/>
         <source>From a profile file (.gfp), made here or on the desktop. It is added beside this one.</source>
         <translation>来自在此手机或桌面版创建的配置文件（.gfp）。它会添加到此配置文件旁边。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="156"/>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="158"/>
         <source>Working on the profile file…</source>
         <translation>正在处理配置文件…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="172"/>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="174"/>
         <source>“%1” is ready</source>
         <translation>“%1”已就绪</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="207"/>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="209"/>
         <source>GpgFrontend starts again and opens “%1”. It opens this profile until you choose another.</source>
         <translation>GpgFrontend 将重新启动并打开“%1”。在您选择其他配置文件之前，它会一直打开此配置文件。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="210"/>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="212"/>
         <source>Open</source>
         <translation>打开</translation>
     </message>
@@ -23063,17 +23133,17 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <translation>已吊销的子密钥将永远无法再次使用。之后请分享该密钥，以便他人知晓。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="84"/>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="91"/>
         <source>Description (optional)</source>
         <translation>描述（可选）</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="92"/>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="99"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="98"/>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="105"/>
         <source>Revoke</source>
         <translation>吊销</translation>
     </message>
@@ -23199,162 +23269,162 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <translation>无法设置该值。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="148"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="150"/>
         <source>Security</source>
         <translation>安全</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="158"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="160"/>
         <source>Clear cached passphrases</source>
         <translation>清除缓存的口令</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="159"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="161"/>
         <source>The next operation asks for them again.</source>
         <translation>下次操作时会再次询问。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="162"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="164"/>
         <source>Cached passphrases are cleared.</source>
         <translation>缓存的口令已清除。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="168"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="170"/>
         <source>Operations</source>
         <translation>操作</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="177"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="179"/>
         <source>Keys</source>
         <translation>密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="187"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="189"/>
         <source>Key database</source>
         <translation>密钥数据库</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="188"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="190"/>
         <source>Choose where your keys are kept, or start a new one.</source>
         <translation>选择密钥的保存位置，或新建一个。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="196"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="198"/>
         <source>Key categories</source>
         <translation>密钥类别</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="197"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="199"/>
         <source>Your own groups of keys, shared with the desktop.</source>
         <translation>你自己的密钥分组，与桌面版共享。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="209"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="211"/>
         <source>Key generation profiles</source>
         <translation>密钥生成配置文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="210"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="212"/>
         <source>What Create a key offers, shared with the desktop.</source>
         <translation>“创建密钥”提供的内容，与桌面版一致。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="221"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="223"/>
         <source>Storage</source>
         <translation>存储</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="227"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="229"/>
         <source>Temporary shared files</source>
         <translation>临时共享文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="229"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="231"/>
         <source>Kept for up to a day, so the app you share with can open them.</source>
         <translation>最多保留一天，以便你分享到的应用可以打开它们。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="231"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="233"/>
         <source>Tap to remove them now. Apps you shared them with can no longer open them.</source>
         <translation>点按即可立即移除。你分享到的应用将无法再打开它们。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="236"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="238"/>
         <source>No shared files are kept.</source>
         <translation>不会保留任何共享文件。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="242"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="244"/>
         <source>Profile</source>
         <translation>配置文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="248"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="250"/>
         <source>Profiles</source>
         <translation>配置文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="249"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="251"/>
         <source>Open another, start a new one, or keep a backup.</source>
         <translation>打开其他数据库、新建一个，或保留备份。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="256"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="258"/>
         <source>About</source>
         <translation>关于</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="262"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="264"/>
         <source>GpgFrontend</source>
         <translation>GpgFrontend</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="270"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="272"/>
         <source>Build information</source>
         <translation>构建信息</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="271"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="273"/>
         <source>What this build is made of, and when.</source>
         <translation>此构建的组成与构建时间。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="278"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="280"/>
         <source>rPGP engine</source>
         <translation>rPGP 引擎</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="279"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="281"/>
         <source>The OpenPGP engine that does the work here.</source>
         <translation>在此执行实际工作的 OpenPGP 引擎。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="287"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="289"/>
         <source>Translators</source>
         <translation>翻译者</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="288"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="290"/>
         <source>Who brought GpgFrontend to your language.</source>
         <translation>将 GpgFrontend 带到你的语言的人。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="310"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="317"/>
         <source>Remove shared files?</source>
         <translation>移除共享文件？</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="312"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="319"/>
         <source>Apps you shared files with can no longer open them.</source>
         <translation>你分享过文件的应用将无法再打开它们。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="314"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="321"/>
         <source>Remove</source>
         <translation>移除</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="318"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="325"/>
         <source>Shared files are removed, and other apps can no longer open them.</source>
         <translation>共享文件已移除，其他应用将无法再打开它们。</translation>
     </message>
@@ -23919,22 +23989,22 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
 <context>
     <name>Theme</name>
     <message>
-        <location filename="../../../../src/mob/qml/Theme.qml" line="154"/>
+        <location filename="../../../../src/mob/qml/Theme.qml" line="169"/>
         <source>%1 B</source>
         <translation>%1 B</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Theme.qml" line="155"/>
+        <location filename="../../../../src/mob/qml/Theme.qml" line="170"/>
         <source>%1 kB</source>
         <translation>%1 kB</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Theme.qml" line="157"/>
+        <location filename="../../../../src/mob/qml/Theme.qml" line="172"/>
         <source>%1 MB</source>
         <translation>%1 MB</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Theme.qml" line="158"/>
+        <location filename="../../../../src/mob/qml/Theme.qml" line="173"/>
         <source>%1 GB</source>
         <translation>%1 GB</translation>
     </message>
@@ -23947,17 +24017,17 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <translation>译者</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TranslatorsPage.qml" line="49"/>
+        <location filename="../../../../src/mob/qml/TranslatorsPage.qml" line="51"/>
         <source>Thanks to all translators</source>
         <translation>感谢所有译者</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TranslatorsPage.qml" line="65"/>
+        <location filename="../../../../src/mob/qml/TranslatorsPage.qml" line="67"/>
         <source>Translator information is not available.</source>
         <translation>译者信息不可用。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TranslatorsPage.qml" line="76"/>
+        <location filename="../../../../src/mob/qml/TranslatorsPage.qml" line="78"/>
         <source>To help translate GpgFrontend, read the translation guide at gpgfrontend.bktus.com.</source>
         <translation>如需帮助翻译 GpgFrontend，请阅读 gpgfrontend.bktus.com 上的翻译指南。</translation>
     </message>
@@ -24093,7 +24163,7 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
     </message>
     <message>
         <location filename="../../../../src/mob/qml/Wording.qml" line="47"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="148"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="158"/>
         <source>Encrypt with a passphrase</source>
         <translation>使用口令加密</translation>
     </message>
@@ -24114,7 +24184,7 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
     </message>
     <message>
         <location filename="../../../../src/mob/qml/Wording.qml" line="59"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="186"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="196"/>
         <source>Not signed</source>
         <translation>未签名</translation>
     </message>
@@ -24156,138 +24226,140 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <translation type="vanished">已选择 %1 个密钥</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/mob/qml/Wording.qml" line="100"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="110"/>
         <source>%n key(s) selected</source>
         <translation>
             <numerusform>已选择 %n 个密钥</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="105"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="115"/>
         <source>No keys yet</source>
         <translation>尚无密钥</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/mob/qml/Wording.qml" line="106"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="116"/>
         <source>%n key(s)</source>
         <translation>
             <numerusform>%n 个密钥</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="111"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="121"/>
         <source>Has no keys</source>
         <translation>没有密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="112"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="122"/>
         <source>No longer in your keys</source>
         <translation>已不在你的密钥中</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="113"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="248"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="282"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="123"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="258"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="292"/>
         <source>Expired</source>
         <translation>已过期</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="114"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="249"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="278"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="124"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="259"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="288"/>
         <source>Revoked</source>
         <translation>已吊销</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="115"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="279"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="125"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="289"/>
         <source>Disabled</source>
         <translation>已禁用</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="116"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="126"/>
         <source>Cannot be encrypted to</source>
         <translation>无法加密至</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="117"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="127"/>
         <source>Cannot sign</source>
         <translation>无法签名</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="118"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="128"/>
         <source>Not a key of your own</source>
         <translation>不是你的密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="126"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="136"/>
         <source>Choose who can read it.</source>
         <translation>选择可以阅读它的人。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="127"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="137"/>
         <source>Some chosen keys cannot be used. Remove them or choose others.</source>
         <translation>部分已选密钥无法使用。请移除它们或选择其他密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="128"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="138"/>
         <source>Choose a key to sign with.</source>
         <translation>选择用于签名的密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="129"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="139"/>
         <source>The signing key cannot be used. Choose another.</source>
         <translation>签名密钥无法使用。请选择其他密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="136"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="146"/>
         <source>Encrypting…</source>
         <translation>正在加密…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="137"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="147"/>
         <source>Decrypting…</source>
         <translation>正在解密…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="138"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="148"/>
         <source>Signing…</source>
         <translation>正在签名…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="139"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="149"/>
         <source>Verifying…</source>
         <translation>正在验证…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="146"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="269"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="96"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="156"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="279"/>
         <source>Encrypt</source>
         <translation>加密</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="147"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="157"/>
         <source>Encrypt &amp; Sign</source>
         <translation>加密并签名</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="149"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="159"/>
         <source>Decrypt</source>
         <translation>解密</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="150"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="160"/>
         <source>Decrypt &amp; Verify</source>
         <translation>解密并验证</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="151"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="268"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="97"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="161"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="278"/>
         <source>Sign</source>
         <translation>签名</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="152"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="162"/>
         <source>Verify</source>
         <translation>验证</translation>
     </message>
@@ -24296,177 +24368,177 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <translation type="vanished">对称加密</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="166"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="176"/>
         <source>Encrypt Operation</source>
         <translation>加密操作</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="167"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="177"/>
         <source>Decrypt Operation</source>
         <translation>解密操作</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="168"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="178"/>
         <source>Sign Operation</source>
         <translation>签名操作</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="169"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="179"/>
         <source>Verify Operation</source>
         <translation>验证操作</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="175"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="185"/>
         <source>Encrypted</source>
         <translation>已加密</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="176"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="186"/>
         <source>Decrypted</source>
         <translation>已解密</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="177"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="187"/>
         <source>Signed</source>
         <translation>已签名</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="178"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="188"/>
         <source>Verified</source>
         <translation>已验证</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="184"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="194"/>
         <source>Not encrypted</source>
         <translation>未加密</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="185"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="195"/>
         <source>Not decrypted</source>
         <translation>未解密</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="187"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="197"/>
         <source>Not verified</source>
         <translation>未验证</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="195"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="205"/>
         <source>Waiting</source>
         <translation>等待中</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="197"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="207"/>
         <source>Waiting for the passphrase</source>
         <translation>等待口令</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="198"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="208"/>
         <source>Cancelled</source>
         <translation>已取消</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="204"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="214"/>
         <source>No signature found</source>
         <translation>未找到签名</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="205"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="215"/>
         <source>Signature checked</source>
         <translation>签名已检查</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="206"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="216"/>
         <source>Signature problem</source>
         <translation>签名异常</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="215"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="225"/>
         <source>Stopped when the app went to the background.</source>
         <translation>应用进入后台时已停止。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="216"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="226"/>
         <source>Stopped before it started.</source>
         <translation>开始前已停止。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="217"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="227"/>
         <source>Its file was removed from the list.</source>
         <translation>其文件已从列表中移除。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="218"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="228"/>
         <source>Stopped when the app closed it.</source>
         <translation>应用关闭它时已停止。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="227"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="237"/>
         <source>Text</source>
         <translation>文本</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="229"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="239"/>
         <source>%1 with %2</source>
         <translation>%1 与 %2</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="236"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="246"/>
         <source>Valid</source>
         <translation>有效</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="237"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="247"/>
         <source>Invalid: the content or signature was changed</source>
         <translation>无效：内容或签名已被更改</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="238"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="248"/>
         <source>Valid, but the signature has expired</source>
         <translation>有效，但签名已过期</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="239"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="249"/>
         <source>Not valid: the key had expired when it signed</source>
         <translation>无效：签名时密钥已过期</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="240"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="250"/>
         <source>Could not be checked</source>
         <translation>无法检查</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="246"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="256"/>
         <source>OK</source>
         <translation>正常</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="247"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="257"/>
         <source>Not in your keys</source>
         <translation>不在你的密钥中</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="250"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="260"/>
         <source>Not allowed to sign</source>
         <translation>不允许签名</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="251"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="261"/>
         <source>Has problems</source>
         <translation>有问题</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="257"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="267"/>
         <source>Trusted</source>
         <translation>受信任</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="258"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="268"/>
         <source>Not fully trusted</source>
         <translation>未完全信任</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="259"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="269"/>
         <source>Not assessed</source>
         <translation>未评估</translation>
     </message>
@@ -24499,47 +24571,49 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <translation type="vanished">加密或已签名数据</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="267"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="96"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="277"/>
         <source>Certify</source>
         <translation>认证</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="270"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="97"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="280"/>
         <source>Authenticate</source>
         <translation>身份验证</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="282"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="292"/>
         <source>Expired on %1</source>
         <translation>已于 %1 过期</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="283"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="293"/>
         <source>Valid until %1</source>
         <translation>有效期至 %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="284"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="294"/>
         <source>Does not expire</source>
         <translation>永不过期</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="289"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="299"/>
         <source>No reason given</source>
         <translation>未提供原因</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="290"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="300"/>
         <source>It may have been compromised</source>
         <translation>它可能已泄露</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="291"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="301"/>
         <source>A newer subkey replaces it</source>
         <translation>已由较新的子密钥取代</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="292"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="302"/>
         <source>It is no longer used</source>
         <translation>它已不再使用</translation>
     </message>

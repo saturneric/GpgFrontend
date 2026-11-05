@@ -9,67 +9,67 @@
         <translation>Informazioni</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/AboutPage.qml" line="55"/>
+        <location filename="../../../../src/mob/qml/AboutPage.qml" line="57"/>
         <source>GpgFrontend</source>
         <translation>GpgFrontend</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/AboutPage.qml" line="64"/>
+        <location filename="../../../../src/mob/qml/AboutPage.qml" line="66"/>
         <source>Version %1</source>
         <translation>Versione %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/AboutPage.qml" line="70"/>
+        <location filename="../../../../src/mob/qml/AboutPage.qml" line="72"/>
         <source>Engine</source>
         <translation>Motore</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/AboutPage.qml" line="76"/>
+        <location filename="../../../../src/mob/qml/AboutPage.qml" line="78"/>
         <source>OpenPGP on this device</source>
         <translation>OpenPGP su questo dispositivo</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/AboutPage.qml" line="77"/>
+        <location filename="../../../../src/mob/qml/AboutPage.qml" line="79"/>
         <source>Keys, encryption and signatures are handled on this device by the rPGP engine.</source>
         <translation>Le chiavi, la cifratura e le firme sono gestite su questo dispositivo dal motore rPGP.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/AboutPage.qml" line="83"/>
+        <location filename="../../../../src/mob/qml/AboutPage.qml" line="85"/>
         <source>License</source>
         <translation>Licenza</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/AboutPage.qml" line="89"/>
+        <location filename="../../../../src/mob/qml/AboutPage.qml" line="91"/>
         <source>GNU General Public License 3.0 or later</source>
         <translation>GNU General Public License 3.0 o successiva</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/AboutPage.qml" line="90"/>
+        <location filename="../../../../src/mob/qml/AboutPage.qml" line="92"/>
         <source>GpgFrontend is free software: you may use, study, share and change it under this license.</source>
         <translation>GpgFrontend è software libero: puoi usarlo, studiarlo, condividerlo e modificarlo secondo questa licenza.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/AboutPage.qml" line="97"/>
+        <location filename="../../../../src/mob/qml/AboutPage.qml" line="99"/>
         <source>Included works</source>
         <translation>Opere incluse</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/AboutPage.qml" line="98"/>
+        <location filename="../../../../src/mob/qml/AboutPage.qml" line="100"/>
         <source>Material Symbols (Apache License 2.0) and JetBrains Mono (SIL Open Font License 1.1).</source>
         <translation>Material Symbols (Apache License 2.0) e JetBrains Mono (SIL Open Font License 1.1).</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/AboutPage.qml" line="104"/>
+        <location filename="../../../../src/mob/qml/AboutPage.qml" line="106"/>
         <source>Project</source>
         <translation>Progetto</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/AboutPage.qml" line="110"/>
+        <location filename="../../../../src/mob/qml/AboutPage.qml" line="112"/>
         <source>Website</source>
         <translation>Sito web</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/AboutPage.qml" line="114"/>
+        <location filename="../../../../src/mob/qml/AboutPage.qml" line="116"/>
         <source>Address copied.</source>
         <translation>Indirizzo copiato.</translation>
     </message>
@@ -77,7 +77,7 @@
 <context>
     <name>AddSubkeySheet</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="61"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="73"/>
         <source>Add a subkey</source>
         <translation>Aggiungi una sottochiave</translation>
     </message>
@@ -86,71 +86,76 @@
         <translation type="vanished">Una sottochiave svolge un solo compito per la chiave. Il suo algoritmo corrisponde a quello della chiave primaria.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="68"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="80"/>
         <source>Expert mode</source>
         <translation>Modalità esperto</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="80"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="95"/>
         <source>Used for</source>
         <translation>Usata per</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="92"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="107"/>
         <source>Encryption</source>
         <translation>Cifratura</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="93"/>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="121"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="108"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="139"/>
         <source>Others encrypt to it; you decrypt with it.</source>
         <translation>Gli altri cifrano per essa; tu decifri con essa.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="94"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="109"/>
         <source>Signing</source>
         <translation>Firma</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="95"/>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="118"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="110"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="136"/>
         <source>You sign messages and files with it.</source>
         <translation>Con essa firmi messaggi e file.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="96"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="111"/>
         <source>Authentication</source>
         <translation>Autenticazione</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="97"/>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="120"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="112"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="138"/>
         <source>You log in with it, over SSH for one.</source>
         <translation>Con essa accedi, ad esempio tramite SSH.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="149"/>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="163"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="168"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="186"/>
         <source>Expires after</source>
         <translation>Scade dopo</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="170"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="193"/>
         <source>Protect it with a passphrase</source>
         <translation>Proteggila con una frase d&apos;accesso</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="185"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="211"/>
         <source>Cancel</source>
         <translation>Annulla</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="191"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="218"/>
         <source>Add</source>
         <translation>Aggiungi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="191"/>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="218"/>
+        <source>Try again</source>
+        <translation>Riprova</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/AddSubkeySheet.qml" line="217"/>
         <source>Adding…</source>
         <translation>Aggiunta…</translation>
     </message>
@@ -163,37 +168,37 @@
         <translation>Aggiungi un ID utente</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="54"/>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="49"/>
         <source>Another name or address the key stands for. Share the key afterwards, so others learn of it.</source>
         <translation>Un altro nome o indirizzo che rappresenta la chiave. Condividi la chiave in seguito, così anche gli altri la conoscono.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="62"/>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="56"/>
         <source>Name</source>
         <translation>Nome</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="69"/>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="63"/>
         <source>Email</source>
         <translation>Email</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="77"/>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="71"/>
         <source>Comment (optional)</source>
         <translation>Commento (facoltativo)</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="90"/>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="84"/>
         <source>Cancel</source>
         <translation>Annulla</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="97"/>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="91"/>
         <source>Add</source>
         <translation>Aggiungi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="97"/>
+        <location filename="../../../../src/mob/qml/components/AddUidSheet.qml" line="91"/>
         <source>Adding…</source>
         <translation>Aggiunta in corso…</translation>
     </message>
@@ -209,12 +214,12 @@
 <context>
     <name>BottomSheet</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/BottomSheet.qml" line="245"/>
+        <location filename="../../../../src/mob/qml/components/BottomSheet.qml" line="254"/>
         <source>Show less</source>
         <translation>Mostra meno</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/BottomSheet.qml" line="246"/>
+        <location filename="../../../../src/mob/qml/components/BottomSheet.qml" line="255"/>
         <source>Show more</source>
         <translation>Mostra di più</translation>
     </message>
@@ -250,7 +255,7 @@
     </message>
     <message>
         <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="57"/>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="154"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="155"/>
         <source>Delete</source>
         <translation>Elimina</translation>
     </message>
@@ -259,12 +264,12 @@
         <translation type="vanished">Togli %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="107"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="108"/>
         <source>%1 is out of %2.</source>
         <translation>%1 non è più in %2.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="120"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="121"/>
         <source>No keys in it yet</source>
         <translation>Ancora nessuna chiave</translation>
     </message>
@@ -273,27 +278,27 @@
         <translation type="vanished">Aggiungi chiavi qui, anche molte insieme, o tieni premuta una chiave nell&apos;elenco chiavi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="103"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="104"/>
         <source>Remove %1 from the category</source>
         <translation>Rimuovi %1 dalla categoria</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="121"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="122"/>
         <source>Use + to add keys you have, many at once, or long-press a key in the key list.</source>
         <translation>Usa + per aggiungere le tue chiavi, anche molte insieme, o tieni premuta una chiave nell&apos;elenco chiavi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="129"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="130"/>
         <source>Add keys to the category</source>
         <translation>Aggiungi chiavi alla categoria</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="136"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="137"/>
         <source>Add</source>
         <translation>Aggiungi</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="139"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="140"/>
         <source>%n key(s) added.</source>
         <translation>
             <numerusform>%n chiave aggiunta.</numerusform>
@@ -301,12 +306,12 @@
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="151"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="152"/>
         <source>Delete “%1”?</source>
         <translation>Eliminare “%1”?</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="152"/>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="153"/>
         <source>Only the category goes: its keys stay, in the key list and in their other categories.</source>
         <translation>Viene rimossa solo la categoria: le sue chiavi restano, nell&apos;elenco chiavi e nelle loro altre categorie.</translation>
     </message>
@@ -324,17 +329,17 @@
         <translation>Mostra chiavi in</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategoryListSheet.qml" line="86"/>
+        <location filename="../../../../src/mob/qml/components/CategoryListSheet.qml" line="89"/>
         <source>Keys in %1</source>
         <translation>Chiavi in %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategoryListSheet.qml" line="114"/>
+        <location filename="../../../../src/mob/qml/components/CategoryListSheet.qml" line="117"/>
         <source>New category</source>
         <translation>Nuova categoria</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategoryListSheet.qml" line="130"/>
+        <location filename="../../../../src/mob/qml/components/CategoryListSheet.qml" line="133"/>
         <source>Manage categories</source>
         <translation>Gestisci categorie</translation>
     </message>
@@ -356,62 +361,62 @@
         <translation type="vanished">Organizza le chiavi in gruppi personali. Una chiave può stare in più gruppi. Il desktop mostra le stesse categorie.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="72"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="50"/>
         <source>A key can be in several categories. The desktop shows the same ones.</source>
         <translation>Una chiave può stare in più categorie. Il desktop mostra le stesse.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="81"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="74"/>
         <source>Name</source>
         <translation>Nome</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="89"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="82"/>
         <source>Name, for example Work</source>
         <translation>Nome, ad esempio Lavoro</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="102"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="95"/>
         <source>Colour</source>
         <translation>Colore</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="175"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="168"/>
         <source>Colour %1</source>
         <translation>Colore %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="193"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="186"/>
         <source>Colour as HEX, for example #2A82DA</source>
         <translation>Colore in esadecimale, ad esempio #2A82DA</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="201"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="194"/>
         <source>Pick…</source>
         <translation>Scegli…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="214"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="207"/>
         <source>Six hex digits, as #2A82DA.</source>
         <translation>Sei cifre esadecimali, come #2A82DA.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="223"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="216"/>
         <source>Category colour</source>
         <translation>Colore della categoria</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="237"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="230"/>
         <source>Cancel</source>
         <translation>Annulla</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="242"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="235"/>
         <source>Save</source>
         <translation>Salva</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="242"/>
+        <location filename="../../../../src/mob/qml/components/CategorySheet.qml" line="235"/>
         <source>Create</source>
         <translation>Crea</translation>
     </message>
@@ -1280,22 +1285,22 @@
 <context>
     <name>FingerprintView</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/FingerprintView.qml" line="15"/>
+        <location filename="../../../../src/mob/qml/components/FingerprintView.qml" line="18"/>
         <source>Fingerprint</source>
         <translation>Impronta digitale</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FingerprintView.qml" line="35"/>
+        <location filename="../../../../src/mob/qml/components/FingerprintView.qml" line="93"/>
         <source>Copy the fingerprint</source>
         <translation>Copia l&apos;impronta digitale</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FingerprintView.qml" line="49"/>
+        <location filename="../../../../src/mob/qml/components/FingerprintView.qml" line="73"/>
         <source>Fingerprint %1</source>
         <translation>Impronta digitale %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/FingerprintView.qml" line="67"/>
+        <location filename="../../../../src/mob/qml/components/FingerprintView.qml" line="105"/>
         <source>Copied.</source>
         <translation>Copiato.</translation>
     </message>
@@ -1313,62 +1318,62 @@
         <translation>Crea una chiave</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="133"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="113"/>
         <source>Others see this name and email when they encrypt to you.</source>
         <translation>Gli altri vedono questo nome e questa email quando ti cifrano un messaggio.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="140"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="134"/>
         <source>Name</source>
         <translation>Nome</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="147"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="141"/>
         <source>Email</source>
         <translation>Email</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="155"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="149"/>
         <source>Fill in anonymously</source>
         <translation>Compila in modo anonimo</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="158"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="152"/>
         <source>Makes up a name and an address that reach nobody.</source>
         <translation>Inventa un nome e un indirizzo che non raggiungono nessuno.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="172"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="166"/>
         <source>Profile</source>
         <translation>Profilo</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="189"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="183"/>
         <source>Expert mode</source>
         <translation>Modalità esperto</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="201"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="195"/>
         <source>Primary key</source>
         <translation>Chiave primaria</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="218"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="212"/>
         <source>Add a subkey</source>
         <translation>Aggiungi una sottochiave</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="235"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="229"/>
         <source>Protect it with a passphrase</source>
         <translation>Proteggila con una frase d&apos;accesso</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="254"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="248"/>
         <source>Cancel</source>
         <translation>Annulla</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="261"/>
+        <location filename="../../../../src/mob/qml/components/GenerateSheet.qml" line="255"/>
         <source>Create</source>
         <translation>Crea</translation>
     </message>
@@ -1376,37 +1381,34 @@
 <context>
     <name>GeneratedKeySheet</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="27"/>
+        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="28"/>
         <source>Key created</source>
         <translation>Chiave creata</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="50"/>
+        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="47"/>
         <source>Type</source>
         <translation>Tipo</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="57"/>
         <source>Algorithm</source>
-        <translation>Algoritmo</translation>
+        <translation type="vanished">Algoritmo</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="66"/>
         <source>Expires</source>
-        <translation>Scadenza</translation>
+        <translation type="vanished">Scadenza</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="67"/>
         <source>Never</source>
-        <translation>Mai</translation>
+        <translation type="vanished">Mai</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="78"/>
+        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="69"/>
         <source>Open the key</source>
         <translation>Apri la chiave</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="92"/>
+        <location filename="../../../../src/mob/qml/components/GeneratedKeySheet.qml" line="83"/>
         <source>Done</source>
         <translation>Fatto</translation>
     </message>
@@ -2552,18 +2554,18 @@
 <context>
     <name>GpgFrontend::Mobile::FileWorkspace</name>
     <message>
-        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="911"/>
-        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="922"/>
+        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="920"/>
+        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="931"/>
         <source>The file could not be read.</source>
         <translation>Impossibile leggere il file.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="931"/>
+        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="940"/>
         <source>The signed file is no longer in the list.</source>
         <translation>Il file firmato non è più nell&apos;elenco.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="938"/>
+        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="947"/>
         <source>The signed file could not be read.</source>
         <translation>Impossibile leggere il file firmato.</translation>
     </message>
@@ -18476,13 +18478,13 @@ Aprirlo nel browser?</translation>
 <context>
     <name>KeyDatabaseSheet</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="60"/>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="215"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="69"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="136"/>
         <source>New key database</source>
         <translation>Nuovo database delle chiavi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="60"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="69"/>
         <source>Key database</source>
         <translation>Database delle chiavi</translation>
     </message>
@@ -18495,32 +18497,29 @@ Aprirlo nel browser?</translation>
         <translation type="vanished">%1 è stato creato ed è in uso.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="98"/>
         <source>%1 is in use, but its keys could not be read: %2</source>
-        <translation>%1 è in uso, ma non è stato possibile leggere le sue chiavi: %2</translation>
+        <translation type="vanished">%1 è in uso, ma non è stato possibile leggere le sue chiavi: %2</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="149"/>
         <source>Making %1…</source>
-        <translation>Creazione di %1…</translation>
+        <translation type="vanished">Creazione di %1…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="150"/>
         <source>Switching to %1…</source>
-        <translation>Passaggio a %1…</translation>
+        <translation type="vanished">Passaggio a %1…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="159"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="71"/>
         <source>Kept in your profile, so it travels with a profile you export. Just choose a name.</source>
         <translation>Conservato nel Suo profilo, così segue il profilo che esporta. Basta scegliere un nome.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="161"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="73"/>
         <source>Each key database has its own keys. The one you choose is used from now on.</source>
         <translation>Ogni database delle chiavi ha le proprie chiavi. Quello che sceglie viene usato da ora in poi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="196"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="117"/>
         <source>Name, for example Work</source>
         <translation>Nome, ad esempio Lavoro</translation>
     </message>
@@ -18529,19 +18528,62 @@ Aprirlo nel browser?</translation>
         <translation type="vanished">Apertura dei database delle chiavi…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="223"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="145"/>
         <source>Cancel</source>
         <translation>Annulla</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="223"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="145"/>
         <source>Close</source>
         <translation>Chiudi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="231"/>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSheet.qml" line="152"/>
         <source>Create</source>
         <translation>Crea</translation>
+    </message>
+</context>
+<context>
+    <name>KeyDatabaseSwitchSheet</name>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSwitchSheet.qml" line="91"/>
+        <source>%1 is in use, but its keys could not be read: %2</source>
+        <translation>%1 è in uso, ma non è stato possibile leggere le sue chiavi: %2</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSwitchSheet.qml" line="127"/>
+        <source>Key database not made</source>
+        <translation>Database delle chiavi non creato</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSwitchSheet.qml" line="128"/>
+        <source>Key database not switched</source>
+        <translation>Database delle chiavi non cambiato</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSwitchSheet.qml" line="129"/>
+        <source>Making key database</source>
+        <translation>Creazione del database delle chiavi</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSwitchSheet.qml" line="129"/>
+        <source>Switching key database</source>
+        <translation>Cambio del database delle chiavi</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSwitchSheet.qml" line="148"/>
+        <source>Making %1…</source>
+        <translation>Creazione di %1…</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSwitchSheet.qml" line="149"/>
+        <source>Switching to %1…</source>
+        <translation>Passaggio a %1…</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyDatabaseSwitchSheet.qml" line="165"/>
+        <source>Close</source>
+        <translation>Chiudi</translation>
     </message>
 </context>
 <context>
@@ -18610,138 +18652,138 @@ Aprirlo nel browser?</translation>
         <translation type="vanished">La tua chiave</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="186"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="199"/>
         <source>Owner</source>
         <translation>Proprietario</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="198"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="211"/>
         <source>Name</source>
         <translation>Nome</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="202"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="215"/>
         <source>Email</source>
         <translation>Email</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="206"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="219"/>
         <source>Comment</source>
         <translation>Commento</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="215"/>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="312"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="228"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="329"/>
         <source>Primary key</source>
         <translation>Chiave primaria</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="234"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="251"/>
         <source>Key format</source>
         <translation>Formato chiave</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="235"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="252"/>
         <source>Version %1</source>
         <translation>Versione %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="236"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="253"/>
         <source>Never</source>
         <translation>Mai</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="239"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="256"/>
         <source>Not here</source>
         <translation>Non presente</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="240"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="257"/>
         <source>On this device</source>
         <translation>Su questo dispositivo</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="241"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="258"/>
         <source>Subkeys only: the primary key&apos;s is not here</source>
         <translation>Solo sottochiavi: quella della chiave primaria non è qui</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="242"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="259"/>
         <source>Some parts are on a smart card</source>
         <translation>Alcune parti sono su una smart card</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="249"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="266"/>
         <source>User IDs (%1)</source>
         <translation>ID utente (%1)</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="269"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="286"/>
         <source>Primary</source>
         <translation>Primaria</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="274"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="291"/>
         <source>Revoked</source>
         <translation>Revocato</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="274"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="291"/>
         <source>Invalid</source>
         <translation>Non valido</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="286"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="303"/>
         <source>Add user ID</source>
         <translation>Aggiungi ID utente</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="295"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="312"/>
         <source>Keys (%1)</source>
         <translation>Chiavi (%1)</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="312"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="329"/>
         <source>Subkey</source>
         <translation>Sottochiave</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="349"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="366"/>
         <source>Add subkey</source>
         <translation>Aggiungi sottochiave</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="358"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="375"/>
         <source>Categories</source>
         <translation>Categorie</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="385"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="402"/>
         <source>Take out of %1</source>
         <translation>Rimuovi da %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="386"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="403"/>
         <source>Put in %1</source>
         <translation>Aggiungi a %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="393"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="410"/>
         <source>New category</source>
         <translation>Nuova categoria</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="408"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="425"/>
         <source>Operations</source>
         <translation>Operazioni</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="515"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="532"/>
         <source>Share as a file</source>
         <translation>Condividi come file</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="531"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="548"/>
         <source>Copy the key as text</source>
         <translation>Copia la chiave come testo</translation>
     </message>
@@ -18770,43 +18812,43 @@ Aprirlo nel browser?</translation>
         <translation type="vanished">Firma con questa chiave</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="421"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="438"/>
         <source>Share public key</source>
         <translation>Condividi chiave pubblica</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="431"/>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="563"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="448"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="580"/>
         <source>Change expiration</source>
         <translation>Cambia scadenza</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="432"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="449"/>
         <source>Of the primary key, and so of the whole key.</source>
         <translation>Della chiave primaria, e quindi dell&apos;intera chiave.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="443"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="460"/>
         <source>Change passphrase</source>
         <translation>Cambia frase d&apos;accesso</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="444"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="461"/>
         <source>You are asked for the current one, then the new one.</source>
         <translation>Ti viene chiesta quella attuale, poi la nuova.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="460"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="477"/>
         <source>Delete key</source>
         <translation>Elimina chiave</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="494"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="511"/>
         <source>Public key</source>
         <translation>Chiave pubblica</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="500"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="517"/>
         <source>Give it to the people who want to encrypt to this key or check its signatures. It holds nothing secret.</source>
         <translation>Dalla a chi vuole cifrare per questa chiave o verificarne le firme. Non contiene nulla di segreto.</translation>
     </message>
@@ -18815,7 +18857,7 @@ Aprirlo nel browser?</translation>
         <translation type="vanished">Copia</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="534"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="551"/>
         <source>Copied.</source>
         <translation>Copiato.</translation>
     </message>
@@ -18824,54 +18866,54 @@ Aprirlo nel browser?</translation>
         <translation type="vanished">Condividi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="565"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="582"/>
         <source>How long the key lasts, from today.</source>
         <translation>Quanto dura la chiave, da oggi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="566"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="583"/>
         <source>How long subkey %1 lasts, from today.</source>
         <translation>Quanto dura la sottochiave %1, da oggi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="636"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="653"/>
         <source>Delete this user ID?</source>
         <translation>Eliminare questo ID utente?</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="637"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="654"/>
         <source>“%1” is deleted from this device only. Copies of the key others have keep it: to withdraw it, revoke it instead.</source>
         <translation>“%1” viene eliminato solo da questo dispositivo. Le copie della chiave in possesso di altri lo conservano: per ritirarlo, revocalo.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="640"/>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="654"/>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="672"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="657"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="671"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="689"/>
         <source>Delete</source>
         <translation>Elimina</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="650"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="667"/>
         <source>Delete subkey %1?</source>
         <translation>Eliminare la sottochiave %1?</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="651"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="668"/>
         <source>It is deleted from this device only. Copies of the key others have keep it: to end its use, revoke it instead. This cannot be undone.</source>
         <translation>Viene eliminata solo da questo dispositivo. Le copie della chiave in possesso di altri la conservano: per interromperne l&apos;uso, revocala invece. L&apos;operazione non può essere annullata.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="662"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="679"/>
         <source>Delete this key?</source>
         <translation>Eliminare questa chiave?</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="665"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="682"/>
         <source>This is your own key. Without it you can no longer read messages encrypted to it or sign with it. This cannot be undone.</source>
         <translation>Questa è una tua chiave. Senza di essa non potrai più leggere i messaggi cifrati per essa né firmare con essa. L&apos;operazione non può essere annullata.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="668"/>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="685"/>
         <source>You will no longer be able to encrypt to this key or check its signatures, until you import it again.</source>
         <translation>Non potrai più cifrare per questa chiave né controllarne le firme, finché non la importerai di nuovo.</translation>
     </message>
@@ -18879,57 +18921,85 @@ Aprirlo nel browser?</translation>
 <context>
     <name>KeyFacts</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="20"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="28"/>
         <source>Revoked</source>
         <translation>Revocato</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="21"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="29"/>
         <source>Disabled</source>
         <translation>Disabilitato</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="24"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="32"/>
         <source>Expired on %1</source>
         <translation>Scaduto il %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="24"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="32"/>
         <source>Expired</source>
         <translation>Scaduto</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="27"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="35"/>
         <source>Valid until %1</source>
         <translation>Valida fino al %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="28"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="36"/>
         <source>Valid, does not expire</source>
         <translation>Valida, non scade</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="56"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="62"/>
+        <source>Key ID</source>
+        <translation>ID chiave</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="70"/>
         <source>Can</source>
         <translation>Può</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="57"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="83"/>
+        <source>Primary key</source>
+        <translation>Chiave primaria</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="83"/>
+        <source>Subkey</source>
+        <translation>Sottochiave</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="94"/>
+        <source>Created</source>
+        <translation>Creata</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="100"/>
+        <source>Expires</source>
+        <translation>Scade</translation>
+    </message>
+    <message>
         <source>encrypt</source>
-        <translation>cifrare</translation>
+        <translation type="vanished">cifrare</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="58"/>
         <source>sign</source>
-        <translation>firmare</translation>
+        <translation type="vanished">firmare</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="61"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="102"/>
         <source>Never</source>
         <translation>Mai</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="62"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="108"/>
+        <source>Secret part</source>
+        <translation>Parte segreta</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="109"/>
         <source>On this device</source>
         <translation>Su questo dispositivo</translation>
     </message>
@@ -18938,7 +19008,7 @@ Aprirlo nel browser?</translation>
         <translation type="vanished">Tua, su questo dispositivo</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="63"/>
+        <location filename="../../../../src/mob/qml/components/KeyFacts.qml" line="109"/>
         <source>Not here</source>
         <translation>Non qui</translation>
     </message>
@@ -18974,27 +19044,27 @@ Aprirlo nel browser?</translation>
         <translation>Salva</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGenProfileEditPage.qml" line="109"/>
+        <location filename="../../../../src/mob/qml/KeyGenProfileEditPage.qml" line="111"/>
         <source>Name</source>
         <translation>Nome</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGenProfileEditPage.qml" line="120"/>
+        <location filename="../../../../src/mob/qml/KeyGenProfileEditPage.qml" line="122"/>
         <source>What it is for (optional)</source>
         <translation>A cosa serve (facoltativo)</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGenProfileEditPage.qml" line="131"/>
+        <location filename="../../../../src/mob/qml/KeyGenProfileEditPage.qml" line="133"/>
         <source>Primary key</source>
         <translation>Chiave primaria</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGenProfileEditPage.qml" line="150"/>
+        <location filename="../../../../src/mob/qml/KeyGenProfileEditPage.qml" line="152"/>
         <source>Subkey</source>
         <translation>Sottochiave</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyGenProfileEditPage.qml" line="158"/>
+        <location filename="../../../../src/mob/qml/KeyGenProfileEditPage.qml" line="160"/>
         <source>Add a subkey</source>
         <translation>Aggiungi una sottochiave</translation>
     </message>
@@ -19224,27 +19294,27 @@ Aprirlo nel browser?</translation>
         <translation>Nuovo gruppo chiavi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyGroupSheet.qml" line="61"/>
+        <location filename="../../../../src/mob/qml/components/KeyGroupSheet.qml" line="56"/>
         <source>Encrypting to a key group encrypts to every key in it. The desktop shows the same groups.</source>
         <translation>Cifrare per un gruppo chiavi cifra per ogni chiave che contiene. La versione desktop mostra gli stessi gruppi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyGroupSheet.qml" line="69"/>
+        <location filename="../../../../src/mob/qml/components/KeyGroupSheet.qml" line="63"/>
         <source>Name, for example Project team</source>
         <translation>Nome, ad esempio Team di progetto</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyGroupSheet.qml" line="84"/>
+        <location filename="../../../../src/mob/qml/components/KeyGroupSheet.qml" line="78"/>
         <source>Cancel</source>
         <translation>Annulla</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyGroupSheet.qml" line="90"/>
+        <location filename="../../../../src/mob/qml/components/KeyGroupSheet.qml" line="84"/>
         <source>Save</source>
         <translation>Salva</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyGroupSheet.qml" line="90"/>
+        <location filename="../../../../src/mob/qml/components/KeyGroupSheet.qml" line="84"/>
         <source>Create</source>
         <translation>Crea</translation>
     </message>
@@ -19340,22 +19410,22 @@ Aprirlo nel browser?</translation>
         <translation>Cancella</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="161"/>
+        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="163"/>
         <source>Already in</source>
         <translation>Già in</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="182"/>
+        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="184"/>
         <source>No key matches.</source>
         <translation>Nessuna chiave corrisponde.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="191"/>
+        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="193"/>
         <source>Cancel</source>
         <translation>Annulla</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="197"/>
+        <location filename="../../../../src/mob/qml/components/KeyPickerSheet.qml" line="199"/>
         <source>%1 (%2)</source>
         <translation>%1 (%2)</translation>
     </message>
@@ -19363,7 +19433,7 @@ Aprirlo nel browser?</translation>
 <context>
     <name>KeyRow</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyRow.qml" line="43"/>
+        <location filename="../../../../src/mob/qml/components/KeyRow.qml" line="44"/>
         <source>Key group</source>
         <translation>Gruppo chiavi</translation>
     </message>
@@ -19387,12 +19457,12 @@ Aprirlo nel browser?</translation>
 <context>
     <name>KeyToolbox</name>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="89"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="93"/>
         <source>Encrypt to</source>
         <translation>Cifra per</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="89"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="93"/>
         <source>Sign with</source>
         <translation>Firma con</translation>
     </message>
@@ -19424,12 +19494,12 @@ Aprirlo nel browser?</translation>
         <translation type="vanished">Info su %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="181"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="189"/>
         <source>Some cannot be used</source>
         <translation>Alcune non possono essere usate</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="213"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="221"/>
         <source>%n of them cannot be used. Tap to see why.</source>
         <translation>
             <numerusform>%n di esse non può essere usata. Tocca per scoprire perché.</numerusform>
@@ -19437,62 +19507,62 @@ Aprirlo nel browser?</translation>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="235"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="243"/>
         <source>Signing as %1</source>
         <translation>Firma come %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="306"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="315"/>
         <source>Long-press for the key&apos;s details</source>
         <translation>Tieni premuto per i dettagli della chiave</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="386"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="397"/>
         <source>No key matches “%1”.</source>
         <translation>Nessuna chiave corrisponde a “%1”.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="387"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="398"/>
         <source>No keys in this category.</source>
         <translation>Nessuna chiave in questa categoria.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="388"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="399"/>
         <source>You have no key of your own to sign with.</source>
         <translation>Non hai una chiave tua con cui firmare.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="389"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="400"/>
         <source>No keys yet. Import the keys of the people you write to on the Keys page.</source>
         <translation>Nessuna chiave. Importa le chiavi delle persone a cui scrivi nella pagina Chiavi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="418"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="432"/>
         <source>Back to the list</source>
         <translation>Torna all&apos;elenco</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="438"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="479"/>
         <source>Open on the Keys page</source>
         <translation>Apri nella pagina Chiavi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="452"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="489"/>
         <source>Reset keys</source>
         <translation>Reimposta chiavi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="460"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="497"/>
         <source>Back</source>
         <translation>Indietro</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="470"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="507"/>
         <source>Done</source>
         <translation>Fatto</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="477"/>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="514"/>
         <source>Next</source>
         <translation>Avanti</translation>
     </message>
@@ -19504,12 +19574,12 @@ Aprirlo nel browser?</translation>
         <translation type="vanished">%1 a cui cifrare</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="90"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="98"/>
         <source>Keys</source>
         <translation>Chiavi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="101"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="109"/>
         <source>Key database: %1. Choose another</source>
         <translation>Database delle chiavi: %1. Scegli un altro database</translation>
     </message>
@@ -19546,27 +19616,27 @@ Aprirlo nel browser?</translation>
         <translation type="vanished">Non è possibile cifrare per %1.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="188"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="197"/>
         <source>Release to refresh</source>
         <translation>Rilascia per aggiornare</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="189"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="198"/>
         <source>Pull to refresh</source>
         <translation>Trascina per aggiornare</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="212"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="221"/>
         <source>No key matches “%1”.</source>
         <translation>Nessuna chiave corrisponde a “%1”.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="213"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="222"/>
         <source>No keys in this category.</source>
         <translation>Nessuna chiave in questa categoria.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="215"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="224"/>
         <source>No keys yet.</source>
         <translation>Ancora nessuna chiave.</translation>
     </message>
@@ -19587,68 +19657,68 @@ Aprirlo nel browser?</translation>
         <translation type="vanished">Importa</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="282"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="292"/>
         <source>Create a key</source>
         <translation>Crea una chiave</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="263"/>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="272"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="273"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="282"/>
         <source>Add a key</source>
         <translation>Aggiungi una chiave</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="214"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="223"/>
         <source>The keys could not be read.</source>
         <translation>Impossibile leggere le chiavi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="219"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="228"/>
         <source>Add keys to it from the category&apos;s page.</source>
         <translation>Aggiungi chiavi dalla pagina della categoria.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="221"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="230"/>
         <source>Use + to create a key of your own or import the keys of the people you write to.</source>
         <translation>Usa + per creare una chiave tua o importare le chiavi delle persone a cui scrivi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="227"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="236"/>
         <source>Try again</source>
         <translation>Riprova</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="283"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="293"/>
         <source>Create a key for signing and receiving encrypted content.</source>
         <translation>Crea una chiave per firmare e ricevere contenuti cifrati.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="299"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="309"/>
         <source>Quick key</source>
         <translation>Chiave rapida</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="300"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="310"/>
         <source>An anonymous key from the default profile, at once. Only its passphrase is asked for.</source>
         <translation>Una chiave anonima dal profilo predefinito, subito. Viene chiesta solo la sua frase d&apos;accesso.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="315"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="325"/>
         <source>New key group</source>
         <translation>Nuovo gruppo chiavi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="316"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="326"/>
         <source>Encrypt to several keys at once, as one recipient.</source>
         <translation>Cifra per più chiavi contemporaneamente, come un unico destinatario.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="332"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="342"/>
         <source>Import a key</source>
         <translation>Importa una chiave</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeysPage.qml" line="333"/>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="343"/>
         <source>Import from a file or the clipboard.</source>
         <translation>Importa da un file o dagli appunti.</translation>
     </message>
@@ -19970,52 +20040,52 @@ Aprirlo nel browser?</translation>
         <translation>Apri il file del profilo</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="80"/>
+        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="68"/>
         <source>A profile has its own keys and settings. The new one starts empty.</source>
         <translation>Un profilo ha chiavi e impostazioni proprie. Quello nuovo parte vuoto.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="83"/>
+        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="71"/>
         <source>The file holds your keys and settings, sealed with this passphrase. Without it, the file cannot be opened, and it cannot be recovered.</source>
         <translation>Il file contiene le tue chiavi e impostazioni, protette con questa frase d&apos;accesso. Senza di essa, il file non può essere aperto e non può essere recuperato.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="86"/>
+        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="74"/>
         <source>Enter the passphrase the file was sealed with.</source>
         <translation>Inserisci la frase d&apos;accesso con cui è stato protetto il file.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="94"/>
+        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="88"/>
         <source>Name, for example Work</source>
         <translation>Nome, ad esempio Lavoro</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="105"/>
+        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="99"/>
         <source>Passphrase</source>
         <translation>Frase d&apos;accesso</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="116"/>
+        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="110"/>
         <source>Passphrase again</source>
         <translation>Ripeti la frase d&apos;accesso</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="131"/>
+        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="125"/>
         <source>Cancel</source>
         <translation>Annulla</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="137"/>
+        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="131"/>
         <source>Create</source>
         <translation>Crea</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="138"/>
+        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="132"/>
         <source>Choose where</source>
         <translation>Scegli dove</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="139"/>
+        <location filename="../../../../src/mob/qml/components/ProfileSheet.qml" line="133"/>
         <source>Import</source>
         <translation>Importa</translation>
     </message>
@@ -20038,67 +20108,67 @@ Aprirlo nel browser?</translation>
         <translation>“%1” è stato importato</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="73"/>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="75"/>
         <source>On this phone</source>
         <translation>Su questo telefono</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="87"/>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="89"/>
         <source>In use</source>
         <translation>In uso</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="94"/>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="96"/>
         <source>Open “%1”?</source>
         <translation>Aprire “%1”?</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="110"/>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="112"/>
         <source>New profile</source>
         <translation>Nuovo profilo</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="117"/>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="119"/>
         <source>Backup</source>
         <translation>Backup</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="124"/>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="126"/>
         <source>Export this profile</source>
         <translation>Esporta questo profilo</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="125"/>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="127"/>
         <source>One file with its keys and settings, sealed with a passphrase. The desktop opens it too.</source>
         <translation>Un unico file con le sue chiavi e impostazioni, protetto da una frase d&apos;accesso. Si apre anche sul desktop.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="135"/>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="137"/>
         <source>Import a profile</source>
         <translation>Importa un profilo</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="136"/>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="138"/>
         <source>From a profile file (.gfp), made here or on the desktop. It is added beside this one.</source>
         <translation>Da un file di profilo (.gfp), creato qui o sul desktop. Viene aggiunto accanto a questo.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="156"/>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="158"/>
         <source>Working on the profile file…</source>
         <translation>Elaborazione del file del profilo…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="172"/>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="174"/>
         <source>“%1” is ready</source>
         <translation>“%1” è pronto</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="207"/>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="209"/>
         <source>GpgFrontend starts again and opens “%1”. It opens this profile until you choose another.</source>
         <translation>GpgFrontend si riavvia e apre “%1”. Apre questo profilo finché non ne sceglie un altro.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="210"/>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="212"/>
         <source>Open</source>
         <translation>Apri</translation>
     </message>
@@ -23106,17 +23176,17 @@ Annulla tali modifiche oppure scegli Annulla per scartare tutto ciò che hai mod
         <translation>Una sottochiave revocata non può più essere usata. Condividi poi la chiave, così gli altri ne vengono a conoscenza.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="84"/>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="91"/>
         <source>Description (optional)</source>
         <translation>Descrizione (facoltativa)</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="92"/>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="99"/>
         <source>Cancel</source>
         <translation>Annulla</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="98"/>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="105"/>
         <source>Revoke</source>
         <translation>Revoca</translation>
     </message>
@@ -23247,162 +23317,162 @@ Annulla tali modifiche oppure scegli Annulla per scartare tutto ciò che hai mod
         <translation>Impossibile impostare il valore.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="148"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="150"/>
         <source>Security</source>
         <translation>Sicurezza</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="158"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="160"/>
         <source>Clear cached passphrases</source>
         <translation>Cancella le frasi d&apos;accesso in cache</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="159"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="161"/>
         <source>The next operation asks for them again.</source>
         <translation>La prossima operazione le chiederà di nuovo.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="162"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="164"/>
         <source>Cached passphrases are cleared.</source>
         <translation>Le frasi d&apos;accesso in cache sono state cancellate.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="168"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="170"/>
         <source>Operations</source>
         <translation>Operazioni</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="177"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="179"/>
         <source>Keys</source>
         <translation>Chiavi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="187"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="189"/>
         <source>Key database</source>
         <translation>Database delle chiavi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="188"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="190"/>
         <source>Choose where your keys are kept, or start a new one.</source>
         <translation>Scegli dove conservare le chiavi o crea un nuovo database.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="196"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="198"/>
         <source>Key categories</source>
         <translation>Categorie di chiavi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="197"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="199"/>
         <source>Your own groups of keys, shared with the desktop.</source>
         <translation>I tuoi gruppi di chiavi, condivisi con il desktop.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="209"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="211"/>
         <source>Key generation profiles</source>
         <translation>Profili di generazione delle chiavi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="210"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="212"/>
         <source>What Create a key offers, shared with the desktop.</source>
         <translation>Cosa offre Crea una chiave, condiviso con il desktop.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="221"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="223"/>
         <source>Storage</source>
         <translation>Archiviazione</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="227"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="229"/>
         <source>Temporary shared files</source>
         <translation>File condivisi temporanei</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="229"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="231"/>
         <source>Kept for up to a day, so the app you share with can open them.</source>
         <translation>Conservati fino a un giorno, così l&apos;app con cui condividi può aprirli.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="231"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="233"/>
         <source>Tap to remove them now. Apps you shared them with can no longer open them.</source>
         <translation>Tocca per rimuoverli ora. Le app con cui li hai condivisi non potranno più aprirli.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="236"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="238"/>
         <source>No shared files are kept.</source>
         <translation>Nessun file condiviso viene conservato.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="242"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="244"/>
         <source>Profile</source>
         <translation>Profilo</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="248"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="250"/>
         <source>Profiles</source>
         <translation>Profili</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="249"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="251"/>
         <source>Open another, start a new one, or keep a backup.</source>
         <translation>Aprine un altro, creane uno nuovo o conserva un backup.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="256"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="258"/>
         <source>About</source>
         <translation>Informazioni</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="262"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="264"/>
         <source>GpgFrontend</source>
         <translation>GpgFrontend</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="270"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="272"/>
         <source>Build information</source>
         <translation>Informazioni sulla build</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="271"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="273"/>
         <source>What this build is made of, and when.</source>
         <translation>Di cosa è fatta questa build e quando.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="278"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="280"/>
         <source>rPGP engine</source>
         <translation>Motore rPGP</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="279"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="281"/>
         <source>The OpenPGP engine that does the work here.</source>
         <translation>Il motore OpenPGP che esegue il lavoro qui.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="287"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="289"/>
         <source>Translators</source>
         <translation>Traduttori</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="288"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="290"/>
         <source>Who brought GpgFrontend to your language.</source>
         <translation>Chi ha portato GpgFrontend nella tua lingua.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="310"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="317"/>
         <source>Remove shared files?</source>
         <translation>Rimuovere i file condivisi?</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="312"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="319"/>
         <source>Apps you shared files with can no longer open them.</source>
         <translation>Le app con cui hai condiviso i file non potranno più aprirli.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="314"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="321"/>
         <source>Remove</source>
         <translation>Rimuovi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="318"/>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="325"/>
         <source>Shared files are removed, and other apps can no longer open them.</source>
         <translation>I file condivisi vengono rimossi e le altre app non potranno più aprirli.</translation>
     </message>
@@ -23967,22 +24037,22 @@ Annulla tali modifiche oppure scegli Annulla per scartare tutto ciò che hai mod
 <context>
     <name>Theme</name>
     <message>
-        <location filename="../../../../src/mob/qml/Theme.qml" line="154"/>
+        <location filename="../../../../src/mob/qml/Theme.qml" line="169"/>
         <source>%1 B</source>
         <translation>%1 B</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Theme.qml" line="155"/>
+        <location filename="../../../../src/mob/qml/Theme.qml" line="170"/>
         <source>%1 kB</source>
         <translation>%1 kB</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Theme.qml" line="157"/>
+        <location filename="../../../../src/mob/qml/Theme.qml" line="172"/>
         <source>%1 MB</source>
         <translation>%1 MB</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Theme.qml" line="158"/>
+        <location filename="../../../../src/mob/qml/Theme.qml" line="173"/>
         <source>%1 GB</source>
         <translation>%1 GB</translation>
     </message>
@@ -23995,17 +24065,17 @@ Annulla tali modifiche oppure scegli Annulla per scartare tutto ciò che hai mod
         <translation>Traduttori</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TranslatorsPage.qml" line="49"/>
+        <location filename="../../../../src/mob/qml/TranslatorsPage.qml" line="51"/>
         <source>Thanks to all translators</source>
         <translation>Grazie a tutti i traduttori</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TranslatorsPage.qml" line="65"/>
+        <location filename="../../../../src/mob/qml/TranslatorsPage.qml" line="67"/>
         <source>Translator information is not available.</source>
         <translation>Le informazioni sui traduttori non sono disponibili.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/TranslatorsPage.qml" line="76"/>
+        <location filename="../../../../src/mob/qml/TranslatorsPage.qml" line="78"/>
         <source>To help translate GpgFrontend, read the translation guide at gpgfrontend.bktus.com.</source>
         <translation>Per contribuire a tradurre GpgFrontend, leggere la guida alla traduzione su gpgfrontend.bktus.com.</translation>
     </message>
@@ -24141,7 +24211,7 @@ Annulla tali modifiche oppure scegli Annulla per scartare tutto ciò che hai mod
     </message>
     <message>
         <location filename="../../../../src/mob/qml/Wording.qml" line="47"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="148"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="158"/>
         <source>Encrypt with a passphrase</source>
         <translation>Cifra con una frase d&apos;accesso</translation>
     </message>
@@ -24162,7 +24232,7 @@ Annulla tali modifiche oppure scegli Annulla per scartare tutto ciò che hai mod
     </message>
     <message>
         <location filename="../../../../src/mob/qml/Wording.qml" line="59"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="186"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="196"/>
         <source>Not signed</source>
         <translation>Non firmato</translation>
     </message>
@@ -24204,7 +24274,7 @@ Annulla tali modifiche oppure scegli Annulla per scartare tutto ciò che hai mod
         <translation type="vanished">%1 chiavi selezionate</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/mob/qml/Wording.qml" line="100"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="110"/>
         <source>%n key(s) selected</source>
         <translation>
             <numerusform>%n chiave selezionata</numerusform>
@@ -24212,12 +24282,12 @@ Annulla tali modifiche oppure scegli Annulla per scartare tutto ciò che hai mod
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="105"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="115"/>
         <source>No keys yet</source>
         <translation>Ancora nessuna chiave</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/mob/qml/Wording.qml" line="106"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="116"/>
         <source>%n key(s)</source>
         <translation>
             <numerusform>%n chiave</numerusform>
@@ -24225,119 +24295,121 @@ Annulla tali modifiche oppure scegli Annulla per scartare tutto ciò che hai mod
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="111"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="121"/>
         <source>Has no keys</source>
         <translation>Non ha chiavi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="112"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="122"/>
         <source>No longer in your keys</source>
         <translation>Non più nelle tue chiavi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="113"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="248"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="282"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="123"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="258"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="292"/>
         <source>Expired</source>
         <translation>Scaduto</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="114"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="249"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="278"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="124"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="259"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="288"/>
         <source>Revoked</source>
         <translation>Revocato</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="115"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="279"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="125"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="289"/>
         <source>Disabled</source>
         <translation>Disabilitato</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="116"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="126"/>
         <source>Cannot be encrypted to</source>
         <translation>Non cifrabile</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="117"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="127"/>
         <source>Cannot sign</source>
         <translation>Non può firmare</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="118"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="128"/>
         <source>Not a key of your own</source>
         <translation>Non è una tua chiave</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="126"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="136"/>
         <source>Choose who can read it.</source>
         <translation>Scegli chi può leggerlo.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="127"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="137"/>
         <source>Some chosen keys cannot be used. Remove them or choose others.</source>
         <translation>Alcune chiavi scelte non possono essere usate. Rimuovile o scegline altre.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="128"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="138"/>
         <source>Choose a key to sign with.</source>
         <translation>Scegli una chiave con cui firmare.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="129"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="139"/>
         <source>The signing key cannot be used. Choose another.</source>
         <translation>La chiave di firma non può essere usata. Scegline un&apos;altra.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="136"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="146"/>
         <source>Encrypting…</source>
         <translation>Cifratura…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="137"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="147"/>
         <source>Decrypting…</source>
         <translation>Decifratura…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="138"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="148"/>
         <source>Signing…</source>
         <translation>Firma…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="139"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="149"/>
         <source>Verifying…</source>
         <translation>Verifica…</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="146"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="269"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="96"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="156"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="279"/>
         <source>Encrypt</source>
         <translation>Cifra</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="147"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="157"/>
         <source>Encrypt &amp; Sign</source>
         <translation>Cifra e &amp;firma</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="149"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="159"/>
         <source>Decrypt</source>
         <translation>Decifra</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="150"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="160"/>
         <source>Decrypt &amp; Verify</source>
         <translation>Decifra e &amp;verifica</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="151"/>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="268"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="97"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="161"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="278"/>
         <source>Sign</source>
         <translation>Firma</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="152"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="162"/>
         <source>Verify</source>
         <translation>Verifica</translation>
     </message>
@@ -24346,177 +24418,177 @@ Annulla tali modifiche oppure scegli Annulla per scartare tutto ciò che hai mod
         <translation type="vanished">Cifra simm.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="166"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="176"/>
         <source>Encrypt Operation</source>
         <translation>Operazione di cifratura</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="167"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="177"/>
         <source>Decrypt Operation</source>
         <translation>Operazione di decifratura</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="168"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="178"/>
         <source>Sign Operation</source>
         <translation>Operazione di firma</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="169"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="179"/>
         <source>Verify Operation</source>
         <translation>Operazione di verifica</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="175"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="185"/>
         <source>Encrypted</source>
         <translation>Cifrato</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="176"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="186"/>
         <source>Decrypted</source>
         <translation>Decifrato</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="177"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="187"/>
         <source>Signed</source>
         <translation>Firmato</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="178"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="188"/>
         <source>Verified</source>
         <translation>Verificato</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="184"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="194"/>
         <source>Not encrypted</source>
         <translation>Non cifrato</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="185"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="195"/>
         <source>Not decrypted</source>
         <translation>Non decifrato</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="187"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="197"/>
         <source>Not verified</source>
         <translation>Non verificato</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="195"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="205"/>
         <source>Waiting</source>
         <translation>In attesa</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="197"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="207"/>
         <source>Waiting for the passphrase</source>
         <translation>In attesa della frase d&apos;accesso</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="198"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="208"/>
         <source>Cancelled</source>
         <translation>Annullato</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="204"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="214"/>
         <source>No signature found</source>
         <translation>Nessuna firma trovata</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="205"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="215"/>
         <source>Signature checked</source>
         <translation>Firma controllata</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="206"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="216"/>
         <source>Signature problem</source>
         <translation>Problema con la firma</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="215"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="225"/>
         <source>Stopped when the app went to the background.</source>
         <translation>Interrotto quando l&apos;app è passata in background.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="216"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="226"/>
         <source>Stopped before it started.</source>
         <translation>Interrotto prima di iniziare.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="217"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="227"/>
         <source>Its file was removed from the list.</source>
         <translation>Il suo file è stato rimosso dall&apos;elenco.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="218"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="228"/>
         <source>Stopped when the app closed it.</source>
         <translation>Interrotto quando l&apos;app l&apos;ha chiuso.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="227"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="237"/>
         <source>Text</source>
         <translation>Testo</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="229"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="239"/>
         <source>%1 with %2</source>
         <translation>%1 con %2</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="236"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="246"/>
         <source>Valid</source>
         <translation>Valido</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="237"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="247"/>
         <source>Invalid: the content or signature was changed</source>
         <translation>Non valido: il contenuto o la firma sono stati modificati</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="238"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="248"/>
         <source>Valid, but the signature has expired</source>
         <translation>Valido, ma la firma è scaduta</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="239"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="249"/>
         <source>Not valid: the key had expired when it signed</source>
         <translation>Non valido: la chiave era scaduta al momento della firma</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="240"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="250"/>
         <source>Could not be checked</source>
         <translation>Impossibile verificare</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="246"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="256"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="247"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="257"/>
         <source>Not in your keys</source>
         <translation>Non è tra le tue chiavi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="250"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="260"/>
         <source>Not allowed to sign</source>
         <translation>Non può firmare</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="251"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="261"/>
         <source>Has problems</source>
         <translation>Ha problemi</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="257"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="267"/>
         <source>Trusted</source>
         <translation>Affidabile</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="258"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="268"/>
         <source>Not fully trusted</source>
         <translation>Non del tutto affidabile</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="259"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="269"/>
         <source>Not assessed</source>
         <translation>Non valutata</translation>
     </message>
@@ -24549,47 +24621,49 @@ Annulla tali modifiche oppure scegli Annulla per scartare tutto ciò che hai mod
         <translation type="vanished">Dati cifrati o firmati</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="267"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="96"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="277"/>
         <source>Certify</source>
         <translation>Certifica</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="270"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="97"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="280"/>
         <source>Authenticate</source>
         <translation>Autentica</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="282"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="292"/>
         <source>Expired on %1</source>
         <translation>Scaduto il %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="283"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="293"/>
         <source>Valid until %1</source>
         <translation>Valido fino al %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="284"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="294"/>
         <source>Does not expire</source>
         <translation>Non scade</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="289"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="299"/>
         <source>No reason given</source>
         <translation>Nessun motivo indicato</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="290"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="300"/>
         <source>It may have been compromised</source>
         <translation>Potrebbe essere stato compromesso</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="291"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="301"/>
         <source>A newer subkey replaces it</source>
         <translation>Una sottochiave più recente lo sostituisce</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/Wording.qml" line="292"/>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="302"/>
         <source>It is no longer used</source>
         <translation>Non è più usato</translation>
     </message>
