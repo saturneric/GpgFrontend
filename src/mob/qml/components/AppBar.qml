@@ -34,8 +34,12 @@ ToolBar {
     // into what is under the bar (a search field). The style's own formula,
     // with the title's row as the content (the row is laid over the bar, so
     // the bar's content item does not know its size).
+    // By the title and a touch target only, never by the actions: a text
+    // button that comes and goes (Select all) is taller than an icon with
+    // the app's font, and the page under the bar moved with it.
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
-                             row.implicitHeight + topPadding + bottomPadding)
+                             Math.max(Theme.touch, titleLabel.implicitHeight)
+                             + topPadding + bottomPadding)
 
     Rectangle {
         objectName: "appBarDivider"
@@ -68,6 +72,7 @@ ToolBar {
         }
 
         Label {
+            id: titleLabel
             Layout.fillWidth: true
             text: bar.title
             elide: Text.ElideRight
@@ -78,6 +83,7 @@ ToolBar {
 
         RowLayout {
             id: actionRow
+            Layout.maximumHeight: row.height
             spacing: 0
         }
     }

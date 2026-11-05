@@ -716,6 +716,8 @@ Page {
                     text: name
                     symbol: page.symbolOf(row)
                     symbolColor: Material.secondaryTextColor
+                    symbolSize: 28
+                    symbolCentered: true
                     detail: page.detailOf(row)
                     detailColor: page.detailColorOf(row)
                     detailLines: 2

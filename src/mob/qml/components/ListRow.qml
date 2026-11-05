@@ -19,6 +19,10 @@ ItemDelegate {
     // desktop icon), not tinted.
     property url image: ""
     property color symbolColor: Material.secondaryTextColor
+    // The icon's size, and whether it stays centred beside two lines of
+    // text (a file's type) rather than level with the first (a setting).
+    property int symbolSize: 24
+    property bool symbolCentered: false
     property string detail
     property color detailColor: Material.secondaryTextColor
     property int detailLines: 0
@@ -83,9 +87,14 @@ ItemDelegate {
         }
 
         Icon {
-            Layout.alignment: row.detail.length > 0 ? Qt.AlignTop
-                                                    : Qt.AlignVCenter
-            Layout.topMargin: row.detail.length > 0 ? 2 : 0
+            objectName: "listRowSymbol"
+            Layout.alignment: row.detail.length > 0 && !row.symbolCentered
+                              ? Qt.AlignTop : Qt.AlignVCenter
+            Layout.topMargin: row.detail.length > 0 && !row.symbolCentered ? 2 : 0
+            // One slot for every row's icon, whatever the picture's own size.
+            Layout.preferredWidth: row.symbolSize
+            Layout.preferredHeight: row.symbolSize
+            sourceSize: Qt.size(row.symbolSize, row.symbolSize)
             visible: row.symbol.length > 0 || row.image.toString().length > 0
             symbol: row.symbol
             source: row.image.toString().length > 0 ? row.image
@@ -98,6 +107,7 @@ ItemDelegate {
             spacing: 2
 
             Label {
+                objectName: "listRowTitle"
                 Layout.fillWidth: true
                 text: row.text
                 wrapMode: row.singleLineTitle ? Text.NoWrap : Text.Wrap

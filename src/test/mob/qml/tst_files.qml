@@ -109,6 +109,47 @@ Item {
             compare(files.workspace.count, 0)
         }
 
+        // Choosing a file moves nothing: not the list under the bar, not a
+        // row's icon or text, not its height; and the icons have one size
+        // and one place in every row.
+        function test_choosing_moves_nothing() {
+            files.workspace.addFiles([Qt.resolvedUrl("tst_files.qml"),
+                                      Qt.resolvedUrl("tst_text.qml")])
+            const id = files.workspace.idNamed("tst_files.qml")
+            let row = null
+            // This file's row, not one left over from a test before.
+            tryVerify(() => (row = findByName(files, "file_tst_files.qml")) !== null
+                            && row.fileId === id)
+            const list = findByName(files, "fileList")
+            const icon = findByName(row, "listRowSymbol")
+            verify(icon !== null)
+            compare(icon.width, 28)
+            const shape = () => {
+                const at = list.mapToItem(files, 0, 0)
+                const iconAt = icon.mapToItem(row, 0, 0)
+                const title = findByName(row, "listRowTitle").mapToItem(row, 0, 0)
+                return [at.y, list.height, row.height, iconAt.x, iconAt.y,
+                        title.x, title.y].join(",")
+            }
+            // With a larger font (the phone's), a text button in the bar is
+            // taller than an icon: it must not make the bar taller.
+            const selectAll = findByName(files, "selectAll")
+            selectAll.font.pixelSize = 30
+            const before = shape()
+            files.workspace.setSelected(id, true)
+            verify(files.selecting)
+            wait(0)
+            compare(shape(), before)
+            files.workspace.selectAll()
+            wait(0)
+            compare(shape(), before)
+            files.workspace.clearSelection()
+            wait(0)
+            compare(shape(), before)
+            selectAll.font.pixelSize = Theme.bodySize
+            files.workspace.clear()
+        }
+
         function test_the_list_is_searched() {
             files.workspace.addFiles([Qt.resolvedUrl("tst_files.qml"),
                                       Qt.resolvedUrl("tst_text.qml")])
