@@ -37,6 +37,7 @@
 #include "core/model/GpgPassphraseContext.h"
 #include "crypto/OperationQueue.h"
 #include "plat/common/PlatformPrivacy.h"
+#include "shell/rules/PassphraseEntryRules.h"
 
 namespace GpgFrontend::Mobile {
 
@@ -109,6 +110,14 @@ void PassphraseBroker::submit(const QString& passphrase) {
 }
 
 void PassphraseBroker::cancel() { answer_front(nullptr); }
+
+auto PassphraseBroker::entryProblem(const QString& passphrase,
+                                    const QString& confirmation,
+                                    bool confirm) const -> QString {
+  return Shell::DescribePassphraseEntryProblem(
+             Shell::CheckPassphraseEntry(passphrase, confirmation, confirm))
+      .text;
+}
 
 void PassphraseBroker::CancelAll() {
   while (!pending_.empty()) answer_front(nullptr);

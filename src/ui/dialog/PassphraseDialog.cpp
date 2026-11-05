@@ -29,6 +29,7 @@
 #include "PassphraseDialog.h"
 
 #include "core/function/CoreSignalStation.h"
+#include "shell/rules/PassphraseEntryRules.h"
 #include "ui/dialog/PassphraseStrength.h"
 
 namespace GpgFrontend::UI {
@@ -270,31 +271,22 @@ PassphraseDialog::PassphraseDialog(
     return false;
   }
 
-  const auto passphrase = password_edit_->text();
-  const auto confirmation = confirm_password_edit_->text();
+  // The phone's sheet applies the same rule.
+  const auto problem = Shell::CheckPassphraseEntry(
+      password_edit_->text(), confirm_password_edit_->text(), true);
+  if (problem == Shell::PassphraseEntryProblem::kNone) return true;
 
-  if (passphrase.isEmpty()) {
-    QMessageBox::warning(this, tr("Empty Passphrase"),
-                         tr("Passphrase cannot be empty. Please enter a valid "
-                            "passphrase."));
-
-    password_edit_->setFocus();
-    password_edit_->selectAll();
-    return false;
-  }
-
-  if (passphrase != confirmation) {
-    QMessageBox::warning(this, tr("Passphrase Mismatch"),
-                         tr("The two passphrases do not match. "
-                            "Please enter them again."));
-
+  const auto words = Shell::DescribePassphraseEntryProblem(problem);
+  QMessageBox::warning(this, words.title, words.text);
+  auto* again = problem == Shell::PassphraseEntryProblem::kEmpty
+                    ? password_edit_
+                    : confirm_password_edit_;
+  if (problem == Shell::PassphraseEntryProblem::kMismatch) {
     confirm_password_edit_->clear();
-    confirm_password_edit_->setFocus();
-    confirm_password_edit_->selectAll();
-    return false;
   }
-
-  return true;
+  again->setFocus();
+  again->selectAll();
+  return false;
 }
 
 void PassphraseDialog::Clear() {

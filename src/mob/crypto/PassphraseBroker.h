@@ -88,6 +88,13 @@ class PassphraseBroker : public QObject {
   /// Decline the request on screen; the operation ends as cancelled.
   Q_INVOKABLE void cancel();
 
+  /// Why @p passphrase (typed again as @p confirmation when a new one is
+  /// chosen) cannot be sent yet, in the desktop's words; empty when it can
+  /// (Shell::CheckPassphraseEntry).
+  [[nodiscard]] Q_INVOKABLE QString entryProblem(const QString& passphrase,
+                                                 const QString& confirmation,
+                                                 bool confirm) const;
+
   /// Decline every pending request (going to the background).
   void CancelAll();
 

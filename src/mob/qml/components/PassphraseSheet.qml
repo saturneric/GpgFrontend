@@ -103,8 +103,9 @@ BottomSheet {
             objectName: "passphraseOk"
             text: qsTr("OK")
             highlighted: true
-            enabled: passphrase.text.length > 0
-                     && (!sheet.choosing || passphrase.text === repeat.text)
+            // The desktop's rule: only a new passphrase is checked.
+            enabled: PassphraseBroker.entryProblem(passphrase.text, repeat.text,
+                                                   sheet.choosing).length === 0
             onClicked: {
                 const text = passphrase.text
                 sheet.clear()
