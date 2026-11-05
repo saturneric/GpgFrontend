@@ -105,7 +105,7 @@ BottomSheet {
             font.pixelSize: Theme.labelSize
         }
 
-        ComboBox {
+        ChoiceBox {
             Layout.fillWidth: true
             model: sheet.workspace
             textRole: "name"

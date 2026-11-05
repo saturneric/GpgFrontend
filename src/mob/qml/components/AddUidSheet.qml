@@ -46,14 +46,8 @@ BottomSheet {
 
     objectName: "addUidSheet"
     title: qsTr("Add a user ID")
-
-    Label {
-        Layout.fillWidth: true
-        wrapMode: Text.Wrap
-        color: Material.secondaryTextColor
-        text: qsTr("Another name or address the key stands for. Share the "
-                   + "key afterwards, so others learn of it.")
-    }
+    description: qsTr("Another name or address the key stands for. Share the "
+                       + "key afterwards, so others learn of it.")
 
     TextField {
         id: name

@@ -47,6 +47,8 @@ BottomSheet {
 
     objectName: "categorySheet"
     title: categoryId.length > 0 ? qsTr("Edit category") : qsTr("New category")
+    description: qsTr("A key can be in several categories. The desktop shows "
+                       + "the same ones.")
 
     // A small label over each part: what the field is for stays said once
     // something is typed, without the style's tall floating label.
@@ -62,15 +64,6 @@ BottomSheet {
         topPadding: 8
         bottomPadding: 8
         verticalAlignment: TextInput.AlignVCenter
-    }
-
-    Label {
-        Layout.fillWidth: true
-        wrapMode: Text.Wrap
-        font.pixelSize: Theme.secondarySize
-        color: Material.secondaryTextColor
-        text: qsTr("A key can be in several categories. The desktop shows "
-                   + "the same ones.")
     }
 
     ColumnLayout {

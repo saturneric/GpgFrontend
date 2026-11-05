@@ -64,26 +64,20 @@ BottomSheet {
     title: mode === "create" ? qsTr("New profile")
          : mode === "export" ? qsTr("Export this profile")
          : qsTr("Open the profile file")
+    description: mode === "create"
+                 ? qsTr("A profile has its own keys and settings. The new one "
+                        + "starts empty.")
+                 : mode === "export"
+                   ? qsTr("The file holds your keys and settings, sealed with "
+                          + "this passphrase. Without it, the file cannot be "
+                          + "opened, and it cannot be recovered.")
+                   : qsTr("Enter the passphrase the file was sealed with.")
 
     // Typed secrets never stay behind in a closed sheet.
     onClosed: {
         secret.text = ""
         confirm.text = ""
         if (!taken) dismissed()
-    }
-
-    Label {
-        Layout.fillWidth: true
-        wrapMode: Text.Wrap
-        color: Material.secondaryTextColor
-        text: sheet.mode === "create"
-              ? qsTr("A profile has its own keys and settings. The new one "
-                     + "starts empty.")
-              : sheet.mode === "export"
-                ? qsTr("The file holds your keys and settings, sealed with "
-                       + "this passphrase. Without it, the file cannot be "
-                       + "opened, and it cannot be recovered.")
-                : qsTr("Enter the passphrase the file was sealed with.")
     }
 
     TextField {

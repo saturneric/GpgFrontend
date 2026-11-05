@@ -52,15 +52,9 @@ BottomSheet {
 
     objectName: "keyGroupSheet"
     title: groupId.length > 0 ? qsTr("Rename key group") : qsTr("New key group")
-
-    Label {
-        Layout.fillWidth: true
-        visible: sheet.groupId.length === 0
-        wrapMode: Text.Wrap
-        color: Material.secondaryTextColor
-        text: qsTr("Encrypting to a key group encrypts to every key in it. "
-                   + "The desktop shows the same groups.")
-    }
+    description: groupId.length > 0 ? ""
+                 : qsTr("Encrypting to a key group encrypts to every key in it. "
+                        + "The desktop shows the same groups.")
 
     TextField {
         id: name

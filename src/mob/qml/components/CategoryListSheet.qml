@@ -51,10 +51,13 @@ BottomSheet {
 
                 objectName: "category_" + (modelData.id || "all")
                 Layout.fillWidth: true
-                Layout.leftMargin: -Theme.gap
-                Layout.rightMargin: -Theme.gap
-                leftPadding: Theme.gap
+                Layout.leftMargin: -Theme.sheetPad
+                Layout.rightMargin: -Theme.sheetPad
+                leftPadding: Theme.sheetPad
                 text: modelData.name
+                // What is shown, always: a tap chooses, it never ticks the
+                // row itself (that would end the binding).
+                checkable: false
                 checked: sheet.current === modelData.id
                 onClicked: {
                     sheet.close()
@@ -107,9 +110,9 @@ BottomSheet {
         ItemDelegate {
             objectName: "newCategory"
             Layout.fillWidth: true
-            Layout.leftMargin: -Theme.gap
-            Layout.rightMargin: -Theme.gap
-            leftPadding: Theme.gap
+            Layout.leftMargin: -Theme.sheetPad
+            Layout.rightMargin: -Theme.sheetPad
+            leftPadding: Theme.sheetPad
             visible: sheet.manageable
             text: qsTr("New category")
             icon.source: Theme.icon("label")
@@ -123,9 +126,9 @@ BottomSheet {
         ItemDelegate {
             objectName: "manageCategories"
             Layout.fillWidth: true
-            Layout.leftMargin: -Theme.gap
-            Layout.rightMargin: -Theme.gap
-            leftPadding: Theme.gap
+            Layout.leftMargin: -Theme.sheetPad
+            Layout.rightMargin: -Theme.sheetPad
+            leftPadding: Theme.sheetPad
             visible: sheet.manageable
             text: qsTr("Manage categories")
             icon.source: Theme.icon("settings")

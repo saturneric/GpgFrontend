@@ -76,7 +76,7 @@ ColumnLayout {
         text: qsTr("Algorithm")
     }
 
-    ComboBox {
+    ChoiceBox {
         objectName: "algoChoice"
         Layout.fillWidth: true
         model: chooser.algos
@@ -92,7 +92,7 @@ ColumnLayout {
         text: qsTr("Paired with")
     }
 
-    ComboBox {
+    ChoiceBox {
         objectName: "pairChoice"
         Layout.fillWidth: true
         visible: chooser.pairings.length > 0
@@ -148,7 +148,7 @@ ColumnLayout {
         text: qsTr("Expires after")
     }
 
-    ComboBox {
+    ChoiceBox {
         objectName: "validityChoice"
         Layout.fillWidth: true
         visible: chooser.showValidity

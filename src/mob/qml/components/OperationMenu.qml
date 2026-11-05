@@ -36,12 +36,12 @@ FitMenu {
                                       .concat(symmetric ? ["symmetric"] : [])
 
     objectName: "operationMenu"
-    // Kept inside the window, below the status bar and above the gesture
-    // bar: a long menu on a small screen scrolls, it is not cut off.
+    // Kept inside the window, below the status bar, above the gesture bar
+    // and clear of a cutout at the side: a long menu on a small screen scrolls, it is not cut off.
     topMargin: Theme.safeTop + 8
     bottomMargin: Theme.safeBottom + 8
-    leftMargin: Theme.gap
-    rightMargin: Theme.gap
+    leftMargin: Theme.safeLeft + Theme.gap
+    rightMargin: Theme.safeRight + Theme.gap
     // As wide as its names need (FitMenu), just above the button it belongs
     // to, the right edges in line; worked out from the menu's real size,
     // whatever rows it has, and kept inside the window by its margins.

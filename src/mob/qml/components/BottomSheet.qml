@@ -7,7 +7,8 @@ import QtQuick.Layouts
 import GpgFrontend.Mobile
 
 // A choice or a short form that slides up from the foot of the window: a
-// title, its content, and buttons at the foot.
+// title, a line saying what it is for, its content, and buttons at the
+// foot, laid out the same in every sheet (Theme's sheet measures).
 //
 // A modal Popup, not the style's Drawer: an open Drawer either takes every
 // swipe on its content (a list in it then closes the sheet) or, made
@@ -28,9 +29,14 @@ Popup {
     id: sheet
 
     property string title
+    // One line under the title saying what the sheet is for; none if empty.
+    property string description
     default property alias content: body.data
     // The row of buttons at the foot, if any.
     property alias footer: footerRow.data
+    // What must stay in sight above the buttons however far the content is
+    // scrolled: why the last try failed (a ProblemLabel).
+    property alias status: statusSlot.data
     // What sits beside the title, at its right: a progress slot, a button.
     property alias headerItems: headerRow.data
     // Opens at about half the window, and grows when expanded.
@@ -79,8 +85,11 @@ Popup {
     // What its content asks for: header, content, foot, insets.
     readonly property real naturalHeight: header.implicitHeight
         + body.implicitHeight
-        + (footerRow.visible ? footerRow.implicitHeight + 16 : 0)
-        + footInset + 8
+        + statusSlot.implicitHeight + statusSlot.Layout.topMargin
+        + (footerRow.visible ? footerRow.implicitHeight + footerRow.Layout.topMargin
+                               + footerRow.Layout.bottomMargin
+                             : Theme.gapSmall)
+        + footInset
     readonly property bool canExpand: expandable && naturalHeight > halfHeight
     readonly property real restingHeight: Math.min(naturalHeight,
         !canExpand || expanded || Theme.keyboard > 0 ? fullHeight : halfHeight)
@@ -99,6 +108,10 @@ Popup {
     width: parent ? parent.width : 0
     height: dragging ? dragHeight : restingHeight
     padding: 0
+    // Its surface runs to the window's sides; its content keeps clear of a
+    // cutout or the navigation buttons there (landscape).
+    leftPadding: Theme.safeLeft
+    rightPadding: Theme.safeRight
     modal: true
     // Back is the sheet's own (back()): one step at a time.
     closePolicy: interactive ? Popup.CloseOnPressOutside : Popup.NoAutoClose
@@ -253,19 +266,39 @@ Popup {
                     Layout.fillWidth: true
                     Layout.leftMargin: Theme.sheetPad
                     Layout.rightMargin: Theme.sheetPad - 8
-                    Layout.topMargin: 2
-                    Layout.bottomMargin: 6
+                    Layout.topMargin: 4
+                    // The title to the content; to its description, less.
+                    Layout.bottomMargin: descriptionLabel.visible ? 0 : Theme.sheetTitleGap
                     visible: sheet.title.length > 0 || children.length > 1
                     spacing: 8
 
                     Label {
+                        objectName: "sheetTitle"
                         Layout.fillWidth: true
                         Layout.minimumHeight: 32
                         verticalAlignment: Text.AlignVCenter
                         text: sheet.title
-                        font.pixelSize: Theme.headlineSize
+                        font.pixelSize: Theme.sheetTitleSize
+                        font.weight: Theme.titleWeight
                         wrapMode: Text.Wrap
+                        Accessible.role: Accessible.Heading
                     }
+                }
+
+                Label {
+                    id: descriptionLabel
+
+                    objectName: "sheetDescription"
+                    Layout.fillWidth: true
+                    Layout.leftMargin: Theme.sheetPad
+                    Layout.rightMargin: Theme.sheetPad
+                    Layout.topMargin: Theme.sheetTitleGap - 8
+                    Layout.bottomMargin: Theme.sheetIntroGap
+                    visible: sheet.description.length > 0
+                    text: sheet.description
+                    wrapMode: Text.Wrap
+                    font.pixelSize: Theme.secondarySize
+                    color: sheet.Material.secondaryTextColor
                 }
             }
         }
@@ -323,8 +356,23 @@ Popup {
             }
         }
 
+        // Kept in sight above the buttons, whatever is scrolled.
+        ColumnLayout {
+            id: statusSlot
+
+            Layout.fillWidth: true
+            Layout.leftMargin: Theme.sheetPad
+            Layout.rightMargin: Theme.sheetPad
+            // Nothing when there is nothing to say. (Not by its visibility:
+            // its children's follows its own and would never bring it back.)
+            Layout.topMargin: implicitHeight > 0 ? Theme.gapSmall : 0
+            spacing: 4
+        }
+
         // The buttons side by side while they fit; one under the other when
-        // they do not (large text, long words), never cut off.
+        // they do not (large text, long words), never cut off. A button's
+        // own inset adds to the gap above them, which comes to the sheets'
+        // room between content and actions.
         GridLayout {
             id: footerRow
 
@@ -342,9 +390,21 @@ Popup {
             Layout.fillWidth: true
             Layout.leftMargin: Theme.sheetPad
             Layout.rightMargin: Theme.sheetPad
-            Layout.topMargin: 8
-            Layout.bottomMargin: 8
-            columns: needed <= width ? Math.max(1, children.length) : 1
+            Layout.topMargin: Theme.sheetActionGap - 8
+            Layout.bottomMargin: Theme.gapSmall
+            // One under the other, each as wide as the sheet: a button
+            // left at its own width would make the whole sheet that wide
+            // (a layout keeps an item that does not fill at its width).
+            readonly property bool stacked: needed > width
+            columns: stacked ? 1 : Math.max(1, children.length)
+            onStackedChanged: arrange()
+            onChildrenChanged: arrange()
+            function arrange() {
+                for (const child of children) {
+                    // The buttons, not the spacers between them.
+                    if (typeof child.clicked === "function") child.Layout.fillWidth = stacked
+                }
+            }
             columnSpacing: Theme.gapSmall
             rowSpacing: 4
             visible: children.length > 0

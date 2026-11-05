@@ -110,6 +110,7 @@ BottomSheet {
 
     objectName: "generateSheet"
     title: qsTr("Create a key")
+    description: qsTr("Others see this name and email when they encrypt to you.")
     interactive: !actions.busy
 
     // What makes the key; a test puts a stand-in here.
@@ -125,13 +126,6 @@ BottomSheet {
 
     // A stand-in is told by its test when it finishes.
     Component.onCompleted: engine.SignalFinished.connect(sheet.finished)
-
-    Label {
-        Layout.fillWidth: true
-        wrapMode: Text.Wrap
-        color: Material.secondaryTextColor
-        text: qsTr("Others see this name and email when they encrypt to you.")
-    }
 
     TextField {
         id: name
@@ -162,7 +156,7 @@ BottomSheet {
 
     // Where every key starts: a profile. In Expert Mode its choices are
     // filled in below, to be changed; another profile fills them in again.
-    ComboBox {
+    ChoiceBox {
         id: profile
         objectName: "generateProfile"
         Layout.fillWidth: true

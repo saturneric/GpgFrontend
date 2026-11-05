@@ -27,27 +27,27 @@ BottomSheet {
     }
 
     objectName: "validitySheet"
+    description: about
 
-    Label {
-        Layout.fillWidth: true
-        visible: text.length > 0
-        wrapMode: Text.Wrap
-        color: Material.secondaryTextColor
-        text: sheet.about
-    }
-
-    // One list, without the sheet's spacing between its choices.
+    // One list, edge to edge, without the sheet's spacing between its
+    // choices: a row a touch target tall.
     ColumnLayout {
         Layout.fillWidth: true
+        Layout.leftMargin: -Theme.sheetPad
+        Layout.rightMargin: -Theme.sheetPad
         spacing: 0
 
         Repeater {
             model: sheet.choices
 
-            RadioButton {
+            RadioDelegate {
                 required property var modelData
                 Layout.fillWidth: true
+                leftPadding: Theme.sheetPad
+                rightPadding: Theme.sheetPad - 8
                 text: modelData.name
+                // What is chosen, always: a tap never ticks the row itself.
+                checkable: false
                 checked: sheet.chosen === modelData.id
                 onClicked: sheet.chosen = modelData.id
             }

@@ -58,19 +58,26 @@ BottomSheet {
                      + "afterwards, so others learn of it.")
     }
 
-    // One list, without the sheet's spacing between its choices.
+    // One list, edge to edge, without the sheet's spacing between its
+    // choices: a row a touch target tall.
     ColumnLayout {
         Layout.fillWidth: true
+        Layout.leftMargin: -Theme.sheetPad
+        Layout.rightMargin: -Theme.sheetPad
         spacing: 0
 
         Repeater {
             model: Wording.revocationReasons()
 
-            RadioButton {
+            RadioDelegate {
                 required property string modelData
                 required property int index
                 Layout.fillWidth: true
+                leftPadding: Theme.sheetPad
+                rightPadding: Theme.sheetPad - 8
                 text: modelData
+                // What is chosen, always: a tap never ticks the row itself.
+                checkable: false
                 checked: sheet.reason === index
                 onClicked: sheet.reason = index
             }

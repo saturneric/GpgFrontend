@@ -54,6 +54,18 @@ ApplicationWindow {
         value: window.SafeArea.margins.bottom
     }
 
+    Binding {
+        target: Theme
+        property: "safeLeft"
+        value: window.SafeArea.margins.left
+    }
+
+    Binding {
+        target: Theme
+        property: "safeRight"
+        value: window.SafeArea.margins.right
+    }
+
     // Larger text, as the system asks: the style's own controls follow the
     // window's font. At the default size they keep the style's sizes.
     Binding {

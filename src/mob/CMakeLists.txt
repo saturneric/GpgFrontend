@@ -131,6 +131,7 @@ qt_add_qml_module(gf_mob_lib
     qml/components/GeneratedKeySheet.qml
     qml/components/SelectedKeysSheet.qml
     qml/components/SettingSwitch.qml
+    qml/components/ChoiceBox.qml
     qml/components/Snackbar.qml
     qml/components/KeyAvatar.qml
     qml/components/SettingSheet.qml

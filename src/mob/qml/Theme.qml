@@ -12,8 +12,14 @@ import GpgFrontend.Mobile
 QtObject {
     readonly property int gap: 16
     readonly property int gapSmall: 8
-    // The inset of a bottom sheet's content from its sides.
-    readonly property int sheetPad: 16
+    // A bottom sheet's layout, the same in every sheet: the inset of its
+    // content from its sides, the room between a title and the line that
+    // explains it, between that line and the content, and between the
+    // content and the buttons at the foot.
+    readonly property int sheetPad: 24
+    readonly property int sheetTitleGap: 12
+    readonly property int sheetIntroGap: 16
+    readonly property int sheetActionGap: 24
 
     // The platform's measures: a touch target, a list row of one line and
     // of two.
@@ -100,6 +106,10 @@ QtObject {
     // bottom sheet, keep clear of. Counted once, here.
     property real safeTop: 0
     property real safeBottom: 0
+    // And at the sides, where a landscape window has the camera's cutout or
+    // the navigation buttons.
+    property real safeLeft: 0
+    property real safeRight: 0
 
     // How much of the window the on-screen keyboard covers. Pages end where
     // it begins (the window counts it as a safe area); popups are laid over
