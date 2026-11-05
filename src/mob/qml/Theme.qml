@@ -33,6 +33,10 @@ QtObject {
     readonly property int labelSize: Math.round(12 * fontScale)
     readonly property int titleSize: Math.round(22 * fontScale)
     readonly property int headlineSize: Math.round(18 * fontScale)
+    readonly property int sheetTitleSize: Math.round(20 * fontScale)
+    // Titles -- a page's, a sheet's -- a step heavier than what they head;
+    // the rows under them keep the regular weight.
+    readonly property int titleWeight: Font.DemiBold
     // Corners: small for chips and fields, large for sheets and the
     // floating buttons.
     readonly property int radiusSmall: 8
@@ -45,6 +49,11 @@ QtObject {
     readonly property int fabIcon: 28
     readonly property int fabMargin: 16
     readonly property int fabBand: fabSize + 2 * fabMargin
+    // How high they float: the platform's resting and pressed elevations
+    // for a floating button. A shadow shows less on a dark page, so there
+    // they float a step higher, never with an outline or a glow.
+    readonly property int fabElevation: dark ? 8 : 6
+    readonly property int fabElevationPressed: dark ? 10 : 8
 
     readonly property bool dark: Application.styleHints.colorScheme === Qt.ColorScheme.Dark
 

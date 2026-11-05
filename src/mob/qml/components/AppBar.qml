@@ -63,6 +63,8 @@ ToolBar {
             text: bar.title
             elide: Text.ElideRight
             font.pixelSize: Theme.titleSize
+            font.weight: Theme.titleWeight
+            Accessible.role: Accessible.Heading
         }
 
         RowLayout {

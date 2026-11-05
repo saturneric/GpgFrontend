@@ -15,4 +15,12 @@ Dialog {
     modal: true
     // Back answers the dialog, not the page under it.
     focus: true
+
+    // Its title a step heavier, as every title is (Theme.titleWeight); the
+    // style's own title otherwise, its size and its room.
+    function weighTitle() {
+        if (header && header.font !== undefined) header.font.weight = Theme.titleWeight
+    }
+    onHeaderChanged: weighTitle()
+    Component.onCompleted: weighTitle()
 }

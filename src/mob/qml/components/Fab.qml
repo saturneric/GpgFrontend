@@ -61,7 +61,9 @@ RoundButton {
         when: fab.extended
         value: Theme.accent
     }
-    Material.elevation: 4
+    // Floating over the page: a soft shadow, deeper while pressed (the
+    // style's ripple stays). Only here: buttons in sheets stay flat.
+    Material.elevation: down ? Theme.fabElevationPressed : Theme.fabElevation
     Accessible.name: text
 
     onPressAndHold: held = true
