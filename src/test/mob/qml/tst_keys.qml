@@ -75,6 +75,19 @@ Item {
         id: generated
     }
 
+    Component {
+        id: factsComponent
+        KeyFacts {
+            width: 360
+        }
+    }
+
+    Component {
+        id: fingerprintComponent
+        FingerprintView {
+        }
+    }
+
     AddSubkeySheet {
         id: addSubkey
         validities: [{"id": "1y", "name": "1 year"}, {"id": "2y", "name": "2 years"},
@@ -312,6 +325,62 @@ Item {
             compare(Theme.date(new Date(2026, 10, 3)), "2026-11-03")
             compare(Theme.date(new Date(NaN)), "")
             compare(Theme.date(undefined), "")
+        }
+
+        // Each part of a key says its own algorithm and what it does: the
+        // signing primary key never seems to be what encrypts.
+        function test_a_key_s_parts_each_say_what_they_do() {
+            const facts = createTemporaryObject(factsComponent, keys, {
+                "key": {"keyId": "0123456789ABCDEF", "fingerprint": "AB".repeat(20),
+                        "capabilities": "CES", "algorithm": "EdDSA"},
+                "parts": [{"primary": true, "algorithmDetail": "ED25519",
+                           "capabilities": "CS"},
+                          {"primary": false, "algorithmDetail": "CV25519",
+                           "capabilities": "E"},
+                          {"primary": false, "algorithmDetail": "RSA2048",
+                           "capabilities": "E", "revoked": true}]})
+            compare(findByName(facts, "keyCan").value, "Certify, Encrypt, Sign")
+            const parts = []
+            for (const child of facts.children) {
+                if (child.objectName === "keyPart") parts.push([child.label, child.value])
+            }
+            compare(parts, [["Primary key", "ED25519 · CS"],
+                            ["Subkey", "CV25519 · E"],
+                            ["Subkey", "RSA2048 · E · Revoked"]])
+            // Before the parts are read: the primary key alone, said as such.
+            facts.parts = []
+            const alone = []
+            for (const child of facts.children) {
+                if (child.objectName === "keyPart") alone.push([child.label, child.value])
+            }
+            compare(alone, [["Primary key", "EdDSA"]])
+        }
+
+        // A fingerprint in GnuPG's rows of five groups where they fit, fewer
+        // in even rows where they do not; copied whole all the same.
+        function test_a_fingerprint_is_laid_out_in_even_rows() {
+            const view = createTemporaryObject(fingerprintComponent, keys,
+                                               {"width": 380, "fingerprint": "AB12".repeat(10)})
+            compare(view.groups.length, 10)
+            compare(view.perRow, 5)
+            view.width = 150
+            verify(view.perRow < 5)
+            verify(view.perRow >= 1)
+            view.fingerprint = "CD34".repeat(16)
+            view.width = 380
+            compare(view.perRow, 4)
+            // Whatever the width, the groups and the copy button beside
+            // them stay inside it.
+            const copy = findByName(view, "copyFingerprint")
+            for (const w of [160, 220, 260, 300, 340, 380]) {
+                for (const fpr of ["AB12".repeat(10), "CD34".repeat(16)]) {
+                    view.fingerprint = fpr
+                    view.width = w
+                    waitForRendering(view)
+                    verify(copy.mapToItem(view, copy.width, 0).x <= w + 0.5,
+                           "copy button out at " + w + " (" + view.perRow + " per row)")
+                }
+            }
         }
 
         function test_the_key_s_state_and_delete_apart() {

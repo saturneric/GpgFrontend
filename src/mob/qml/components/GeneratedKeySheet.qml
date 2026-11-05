@@ -6,9 +6,10 @@ import QtQuick.Controls.Material
 import QtQuick.Layouts
 import GpgFrontend.Mobile
 
-// The key just made, once it is made: who it is, its fingerprint to copy,
-// what kind of key it is, its algorithm and when it expires. Shown only for
-// a key that was made: not for a failure, nor when it was cancelled.
+// The key just made, once it is made: who it is, what kind of key it is,
+// its fingerprint to copy, each of its parts with its algorithm and what it
+// does, and when it expires. Shown only for a key that was made: not for a
+// failure, nor when it was cancelled.
 BottomSheet {
     id: sheet
 
@@ -38,11 +39,7 @@ BottomSheet {
         email: sheet.key.email || ""
         keyId: sheet.key.keyId || ""
         secretState: sheet.secretState
-    }
-
-    FingerprintView {
-        Layout.fillWidth: true
-        fingerprint: sheet.key.fingerprint || ""
+        capabilities: sheet.key.capabilities || ""
     }
 
     InfoRow {
@@ -52,19 +49,13 @@ BottomSheet {
                + Wording.keyTagDescription(sheet.secretState)
     }
 
-    InfoRow {
+    // As the key pickers show a key in full: the fingerprint to copy, then
+    // each part with what it does.
+    KeyFacts {
+        objectName: "generatedFacts"
         Layout.fillWidth: true
-        label: qsTr("Algorithm")
-        value: [sheet.key.algorithmDetail || sheet.key.algorithm || ""]
-               .concat((sheet.key.subkeys || []).slice(1).map(s => s.algorithmDetail
-                                                              || s.algorithm || ""))
-               .filter(t => t.length > 0).join(" + ")
-    }
-
-    InfoRow {
-        Layout.fillWidth: true
-        label: qsTr("Expires")
-        value: Theme.date(sheet.key.expires) || qsTr("Never")
+        key: sheet.key
+        parts: sheet.key.subkeys || []
     }
 
     // Its buttons take a tap only once it is up: it comes where the

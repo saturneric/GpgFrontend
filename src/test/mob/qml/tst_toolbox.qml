@@ -154,7 +154,21 @@ Item {
             tryVerify(() => !chosen.visible)
             compare(box.infoKey.name, "Alice")
             verify(box.opened)
+            // Opening it on the Keys page is at the foot, beside the
+            // operation: never under the buttons there.
+            const open = findByName(box.contentItem, "toolboxOpenKey")
+            verify(open.visible)
+            verify(findByName(box.contentItem, "toolboxRun").visible)
+            // However long its words, a sheet stays as wide as the window:
+            // its buttons go one under the other and their words wrap.
+            open.text = "A very long label for this button that cannot fit beside "
+                        + "the others on one line, however wide the window is"
+            waitForRendering(box.contentItem)
+            verify(box.contentItem.width <= box.width + 0.5)
+            verify(open.width <= box.width)
+            verify(open.height > 48)
             box.infoKey = null
+            verify(!open.visible)
         }
 
         // The list fills the sheet and scrolls itself; the sheet is never

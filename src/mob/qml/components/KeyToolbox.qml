@@ -63,6 +63,10 @@ BottomSheet {
 
     readonly property alias keyList: list
     readonly property alias selectedSheet: selected
+    // The key shown in full, as the key's page reads it: its parts, each
+    // with what it does itself.
+    readonly property var infoDetails: infoKey !== null && (infoKey.fingerprint || "").length > 0
+                                       ? describer.describe(infoKey.fingerprint) : ({})
 
     signal openKeyRequested(var key)
 
@@ -115,6 +119,10 @@ BottomSheet {
         function onActiveFocusChanged() {
             if (search.activeFocus) sheet.expanded = true
         }
+    }
+
+    KeyActionsController {
+        id: describer
     }
 
     KeyCategoriesController {
@@ -409,46 +417,72 @@ BottomSheet {
             id: info
 
             width: parent.width
-            spacing: 12
+            spacing: Theme.gapSmall
 
+            // Back, then who the key is: its name, its address under it.
             RowLayout {
                 Layout.fillWidth: true
+                // The arrow's own room, not the sheet's inset, at the left.
                 Layout.leftMargin: -12
                 spacing: 4
 
                 BarButton {
                     objectName: "toolboxInfoBack"
+                    Layout.alignment: Qt.AlignTop
                     text: qsTr("Back to the list")
                     icon.source: Theme.icon("arrow_back")
                     onClicked: sheet.infoKey = null
                 }
 
-                Label {
+                ColumnLayout {
                     Layout.fillWidth: true
-                    text: Wording.keyName(sheet.infoKey)
-                    elide: Text.ElideRight
-                    font.pixelSize: Theme.headlineSize
+                    Layout.preferredWidth: 0
+                    Layout.alignment: Qt.AlignVCenter
+                    spacing: 0
+
+                    Label {
+                        objectName: "toolboxInfoName"
+                        Layout.fillWidth: true
+                        text: Wording.keyName(sheet.infoKey)
+                        elide: Text.ElideRight
+                        font.pixelSize: Theme.bodySize
+                        font.weight: Font.Medium
+                    }
+
+                    Label {
+                        Layout.fillWidth: true
+                        visible: text.length > 0
+                        text: sheet.infoKey && (sheet.infoKey.name || "").length > 0
+                              ? (sheet.infoKey.email || "") : ""
+                        elide: Text.ElideRight
+                        font.pixelSize: Theme.secondarySize
+                        color: Material.secondaryTextColor
+                    }
                 }
             }
 
             KeyFacts {
+                objectName: "toolboxInfoFacts"
                 Layout.fillWidth: true
                 key: sheet.infoKey || ({})
-            }
-
-            ActionButton {
-                kind: "text"
-                text: qsTr("Open on the Keys page")
-                onClicked: {
-                    const key = sheet.infoKey
-                    sheet.close()
-                    sheet.openKeyRequested(key)
-                }
+                parts: sheet.infoDetails.subkeys || []
             }
         }
     }
 
     footer: [
+        // At the foot, with the sheet's other buttons: never under them.
+        ActionButton {
+            objectName: "toolboxOpenKey"
+            kind: "text"
+            visible: sheet.infoKey !== null
+            text: qsTr("Open on the Keys page")
+            onClicked: {
+                const key = sheet.infoKey
+                sheet.close()
+                sheet.openKeyRequested(key)
+            }
+        },
         ActionButton {
             objectName: "resetKeys"
             kind: "text"
