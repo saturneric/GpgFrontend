@@ -36,6 +36,22 @@ Item {
             WorkSelection.reset()
         }
 
+        // Closed while its search had the focus, it opens again on the list:
+        // not in the search, which brought the keyboard up by itself.
+        function test_reopened_it_is_not_in_the_search() {
+            box.begin("encrypt", {"op": "encrypt", "signs": false,
+                                  "label": "Encrypt now", "run": () => {}})
+            tryVerify(() => box.opened)
+            box.search.forceActiveFocus()
+            verify(box.search.activeFocus)
+            box.close()
+            tryVerify(() => !box.visible)
+            box.begin("sign", {"op": "sign", "label": "Sign now", "run": () => {}})
+            tryVerify(() => box.opened)
+            wait(50)
+            verify(!box.search.activeFocus, "the search has the focus again")
+        }
+
         function test_encrypting_asks_only_for_recipients() {
             box.begin("encrypt", {"op": "encrypt", "signs": false,
                                   "label": "Encrypt now", "run": () => {}})

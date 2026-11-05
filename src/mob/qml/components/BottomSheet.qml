@@ -45,6 +45,11 @@ Popup {
     // The content is one list that fills the sheet and scrolls itself:
     // the sheet does not scroll it a second time.
     property bool listMode: false
+    // How far the content keeps from the sheet's sides. A sheet that is one
+    // list of rows, edge to edge, sets 0: its rows keep their words in line
+    // with the title by their own padding (Theme.sheetPad), and anything
+    // else in it takes that as its margins.
+    property real inset: Theme.sheetPad
     // Whether the person may close it (by Back, a tap beside it, dragging
     // it away); false while it is busy with something that must end first.
     property bool interactive: true
@@ -349,8 +354,8 @@ Popup {
             ColumnLayout {
                 id: body
 
-                x: Theme.sheetPad
-                width: scroller.width - 2 * Theme.sheetPad
+                x: sheet.inset
+                width: scroller.width - 2 * sheet.inset
                 height: sheet.listMode ? scroller.height : implicitHeight
                 spacing: 12
             }
@@ -395,7 +400,11 @@ Popup {
             // One under the other, each as wide as the sheet: a button
             // left at its own width would make the whole sheet that wide
             // (a layout keeps an item that does not fill at its width).
-            readonly property bool stacked: needed > width
+            // Measured against the room the sheet gives the row, not the
+            // row's own width: side by side, that is as wide as the buttons
+            // ask, and would never be too narrow for them.
+            readonly property bool stacked:
+                needed > sheet.availableWidth - Layout.leftMargin - Layout.rightMargin
             columns: stacked ? 1 : Math.max(1, children.length)
             onStackedChanged: arrange()
             onChildrenChanged: arrange()

@@ -42,6 +42,9 @@ BottomSheet {
         picked = {}
         category = ""
         search.clear()
+        // On the list, not in a search left with the focus last time (the
+        // keyboard came up by itself).
+        search.focus = false
         open()
     }
 

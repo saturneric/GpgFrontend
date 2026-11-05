@@ -125,8 +125,13 @@ Item {
 
         function settled(sheet) {
             tryVerify(() => sheet.opened)
-            // Its height animates; wait for the end of it.
-            tryVerify(() => Math.abs(sheet.height - sheet.restingHeight) < 0.5, 2000,
+            // A change reaches the layouts at the next polish, and only then
+            // what the sheet asks for; its height then animates to it.
+            waitForPolish(sheet.contentItem.Window.window)
+            waitForPolish(sheet.contentItem.Window.window)
+            // The animation ends on its target exactly; anything short of it
+            // is its last frames (one run in about forty caught 244.001).
+            tryVerify(() => sheet.height === sheet.restingHeight, 2000,
                       "height " + sheet.height + " resting " + sheet.restingHeight)
         }
 
@@ -230,10 +235,6 @@ Item {
             wordy.width = 360
             wordy.open()
             settled(wordy)
-            // The row of buttons takes the width they need side by side as
-            // its own, so it never finds itself too narrow to stack them,
-            // and runs past the sheet.
-            expectFail("", "the footer widens to its buttons instead of stacking")
             verify(wordyFirst.y !== wordySecond.y, "stacked")
             verify(inside(wordyFirst, wordy))
             verify(inside(wordySecond, wordy))
@@ -264,7 +265,6 @@ Item {
             box.infoKey = manyKeys.get(3)
             settled(box)
             compare(box.height, box.naturalHeight)
-            expectFail("", "the key view is expanded on the list's height")
             verify(!box.expanded, "expanded for short content")
         }
 
@@ -277,8 +277,23 @@ Item {
             box.back()
             compare(box.infoKey, null)
             settled(box)
-            expectFail("", "the list stays expanded after the key view")
+            verify(!box.expanded)
             fuzzyCompare(box.height, box.halfHeight, 1)
+        }
+
+        // A list the person expanded is still expanded when they come back
+        // to it from a key.
+        function test_an_expanded_list_stays_expanded_after_a_key() {
+            openToolboxOnManyKeys()
+            box.expanded = true
+            settled(box)
+            box.infoKey = manyKeys.get(3)
+            settled(box)
+            compare(box.height, box.naturalHeight)
+            box.back()
+            settled(box)
+            verify(box.expanded)
+            fuzzyCompare(box.height, box.fullHeight, 1)
         }
     }
 }

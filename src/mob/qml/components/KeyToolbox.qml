@@ -29,11 +29,19 @@ BottomSheet {
     property var pending: null
     // 0: who to encrypt to; 1: the signing key.
     property int step: 0
-    // A key shown in full, over the list; null for the list. Shown with the
-    // sheet at its full height: at half of it the key's facts went on below
-    // the foot, with nothing saying they did.
+    // A key shown in full, over the list; null for the list.
     property var infoKey: null
-    onInfoKeyChanged: if (infoKey !== null && canExpand) expanded = true
+    // While a key is shown: the sheet as tall as its facts, and expanded
+    // when they need more than half the window (at half, long facts went on
+    // below the foot with nothing saying they did). Back to the list, the
+    // list as it was.
+    Binding {
+        target: sheet
+        property: "expanded"
+        when: sheet.infoKey !== null
+        value: sheet.canExpand
+        restoreMode: Binding.RestoreValue
+    }
     // The key category shown: "" for all keys.
     property string category: ""
 
@@ -111,6 +119,9 @@ BottomSheet {
         pending = null
         infoKey = null
         search.text = ""
+        // Opened again, it starts on the list, not in the search with the
+        // keyboard up because the search had the focus when it closed.
+        search.focus = false
         selected.close()
     }
     // Typing a search wants the room.

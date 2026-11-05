@@ -32,6 +32,7 @@ BottomSheet {
                                .concat(entries)
 
     objectName: "categoryListSheet"
+    inset: 0
     title: qsTr("Show keys in")
 
     // One list, its rows one under the other with no gap between them, as
@@ -51,8 +52,6 @@ BottomSheet {
 
                 objectName: "category_" + (modelData.id || "all")
                 Layout.fillWidth: true
-                Layout.leftMargin: -Theme.sheetPad
-                Layout.rightMargin: -Theme.sheetPad
                 leftPadding: Theme.sheetPad
                 text: modelData.name
                 // What is shown, always: a tap chooses, it never ticks the
@@ -110,8 +109,6 @@ BottomSheet {
         ItemDelegate {
             objectName: "newCategory"
             Layout.fillWidth: true
-            Layout.leftMargin: -Theme.sheetPad
-            Layout.rightMargin: -Theme.sheetPad
             leftPadding: Theme.sheetPad
             visible: sheet.manageable
             text: qsTr("New category")
@@ -126,8 +123,6 @@ BottomSheet {
         ItemDelegate {
             objectName: "manageCategories"
             Layout.fillWidth: true
-            Layout.leftMargin: -Theme.sheetPad
-            Layout.rightMargin: -Theme.sheetPad
             leftPadding: Theme.sheetPad
             visible: sheet.manageable
             text: qsTr("Manage categories")

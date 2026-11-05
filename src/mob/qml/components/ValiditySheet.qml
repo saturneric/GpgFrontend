@@ -27,14 +27,13 @@ BottomSheet {
     }
 
     objectName: "validitySheet"
+    inset: 0
     description: about
 
     // One list, edge to edge, without the sheet's spacing between its
     // choices: a row a touch target tall.
     ColumnLayout {
         Layout.fillWidth: true
-        Layout.leftMargin: -Theme.sheetPad
-        Layout.rightMargin: -Theme.sheetPad
         spacing: 0
 
         Repeater {

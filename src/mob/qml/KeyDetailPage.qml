@@ -509,9 +509,12 @@ Page {
         id: exportActions
 
         title: qsTr("Public key")
+        inset: 0
 
         Label {
             Layout.fillWidth: true
+            Layout.leftMargin: Theme.sheetPad
+            Layout.rightMargin: Theme.sheetPad
             wrapMode: Text.Wrap
             color: Material.secondaryTextColor
             text: qsTr("Give it to the people who want to encrypt to this key "
@@ -523,8 +526,6 @@ Page {
         ListRow {
             objectName: "shareKeyFile"
             Layout.fillWidth: true
-            Layout.leftMargin: -Theme.sheetPad
-            Layout.rightMargin: -Theme.sheetPad
             leftPadding: Theme.sheetPad
             visible: output.canShare
             symbol: "share"
@@ -540,8 +541,6 @@ Page {
         ListRow {
             objectName: "copyKeyText"
             Layout.fillWidth: true
-            Layout.leftMargin: -Theme.sheetPad
-            Layout.rightMargin: -Theme.sheetPad
             Layout.bottomMargin: Theme.gapSmall
             leftPadding: Theme.sheetPad
             symbol: "content_copy"

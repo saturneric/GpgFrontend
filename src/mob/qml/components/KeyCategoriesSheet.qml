@@ -40,10 +40,13 @@ BottomSheet {
     Component.onCompleted: listen()
 
     objectName: "keyCategoriesSheet"
+    inset: 0
     title: qsTr("Categories of %1").arg(key.name || "")
 
     Label {
         Layout.fillWidth: true
+        Layout.leftMargin: Theme.sheetPad
+        Layout.rightMargin: Theme.sheetPad
         visible: sheet.categories !== null && sheet.categories.categories.length === 0
         wrapMode: Text.Wrap
         color: Material.secondaryTextColor
@@ -69,8 +72,6 @@ BottomSheet {
 
                 objectName: "keyCategoryChoice_" + modelData.id
                 Layout.fillWidth: true
-                Layout.leftMargin: -Theme.sheetPad
-                Layout.rightMargin: -Theme.sheetPad
                 leftPadding: Theme.sheetPad
                 text: modelData.name
                 checked: member
@@ -112,8 +113,6 @@ BottomSheet {
         ListRow {
             objectName: "keyCategoryNew"
             Layout.fillWidth: true
-            Layout.leftMargin: -Theme.sheetPad
-            Layout.rightMargin: -Theme.sheetPad
             leftPadding: Theme.sheetPad
             symbol: "add"
             symbolColor: Material.foreground

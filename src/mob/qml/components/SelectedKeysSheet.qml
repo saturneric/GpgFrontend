@@ -15,6 +15,7 @@ BottomSheet {
     signal aboutKeyRequested(var key)
 
     objectName: "selectedKeysSheet"
+    inset: 0
     expandable: true
     listMode: true
     title: Wording.selectedCount(WorkSelection.recipientCount)
@@ -29,8 +30,6 @@ BottomSheet {
         objectName: "selectedKeys"
         Layout.fillWidth: true
         Layout.fillHeight: true
-        Layout.leftMargin: -Theme.sheetPad
-        Layout.rightMargin: -Theme.sheetPad
         Layout.preferredHeight: contentHeight + bottomMargin
         clip: true
         boundsBehavior: Flickable.StopAtBounds

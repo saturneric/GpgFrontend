@@ -280,12 +280,11 @@ Page {
         id: addSheet
 
         title: qsTr("Add a key")
+        inset: 0
 
         ListRow {
             objectName: "generateKey"
             Layout.fillWidth: true
-            Layout.leftMargin: -Theme.sheetPad
-            Layout.rightMargin: -Theme.sheetPad
             leftPadding: Theme.sheetPad
             symbol: "key"
             symbolColor: Material.accentColor
@@ -301,8 +300,6 @@ Page {
         ListRow {
             objectName: "quickGenerateKey"
             Layout.fillWidth: true
-            Layout.leftMargin: -Theme.sheetPad
-            Layout.rightMargin: -Theme.sheetPad
             leftPadding: Theme.sheetPad
             symbol: "redo"
             symbolColor: Material.accentColor
@@ -318,8 +315,6 @@ Page {
         ListRow {
             objectName: "newKeyGroup"
             Layout.fillWidth: true
-            Layout.leftMargin: -Theme.sheetPad
-            Layout.rightMargin: -Theme.sheetPad
             leftPadding: Theme.sheetPad
             image: "qrc:/icons/key-group.png"
             text: qsTr("New key group")
@@ -333,8 +328,6 @@ Page {
         ListRow {
             objectName: "importKeys"
             Layout.fillWidth: true
-            Layout.leftMargin: -Theme.sheetPad
-            Layout.rightMargin: -Theme.sheetPad
             Layout.bottomMargin: Theme.gapSmall
             leftPadding: Theme.sheetPad
             symbol: "note_add"

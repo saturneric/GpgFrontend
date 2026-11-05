@@ -52,6 +52,8 @@ BottomSheet {
         open()
     }
 
+    inset: 0
+
     ButtonGroup {
         id: group
     }
@@ -63,8 +65,6 @@ BottomSheet {
             required property var modelData
 
             Layout.fillWidth: true
-            Layout.leftMargin: -Theme.sheetPad
-            Layout.rightMargin: -Theme.sheetPad
             leftPadding: Theme.sheetPad
             // A button's text: an ampersand is doubled ("Encrypt & Sign").
             text: Wording.actionText(sheet.describe(modelData, sheet.unit))
@@ -82,8 +82,6 @@ BottomSheet {
         id: other
 
         Layout.fillWidth: true
-        Layout.leftMargin: -Theme.sheetPad
-        Layout.rightMargin: -Theme.sheetPad
         leftPadding: Theme.sheetPad
         text: qsTr("Other")
         visible: sheet.custom
@@ -92,6 +90,8 @@ BottomSheet {
 
     RowLayout {
         Layout.fillWidth: true
+        Layout.leftMargin: Theme.sheetPad
+        Layout.rightMargin: Theme.sheetPad
         visible: other.checked
         spacing: 12
 
