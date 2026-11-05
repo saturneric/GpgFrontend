@@ -80,12 +80,17 @@ auto ExportKeyFileName(const QString& name, const QString& email,
 
 ExportKey::ExportKey(QWidget* parent) : QWidget(parent) {}
 
-void ExportKey::exec_export(int channel, const GpgKeyPtr& key, bool secret,
-                            bool ascii, bool shortest, const QString& type) {
+void ExportKey::exec_export(int channel, const GpgKeyPtr& key,
+                            Shell::KeyExportKind kind) {
   if (key == nullptr) {
     deleteLater();
     return;
   }
+  const auto options = Shell::KeyExportOptionsFor(kind);
+  const auto secret = options.secret;
+  const auto ascii = options.ascii;
+  const auto shortest = options.shortest;
+  const auto type = options.type;
 
   // Dialogs are parented to the widget that asked for the export, not to this
   // object: this one deletes itself as soon as the callback is done, and a
@@ -155,7 +160,7 @@ void ExportKey::exec_export(int channel, const GpgKeyPtr& key, bool secret,
 }
 
 void ExportKey::ExecPublic(int channel, const GpgKeyPtr& key) {
-  exec_export(channel, key, false, true, false, "pub");
+  exec_export(channel, key, Shell::KeyExportKind::kPublic);
 }
 
 void ExportKey::ExecShortPrivate(int channel, const GpgKeyPtr& key) {
@@ -177,7 +182,7 @@ void ExportKey::ExecShortPrivate(int channel, const GpgKeyPtr& key) {
     return;
   }
 
-  exec_export(channel, key, true, true, false, "short_secret");
+  exec_export(channel, key, Shell::KeyExportKind::kShortSecret);
 }
 
 void ExportKey::ExecPrivate(int channel, const GpgKeyPtr& key) {
@@ -200,7 +205,7 @@ void ExportKey::ExecPrivate(int channel, const GpgKeyPtr& key) {
     return;
   }
 
-  exec_export(channel, key, true, true, false, "full_secret");
+  exec_export(channel, key, Shell::KeyExportKind::kFullSecret);
 }
 
 }  // namespace GpgFrontend::UI

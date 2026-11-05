@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/typedef/GpgTypedef.h"
+#include "shell/rules/KeyExportRules.h"
 
 namespace GpgFrontend::UI {
 
@@ -86,8 +87,8 @@ class ExportKey : public QWidget {
   /**
    * @brief Run the export and drive the save dialog.
    */
-  void exec_export(int channel, const GpgKeyPtr& key, bool secret, bool ascii,
-                   bool shortest, const QString& type);
+  void exec_export(int channel, const GpgKeyPtr& key,
+                   Shell::KeyExportKind kind);
 };
 
 }  // namespace GpgFrontend::UI
