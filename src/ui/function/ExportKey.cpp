@@ -177,7 +177,7 @@ void ExportKey::ExecShortPrivate(int channel, const GpgKeyPtr& key) {
     return;
   }
 
-  exec_export(channel, key, true, true, false, "short_secret");
+  exec_export(channel, key, true, true, true, "short_secret");
 }
 
 void ExportKey::ExecPrivate(int channel, const GpgKeyPtr& key) {
