@@ -28,14 +28,22 @@
 
 #include "SingletonStorageCollection.h"
 
+#include <atomic>
 #include <memory>
+#include <mutex>
 
 #include "core/function/basic/SingletonStorage.h"
 
 namespace {
 GpgFrontend::SecureUniquePtr<GpgFrontend::SingletonStorageCollection>
     global_instance = nullptr;
-}
+/// global_instance, read without the lock on the way to every singleton.
+std::atomic<GpgFrontend::SingletonStorageCollection*> global_pointer{nullptr};
+/// Guards making and destroying global_instance.
+std::mutex global_lock;
+/// Set by Destroy(): an instance asked for later is a resurrection.
+std::atomic<bool> global_destroyed{false};
+}  // namespace
 
 namespace GpgFrontend {
 
@@ -76,18 +84,34 @@ SingletonStorageCollection::~SingletonStorageCollection() = default;
 
 auto GpgFrontend::SingletonStorageCollection::GetInstance()
     -> GpgFrontend::SingletonStorageCollection* {
+  if (auto* instance = global_pointer.load(std::memory_order_acquire);
+      instance != nullptr) {
+    return instance;
+  }
+
+  std::lock_guard<std::mutex> lock(global_lock);
   if (global_instance == nullptr) {
+    if (global_destroyed.load()) {
+      LOG_W() << "the singleton storage was asked for after it was destroyed; "
+                 "a new, empty one is made, and whatever asked runs on "
+                 "singletons made after shutdown";
+    }
     global_instance = SecureCreateUniqueObject<SingletonStorageCollection>();
     FLOG_D("a new global singleton storage collection created, address: %p",
            static_cast<void*>(global_instance.get()));
   }
+  global_pointer.store(global_instance.get(), std::memory_order_release);
   return global_instance.get();
 }
 
 void SingletonStorageCollection::Destroy() {
+  std::lock_guard<std::mutex> lock(global_lock);
   LOG_D()
       << "global singleton storage collection is about to destroy, address: "
       << static_cast<void*>(global_instance.get());
+  global_destroyed.store(true);
+  global_pointer.store(nullptr, std::memory_order_release);
+  if (global_instance == nullptr) return;
   global_instance->p_.reset();
   global_instance.reset();
 }

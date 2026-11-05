@@ -42,9 +42,9 @@ using SingletonStoragePtr =
  *
  * This is the root of the channel-based singleton system. Each distinct type
  * gets its own SingletonStorage, lazily created on first access. The global
- * instance is managed via GetInstance() and Destroy(); both are not thread-safe
- * with respect to each other and should only be called from the main thread
- * at startup and shutdown.
+ * instance is managed via GetInstance() and Destroy(), which may be called from
+ * any thread; Destroy() belongs to the end of shutdown, and nothing should ask
+ * for an instance after it.
  */
 class GF_CORE_EXPORT SingletonStorageCollection {
  public:
@@ -62,7 +62,10 @@ class GF_CORE_EXPORT SingletonStorageCollection {
    * @brief Return the global SingletonStorageCollection instance, creating it
    * if needed.
    *
-   * @return pointer to the global instance; never null after the first call
+   * Asked again after Destroy(), it makes a new, empty collection and says
+   * so: whatever asked is running after shutdown, on singletons made anew.
+   *
+   * @return pointer to the global instance; never null
    */
   static auto GetInstance() -> SingletonStorageCollection*;
 

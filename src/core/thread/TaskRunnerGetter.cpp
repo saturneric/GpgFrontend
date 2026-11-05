@@ -53,14 +53,28 @@ auto TaskRunnerGetter::GetTaskRunner(TaskRunnerType runner_type)
   }
 }
 
-void TaskRunnerGetter::StopAllTeakRunner() {
-  for (const auto& [key, value] : task_runners_) {
+auto TaskRunnerGetter::StopAllTeakRunner(int timeout_ms) -> bool {
+  // Copied under the lock and stopped outside it: a task finishing up may
+  // still ask for a runner, and would wait on this lock while the stop waits
+  // on it.
+  std::map<TaskRunnerType, TaskRunnerPtr> runners;
+  {
+    std::lock_guard<std::mutex> lock_guard(task_runners_map_lock_);
+    runners = task_runners_;
+  }
+
+  const QDeadlineTimer deadline(timeout_ms);
+  bool all_stopped = true;
+  for (const auto& [key, value] : runners) {
     LOG_D() << "Stopping task runner: " << static_cast<int>(key);
-    if (value->IsRunning()) {
-      LOG_D() << "Task runner is running, stopping it...";
-      value->Stop();
+    if (!value->IsRunning()) continue;
+    if (!value->Stop(static_cast<int>(deadline.remainingTime()))) {
+      LOG_W() << "task runner" << static_cast<int>(key)
+              << "did not stop: a task on it is still running";
+      all_stopped = false;
     }
   }
+  return all_stopped;
 }
 
 }  // namespace GpgFrontend::Thread
