@@ -45,6 +45,7 @@
 #if GF_ENGINE_GNUPG
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #endif
+#include "core/module/GlobalRegisterTableKeys.h"
 #include "core/module/ModuleInit.h"
 #include "core/module/ModuleManager.h"
 #include "core/profile/ProfileLoader.h"
@@ -162,10 +163,10 @@ void InitGlobalPathEnv() {
 
 void InitGpgFrontendCoreAsync(CoreInitArgs core_init_args) {
   // initialize global register table of init state
-  Module::UpsertRTValue("core", "env.state.gpgme", 0);
-  Module::UpsertRTValue("core", "env.state.ctx", 0);
-  Module::UpsertRTValue("core", "env.state.basic", 0);
-  Module::UpsertRTValue("core", "env.state.all", 0);
+  Module::UpsertRTValue(Module::kGRTCoreNamespace, Module::kCoreStateGpgme, 0);
+  Module::UpsertRTValue(Module::kGRTCoreNamespace, Module::kCoreStateCtx, 0);
+  Module::UpsertRTValue(Module::kGRTCoreNamespace, Module::kCoreStateBasic, 0);
+  Module::UpsertRTValue(Module::kGRTCoreNamespace, Module::kCoreStateAll, 0);
 
   Thread::TaskRunnerGetter::GetInstance()
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
@@ -173,7 +174,8 @@ void InitGpgFrontendCoreAsync(CoreInitArgs core_init_args) {
           [core_init_args](DataObjectPtr) -> int {
             // then load core
             if (InitGpgFrontendCore(core_init_args) != 0) {
-              Module::UpsertRTValue("core", "env.state.basic", -1);
+              Module::UpsertRTValue(Module::kGRTCoreNamespace,
+                                    Module::kCoreStateBasic, -1);
               QTextStream(stdout)
                   << "Fatal: InitGpgFrontendCore() Failed" << Qt::endl;
             };
@@ -209,7 +211,8 @@ void InitGlobalBasicEnv(const BootCxtWPtr &p_ctx,
   // modal dialog that ends in std::exit(0), which under the test runner would
   // kill the process in the middle of a test run. Written on both paths so the
   // value is never merely absent.
-  Module::UpsertRTValue("core", "env.state.unit_test_mode",
+  Module::UpsertRTValue(Module::kGRTCoreNamespace,
+                        Module::kCoreStateUnitTestMode,
                         ctx->unit_test_mode ? 1 : 0);
 
   // then whatever the program needs in place before the core starts, such as
@@ -266,8 +269,8 @@ void InitGlobalBasicEnvSync(const BootCxtWPtr &p_ctx,
                             &QEventLoop::quit);
   InitGlobalBasicEnv(p_ctx, before_core);
 
-  auto env_state =
-      Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.all", 0);
+  auto env_state = Module::RetrieveRTValueTypedOrDefault<>(
+      Module::kGRTCoreNamespace, Module::kCoreStateAll, 0);
   if (env_state == 1) {
     qDebug() << "global basic env initialized before the event loop start";
     return;

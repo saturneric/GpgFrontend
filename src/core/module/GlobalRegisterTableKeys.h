@@ -69,6 +69,25 @@ namespace GpgFrontend::Module {
 inline const QString kGRTCoreNamespace = u"core"_s;
 
 /**
+ * @brief The core's startup state, one key per stage, under kGRTCoreNamespace.
+ *
+ * Read by the startup screen, by the UI before it touches an engine and by
+ * modules: 0 while the stage runs, 1 once it is done, -1 when it failed. Named
+ * here because a key spelled wrong at one site reads as the default and leaves
+ * startup waiting forever, with nothing to say why.
+ */
+inline const QString kCoreStateGpgme = u"env.state.gpgme"_s;
+inline const QString kCoreStateCtx = u"env.state.ctx"_s;
+inline const QString kCoreStateBasic = u"env.state.basic"_s;
+inline const QString kCoreStateKeyDbs = u"env.state.key_dbs"_s;
+inline const QString kCoreStateAll = u"env.state.all"_s;
+inline const QString kCoreStateOpenPGPEngine = u"env.state.openpgp_engine"_s;
+/// 1 under the unit-test runner, 0 otherwise.
+inline const QString kCoreStateUnitTestMode = u"env.state.unit_test_mode"_s;
+/// 1 for a portable installation.
+inline const QString kCoreStatePortable = u"env.state.portable"_s;
+
+/**
  * @brief Fold an id into one lower-case register table path segment.
  *
  * Dots become '/', which the table does not split on.

@@ -67,7 +67,8 @@ class GlobalSettingStation::Impl {
 
     portable_mode_ = session.Profile().Kind() == ProfileKind::kPORTABLE_ROOT;
     if (portable_mode_) {
-      Module::UpsertRTValue("core", "env.state.portable", 1);
+      Module::UpsertRTValue(Module::kGRTCoreNamespace,
+                            Module::kCoreStatePortable, 1);
       LOG_I() << "GpgFrontend runs in the portable mode now";
     }
 

@@ -30,6 +30,7 @@
 
 #include "core/GFConstants.h"
 #include "core/function/CoreSignalStation.h"
+#include "core/module/GlobalRegisterTableKeys.h"
 #include "core/module/ModuleManager.h"
 #include "ui/UISignalStation.h"
 
@@ -114,7 +115,8 @@ void InstallBadOpenPGPEnvHandler() {
         // The unit test runner shares this process, so a modal dialog
         // ending in std::exit(0) would take the whole test run down with it.
         if (Module::RetrieveRTValueTypedOrDefault<>(
-                "core", "env.state.unit_test_mode", 0) == 1) {
+                Module::kGRTCoreNamespace, Module::kCoreStateUnitTestMode, 0) ==
+            1) {
           LOG_W() << "bad openpgp env in unit test mode, reason:"
                   << static_cast<int>(reason) << "detail:" << detail;
           return;

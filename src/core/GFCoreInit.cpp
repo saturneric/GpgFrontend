@@ -31,6 +31,7 @@
 #include <gpgme.h>
 #endif
 
+#include <algorithm>
 #include <atomic>
 
 #include "core/GFCoreRust.h"
@@ -491,11 +492,12 @@ auto InitGnuPGEnv() -> bool {
   if (!InitGpgME()) {
     LOG_E() << "Oops, GpgME init failed!"
             << "But don't worry, GpgFrontend will use rPGP engine as fallback.";
-    Module::UpsertRTValue("core", "env.state.gpgme", -1);
+    Module::UpsertRTValue(Module::kGRTCoreNamespace, Module::kCoreStateGpgme,
+                          -1);
     return false;
   }
 
-  Module::UpsertRTValue("core", "env.state.gpgme", 1);
+  Module::UpsertRTValue(Module::kGRTCoreNamespace, Module::kCoreStateGpgme, 1);
 
   auto default_gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gpgconf_path", QString{});
@@ -517,6 +519,29 @@ auto BuildOpenPGPContext(int channel, OpenPGPContextInitArgs args) -> bool {
   return RunRegisteredRawForward<BuildOpenPGPContextOpTag>(args.engine, channel,
                                                            args);
 }
+
+namespace {
+
+/// What every context is built with, from the stored settings: at startup
+/// and on every live reload alike, so the two cannot open the same database
+/// differently.
+auto StoredKeyDatabaseRuntimeOptions() -> KeyDatabaseRuntimeOptions {
+  auto settings = GetSettings();
+
+  KeyDatabaseRuntimeOptions options;
+  options.offline_mode =
+      SettingItems::kForbidAllGnuPGConnection.Read(settings) ||
+      qApp->property("GFGnuPGOfflineMode").toBool();
+  options.auto_import_missing_key =
+      SettingItems::kAutoImportMissingKey.Read(settings);
+  options.default_engine =
+      SettingItems::kDefaultEngine.Read(settings).toUpper();
+  options.gnupg_supported = GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG);
+  options.rpgp_supported = GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP);
+  return options;
+}
+
+}  // namespace
 
 auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   InstallKeyDatabaseRuntimeReclaimer();
@@ -585,7 +610,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   if (!InitBasicPath()) {
     LOG_E() << "Oops, Basic Path init failed!"
             << "GpgFrontend cannot start under this situation!";
-    Module::UpsertRTValue("core", "env.state.ctx", -1);
+    Module::UpsertRTValue(Module::kGRTCoreNamespace, Module::kCoreStateCtx, -1);
     CoreSignalStation::GetInstance()->SignalBadOpenPGPEnv(
         BadOpenPGPEnvReason::kBASIC_PATH_INIT_FAILED,
         QCoreApplication::tr("Basic Path Initiation Failed"));
@@ -619,31 +644,24 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   if (!GetGSS().HasSupportedEngine()) {
     LOG_E()
         << "No supported OpenPGP engine detected, GpgFrontend cannot start!";
-    Module::UpsertRTValue("core", "env.state.openpgp_engine", -1);
+    Module::UpsertRTValue(Module::kGRTCoreNamespace,
+                          Module::kCoreStateOpenPGPEngine, -1);
     CoreSignalStation::GetInstance()->SignalBadOpenPGPEnv(
         BadOpenPGPEnvReason::kNO_SUPPORTED_ENGINE,
         QCoreApplication::tr("No Supported OpenPGP Engine Detected"));
     return -1;
   }
 
-  auto settings = GetSettings();
-
-  // read settings from config file
-  auto forbid_all_gnupg_connection =
-      SettingItems::kForbidAllGnuPGConnection.Read(settings);
-
-  forbid_all_gnupg_connection = forbid_all_gnupg_connection ||
-                                qApp->property("GFGnuPGOfflineMode").toBool();
+  // Read as a live reload reads them (StoredKeyDatabaseRuntimeOptions()).
+  // The user can also explicitly set the default engine to rpgp, even when
+  // gnupg is supported.
+  const auto options = StoredKeyDatabaseRuntimeOptions();
+  const auto forbid_all_gnupg_connection = options.offline_mode;
+  const auto auto_import_missing_key = options.auto_import_missing_key;
+  const auto& default_engine = options.default_engine;
 
   LOG_D() << "forbid all gnupg network connection:"
           << forbid_all_gnupg_connection;
-
-  auto auto_import_missing_key =
-      SettingItems::kAutoImportMissingKey.Read(settings);
-
-  // user can also explicitly set default engine to rpgp if they want to, even
-  // when gnupg is supported.
-  auto default_engine = SettingItems::kDefaultEngine.Read(settings).toUpper();
   Module::UpsertRTValue(Module::kGRTCoreNamespace,
                         Module::GRTDefaultEngineKey(),
                         default_engine.toLower());
@@ -651,8 +669,10 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   // unit test mode
   if (args.unit_test_mode) {
     progress.MarkAllDone();
-    Module::UpsertRTValue("core", "env.state.basic", 1);
-    Module::UpsertRTValue("core", "env.state.key_dbs", 1);
+    Module::UpsertRTValue(Module::kGRTCoreNamespace, Module::kCoreStateBasic,
+                          1);
+    Module::UpsertRTValue(Module::kGRTCoreNamespace, Module::kCoreStateKeyDbs,
+                          1);
     CoreSignalStation::GetInstance()->SignalGoodGnupgEnv();
     LOG_I() << "Basic ENV Checking Finished";
     return 0;
@@ -664,16 +684,15 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   if (key_dbs.isEmpty()) {
     LOG_E() << "Cannot find any valid key database!"
             << "GpgFrontend cannot start under this situation!";
-    Module::UpsertRTValue("core", "env.state.ctx", -1);
+    Module::UpsertRTValue(Module::kGRTCoreNamespace, Module::kCoreStateCtx, -1);
     CoreSignalStation::GetInstance()->SignalBadOpenPGPEnv(
         BadOpenPGPEnvReason::kNO_VALID_KEY_DATABASE,
         QCoreApplication::tr("No valid Key Database"));
     return -1;
   }
 
-  const auto gnupg_supported =
-      GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG);
-  const auto rpgp_supported = GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP);
+  const auto gnupg_supported = options.gnupg_supported;
+  const auto rpgp_supported = options.rpgp_supported;
 
   // The default database is a choice stored with the list, not whichever one
   // comes first, and it is opened on the handle its place in the list gives
@@ -703,7 +722,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   if (!default_choice.ok) {
     LOG_E() << "no usable OpenPGP engine for the default key database!"
             << "GpgFrontend cannot start under this situation!";
-    Module::UpsertRTValue("core", "env.state.ctx", -1);
+    Module::UpsertRTValue(Module::kGRTCoreNamespace, Module::kCoreStateCtx, -1);
     CoreSignalStation::GetInstance()->SignalBadOpenPGPEnv(
         BadOpenPGPEnvReason::kNO_SUPPORTED_ENGINE,
         QCoreApplication::tr("No Supported OpenPGP Engine Detected"));
@@ -740,14 +759,14 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   if (!succ()) {
     LOG_E() << "Init GpgME Default Context failed!"
             << "GpgFrontend cannot start under this situation!";
-    Module::UpsertRTValue("core", "env.state.ctx", -1);
+    Module::UpsertRTValue(Module::kGRTCoreNamespace, Module::kCoreStateCtx, -1);
     CoreSignalStation::GetInstance()->SignalBadOpenPGPEnv(
         BadOpenPGPEnvReason::kDEFAULT_CONTEXT_INIT_FAILED,
         QCoreApplication::tr("GpgME Default Context Initiation Failed"));
     return -1;
   }
 
-  Module::UpsertRTValue("core", "env.state.ctx", 1);
+  Module::UpsertRTValue(Module::kGRTCoreNamespace, Module::kCoreStateCtx, 1);
   progress.MarkStageDone(CoreInitStage::kENGINE,
                          CoreInitStep::kBUILDING_DEFAULT_CONTEXT);
 
@@ -762,7 +781,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   if (!GpgKeyRepository::GetInstance(default_handle).FlushKeyCache()) {
     LOG_E() << "Init GpgME Default Key Database failed!"
             << "GpgFrontend cannot start under this situation!";
-    Module::UpsertRTValue("core", "env.state.ctx", -1);
+    Module::UpsertRTValue(Module::kGRTCoreNamespace, Module::kCoreStateCtx, -1);
     CoreSignalStation::GetInstance()->SignalBadOpenPGPEnv(
         BadOpenPGPEnvReason::kKEY_CACHE_INIT_FAILED,
         QCoreApplication::tr("Gpg Default Key Database Initiation Failed"));
@@ -773,7 +792,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
                   CoreInitStep::kLOADING_KEY_DATABASE,
                   default_key_db_info.name);
 
-  Module::UpsertRTValue("core", "env.state.basic", 1);
+  Module::UpsertRTValue(Module::kGRTCoreNamespace, Module::kCoreStateBasic, 1);
   CoreSignalStation::GetInstance()->SignalGoodGnupgEnv();
   LOG_I() << "Basic ENV Checking Finished";
 
@@ -858,7 +877,8 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
           }
         }
 
-        Module::UpsertRTValue("core", "env.state.key_dbs", 1);
+        Module::UpsertRTValue(Module::kGRTCoreNamespace,
+                              Module::kCoreStateKeyDbs, 1);
         CoreInitProgress::GetInstance().MarkStageDone(
             CoreInitStage::kKEY_DATABASE, CoreInitStep::kLOADING_KEY_DATABASE);
 
@@ -886,33 +906,35 @@ namespace {
 auto CheckCoreInitializationOnce() -> bool {
   if (IsCoreShuttingDown()) return true;
 
-  int core_init_state =
-      Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.basic", 0);
-  if (core_init_state < 0) return true;
-  if (core_init_state == 0) {
-    LOG_D() << "monitor: core env is still initializing, waiting...";
+  // Said once per stage, not on every look: the looks come every few
+  // milliseconds and filled the log while startup waited.
+  static std::atomic<int> reported_stage{-1};
+  auto waiting_for = [](int stage, const char* what) {
+    if (reported_stage.exchange(stage) != stage) {
+      LOG_D() << "monitor: waiting for" << what;
+    }
     return false;
-  }
+  };
+
+  int core_init_state = Module::RetrieveRTValueTypedOrDefault<>(
+      Module::kGRTCoreNamespace, Module::kCoreStateBasic, 0);
+  if (core_init_state < 0) return true;
+  if (core_init_state == 0) return waiting_for(0, "the core environment");
 
   if (!Module::ModuleManager::GetInstance().IsAllModulesRegistered()) {
-    LOG_D() << "monitor: some modules are still going to be registered, "
-               "waiting...";
-    return false;
+    return waiting_for(1, "the modules to register");
   }
 
-  int key_db_init_state =
-      Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.key_dbs", 0);
-  if (key_db_init_state == 0) {
-    LOG_D() << "monitor: key dbs are still initializing, waiting...";
-    return false;
-  }
+  int key_db_init_state = Module::RetrieveRTValueTypedOrDefault<>(
+      Module::kGRTCoreNamespace, Module::kCoreStateKeyDbs, 0);
+  if (key_db_init_state == 0) return waiting_for(2, "the key databases");
 
   LOG_D() << "monitor: core is fully initialized, sending signal to ui...";
   // Before the RT value, which is what the startup dialog re-reads to close
   // the edge-triggered gap around its own show(). By then the bar must already
   // say 100, or it is left showing a fraction forever.
   CoreInitProgress::GetInstance().MarkAllDone();
-  Module::UpsertRTValue("core", "env.state.all", 1);
+  Module::UpsertRTValue(Module::kGRTCoreNamespace, Module::kCoreStateAll, 1);
   CoreSignalStation::GetInstance()->SignalCoreFullyLoaded();
   return true;
 }
@@ -926,11 +948,22 @@ auto CheckCoreInitializationOnce() -> bool {
 /// the core never to finish (a module that never registers), they waited
 /// forever. Each look is now a short task of its own, so whatever is queued
 /// runs in between, and teardown never has a long-running task to join.
+///
+/// Between looks the runner is free: the next one is a timer on the runner's
+/// own loop, not a sleep inside the task, which held up everything posted
+/// there by up to the whole delay. The delay grows while startup takes long,
+/// so a core that never finishes does not keep the runner waking 66 times a
+/// second.
 void PostCoreInitializationCheck(int delay_ms) {
+  static constexpr int kFirstDelayMs = 15;
+  static constexpr int kLongestDelayMs = 250;
   auto* task = new Thread::Task(
       [delay_ms](const DataObjectPtr&) -> int {
-        if (delay_ms > 0) QThread::msleep(delay_ms);
-        if (!CheckCoreInitializationOnce()) PostCoreInitializationCheck(15);
+        if (CheckCoreInitializationOnce()) return 0;
+        const int next =
+            std::clamp(delay_ms * 2, kFirstDelayMs, kLongestDelayMs);
+        QTimer::singleShot(next,
+                           [next]() { PostCoreInitializationCheck(next); });
         return 0;
       },
       "waiting_core_init_task");
@@ -1133,23 +1166,6 @@ void PerformKeyDatabaseMove(const KeyDatabaseMove& move,
             .arg(move.old_name));
     RevertKeyDatabaseMove(move);
   }
-}
-
-/// What every context is built with, from the stored settings.
-auto StoredKeyDatabaseRuntimeOptions() -> KeyDatabaseRuntimeOptions {
-  auto settings = GetSettings();
-
-  KeyDatabaseRuntimeOptions options;
-  options.offline_mode =
-      SettingItems::kForbidAllGnuPGConnection.Read(settings) ||
-      qApp->property("GFGnuPGOfflineMode").toBool();
-  options.auto_import_missing_key =
-      SettingItems::kAutoImportMissingKey.Read(settings);
-  options.default_engine =
-      SettingItems::kDefaultEngine.Read(settings).toUpper();
-  options.gnupg_supported = GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG);
-  options.rpgp_supported = GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP);
-  return options;
 }
 
 /// Build a Runtime from the stored configuration.

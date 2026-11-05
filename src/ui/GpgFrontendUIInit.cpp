@@ -35,6 +35,7 @@
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
+#include "core/module/GlobalRegisterTableKeys.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
@@ -165,8 +166,8 @@ auto CreateStartupHeader(QWidget* parent) -> QLayout* {
 void WaitEnvCheckingProcess() {
   FLOG_D() << "we need to wait for env checking process";
 
-  auto env_state =
-      Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.all", 0);
+  auto env_state = Module::RetrieveRTValueTypedOrDefault<>(
+      Module::kGRTCoreNamespace, Module::kCoreStateAll, 0);
   FLOG_D("ui is ready to wait for env initialized, env_state: %d", env_state);
 
   if (env_state == 1) {
@@ -357,10 +358,10 @@ void WaitEnvCheckingProcess() {
   // looper.exec() nothing pumps events, so any later transition is safely
   // delivered to the running loop.
   const auto core_reached_terminal_state = []() -> bool {
-    return Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.all",
-                                                   0) == 1 ||
-           Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.basic",
-                                                   0) < 0;
+    return Module::RetrieveRTValueTypedOrDefault<>(
+               Module::kGRTCoreNamespace, Module::kCoreStateAll, 0) == 1 ||
+           Module::RetrieveRTValueTypedOrDefault<>(
+               Module::kGRTCoreNamespace, Module::kCoreStateBasic, 0) < 0;
   };
 
   // Same reasoning as the terminal-state re-check below, applied to the bar
@@ -470,8 +471,8 @@ void InitGpgFrontendUI(QApplication* app) {
 }
 
 void WaitingAllInitializationFinished() {
-  if (Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.all", 0) ==
-      0) {
+  if (Module::RetrieveRTValueTypedOrDefault<>(Module::kGRTCoreNamespace,
+                                              Module::kCoreStateAll, 0) == 0) {
     LOG_D() << "ui init is done, but core doesn't, going to wait for core...";
     WaitEnvCheckingProcess();
   }

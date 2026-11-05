@@ -31,6 +31,7 @@
 #include "core/function/CoreSignalStation.h"
 #include "core/function/openpgp/PassphraseService.h"
 #include "core/model/GpgPassphraseContext.h"
+#include "core/module/GlobalRegisterTableKeys.h"
 #include "core/module/ModuleManager.h"
 #include "ui/dialog/PassphraseDialog.h"
 
@@ -59,7 +60,8 @@ void InstallPassphrasePromptHandler() {
         // instead, and let a test that cares about passphrases answer it by
         // handling the same signal itself.
         if (Module::RetrieveRTValueTypedOrDefault<>(
-                "core", "env.state.unit_test_mode", 0) == 1) {
+                Module::kGRTCoreNamespace, Module::kCoreStateUnitTestMode, 0) ==
+            1) {
           LOG_W() << "passphrase requested in unit test mode; no prompt shown";
           return;
         }
