@@ -41,6 +41,8 @@
 #                          configured without GPGFRONTEND_MODULES_BUILD_TESTS
 #                          reports green having run nothing.
 #       --rust-slow-only   Run only the ignored/slow Rust tests
+#       --mobile-only      Run only the phone application's tests (an android
+#                          flavor tree, e.g. --build-dir build-android)
 #       --large-file-only  Run only the large-file tier: real SEIPD v1/v2 files
 #                          over the former 1 GiB limit (multi-GB, GnuPG output
 #                          over 4 GiB), each Rust test in its own process with a
@@ -79,6 +81,9 @@
 #   stress    *Stress* tests       (GF_STRESS_ITER iterations)
 #   coverage  *GenerateAllDeclared* sweep (generates every declared key/subkey
 #             algorithm per engine; slow, so gated on GF_RUN_ALGO_COVERAGE=1)
+#   mobile    the phone application's tests, gf_mob_tests and its QML pages'
+#             gf_mob_qml_tests (only in an android flavor tree, where the
+#             unit and all modes include it; offscreen, in a fresh HOME)
 #
 # Examples:
 #   scripts/run_tests.sh --build
@@ -155,6 +160,7 @@ while [[ $# -gt 0 ]]; do
     --rust-only)      MODE="rust" ;;
     --modules-only)   MODE="modules" ;;
     --rust-slow-only) MODE="rust-slow" ;;
+    --mobile-only)    MODE="mobile" ;;
     --large-file-only) MODE="large-file" ;;
     --no-rust)        RUN_RUST="no" ;;
     --require-modules) REQUIRE_MODULES="yes" ;;
@@ -301,24 +307,41 @@ RUST_DIR="$REPO_ROOT/rust"
 # android flavor) has no gpgfrontend, so its tests are gf_core_tests' only.
 TEST_PROGRAMS=(core app)
 BUILD_TARGETS=(gpgfrontend gf_core_tests)
+# The phone application's own tests are built there, and only there.
+MOBILE="no"
+MOB_BIN="$BUILD_DIR/artifacts/gf_mob_tests"
+MOB_QML_BIN="$BUILD_DIR/artifacts/gf_mob_qml_tests"
 if grep -qE '^GPGFRONTEND_BUILD_FLAVOR:STRING=android$' \
      "$BUILD_DIR/CMakeCache.txt" 2>/dev/null; then
   TEST_PROGRAMS=(core)
   BUILD_TARGETS=(gf_core_tests)
   BIN="$CORE_BIN"
+  # A cross build for a device has no tests to run here.
+  if ! grep -qE '^ANDROID_ABI:' "$BUILD_DIR/CMakeCache.txt" 2>/dev/null; then
+    MOBILE="yes"
+    BUILD_TARGETS+=(gf_mob_tests gf_mob_qml_tests)
+  fi
+fi
+if [[ "$MODE" == "mobile" && "$MOBILE" != "yes" ]]; then
+  echo "error: $BUILD_DIR builds no phone application tests" >&2
+  echo "       use an android flavor tree: --build-dir build-android" >&2
+  exit 2
 fi
 
 # The Rust phases are driven by cargo and need neither the C++ binary nor a
 # CMake build, so skip all gpgfrontend build/lookup work in the rust-only modes.
 if [[ "$MODE" != "rust" && "$MODE" != "rust-slow" ]]; then
   if [[ "$DO_BUILD" == "yes" ||
-        ( "$DO_BUILD" == "auto" && ( ! -x "$BIN" || ! -x "$CORE_BIN" ) ) ]]; then
+        ( "$DO_BUILD" == "auto" && ( ! -x "$BIN" || ! -x "$CORE_BIN" ||
+          ( "$MOBILE" == "yes" && ( ! -x "$MOB_BIN" || ! -x "$MOB_QML_BIN" ) ) ) ) ]]; then
     echo "==> Building ${BUILD_TARGETS[*]} ($BUILD_DIR, -j$JOBS)"
     cmake --build "$BUILD_DIR" --target "${BUILD_TARGETS[@]}" -j"$JOBS" || {
       echo "error: build failed" >&2; exit 1; }
   fi
 
-  for bin in "$BIN" "$CORE_BIN"; do
+  required_bins=("$BIN" "$CORE_BIN")
+  [[ "$MOBILE" == "yes" ]] && required_bins+=("$MOB_BIN" "$MOB_QML_BIN")
+  for bin in "${required_bins[@]}"; do
     if [[ ! -x "$bin" ]]; then
       echo "error: test binary not found: $bin" >&2
       echo "       run with --build, or build the 'gpgfrontend' and" \
@@ -928,6 +951,51 @@ run_modules_phase() {
   return "$rc"
 }
 
+# --- mobile phase runner ---------------------------------------------------
+# The phone application's tests: its controllers and models on the core
+# (gf_mob_tests, GoogleTest) and its QML pages (gf_mob_qml_tests, Qt Quick
+# Test). Both return an authoritative exit code. They run offscreen in a HOME
+# made afresh for each run, so they never see the real profile, and a run
+# that ran nothing is a failure, not a pass.
+run_mobile_phase() {
+  local log="$RESULTS_DIR/mobile.log"
+  local home="$BUILD_DIR/test-homes/mobile"
+
+  echo
+  echo "============================================================"
+  echo "  Phase: mobile"
+  echo "  Runner: $(basename "$MOB_BIN"), $(basename "$MOB_QML_BIN")"
+  echo "============================================================"
+
+  : > "$log"
+  rm -rf -- "$home"
+  mkdir -p "$home"
+  home="$(cd "$home" && pwd)"
+
+  local rc=0 b
+  for b in "$MOB_BIN" "$MOB_QML_BIN"; do
+    echo "--- $(basename "$b") ---" | tee -a "$log"
+    if ! env HOME="$home" XDG_CONFIG_HOME="$home/.config" \
+           XDG_DATA_HOME="$home/.local/share" XDG_CACHE_HOME="$home/.cache" \
+           XDG_STATE_HOME="$home/.local/state" \
+           QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-offscreen}" \
+           "$b" 2>&1 | tee -a "$log"; then
+      rc=1
+    fi
+    # tee swallows the binary's status, so take it from PIPESTATUS.
+    [[ "${PIPESTATUS[0]}" -eq 0 ]] || rc=1
+  done
+
+  local qml_ran
+  qml_ran="$(grep -oE '^Totals: [0-9]+ passed, [0-9]+ failed' "$log" |
+             grep -oE '[0-9]+' | awk '{s += $1} END {print s + 0}')"
+  if (( $(gtest_count "$log" '==========') == 0 || qml_ran == 0 )); then
+    echo "error: a mobile test program ran no test" | tee -a "$log" >&2
+    rc=1
+  fi
+  return "$rc"
+}
+
 # --- run requested phases --------------------------------------------------
 overall_rc=0
 declare -a phases=()
@@ -954,6 +1022,10 @@ case "$MODE" in
     phases+=("modules")
     run_gtest_phase "unit" "*-*Stress*:${COVERAGE_FILTER}" "$STRESS_ITER" || overall_rc=1
     phases+=("unit")
+    if [[ "$MOBILE" == "yes" ]]; then
+      run_mobile_phase || overall_rc=1
+      phases+=("mobile")
+    fi
     ;;
   modules)
     run_modules_phase || overall_rc=1
@@ -981,6 +1053,10 @@ case "$MODE" in
     run_rust_phase || overall_rc=1
     phases+=("rust")
     ;;
+  mobile)
+    run_mobile_phase || overall_rc=1
+    phases+=("mobile")
+    ;;
   rust-slow)
     run_rust_slow_phase || overall_rc=1
     phases+=("rust-slow")
@@ -1006,6 +1082,10 @@ case "$MODE" in
     phases+=("modules")
     run_gtest_phase "unit" "*-*Stress*:${COVERAGE_FILTER}" "$STRESS_ITER" || overall_rc=1
     phases+=("unit")
+    if [[ "$MOBILE" == "yes" ]]; then
+      run_mobile_phase || overall_rc=1
+      phases+=("mobile")
+    fi
     run_gtest_phase "stress" '*Stress*' "$STRESS_ITER" || overall_rc=1
     phases+=("stress")
     run_gtest_phase "coverage" "$COVERAGE_FILTER" "$STRESS_ITER" "1" || overall_rc=1
@@ -1030,6 +1110,14 @@ for p in "${phases[@]}"; do
     passed="$(grep -oE '[0-9]+ passed' "$log" | grep -oE '[0-9]+' | awk '{s+=$1} END{print s+0}')"
     failed="$(grep -oE '[0-9]+ failed' "$log" | grep -oE '[0-9]+' | awk '{s+=$1} END{print s+0}')"
     skipped="$(grep -oE '[0-9]+ ignored' "$log" | grep -oE '[0-9]+' | awk '{s+=$1} END{print s+0}')"
+  elif [[ "$p" == "mobile" ]]; then
+    # GoogleTest's summary, plus Qt Quick Test's "Totals: P passed, F failed,
+    # S skipped" line.
+    qml="$(grep -oE '^Totals: [0-9]+ passed, [0-9]+ failed, [0-9]+ skipped' "$log" | head -n1)"
+    read -r qp qf qs <<<"$(grep -oE '[0-9]+' <<<"${qml:-0 0 0}" | xargs)"
+    passed=$(( $(gtest_count "$log" '  PASSED  ') + ${qp:-0} ))
+    failed=$(( $(gtest_count "$log" '  FAILED  ') + ${qf:-0} ))
+    skipped=$(( $(gtest_count "$log" '  SKIPPED ') + ${qs:-0} ))
   else
     # Sum rather than take the first match: a sharded phase's log is the
     # concatenation of its shard logs, so it carries one summary per shard.

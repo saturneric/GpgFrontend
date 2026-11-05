@@ -60,3 +60,10 @@ target_link_libraries(gf_mob_qml_tests PRIVATE
   gf_mob_lib gf_mob_libplugin Qt::QuickTest)
 target_compile_definitions(gf_mob_qml_tests PRIVATE
   QUICK_TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/qml")
+
+# Both run offscreen; scripts/run_tests.sh (its mobile phase) also gives them a
+# HOME of their own, so they never touch the real profile.
+add_test(NAME MobileTests COMMAND gf_mob_tests)
+add_test(NAME MobileQmlTests COMMAND gf_mob_qml_tests)
+set_tests_properties(MobileTests MobileQmlTests PROPERTIES
+  ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
