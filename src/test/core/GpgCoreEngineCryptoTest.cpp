@@ -1190,6 +1190,30 @@ TEST_P(GpgCoreEngineTest, AKeyServerAnswerKeepsOnlyTheRequestedKey) {
   DeleteKey(extra);
 }
 
+// Key Details imports a revocation certificate only for the key it shows; it
+// reads the certificate's target first, whichever engine made it.
+TEST_P(GpgCoreEngineTest, ARevocationCertificateNamesItsKey) {
+  auto key = GenerateFullKey("rev_cert_target");
+  ASSERT_TRUE(key != nullptr);
+
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto path = dir.filePath("key.rev");
+  ASSERT_TRUE(KeyManagementOperation::GetInstance(Channel()).GenerateRevokeCert(
+      key, path, 0, "test"));
+
+  QFile file(path);
+  ASSERT_TRUE(file.open(QIODevice::ReadOnly));
+  const auto target = RevocationCertificateTarget(GFBuffer(file.readAll()));
+  const auto fpr = key->Fingerprint().toUpper();
+  EXPECT_TRUE(target == fpr || (target.size() == 16 && fpr.endsWith(target)))
+      << target.toStdString();
+  EXPECT_TRUE(
+      RevocationCertificateTarget(GFBuffer(QString("not one"))).isEmpty());
+
+  DeleteKey(key);
+}
+
 // Deleting used to report nothing, and the engines answered true for keys
 // they had not deleted.
 TEST_P(GpgCoreEngineTest, DeletingAKeyReportsWhetherItWasDeleted) {

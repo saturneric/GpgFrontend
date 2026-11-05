@@ -153,6 +153,17 @@ auto GF_CORE_EXPORT FilterRequestedPublicKeys(const GFBuffer& key_block,
     -> GFBuffer;
 
 /**
+ * @brief The key a revocation certificate revokes: its fingerprint, or its
+ * key ID when the certificate names only that; upper-cased, empty when
+ * @p rev_cert is not a key revocation certificate.
+ *
+ * Read with rPGP whichever engine imports it. Declared unconditionally;
+ * empty without the Rust engine.
+ */
+auto GF_CORE_EXPORT RevocationCertificateTarget(const GFBuffer& rev_cert)
+    -> QString;
+
+/**
  * @brief Extract the recipient key IDs of an encrypted buffer.
  *
  * Reads only the PKESK packets of the OpenPGP envelope, so it answers who the

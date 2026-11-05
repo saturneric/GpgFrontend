@@ -188,6 +188,28 @@ auto DetectKeyVersionByRpgp(const GFBuffer& key_block) -> int {
 #endif
 }
 
+auto RevocationCertificateTarget(const GFBuffer& rev_cert) -> QString {
+#ifndef HAS_RUST_SUPPORT
+  (void)rev_cert;
+  return {};
+#else
+  if (rev_cert.Empty()) return {};
+  Rust::GfrBuffer buffer = {
+      reinterpret_cast<const uint8_t*>(rev_cert.Data()),
+      static_cast<uintptr_t>(rev_cert.Size()),
+  };
+  char* out = nullptr;
+  if (Rust::gfr_crypto_extract_rev_cert_target_fpr(buffer, &out) !=
+          Rust::GfrStatus::Success ||
+      out == nullptr) {
+    return {};
+  }
+  const auto target = QString::fromUtf8(out).toUpper();
+  Rust::gfr_crypto_free_string(out);
+  return target;
+#endif
+}
+
 auto FilterRequestedPublicKeys(const GFBuffer& key_block,
                                const QStringList& wanted, int* dropped)
     -> GFBuffer {
