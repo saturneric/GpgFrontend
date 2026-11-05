@@ -90,6 +90,23 @@ Item {
             verify(box.visible)
         }
 
+        // Reset keys takes the chosen keys away, never the signing: Encrypt &
+        // Sign still asks for the key that signs, and cannot run unsigned.
+        function test_resetting_keys_keeps_the_signing() {
+            WorkSelection.signingEnabled = true
+            box.begin("encrypt", {"op": "encrypt", "signs": true,
+                                  "label": "Encrypt and sign now", "run": () => {}})
+            tryVerify(() => box.opened)
+            WorkSelection.addRecipient("A".repeat(40))
+            const reset = findByName(box.contentItem, "resetKeys")
+            verify(reset.visible && reset.enabled)
+            reset.clicked()
+            compare(WorkSelection.recipientCount, 0)
+            verify(WorkSelection.signingEnabled)
+            // What the run passes on: a signer is still taken.
+            verify(WorkSelection.signsEncryption)
+        }
+
         // Keys are found by category, as on the Keys page; no key database.
         function test_keys_are_narrowed_by_category() {
             box.begin("encrypt", {"op": "encrypt", "label": "Encrypt now",

@@ -498,7 +498,9 @@ BottomSheet {
             text: qsTr("Reset keys")
             visible: sheet.infoKey === null && !sheet.signing
             enabled: WorkSelection.recipientCount > 0
-            onClicked: WorkSelection.reset()
+            // The chosen keys only: whether the operation signs is the
+            // operation's (Encrypt & Sign), so it still asks for a signer.
+            onClicked: WorkSelection.clearRecipients()
         },
         ActionButton {
             objectName: "toolboxBack"
