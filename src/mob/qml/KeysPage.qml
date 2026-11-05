@@ -9,6 +9,10 @@ import GpgFrontend.Mobile
 Page {
     id: page
 
+    // Not a stop for a screen reader: a page has no name of its own, only
+    // its parts do (Qt gives a Page the role of an unnamed tab).
+    Accessible.ignored: true
+
     // The chosen row's roles, as an object.
     signal keyChosen(var key)
     signal importRequested()

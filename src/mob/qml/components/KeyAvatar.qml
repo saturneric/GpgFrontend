@@ -28,6 +28,8 @@ Rectangle {
 
     Label {
         anchors.centerIn: parent
+        // Only a picture of the name, which is said beside it: not read out.
+        Accessible.ignored: true
         text: avatar.initials(avatar.name)
         color: Material.accentColor
         opacity: avatar.usable ? 1 : 0.6

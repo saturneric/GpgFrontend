@@ -7,6 +7,10 @@ import QtQuick.Layouts
 import GpgFrontend.Mobile
 
 Page {
+
+    // Not a stop for a screen reader: a page has no name of its own, only
+    // its parts do (Qt gives a Page the role of an unnamed tab).
+    Accessible.ignored: true
     ColumnLayout {
         anchors.centerIn: parent
         width: Math.min(parent.width - 64, 360)

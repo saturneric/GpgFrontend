@@ -63,7 +63,10 @@ RowLayout {
         Accessible.name: Wording.capabilityWords(letters)
     }
 
+    // The row the face is in says it all at once (its name and
+    // description); its parts are not read out a second time, one by one.
     KeyAvatar {
+        Accessible.ignored: true
         Layout.alignment: Qt.AlignTop
         Layout.topMargin: 2
         visible: face.isKey
@@ -83,6 +86,7 @@ RowLayout {
 
         Image {
             objectName: "groupMark"
+            Accessible.ignored: true
             anchors.centerIn: parent
             source: "qrc:/icons/key-group.png"
             sourceSize: Qt.size(24, 24)
@@ -104,6 +108,7 @@ RowLayout {
 
             Label {
                 objectName: "keyTitle"
+                Accessible.ignored: true
                 Layout.fillWidth: true
                 text: face.title
                 elide: Text.ElideRight
@@ -116,12 +121,14 @@ RowLayout {
             // the name its room.
             CapabilityPill {
                 objectName: "keyCapabilities"
+                Accessible.ignored: true
                 letters: face.capabilities
                 visible: !face.stacked && face.isKey && face.capabilities.length > 0
             }
 
             Label {
                 objectName: "keyTag"
+                Accessible.ignored: true
                 visible: text.length > 0
                 text: Wording.keyTag(face.secretState)
                 font.family: Theme.mono
@@ -141,6 +148,7 @@ RowLayout {
 
             Label {
                 objectName: "keyAddress"
+                Accessible.ignored: true
                 Layout.fillWidth: true
                 visible: text.length > 0
                 text: !face.isKey ? Wording.memberCount((face.members || []).length)
@@ -159,6 +167,7 @@ RowLayout {
 
                 Label {
                     objectName: "keyId"
+                    Accessible.ignored: true
                     text: face.keyId
                     font.family: Theme.mono
                     font.pixelSize: Theme.labelSize
@@ -167,6 +176,7 @@ RowLayout {
 
                 CapabilityPill {
                     objectName: "keyCapabilitiesBelow"
+                    Accessible.ignored: true
                     letters: face.capabilities
                     visible: face.stacked && face.isKey && face.capabilities.length > 0
                 }
@@ -191,9 +201,9 @@ RowLayout {
                 id: chip
 
                 objectName: "keyStatus"
-                visible: face.status.length > 0 && face.status !== "ok"
-                         && face.statusText.length > 0
-                         && face.note !== face.statusText
+
+                Accessible.ignored: true
+                visible: parent.showsStatus
                 text: face.statusText
                 tone: face.status === "expiring_soon" ? Theme.warning : Theme.danger
             }
@@ -202,6 +212,8 @@ RowLayout {
                 id: noteLabel
 
                 objectName: "keyNote"
+
+                Accessible.ignored: true
                 width: parent.width
                 visible: face.note.length > 0
                 text: face.note

@@ -15,6 +15,10 @@ import GpgFrontend.Mobile
 Page {
     id: page
 
+    // Not a stop for a screen reader: a page has no name of its own, only
+    // its parts do (Qt gives a Page the role of an unnamed tab).
+    Accessible.ignored: true
+
     // The launch screen's logo centre, from the top of the whole window,
     // where the page's own top is below the status bar.
     readonly property real logoCentre: (Window.height > 0 ? Window.height : height) / 2

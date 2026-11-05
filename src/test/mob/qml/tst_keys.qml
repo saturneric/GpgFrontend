@@ -211,6 +211,21 @@ Item {
             compare(Wording.subkeyTag(true, true), "ssb>")
             const row = createTemporaryObject(keyRowComponent, keys)
             compare(findByName(row, "keyTag").text, "sec#")
+            // Read out once, by the row, as something to activate; its parts
+            // are not read out again one by one.
+            compare(row.Accessible.role, Accessible.Button)
+            verify(row.Accessible.description.indexOf("Encrypt, Sign") >= 0)
+            for (const part of ["keyTitle", "keyTag", "keyAddress", "keyId",
+                                "keyCapabilities"])
+                verify(findByName(row, part).Accessible.ignored, part + " read out")
+            verify(row.Accessible.description.indexOf("0123456789ABCDEF") >= 0)
+            // A key group's internal id is not read out.
+            const group = createTemporaryObject(keyRowComponent, keys,
+                                                {"isKey": false, "keyId": "#&CE7238BD",
+                                                 "email": "", "capabilities": ""})
+            verify(group.Accessible.description.indexOf("Key group") >= 0)
+            verify(group.Accessible.description.indexOf("#&") < 0,
+                   "id read out: " + group.Accessible.description)
             // What it can do: GnuPG's letters, apart from the mark.
             const can = findByName(row, "keyCapabilities")
             verify(can.visible)

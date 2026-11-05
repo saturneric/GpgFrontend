@@ -40,11 +40,15 @@ ItemDelegate {
     // At least a two-line row; more when the text needs it.
     implicitHeight: Math.max(Theme.touch + 8,
                              implicitContentHeight + topPadding + bottomPadding)
+    // Something to activate, as TalkBack offers it: Android's accessibility
+    // gives a list item no click, a button one.
+    Accessible.role: Accessible.Button
     Accessible.name: primaryText
     Accessible.description: [!isKey ? qsTr("Key group") : "",
                              Wording.keyTagDescription(secretState),
                              Wording.capabilityWords(capabilities),
-                             email, keyId,
+                             // A group's id is internal ("#&..."): not read out.
+                             email, isKey ? keyId : "",
                              status !== "ok" ? statusText : ""]
                             .filter(t => t.length > 0).join(", ")
     onPressAndHold: categoriesRequested()

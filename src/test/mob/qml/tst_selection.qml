@@ -106,6 +106,16 @@ Item {
         }
     }
 
+    // The sections at the foot of the window.
+    NavBar {
+        id: navBar
+
+        y: 700
+        width: 400
+        sections: [{"text": "Text", "icon": "description"},
+                   {"text": "Keys", "icon": "key"}]
+    }
+
     // An icon in a bar, at the style's own size.
     BarButton {
         id: barButton
@@ -206,6 +216,31 @@ Item {
             addFab.enabled = false
             verify(!shadow.visible)
             addFab.enabled = true
+        }
+
+        // The current section is the selected tab, as Android says it; the
+        // others are not.
+        function test_the_current_section_is_selected() {
+            const tabs = []
+            const walk = item => {
+                for (let i = 0; i < item.children.length; ++i) {
+                    const c = item.children[i]
+                    if (c.Accessible.role === Accessible.PageTab) tabs.push(c)
+                    walk(c)
+                }
+            }
+            walk(navBar)
+            compare(tabs.length, 2)
+            navBar.currentIndex = 1
+            verify(!tabs[0].Accessible.selected)
+            verify(tabs[1].Accessible.selected)
+            mouseClick(tabs[0])
+            compare(navBar.currentIndex, 0)
+            verify(tabs[0].Accessible.selected)
+            verify(!tabs[1].Accessible.selected)
+            // Said in words too (Android does not get "selected" for a tab).
+            compare(tabs[0].Accessible.description, "Selected")
+            compare(tabs[1].Accessible.description, "")
         }
 
         // A row keeps the style's own press and focus feedback (its ripple);

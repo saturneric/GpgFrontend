@@ -70,6 +70,11 @@ Pane {
                 focusPolicy: Qt.NoFocus
                 Accessible.role: Accessible.PageTab
                 Accessible.name: text
+                // Which tab is the current one. Qt does not pass "selected" on
+                // to Android for a tab (seen with uiautomator: the current
+                // tab reads selected=false), so it is said in words as well.
+                Accessible.selected: current
+                Accessible.description: current ? qsTr("Selected") : ""
                 Accessible.checked: current
                 onClicked: bar.currentIndex = index
 
@@ -94,6 +99,9 @@ Pane {
 
                         Icon {
                             anchors.centerIn: parent
+                            // The tab says its name; its parts are not read
+                            // out again.
+                            Accessible.ignored: true
                             symbol: section.modelData.icon
                             color: section.current ? Material.foreground
                                                    : Material.secondaryTextColor
@@ -102,6 +110,7 @@ Pane {
 
                     Label {
                         Layout.fillWidth: true
+                        Accessible.ignored: true
                         horizontalAlignment: Text.AlignHCenter
                         elide: Text.ElideRight
                         text: section.text
