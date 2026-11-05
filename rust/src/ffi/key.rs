@@ -41,7 +41,8 @@ use crate::key::{
     update_key_expiration_internal,
 };
 use crate::key::{
-    export_merged_public_keys, export_merged_secret_keys, extract_public_key_internal,
+    export_merged_keys, export_merged_public_keys, export_merged_secret_keys,
+    extract_public_key_internal,
 };
 use crate::types::{
     GfrBuffer, GfrKeyMetadataC, GfrOpenPGPKeyVersion, GfrPasswordFetchCb, GfrRecipientResultC,
@@ -382,6 +383,72 @@ pub unsafe extern "C" fn gfr_export_merged_keys(
 
     match result {
         Ok(Ok(_)) => GfrStatus::Success,
+        Ok(Err(e)) => e,
+        Err(_) => GfrStatus::ErrorPanic,
+    }
+}
+
+/// Merge key blocks and export them as asked: secret or public, armored or as
+/// plain packets, whole or minimal (third-party certifications left out).
+///
+/// `keys_ptr` is an array of `keys_len` armored key block C strings. On
+/// success `*out_data` / `*out_len` hold the exported bytes; free them with
+/// `gfr_crypto_free_buffer`.
+///
+/// # Safety
+/// `keys_ptr` must point to a valid array of `keys_len` non-null C strings;
+/// `out_data` and `out_len` must be non-null.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn gfr_export_merged_keys_as(
+    keys_ptr: *const *const c_char,
+    keys_len: usize,
+    secret: bool,
+    armored: bool,
+    minimal: bool,
+    out_data: *mut *mut u8,
+    out_len: *mut usize,
+) -> GfrStatus {
+    clear_last_error();
+    if out_data.is_null() || out_len.is_null() {
+        return GfrStatus::ErrorInvalidInput;
+    }
+    unsafe {
+        *out_data = std::ptr::null_mut();
+        *out_len = 0;
+    }
+    // Parsing caller-supplied key blocks runs through rPGP, which can panic on
+    // malformed packets; see gfr_export_merged_keys().
+    let result = catch_unwind(|| -> Result<zeroize::Zeroizing<Vec<u8>>, GfrStatus> {
+        if keys_ptr.is_null() {
+            return Err(GfrStatus::ErrorInvalidInput);
+        }
+        let c_str_ptrs = unsafe { slice::from_raw_parts(keys_ptr, keys_len) };
+        let mut rust_strs = Vec::with_capacity(keys_len);
+        for &ptr in c_str_ptrs {
+            if ptr.is_null() {
+                return Err(GfrStatus::ErrorInvalidInput);
+            }
+            match unsafe { CStr::from_ptr(ptr).to_str() } {
+                Ok(s) => rust_strs.push(s),
+                Err(_) => return Err(GfrStatus::ErrorInvalidInput),
+            }
+        }
+        export_merged_keys(&rust_strs, secret, armored, minimal)
+    });
+
+    match result {
+        Ok(Ok(bytes)) => {
+            // An exact-size copy, as gfr_crypto_free_buffer takes it back
+            // (capacity == length); `bytes` wipes itself when it goes, where
+            // shrinking it in place would have freed an unwiped allocation.
+            let boxed: Box<[u8]> = Box::from(bytes.as_slice());
+            let len = boxed.len();
+            unsafe {
+                *out_len = len;
+                *out_data = Box::into_raw(boxed) as *mut u8;
+            }
+            GfrStatus::Success
+        }
         Ok(Err(e)) => e,
         Err(_) => GfrStatus::ErrorPanic,
     }
