@@ -598,6 +598,15 @@ Page {
         id: shown
         sourceModel: page.files
         searchText: page.searching ? search.text : ""
+        // What a search hides is not chosen unseen: the count is not shown
+        // while searching, and an operation would act on files out of sight.
+        onSearchTextChanged: Qt.callLater(page.keepChosenInSight)
+    }
+
+    function keepChosenInSight() {
+        for (const id of files.selectedIds()) {
+            if (shown.rowOf(id) < 0) files.setSelected(id, false)
+        }
     }
 
     function fileShared(id, outcome) { page.shared(outcome) }
@@ -1041,6 +1050,7 @@ Page {
         onShareRequested: id => page.share(id)
         onOpenRequested: id => page.openWith(id)
         onRemoveRequested: id => page.remove([id])
+        onResultRequested: id => { if (page.sheets) page.sheets.openStatus(id, true) }
     }
 
     DetachedVerifySheet {

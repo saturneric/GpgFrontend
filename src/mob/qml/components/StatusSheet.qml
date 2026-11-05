@@ -17,8 +17,10 @@ BottomSheet {
     id: sheet
 
     property var host: null
-    // The operation shown: any operation of a batch shows the whole batch.
+    // The operation shown: any operation of a batch shows the whole batch,
+    // unless it is asked for alone (a file of the batch, opened from it).
     property int shownId: 0
+    property bool single: false
 
     readonly property var log: OperationQueue.log
     readonly property var items: {
@@ -26,7 +28,7 @@ BottomSheet {
         if (!host || host.revision < 0 || shownId <= 0) return []
         const first = log.record(shownId)
         if (first.operationId === undefined) return []
-        return log.batch(first.batchId)
+        return single ? [first] : log.batch(first.batchId)
     }
     readonly property bool isBatch: items.length > 1
     readonly property var record: items.length > 0 ? items[0] : ({})
@@ -57,7 +59,9 @@ BottomSheet {
                     .join("\n\n")
     }
 
-    function show(id) {
+    // Shows operation @p id; with @p alone, that one even of a batch.
+    function show(id, alone) {
+        single = alone === true
         shownId = id
         showReport.currentIndex = 0
         reportScroll.contentY = 0
@@ -114,6 +118,13 @@ BottomSheet {
 
     objectName: "statusSheet"
     expandable: true
+    // From one file back to its batch, before the sheet closes.
+    stepBack: function() {
+        if (!single || log.batch(record.batchId || 0).length <= 1) return false
+        single = false
+        return true
+    }
+    onClosed: single = false
     // How it ended, as a report says it ({status, severity, cancelled}), for the
     // header every finished operation has, text or files, one or a batch;
     // null while it runs. An operation the engine never reported on ended
@@ -485,7 +496,12 @@ BottomSheet {
                        || Wording.title(modelData))
                     : Wording.title(modelData)
             detailLines: 2
-            onClicked: sheet.shownId = modelData.operationId
+            // The file alone: why it failed, and its Retry (picked again
+            // when it can no longer be opened). Back goes to the batch.
+            onClicked: {
+                sheet.single = true
+                sheet.shownId = modelData.operationId
+            }
         }
     }
 

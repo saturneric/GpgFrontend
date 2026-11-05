@@ -38,6 +38,11 @@ BottomSheet {
     signal shareRequested(int id)
     signal openRequested(int id)
     signal removeRequested(int id)
+    // How the last operation on it went, in the status sheet.
+    signal resultRequested(int operationId)
+
+    // The newest operation on it; 0 when none was run.
+    property int lastOperation: 0
 
     function begin(id) {
         sheet.fileId = id
@@ -46,6 +51,7 @@ BottomSheet {
         sheet.hashError = ""
         sheet.hashExpanded = false
         copied.visible = false
+        sheet.lastOperation = OperationQueue.log.latestOnFile(id)
         sheet.hashDue = sheet.copying
         if (!sheet.hashDue) workspace.hash(id)
         open()
@@ -60,6 +66,7 @@ BottomSheet {
         }
         const resized = file.size !== sheet.file.size
         sheet.file = file
+        sheet.lastOperation = OperationQueue.log.latestOnFile(sheet.fileId)
         // All here now, or changed since it was hashed: hashed again.
         if (!sheet.copying && (sheet.hashDue || resized)) {
             sheet.hashDue = false
@@ -283,6 +290,24 @@ BottomSheet {
                     sheet.openRequested(sheet.fileId)
                 }
             }
+        }
+    }
+
+    // How it went, from the file: a row that says "Not decrypted" opens
+    // why, and its Retry, here.
+    ItemDelegate {
+        objectName: "detailsResult"
+        Layout.fillWidth: true
+        Layout.leftMargin: -Theme.sheetPad
+        Layout.rightMargin: -Theme.sheetPad
+        leftPadding: Theme.sheetPad
+        visible: sheet.lastOperation > 0
+        text: qsTranslate("StatusLine", "Show the result")
+        icon.source: Theme.icon("info")
+        onClicked: {
+            const id = sheet.lastOperation
+            sheet.close()
+            sheet.resultRequested(id)
         }
     }
 

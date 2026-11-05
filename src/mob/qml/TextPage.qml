@@ -109,6 +109,9 @@ Page {
         const onPage = relation(id) === "input"
         if (!crypto.retry(id)) return false
         track(onPage ? docRevision : -1)
+        // Run on a text no longer on the page: its result is offered as
+        // that, not as one the page changed under.
+        if (!onPage && pendingRun) pendingRun.earlier = true
         return true
     }
 
@@ -219,18 +222,20 @@ Page {
             replaceText(crypto.output)
             return
         }
-        offer(id)
+        offer(id, run.earlier === true)
     }
 
-    // The text changed while operation @p id ran: its result is kept and
-    // offered, never put in unasked.
-    function offer(id) {
+    // The text changed while operation @p id ran, or it ran on an
+    // @p earlier text: its result is kept and offered, never put in unasked.
+    function offer(id, earlier) {
         dropOffer()
         if (!crypto.hold(id)) return
         offeredId = id
         const session = sessionId
-        notice.show(qsTr("The text changed while it was being worked on, so "
-                         + "the result was not put in."),
+        notice.show(earlier
+                    ? qsTr("Done on an earlier text, so the result was not put in.")
+                    : qsTr("The text changed while it was being worked on, so "
+                           + "the result was not put in."),
                     qsTr("Replace anyway"),
                     function() {
                         const text = crypto.take(id)

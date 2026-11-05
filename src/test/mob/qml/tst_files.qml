@@ -339,6 +339,30 @@ Item {
             files.workspace.clear()
         }
 
+        // A search that hides a chosen file lets it go: nothing is acted on
+        // out of sight. One with no operation run offers no result to show.
+        function test_what_a_search_hides_is_not_chosen() {
+            const ws = files.workspace
+            ws.addFiles([Qt.resolvedUrl("tst_files.qml"), Qt.resolvedUrl("tst_text.qml")])
+            const a = ws.idNamed("tst_files.qml")
+            const b = ws.idNamed("tst_text.qml")
+            ws.setSelected(a, true)
+            ws.setSelected(b, true)
+            compare(ws.selectedCount, 2)
+            files.openSearch()
+            findByName(files, "fileSearch").text = "files"
+            tryVerify(() => ws.selectedCount === 1)
+            compare(ws.selectedIds(), [a])
+
+            files.fileDetails.begin(a)
+            tryVerify(() => files.fileDetails.opened)
+            verify(!findByName(files.fileDetails.contentItem, "detailsResult").visible)
+            files.fileDetails.close()
+            tryVerify(() => !files.fileDetails.visible)
+            files.closeSearch()
+            ws.clear()
+        }
+
         // Taken off the list, a file's details go with it: nothing is left
         // open about a file that is not there.
         function test_details_go_with_their_file() {

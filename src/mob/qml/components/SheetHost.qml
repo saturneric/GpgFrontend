@@ -90,12 +90,13 @@ Item {
         toolbox.begin(which, pending)
     }
 
-    function openStatus(id) {
+    // Operation @p id, its whole batch; with @p alone, that one only.
+    function openStatus(id, alone) {
         if (!id || id <= 0) return
         toolbox.close()
         const record = OperationQueue.log.record(id)
         if (record.batchId !== undefined && record.batchId === unseen) unseen = 0
-        status.show(id)
+        status.show(id, alone === true)
     }
 
     // The newest operation's result, or nothing.
