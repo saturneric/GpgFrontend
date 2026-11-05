@@ -30,7 +30,7 @@
 
 #include "core/typedef/CoreTypedef.h"
 #include "core/typedef/GpgTypedef.h"
-#include "ui/struct/GpgOperaResult.h"
+#include "shell/present/GpgOperaResult.h"
 
 namespace GpgFrontend::UI {
 

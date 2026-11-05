@@ -59,10 +59,15 @@
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/RustUtils.h"
+#include "shell/present/InfoBoardCardConverter.h"
+#include "shell/present/InfoBoardReport.h"
+#include "shell/result_analyse/GpgDecryptResultAnalyse.h"
+#include "shell/result_analyse/GpgEncryptResultAnalyse.h"
+#include "shell/result_analyse/GpgOperaOutcome.h"
+#include "shell/result_analyse/GpgSignResultAnalyse.h"
+#include "shell/result_analyse/GpgVerifyResultAnalyse.h"
 #include "ui/UIModuleManager.h"
 #include "ui/function/ImportKey.h"
-#include "ui/function/InfoBoardCardConverter.h"
-#include "ui/function/InfoBoardReport.h"
 
 //
 #include "GFHostImpl.h"
@@ -80,12 +85,11 @@ void EmitResultCards(const GpgFrontend::GpgOpResultInfo& info,
                      const char** cards) {
   if (cards == nullptr) return;
   const auto label = info.operation;
-  const GpgFrontend::UI::InfoBoardSource source{
-      GpgFrontend::UI::InfoBoardSource::kOPERATION, u"op:"_s + label, label,
-      label};
-  const auto card_list = GpgFrontend::UI::BuildOpInfoCards(info, source);
+  const GpgFrontend::InfoBoardSource source{
+      GpgFrontend::InfoBoardSource::kOPERATION, u"op:"_s + label, label, label};
+  const auto card_list = GpgFrontend::BuildOpInfoCards(info, source);
   *cards = GFStrDup(
-      QString::fromUtf8(GpgFrontend::UI::encode_info_board_cards(card_list)));
+      QString::fromUtf8(GpgFrontend::encode_info_board_cards(card_list)));
 }
 
 }  // namespace

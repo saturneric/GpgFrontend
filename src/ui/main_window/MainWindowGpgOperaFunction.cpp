@@ -44,8 +44,6 @@
 #include "shell/rules/RecipientRules.h"
 #include "ui/dialog/KeysPicker.h"
 #include "ui/function/GpgOperaHelper.h"
-#include "ui/function/InfoBoardCardConverter.h"
-#include "ui/main_window/EncryptBlockReason.h"
 #include "ui/main_window/FileOperaOutcome.h"
 #include "ui/struct/GpgOperaResultContext.h"
 #include "ui/widgets/InfoBoardWidget.h"

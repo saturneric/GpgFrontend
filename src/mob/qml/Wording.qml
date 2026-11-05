@@ -36,8 +36,11 @@ QtObject {
     // The word under the desktop's stamp, for the same report.
     function reportWord(report) {
         if (report.cancelled === true) return qsTr("Information")
-        if (report.status > 0) return qsTr("Success")
-        return report.status === 0 ? qsTr("Warning") : qsTr("Error")
+        switch (report.severity) {
+        case "ok": return qsTr("Success")
+        case "warn": return qsTr("Warning")
+        default: return qsTr("Error")
+        }
     }
 
     // The quick path's line: the last operation and its keys, done again in

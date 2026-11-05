@@ -29,10 +29,11 @@
 #pragma once
 
 #include "core/typedef/CoreTypedef.h"
-#include "ui/function/InfoBoardReport.h"
+#include "shell/present/GpgOperaResult.h"
+#include "shell/present/InfoBoardReport.h"
+#include "shell/present/InfoBoardTypes.h"
+#include "shell/result_analyse/GpgOpResultInfo.h"
 #include "ui/function/TextDirection.h"
-#include "ui/struct/GpgOperaResult.h"
-#include "ui/struct/InfoBoardTypes.h"
 
 class Ui_InfoBoard;
 

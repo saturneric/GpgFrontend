@@ -26,15 +26,15 @@
  *
  */
 
-#include "ui/function/InfoBoardCardConverter.h"
+#include "shell/present/InfoBoardCardConverter.h"
 
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 
-#include "ui/function/InfoBoardReport.h"
+#include "shell/present/InfoBoardReport.h"
 
-namespace GpgFrontend::UI {
+namespace GpgFrontend {
 
 namespace {
 
@@ -168,4 +168,4 @@ auto decode_info_board_cards(const QByteArray& json) -> InfoBoardCardsPayload {
   return payload;
 }
 
-}  // namespace GpgFrontend::UI
+}  // namespace GpgFrontend

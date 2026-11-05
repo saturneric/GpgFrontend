@@ -28,7 +28,8 @@
 
 #include "crypto/ResultPresenter.h"
 
-#include "core/function/result_analyse/InfoBoardCard.h"
+#include "shell/present/InfoBoardReport.h"
+#include "shell/result_analyse/InfoBoardCard.h"
 
 namespace GpgFrontend::Mobile {
 
@@ -202,9 +203,20 @@ auto PresentResult(const GpgOpResultInfo& info) -> QVariantMap {
     });
   }
 
+  // How it went, read as the desktop's Status Panel reads it: an engine
+  // error under a success is a warning, a failed signature check a failure.
+  const auto outcome =
+      NormalizeEngineOutcome(info.status, info.stageErrors).outcome;
+  InfoBoardOutcomeCounts counts;
+  counts.Add(outcome);
+
   return {
       {QStringLiteral("status"), info.status},
       {QStringLiteral("cancelled"), cancelled},
+      // "ok", "warn", "critical" (SeverityId), and in words.
+      {QStringLiteral("severity"), SeverityId(AggregateSeverity(counts))},
+      {QStringLiteral("outcome"), OutcomeId(outcome)},
+      {QStringLiteral("headline"), HeadlineText(AggregateHeadline(counts))},
       {QStringLiteral("operation"), info.operation},
       {QStringLiteral("description"), info.description},
       {QStringLiteral("engine"), info.engine},

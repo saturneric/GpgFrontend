@@ -32,7 +32,7 @@
 #include <QPointer>
 #include <optional>
 
-#include "ui/function/InfoBoardReport.h"
+#include "shell/present/InfoBoardReport.h"
 #include "ui/lua/NativeWidgetRegistry.h"
 
 namespace GpgFrontend::UI {

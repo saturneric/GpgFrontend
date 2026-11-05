@@ -28,20 +28,21 @@
 
 #pragma once
 
-#include "core/function/result_analyse/GpgOpResultInfo.h"
-#include "ui/struct/InfoBoardTypes.h"
+#include "GFShellExport.h"
+#include "shell/present/InfoBoardTypes.h"
+#include "shell/result_analyse/GpgOpResultInfo.h"
 
-namespace GpgFrontend::UI {
+namespace GpgFrontend {
 
 // The domain cards of an analysed result: the core's, which the phone uses
-// too (core/function/result_analyse/InfoBoardCard.h).
+// too (shell/result_analyse/InfoBoardCard.h).
 using GpgFrontend::ConvertOpInfoToCards;
 
 // Serialize cards to a JSON array string. Used by the SDK to hand structured
 // results to modules, which can only pass plain string key/value params; the
 // receiving UI slot decodes them back into cards so the Info Board never has to
 // parse a human-readable report.
-auto GF_UI_EXPORT encode_info_board_cards(const QList<InfoBoardCard>& cards)
+auto GF_SHELL_EXPORT encode_info_board_cards(const QList<InfoBoardCard>& cards)
     -> QByteArray;
 
 // Decoded form of a module's `result_cards` payload. `valid` is false when the
@@ -63,7 +64,7 @@ struct InfoBoardCardsPayload {
 // them decodes as an ordinary card of the posting's own source, which is what
 // every payload written before they existed means. `source` is an object
 // {id, label, full} or a plain string standing for all three.
-auto GF_UI_EXPORT decode_info_board_cards(const QByteArray& json)
+auto GF_SHELL_EXPORT decode_info_board_cards(const QByteArray& json)
     -> InfoBoardCardsPayload;
 
-}  // namespace GpgFrontend::UI
+}  // namespace GpgFrontend

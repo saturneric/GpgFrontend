@@ -26,15 +26,31 @@
  *
  */
 
-#include "GpgOperaResult.h"
+#pragma once
 
-namespace GpgFrontend::UI {
+#include "GFShellExport.h"
+#include "core/model/GFBuffer.h"
+#include "shell/result_analyse/GpgOpResultInfo.h"
 
-GpgOperaResult::GpgOperaResult(GpgFrontend::GpgOpResultInfo info, QString tag)
-    : tag(std::move(tag)), op_info(std::move(info)) {}
+namespace GpgFrontend {
 
-void GpgOperaResult::merge(const GpgOperaResult& other) {
-  op_info.Merge(other.op_info);
-}
+struct GF_SHELL_EXPORT GpgOperaResult {
+  QString tag;        ///< Display tag (e.g., filename for file operations)
+  GFBuffer o_buffer;  ///< Output buffer (for message operations)
+  GpgFrontend::GpgOpResultInfo op_info;  ///< Structured operation result info
+  /// Position of the input in its batch; -1 when not part of one.
+  int input_index = -1;
+  /// Full path of the input file; empty for a buffer operation.
+  QString source_path;
+  /// Where a file operation wrote its output: the staged path its batch
+  /// commits or discards. Empty for a buffer operation.
+  QString staged_output_path;
 
-}  // namespace GpgFrontend::UI
+  /// Construct from GpgOpResultInfo and optional display tag
+  explicit GpgOperaResult(GpgFrontend::GpgOpResultInfo info, QString tag = {});
+
+  /// Merge another GpgOperaResult into this one (delegates to op_info.merge)
+  void merge(const GpgOperaResult& other);
+};
+
+}  // namespace GpgFrontend

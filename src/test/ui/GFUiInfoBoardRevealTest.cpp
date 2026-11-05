@@ -44,19 +44,19 @@
 #include <QToolButton>
 
 #include "GpgFrontendTest.h"
-#include "ui/function/InfoBoardCardConverter.h"
+#include "shell/present/InfoBoardCardConverter.h"
 #include "ui/widgets/InfoBoardWidget.h"
 
 namespace GpgFrontend::Test {
 
 namespace {
 
-using UI::InfoBoardCard;
+using GpgFrontend::InfoBoardCard;
+using GpgFrontend::kINFO_ERROR_CRITICAL;
+using GpgFrontend::kINFO_ERROR_NEUTRAL;
+using GpgFrontend::kINFO_ERROR_OK;
+using GpgFrontend::kINFO_ERROR_WARN;
 using UI::InfoBoardWidget;
-using UI::kINFO_ERROR_CRITICAL;
-using UI::kINFO_ERROR_NEUTRAL;
-using UI::kINFO_ERROR_OK;
-using UI::kINFO_ERROR_WARN;
 
 /// Run @p work on the GUI thread and wait for it.
 template <typename F>
@@ -78,7 +78,7 @@ struct RevealFixture {
     dock->setWidget(board);
     UI::RevealOnNewResult(board, dock);
     QObject::connect(board, &InfoBoardWidget::SignalResultPosted, board,
-                     [this](UI::InfoBoardStatus) { ++posted; });
+                     [this](GpgFrontend::InfoBoardStatus) { ++posted; });
   }
 
   /// What the dock's close button does. (Not the toggle action: its checked
@@ -221,7 +221,7 @@ TEST(GFUiInfoBoardRevealTest, StructuredPostingsAnnounceExactlyOnce) {
     f.UserCloses();
     f.board->SetInfoBoardFromResults(
         u"2 files"_s, kINFO_ERROR_WARN,
-        {UI::GpgOperaResult(info), UI::GpgOperaResult(info)});
+        {GpgFrontend::GpgOperaResult(info), GpgFrontend::GpgOperaResult(info)});
     EXPECT_EQ(f.posted, 2);
     EXPECT_FALSE(f.dock->isHidden());
   });
@@ -260,7 +260,7 @@ TEST(GFUiInfoBoardRevealTest, RejectedExpiredKeySignatureIsCritical) {
   expired_before.rejected = true;
   info.signatures << expired_later << expired_before;
 
-  const auto cards = UI::ConvertOpInfoToCards(info);
+  const auto cards = GpgFrontend::ConvertOpInfoToCards(info);
   ASSERT_EQ(cards.size(), 2);
   EXPECT_EQ(cards[0].status, kINFO_ERROR_WARN);
   EXPECT_EQ(cards[1].status, kINFO_ERROR_CRITICAL);

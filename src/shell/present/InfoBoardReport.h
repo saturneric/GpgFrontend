@@ -28,16 +28,18 @@
 
 #pragma once
 
+#include "GFShellExport.h"
+
 // The Status Panel's one report model. Every way a result reaches the panel is
 // normalized into an InfoBoardReport here, and the panel, its copy text, its
 // raw details and its PNG export are all produced from that model. Nothing in
 // this file touches a widget, so all of it runs off the GUI thread.
 
-#include "core/function/result_analyse/GpgOpResultInfo.h"
-#include "ui/struct/GpgOperaResult.h"
-#include "ui/struct/InfoBoardTypes.h"
+#include "shell/present/GpgOperaResult.h"
+#include "shell/present/InfoBoardTypes.h"
+#include "shell/result_analyse/GpgOpResultInfo.h"
 
-namespace GpgFrontend::UI {
+namespace GpgFrontend {
 
 // ---------------------------------------------------------------------------
 // Output stage: what happened to an engine's output after the engine ran.
@@ -181,17 +183,17 @@ struct NormalizedEngineOutcome {
  * codes name why it is not. Cancelled and not supported never hide another
  * error: any other engine code makes the result a failure.
  */
-auto GF_UI_EXPORT NormalizeEngineOutcome(int status,
-                                         const QList<GpgOpStageError>& errors)
+auto GF_SHELL_EXPORT
+NormalizeEngineOutcome(int status, const QList<GpgOpStageError>& errors)
     -> NormalizedEngineOutcome;
 
 /// What the user's task achieved: the engine's outcome after its output was
 /// applied, saved or discarded.
-auto GF_UI_EXPORT ResolveTaskOutcome(InfoBoardOutcome engine, OutputFate fate)
-    -> InfoBoardOutcome;
+auto GF_SHELL_EXPORT ResolveTaskOutcome(InfoBoardOutcome engine,
+                                        OutputFate fate) -> InfoBoardOutcome;
 
 /// Per-outcome counts of a set of objects.
-struct InfoBoardOutcomeCounts {
+struct GF_SHELL_EXPORT InfoBoardOutcomeCounts {
   int succeeded = 0;
   int warning = 0;
   int failed = 0;
@@ -206,30 +208,30 @@ struct InfoBoardOutcomeCounts {
   [[nodiscard]] auto Completed() const -> int { return succeeded + warning; }
 };
 
-auto GF_UI_EXPORT AggregateSeverity(const InfoBoardOutcomeCounts& counts)
+auto GF_SHELL_EXPORT AggregateSeverity(const InfoBoardOutcomeCounts& counts)
     -> InfoBoardStatus;
 
-auto GF_UI_EXPORT AggregateHeadline(const InfoBoardOutcomeCounts& counts)
+auto GF_SHELL_EXPORT AggregateHeadline(const InfoBoardOutcomeCounts& counts)
     -> InfoBoardHeadline;
 
 // ---------------------------------------------------------------------------
 // Presentation words.
 // ---------------------------------------------------------------------------
 
-auto GF_UI_EXPORT OutcomeText(InfoBoardOutcome outcome) -> QString;
-auto GF_UI_EXPORT HeadlineText(InfoBoardHeadline headline) -> QString;
+auto GF_SHELL_EXPORT OutcomeText(InfoBoardOutcome outcome) -> QString;
+auto GF_SHELL_EXPORT HeadlineText(InfoBoardHeadline headline) -> QString;
 /// The non-zero counts with fixed labels, e.g. "2 completed · 1 failed".
-auto GF_UI_EXPORT CountSummaryText(const InfoBoardOutcomeCounts& counts)
+auto GF_SHELL_EXPORT CountSummaryText(const InfoBoardOutcomeCounts& counts)
     -> QString;
 
 /// Stable ids for the card JSON and the report hash; never translated.
-auto GF_UI_EXPORT OutcomeId(InfoBoardOutcome outcome) -> QString;
-auto GF_UI_EXPORT OutcomeFromId(const QString& id)
+auto GF_SHELL_EXPORT OutcomeId(InfoBoardOutcome outcome) -> QString;
+auto GF_SHELL_EXPORT OutcomeFromId(const QString& id)
     -> std::optional<InfoBoardOutcome>;
-auto GF_UI_EXPORT CardKindId(InfoBoardCardKind kind) -> QString;
-auto GF_UI_EXPORT CardKindFromId(const QString& id) -> InfoBoardCardKind;
-auto GF_UI_EXPORT SeverityId(InfoBoardStatus status) -> QString;
-auto GF_UI_EXPORT SourceKindId(InfoBoardSource::Kind kind) -> QString;
+auto GF_SHELL_EXPORT CardKindId(InfoBoardCardKind kind) -> QString;
+auto GF_SHELL_EXPORT CardKindFromId(const QString& id) -> InfoBoardCardKind;
+auto GF_SHELL_EXPORT SeverityId(InfoBoardStatus status) -> QString;
+auto GF_SHELL_EXPORT SourceKindId(InfoBoardSource::Kind kind) -> QString;
 
 // ---------------------------------------------------------------------------
 // Builders: one per way a result reaches the panel.
@@ -237,8 +239,8 @@ auto GF_UI_EXPORT SourceKindId(InfoBoardSource::Kind kind) -> QString;
 
 /// A plain message: one object, outcome from @p status, the text as a
 /// caller's Message.
-auto GF_UI_EXPORT BuildReportFromText(const QString& text,
-                                      InfoBoardStatus status)
+auto GF_SHELL_EXPORT BuildReportFromText(const QString& text,
+                                         InfoBoardStatus status)
     -> InfoBoardReport;
 
 /**
@@ -248,19 +250,20 @@ auto GF_UI_EXPORT BuildReportFromText(const QString& text,
  * outcome; @p status is the fallback for groups without one. Severity and
  * headline come from the groups, never from @p status directly.
  */
-auto GF_UI_EXPORT BuildReportFromCards(
+auto GF_SHELL_EXPORT BuildReportFromCards(
     const QString& text, InfoBoardStatus status,
     const QList<InfoBoardCard>& cards, const QString& operation,
     const QString& description, const QString& details_title,
     const QStringList& details_items) -> InfoBoardReport;
 
 /// Analysed results, one object each, plus what the call site knows.
-auto GF_UI_EXPORT BuildReportFromResults(
+auto GF_SHELL_EXPORT BuildReportFromResults(
     const QList<GpgOperaResult>& results,
     const InfoBoardBatchContext& context = {}) -> InfoBoardReport;
 
 /// The source of a buffer operation: the document in the current tab.
-auto GF_UI_EXPORT CurrentDocumentSource(int input_index = 0) -> InfoBoardSource;
+auto GF_SHELL_EXPORT CurrentDocumentSource(int input_index = 0)
+    -> InfoBoardSource;
 
 /**
  * @brief Outcome and domain cards for one analysed result.
@@ -268,8 +271,8 @@ auto GF_UI_EXPORT CurrentDocumentSource(int input_index = 0) -> InfoBoardSource;
  * What the SDK hands a module, so the module can forward a complete object
  * back through the cards entry point.
  */
-auto GF_UI_EXPORT BuildOpInfoCards(const GpgOpResultInfo& info,
-                                   const InfoBoardSource& source)
+auto GF_SHELL_EXPORT BuildOpInfoCards(const GpgOpResultInfo& info,
+                                      const InfoBoardSource& source)
     -> QList<InfoBoardCard>;
 
 /**
@@ -278,11 +281,11 @@ auto GF_UI_EXPORT BuildOpInfoCards(const GpgOpResultInfo& info,
  * The hash covers the canonical content (CanonicalReportBytes) and so never
  * itself, the reference id or how much of the report is on screen.
  */
-void GF_UI_EXPORT FinalizeReport(InfoBoardReport& report,
-                                 const QDateTime& issued_at);
+void GF_SHELL_EXPORT FinalizeReport(InfoBoardReport& report,
+                                    const QDateTime& issued_at);
 
 /// The exact bytes the report hash is computed over.
-auto GF_UI_EXPORT CanonicalReportBytes(const InfoBoardReport& report)
+auto GF_SHELL_EXPORT CanonicalReportBytes(const InfoBoardReport& report)
     -> QByteArray;
 
 // ---------------------------------------------------------------------------
@@ -290,14 +293,14 @@ auto GF_UI_EXPORT CanonicalReportBytes(const InfoBoardReport& report)
 // ---------------------------------------------------------------------------
 
 /// What Copy puts on the clipboard and the PNG carries as its comment.
-auto GF_UI_EXPORT RenderReportText(const InfoBoardReport& report) -> QString;
+auto GF_SHELL_EXPORT RenderReportText(const InfoBoardReport& report) -> QString;
 
 /// The Details view: each object's engine report and every error.
-auto GF_UI_EXPORT RenderRawDetails(const InfoBoardReport& report) -> QString;
+auto GF_SHELL_EXPORT RenderRawDetails(const InfoBoardReport& report) -> QString;
 
 /// Append an object's error rows (engine, application, output) to @p card,
 /// in display order: short labels, the stage and code as each row's note.
-void GF_UI_EXPORT AppendObjectErrorFields(InfoBoardCard& card,
-                                          const InfoBoardObject& object);
+void GF_SHELL_EXPORT AppendObjectErrorFields(InfoBoardCard& card,
+                                             const InfoBoardObject& object);
 
-}  // namespace GpgFrontend::UI
+}  // namespace GpgFrontend

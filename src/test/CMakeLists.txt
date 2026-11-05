@@ -79,8 +79,7 @@ if(GF_ENGINE_GNUPG)
 else()
   list(REMOVE_ITEM TEST_SOURCE
     ./ui/GFUiInfoBoardRenderTest.cpp
-    ./ui/GFUiInfoBoardReportTest.cpp
-    ./ui/GFUiRecipientConfirmTest.cpp)
+    ./ui/GFUiInfoBoardReportTest.cpp)
 endif()
 
 # define test library

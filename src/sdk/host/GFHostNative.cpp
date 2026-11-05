@@ -39,7 +39,7 @@
 #include "private/GFHostTransfer.h"
 #include "private/GFHostVersioned.h"
 #include "private/GFSDKPrivate.h"
-#include "ui/function/InfoBoardReport.h"
+#include "shell/present/InfoBoardReport.h"
 #include "ui/lua/NativeInstances.h"
 #include "ui/lua/NativeWidgetRegistry.h"
 
@@ -478,15 +478,15 @@ auto DocumentResult(GFHostContextRef ctx, uint64_t instance,
                                              r.capsule_id, module, reason);
   if (!info.has_value()) return -1;
 
-  GpgFrontend::UI::GpgOperaResult result(*info);
+  GpgFrontend::GpgOperaResult result(*info);
   result.input_index = 0;
   result.op_info.inputHash = Text(r.input_hash);
 
   // What became of the output, as the Host's own Encrypt and Decrypt record
   // it for the document they work on.
-  GpgFrontend::UI::InfoBoardBatchContext context;
+  GpgFrontend::InfoBoardBatchContext context;
   context.document_target = true;
-  using GpgFrontend::UI::OutputFate;
+  using GpgFrontend::OutputFate;
   switch (r.output) {
     case GF_DOCUMENT_OUTPUT_APPLIED:
       context.fates.insert(0, OutputFate::kAPPLIED);
@@ -494,11 +494,11 @@ auto DocumentResult(GFHostContextRef ctx, uint64_t instance,
     case GF_DOCUMENT_OUTPUT_APPLY_FAILED:
       context.fates.insert(0, OutputFate::kAPPLY_FAILED);
       context.output_errors[0].append(
-          {GpgFrontend::UI::OutputAction::kAPPLY_TO_DOCUMENT,
+          {GpgFrontend::OutputAction::kAPPLY_TO_DOCUMENT,
            {},
            std::nullopt,
            reason,
-           GpgFrontend::UI::OutputErrorOrigin::kAPPLICATION});
+           GpgFrontend::OutputErrorOrigin::kAPPLICATION});
       break;
     default:
       context.fates.insert(0, OutputFate::kNOT_PRODUCED);

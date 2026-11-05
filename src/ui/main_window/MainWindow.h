@@ -34,10 +34,10 @@
 #include "core/typedef/CoreTypedef.h"
 #include "core/typedef/GpgTypedef.h"
 #include "core/utils/IOUtils.h"
+#include "shell/present/GpgOperaResult.h"
+#include "shell/present/InfoBoardReport.h"
 #include "ui/command/CodecStage.h"
-#include "ui/function/InfoBoardReport.h"
 #include "ui/main_window/GeneralMainWindow.h"
-#include "ui/struct/GpgOperaResult.h"
 
 namespace GpgFrontend {
 class GpgPassphraseContext;

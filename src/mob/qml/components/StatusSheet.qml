@@ -114,7 +114,7 @@ BottomSheet {
 
     objectName: "statusSheet"
     expandable: true
-    // How it ended, as a report says it ({status, cancelled}), for the
+    // How it ended, as a report says it ({status, severity, cancelled}), for the
     // header every finished operation has, text or files, one or a batch;
     // null while it runs. An operation the engine never reported on ended
     // failed or stopped; a batch ended well if every file did, badly if
@@ -124,11 +124,13 @@ BottomSheet {
         if (!isBatch) {
             if (Object.keys(record.report || {}).length > 0) return record.report
             if (record.phase === "cancelled") return {"cancelled": true}
-            return record.phase === "failed" ? {"status": -1} : null
+            return record.phase === "failed" ? {"status": -1, "severity": "critical"}
+                                             : null
         }
-        if (counts.failed + counts.cancelled === 0) return {"status": 1}
-        if (counts.done > 0) return {"status": 0}
-        return counts.failed > 0 ? {"status": -1} : {"cancelled": true}
+        if (counts.failed + counts.cancelled === 0) return {"status": 1, "severity": "ok"}
+        if (counts.done > 0) return {"status": 0, "severity": "warn"}
+        return counts.failed > 0 ? {"status": -1, "severity": "critical"}
+                                 : {"cancelled": true}
     }
     readonly property bool hasReport: outcome !== null
     // Finished, the header below says it: the outcome, then what it was.

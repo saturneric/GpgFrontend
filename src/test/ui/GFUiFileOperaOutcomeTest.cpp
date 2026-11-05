@@ -42,11 +42,11 @@ namespace GpgFrontend::Test {
 
 namespace {
 
+using GpgFrontend::GpgOperaResult;
+using GpgFrontend::OutputAction;
+using GpgFrontend::OutputFate;
 using UI::AssignFileBatchIdentity;
-using UI::GpgOperaResult;
 using UI::IsFileOperaSuccessful;
-using UI::OutputAction;
-using UI::OutputFate;
 using UI::RecordCommittedOutputs;
 using UI::RecordDiscardedOutputs;
 
@@ -160,15 +160,15 @@ TEST(FileOperaOutcomeTest, AMissingResultGetsNoFateFromTheCleanup) {
   RecordDiscardedOutputs(ctx, results, staged, {true, true});
   EXPECT_FALSE(ctx.fates.contains(1));
 
-  const auto report = UI::BuildReportFromResults(results, ctx);
+  const auto report = GpgFrontend::BuildReportFromResults(results, ctx);
   EXPECT_FALSE(report.summary.contains(QCoreApplication::translate(
-      "GpgFrontend::UI::InfoBoardReport", "No output files were written.")));
+      "GpgFrontend::InfoBoardReport", "No output files were written.")));
 }
 
 TEST(FileOperaOutcomeTest, ACommitFailureMarksWhatWasAndWasNotWritten) {
   const QStringList finals{u"/o/a"_s, u"/o/b"_s, u"/o/c"_s};
   const QStringList staged{u"/w/a"_s, u"/w/b"_s, u"/w/c"_s};
-  UI::InfoBoardBatchContext ctx;
+  GpgFrontend::InfoBoardBatchContext ctx;
   RecordCommittedOutputs(ctx, finals, 1,
                          SafeOutputCommitStep::kMOVE_EXISTING_ASIDE, staged,
                          {true, true, false});
@@ -188,7 +188,7 @@ TEST(FileOperaOutcomeTest, ACommitFailureMarksWhatWasAndWasNotWritten) {
 }
 
 TEST(FileOperaOutcomeTest, ASuccessfulCommitMarksEveryOutputWritten) {
-  UI::InfoBoardBatchContext ctx;
+  GpgFrontend::InfoBoardBatchContext ctx;
   RecordCommittedOutputs(ctx, {u"/o/a"_s, u"/o/b"_s}, -1,
                          SafeOutputCommitStep::kMOVE_INTO_PLACE,
                          {u"/w/a"_s, u"/w/b"_s}, {});

@@ -59,9 +59,9 @@ namespace GpgFrontend::Test {
 
 namespace {
 
+using GpgFrontend::kINFO_ERROR_CRITICAL;
+using GpgFrontend::kINFO_ERROR_OK;
 using UI::InfoBoardWidget;
-using UI::kINFO_ERROR_CRITICAL;
-using UI::kINFO_ERROR_OK;
 using UI::StatusDockPresentation;
 using UI::StatusDockPresenter;
 
@@ -268,7 +268,7 @@ TEST(GFUiStatusDockPresenterTest, IndicatorKeepsTheResultColourWhileCollapsed) {
     f.board->SlotReset();
     EXPECT_TRUE(f.Collapsed());
     EXPECT_TRUE(f.IndicatorStyle().contains(
-        f.board->IndicatorColor(UI::kINFO_ERROR_NEUTRAL).name()));
+        f.board->IndicatorColor(GpgFrontend::kINFO_ERROR_NEUTRAL).name()));
     EXPECT_FALSE(f.BarShows("statusDockBarStatus"));
   });
 }

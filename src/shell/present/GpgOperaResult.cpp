@@ -26,26 +26,15 @@
  *
  */
 
-#pragma once
+#include "GpgOperaResult.h"
 
-// The Status Panel's value types, now the core's (InfoBoardCard.h), which the
-// phone shares; the names stay where the desktop has always found them.
+namespace GpgFrontend {
 
-#include "core/function/result_analyse/InfoBoardCard.h"
+GpgOperaResult::GpgOperaResult(GpgFrontend::GpgOpResultInfo info, QString tag)
+    : tag(std::move(tag)), op_info(std::move(info)) {}
 
-namespace GpgFrontend::UI {
+void GpgOperaResult::merge(const GpgOperaResult& other) {
+  op_info.Merge(other.op_info);
+}
 
-using GpgFrontend::InfoBoardCard;
-using GpgFrontend::InfoBoardCardKind;
-using GpgFrontend::InfoBoardFieldGroup;
-using GpgFrontend::InfoBoardFieldMeta;
-using GpgFrontend::InfoBoardFieldRole;
-using GpgFrontend::InfoBoardOutcome;
-using GpgFrontend::InfoBoardSource;
-using GpgFrontend::InfoBoardStatus;
-using GpgFrontend::kINFO_ERROR_CRITICAL;
-using GpgFrontend::kINFO_ERROR_NEUTRAL;
-using GpgFrontend::kINFO_ERROR_OK;
-using GpgFrontend::kINFO_ERROR_WARN;
-
-}  // namespace GpgFrontend::UI
+}  // namespace GpgFrontend

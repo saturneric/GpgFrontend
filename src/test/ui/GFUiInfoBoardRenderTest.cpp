@@ -46,8 +46,8 @@
 
 #include "GpgFrontendTest.h"
 #include "core/function/gpg/GpgErrorMap.h"
+#include "shell/present/InfoBoardReport.h"
 #include "ui/function/GpgOperaHelper.h"
-#include "ui/function/InfoBoardReport.h"
 #include "ui/function/UIStyle.h"
 #include "ui/widgets/InfoBoardDocFrame.h"
 #include "ui/widgets/InfoBoardWidget.h"
@@ -56,7 +56,7 @@ namespace GpgFrontend::Test {
 
 namespace {
 
-using UI::GpgOperaResult;
+using GpgFrontend::GpgOperaResult;
 using UI::InfoBoardWidget;
 
 template <typename F>
@@ -66,7 +66,7 @@ void OnGuiThread(F&& work) {
 }
 
 auto Key(const char* text) -> QString {
-  return QCoreApplication::translate("GpgFrontend::UI::InfoBoardReport", text);
+  return QCoreApplication::translate("GpgFrontend::InfoBoardReport", text);
 }
 
 /// A laid-out board that is never put on a screen.
@@ -212,7 +212,7 @@ TEST(GFUiInfoBoardRenderTest, EverySourceSitsAtTheRightOfItsCardsHeader) {
     GpgOperaResult r(info, u"signed.txt"_s);
     r.input_index = 0;
     r.source_path = u"/home/u/signed.txt"_s;
-    f.board->SetInfoBoardFromResults({}, UI::kINFO_ERROR_OK, {r});
+    f.board->SetInfoBoardFromResults({}, GpgFrontend::kINFO_ERROR_OK, {r});
     RenderFixture::Settle();
 
     const auto cards = f.Cards();
@@ -242,7 +242,7 @@ TEST(GFUiInfoBoardRenderTest,
   OnGuiThread([] {
     RenderFixture f;
     const auto long_path = u"/"_s + QString(300, u'd') + u"/end-of-path.txt"_s;
-    f.board->SetInfoBoardFromResults({}, UI::kINFO_ERROR_OK,
+    f.board->SetInfoBoardFromResults({}, GpgFrontend::kINFO_ERROR_OK,
                                      {FileResult(1, 0, long_path)});
     RenderFixture::Settle();
 
@@ -269,14 +269,15 @@ TEST(GFUiInfoBoardRenderTest, ResultReasonAndEngineErrorsAreShownInFull) {
     RenderFixture f;
     const auto detail = u"detail "_s.repeated(80).trimmed();
     f.board->SetInfoBoardFromResults(
-        {}, UI::kINFO_ERROR_CRITICAL,
+        {}, GpgFrontend::kINFO_ERROR_CRITICAL,
         {FileResult(-1, 0, u"/in/a.txt"_s,
                     {EngineError(u"No secret key"_s, detail)})});
     RenderFixture::Settle();
 
     auto* result = f.Value(Key("Result"));
     ASSERT_NE(result, nullptr);
-    EXPECT_EQ(result->text(), UI::OutcomeText(UI::InfoBoardOutcome::kFAILED));
+    EXPECT_EQ(result->text(),
+              GpgFrontend::OutcomeText(GpgFrontend::InfoBoardOutcome::kFAILED));
 
     // One object: the summary says the reason, so the card does not repeat
     // it on screen; Copy still has it.
@@ -287,7 +288,7 @@ TEST(GFUiInfoBoardRenderTest, ResultReasonAndEngineErrorsAreShownInFull) {
     EXPECT_EQ(f.Value(Key("Reason")), nullptr);
     // A row of the copy text: the label, then the reason in the value
     // column.
-    const auto copy = UI::RenderReportText(f.board->CurrentReport());
+    const auto copy = GpgFrontend::RenderReportText(f.board->CurrentReport());
     EXPECT_TRUE(copy.contains(
         QRegularExpression(QRegularExpression::escape(Key("Reason") + u":"_s) +
                            u" +"_s + QRegularExpression::escape(object.reason))));
@@ -312,7 +313,8 @@ TEST(GFUiInfoBoardRenderTest, ItemsBeyondTheFirstSixExpandWithOneClick) {
           FileResult(-1, i, u"/in/f%1.txt"_s.arg(i),
                      {EngineError(u"err-%1"_s.arg(i), u"detail-%1"_s.arg(i))}));
     }
-    f.board->SetInfoBoardFromResults({}, UI::kINFO_ERROR_CRITICAL, results);
+    f.board->SetInfoBoardFromResults({}, GpgFrontend::kINFO_ERROR_CRITICAL,
+                                     results);
     RenderFixture::Settle();
 
     EXPECT_EQ(f.CardTitles().count(Key("Outcome")), 6);
@@ -329,7 +331,8 @@ TEST(GFUiInfoBoardRenderTest, ItemsBeyondTheFirstSixExpandWithOneClick) {
     EXPECT_TRUE(seen);
 
     // The next posting starts collapsed again.
-    f.board->SetInfoBoardFromResults({}, UI::kINFO_ERROR_CRITICAL, results);
+    f.board->SetInfoBoardFromResults({}, GpgFrontend::kINFO_ERROR_CRITICAL,
+                                     results);
     RenderFixture::Settle();
     EXPECT_EQ(f.CardTitles().count(Key("Outcome")), 6);
   });
@@ -349,7 +352,7 @@ TEST(GFUiInfoBoardRenderTest, AnItemsManyCardsExpandWithinItsGroup) {
     }
     GpgOperaResult r(info);
     r.input_index = 0;
-    f.board->SetInfoBoardFromResults({}, UI::kINFO_ERROR_OK, {r});
+    f.board->SetInfoBoardFromResults({}, GpgFrontend::kINFO_ERROR_OK, {r});
     RenderFixture::Settle();
 
     EXPECT_EQ(f.Cards().size(), 1 + 4);
@@ -369,11 +372,12 @@ TEST(GFUiInfoBoardRenderTest, CopyDetailsAndPngCarryTheWholeReport) {
           FileResult(-1, i, u"/in/f%1.txt"_s.arg(i),
                      {EngineError(u"err-%1"_s.arg(i), u"detail-%1"_s.arg(i))}));
     }
-    f.board->SetInfoBoardFromResults({}, UI::kINFO_ERROR_CRITICAL, results);
+    f.board->SetInfoBoardFromResults({}, GpgFrontend::kINFO_ERROR_CRITICAL,
+                                     results);
     RenderFixture::Settle();
 
     const auto& report = f.board->CurrentReport();
-    const auto full = UI::RenderReportText(report);
+    const auto full = GpgFrontend::RenderReportText(report);
     EXPECT_TRUE(full.contains(u"detail-7"_s));
 
     // Copy, while collapsed.
@@ -383,7 +387,7 @@ TEST(GFUiInfoBoardRenderTest, CopyDetailsAndPngCarryTheWholeReport) {
     // Details view.
     EXPECT_TRUE(f.board->findChild<QTextBrowser*>(u"infoBoard"_s)
                     ->toPlainText()
-                    .contains(UI::RenderRawDetails(report)));
+                    .contains(GpgFrontend::RenderRawDetails(report)));
 
     QTemporaryDir dir;
     ASSERT_TRUE(dir.isValid());
@@ -419,17 +423,18 @@ TEST(GFUiInfoBoardRenderTest, ACancelledPostingNeverRendersAnEmptyCard) {
     e.codeText = u"Operation cancelled"_s;
     info.stageErrors.append(e);
     f.board->SetInfoBoardWithOpInfo(u"# Operation Cancelled"_s,
-                                    UI::kINFO_ERROR_CRITICAL, info);
+                                    GpgFrontend::kINFO_ERROR_CRITICAL, info);
     RenderFixture::Settle();
 
-    EXPECT_EQ(f.board->CurrentStatus(), UI::kINFO_ERROR_WARN);
+    EXPECT_EQ(f.board->CurrentStatus(), GpgFrontend::kINFO_ERROR_WARN);
     auto* summary = f.board->findChild<QLabel*>(u"InfoBoardSummary"_s);
     ASSERT_NE(summary, nullptr);
     EXPECT_FALSE(summary->text().isEmpty());
     // "Cancelled" is the headline; the card does not say it a third time.
     EXPECT_EQ(f.Value(Key("Reason")), nullptr);
-    EXPECT_EQ(f.Value(Key("Result"))->text(),
-              UI::OutcomeText(UI::InfoBoardOutcome::kCANCELLED));
+    EXPECT_EQ(
+        f.Value(Key("Result"))->text(),
+        GpgFrontend::OutcomeText(GpgFrontend::InfoBoardOutcome::kCANCELLED));
     ASSERT_NE(f.Value(Key("Engine error")), nullptr);
     auto* source = f.board->findChild<QLabel*>(u"InfoBoardCardSource"_s);
     ASSERT_NE(source, nullptr);
@@ -464,15 +469,15 @@ void PostDemandingReport(InfoBoardWidget* board) {
   r.source_path =
       u"/home/user/"_s + u"nested-directory/"_s.repeated(12) + u"report.txt"_s;
 
-  UI::InfoBoardBatchContext ctx;
-  UI::InfoBoardCard translated;
+  GpgFrontend::InfoBoardBatchContext ctx;
+  GpgFrontend::InfoBoardCard translated;
   translated.title = u"Ausführliche Angaben"_s;
   translated.AddField(
       u"Ausführliche Fehlerbeschreibung des Verschlüsselungsmoduls"_s,
       u"Wert"_s);
   ctx.extra_cards.insert(0, {translated});
 
-  board->SetInfoBoardReport(UI::BuildReportFromResults({r}, ctx));
+  board->SetInfoBoardReport(GpgFrontend::BuildReportFromResults({r}, ctx));
 }
 
 }  // namespace
@@ -577,8 +582,8 @@ TEST(GFUiInfoBoardRenderTest, TheFooterShortensTheHashButKeepsItWhole) {
     ASSERT_NE(hash, nullptr);
     EXPECT_FALSE(hash->text().contains(full_hash));
     EXPECT_TRUE(hash->text().contains(full_hash.left(16)));
-    EXPECT_TRUE(
-        UI::RenderReportText(f.board->CurrentReport()).contains(full_hash));
+    EXPECT_TRUE(GpgFrontend::RenderReportText(f.board->CurrentReport())
+                    .contains(full_hash));
 
     // Narrow, the footer items stack instead of overlapping.
     f.window.resize(360, 2400);
@@ -596,7 +601,7 @@ TEST(GFUiInfoBoardRenderTest, EachItemOfABatchKeepsItsOwnReasonOnScreen) {
   OnGuiThread([] {
     RenderFixture f;
     f.board->SetInfoBoardFromResults(
-        {}, UI::kINFO_ERROR_CRITICAL,
+        {}, GpgFrontend::kINFO_ERROR_CRITICAL,
         {FileResult(-1, 0, u"/in/a"_s, {EngineError(u"e1"_s, u"d1"_s)}),
          FileResult(1, 1, u"/in/b"_s)});
     RenderFixture::Settle();
@@ -618,7 +623,7 @@ TEST(GFUiInfoBoardRenderTest, IdentitiesThatLookLikeMarkupShowInFull) {
     info.signatures.append(sig);
     GpgOperaResult r(info);
     r.input_index = 0;
-    f.board->SetInfoBoardFromResults({}, UI::kINFO_ERROR_OK, {r});
+    f.board->SetInfoBoardFromResults({}, GpgFrontend::kINFO_ERROR_OK, {r});
     RenderFixture::Settle();
 
     int shown = 0;
@@ -637,7 +642,7 @@ TEST(GFUiInfoBoardRenderTest, AThemeSwitchRecoloursTheReportOnTheBoard) {
   OnGuiThread([] {
     RenderFixture f;
     f.board->SetInfoBoardFromResults(
-        {}, UI::kINFO_ERROR_CRITICAL,
+        {}, GpgFrontend::kINFO_ERROR_CRITICAL,
         {FileResult(-1, 0, u"/in/a.txt"_s, {EngineError(u"e"_s, u"d"_s)})});
     RenderFixture::Settle();
 
@@ -673,7 +678,7 @@ TEST(GFUiInfoBoardRenderTest, AThemeSwitchRecoloursTheReportOnTheBoard) {
     // Status text takes the lighter shade on a dark panel.
     EXPECT_NE(status->styleSheet(), light_status);
     EXPECT_TRUE(status->styleSheet().contains(
-        f.board->StatusColor(UI::kINFO_ERROR_CRITICAL).name()));
+        f.board->StatusColor(GpgFrontend::kINFO_ERROR_CRITICAL).name()));
 
     // And back.
     QApplication::setPalette(original);
@@ -685,14 +690,14 @@ TEST(GFUiInfoBoardRenderTest, AThemeSwitchRecoloursTheReportOnTheBoard) {
 TEST(GFUiInfoBoardRenderTest, APlainSuccessDoesNotRepeatItsStatus) {
   OnGuiThread([] {
     RenderFixture f;
-    f.board->SetInfoBoardFromResults({}, UI::kINFO_ERROR_OK,
+    f.board->SetInfoBoardFromResults({}, GpgFrontend::kINFO_ERROR_OK,
                                      {FileResult(1, 0, u"/in/a.txt"_s)});
     RenderFixture::Settle();
     auto* summary = f.board->findChild<QLabel*>(u"InfoBoardSummary"_s);
     EXPECT_TRUE(f.board->CurrentReport().summary_restates_headline);
     EXPECT_FALSE(summary->isVisibleTo(f.board));
     // Still in the text outputs.
-    EXPECT_TRUE(UI::RenderReportText(f.board->CurrentReport())
+    EXPECT_TRUE(GpgFrontend::RenderReportText(f.board->CurrentReport())
                     .contains(f.board->CurrentReport().summary));
   });
 }
@@ -704,14 +709,14 @@ TEST(GFUiInfoBoardRenderTest, TheSealShowsTheOutcomeAndNeverApprovesAFailure) {
         f.board->findChild<QWidget*>(u"InfoBoardSeal"_s));
     ASSERT_NE(seal, nullptr);
 
-    f.board->SetInfoBoardFromResults({}, UI::kINFO_ERROR_OK,
+    f.board->SetInfoBoardFromResults({}, GpgFrontend::kINFO_ERROR_OK,
                                      {FileResult(1, 0, u"/in/a"_s)});
     RenderFixture::Settle();
     EXPECT_EQ(seal->Kind(), UI::ReportSealKind::kSUCCESS);
     EXPECT_TRUE(seal->isVisibleTo(f.board));
 
     f.board->SetInfoBoardFromResults(
-        {}, UI::kINFO_ERROR_CRITICAL,
+        {}, GpgFrontend::kINFO_ERROR_CRITICAL,
         {FileResult(-1, 0, u"/in/a"_s, {EngineError(u"e"_s, u"d"_s)})});
     RenderFixture::Settle();
     EXPECT_EQ(seal->Kind(), UI::ReportSealKind::kFAILURE);
@@ -720,16 +725,18 @@ TEST(GFUiInfoBoardRenderTest, TheSealShowsTheOutcomeAndNeverApprovesAFailure) {
         GpgOperation::kENCRYPT, FromGpgError(GPG_ERR_CANCELED), {});
     GpgOperaResult r(cancelled);
     r.input_index = 0;
-    f.board->SetInfoBoardFromResults({}, UI::kINFO_ERROR_WARN, {r});
+    f.board->SetInfoBoardFromResults({}, GpgFrontend::kINFO_ERROR_WARN, {r});
     RenderFixture::Settle();
     EXPECT_EQ(seal->Kind(), UI::ReportSealKind::kCANCELLED);
     // Its inscription names the outcome, which is also written beside it.
-    EXPECT_EQ(seal->Inscription(),
-              UI::HeadlineText(UI::InfoBoardHeadline::kCANCELLED).toUpper());
+    EXPECT_EQ(
+        seal->Inscription(),
+        GpgFrontend::HeadlineText(GpgFrontend::InfoBoardHeadline::kCANCELLED)
+            .toUpper());
 
     // Branding and a status mark, said as much; never a signature.
     EXPECT_TRUE(seal->toolTip().contains(
-        UI::HeadlineText(UI::InfoBoardHeadline::kCANCELLED)));
+        GpgFrontend::HeadlineText(GpgFrontend::InfoBoardHeadline::kCANCELLED)));
 
     // The heading: the brand, untranslated, and the report's title.
     auto* brand = f.board->findChild<QLabel*>(u"InfoBoardBrand"_s);
@@ -745,7 +752,7 @@ TEST(GFUiInfoBoardRenderTest, ANarrowPanelDropsTheSealBeforeAnyText) {
   OnGuiThread([] {
     RenderFixture f;
     f.window.resize(340, 2400);
-    f.board->SetInfoBoardFromResults({}, UI::kINFO_ERROR_OK,
+    f.board->SetInfoBoardFromResults({}, GpgFrontend::kINFO_ERROR_OK,
                                      {FileResult(1, 0, u"/in/a"_s)});
     RenderFixture::Settle();
     auto* seal = dynamic_cast<UI::ReportSeal*>(

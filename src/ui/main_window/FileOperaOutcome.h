@@ -30,8 +30,8 @@
 
 #include "core/typedef/CoreTypedef.h"
 #include "core/utils/IOUtils.h"
-#include "ui/function/InfoBoardReport.h"
-#include "ui/struct/GpgOperaResult.h"
+#include "shell/present/GpgOperaResult.h"
+#include "shell/present/InfoBoardReport.h"
 
 namespace GpgFrontend::UI {
 

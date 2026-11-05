@@ -320,13 +320,16 @@ TEST_F(GpgCoreTest, NativeViewCryptoResultIsReportedAsTheHostsOwn) {
   });
   ASSERT_NE(page, nullptr);
 
-  QList<std::pair<QList<UI::GpgOperaResult>, UI::InfoBoardBatchContext>> posted;
+  QList<std::pair<QList<GpgFrontend::GpgOperaResult>,
+                  GpgFrontend::InfoBoardBatchContext>>
+      posted;
   OnGui([&] {
-    QObject::connect(page, &UI::PlainTextEditorPage::SignalModuleResult, page,
-                     [&posted](const QList<UI::GpgOperaResult>& results,
-                               const UI::InfoBoardBatchContext& context) {
-                       posted.append({results, context});
-                     });
+    QObject::connect(
+        page, &UI::PlainTextEditorPage::SignalModuleResult, page,
+        [&posted](const QList<GpgFrontend::GpgOperaResult>& results,
+                  const GpgFrontend::InfoBoardBatchContext& context) {
+          posted.append({results, context});
+        });
     const auto id = page->NativeInstanceId();
 
     // Refused before OpenPGP ran: no capsule, the view's reason.
@@ -368,7 +371,8 @@ TEST_F(GpgCoreTest, NativeViewCryptoResultIsReportedAsTheHostsOwn) {
   EXPECT_EQ(first[0].op_info.inputHash, u"abc123"_s);
   EXPECT_EQ(first[0].input_index, 0);
   EXPECT_TRUE(first_context.document_target);
-  EXPECT_EQ(first_context.fates.value(0), UI::OutputFate::kNOT_PRODUCED);
+  EXPECT_EQ(first_context.fates.value(0),
+            GpgFrontend::OutputFate::kNOT_PRODUCED);
   bool reason_kept = false;
   for (const auto& e : first[0].op_info.stageErrors) {
     for (const auto& d : e.engineDetails) {
@@ -380,7 +384,8 @@ TEST_F(GpgCoreTest, NativeViewCryptoResultIsReportedAsTheHostsOwn) {
   const auto& [second, second_context] = posted[1];
   ASSERT_EQ(second.size(), 1);
   EXPECT_EQ(second[0].op_info.op, GpgOperation::kDECRYPT);
-  EXPECT_EQ(second_context.fates.value(0), UI::OutputFate::kAPPLY_FAILED);
+  EXPECT_EQ(second_context.fates.value(0),
+            GpgFrontend::OutputFate::kAPPLY_FAILED);
   ASSERT_EQ(second_context.output_errors.value(0).size(), 1);
   EXPECT_EQ(second_context.output_errors.value(0).first().message,
             u"not a note"_s);
@@ -416,15 +421,15 @@ TEST_P(GpgCoreEngineTest, NativeViewEncryptResultIsAnalysedByTheHost) {
   ASSERT_FALSE(capsule.isEmpty());
 
   UI::PlainTextEditorPage* page = nullptr;
-  QList<UI::GpgOperaResult> posted;
-  UI::InfoBoardBatchContext context;
+  QList<GpgFrontend::GpgOperaResult> posted;
+  GpgFrontend::InfoBoardBatchContext context;
   OnGui([&] {
     page = new UI::PlainTextEditorPage();
     ASSERT_TRUE(page->MountNativeView(QString(kOwner) + ".engine_reporting"));
     page->SetModulePersisted(true);
     QObject::connect(page, &UI::PlainTextEditorPage::SignalModuleResult, page,
-                     [&](const QList<UI::GpgOperaResult>& results,
-                         const UI::InfoBoardBatchContext& c) {
+                     [&](const QList<GpgFrontend::GpgOperaResult>& results,
+                         const GpgFrontend::InfoBoardBatchContext& c) {
                        posted += results;
                        context = c;
                      });
@@ -451,7 +456,7 @@ TEST_P(GpgCoreEngineTest, NativeViewEncryptResultIsAnalysedByTheHost) {
   EXPECT_FALSE(info.engine.isEmpty());
   EXPECT_TRUE(info.stageErrors.isEmpty()) << "a stopped one records why";
   EXPECT_EQ(info.inputHash, u"feed"_s);
-  EXPECT_EQ(context.fates.value(0), UI::OutputFate::kAPPLIED);
+  EXPECT_EQ(context.fates.value(0), GpgFrontend::OutputFate::kAPPLIED);
 
   OnGui([&] { delete page; });
   GFNativeWidgetUnregister(owner(), "engine_reporting");

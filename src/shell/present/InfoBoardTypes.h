@@ -28,28 +28,26 @@
 
 #pragma once
 
-#include "core/function/result_analyse/GpgOpResultInfo.h"
-#include "core/model/GFBuffer.h"
+#include "GFShellExport.h"
 
-namespace GpgFrontend::UI {
+// The Status Panel's value types, now the core's (InfoBoardCard.h), which the
+// phone shares; the names stay where the desktop has always found them.
 
-struct GF_UI_EXPORT GpgOperaResult {
-  QString tag;  ///< Display tag (e.g., filename for file operations)
-  GFBuffer o_buffer;  ///< Output buffer (for message operations)
-  GpgFrontend::GpgOpResultInfo op_info;  ///< Structured operation result info
-  /// Position of the input in its batch; -1 when not part of one.
-  int input_index = -1;
-  /// Full path of the input file; empty for a buffer operation.
-  QString source_path;
-  /// Where a file operation wrote its output: the staged path its batch
-  /// commits or discards. Empty for a buffer operation.
-  QString staged_output_path;
+#include "shell/result_analyse/InfoBoardCard.h"
 
-  /// Construct from GpgOpResultInfo and optional display tag
-  explicit GpgOperaResult(GpgFrontend::GpgOpResultInfo info, QString tag = {});
+namespace GpgFrontend {
 
-  /// Merge another GpgOperaResult into this one (delegates to op_info.merge)
-  void merge(const GpgOperaResult& other);
-};
+using GpgFrontend::InfoBoardCard;
+using GpgFrontend::InfoBoardCardKind;
+using GpgFrontend::InfoBoardFieldGroup;
+using GpgFrontend::InfoBoardFieldMeta;
+using GpgFrontend::InfoBoardFieldRole;
+using GpgFrontend::InfoBoardOutcome;
+using GpgFrontend::InfoBoardSource;
+using GpgFrontend::InfoBoardStatus;
+using GpgFrontend::kINFO_ERROR_CRITICAL;
+using GpgFrontend::kINFO_ERROR_NEUTRAL;
+using GpgFrontend::kINFO_ERROR_OK;
+using GpgFrontend::kINFO_ERROR_WARN;
 
-}  // namespace GpgFrontend::UI
+}  // namespace GpgFrontend

@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "ui/function/InfoBoardReport.h"
+#include "shell/present/InfoBoardReport.h"
 #include "ui/function/TextDirection.h"
 
 class Ui_PlainTextEditor;

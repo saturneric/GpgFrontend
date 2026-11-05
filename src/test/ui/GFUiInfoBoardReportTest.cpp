@@ -34,31 +34,31 @@
 
 #include "GpgFrontendTest.h"
 #include "core/function/gpg/GpgErrorMap.h"
+#include "shell/present/InfoBoardCardConverter.h"
+#include "shell/present/InfoBoardReport.h"
 #include "ui/function/GpgOperaHelper.h"
-#include "ui/function/InfoBoardCardConverter.h"
-#include "ui/function/InfoBoardReport.h"
 
 namespace GpgFrontend::Test {
 
 namespace {
 
-using UI::BuildOpInfoCards;
-using UI::BuildReportFromCards;
-using UI::BuildReportFromResults;
-using UI::BuildReportFromText;
-using UI::GpgOperaResult;
-using UI::InfoBoardBatchContext;
-using UI::InfoBoardCard;
-using UI::InfoBoardCardKind;
-using UI::InfoBoardHeadline;
-using UI::InfoBoardObject;
-using UI::InfoBoardOutcome;
-using UI::InfoBoardOutcomeCounts;
-using UI::InfoBoardReport;
-using UI::InfoBoardSource;
-using UI::OutputAction;
-using UI::OutputFate;
-using UI::OutputStageError;
+using GpgFrontend::BuildOpInfoCards;
+using GpgFrontend::BuildReportFromCards;
+using GpgFrontend::BuildReportFromResults;
+using GpgFrontend::BuildReportFromText;
+using GpgFrontend::GpgOperaResult;
+using GpgFrontend::InfoBoardBatchContext;
+using GpgFrontend::InfoBoardCard;
+using GpgFrontend::InfoBoardCardKind;
+using GpgFrontend::InfoBoardHeadline;
+using GpgFrontend::InfoBoardObject;
+using GpgFrontend::InfoBoardOutcome;
+using GpgFrontend::InfoBoardOutcomeCounts;
+using GpgFrontend::InfoBoardReport;
+using GpgFrontend::InfoBoardSource;
+using GpgFrontend::OutputAction;
+using GpgFrontend::OutputFate;
+using GpgFrontend::OutputStageError;
 
 auto Field(const InfoBoardCard& card, const QString& key) -> QString {
   for (const auto& f : card.fields) {
@@ -126,7 +126,7 @@ auto OutcomeCard(const InfoBoardObject& object) -> const InfoBoardCard& {
 }
 
 auto Key(const char* text) -> QString {
-  return QCoreApplication::translate("GpgFrontend::UI::InfoBoardReport", text);
+  return QCoreApplication::translate("GpgFrontend::InfoBoardReport", text);
 }
 
 }  // namespace
@@ -188,7 +188,7 @@ TEST(InfoBoardReportTest, ACombinedCallErrorIsNotSplitIntoStages) {
   const auto report = BuildReportFromResults({DocResult(info)});
   const auto& card = OutcomeCard(report.objects.first());
   const auto call =
-      QCoreApplication::translate("GpgFrontend::UI::InfoBoardReport", "%1 call")
+      QCoreApplication::translate("GpgFrontend::InfoBoardReport", "%1 call")
           .arg(GpgOperationName(GpgOperation::kENCRYPT_SIGN));
   // Short labels; the call and the stage are in the line under each value.
   const auto errors = Rows(card, Key("Engine error"));
@@ -205,7 +205,7 @@ TEST(InfoBoardReportTest, ACombinedCallErrorIsNotSplitIntoStages) {
 // ---------------------------------------------------------------------------
 
 TEST(InfoBoardReportTest, EngineOutcomeFollowsStatusAndRecordedCodes) {
-  using UI::NormalizeEngineOutcome;
+  using GpgFrontend::NormalizeEngineOutcome;
   const auto cancel = EngineError(GpgOperation::kSIGN, GPG_ERR_CANCELED, {});
   const auto unsupported =
       EngineError(GpgOperation::kSIGN, GPG_ERR_NOT_SUPPORTED, {});
@@ -234,12 +234,12 @@ TEST(InfoBoardReportTest, EngineOutcomeFollowsStatusAndRecordedCodes) {
 TEST(InfoBoardReportTest, ApplicationErrorsDoNotMakeACancel) {
   GpgOpStageError app;
   app.error = GFError::Application(GFErrorCode::kCANCELED);
-  EXPECT_EQ(UI::NormalizeEngineOutcome(-1, {app}).outcome,
+  EXPECT_EQ(GpgFrontend::NormalizeEngineOutcome(-1, {app}).outcome,
             InfoBoardOutcome::kFAILED);
 }
 
 TEST(InfoBoardReportTest, TaskOutcomeAccountsForTheOutput) {
-  using UI::ResolveTaskOutcome;
+  using GpgFrontend::ResolveTaskOutcome;
   for (const auto engine :
        {InfoBoardOutcome::kSUCCEEDED, InfoBoardOutcome::kWARNING}) {
     EXPECT_EQ(ResolveTaskOutcome(engine, OutputFate::kAPPLY_FAILED),
@@ -291,10 +291,10 @@ TEST(InfoBoardReportTest, EveryOutcomeMixHasExactlyTheSpecifiedHeadline) {
     return InfoBoardHeadline::kPARTIALLY_FAILED;
   };
   const auto expected_severity = [](int w, int f, int c, int u, int n,
-                                    int d) -> UI::InfoBoardStatus {
-    if (f + u > 0) return UI::kINFO_ERROR_CRITICAL;
-    if (w + c + n + d > 0) return UI::kINFO_ERROR_WARN;
-    return UI::kINFO_ERROR_OK;
+                                    int d) -> GpgFrontend::InfoBoardStatus {
+    if (f + u > 0) return GpgFrontend::kINFO_ERROR_CRITICAL;
+    if (w + c + n + d > 0) return GpgFrontend::kINFO_ERROR_WARN;
+    return GpgFrontend::kINFO_ERROR_OK;
   };
 
   for (int mask = 1; mask < 128; ++mask) {
@@ -307,12 +307,12 @@ TEST(InfoBoardReportTest, EveryOutcomeMixHasExactlyTheSpecifiedHeadline) {
     counts.not_reported = (mask >> 5) & 1;
     counts.not_saved = (mask >> 6) & 1;
 
-    EXPECT_EQ(UI::AggregateHeadline(counts),
+    EXPECT_EQ(GpgFrontend::AggregateHeadline(counts),
               expected_headline(counts.succeeded, counts.warning, counts.failed,
                                 counts.cancelled, counts.not_supported,
                                 counts.not_reported, counts.not_saved))
         << "mask " << mask;
-    EXPECT_EQ(UI::AggregateSeverity(counts),
+    EXPECT_EQ(GpgFrontend::AggregateSeverity(counts),
               expected_severity(counts.warning, counts.failed, counts.cancelled,
                                 counts.not_supported, counts.not_reported,
                                 counts.not_saved))
@@ -326,7 +326,7 @@ TEST(InfoBoardReportTest, CompletedCountsSucceededAndWarnings) {
   counts.warning = 1;
   counts.cancelled = 2;
   EXPECT_EQ(counts.Completed(), 3);
-  EXPECT_TRUE(UI::CountSummaryText(counts).startsWith(
+  EXPECT_TRUE(GpgFrontend::CountSummaryText(counts).startsWith(
       Key("%1 completed (%2 with warnings)").arg(3).arg(1)));
 }
 
@@ -346,7 +346,7 @@ TEST(InfoBoardReportTest, ACancelledBatchCountsWhatFinishedBeforeIt) {
 
   // The two that finished were not saved: the batch was cancelled.
   EXPECT_EQ(report.headline, InfoBoardHeadline::kCANCELLED);
-  EXPECT_EQ(report.severity, UI::kINFO_ERROR_WARN);
+  EXPECT_EQ(report.severity, GpgFrontend::kINFO_ERROR_WARN);
   EXPECT_TRUE(report.summary.contains(Key("No output files were written.")));
 }
 
@@ -364,7 +364,7 @@ TEST(InfoBoardReportTest, AFailureShowsAReasonAndTheEngineErrorVerbatim) {
 
   EXPECT_EQ(card.kind, InfoBoardCardKind::kOUTCOME);
   EXPECT_EQ(Field(card, Key("Result")),
-            UI::OutcomeText(InfoBoardOutcome::kFAILED));
+            GpgFrontend::OutcomeText(InfoBoardOutcome::kFAILED));
   EXPECT_FALSE(Field(card, Key("Reason")).isEmpty());
   const auto errors = Rows(card, Key("Engine error"));
   ASSERT_EQ(errors.size(), 1);
@@ -400,7 +400,7 @@ TEST(InfoBoardReportTest, TheScreenshotCaseExplainsItself) {
                              ctx);
 
   EXPECT_EQ(report.headline, InfoBoardHeadline::kCANCELLED);
-  EXPECT_EQ(report.severity, UI::kINFO_ERROR_WARN);
+  EXPECT_EQ(report.severity, GpgFrontend::kINFO_ERROR_WARN);
   // The headline says "Cancelled"; the summary says what that meant, from
   // the recorded facts, rather than saying "cancelled" again.
   EXPECT_FALSE(report.summary.contains(Key("The operation was cancelled.")));
@@ -413,13 +413,13 @@ TEST(InfoBoardReportTest, TheScreenshotCaseExplainsItself) {
   const auto& card = OutcomeCard(object);
   EXPECT_EQ(card.title, Key("Outcome"));
   EXPECT_EQ(Field(card, Key("Result")),
-            UI::OutcomeText(InfoBoardOutcome::kCANCELLED));
+            GpgFrontend::OutcomeText(InfoBoardOutcome::kCANCELLED));
   EXPECT_FALSE(Field(card, Key("Engine error")).isEmpty());
 
   // The reason is kept for the text outputs, marked as said elsewhere.
   bool reason_kept = false;
   for (qsizetype i = 0; i < card.fields.size(); ++i) {
-    if (card.MetaAt(i).role == UI::InfoBoardFieldRole::kREASON) {
+    if (card.MetaAt(i).role == GpgFrontend::InfoBoardFieldRole::kREASON) {
       reason_kept = true;
       EXPECT_TRUE(card.MetaAt(i).summarized);
       EXPECT_EQ(card.fields[i].second, Key("The operation was cancelled."));
@@ -490,7 +490,7 @@ TEST(InfoBoardReportTest, ACompleteCommitFailureIsNeverASuccess) {
                              ctx);
 
   EXPECT_NE(report.headline, InfoBoardHeadline::kSUCCEEDED);
-  EXPECT_EQ(report.severity, UI::kINFO_ERROR_CRITICAL);
+  EXPECT_EQ(report.severity, GpgFrontend::kINFO_ERROR_CRITICAL);
   ASSERT_EQ(report.objects.size(), 2);
   EXPECT_EQ(report.objects[0].task_outcome, InfoBoardOutcome::kFAILED);
   EXPECT_EQ(report.objects[0].engine_outcome, InfoBoardOutcome::kSUCCEEDED);
@@ -498,7 +498,7 @@ TEST(InfoBoardReportTest, ACompleteCommitFailureIsNeverASuccess) {
 
   const auto& card = OutcomeCard(report.objects[0]);
   EXPECT_EQ(Field(card, Key("Engine result")),
-            UI::OutcomeText(InfoBoardOutcome::kSUCCEEDED));
+            GpgFrontend::OutcomeText(InfoBoardOutcome::kSUCCEEDED));
   const auto errors = Rows(card, Key("Output error"));
   ASSERT_EQ(errors.size(), 1);
   EXPECT_EQ(errors[0].first, u"the output could not be moved into place"_s);
@@ -561,7 +561,8 @@ TEST(InfoBoardReportTest, AStagedFileThatCouldNotBeRemovedIsReported) {
 
   EXPECT_EQ(report.objects.first().task_outcome, InfoBoardOutcome::kFAILED);
   EXPECT_FALSE(report.summary.contains(Key("No output files were written.")));
-  EXPECT_TRUE(UI::RenderReportText(report).contains(u"/out/.work/a.gpg"_s));
+  EXPECT_TRUE(
+      GpgFrontend::RenderReportText(report).contains(u"/out/.work/a.gpg"_s));
 }
 
 // ---------------------------------------------------------------------------
@@ -593,10 +594,10 @@ TEST(InfoBoardReportTest, AMissingResultClaimsNothingAboutItsOutput) {
 TEST(InfoBoardReportTest, AResultArrivingLaterDoesNotChangeAPostedReport) {
   QList<GpgOperaResult> results{FileResult(Result(1), 0, u"/in/a"_s)};
   const auto report = BuildReportFromResults(results);
-  const auto before = UI::CanonicalReportBytes(report);
+  const auto before = GpgFrontend::CanonicalReportBytes(report);
 
   results.append(FileResult(Result(-1), 1, u"/in/b"_s));
-  EXPECT_EQ(UI::CanonicalReportBytes(report), before);
+  EXPECT_EQ(GpgFrontend::CanonicalReportBytes(report), before);
   EXPECT_EQ(report.objects.size(), 1);
 }
 
@@ -660,7 +661,7 @@ auto StructuredOutcome(const QString& source_id, InfoBoardOutcome outcome)
     -> InfoBoardCard {
   auto c = Card(u"Outcome"_s, source_id, InfoBoardCardKind::kOUTCOME);
   c.outcome = outcome;
-  c.fields = {{Key("Result"), UI::OutcomeText(outcome)},
+  c.fields = {{Key("Result"), GpgFrontend::OutcomeText(outcome)},
               {Key("Reason"), u"structured reason"_s}};
   return c;
 }
@@ -669,7 +670,7 @@ auto StructuredOutcome(const QString& source_id, InfoBoardOutcome outcome)
 
 TEST(InfoBoardReportTest, CardsFromSeveralSourcesBecomeSeveralObjects) {
   const auto report = BuildReportFromCards(
-      u"text"_s, UI::kINFO_ERROR_OK,
+      u"text"_s, GpgFrontend::kINFO_ERROR_OK,
       {Card(u"one"_s, u"s1"_s), Card(u"two"_s, u"s2"_s),
        Card(u"three"_s, u"s3"_s), Card(u"one-b"_s, u"s1"_s)},
       u"Op"_s, {}, {}, {});
@@ -691,7 +692,7 @@ TEST(InfoBoardReportTest, CardsFromSeveralSourcesBecomeSeveralObjects) {
 
 TEST(InfoBoardReportTest, AnEmptyCardSourceIsThePostingsOwn) {
   const auto report = BuildReportFromCards(
-      {}, UI::kINFO_ERROR_OK, {Card(u"c"_s)}, u"Encode"_s, {}, {}, {});
+      {}, GpgFrontend::kINFO_ERROR_OK, {Card(u"c"_s)}, u"Encode"_s, {}, {}, {});
   ASSERT_EQ(report.objects.size(), 1);
   EXPECT_EQ(report.objects[0].source.kind, InfoBoardSource::kOPERATION);
   EXPECT_EQ(report.objects[0].source.label, u"Encode"_s);
@@ -699,10 +700,10 @@ TEST(InfoBoardReportTest, AnEmptyCardSourceIsThePostingsOwn) {
 
 TEST(InfoBoardReportTest, StructuredOutcomesWinOverThePostingStatus) {
   auto styled = Card(u"styled red"_s, u"legacy"_s);
-  styled.status = UI::kINFO_ERROR_CRITICAL;  // colour only
+  styled.status = GpgFrontend::kINFO_ERROR_CRITICAL;  // colour only
 
   const auto report = BuildReportFromCards(
-      {}, UI::kINFO_ERROR_OK,
+      {}, GpgFrontend::kINFO_ERROR_OK,
       {StructuredOutcome(u"mail"_s, InfoBoardOutcome::kFAILED), styled},
       u"Decrypt E-Mail"_s, {}, {}, {});
 
@@ -719,14 +720,14 @@ TEST(InfoBoardReportTest, StructuredOutcomesWinOverThePostingStatus) {
   EXPECT_EQ(mail->reason, u"structured reason"_s);
   // The red card was styling; its group follows the posting status.
   EXPECT_EQ(legacy->task_outcome, InfoBoardOutcome::kSUCCEEDED);
-  EXPECT_EQ(report.severity, UI::kINFO_ERROR_CRITICAL);
+  EXPECT_EQ(report.severity, GpgFrontend::kINFO_ERROR_CRITICAL);
   EXPECT_FALSE(report.notes.isEmpty());
 }
 
 TEST(InfoBoardReportTest, ExtraOrMalformedOutcomeCardsBecomeOrdinaryCards) {
   auto malformed = Card(u"bad"_s, u"x"_s, InfoBoardCardKind::kOUTCOME);
   const auto report = BuildReportFromCards(
-      {}, UI::kINFO_ERROR_WARN,
+      {}, GpgFrontend::kINFO_ERROR_WARN,
       {StructuredOutcome(u"s"_s, InfoBoardOutcome::kSUCCEEDED),
        StructuredOutcome(u"s"_s, InfoBoardOutcome::kFAILED), malformed},
       {}, {}, {}, {});
@@ -790,20 +791,21 @@ TEST(InfoBoardReportTest, OutcomeFirstThenCardsByKind) {
 // ---------------------------------------------------------------------------
 
 TEST(InfoBoardReportTest, PlainTextIsTheCallersMessage) {
-  const auto report =
-      BuildReportFromText(u"could not finalize"_s, UI::kINFO_ERROR_CRITICAL);
+  const auto report = BuildReportFromText(u"could not finalize"_s,
+                                          GpgFrontend::kINFO_ERROR_CRITICAL);
   ASSERT_EQ(report.objects.size(), 1);
   const auto& card = OutcomeCard(report.objects.first());
   EXPECT_EQ(Field(card, Key("Message")), u"could not finalize"_s);
   EXPECT_EQ(Field(card, Key("Result")),
-            UI::OutcomeText(InfoBoardOutcome::kFAILED));
+            GpgFrontend::OutcomeText(InfoBoardOutcome::kFAILED));
   EXPECT_FALSE(Field(card, Key("Reason")).isEmpty());
   EXPECT_FALSE(HasFieldStartingWith(card, Key("Engine error")));
-  EXPECT_EQ(report.severity, UI::kINFO_ERROR_CRITICAL);
+  EXPECT_EQ(report.severity, GpgFrontend::kINFO_ERROR_CRITICAL);
 }
 
 TEST(InfoBoardReportTest, NeutralTextIsInformation) {
-  const auto report = BuildReportFromText(u"fyi"_s, UI::kINFO_ERROR_NEUTRAL);
+  const auto report =
+      BuildReportFromText(u"fyi"_s, GpgFrontend::kINFO_ERROR_NEUTRAL);
   EXPECT_EQ(report.headline, InfoBoardHeadline::kINFORMATION);
   EXPECT_TRUE(report.objects.isEmpty());
   EXPECT_EQ(report.summary, u"fyi"_s);
@@ -815,8 +817,10 @@ TEST(InfoBoardReportTest, EqualInformationReadsTheSameThroughEveryEntry) {
     info.description = u"D"_s;
     const auto by_results = BuildReportFromResults({DocResult(info)});
     const auto by_cards = BuildReportFromCards(
-        {}, status > 0 ? UI::kINFO_ERROR_OK : UI::kINFO_ERROR_CRITICAL, {},
-        GpgOperationName(GpgOperation::kSIGN), u"D"_s, {}, {});
+        {},
+        status > 0 ? GpgFrontend::kINFO_ERROR_OK
+                   : GpgFrontend::kINFO_ERROR_CRITICAL,
+        {}, GpgOperationName(GpgOperation::kSIGN), u"D"_s, {}, {});
 
     EXPECT_EQ(by_results.headline, by_cards.headline);
     EXPECT_EQ(by_results.severity, by_cards.severity);
@@ -842,9 +846,9 @@ TEST(InfoBoardReportTest, CopyTextHoldsEveryObjectAndEveryError) {
         i, u"/very/long/path/file-%1.txt"_s.arg(i)));
   }
   auto report = BuildReportFromResults(results);
-  UI::FinalizeReport(
+  GpgFrontend::FinalizeReport(
       report, QDateTime(QDate(2026, 1, 2), QTime(3, 4, 5), QTimeZone::utc()));
-  const auto text = UI::RenderReportText(report);
+  const auto text = GpgFrontend::RenderReportText(report);
   for (int i = 0; i < 9; ++i) {
     EXPECT_TRUE(text.contains(u"/very/long/path/file-%1.txt"_s.arg(i)));
     EXPECT_TRUE(text.contains(u"err-%1"_s.arg(i)));
@@ -852,7 +856,7 @@ TEST(InfoBoardReportTest, CopyTextHoldsEveryObjectAndEveryError) {
   }
   EXPECT_TRUE(text.contains(report.ref_id));
 
-  const auto details = UI::RenderRawDetails(report);
+  const auto details = GpgFrontend::RenderRawDetails(report);
   EXPECT_FALSE(details.contains(u"Object:"_s));
   EXPECT_TRUE(details.contains(u"detail-8"_s));
   // Each item headed by its full source, numbered, with a rule under it.
@@ -868,22 +872,23 @@ TEST(InfoBoardReportTest, TheReportHashIsStableAndCoversNotItself) {
 
   auto a = BuildReportFromResults({DocResult(info)});
   auto b = BuildReportFromResults({DocResult(info)});
-  UI::FinalizeReport(a, issued);
+  GpgFrontend::FinalizeReport(a, issued);
   b.report_hash = u"something else"_s;
   b.ref_id = u"REF-X"_s;
-  UI::FinalizeReport(b, issued.addMSecs(400));  // sub-second noise
+  GpgFrontend::FinalizeReport(b, issued.addMSecs(400));  // sub-second noise
   EXPECT_EQ(a.report_hash, b.report_hash);
   EXPECT_EQ(a.ref_id, b.ref_id);
   EXPECT_NE(a.report_hash.toLower(), info.inputHash);
   EXPECT_TRUE(a.ref_id.endsWith(a.report_hash.left(8)));
-  EXPECT_FALSE(UI::CanonicalReportBytes(a).contains(a.report_hash.toUtf8()));
+  EXPECT_FALSE(
+      GpgFrontend::CanonicalReportBytes(a).contains(a.report_hash.toUtf8()));
 
   auto c = BuildReportFromResults({DocResult(Result(0))});
-  UI::FinalizeReport(c, issued);
+  GpgFrontend::FinalizeReport(c, issued);
   EXPECT_NE(a.report_hash, c.report_hash);
 
   auto d = a;
-  UI::FinalizeReport(d, issued.addSecs(1));
+  GpgFrontend::FinalizeReport(d, issued.addSecs(1));
   EXPECT_NE(a.report_hash, d.report_hash);
 }
 
@@ -895,9 +900,9 @@ TEST(InfoBoardReportTest, CardJsonRoundTripsKindSourceAndOutcome) {
   auto card = StructuredOutcome(u"s"_s, InfoBoardOutcome::kCANCELLED);
   card.source = {InfoBoardSource::kFILE, u"file:0:/a/b"_s, u"b"_s, u"/a/b"_s};
 
-  const auto json = UI::encode_info_board_cards({card});
+  const auto json = GpgFrontend::encode_info_board_cards({card});
   QByteArray wrapped = "{\"cards\":" + json + "}";
-  const auto payload = UI::decode_info_board_cards(wrapped);
+  const auto payload = GpgFrontend::decode_info_board_cards(wrapped);
   ASSERT_TRUE(payload.valid);
   ASSERT_EQ(payload.cards.size(), 1);
   const auto& back = payload.cards.first();
@@ -912,18 +917,19 @@ TEST(InfoBoardReportTest, CardJsonRoundTripsKindSourceAndOutcome) {
 TEST(InfoBoardReportTest, CardJsonRoundTripsFieldPresentation) {
   InfoBoardCard card;
   card.title = u"T"_s;
-  card.AddField(
-      u"Engine error"_s, u"Bad passphrase"_s,
-      {u"Sign · code 11"_s, false, UI::InfoBoardFieldGroup::kDIAGNOSTIC});
+  card.AddField(u"Engine error"_s, u"Bad passphrase"_s,
+                {u"Sign · code 11"_s, false,
+                 GpgFrontend::InfoBoardFieldGroup::kDIAGNOSTIC});
   card.AddField(u"Key ID"_s, u"ABCD"_s,
-                {{}, true, UI::InfoBoardFieldGroup::kDETAIL});
+                {{}, true, GpgFrontend::InfoBoardFieldGroup::kDETAIL});
 
-  const auto payload = UI::decode_info_board_cards(
-      "{\"cards\":" + UI::encode_info_board_cards({card}) + "}");
+  const auto payload = GpgFrontend::decode_info_board_cards(
+      "{\"cards\":" + GpgFrontend::encode_info_board_cards({card}) + "}");
   ASSERT_EQ(payload.cards.size(), 1);
   const auto& back = payload.cards.first();
   EXPECT_EQ(back.MetaAt(0).note, u"Sign · code 11"_s);
-  EXPECT_EQ(back.MetaAt(0).group, UI::InfoBoardFieldGroup::kDIAGNOSTIC);
+  EXPECT_EQ(back.MetaAt(0).group,
+            GpgFrontend::InfoBoardFieldGroup::kDIAGNOSTIC);
   EXPECT_FALSE(back.MetaAt(0).technical);
   EXPECT_TRUE(back.MetaAt(1).technical);
 }
@@ -939,7 +945,7 @@ TEST(InfoBoardReportTest, OutcomeFieldsComeInTheirRuns) {
   const auto report = BuildReportFromResults({DocResult(info)}, ctx);
   const auto& card = OutcomeCard(report.objects.first());
 
-  QList<UI::InfoBoardFieldGroup> groups;
+  QList<GpgFrontend::InfoBoardFieldGroup> groups;
   for (qsizetype i = 0; i < card.fields.size(); ++i) {
     groups << card.MetaAt(i).group;
   }
@@ -949,7 +955,7 @@ TEST(InfoBoardReportTest, OutcomeFieldsComeInTheirRuns) {
   }
   EXPECT_TRUE(card.MetaAt(card.fields.size() - 1).technical)
       << "the input hash is an identifier";
-  const auto text = UI::RenderReportText(report);
+  const auto text = GpgFrontend::RenderReportText(report);
   EXPECT_TRUE(
       text.contains(u"[%1]"_s.arg(Key("code %1").arg(GPG_ERR_CANCELED))))
       << "notes are in the text outputs";
@@ -979,7 +985,7 @@ TEST(InfoBoardReportTest, OnlyAPlainSuccessSummaryIsMarkedRedundant) {
 }
 
 TEST(InfoBoardReportTest, LegacyCardJsonDecodesAsBefore) {
-  const auto payload = UI::decode_info_board_cards(
+  const auto payload = GpgFrontend::decode_info_board_cards(
       R"({"operation":"Op","cards":[{"title":"T","status":"ok",
           "fields":[["k","v"]]}]})");
   ASSERT_TRUE(payload.valid);
@@ -992,7 +998,7 @@ TEST(InfoBoardReportTest, LegacyCardJsonDecodesAsBefore) {
 }
 
 TEST(InfoBoardReportTest, AStringSourceAndAnUnknownOutcomeDecodeSafely) {
-  const auto payload = UI::decode_info_board_cards(
+  const auto payload = GpgFrontend::decode_info_board_cards(
       R"({"cards":[{"title":"T","kind":"outcome","outcome":"exploded",
           "source":"part-1","fields":[]}]})");
   ASSERT_EQ(payload.cards.size(), 1);
@@ -1017,10 +1023,10 @@ TEST(InfoBoardReportTest, OpInfoCardsCarryTheOutcomeForModules) {
   EXPECT_FALSE(Field(cards.first(), Key("Engine error")).isEmpty());
 
   // Forwarded back through the cards entry, it means the same thing.
-  const auto report =
-      BuildReportFromCards({}, UI::kINFO_ERROR_OK, cards, u"x"_s, {}, {}, {});
+  const auto report = BuildReportFromCards({}, GpgFrontend::kINFO_ERROR_OK,
+                                           cards, u"x"_s, {}, {}, {});
   EXPECT_EQ(report.objects.first().task_outcome, InfoBoardOutcome::kFAILED);
-  EXPECT_EQ(report.severity, UI::kINFO_ERROR_CRITICAL);
+  EXPECT_EQ(report.severity, GpgFrontend::kINFO_ERROR_CRITICAL);
 }
 
 }  // namespace GpgFrontend::Test

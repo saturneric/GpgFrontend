@@ -70,8 +70,9 @@ Item {
             finishedId = operationId
             replacesText = replaces
             output = out
-            result = ok === false ? {"status": -1, "description": "It failed."}
-                                  : {"status": 1}
+            result = ok === false ? {"status": -1, "severity": "critical",
+                                     "description": "It failed."}
+                                  : {"status": 1, "severity": "ok"}
             text.finished(ok !== false)
         }
 

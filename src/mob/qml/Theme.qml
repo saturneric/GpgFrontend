@@ -135,18 +135,25 @@ QtObject {
     }
 
     // How an operation went, from a result's report: an icon and its colour,
-    // in the desktop's colours; @p neutral for one that was cancelled.
+    // in the desktop's colours; @p neutral for one that was cancelled. The
+    // severity is the desktop's reading of the result (ResultPresenter).
     function reportSymbol(report) {
         if (report.cancelled === true) return "info"
-        if (report.status > 0) return "check_circle"
-        return report.status === 0 ? "warning" : "error"
+        switch (report.severity) {
+        case "ok": return "check_circle"
+        case "warn": return "warning"
+        default: return "error"
+        }
     }
 
     // The report seal's kind (ReportSeal) for a report.
     function sealKind(report) {
         if (report.cancelled === true) return "cancelled"
-        if (report.status > 0) return "success"
-        return report.status === 0 ? "warning" : "failure"
+        switch (report.severity) {
+        case "ok": return "success"
+        case "warn": return "warning"
+        default: return "failure"
+        }
     }
 
     // @p a over @p b, @p weight of a.
@@ -169,8 +176,11 @@ QtObject {
 
     function reportColor(report, neutral) {
         if (report.cancelled === true) return neutral
-        if (report.status > 0) return positive
-        return report.status === 0 ? warning : danger
+        switch (report.severity) {
+        case "ok": return positive
+        case "warn": return warning
+        default: return danger
+        }
     }
 
     // "4.2 MB", in the decimal units the platform's own storage pages use.

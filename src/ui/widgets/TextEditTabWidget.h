@@ -30,7 +30,7 @@
 
 #include "core/model/GFBuffer.h"
 #include "core/typedef/CoreTypedef.h"
-#include "ui/function/InfoBoardReport.h"
+#include "shell/present/InfoBoardReport.h"
 #include "ui/function/TabManagement.h"
 
 namespace GpgFrontend::UI {

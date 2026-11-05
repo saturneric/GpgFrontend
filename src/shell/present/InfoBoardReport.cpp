@@ -26,7 +26,7 @@
  *
  */
 
-#include "ui/function/InfoBoardReport.h"
+#include "shell/present/InfoBoardReport.h"
 
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -34,13 +34,13 @@
 
 #include "core/function/gpg/GpgErrorCodes.h"
 #include "core/utils/GpgUtils.h"
-#include "ui/function/InfoBoardCardConverter.h"
+#include "shell/present/InfoBoardCardConverter.h"
 
 // Translation contexts are spelled out as literals at every call: lupdate
 // reads nothing else. Strings that existed before this model keep the context
 // they were translated in (InfoBoardWidget), so their translations stay.
 
-namespace GpgFrontend::UI {
+namespace GpgFrontend {
 
 namespace {
 
@@ -1849,4 +1849,4 @@ auto RenderRawDetails(const InfoBoardReport& report) -> QString {
   return ReportText(report, true);
 }
 
-}  // namespace GpgFrontend::UI
+}  // namespace GpgFrontend
