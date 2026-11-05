@@ -11,6 +11,9 @@ import GpgFrontend.Mobile
 // original are two fields, filled in for the person where it is known -- a
 // signature made here knows its file -- and only suggested where a name
 // merely matches. Either can be changed, swapped, or picked from the device.
+// Where the other half is certain (known, or the one name that matches), the
+// sheet is not shown at all: begin() verifies the pair at once; a file that
+// holds its signature inline is verified alone.
 BottomSheet {
     id: sheet
 
@@ -24,45 +27,90 @@ BottomSheet {
     // The field a picked file goes into.
     property string picking: ""
 
-    // Start from the file @p id, put where what is known of it says.
-    function begin(id) {
+    // Which file is the signature and which the original, starting from the
+    // file @p id: what is known of it (a signature made here knows its
+    // file), else what the names suggest. unique: exactly one partner, known
+    // or the only name that matches, and both files there to be read --
+    // never a judgement on the signature, which only verifying makes.
+    function pair(id) {
         const file = workspace.entry(id)
-        signatureId = -1
-        originalId = -1
-        signatureHow = ""
-        originalHow = ""
+        const result = {"signatureId": -1, "originalId": -1,
+                        "signatureHow": "", "originalHow": "", "unique": false,
+                        "inline": false}
         // The desktop's rule for what a name is and what its other half
         // is called.
         const match = workspace.verifyMatch(file.name || "")
-        const looksSigned = match.role === "signature"
+        // The data and its signature in one file, verified alone: what the
+        // desktop takes for one by its name (.gpg, .pgp); and an .asc with
+        // no data file beside it whose first bytes are a message signed in
+        // the clear (where the desktop asks, and is told to leave the data
+        // file empty).
+        const asInline = () => {
+            result.signatureId = id
+            result.inline = true
+            result.unique = usable(id)
+            return result
+        }
+        if (file.madeBy !== "sign" && match.role === "combined") return asInline()
+        let found = []
         if (file.madeBy === "sign") {
-            signatureId = id
+            result.signatureId = id
             if (workspace.entry(file.sourceId).fileId !== undefined) {
-                originalId = file.sourceId
-                originalHow = "linked"
+                result.originalId = file.sourceId
+                result.originalHow = "linked"
             }
-        } else if (looksSigned) {
-            signatureId = id
-            const found = findFirst(match.partners)
-            if (found >= 0) {
-                originalId = found
-                originalHow = "suggested"
+        } else if (match.role === "signature") {
+            result.signatureId = id
+            found = findAll(match.partners)
+            if (found.length === 0 && file.content === "message") return asInline()
+            if (found.length > 0) {
+                result.originalId = found[0]
+                result.originalHow = "suggested"
             }
         } else {
-            originalId = id
+            result.originalId = id
             const made = findSignatureOf(id)
             if (made >= 0) {
-                signatureId = made
-                signatureHow = "linked"
+                result.signatureId = made
+                result.signatureHow = "linked"
             } else {
-                const found = findFirst(match.role === "data" ? match.partners
-                                                    : [file.name + ".sig", file.name + ".asc"])
-                if (found >= 0) {
-                    signatureId = found
-                    signatureHow = "suggested"
+                found = findAll(match.role === "data" ? match.partners
+                                    : [file.name + ".sig", file.name + ".asc"])
+                if (found.length > 0) {
+                    result.signatureId = found[0]
+                    result.signatureHow = "suggested"
                 }
             }
         }
+        const linked = result.signatureHow === "linked"
+                       || result.originalHow === "linked"
+        result.unique = result.signatureId >= 0 && result.originalId >= 0
+                        && result.signatureId !== result.originalId
+                        && (linked || found.length === 1)
+                        && usable(result.signatureId) && usable(result.originalId)
+        return result
+    }
+
+    // There to be read now: not gone, not waiting or being worked on.
+    function usable(id) {
+        const e = workspace.entry(id)
+        return e.available === true && e.phase !== "queued"
+               && e.phase !== "running" && !(e.progress >= 0)
+    }
+
+    // Start from the file @p id: verified at once when its other half is
+    // certain, else the two fields, filled in as far as is known.
+    function begin(id) {
+        const p = pair(id)
+        if (p.unique || p.inline) {
+            // Inline: originalId is -1, the file is verified alone.
+            verifyRequested(p.signatureId, p.originalId)
+            return
+        }
+        signatureId = p.signatureId
+        originalId = p.originalId
+        signatureHow = p.signatureHow
+        originalHow = p.originalHow
         open()
     }
 
@@ -70,13 +118,14 @@ BottomSheet {
         return workspace.idNamed(name)
     }
 
-    // The first of @p names in the list; -1 when none is.
-    function findFirst(names) {
+    // The ids of those of @p names that are in the list, in their order.
+    function findAll(names) {
+        const ids = []
         for (let i = 0; i < names.length; ++i) {
             const id = findByName(names[i])
-            if (id >= 0) return id
+            if (id >= 0 && !ids.includes(id)) ids.push(id)
         }
-        return -1
+        return ids
     }
 
     // The signature made here of the file @p id, if one is still listed.
@@ -96,10 +145,15 @@ BottomSheet {
     objectName: "detachedVerifySheet"
     title: qsTr("Verify a signature")
 
+    // A field: what it is, the file in it with a way to pick one from the
+    // device right beside it, and a word under it only when there is
+    // something to say.
     component FileField: ColumnLayout {
         id: field
 
         property string label
+        // Said for the button that picks a file from the device.
+        property string browseText
         property int fileId: -1
         property string how: ""
         property int otherId: -1
@@ -108,25 +162,40 @@ BottomSheet {
         signal pickRequested()
 
         Layout.fillWidth: true
-        spacing: 4
+        spacing: 2
 
         Label {
+            Layout.fillWidth: true
             text: field.label
+            elide: Text.ElideRight
             color: Material.secondaryTextColor
             font.pixelSize: Theme.labelSize
         }
 
-        ChoiceBox {
+        RowLayout {
             Layout.fillWidth: true
-            model: sheet.workspace
-            textRole: "name"
-            valueRole: "fileId"
-            displayText: field.fileId >= 0
-                         ? (sheet.workspace.entry(field.fileId).name || "")
-                         : qsTr("Choose a file")
-            currentIndex: indexOfValue(field.fileId)
-            Accessible.name: qsTr("%1: %2").arg(field.label).arg(displayText)
-            onActivated: field.chosen(currentValue)
+            spacing: 0
+
+            ChoiceBox {
+                Layout.fillWidth: true
+                Layout.minimumWidth: 0
+                model: sheet.workspace
+                textRole: "name"
+                valueRole: "fileId"
+                displayText: field.fileId >= 0
+                             ? (sheet.workspace.entry(field.fileId).name || "")
+                             : qsTr("Choose a file")
+                currentIndex: indexOfValue(field.fileId)
+                Accessible.name: qsTr("%1: %2").arg(field.label).arg(displayText)
+                onActivated: field.chosen(currentValue)
+            }
+
+            BarButton {
+                objectName: field.objectName + "Browse"
+                text: field.browseText
+                icon.source: Theme.icon("folder")
+                onClicked: field.pickRequested()
+            }
         }
 
         Label {
@@ -141,58 +210,59 @@ BottomSheet {
                 : field.fileId >= 0 && field.fileId === field.otherId
                   ? qsTr("The same file cannot be both.") : ""
         }
-
-        // As wide as its words, and narrower when the sheet is: its words
-        // then wrap (large text, German), never past the sheet's edge.
-        ActionButton {
-            Layout.fillWidth: true
-            Layout.maximumWidth: implicitWidth
-            kind: "text"
-            text: qsTr("Add from device…")
-            onClicked: field.pickRequested()
-        }
     }
 
-    FileField {
-        objectName: "verifySignatureField"
-        label: qsTr("Signature file")
-        fileId: sheet.signatureId
-        how: sheet.signatureHow
-        otherId: sheet.originalId
-        onChosen: id => {
-            sheet.signatureId = id
-            sheet.signatureHow = ""
-        }
-        onPickRequested: {
-            sheet.picking = "signature"
-            picker.open()
-        }
-    }
-
-    ActionButton {
-        objectName: "verifySwap"
-        Layout.alignment: Qt.AlignHCenter
+    // The two fields close together, the swap a quiet word between them.
+    ColumnLayout {
         Layout.fillWidth: true
-        Layout.maximumWidth: implicitWidth
-        kind: "text"
-        text: qsTr("Swap the two")
-        enabled: sheet.signatureId >= 0 || sheet.originalId >= 0
-        onClicked: sheet.swap()
-    }
+        spacing: 0
 
-    FileField {
-        objectName: "verifyOriginalField"
-        label: qsTr("Original file")
-        fileId: sheet.originalId
-        how: sheet.originalHow
-        otherId: sheet.signatureId
-        onChosen: id => {
-            sheet.originalId = id
-            sheet.originalHow = ""
+        FileField {
+            objectName: "verifySignatureField"
+            label: qsTr("Signature file")
+            browseText: qsTr("Browse device for the signature file")
+            fileId: sheet.signatureId
+            how: sheet.signatureHow
+            otherId: sheet.originalId
+            onChosen: id => {
+                sheet.signatureId = id
+                sheet.signatureHow = ""
+            }
+            onPickRequested: {
+                sheet.picking = "signature"
+                picker.open()
+            }
         }
-        onPickRequested: {
-            sheet.picking = "original"
-            picker.open()
+
+        Button {
+            objectName: "verifySwap"
+            Layout.alignment: Qt.AlignRight
+            Layout.maximumWidth: parent.width
+            flat: true
+            topInset: 0
+            bottomInset: 0
+            implicitHeight: Theme.touch - 8
+            font.pixelSize: Theme.labelSize
+            text: qsTr("Swap files")
+            enabled: sheet.signatureId >= 0 || sheet.originalId >= 0
+            onClicked: sheet.swap()
+        }
+
+        FileField {
+            objectName: "verifyOriginalField"
+            label: qsTr("Original file")
+            browseText: qsTr("Browse device for the original file")
+            fileId: sheet.originalId
+            how: sheet.originalHow
+            otherId: sheet.signatureId
+            onChosen: id => {
+                sheet.originalId = id
+                sheet.originalHow = ""
+            }
+            onPickRequested: {
+                sheet.picking = "original"
+                picker.open()
+            }
         }
     }
 

@@ -404,7 +404,11 @@ void FileWorkspace::sign(const QVariantList& ids, const QString& signer) {
 }
 
 void FileWorkspace::verify(int signature_id, int data_id) {
-  if (signature_id == data_id || find(data_id) == nullptr) return;
+  if (find(signature_id) == nullptr) return;
+  // Detached: two files, each in the list.
+  if (data_id >= 0 && (signature_id == data_id || find(data_id) == nullptr)) {
+    return;
+  }
   Job job;
   job.op = Op::kVerify;
   job.other = data_id;
@@ -443,8 +447,7 @@ auto FileWorkspace::retry(int op_id) -> QString {
   job.signer = record->params.signer;
   job.symmetric = record->params.symmetric;
   job.verify = record->params.verify;
-  if (job.op == Op::kVerify) {
-    if (record->targets.size() < 2) return QStringLiteral("unknown");
+  if (job.op == Op::kVerify && record->targets.size() >= 2) {
     job.other = record->targets.at(1).file_id;
     const auto* data = find(job.other);
     if (data == nullptr) return QStringLiteral("missing");
@@ -975,7 +978,8 @@ void FileWorkspace::start(Job next) {
       self->fail(tr("The file could not be read."));
       return;
     }
-    if (job.op != Op::kVerify) {
+    // An inline signed file is verified alone, as any other operation runs.
+    if (job.op != Op::kVerify || job.other < 0) {
       self->run(job, in, {});
       return;
     }
@@ -1052,7 +1056,12 @@ void FileWorkspace::run(const Job& job, const QString& in,
       break;
     case Op::kVerify:
       job_output_name_.clear();
-      VerifyStagedFile(other, in, this, finished);
+      // Detached: the data, then its signature; inline: the file alone.
+      if (job.other < 0) {
+        VerifyStagedFile(in, {}, this, finished);
+      } else {
+        VerifyStagedFile(other, in, this, finished);
+      }
       return;
   }
 

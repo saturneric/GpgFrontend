@@ -14,6 +14,18 @@ Item {
         anchors.fill: parent
     }
 
+    // The verify sheet on its own: what it asks to verify is only heard.
+    DetachedVerifySheet {
+        id: verifier
+        workspace: FileWorkspace
+    }
+
+    SignalSpy {
+        id: verifyAsked
+        target: verifier
+        signalName: "verifyRequested"
+    }
+
     TestCase {
         name: "FilesPage"
         when: windowShown
@@ -182,6 +194,76 @@ Item {
             }
             // The icon follows what it is.
             compare(files.symbolOf({"content": "key"}), "key")
+            ws.clear()
+        }
+
+        // A signature whose file is the one name that matches is verified at
+        // once, from either of the two; with two candidates the person
+        // chooses, the fields filled in as far as the names go.
+        function test_a_certain_pair_is_verified_at_once() {
+            const ws = files.workspace
+            ws.addFiles([Qt.resolvedUrl("data/notes.txt"),
+                         Qt.resolvedUrl("data/notes.txt.sig")])
+            const data = ws.idNamed("notes.txt")
+            const sig = ws.idNamed("notes.txt.sig")
+            tryVerify(() => verifier.usable(data) && verifier.usable(sig))
+
+            verifyAsked.clear()
+            verifier.begin(sig)
+            compare(verifyAsked.count, 1)
+            compare(verifyAsked.signalArguments[0][0], sig)
+            compare(verifyAsked.signalArguments[0][1], data)
+            verify(!verifier.visible)
+
+            verifier.begin(data)
+            compare(verifyAsked.count, 2)
+            compare(verifyAsked.signalArguments[1][0], sig)
+            verify(!verifier.visible)
+
+            // A second signature of the same name: no longer certain.
+            ws.addFiles([Qt.resolvedUrl("data/notes.txt.asc")])
+            const asc = ws.idNamed("notes.txt.asc")
+            tryVerify(() => verifier.usable(asc))
+            verifyAsked.clear()
+            verifier.begin(data)
+            tryVerify(() => verifier.opened)
+            compare(verifyAsked.count, 0)
+            compare(verifier.originalId, data)
+            verify(verifier.signatureId === sig || verifier.signatureId === asc)
+            compare(verifier.signatureHow, "suggested")
+            verify(findByName(verifier.contentItem, "verifySignatureFieldBrowse") !== null)
+            verifier.close()
+            tryVerify(() => !verifier.visible)
+
+            // A file with no partner at all: the sheet, the other field empty.
+            ws.remove([sig, asc])
+            verifier.begin(data)
+            tryVerify(() => verifier.opened)
+            compare(verifyAsked.count, 0)
+            compare(verifier.signatureId, -1)
+            verifier.close()
+            tryVerify(() => !verifier.visible)
+            ws.clear()
+        }
+
+        // A file that holds its signature (signed inline, or in the clear)
+        // is verified alone, at once, with no second file asked for.
+        function test_an_inline_signed_file_is_verified_alone() {
+            const ws = files.workspace
+            const vectors = "../../../../resource/lfs/test/rpgp_vectors/"
+            ws.addFiles([Qt.resolvedUrl(vectors + "sig_good_cleartext.asc"),
+                         Qt.resolvedUrl(vectors + "two_signer.pgp")])
+            for (const name of ["sig_good_cleartext.asc", "two_signer.pgp"]) {
+                const id = ws.idNamed(name)
+                tryVerify(() => verifier.usable(id))
+                verify(files.allowed("verify", [ws.entry(id)]), name)
+                verifyAsked.clear()
+                verifier.begin(id)
+                compare(verifyAsked.count, 1, name)
+                compare(verifyAsked.signalArguments[0][0], id)
+                compare(verifyAsked.signalArguments[0][1], -1)
+                verify(!verifier.visible)
+            }
             ws.clear()
         }
 

@@ -205,8 +205,10 @@ class FileWorkspace : public QAbstractListModel {
   Q_INVOKABLE void sign(const QVariantList& ids, const QString& signer);
 
   /// Verify the detached signature @p signature_id over @p data_id; the
-  /// report is the signature's.
-  Q_INVOKABLE void verify(int signature_id, int data_id);
+  /// report is the signature's. With @p data_id -1, @p signature_id holds
+  /// the data and its signature in one (an inline or cleartext signed
+  /// file), verified alone.
+  Q_INVOKABLE void verify(int signature_id, int data_id = -1);
 
   /// Drop what waits in the queue; the operation running goes on.
   Q_INVOKABLE void cancelQueued();
@@ -354,7 +356,7 @@ class FileWorkspace : public QAbstractListModel {
     QString signer;
     bool symmetric = false;
     bool verify = false;  ///< a decryption checks signatures too
-    int other = -1;  ///< the data a signature is verified over
+    int other = -1;  ///< the data a signature is verified over; -1: inline
     int op_id = 0;   ///< its OperationQueue record
   };
 

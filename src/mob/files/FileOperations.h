@@ -108,7 +108,9 @@ void SignStagedFile(const QString& in, const QString& out,
                     const QString& signer, QObject* context,
                     OutcomeCallback done);
 
-/// Verify the detached signature @p signature over @p data.
+/// Verify the detached signature @p signature over @p data; with no
+/// @p signature, @p data holds its signature inline (a signed or cleartext
+/// signed file).
 void VerifyStagedFile(const QString& data, const QString& signature,
                       QObject* context, OutcomeCallback done);
 
