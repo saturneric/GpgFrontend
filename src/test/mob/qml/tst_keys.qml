@@ -652,11 +652,23 @@ Item {
             // Never four: a v4 key's last row would hold two.
             verify(view.perRow === 2 || view.perRow === 1)
             view.fingerprint = "CD34".repeat(16)
+            // A v6 key in two rows of eight on a phone, in a smaller type,
+            // never below the label size; at the text's own size where a
+            // wide screen has room.
             view.width = 380
-            compare(view.perRow, 4)
-            // A v6 key in two rows of eight where a wide screen has room.
+            compare(view.perRow, 8)
+            verify(view.groupSize < Theme.bodySize && view.groupSize >= Theme.labelSize)
             view.width = 700
             compare(view.perRow, 8)
+            compare(view.groupSize, Theme.bodySize)
+            // No room even so: the text's own size, fewer a row.
+            view.width = 200
+            compare(view.groupSize, Theme.bodySize)
+            verify(view.perRow < 8)
+            // A v4 key is never made smaller.
+            view.fingerprint = "AB12".repeat(10)
+            view.width = 380
+            compare(view.groupSize, Theme.bodySize)
             // Whatever the width, the groups and the copy button beside
             // them stay inside it.
             const copy = findByName(view, "copyFingerprint")
