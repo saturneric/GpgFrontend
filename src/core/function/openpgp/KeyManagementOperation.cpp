@@ -40,8 +40,9 @@ namespace GpgFrontend {
 KeyManagementOperation::KeyManagementOperation(int channel)
     : SingletonFunctionObject<KeyManagementOperation>(channel) {}
 
-void KeyManagementOperation::DeleteKeys(const GpgAbstractKeyPtrList& keys) {
-  RunRegisteredForward<DeleteKeysOpTag>(ctx_, keys);
+auto KeyManagementOperation::DeleteKeys(const GpgAbstractKeyPtrList& keys)
+    -> bool {
+  return RunRegisteredForward<DeleteKeysOpTag>(ctx_, keys);
 }
 
 auto KeyManagementOperation::SetExpire(const GpgKeyPtr& key,
@@ -51,12 +52,13 @@ auto KeyManagementOperation::SetExpire(const GpgKeyPtr& key,
   return RunRegisteredForward<SetExpireOpTag>(ctx_, key, skey_fpr, expires);
 }
 
-void KeyManagementOperation::GenerateRevokeCert(const GpgKeyPtr& key,
+auto KeyManagementOperation::GenerateRevokeCert(const GpgKeyPtr& key,
                                                 const QString& output_path,
                                                 int reason_code,
-                                                const QString& reason_text) {
-  RunRegisteredForward<GenerateRevCertOpTag>(ctx_, key, output_path,
-                                             reason_code, reason_text);
+                                                const QString& reason_text)
+    -> bool {
+  return RunRegisteredForward<GenerateRevCertOpTag>(ctx_, key, output_path,
+                                                    reason_code, reason_text);
 }
 
 void KeyManagementOperation::ModifyPassword(const GpgKeyPtr& key,
@@ -81,8 +83,8 @@ auto KeyManagementOperation::ModifySubkeyPasswordSync(const GpgKeyPtr& key,
   return RunRegisteredSync<ModifySubkeyPassphraseOpTag>(ctx_, key, skey_fpr);
 }
 
-void KeyManagementOperation::DeleteKey(const GpgAbstractKeyPtr& key) {
-  DeleteKeys({key});
+auto KeyManagementOperation::DeleteKey(const GpgAbstractKeyPtr& key) -> bool {
+  return DeleteKeys({key});
 }
 
 auto KeyManagementOperation::AddADSKSync(const GpgKeyPtr& key,

@@ -60,15 +60,17 @@ class GF_CORE_EXPORT KeyManagementOperation
    * @brief Delete a list of keys from the keyring.
    *
    * @param keys list of keys to delete (both public and secret material)
+   * @return true only when every key was deleted; the rest are still tried
    */
-  void DeleteKeys(const GpgAbstractKeyPtrList& keys);
+  auto DeleteKeys(const GpgAbstractKeyPtrList& keys) -> bool;
 
   /**
    * @brief Delete a single key from the keyring.
    *
    * @param key key to delete
+   * @return true when the key was deleted
    */
-  void DeleteKey(const GpgAbstractKeyPtr& key);
+  auto DeleteKey(const GpgAbstractKeyPtr& key) -> bool;
 
   /**
    * @brief Set or clear the expiry date of a primary key or subkey.
@@ -91,9 +93,10 @@ class GF_CORE_EXPORT KeyManagementOperation
    * @param reason_code revocation reason code (0=no reason, 1=compromised,
    * 2=superseded, 3=no longer used)
    * @param reason_text human-readable reason description
+   * @return true when the certificate was written
    */
-  void GenerateRevokeCert(const GpgKeyPtr& key, const QString& output_path,
-                          int reason_code, const QString& reason_text);
+  auto GenerateRevokeCert(const GpgKeyPtr& key, const QString& output_path,
+                          int reason_code, const QString& reason_text) -> bool;
 
   /**
    * @brief Change the passphrase protecting the whole key -- primary and every

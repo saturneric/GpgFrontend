@@ -71,9 +71,14 @@ void GenerateRevocationCert::Exec(int channel, const GpgKeyPtr& key) {
           output_file_name = dialog.selectedFiles().front();
         }
 
-        if (!output_file_name.isEmpty()) {
-          KeyManagementOperation::GetInstance(channel).GenerateRevokeCert(
-              key, output_file_name, code, text);
+        if (!output_file_name.isEmpty() &&
+            !KeyManagementOperation::GetInstance(channel).GenerateRevokeCert(
+                key, output_file_name, code, text)) {
+          // Cancelling the passphrase prompt ends here too, and used to end
+          // in silence, as if the certificate had been written.
+          QMessageBox::critical(
+              parent_widget, tr("Generate revocation certificate"),
+              tr("The revocation certificate could not be generated."));
         }
 
         deleteLater();
