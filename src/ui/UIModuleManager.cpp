@@ -29,6 +29,11 @@
 #include "UIModuleManager.h"
 
 #include <QThread>
+#include <atomic>
+#include <chrono>
+#include <condition_variable>
+#include <mutex>
+#include <optional>
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleDispatchGate.h"
@@ -43,6 +48,9 @@ namespace GpgFrontend::UI {
 
 namespace {
 
+/// Set once the GUI event loop has returned; see MarkGuiLoopEnded().
+std::atomic<bool> g_gui_loop_ended{false};
+
 auto OnGuiThread() -> bool {
   auto* app = QCoreApplication::instance();
   return app == nullptr || QThread::currentThread() == app->thread();
@@ -53,18 +61,58 @@ auto OnGuiThread() -> bool {
  *
  * Blocking is right when the caller is elsewhere -- it asked for the answer --
  * but a BlockingQueuedConnection to one's OWN thread is a deadlock, so the GUI
- * thread runs @p fn directly. Once shutdown has begun the GUI event loop is
- * gone and a blocking hop would never return, so the answer is then "none".
+ * thread runs @p fn directly. Once the GUI event loop is gone a hop would never
+ * return, so the answer is then "none". The wait is not a blocking queued
+ * call for that reason: the loop can end after the hop was queued -- quitting
+ * just as a module asks -- and a blocking call would then wait forever. This
+ * wait gives up once the loop has ended, unless the GUI already runs @p fn,
+ * which then finishes first; a hop given up on never runs.
  */
 template <typename Fn>
 auto AskGui(Fn fn, decltype(fn()) fallback) -> decltype(fn()) {
+  using Result = decltype(fn());
   if (OnGuiThread()) return fn();
-  if (Module::GlobalModuleDispatchGate().IsClosed()) return fallback;
-  auto out = fallback;
+  if (Module::GlobalModuleDispatchGate().IsClosed() ||
+      g_gui_loop_ended.load()) {
+    return fallback;
+  }
+
+  struct Call {
+    enum class State { kPending, kRunning, kDone, kAbandoned };
+    std::mutex lock;
+    std::condition_variable changed;
+    State state = State::kPending;
+    std::optional<Result> out;
+  };
+  auto call = std::make_shared<Call>();
+
   QMetaObject::invokeMethod(
-      QCoreApplication::instance(), [&] { out = fn(); },
-      Qt::BlockingQueuedConnection);
-  return out;
+      QCoreApplication::instance(),
+      [call, fn]() {
+        {
+          std::lock_guard<std::mutex> lock(call->lock);
+          if (call->state != Call::State::kPending) return;
+          call->state = Call::State::kRunning;
+        }
+        auto result = fn();
+        {
+          std::lock_guard<std::mutex> lock(call->lock);
+          call->out.emplace(std::move(result));
+          call->state = Call::State::kDone;
+        }
+        call->changed.notify_all();
+      },
+      Qt::QueuedConnection);
+
+  std::unique_lock<std::mutex> lock(call->lock);
+  while (call->state != Call::State::kDone) {
+    if (call->state == Call::State::kPending && g_gui_loop_ended.load()) {
+      call->state = Call::State::kAbandoned;
+      return fallback;
+    }
+    call->changed.wait_for(lock, std::chrono::milliseconds(100));
+  }
+  return std::move(*call->out);
 }
 
 auto MainEditor() -> TextEdit* {
@@ -76,6 +124,8 @@ auto MainEditor() -> TextEdit* {
 
 UIModuleManager::UIModuleManager(int channel)
     : SingletonFunctionObject<UIModuleManager>(channel) {}
+
+void UIModuleManager::MarkGuiLoopEnded() { g_gui_loop_ended.store(true); }
 
 UIModuleManager::~UIModuleManager() {
   for (const auto& id : installed_translators_.keys()) uninstall_translator(id);
