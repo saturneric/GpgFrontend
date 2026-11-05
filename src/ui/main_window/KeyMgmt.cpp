@@ -960,14 +960,21 @@ void KeyMgmt::bulk_set_owner_trust() {
   const int trust_level = static_cast<int>(items.indexOf(item)) + 1;
 
   const auto channel = key_list_->GetCurrentGpgContextChannel();
-  int failed = 0;
-  for (const auto& key : keys) {
-    if (key == nullptr || !key->IsGood()) continue;
-    if (!KeyManagementOperation::GetInstance(channel).SetOwnerTrustLevel(
-            key, trust_level)) {
-      failed++;
-    }
-  }
+  // On the GPG runner: each call drives gpg --edit-key, which used to block
+  // the GUI thread for the whole loop.
+  auto failed_count = std::make_shared<int>(0);
+  GpgOperaHelper::RunOffGuiThread(
+      this, tr("Modifying Owner Trust"), channel, [=]() -> GFError {
+        for (const auto& key : keys) {
+          if (key == nullptr || !key->IsGood()) continue;
+          if (!KeyManagementOperation::GetInstance(channel).SetOwnerTrustLevel(
+                  key, trust_level)) {
+            ++*failed_count;
+          }
+        }
+        return {};
+      });
+  const int failed = *failed_count;
 
   if (failed > 0) {
     QMessageBox::warning(
@@ -1030,28 +1037,30 @@ void KeyMgmt::bulk_extend_expiry() {
                                : std::make_optional(expires_edit->dateTime());
   const auto channel = key_list_->GetCurrentGpgContextChannel();
 
-  GpgOperaHelper::WaitForOpera(
-      this, tr("Extending Expiry"), [=](const OperaWaitingHd& op_hd) {
+  // On the GPG runner: this loop used to run inside the waiting dialog's own
+  // body on the GUI thread, so the dialog never painted.
+  auto failed_count = std::make_shared<int>(0);
+  GpgOperaHelper::RunOffGuiThread(
+      this, tr("Extending Expiry"), channel, [=]() -> GFError {
         // gpg --edit-key holds a process-wide keyring lock, so the keys must be
         // updated one after another rather than concurrently.
-        int failed = 0;
         for (const auto& key : keys) {
           if (key == nullptr) continue;
           if (!KeyManagementOperation::GetInstance(channel)
                    .SetExpire(key, {}, expires)
                    .Ok()) {
-            failed++;
+            ++*failed_count;
           }
         }
-        op_hd();
-
-        if (failed > 0) {
-          QMessageBox::warning(
-              this, tr("Partially Failed"),
-              tr("Failed to update expiry on %1 key(s).").arg(failed));
-        }
-        emit SignalKeyStatusUpdated();
+        return {};
       });
+
+  if (*failed_count > 0) {
+    QMessageBox::warning(
+        this, tr("Partially Failed"),
+        tr("Failed to update expiry on %1 key(s).").arg(*failed_count));
+  }
+  emit SignalKeyStatusUpdated();
 }
 
 void KeyMgmt::backup_all_private_keys() {

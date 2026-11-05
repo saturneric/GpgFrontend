@@ -47,6 +47,7 @@
 #include "ui/dialog/keypair_details/KeySetExpireDateDialog.h"
 #include "ui/function/DateTimeText.h"
 #include "ui/function/GpgErrorMessageBox.h"
+#include "ui/function/GpgOperaHelper.h"
 #include "ui/function/KeyDatabaseRefresh.h"
 #if GF_ENGINE_GNUPG
 #include "ui/function/MoveKeyToCard.h"
@@ -738,9 +739,13 @@ void KeyPairSubkeyTab::slot_delete_subkey() {
     return;
   }
 
-  const auto err =
-      KeyManagementOperation::GetInstance(current_gpg_context_channel_)
-          .DeleteSubkeySync(key_, index);
+  const auto channel = current_gpg_context_channel_;
+  const auto key = key_;
+  const auto err = GpgOperaHelper::RunOffGuiThread(
+      this, tr("Deleting Subkey"), channel, [=]() {
+        return KeyManagementOperation::GetInstance(channel).DeleteSubkeySync(
+            key, index);
+      });
 
   if (err.Canceled()) return;
   if (!err.Ok()) {
@@ -841,9 +846,11 @@ void KeyPairSubkeyTab::slot_revoke_subkey() {
           &RevocationOptionsDialog::SignalRevokeOptionAccepted, this,
           [key = key_, index, channel = current_gpg_context_channel_, this](
               int code, const QString& text) {
-            const auto err =
-                KeyManagementOperation::GetInstance(channel).RevokeSubkeySync(
-                    key, index, code, text);
+            const auto err = GpgOperaHelper::RunOffGuiThread(
+                this, tr("Revoking Subkey"), channel, [=]() {
+                  return KeyManagementOperation::GetInstance(channel)
+                      .RevokeSubkeySync(key, index, code, text);
+                });
             if (err.Canceled()) return;
             if (!err.Ok()) {
               QMessageBox::critical(

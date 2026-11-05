@@ -33,11 +33,13 @@
 #include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/gpg/GpgSmartCardManager.h"
 #include "core/function/openpgp/ChannelHandle.h"
+#include "core/utils/AsyncUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/dialog/MoveKeyToCardPicker.h"
 #include "ui/dialog/key_generate/GenerateCardKeyDialog.h"
 #include "ui/function/GpgErrorMessageBox.h"
+#include "ui/function/GpgOperaHelper.h"
 #include "ui/function/MoveKeyToCard.h"
 #include "ui/function/UIStyle.h"
 
@@ -187,20 +189,36 @@ void SmartCardControllerDialog::init_actions() {
 
   auto* overflow_menu = new QMenu(ui_->overflowButton);
   overflow_menu->addAction(tr("Restart All Gpg-Agents"), this, [=]() {
-    bool ret = true;
-    for (const auto& info : GetGpgKeyDatabaseInfos()) {
-      // The Runtime in use only: a replaced one's channels are on their way out.
-      const auto channel = info.channel;
-      const auto lease = TryAcquireEngineLease(channel);
-      if (!lease) continue;
-      // these operations are GnuPG-only; skip non-GnuPG channels (e.g. rPGP)
-      if (OpenPGPContext::GetInstance(channel).Engine() !=
-          OpenPGPEngine::kGNUPG) {
-        continue;
-      }
-      ret = GpgAdvancedOperator::GetInstance(channel).RestartGpgComponents();
-      if (!ret) break;
-    }
+    // Off the GUI thread: restarting the agents waits on gpgconf, once per
+    // key database, and froze the window meanwhile.
+    auto restarted = std::make_shared<bool>(true);
+    GpgOperaHelper::WaitForOpera(
+        this, tr("Restarting"), [restarted](const OperaWaitingHd& hd) {
+          RunOperaAsync(
+              [restarted](const DataObjectPtr&) -> GFOperaStatus {
+                for (const auto& info : GetGpgKeyDatabaseInfos()) {
+                  // The Runtime in use only: a replaced one's channels are on
+                  // their way out.
+                  const auto channel = info.channel;
+                  const auto lease = TryAcquireEngineLease(channel);
+                  if (!lease) continue;
+                  // GnuPG-only; skip non-GnuPG channels (e.g. rPGP)
+                  if (OpenPGPContext::GetInstance(channel).Engine() !=
+                      OpenPGPEngine::kGNUPG) {
+                    continue;
+                  }
+                  if (!GpgAdvancedOperator::GetInstance(channel)
+                           .RestartGpgComponents()) {
+                    *restarted = false;
+                    break;
+                  }
+                }
+                return 0;
+              },
+              [hd](GFOperaStatus, const DataObjectPtr&) { hd(); },
+              "restart_gpg_agents");
+        });
+    const bool ret = *restarted;
 
     if (ret) {
       QMessageBox::information(

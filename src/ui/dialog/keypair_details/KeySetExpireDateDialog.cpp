@@ -33,6 +33,7 @@
 #include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
+#include "ui/function/GpgOperaHelper.h"
 #include "ui/function/KeyDatabaseRefresh.h"
 
 namespace GpgFrontend::UI {
@@ -322,8 +323,14 @@ void KeySetExpireDateDialog::slot_confirm() {
     expires = std::make_optional<QDateTime>(chosen_date_time_.toLocalTime());
   }
 
-  auto err = KeyManagementOperation::GetInstance(current_gpg_context_channel_)
-                 .SetExpire(m_key_, m_subkey_, expires);
+  const auto channel = current_gpg_context_channel_;
+  const auto key = m_key_;
+  const auto subkey = m_subkey_;
+  const auto err = GpgOperaHelper::RunOffGuiThread(
+      this, tr("Updating Expiry"), channel, [=]() {
+        return KeyManagementOperation::GetInstance(channel).SetExpire(
+            key, subkey, expires);
+      });
 
   if (err.Ok()) {
     auto* msg_box = new QMessageBox(qobject_cast<QWidget*>(this->parent()));

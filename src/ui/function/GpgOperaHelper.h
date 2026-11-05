@@ -334,6 +334,24 @@ class GpgOperaHelper : QObject {
                            int cancel_channel = -1);
 
   /**
+   * @brief Run @p work on the GPG runner behind a waiting dialog, and return
+   * its error once it is done.
+   *
+   * For key operations that only exist as synchronous calls. Called on the
+   * GUI thread, they froze it, and a waiting dialog started around them never
+   * painted. The GPG runner is also where engine work is serialised.
+   *
+   * @param parent the window that asked; see WaitForOpera()
+   * @param title dialog title
+   * @param channel the key database @p work operates on
+   * @param work the operation; runs on the GPG runner, never on this thread
+   * @return what @p work returned, or an error when it could not run
+   */
+  static auto RunOffGuiThread(QWidget* parent, const QString& title,
+                              int channel, const std::function<GFError()>& work)
+      -> GFError;
+
+  /**
    * @brief Run multiple operations behind a modal waiting dialog.
    *
    * @param parent parent widget

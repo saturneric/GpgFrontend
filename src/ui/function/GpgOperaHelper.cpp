@@ -865,6 +865,25 @@ auto GpgOperaHelper::BuildOperasDecryptVerify(
       });
 }
 
+auto GpgOperaHelper::RunOffGuiThread(QWidget* parent, const QString& title,
+                                     int channel,
+                                     const std::function<GFError()>& work)
+    -> GFError {
+  auto outcome =
+      std::make_shared<GFError>(GFError::Application(GFErrorCode::kABORTED));
+  WaitForOpera(parent, title, [=](const OperaWaitingHd& hd) {
+    RunGpgOperaAsync(
+        channel, [work](const DataObjectPtr&) -> GFError { return work(); },
+        [outcome, hd](GFError err, const DataObjectPtr&) {
+          *outcome = err;
+          hd();
+        },
+        "ui_key_operation",
+        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
+  });
+  return *outcome;
+}
+
 void GpgOperaHelper::WaitForOpera(QWidget* parent, const QString& title,
                                   const OperaWaitingCb& opera,
                                   int cancel_channel) {
