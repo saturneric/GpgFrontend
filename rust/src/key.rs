@@ -1223,13 +1223,13 @@ pub fn detect_key_version_internal(key_block: &str) -> Result<GfrOpenPGPKeyVersi
         .ok_or(GfrStatus::ErrorInvalidInput)?;
 
     if let Ok((pk_iter, _)) = SignedPublicKey::from_string_many(&block) {
-        for pk in pk_iter.flatten() {
+        if let Some(pk) = pk_iter.flatten().next() {
             return Ok(pk.primary_key.version().into());
         }
     }
 
     if let Ok((sk_iter, _)) = SignedSecretKey::from_string_many(&block) {
-        for sk in sk_iter.flatten() {
+        if let Some(sk) = sk_iter.flatten().next() {
             return Ok(sk.primary_key.version().into());
         }
     }

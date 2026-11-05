@@ -82,6 +82,14 @@ jobs:
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      # Errors only: clippy's deny-by-default lints are real faults (a loop
+      # that never loops, a comparison that is always true). Its warnings are
+      # style and are not gated.
+      - name: Clippy
+        run: cargo clippy --manifest-path rust/Cargo.toml --lib --locked
 
       # Restore and save are split so the binary is cached as soon as it is
       # built: actions/cache only saves at the end of a fully green job, so a

@@ -1096,17 +1096,18 @@ pub(crate) fn sig_entry_from_packet(
     sig: &pgp::packet::Signature,
     mode: GfrSignMode,
 ) -> SignatureResultInternal {
-    let mut fpr = String::new();
-    for issuer in sig.issuer_fingerprint() {
-        fpr = issuer.to_string();
-        break;
-    }
-    if fpr.is_empty() {
-        for issuer in sig.issuer_key_id() {
-            fpr = issuer.to_string();
-            break;
-        }
-    }
+    let fpr = sig
+        .issuer_fingerprint()
+        .into_iter()
+        .next()
+        .map(|issuer| issuer.to_string())
+        .or_else(|| {
+            sig.issuer_key_id()
+                .into_iter()
+                .next()
+                .map(|issuer| issuer.to_string())
+        })
+        .unwrap_or_default();
 
     let (hash_algo, pub_algo) = match sig.config() {
         Some(config) => (
