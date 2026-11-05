@@ -178,6 +178,30 @@ TEST_F(ProfileRegistryDiskTest, CreateThenLoadThenDelete) {
   EXPECT_FALSE(LoadProfileRegistry(profiles_root_, classic_root_).Find("work"));
 }
 
+// Deleting a profile removes a link inside it, never what the link points at:
+// a profile folder can hold one, and on Windows a junction was entered as if
+// it were a directory of the profile's own.
+TEST_F(ProfileRegistryDiskTest, DeletingAProfileLeavesWhatItsLinksPointAt) {
+  ASSERT_TRUE(CreateProfile(profiles_root_, "linked", "Linked",
+                            /*self_contained=*/true)
+                  .Ok());
+
+  QTemporaryDir outside;
+  ASSERT_TRUE(outside.isValid());
+  {
+    QFile keep(outside.path() + "/keep.txt");
+    ASSERT_TRUE(keep.open(QIODevice::WriteOnly));
+    keep.write("not the profile's");
+  }
+  if (!QFile::link(outside.path(), profiles_root_ + "/linked/workspace/out")) {
+    GTEST_SKIP() << "this filesystem does not do links";
+  }
+
+  ASSERT_TRUE(DeleteProfile(profiles_root_, "linked"));
+  EXPECT_FALSE(QFileInfo::exists(profiles_root_ + "/linked"));
+  EXPECT_TRUE(QFileInfo::exists(outside.path() + "/keep.txt"));
+}
+
 TEST_F(ProfileRegistryDiskTest, CreateRefusesBadIdsAndCollisions) {
   EXPECT_EQ(CreateProfile(profiles_root_, "..", "x", false).status,
             ProfileCreateStatus::kINVALID_ID);

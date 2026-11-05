@@ -38,6 +38,7 @@
 #include "core/GFCoreLog.h"
 #include "core/profile/MemoryAreaProfileAccessor.h"
 #include "core/profile/ProfileAreaTraits.h"
+#include "core/utils/IOUtils.h"
 #include "plat/common/FscryptStorage.h"
 #include "plat/common/PlatformFs.h"
 
@@ -187,7 +188,7 @@ auto ProtectedFsProfileAccessor::Provision(const QString &digest,
     QDir root_dir(root);
     if (!root_dir.isEmpty(QDir::AllEntries | QDir::NoDotAndDotDot |
                           QDir::Hidden | QDir::System)) {
-      root_dir.removeRecursively();
+      RemoveTreeWithoutFollowingLinks(root);
 
       // Refused rather than carried on with: every later step, including the
       // fallback to a plain folder, needs this directory to be there.
@@ -315,7 +316,7 @@ void ProtectedFsProfileAccessor::RemoveTree(ProfileStorageRelease mode) {
 
   if (worth_scrubbing) ScrubDirectory(root);
 
-  if (QDir(root).removeRecursively()) {
+  if (RemoveTreeWithoutFollowingLinks(root).isEmpty()) {
     released_ = true;
     return;
   }
@@ -333,7 +334,7 @@ void ProtectedFsProfileAccessor::RemoveTree(ProfileStorageRelease mode) {
   // the destructor tries the removal again once the rest of the shutdown has
   // let go of whatever was holding it.
   ScrubDirectory(root);
-  released_ = QDir(root).removeRecursively();
+  released_ = RemoveTreeWithoutFollowingLinks(root).isEmpty();
 }
 
 // ------------------------------------------------------------------- hardening
@@ -370,9 +371,9 @@ void ScrubDirectory(const QString &path) {
   for (const auto &entry :
        dir.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot |
                          QDir::Hidden | QDir::System)) {
-    // Never followed. A symlink out of the tree would have this overwriting
-    // something that was never ours.
-    if (entry.isSymLink()) continue;
+    // Never followed. A symlink or a junction out of the tree would have this
+    // overwriting something that was never ours.
+    if (entry.isSymLink() || entry.isJunction()) continue;
 
     if (entry.isDir()) {
       ScrubDirectory(entry.absoluteFilePath());
@@ -422,7 +423,7 @@ void ScrubDirectory(const QString &path) {
   // The directories themselves, now that nothing is left in them. Left to the
   // caller's removeRecursively() would work too, but a scrub that leaves the
   // shape of the tree behind has told only half the truth.
-  QDir(path).removeRecursively();
+  RemoveTreeWithoutFollowingLinks(path);
 }
 
 auto ReleaseStrandedSessionStorage(const QJsonObject &pointer,
@@ -437,7 +438,7 @@ auto ReleaseStrandedSessionStorage(const QJsonObject &pointer,
   // is a file on disk that some other process wrote.
   if (!root.isEmpty() && QDir::isAbsolutePath(root) && root != anchor &&
       QFileInfo::exists(root)) {
-    if (QDir(root).removeRecursively()) {
+    if (RemoveTreeWithoutFollowingLinks(root).isEmpty()) {
       LOG_I() << "removed session storage left behind by a process that is"
               << "gone:" << root;
     } else {

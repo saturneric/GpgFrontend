@@ -114,7 +114,7 @@ auto SettingsBytes(const ProfileAccessor &storage) -> qint64 {
 
 auto RemoveDirectoryQuietly(const QString &path) -> void {
   if (path.isEmpty() || !QFileInfo::exists(path)) return;
-  QDir(path).removeRecursively();
+  RemoveTreeWithoutFollowingLinks(path);
 }
 
 /// Empty a session root of everything a dead process left, except the lock the
@@ -124,14 +124,14 @@ auto ClearSessionRootContents(const QString &path) -> void {
   QDir dir(path);
   if (!dir.exists()) return;
 
-  for (const auto &entry : dir.entryInfoList(
-           QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden)) {
+  // QDir::System lists a broken link too. Each entry goes without following a
+  // link: isDir() is true of a link to a directory, and emptying that emptied
+  // the directory it pointed at, wherever it was.
+  for (const auto &entry :
+       dir.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot |
+                         QDir::Hidden | QDir::System)) {
     if (entry.fileName() == "profile.lock") continue;
-    if (entry.isDir()) {
-      QDir(entry.absoluteFilePath()).removeRecursively();
-      continue;
-    }
-    QFile::remove(entry.absoluteFilePath());
+    RemoveTreeWithoutFollowingLinks(entry.absoluteFilePath());
   }
 }
 
@@ -1684,7 +1684,7 @@ auto SweepTransientProfileRoots(const QString &profiles_root,
       continue;
     }
 
-    if (QDir(path).removeRecursively()) {
+    if (RemoveTreeWithoutFollowingLinks(path).isEmpty()) {
       LOG_I() << "removed a session left behind by a process that is gone:"
               << path;
       ++removed;

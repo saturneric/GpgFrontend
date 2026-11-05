@@ -445,9 +445,10 @@ TEST(ProtectedAccessorTest, AReleaseThatCannotRemoveTheTreeStillEmptiesIt) {
   // caller would take that flag at its word.
   //
   // A directory with no write permission is the portable stand-in for the
-  // Windows case: its entries cannot be unlinked, though their contents can
-  // still be overwritten -- which is the distinction that decides whether what
-  // survives is key material or an empty name.
+  // Windows case, where a handle still open keeps the tree. It is the one
+  // holding the tree: the removal makes the tree's own directories writable
+  // before it empties them (an unpacked archive can carry read-only ones),
+  // but never touches anything outside the tree.
   if (::geteuid() == 0) GTEST_SKIP() << "root ignores directory permissions";
 
   QTemporaryDir dir;
@@ -459,24 +460,25 @@ TEST(ProtectedAccessorTest, AReleaseThatCannotRemoveTheTreeStillEmptiesIt) {
   ASSERT_TRUE(accessor->Ensure(ProfileArea::kSecure));
 
   const auto root = accessor->PathOf(ProfileArea::kRoot);
-  const auto pinned = accessor->PathOf(ProfileArea::kSecure);
-  const auto key = pinned + "/app.key";
+  const auto key = accessor->PathOf(ProfileArea::kSecure) + "/app.key";
   WriteFile(key, QByteArray("PLAINTEXT-KEY-MATERIAL"));
 
+  const auto holder = QFileInfo(root).absolutePath();
+  const auto holder_mode = QFile::permissions(holder);
   ASSERT_TRUE(QFile::setPermissions(
-      pinned, QFileDevice::ReadOwner | QFileDevice::ExeOwner));
+      holder, QFileDevice::ReadOwner | QFileDevice::ExeOwner));
+  const auto restore =
+      qScopeGuard([&]() { QFile::setPermissions(holder, holder_mode); });
 
   accessor->Release(ProfileStorageRelease::kSCRUB);
 
-  // Still there, because nothing could unlink it -- but holding nothing.
-  ASSERT_TRUE(QFileInfo::exists(key));
-  EXPECT_EQ(QFileInfo(key).size(), 0);
+  // The tree itself could not go, but nothing in it is key material any more.
+  ASSERT_TRUE(QFileInfo::exists(root));
+  EXPECT_TRUE(!QFileInfo::exists(key) || QFileInfo(key).size() == 0);
 
   // And not marked released: the next attempt, once whatever held the tree has
   // let go, has to actually run.
-  ASSERT_TRUE(QFile::setPermissions(pinned, QFileDevice::ReadOwner |
-                                                QFileDevice::WriteOwner |
-                                                QFileDevice::ExeOwner));
+  ASSERT_TRUE(QFile::setPermissions(holder, holder_mode));
   accessor->Release(ProfileStorageRelease::kSCRUB);
   EXPECT_FALSE(QFileInfo::exists(root));
 }

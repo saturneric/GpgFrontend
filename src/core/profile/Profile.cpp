@@ -36,6 +36,7 @@
 #include "core/profile/ProfileSecureKeyManager.h"
 #include "core/profile/ProtectedFsProfileAccessor.h"
 #include "core/utils/CommonUtils.h"
+#include "core/utils/IOUtils.h"
 
 namespace GpgFrontend {
 
@@ -299,7 +300,7 @@ void TransientProfile::DiscardSessionStorage() {
   // The anchor was made only so that it could be locked. Leaving it behind
   // would litter the profiles folder with one empty directory per session that
   // failed to open, and the sweep deliberately ignores those.
-  if (!anchor_.isEmpty()) QDir(anchor_).removeRecursively();
+  if (!anchor_.isEmpty()) RemoveTreeWithoutFollowingLinks(anchor_);
 }
 
 auto TransientProfile::Root() const -> QString {
