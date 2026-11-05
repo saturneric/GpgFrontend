@@ -585,6 +585,27 @@ Item {
             compare(Theme.fingerprintGroups(""), [])
         }
 
+        // One's own key can be backed up, to a file, after a warning; a key
+        // with no secret part here has nothing to back up.
+        function test_only_an_own_key_is_backed_up() {
+            const row = findByName(detail, "backupSecretKey")
+            verify(row !== null)
+            // Shown, so that what is visible on it is.
+            detail.visible = true
+            detail.details = {"fingerprint": "AB".repeat(20), "hasSecret": false}
+            verify(!row.visible)
+            detail.details = {"fingerprint": "AB".repeat(20), "hasSecret": true}
+            verify(row.visible)
+            row.clicked()
+            const ask = detail.backupQuestion
+            tryVerify(() => ask.opened)
+            verify(ask.message.indexOf("passphrase") >= 0)
+            ask.close()
+            tryVerify(() => !ask.visible)
+            detail.details = {}
+            detail.visible = false
+        }
+
         function test_dates_read_one_way() {
             compare(Theme.date(new Date(2026, 10, 3)), "2026-11-03")
             compare(Theme.date(new Date(NaN)), "")

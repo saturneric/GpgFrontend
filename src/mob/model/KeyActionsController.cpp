@@ -28,6 +28,7 @@
 
 #include "model/KeyActionsController.h"
 
+#include <QFile>
 #include <QPointer>
 #include <algorithm>
 
@@ -48,6 +49,7 @@
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/MemoryUtils.h"
+#include "files/StagingArea.h"
 #include "model/ErrorWording.h"
 #include "model/KeyGenProfilesController.h"
 #include "model/KeyRoleModel.h"
@@ -294,6 +296,50 @@ void KeyActionsController::exportPublic(const QString& fingerprint) {
             {QStringLiteral("fileName"),
              Shell::ExportKeyFileName(key->Name(), key->Email(), key->ID(),
                                       options.type)}};
+  });
+}
+
+auto KeyActionsController::secretKeyFileName(const QString& fingerprint) const
+    -> QString {
+  const auto key = FindKey(UsableDefaultChannelHandle(), fingerprint);
+  if (key == nullptr) return {};
+  return Shell::ExportKeyFileName(
+      key->Name(), key->Email(), key->ID(),
+      Shell::KeyExportOptionsFor(Shell::KeyExportKind::kFullSecret).type);
+}
+
+void KeyActionsController::exportSecret(const QString& fingerprint,
+                                        const QUrl& url) {
+  // A picked place is a content:// URI on Android, which QFile opens as is.
+  const auto path = LocalOrContent(url);
+  run(QStringLiteral("export_secret"), [fingerprint, path]() -> QVariantMap {
+    const auto channel = UsableDefaultChannelHandle();
+    const auto key = FindKey(channel, fingerprint);
+    if (key == nullptr || !key->IsPrivateKey()) {
+      return Failure(GFError::Application(GFErrorCode::kNO_SECRET_KEY));
+    }
+    // Straight from the engine's buffer to the file: the key never becomes
+    // a string anywhere, and stays protected by its own passphrase.
+    // The whole key, as the desktop's full secret export.
+    const auto options =
+        Shell::KeyExportOptionsFor(Shell::KeyExportKind::kFullSecret);
+    auto [err, armored] =
+        KeyImportExportOperation::GetInstance(channel).ExportKey(
+            key, options.secret, options.ascii, options.shortest);
+    if (!err.Ok()) return Failure(err);
+    if (armored.Empty()) {
+      return Failure(GFError::Application(GFErrorCode::kNO_SECRET_KEY));
+    }
+    QFile file(path);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate) ||
+        file.write(armored.Data(), static_cast<qint64>(armored.Size())) !=
+            static_cast<qint64>(armored.Size()) ||
+        !file.flush()) {
+      file.close();
+      return Failure(GFError::Application(GFErrorCode::kIO));
+    }
+    file.close();
+    return {};
   });
 }
 

@@ -47,6 +47,7 @@
 #include "model/KeyGroupsController.h"
 #include "model/KeyImportController.h"
 #include "model/KeyListController.h"
+#include "shell/rules/KeyExportRules.h"
 
 namespace GpgFrontend::Test::Mobile {
 
@@ -314,6 +315,67 @@ TEST_F(KeyActionsTest, KeysAreImportedFromTheClipboard) {
   EXPECT_EQ(imported.value("imported").toInt(), 1);
   EXPECT_TRUE(HasKey(fpr));
   RunOnMainThread([]() { QGuiApplication::clipboard()->clear(); });
+}
+
+// A backup of the secret key goes to a file, never through QML; a key with
+// no secret part here has none to back up.
+TEST_F(KeyActionsTest, TheSecretKeyIsBackedUpToAFile) {
+  const auto made = Act([](auto* a) {
+    a->generate("Back Up", "backup@mobile.example.invalid", 0, false);
+  });
+  ASSERT_TRUE(made.succeeded);
+  const auto fpr = made.detail.value("fingerprint").toString();
+
+  QString name;
+  RunOnMainThread([&]() { name = actions_->secretKeyFileName(fpr); });
+  // Named as the desktop names a full secret export.
+  QVariantMap described;
+  RunOnMainThread([&]() { described = actions_->describe(fpr); });
+  EXPECT_EQ(name, GpgFrontend::Shell::ExportKeyFileName(
+                      "Back Up", "backup@mobile.example.invalid",
+                      described.value("keyId").toString(), "full_secret"));
+  EXPECT_TRUE(name.startsWith("Back_Up")) << name.toStdString();
+
+  QTemporaryDir dir;
+  const auto path = dir.filePath(name);
+  const auto saved =
+      Act([&](auto* a) { a->exportSecret(fpr, QUrl::fromLocalFile(path)); });
+  ASSERT_TRUE(saved.succeeded)
+      << saved.detail.value("error").toString().toStdString();
+  EXPECT_EQ(saved.action, "export_secret");
+  EXPECT_TRUE(saved.detail.isEmpty());
+  QFile file(path);
+  ASSERT_TRUE(file.open(QIODevice::ReadOnly));
+  const auto backup = file.readAll();
+  file.close();
+  EXPECT_TRUE(backup.startsWith("-----BEGIN PGP PRIVATE KEY BLOCK-----"));
+
+  // Deleted, then back from the backup with its secret part.
+  ASSERT_TRUE(Act([&fpr](auto* a) { a->remove(fpr); }).succeeded);
+  const auto restored =
+      Import([&path](auto* i) { i->importFile(QUrl::fromLocalFile(path)); });
+  EXPECT_EQ(restored.value("secretImported").toInt(), 1);
+  QVariantMap back;
+  RunOnMainThread([&]() { back = actions_->describe(fpr); });
+  EXPECT_TRUE(back.value("hasSecret").toBool());
+
+  // Only the public part here: nothing written.
+  const auto pub = Act([&fpr](auto* a) { a->exportPublic(fpr); });
+  ASSERT_TRUE(pub.succeeded);
+  ASSERT_TRUE(Act([&fpr](auto* a) { a->remove(fpr); }).succeeded);
+  const auto pub_path = dir.filePath("public.asc");
+  QFile pub_file(pub_path);
+  ASSERT_TRUE(pub_file.open(QIODevice::WriteOnly));
+  pub_file.write(pub.detail.value("armored").toString().toUtf8());
+  pub_file.close();
+  Import(
+      [&pub_path](auto* i) { i->importFile(QUrl::fromLocalFile(pub_path)); });
+  ASSERT_TRUE(HasKey(fpr));
+  const auto refused = Act([&](auto* a) {
+    a->exportSecret(fpr, QUrl::fromLocalFile(dir.filePath("none.asc")));
+  });
+  EXPECT_FALSE(refused.succeeded);
+  EXPECT_FALSE(QFileInfo::exists(dir.filePath("none.asc")));
 }
 
 TEST_F(KeyActionsTest, AKeyIsDescribedAsTheDesktopDescribesIt) {

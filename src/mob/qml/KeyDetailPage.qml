@@ -3,6 +3,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
+import QtQuick.Dialogs
 import QtQuick.Layouts
 import GpgFrontend.Mobile
 
@@ -28,6 +29,9 @@ Page {
     // While a key is being changed, deleted or exported, the page stays:
     // leaving it would drop the answer, and with it the refresh of the list.
     readonly property bool busy: actions.busy
+    // The warning before a backup of the secret key (a pop-up, not in the
+    // item tree).
+    readonly property alias backupQuestion: confirmBackup
 
     signal back()
     // The key is gone; the list wants a refresh.
@@ -63,6 +67,9 @@ Page {
             return
         case "delete":
             page.deleted()
+            return
+        case "export_secret":
+            notice.show(qsTr("Secret key saved."))
             return
         }
         // A change to the key: shown at once, and in the list.
@@ -443,6 +450,19 @@ Page {
                     onClicked: actions.exportPublic(page.key.fingerprint)
                 }
 
+                // A backup of one's own key, to a file only: never shared
+                // or copied as text.
+                ListRow {
+                    objectName: "backupSecretKey"
+                    Layout.fillWidth: true
+                    visible: page.details.hasSecret === true
+                    enabled: !actions.busy
+                    symbol: "save"
+                    text: qsTr("Back up secret key")
+                    detail: qsTr("Save it to a file, still protected by its passphrase.")
+                    onClicked: confirmBackup.open()
+                }
+
                 ListRow {
                     objectName: "changeExpiration"
                     Layout.fillWidth: true
@@ -673,6 +693,29 @@ Page {
                    + "This cannot be undone.")
         acceptText: qsTr("Delete")
         onAccepted: actions.deleteSubkey(page.details.fingerprint, subkey.fingerprint)
+    }
+
+    // Before the secret key leaves the app: what such a file is.
+    MessageAlert {
+        id: confirmBackup
+
+        objectName: "confirmBackup"
+        title: qsTr("Back up the secret key?")
+        message: qsTr("Anyone with this file and its passphrase can read "
+                      + "your messages and sign as you. Keep it somewhere "
+                      + "safe, never with the passphrase.")
+        acceptText: qsTr("Choose where")
+        acceptObjectName: "confirmBackupRun"
+        onAccepted: {
+            backupDialog.currentFile = actions.secretKeyFileName(page.key.fingerprint)
+            backupDialog.open()
+        }
+    }
+
+    FileDialog {
+        id: backupDialog
+        fileMode: FileDialog.SaveFile
+        onAccepted: actions.exportSecret(page.key.fingerprint, selectedFile)
     }
 
     MessageAlert {

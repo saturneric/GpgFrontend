@@ -28,10 +28,12 @@
 
 #pragma once
 
+#include <QtQml/qqmlregistration.h>
+
 #include <QObject>
+#include <QUrl>
 #include <QVariantList>
 #include <QVariantMap>
-#include <QtQml/qqmlregistration.h>
 
 namespace GpgFrontend::Mobile {
 
@@ -44,6 +46,7 @@ namespace GpgFrontend::Mobile {
  *  - generate: detail {fingerprint}; a new key's passphrase is asked through
  *    the PassphraseBroker.
  *  - export: detail {armored}, the public key as text.
+ *  - export_secret: detail {}, the secret key written to a file.
  *  - delete: detail {}.
  *
  * A failed action's detail has {error}. After generate and delete the key
@@ -106,6 +109,20 @@ class KeyActionsController : public QObject {
 
   /// The public key @p fingerprint, armored.
   Q_INVOKABLE void exportPublic(const QString& fingerprint);
+
+  /**
+   * @brief Write the secret key @p fingerprint, armored, to @p url (a local
+   * file, or the place a save picker returned): a backup, protected by the
+   * key's own passphrase. Action "export_secret", detail {}; it fails for a
+   * key with no secret part here. The key is never handed to QML.
+   */
+  Q_INVOKABLE void exportSecret(const QString& fingerprint, const QUrl& url);
+
+  /// The file name a backup of the secret key @p fingerprint is offered
+  /// under, as the desktop names a full secret export
+  /// (Shell::ExportKeyFileName()); empty for no key.
+  [[nodiscard]] Q_INVOKABLE QString
+  secretKeyFileName(const QString& fingerprint) const;
 
   /// Delete the key @p fingerprint, its secret part too.
   Q_INVOKABLE void remove(const QString& fingerprint);
