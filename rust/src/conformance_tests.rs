@@ -561,6 +561,31 @@ mod rfc9580_target_selection {
     }
 
     #[test]
+    fn the_newest_usable_encryption_subkey_is_chosen() {
+        // After a rotation the old subkey is still valid; choosing by packet
+        // order kept encrypting to it. Put the newer subkey second, where
+        // packet order would never reach it.
+        use pgp::types::KeyDetails;
+        let mut sk = two_enc_subkeys();
+        let created = sk.secret_subkeys[1].key.created_at().as_secs();
+        while now() <= created {
+            std::thread::sleep(std::time::Duration::from_millis(100));
+        }
+        let newer = two_enc_subkeys();
+        sk.secret_subkeys[1] = newer.secret_subkeys[1].clone();
+        rebind_subkey(&mut sk, 1, enc_flags(), None);
+        assert!(
+            sk.secret_subkeys[1].key.created_at().as_secs()
+                > sk.secret_subkeys[0].key.created_at().as_secs()
+        );
+
+        let res = crate::crypto::encrypt_internal(0, "", b"x", &[&public_armored(&sk)], false)
+            .expect("encrypts");
+        assert_eq!(res.recipients.len(), 1);
+        assert_eq!(res.recipients[0].key_id, legacy_key_id(&sk, 1));
+    }
+
+    #[test]
     fn a_subkey_bound_without_encryption_flags_is_never_chosen() {
         // RFC 9580 §5.2.3.29: Key Flags state what a key "may be used for";
         // a binding whose flags omit 0x04/0x08 does not allow encryption.

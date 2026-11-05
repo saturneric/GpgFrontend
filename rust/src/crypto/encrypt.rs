@@ -346,8 +346,10 @@ fn encryption_primary_problem(cert: &SignedPublicKey, pref: &Signature) -> Optio
 ///   via the `fpr!` armor-block prefix. The pinned key is honored only if it is
 ///   **usable** (see [`encryption_subkey_problem`]); otherwise the recipient is
 ///   rejected.
-/// * **Auto** (`target = None`): the first usable encryption subkey wins,
-///   falling back to the primary key if no subkey qualifies.
+/// * **Auto** (`target = None`): the newest usable encryption subkey wins
+///   (the later one on a tie), falling back to the primary key if no subkey
+///   qualifies. Packet order said nothing: after a rotation the old subkey,
+///   still valid, kept being used.
 ///
 /// A revoked, expired or unbound subkey is never selected in either mode.
 fn choose_encryption_target(
@@ -400,9 +402,15 @@ fn choose_encryption_target(
     // ==========================================
     // NORMAL MODE (Auto Fallback) — skip unusable
     // ==========================================
+    let mut newest: Option<(usize, u32)> = None;
     for (i, subkey) in cert.public_subkeys.iter().enumerate() {
         match encryption_subkey_problem(cert, subkey, now) {
-            None => return Ok(EncryptionTarget::Sub(i)),
+            None => {
+                let created = subkey.key.created_at().as_secs();
+                if newest.is_none_or(|(_, best)| created >= best) {
+                    newest = Some((i, created));
+                }
+            }
             Some(problem) if subkey.key.algorithm().can_encrypt() => log::info!(
                 "Skipping encryption subkey that is {}: fpr={}",
                 problem,
@@ -410,6 +418,9 @@ fn choose_encryption_target(
             ),
             Some(_) => {}
         }
+    }
+    if let Some((i, _)) = newest {
+        return Ok(EncryptionTarget::Sub(i));
     }
 
     if encryption_primary_problem(cert, pref).is_none() {

@@ -422,14 +422,25 @@ where
     // ==========================================
     // NORMAL MODE (Auto Fallback) — authorized keys only
     // ==========================================
+    // The newest authorized subkey, the later one on a tie: after a rotation
+    // the old subkey is still valid, and packet order kept choosing it.
+    let mut newest = None;
     for subkey in &skey.secret_subkeys {
-        if subkey_verdict(subkey) == KeyVerdict::Authorized {
-            log::info!(
-                "No target specified. Selected first authorized signing subkey: fpr={}",
-                subkey.key.fingerprint(),
-            );
-            return action(SelectedKey::Sub(&subkey.key));
+        if subkey_verdict(subkey) != KeyVerdict::Authorized {
+            continue;
         }
+        let created = subkey.key.created_at().as_secs();
+        if newest.is_none_or(|(_, best)| created >= best) {
+            newest = Some((subkey, created));
+        }
+    }
+    let newest = newest.map(|(subkey, _)| subkey);
+    if let Some(subkey) = newest {
+        log::info!(
+            "No target specified. Selected newest authorized signing subkey: fpr={}",
+            subkey.key.fingerprint(),
+        );
+        return action(SelectedKey::Sub(&subkey.key));
     }
 
     if primary_verdict == KeyVerdict::Authorized {
