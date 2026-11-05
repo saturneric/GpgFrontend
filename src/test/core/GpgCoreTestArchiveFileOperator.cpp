@@ -70,12 +70,13 @@ void WriteOctalField(char* field, int width, quint64 value) {
  * escape the destination, absolute names, link types the format never emits.
  */
 auto TarHeader(const QByteArray& name, char typeflag, qint64 size,
-               const QByteArray& linkname = {}) -> QByteArray {
+               const QByteArray& linkname = {}, quint64 mode = 0644)
+    -> QByteArray {
   QByteArray h(kTarBlock, '\0');
   char* p = h.data();
 
   memcpy(p, name.constData(), std::min<qsizetype>(name.size(), 100));
-  WriteOctalField(p + 100, 8, 0644);
+  WriteOctalField(p + 100, 8, mode);
   WriteOctalField(p + 108, 8, 0);
   WriteOctalField(p + 116, 8, 0);
   WriteOctalField(p + 124, 12, static_cast<quint64>(size));
@@ -581,6 +582,71 @@ TEST(ArchiveFileOperatorTest, StrictRefusesHardlink) {
   EXPECT_NE(ExtractSync(ExchangerWith(tar), temp_dir.path() + "/dest",
                         ArchiveExtractPolicy::Strict()),
             0);
+}
+
+/// S_IFREG | 0644, spelled out because mingw has no <sys/stat.h> S_IFREG.
+constexpr quint64 kRegularFileMode = 0100644;
+
+// Permissive() keeps hard links for the folders users encrypt themselves, but
+// only between files of the same archive. A link naming anything else was a
+// write into that file: a decrypted .tar.gpg could replace ~/.bashrc.
+TEST(ArchiveFileOperatorTest, PermissiveKeepsHardlinksInsideTheArchive) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+  const auto dest = temp_dir.path() + "/dest";
+  ASSERT_TRUE(QDir().mkpath(dest));
+
+  QByteArray tar;
+  tar.append(TarHeader("a.txt", '0', 3));
+  tar.append(TarPad("abc"));
+  tar.append(TarHeader("b.txt", '1', 0, "./a.txt", kRegularFileMode));
+  tar.append(TarEnd());
+
+  ASSERT_EQ(
+      ExtractSync(ExchangerWith(tar), dest, ArchiveExtractPolicy::Permissive()),
+      0);
+  QFile b(dest + "/b.txt");
+  ASSERT_TRUE(b.open(QIODevice::ReadOnly));
+  EXPECT_EQ(b.readAll(), QByteArray("abc"));
+}
+
+TEST(ArchiveFileOperatorTest, PermissiveRefusesHardlinksOutOfTheArchive) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+  const auto victim = temp_dir.path() + "/victim.txt";
+  CreateTestFile(temp_dir.path(), "victim.txt", "original");
+
+  const QList<QByteArray> targets = {
+      victim.toUtf8(),  // absolute
+      "../victim.txt",  // escapes the destination
+      "victim.txt",     // relative, but not a file this archive wrote
+      "dir",            // an entry this archive wrote, but not a file
+  };
+
+  for (const auto& target : targets) {
+    const auto dest = temp_dir.path() + "/dest";
+    QDir(dest).removeRecursively();
+    ASSERT_TRUE(QDir().mkpath(dest));
+
+    QByteArray tar;
+    // The mode carries the regular-file bits and the entry carries data,
+    // which is what makes libarchive write through the link it created.
+    tar.append(TarHeader("dir/", '5', 0));
+    tar.append(TarHeader("inside.txt", '1', 8, target, kRegularFileMode));
+    tar.append(TarPad("ATTACKER"));
+    tar.append(TarEnd());
+
+    EXPECT_NE(ExtractSync(ExchangerWith(tar), dest,
+                          ArchiveExtractPolicy::Permissive()),
+              0)
+        << "hard link to " << target.constData() << " was extracted";
+    EXPECT_FALSE(QFileInfo::exists(dest + "/inside.txt"))
+        << "hard link to " << target.constData() << " was created";
+
+    QFile v(victim);
+    ASSERT_TRUE(v.open(QIODevice::ReadOnly));
+    EXPECT_EQ(v.readAll(), QByteArray("original"));
+  }
 }
 
 TEST(ArchiveFileOperatorTest, StrictRefusesDeviceAndFifoEntries) {

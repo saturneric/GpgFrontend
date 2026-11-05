@@ -939,6 +939,9 @@ auto ExtractArchiveSync(
       // does not care about duplicates does not pay to remember every path.
       QSet<QString> seen_paths;
       QSet<QString> seen_paths_folded;
+      // Regular files this walk has itself put on disk. The only things a hard
+      // link entry may name: anything else is a file that was already there.
+      QSet<QString> extracted_files;
 
       // Refuse an archive that unpacks to far more than it costs to send.
       // Deferred until a threshold of input has actually been consumed: the
@@ -1199,15 +1202,60 @@ auto ExtractArchiveSync(
           break;
         }
 
+        // A hard link names an existing file, and libarchive links whatever
+        // that name resolves to before writing the entry's bytes into it. The
+        // only checks it applies to that name are SECURE_NODOTDOT and
+        // SECURE_NOABSOLUTEPATHS, both off here (see above), so an unchecked
+        // target of "/home/u/.bashrc" or "../../x" is a write to that file. It
+        // gets the same validation as an entry path, is re-rooted the same
+        // way, and must be a regular file this extraction already created.
+        QString hardlink_target;
+        if (is_hardlink) {
+          const auto raw_link =
+              QString::fromUtf8(archive_entry_hardlink(entry));
+          const auto link_verdict =
+              ValidateArchiveEntryPath(raw_link, policy, hardlink_target);
+          if (link_verdict != ArchiveEntryVerdict::kACCEPT ||
+              !extracted_files.contains(hardlink_target)) {
+            FLOG_W(
+                "refusing archive entry '%s': hard link to '%s' is not a "
+                "file extracted from this archive",
+                qPrintable(path_name), qPrintable(raw_link));
+            note(QString("entry \"%1\" links to \"%2\", which is not a file "
+                         "from this archive")
+                     .arg(path_name, raw_link));
+            ret = -1;
+            break;
+          }
+        }
+
         const auto target_path_name = write_root + "/" + relative_path;
 
 #ifdef Q_OS_WINDOWS
         auto target_path_utf16_wstr = std::wstring(
             reinterpret_cast<const wchar_t *>((target_path_name).utf16()));
         archive_entry_copy_pathname_w(entry, target_path_utf16_wstr.c_str());
+        if (is_hardlink) {
+          const auto link_path_name = write_root + "/" + hardlink_target;
+          auto link_utf16_wstr = std::wstring(
+              reinterpret_cast<const wchar_t *>(link_path_name.utf16()));
+          archive_entry_copy_hardlink_w(entry, link_utf16_wstr.c_str());
+        }
 #else
         archive_entry_set_pathname(entry, target_path_name.toUtf8());
+        if (is_hardlink) {
+          archive_entry_set_hardlink(
+              entry, (write_root + "/" + hardlink_target).toUtf8());
+        }
 #endif
+
+        // Whatever is at this path now is what a later link would reach, so
+        // the set follows every entry, not just the regular ones.
+        if (is_hardlink || filetype == AE_IFREG) {
+          extracted_files.insert(relative_path);
+        } else {
+          extracted_files.remove(relative_path);
+        }
 
         r = archive_write_header(ext, entry);
         if (r < ARCHIVE_OK) {
