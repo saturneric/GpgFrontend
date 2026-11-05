@@ -220,9 +220,9 @@ BottomSheet {
     Label {
         objectName: "statusTarget"
         Layout.fillWidth: true
-        // A batch says how many in its title already; a text needs no
-        // name.
-        visible: !sheet.isBatch && !sheet.isText
+        // A batch says how many in its title already; a text says which
+        // text it was, on the page now or an earlier one, before a Retry.
+        visible: !sheet.isBatch
         wrapMode: Text.Wrap
         color: Material.secondaryTextColor
         text: {
@@ -311,9 +311,7 @@ BottomSheet {
                     Layout.fillWidth: true
                     wrapMode: Text.Wrap
                     text: Wording.signatureFact(modelData.signature)
-                    color: modelData.signature === "valid" ? Theme.positive
-                           : modelData.signature === "expired" ? Theme.warning
-                                                               : Theme.danger
+                    color: Theme.signatureColor(modelData.signature)
                 }
 
                 Label {
@@ -358,7 +356,7 @@ BottomSheet {
     }
 
     Repeater {
-        // A cancel says so in the title; the engine's word for it is not an
+        // A cancel says so in the stamp; the engine's word for it is not an
         // error. A failure already said in words is not said again.
         model: sheet.isBatch || sheet.record.phase === "cancelled"
                || sheet.explained ? [] : sheet.engineErrors
@@ -435,7 +433,8 @@ BottomSheet {
         // put away again the same way. One of the row, as its neighbours.
         ResultAction {
             objectName: "statusMore"
-            text: sheet.expanded ? qsTr("Hide details") : qsTr("Details")
+            // Not "Details": that is the report's tab, below.
+            text: sheet.expanded ? qsTr("Show less") : qsTr("Show more")
             icon.source: Theme.icon("info")
             onClicked: sheet.expanded = !sheet.expanded
         }
@@ -444,8 +443,10 @@ BottomSheet {
     // Why a held-up button does nothing.
     Label {
         Layout.fillWidth: true
-        visible: sheet.isText && sheet.record.phase !== undefined
-                 && !sheet.active && !sheet.textHeld()
+        // Beside the Retry it holds up, and only there.
+        visible: sheet.isText && !sheet.active && !sheet.textHeld()
+                 && (sheet.record.phase === "failed"
+                     || sheet.record.phase === "cancelled")
         wrapMode: Text.Wrap
         font.pixelSize: Theme.labelSize
         color: Material.secondaryTextColor

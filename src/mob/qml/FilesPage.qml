@@ -349,7 +349,11 @@ Page {
     // A failed file's line: what did not happen, and why when the result
     // says (by its kind, never by matching the engine's words).
     function failureText(file) {
-        const why = Wording.failureReason((file.result || {}).reason || "")
+        // By its kind; else the app's own words for it (a file that could
+        // not be read), as the status sheet says them.
+        const result = file.result || {}
+        const why = Wording.failureReason(result.reason || "")
+                    || (result.reason ? "" : (result.description || ""))
         return why.length > 0 ? qsTr("%1 · %2").arg(Wording.failed(file.operation)).arg(why)
                               : Wording.failed(file.operation)
     }
@@ -359,9 +363,8 @@ Page {
         if (file.operation === "verify" && file.phase === "done") {
             const signatures = file.result.signatures || []
             if (signatures.length === 0) return Theme.warning
-            return signatures[0].verdict === "good" ? Theme.positive
-                 : signatures[0].verdict === "warning" ? Theme.warning
-                                                       : Theme.danger
+            // The fact the line says, in its colour.
+            return Theme.signatureColor(signatures[0].signature)
         }
         if (file.origin === "made" && file.savedName.length === 0) return Theme.warning
         return Material.secondaryTextColor

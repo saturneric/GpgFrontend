@@ -41,6 +41,25 @@ Item {
         if (unseen > 0) return OperationQueue.log.record(unseen)
         return ({})
     }
+    // How the line's batch ended, as the status sheet's stamp says it: every
+    // file, not the first.
+    readonly property var lineOutcome: {
+        if (revision < 0) return ({})
+        const record = lineRecord
+        if (record.operationId === undefined) return ({})
+        const batch = OperationQueue.log.batch(record.batchId)
+        if (batch.length <= 1) {
+            if (Object.keys(record.report || {}).length > 0) return record.report
+            if (record.phase === "cancelled") return {"cancelled": true}
+            return record.phase === "failed" ? {"status": -1, "severity": "critical"}
+                                             : ({})
+        }
+        const counts = countsOf(batch)
+        if (counts.failed + counts.cancelled === 0) return {"status": 1, "severity": "ok"}
+        if (counts.done > 0) return {"status": 0, "severity": "warn"}
+        return counts.failed > 0 ? {"status": -1, "severity": "critical"}
+                                 : {"cancelled": true}
+    }
     readonly property bool lineShown: (OperationQueue.busy && lineDue)
                                       || (!OperationQueue.busy && unseen > 0
                                           && lineRecord.operationId !== undefined)

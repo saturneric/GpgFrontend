@@ -35,7 +35,7 @@ QtObject {
 
     // The word under the desktop's stamp, for the same report.
     function reportWord(report) {
-        if (report.cancelled === true) return qsTr("Information")
+        if (report.cancelled === true) return qsTr("Cancelled")
         switch (report.severity) {
         case "ok": return qsTr("Success")
         case "warn": return qsTr("Warning")
@@ -201,8 +201,13 @@ QtObject {
             if (record.operation === "verify") {
                 const sigs = (record.report || {}).signatures || []
                 if (sigs.length === 0) return qsTr("No signature found")
-                return sigs[0].signature === "valid" ? qsTr("Signature checked")
-                                                     : qsTr("Signature problem")
+                // Every signature, not the first: one that fails is a
+                // problem; one only not checked (no key) says so.
+                const facts = sigs.map(s => s.signature)
+                if (facts.every(f => f === "valid")) return qsTr("Signature checked")
+                if (facts.every(f => f === "valid" || f === "unchecked"))
+                    return qsTr("Signature not checked")
+                return qsTr("Signature problem")
             }
             return done(record.operation)
         }

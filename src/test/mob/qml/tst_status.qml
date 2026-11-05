@@ -83,5 +83,34 @@ Item {
             verify(status.checked)
             verify(!details.checked)
         }
+
+        // A verification's title reads every signature; one only not
+        // checked (its key is not here) is said so, and coloured as a
+        // warning, never as a signature that fails.
+        function test_a_signature_not_checked_is_not_a_problem() {
+            const record = sigs => ({"operation": "verify", "phase": "done",
+                                     "report": {"signatures": sigs.map(f => ({"signature": f}))}})
+            compare(Wording.title(record(["valid"])), "Signature checked")
+            compare(Wording.title(record(["valid", "invalid"])), "Signature problem")
+            compare(Wording.title(record(["unchecked"])), "Signature not checked")
+            compare(Wording.title(record(["valid", "unchecked"])), "Signature not checked")
+            compare(Wording.title(record(["unchecked", "invalid"])), "Signature problem")
+            compare(Theme.signatureColor("unchecked"), Theme.warning)
+            compare(Theme.signatureColor("valid"), Theme.positive)
+            compare(Theme.signatureColor("invalid"), Theme.danger)
+        }
+
+        // A cancel's stamp says it was cancelled.
+        function test_a_cancel_is_called_one() {
+            compare(Wording.reportWord({"cancelled": true}), "Cancelled")
+        }
+
+        // The button that opens the sheet up is not called what one of its
+        // tabs is.
+        function test_more_is_not_the_details_tab() {
+            const more = findByName(sheet.body, "statusMore")
+            compare(more.text, "Show more")
+            verify(more.text !== findByName(sheet.body, "statusViewDetails").text)
+        }
     }
 }

@@ -174,6 +174,18 @@ QtObject {
         }
     }
 
+    // A signature's own fact (ResultPresenter "signature") in colour, the
+    // same wherever it is shown: one that could not be checked (its key is
+    // not here) is a warning, never the danger of one that does not hold.
+    function signatureColor(fact) {
+        switch (fact) {
+        case "valid": return positive
+        case "expired":
+        case "unchecked": return warning
+        default: return danger
+        }
+    }
+
     function reportColor(report, neutral) {
         if (report.cancelled === true) return neutral
         switch (report.severity) {

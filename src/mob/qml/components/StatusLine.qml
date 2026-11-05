@@ -43,8 +43,8 @@ Pane {
 
         Icon {
             visible: !line.active
-            symbol: Theme.reportSymbol(line.record.report || {})
-            color: Theme.reportColor(line.record.report || {},
+            symbol: Theme.reportSymbol(line.host ? line.host.lineOutcome : {})
+            color: Theme.reportColor(line.host ? line.host.lineOutcome : {},
                                      Material.secondaryTextColor)
         }
 
@@ -62,7 +62,7 @@ Pane {
 
         BarButton {
             objectName: "statusLineOpen"
-            text: qsTr("Show the result")
+            text: line.active ? qsTr("Show progress") : qsTr("Show the result")
             icon.source: Theme.icon("chevron_right")
             icon.color: Material.secondaryTextColor
             rotation: -90
