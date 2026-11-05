@@ -33,6 +33,7 @@
 
 #include <map>
 #include <mutex>
+#include <thread>
 #include <utility>
 
 #include "core/function/gpg/GnuPGHome.h"
@@ -137,6 +138,15 @@ GpgContext::~GpgContext() {
     session_agent.reset();
   }
 
+  {
+    std::lock_guard<std::mutex> lock(thread_ctx_lock_);
+    for (const auto& [id, ctxs] : thread_ctxs_) {
+      if (ctxs.armored != ctx_ref_) gpgme_release(ctxs.armored);
+      if (ctxs.binary != binary_ctx_ref_) gpgme_release(ctxs.binary);
+    }
+    thread_ctxs_.clear();
+  }
+
   if (ctx_ref_ != nullptr) {
     gpgme_release(ctx_ref_);
   }
@@ -155,11 +165,57 @@ GpgContext::~GpgContext() {
 }
 
 [[nodiscard]] auto GpgContext::BinaryContext() const -> gpgme_ctx_t {
-  return binary_ctx_ref_;
+  return thread_contexts().binary;
 }
 
 [[nodiscard]] auto GpgContext::DefaultContext() const -> gpgme_ctx_t {
-  return ctx_ref_;
+  return thread_contexts().armored;
+}
+
+auto GpgContext::thread_contexts() const -> ThreadContexts {
+  const auto id = std::this_thread::get_id();
+  std::lock_guard<std::mutex> lock(thread_ctx_lock_);
+  if (auto it = thread_ctxs_.find(id); it != thread_ctxs_.end()) {
+    return it->second;
+  }
+
+  // Before init() there is nothing to copy the configuration of; the shared
+  // contexts are what a caller got then too.
+  const auto shared = ThreadContexts{ctx_ref_, binary_ctx_ref_};
+  if (ctx_ref_ == nullptr || binary_ctx_ref_ == nullptr) return shared;
+
+  // The first thread keeps the contexts init() made.
+  if (thread_ctxs_.empty()) {
+    thread_ctxs_.emplace(id, shared);
+    return shared;
+  }
+
+  // Made as default_ctx_initialize() and binary_ctx_initialize() make
+  // theirs; the configuration is read, not changed, so the cast is safe.
+  auto* self = const_cast<GpgContext*>(this);
+  auto make = [&](int armor) -> gpgme_ctx_t {
+    gpgme_ctx_t ctx = nullptr;
+    if (CheckGpgError(gpgme_new(&ctx)) != GPG_ERR_NO_ERROR) return nullptr;
+    if (!self->common_ctx_initialize(ctx, init_args_)) {
+      gpgme_release(ctx);
+      return nullptr;
+    }
+    gpgme_set_armor(ctx, armor);
+    if (passphrase_cb_ != nullptr)
+      self->apply_passphrase_cb(ctx, passphrase_cb_);
+    return ctx;
+  };
+
+  ThreadContexts own{make(1), make(0)};
+  if (own.armored == nullptr || own.binary == nullptr) {
+    LOG_W() << "could not make gpg contexts for a thread, channel:"
+            << GetChannel() << "; it shares the first ones";
+    if (own.armored != nullptr) gpgme_release(own.armored);
+    if (own.binary != nullptr) gpgme_release(own.binary);
+    return shared;
+  }
+  thread_ctxs_.emplace(id, own);
+  return own;
 }
 
 auto GpgContext::CreateDisposableContext() -> gpgme_ctx_t {
@@ -188,8 +244,14 @@ void GpgContext::CancelCurrentOperation() {
   // gpgme_cancel_async() is documented as thread-safe and meant to be called
   // while another thread is blocked in the synchronous operation. It returns an
   // error when no operation is pending; that case is benign and ignored.
+  // Every thread's contexts: the operation may run on any of them.
   if (ctx_ref_ != nullptr) gpgme_cancel_async(ctx_ref_);
   if (binary_ctx_ref_ != nullptr) gpgme_cancel_async(binary_ctx_ref_);
+  std::lock_guard<std::mutex> lock(thread_ctx_lock_);
+  for (const auto& [id, ctxs] : thread_ctxs_) {
+    if (ctxs.armored != ctx_ref_) gpgme_cancel_async(ctxs.armored);
+    if (ctxs.binary != binary_ctx_ref_) gpgme_cancel_async(ctxs.binary);
+  }
 }
 
 auto GpgContext::RestartGpgAgent() -> bool {
@@ -229,6 +291,28 @@ auto GpgContext::KillGpgAgent() -> bool {
 
 auto GpgContext::SetPassphraseCb(const gpgme_ctx_t& ctx,
                                  gpgme_passphrase_cb_t cb) -> bool {
+  if (!apply_passphrase_cb(ctx, cb)) return false;
+
+  // Set on one of this object's contexts, it is meant for the operations of
+  // this key database, which run on whichever thread asks: every thread's
+  // contexts get it, and so do those made later.
+  std::lock_guard<std::mutex> lock(thread_ctx_lock_);
+  auto ours = ctx == ctx_ref_ || ctx == binary_ctx_ref_;
+  for (const auto& [id, ctxs] : thread_ctxs_) {
+    ours = ours || ctx == ctxs.armored || ctx == ctxs.binary;
+  }
+  if (!ours) return true;
+
+  passphrase_cb_ = cb;
+  for (const auto& [id, ctxs] : thread_ctxs_) {
+    apply_passphrase_cb(ctxs.armored, cb);
+    apply_passphrase_cb(ctxs.binary, cb);
+  }
+  return true;
+}
+
+auto GpgContext::apply_passphrase_cb(gpgme_ctx_t ctx, gpgme_passphrase_cb_t cb)
+    -> bool {
   if (gpgme_get_pinentry_mode(ctx) != GPGME_PINENTRY_MODE_LOOPBACK) {
     if (CheckGpgError(gpgme_set_pinentry_mode(
             ctx, GPGME_PINENTRY_MODE_LOOPBACK)) != GPG_ERR_NO_ERROR) {

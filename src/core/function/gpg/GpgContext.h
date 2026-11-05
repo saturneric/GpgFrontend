@@ -28,6 +28,10 @@
 
 #pragma once
 
+#include <map>
+#include <mutex>
+#include <thread>
+
 #include "core/function/gpg/GnuPGHome.h"
 #include "core/function/gpg/GpgAgentProcess.h"
 #include "core/function/openpgp/OpenPGPContext.h"
@@ -60,16 +64,23 @@ class GF_CORE_EXPORT GpgContext : public OpenPGPContext {
   ~GpgContext() override;
 
   /**
-   * @brief
+   * @brief The calling thread's unarmored gpgme context.
    *
-   * @return gpgme_ctx_t
+   * A gpgme context may be used by one thread at a time, and an operation's
+   * result is read from it after the call returns. A context shared by the
+   * GPG runner, the GUI and module threads let one thread's key listing run
+   * into another's lookup, and a result be read after another operation
+   * replaced it. So every thread gets contexts of its own, configured like
+   * the first ones; they live as long as this object.
+   *
+   * @return gpgme_ctx_t never shared with another thread
    */
   [[nodiscard]] auto BinaryContext() const -> gpgme_ctx_t;
 
   /**
-   * @brief
+   * @brief The calling thread's armored gpgme context; see BinaryContext().
    *
-   * @return gpgme_ctx_t
+   * @return gpgme_ctx_t never shared with another thread
    */
   [[nodiscard]] auto DefaultContext() const -> gpgme_ctx_t;
 
@@ -156,12 +167,14 @@ class GF_CORE_EXPORT GpgContext : public OpenPGPContext {
   static auto FirstUnusableHomeReason() -> QString;
 
   /**
-   * @brief Set the Passphrase Cb object
+   * @brief Ask for passphrases through @p cb (loopback pinentry).
    *
-   * @param ctx
-   * @param cb
-   * @return true
-   * @return false
+   * Given one of this object's contexts, it applies to every thread's
+   * contexts, also those made later; see BinaryContext().
+   *
+   * @param ctx the context to set it on
+   * @param cb the callback
+   * @return whether it could be set on @p ctx
    */
   auto SetPassphraseCb(const gpgme_ctx_t &ctx, gpgme_passphrase_cb_t cb)
       -> bool;
@@ -183,8 +196,30 @@ class GF_CORE_EXPORT GpgContext : public OpenPGPContext {
   gpgme_ctx_t cms_binary_ctx_ref_ = nullptr;  ///<
   OpenPGPContextInitArgs
       init_args_{};  ///< args used to initialise this context
-  std::mutex ctx_ref_lock_;
-  std::mutex binary_ctx_ref_lock_;
+  /// The armored and unarmored contexts of each thread that asked for one,
+  /// the first thread's being ctx_ref_ and binary_ctx_ref_.
+  struct ThreadContexts {
+    gpgme_ctx_t armored = nullptr;
+    gpgme_ctx_t binary = nullptr;
+  };
+  mutable std::mutex thread_ctx_lock_;
+  mutable std::map<std::thread::id, ThreadContexts> thread_ctxs_;
+  /// Set by SetPassphraseCb() on one of this object's contexts; given to
+  /// every thread's contexts.
+  gpgme_passphrase_cb_t passphrase_cb_ = nullptr;
+
+  /**
+   * @brief Ask @p ctx for passphrases through @p cb (loopback pinentry).
+   */
+  auto apply_passphrase_cb(gpgme_ctx_t ctx, gpgme_passphrase_cb_t cb) -> bool;
+
+  /**
+   * @brief The calling thread's contexts, made on its first call.
+   *
+   * Falls back to the shared ones, with a warning, when a new context
+   * cannot be made; that is what every thread used before.
+   */
+  [[nodiscard]] auto thread_contexts() const -> ThreadContexts;
   QString gpg_agent_path_;
   QString gpgconf_path_;
   GnuPGHome home_;  ///< see Home(); set once by init()

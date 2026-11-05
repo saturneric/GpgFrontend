@@ -33,6 +33,7 @@
 #include "GpgCoreTest.h"
 #include "GpgFrontendTest.h"
 #include "core//function/openpgp/GpgKeyRepository.h"
+#include "core/function/gpg/GpgContext.h"
 #include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
@@ -461,6 +462,48 @@ TEST_F(GpgCoreTest, GnuPgInflightEncryptCancelTest) {
   ResetGpgOperationCancelState(kGpgChannelForUnitTest);
 
   ASSERT_EQ(result_code.load(), static_cast<unsigned>(GPG_ERR_CANCELED));
+}
+
+// A gpgme context may be used by one thread at a time. Each thread gets its
+// own, kept for its later calls, and they ask for passphrases as the first
+// ones were told to.
+TEST_F(GpgCoreTest, EachThreadHasItsOwnGpgmeContexts) {
+  auto& ctx = GpgCtx(OpenPGPContext::GetInstance(kGpgChannelForUnitTest));
+
+  const auto mine = std::make_pair(ctx.DefaultContext(), ctx.BinaryContext());
+  ASSERT_NE(mine.first, nullptr);
+  ASSERT_NE(mine.second, nullptr);
+  EXPECT_NE(mine.first, mine.second);
+  EXPECT_EQ(ctx.DefaultContext(), mine.first);
+  EXPECT_EQ(ctx.BinaryContext(), mine.second);
+
+  gpgme_passphrase_cb_t mine_cb = nullptr;
+  void* hook = nullptr;
+  gpgme_get_passphrase_cb(mine.first, &mine_cb, &hook);
+
+  std::pair<gpgme_ctx_t, gpgme_ctx_t> theirs{};
+  std::pair<gpgme_ctx_t, gpgme_ctx_t> theirs_again{};
+  gpgme_passphrase_cb_t theirs_cb = nullptr;
+  gpgme_pinentry_mode_t theirs_mode = GPGME_PINENTRY_MODE_DEFAULT;
+  int theirs_armor = -1;
+  std::thread([&]() {
+    theirs = {ctx.DefaultContext(), ctx.BinaryContext()};
+    theirs_again = {ctx.DefaultContext(), ctx.BinaryContext()};
+    gpgme_get_passphrase_cb(theirs.second, &theirs_cb, &hook);
+    theirs_mode = gpgme_get_pinentry_mode(theirs.second);
+    theirs_armor = gpgme_get_armor(theirs.first);
+  }).join();
+
+  ASSERT_NE(theirs.first, nullptr);
+  ASSERT_NE(theirs.second, nullptr);
+  EXPECT_NE(theirs.first, mine.first);
+  EXPECT_NE(theirs.second, mine.second);
+  EXPECT_EQ(theirs_again, theirs) << "a thread keeps its contexts";
+  EXPECT_EQ(theirs_armor, 1);
+  EXPECT_EQ(theirs_cb, mine_cb) << "the test passphrase callback is shared";
+  if (mine_cb != nullptr) {
+    EXPECT_EQ(theirs_mode, GPGME_PINENTRY_MODE_LOOPBACK);
+  }
 }
 
 }  // namespace GpgFrontend::Test
