@@ -326,6 +326,16 @@ class GF_CORE_EXPORT GFKeyDatabase {
   auto migrate_v2_to_v3() -> bool;
 
   /**
+   * @brief Migrate the schema from version 3 to version 4.
+   *
+   * Keys subkey_metadata on (parent_fpr, fpr) instead of fpr alone, so two
+   * certificates can both carry one subkey, and indexes it by fpr and key_id.
+   *
+   * @return true on success; a failed rebuild is rolled back
+   */
+  auto migrate_v3_to_v4() -> bool;
+
+  /**
    * @brief Restrict the database directory and files to the current user via OS
    * permissions.
    *

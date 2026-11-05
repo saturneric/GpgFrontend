@@ -35,7 +35,7 @@
 
 namespace GpgFrontend {
 
-static constexpr int kCurrentSchemaVersion = 3;
+static constexpr int kCurrentSchemaVersion = 4;
 
 namespace {
 
@@ -524,7 +524,7 @@ auto GFKeyDatabase::create_schema_latest() -> bool {
   // 2. Subkey metadata table (Linked to primary key via parent_fpr)
   const QString create_subkey_table = R"(
     CREATE TABLE IF NOT EXISTS subkey_metadata (
-      fpr TEXT PRIMARY KEY COLLATE NOCASE,
+      fpr TEXT NOT NULL COLLATE NOCASE,
       parent_fpr TEXT NOT NULL COLLATE NOCASE,
       key_id TEXT NOT NULL COLLATE NOCASE,
       algo INTEGER,
@@ -538,6 +538,7 @@ auto GFKeyDatabase::create_schema_latest() -> bool {
       can_encrypt INTEGER DEFAULT 0,
       can_auth INTEGER DEFAULT 0,
       can_certify INTEGER DEFAULT 0,
+      PRIMARY KEY(parent_fpr, fpr),
       FOREIGN KEY(parent_fpr) REFERENCES key_metadata(fpr) ON DELETE CASCADE
     )
   )";
@@ -663,9 +664,13 @@ auto GFKeyDatabase::ResolvePrimaryFpr(const QString& identifier) -> QString {
   }
 
   // 3. If not found, check if it's a Subkey. If yes, return its parent's FPR.
+  // Several certificates may carry one subkey. The one holding a secret key
+  // is the one a lookup by that subkey (a recipient ID, say) is after.
   query.prepare(
-      "SELECT parent_fpr FROM subkey_metadata WHERE fpr = :id OR key_id = "
-      ":id");
+      "SELECT s.parent_fpr FROM subkey_metadata s "
+      "LEFT JOIN key_metadata k ON k.fpr = s.parent_fpr "
+      "WHERE s.fpr = :id OR s.key_id = :id "
+      "ORDER BY k.has_secret DESC, s.parent_fpr");
   query.bindValue(":id", clean_id);
   if (query.exec() && query.next()) {
     return query.value(0).toString();  // Return the parent primary fingerprint
@@ -844,6 +849,15 @@ auto GFKeyDatabase::ensure_schema() -> bool {
         }
         version = 3;
         break;
+      case 3:
+        if (!migrate_v3_to_v4()) {
+          return false;
+        }
+        if (!set_schema_version(4)) {
+          return false;
+        }
+        version = 4;
+        break;
       default:
         LOG_E() << "unsupported schema version:" << version;
         return false;
@@ -947,6 +961,77 @@ auto GFKeyDatabase::migrate_v2_to_v3() -> bool {
     }
   }
 
+  return true;
+}
+
+auto GFKeyDatabase::migrate_v3_to_v4() -> bool {
+  QSqlQuery query(db_);
+
+  // A fresh database is created with the composite key already; only the
+  // single-column one is rebuilt.
+  int key_columns = 0;
+  if (!query.exec("PRAGMA table_info(subkey_metadata);")) {
+    LOG_E() << "failed to inspect subkey_metadata:" << query.lastError().text();
+    return false;
+  }
+  while (query.next()) {
+    if (query.value(5).toInt() > 0) ++key_columns;
+  }
+
+  if (key_columns < 2) {
+    // A subkey's fingerprint was the whole key, so the first certificate to
+    // claim a subkey owned it: the real certificate could not be imported
+    // after a squatter's, and a lookup by the subkey found the squatter.
+    if (!db_.transaction()) return false;
+    const QStringList steps = {
+        R"(CREATE TABLE subkey_metadata_v4 (
+          fpr TEXT NOT NULL COLLATE NOCASE,
+          parent_fpr TEXT NOT NULL COLLATE NOCASE,
+          key_id TEXT NOT NULL COLLATE NOCASE,
+          algo INTEGER,
+          key_ver INTEGER NOT NULL DEFAULT 0,
+          created_at INTEGER,
+          expires_at INTEGER DEFAULT 0,
+          key_length INTEGER DEFAULT 0,
+          has_secret INTEGER DEFAULT 0,
+          is_revoked INTEGER DEFAULT 0,
+          can_sign INTEGER DEFAULT 0,
+          can_encrypt INTEGER DEFAULT 0,
+          can_auth INTEGER DEFAULT 0,
+          can_certify INTEGER DEFAULT 0,
+          PRIMARY KEY(parent_fpr, fpr),
+          FOREIGN KEY(parent_fpr) REFERENCES key_metadata(fpr) ON DELETE CASCADE
+        ))",
+        R"(INSERT INTO subkey_metadata_v4
+          (fpr, parent_fpr, key_id, algo, key_ver, created_at, expires_at,
+           key_length, has_secret, is_revoked, can_sign, can_encrypt,
+           can_auth, can_certify)
+          SELECT fpr, parent_fpr, key_id, algo, key_ver, created_at,
+                 expires_at, key_length, has_secret, is_revoked, can_sign,
+                 can_encrypt, can_auth, can_certify
+          FROM subkey_metadata)",
+        "DROP TABLE subkey_metadata",
+        "ALTER TABLE subkey_metadata_v4 RENAME TO subkey_metadata",
+    };
+    for (const auto& step : steps) {
+      if (!query.exec(step)) {
+        LOG_E() << "failed to rebuild subkey_metadata:"
+                << query.lastError().text();
+        db_.rollback();
+        return false;
+      }
+    }
+    if (!db_.commit()) return false;
+  }
+
+  // Lookups by a subkey no longer hit the primary key's index.
+  if (!query.exec("CREATE INDEX IF NOT EXISTS subkey_metadata_by_fpr "
+                  "ON subkey_metadata(fpr)") ||
+      !query.exec("CREATE INDEX IF NOT EXISTS subkey_metadata_by_key_id "
+                  "ON subkey_metadata(key_id)")) {
+    LOG_E() << "failed to index subkey_metadata:" << query.lastError().text();
+    return false;
+  }
   return true;
 }
 }  // namespace GpgFrontend

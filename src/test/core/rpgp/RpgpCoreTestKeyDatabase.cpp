@@ -31,6 +31,9 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QSqlDatabase>
+#include <QSqlError>
+#include <QSqlQuery>
 #include <atomic>
 #include <optional>
 #include <thread>
@@ -111,6 +114,87 @@ struct ScratchKeyDatabase {
 };
 
 }  // namespace
+
+namespace {
+
+auto WithSubkey(GFKey key, const QString& subkey_fpr) -> GFKey {
+  GFSubKeyMetadata sub;
+  sub.fpr = subkey_fpr;
+  sub.key_id = subkey_fpr.right(16);
+  key.metadata.subkeys.append(sub);
+  return key;
+}
+
+const QString kSharedSubkey = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+const QString kSquatter = "1111111111111111111111111111111111111111";
+const QString kRealKey = "2222222222222222222222222222222222222222";
+
+}  // namespace
+
+// A subkey's fingerprint was the whole key of its row, so whichever
+// certificate claimed a subkey first owned it: the real certificate then
+// failed to save, and a lookup by the subkey found the squatter.
+TEST(RpgpKeyDatabaseTest, TwoCertificatesMayCarryOneSubkey) {
+  ScratchKeyDatabase scratch;
+  ASSERT_TRUE(scratch.initialized);
+
+  auto squatter = WithSubkey(FakeKey(kSquatter, "squatter"), kSharedSubkey);
+  auto real = WithSubkey(FakeKey(kRealKey, "real"), kSharedSubkey);
+  real.metadata.has_secret = true;
+
+  ASSERT_TRUE(scratch.db->SaveKey(squatter.metadata, squatter.blocks));
+  ASSERT_TRUE(scratch.db->SaveKey(real.metadata, real.blocks))
+      << "the real key could not be saved after a squatter";
+  EXPECT_EQ(scratch.db->ResolvePrimaryFpr(kSharedSubkey), kRealKey);
+}
+
+// A database written by the previous schema is rebuilt with the composite key
+// and keeps its rows.
+TEST(RpgpKeyDatabaseTest, AVersion3DatabaseIsMigrated) {
+  ScratchKeyDatabase scratch;
+  ASSERT_TRUE(scratch.initialized);
+  auto squatter = WithSubkey(FakeKey(kSquatter, "squatter"), kSharedSubkey);
+  ASSERT_TRUE(scratch.db->SaveKey(squatter.metadata, squatter.blocks));
+  scratch.db.reset();
+
+  const auto file = scratch.home.canonicalPath() + "/gf_keydb.sqlite";
+  {
+    auto sql = QSqlDatabase::addDatabase("QSQLITE", "v3-downgrade");
+    sql.setDatabaseName(file);
+    ASSERT_TRUE(sql.open());
+    QSqlQuery query(sql);
+    for (const auto* step : {
+             "CREATE TABLE subkey_v3 (fpr TEXT PRIMARY KEY COLLATE NOCASE, "
+             "parent_fpr TEXT NOT NULL COLLATE NOCASE, key_id TEXT NOT NULL "
+             "COLLATE NOCASE, algo INTEGER, key_ver INTEGER NOT NULL DEFAULT "
+             "0, created_at INTEGER, expires_at INTEGER DEFAULT 0, key_length "
+             "INTEGER DEFAULT 0, has_secret INTEGER DEFAULT 0, is_revoked "
+             "INTEGER DEFAULT 0, can_sign INTEGER DEFAULT 0, can_encrypt "
+             "INTEGER DEFAULT 0, can_auth INTEGER DEFAULT 0, can_certify "
+             "INTEGER DEFAULT 0)",
+             "INSERT INTO subkey_v3 SELECT fpr, parent_fpr, key_id, algo, "
+             "key_ver, created_at, expires_at, key_length, has_secret, "
+             "is_revoked, can_sign, can_encrypt, can_auth, can_certify FROM "
+             "subkey_metadata",
+             "DROP TABLE subkey_metadata",
+             "ALTER TABLE subkey_v3 RENAME TO subkey_metadata",
+             "PRAGMA user_version = 3",
+         }) {
+      ASSERT_TRUE(query.exec(step)) << query.lastError().text().toStdString();
+    }
+    query.finish();
+    sql.close();
+  }
+  QSqlDatabase::removeDatabase("v3-downgrade");
+
+  scratch.db.emplace();
+  ASSERT_TRUE(scratch.db->Init(scratch.home.canonicalPath()));
+  EXPECT_EQ(scratch.db->GetSchemaVersion(), 4);
+  EXPECT_EQ(scratch.db->ResolvePrimaryFpr(kSharedSubkey), kSquatter);
+
+  auto real = WithSubkey(FakeKey(kRealKey, "real"), kSharedSubkey);
+  EXPECT_TRUE(scratch.db->SaveKey(real.metadata, real.blocks));
+}
 
 // The database is shared by the GUI thread, the task runners and module
 // threads. A QSqlDatabase connection may only be used by the thread that

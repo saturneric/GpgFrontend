@@ -842,11 +842,15 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
     let mut subs: Vec<ExtractedSubkey> = sk
         .public_subkeys
         .iter()
+        .filter(|sub| subkey_is_bound(&pk.primary_key, &sub.key, &sub.signatures))
         .map(|sub| public_subkey_metadata(&pk, sub))
         .collect();
 
     for sub in &sk.secret_subkeys {
         let sub_pub = sub.key.public_key();
+        if !subkey_is_bound(&pk.primary_key, sub_pub, &sub.signatures) {
+            continue;
+        }
         let (can_sign, can_encrypt, can_auth, can_certify) = usable_capabilities(
             extract_capabilities(subkey_binding_signature(
                 &pk.primary_key,
@@ -917,6 +921,16 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
 }
 
 // Helper: metadata of a subkey whose secret part is not held
+/// True if `subkey` carries a verified binding signature from `primary`, or
+/// was revoked by it. Anyone can put someone else's subkey into their own
+/// certificate; listed anyway, the key database recorded the subkey as the
+/// squatter's, and the real key could then not be imported, or a lookup by the
+/// subkey's ID found the wrong certificate.
+fn subkey_is_bound(primary: &PublicKey, subkey: &PublicSubkey, signatures: &[Signature]) -> bool {
+    subkey_binding_signature(primary, subkey, signatures).is_some()
+        || is_subkey_revoked(primary, subkey, signatures)
+}
+
 fn public_subkey_metadata(pk: &SignedPublicKey, sub: &SignedPublicSubKey) -> ExtractedSubkey {
     let (can_sign, can_encrypt, can_auth, can_certify) = usable_capabilities(
         extract_capabilities(subkey_binding_signature(
@@ -953,6 +967,7 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
     let subs: Vec<ExtractedSubkey> = pk
         .public_subkeys
         .iter()
+        .filter(|sub| subkey_is_bound(&pk.primary_key, &sub.key, &sub.signatures))
         .map(|sub| public_subkey_metadata(pk, sub))
         .collect();
 
@@ -4177,6 +4192,27 @@ mod key_tests {
             .iter()
             .map(|u| String::from_utf8_lossy(u.id.id()).into_owned())
             .collect()
+    }
+
+    #[test]
+    fn a_subkey_copied_from_another_certificate_is_not_listed() {
+        // A squatter certificate carrying someone else's subkey, with that
+        // key's binding signature, which does not verify under the squatter.
+        let victim = SignedPublicKey::from(keys::V4_SIGN.secret.clone());
+        let mut squatter = SignedPublicKey::from(keys::V4_PRIMARY_ONLY.secret.clone());
+        squatter
+            .public_subkeys
+            .push(victim.public_subkeys[0].clone());
+        let stolen = victim.public_subkeys[0].key.fingerprint().to_string();
+
+        let listed = build_public_metadata(&squatter);
+        assert!(!listed.subkeys.iter().any(|s| s.fpr == stolen));
+        assert!(
+            build_public_metadata(&victim)
+                .subkeys
+                .iter()
+                .any(|s| s.fpr == stolen)
+        );
     }
 
     #[test]
