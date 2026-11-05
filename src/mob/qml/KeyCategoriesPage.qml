@@ -82,7 +82,7 @@ Page {
             anchors.centerIn: list
             width: list.width - 64
             visible: list.count === 0
-            image: "key_generate"
+            symbol: "label"
             text: qsTr("No categories yet")
             detail: qsTr("Sort keys into your own groups, such as Work or "
                          + "Family, and show one group at a time.")

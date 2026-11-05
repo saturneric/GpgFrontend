@@ -44,6 +44,9 @@ Item {
 
         function test_an_empty_list_offers_to_add_files() {
             verify(findByName(files, "emptyFiles").visible)
+            // A sharp line icon on a tint, not a scaled bitmap.
+            compare(findByName(files, "emptyFiles").symbol, "folder")
+            verify(findByName(findByName(files, "emptyFiles"), "emptySymbol").visible)
             // Adding is the + at the foot, the same with files or without;
             // the empty list explains, it has no button of its own.
             verify(findByName(files, "addFilesButton").enabled)

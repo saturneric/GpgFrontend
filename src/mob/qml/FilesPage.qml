@@ -788,7 +788,7 @@ Page {
                     anchors.centerIn: list
                     width: list.width - 64
                     visible: files.count > 0 && shown.count === 0
-                    image: "magnifier"
+                    symbol: "search"
                     text: qsTr("No files match")
                     detail: qsTr("No file name contains “%1”.").arg(search.text)
                 }
@@ -801,7 +801,7 @@ Page {
                     anchors.centerIn: list
                     width: list.width - 64
                     visible: files.count === 0
-                    image: "folder"
+                    symbol: "folder"
                     text: qsTr("No files yet")
                     detail: qsTr("Use + to add files to encrypt, decrypt, sign or "
                                  + "verify. GpgFrontend only sees the files you add "

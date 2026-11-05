@@ -209,8 +209,8 @@ Page {
                 readonly property bool failed: KeyListController.error.length > 0
                                                && search.text.length === 0
                                                && page.category.length === 0
-                image: search.text.length > 0 ? "magnifier"
-                       : failed ? "" : "key_generate"
+                symbol: search.text.length > 0 ? "search"
+                        : failed ? "" : "key"
                 text: search.text.length > 0
                       ? qsTr("No key matches “%1”.").arg(search.text)
                       : page.category.length > 0 ? qsTr("No keys in this category.")

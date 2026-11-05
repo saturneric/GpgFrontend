@@ -6,27 +6,38 @@ import QtQuick.Controls.Material
 import QtQuick.Layouts
 import GpgFrontend.Mobile
 
-// What a page shows while it has nothing in it: one of the desktop's icons, a
-// line saying so, and what to do about it.
+// What a page shows while it has nothing in it: one of the app's line icons
+// on a soft round tint of the accent, a line saying so, and what to do about
+// it. Drawn from the vector icons, so it is sharp at any density (the
+// desktop's bitmaps, scaled up, were soft).
 ColumnLayout {
     id: empty
 
-    // One of the desktop's icons in gf_res, e.g. "key_generate".
-    property string image
+    // One of the app's line icons (qml/icons), e.g. "key"; "" for none.
+    property string symbol
     property alias text: titleLabel.text
     property alias detail: detailLabel.text
     default property alias actions: actionRow.data
 
     spacing: 12
 
-    Image {
+    Rectangle {
+        objectName: "emptySymbol"
         Layout.alignment: Qt.AlignHCenter
-        visible: empty.image.length > 0
-        source: empty.image.length > 0 ? "qrc:/icons/" + empty.image + ".png" : ""
-        sourceSize: Qt.size(64, 64)
-        Layout.preferredWidth: 64
-        Layout.preferredHeight: 64
         Layout.bottomMargin: 4
+        visible: empty.symbol.length > 0
+        implicitWidth: 80
+        implicitHeight: 80
+        radius: 40
+        color: Theme.alpha(Material.accentColor, 0.12)
+        Accessible.ignored: true
+
+        Icon {
+            anchors.centerIn: parent
+            symbol: empty.symbol
+            sourceSize: Qt.size(40, 40)
+            color: Material.accentColor
+        }
     }
 
     Label {

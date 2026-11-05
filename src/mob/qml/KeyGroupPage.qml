@@ -180,7 +180,7 @@ Page {
             anchors.centerIn: list
             width: list.width - 64
             visible: list.count === 0
-            image: "key_generate"
+            symbol: "key"
             text: qsTr("No keys in it yet")
             detail: qsTr("Use + to add keys, many at once. Encrypting to a "
                          + "key group encrypts to every key in it.")

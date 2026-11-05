@@ -126,7 +126,7 @@ Page {
             anchors.centerIn: list
             width: list.width - 64
             visible: list.count === 0
-            image: "key_generate"
+            symbol: "key"
             text: qsTr("No keys in it yet")
             detail: qsTr("Use + to add keys you have, many at once, or "
                          + "long-press a key in the key list.")
