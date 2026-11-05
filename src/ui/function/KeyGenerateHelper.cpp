@@ -322,6 +322,23 @@ auto RunKeyGeneration(QWidget* parent, int channel,
                                       QObject::tr("Unknown error occurred"));
                 return;
               }
+              // The primary key was made and its subkey was not (GnuPG makes
+              // some pairs in two runs). Reported as plain failure, the key
+              // sat in the keyring unseen and Generate made another one.
+              if (CheckGpgError(err) != GPG_ERR_NO_ERROR &&
+                  !KeyGenerationFingerprint(data_obj).isEmpty()) {
+                emit UISignalStation::GetInstance()
+                    -> SignalKeyDatabaseRefresh();
+                QMessageBox::warning(
+                    parent, QObject::tr("Subkey Not Added"),
+                    QObject::tr("The key was created, but its subkey could "
+                                "not be added (%1). The key is in your "
+                                "keyring: add a subkey to it from its "
+                                "details, or delete it.")
+                        .arg(DescribeGpgErrCode(err).second));
+                *result = KeyGenerationFingerprint(data_obj);
+                return;
+              }
               if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
                 RaiseFailureMessageBox(parent, err,
                                        KeyGenerationErrorDetail(data_obj));
