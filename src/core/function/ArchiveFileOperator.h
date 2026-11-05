@@ -78,7 +78,8 @@ struct GF_CORE_EXPORT ArchiveExtractPolicy {
   /// Symbolic links are extracted rather than refused.
   bool allow_symlinks = true;
 
-  /// Hard links are extracted rather than refused.
+  /// Hard links are extracted rather than refused. Even then a link may only
+  /// name a regular file extracted earlier from the same archive.
   bool allow_hardlinks = true;
 
   /// Ceiling on the sum of all extracted file data; -1 disables the check.
