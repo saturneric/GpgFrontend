@@ -123,6 +123,9 @@ qt_add_qml_module(gf_mob_lib
     qml/components/BottomSheet.qml
     qml/components/OperationMenu.qml
     qml/components/ActionButton.qml
+    qml/components/CategoryButton.qml
+    qml/components/CategoryListSheet.qml
+    qml/components/CategoryTag.qml
     qml/components/InfoRow.qml
     qml/components/FitMenu.qml
     qml/components/SettingSwitch.qml
@@ -162,6 +165,7 @@ qt_add_qml_module(gf_mob_lib
     qml/components/ProblemLabel.qml
     qml/components/KeyPartFacts.qml
     qml/components/KeyChoiceFace.qml
+    qml/components/KeyFinder.qml
     qml/components/ResultCard.qml
     qml/components/KeyCategoriesSheet.qml
     qml/components/KeyPickerSheet.qml

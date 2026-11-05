@@ -65,12 +65,39 @@ QtObject {
         return name.length > 0 ? name : email.length > 0 ? email : keyId
     }
 
-    // Under keyTitle(): the address with the short key ID, which tells two
-    // keys of one address apart (its end, never elided), or the key ID alone
-    // when the address is already on top or missing.
-    function keySubtitle(name, email, keyId) {
-        return name.length > 0 && email.length > 0
-            ? qsTr("%1 · %2").arg(email).arg(keyId.slice(-8)) : keyId
+    // What of a key's secret is here, as GnuPG's listing marks it
+    // (KeyRoleModel's secretState): pub, sec, sec# (secret subkeys only),
+    // sec> (the primary on a card). Not words: GnuPG's own short marks.
+    function keyTag(secretState) {
+        switch (secretState) {
+        case "full": return "sec"
+        case "partial": return "sec#"
+        case "card": return "sec>"
+        case "none": return "pub"
+        default: return ""
+        }
+    }
+
+    // The same, read out.
+    function keyTagDescription(secretState) {
+        switch (secretState) {
+        case "full": return qsTr("Public and secret key")
+        case "partial": return qsTr("Public key, secret subkeys only")
+        case "card": return qsTr("Public key, secret key on a smart card")
+        case "none": return qsTr("Public key only")
+        default: return ""
+        }
+    }
+
+    // A subkey's mark: ssb with its secret, ssb> on a card, else sub.
+    function subkeyTag(secret, card) {
+        return card ? "ssb>" : secret ? "ssb" : "sub"
+    }
+
+    // How many keys are chosen: "1 key selected", "3 keys selected"; a
+    // plural, as memberCount's: languages count more forms than two.
+    function selectedCount(count) {
+        return qsTr("%n key(s) selected", "", count)
     }
 
     // How many keys a group holds: "3 keys", "1 key", "No keys yet".
@@ -127,25 +154,10 @@ QtObject {
         }
     }
 
-    // The same, short, as a bar button names it: the desktop's toolbar
-    // says "Sym. Encrypt".
-    function buttonLabel(op) {
-        return op === "symmetric" ? qsTr("Sym. Encrypt") : operationLabel(op)
-    }
-
     // @p text for an Action, a menu item's or a button's: an ampersand there
     // marks a shortcut unless doubled.
     function actionText(text) {
         return text.replace(/&/g, "&&")
-    }
-
-    // Whether More offers @p op: an operation of the two kinds on a button
-    // is there when the button does another (@p defaultEncrypt,
-    // @p defaultDecrypt); one besides the four once turned on (@p extra).
-    function inMore(op, extra, defaultEncrypt, defaultDecrypt) {
-        if (op === defaultEncrypt || op === defaultDecrypt) return false
-        if (op === "encrypt" || op === "decrypt") return true
-        return extra.includes(op)
     }
 
     // The operation by name, as the desktop's report heads it.
@@ -245,33 +257,6 @@ QtObject {
         case "trusted": return qsTr("Trusted")
         case "not_trusted": return qsTr("Not fully trusted")
         default: return qsTr("Not assessed")
-        }
-    }
-
-    // What the Text page holds, by ContentKind.
-    function textKind(kind) {
-        switch (kind) {
-        case "message": return qsTr("Encrypted message")
-        case "signed": return qsTr("Signed text")
-        case "signature": return qsTr("Signature")
-        case "public_key": return qsTr("Public key")
-        case "private_key": return qsTr("Private key")
-        case "plain": return qsTr("Plain text")
-        default: return ""
-        }
-    }
-
-    // What a file is by its name (FileWorkspace's content role, as the
-    // desktop tells it), said where it helps: OpenPGP data. Other files go
-    // unlabelled.
-    function fileContent(kind) {
-        switch (kind) {
-        case "message": return qsTr("Encrypted or signed data")
-        case "signed": return qsTr("Signed text")
-        case "signature": return qsTr("Signature")
-        case "public_key": return qsTr("Public key")
-        case "private_key": return qsTr("Private key")
-        default: return ""
         }
     }
 

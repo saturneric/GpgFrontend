@@ -85,7 +85,7 @@ TEST(QmlRegistrationTest, EveryTypeOfTheModuleResolves) {
         property var files: FileWorkspace
         property var selection: WorkSelection
         property string kind: ContentKind.textKind("x")
-        property string word: Wording.textKind("plain")
+        property string word: Wording.operationLabel("encrypt")
         property var settings: SettingsModel {}
         property var asked: PassphraseBroker.current
         property var startup: StartupController.state
@@ -169,7 +169,10 @@ TEST(QmlRegistrationTest, EveryPageLoads) {
                                "CategorySheet",
                                "KeyDatabaseSheet",
                                "ProfileSheet",
-                               "OperationBar",
+                               "OperationMenu",
+                               "CategoryListSheet",
+                               "SelectedKeysSheet",
+                               "GeneratedKeySheet",
                                "ResultCard",
                                "KeyCategoriesSheet",
                                "KeyPickerSheet",
