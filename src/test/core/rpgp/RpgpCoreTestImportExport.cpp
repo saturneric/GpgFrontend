@@ -125,6 +125,44 @@ TEST_F(RpgpCoreTest, ReimportingAKeyCountsItUnchanged) {
   EXPECT_EQ(info->imported_keys.front().import_status, 0);
 }
 
+// A revocation imported over a key already here is a new signature, as GnuPG
+// reports it: the key was updated, not left unchanged.
+TEST_F(RpgpCoreTest, ARevocationImportedOverAKeyIsAnUpdate) {
+  constexpr auto kFpr = "DF22A6F953939EF880399FAC8B5988B7A371F080";
+  auto& repo = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest);
+  // Another test may have brought the revoked key in already.
+  repo.FlushKeyCache();
+  if (auto here = repo.GetKeyPtr(kFpr); here != nullptr) {
+    KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
+        .DeleteKey(here);
+    repo.FlushKeyCache();
+  }
+  ASSERT_EQ(repo.GetKeyPtr(kFpr), nullptr);
+
+  auto& op = KeyImportExportOperation::GetInstance(kRpgpChannelForUnitTest);
+  auto [before_ok, before] =
+      ReadFileGFBuffer(":/test/rpgp_aux_keys/aux_revoked_before.asc");
+  ASSERT_TRUE(before_ok);
+  auto first = op.ImportKey(before);
+  ASSERT_TRUE(first != nullptr);
+  EXPECT_EQ(first->imported, 1);
+
+  auto [revoked_ok, revoked] =
+      ReadFileGFBuffer(":/test/rpgp_aux_keys/aux_revoked.asc");
+  ASSERT_TRUE(revoked_ok);
+  auto info = op.ImportKey(revoked);
+  ASSERT_TRUE(info != nullptr);
+  EXPECT_EQ(info->imported, 0);
+  EXPECT_EQ(info->unchanged, 0);
+  EXPECT_EQ(info->new_revocations, 1);
+  ASSERT_EQ(info->imported_keys.size(), 1);
+  EXPECT_EQ(info->imported_keys.front().import_status & 4, 4);
+  repo.FlushKeyCache();
+  auto now = repo.GetKeyPtr(kFpr);
+  ASSERT_TRUE(now != nullptr);
+  EXPECT_TRUE(now->IsRevoked());
+}
+
 TEST_F(RpgpCoreTest, CoreImportKeyTest) {
   auto key_files = QDir(":/test/rpgp_keys").entryList();
   ASSERT_FALSE(key_files.empty());

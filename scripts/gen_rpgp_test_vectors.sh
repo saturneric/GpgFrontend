@@ -134,6 +134,9 @@ SQ key generate --profile rfc4880 --name 'Aux Revoked' --email 'aux-revoked@test
   --own-key --without-password \
   --output "$WORK/aux_revoked.key" --rev-cert "$WORK/aux_revoked.rev"
 SQ key delete --cert-file="$WORK/aux_revoked.key" --output="$WORK/aux_revoked_clean.cert"
+# aux_revoked_before: the same cert before the revocation was merged, so an
+# import of aux_revoked.asc over it is an update (a newly revoked key).
+cp "$WORK/aux_revoked_clean.cert" "$AUX_DIR/aux_revoked_before.asc"
 SQ keyring merge "$WORK/aux_revoked_clean.cert" "$WORK/aux_revoked.rev" \
   --output "$AUX_DIR/aux_revoked.asc"
 AUX_REV_FPR="$(SQ inspect "$AUX_DIR/aux_revoked.asc" | awk '/Fingerprint:/{print $2; exit}')"

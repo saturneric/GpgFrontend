@@ -32,8 +32,12 @@ BottomSheet {
         if (r.considered === undefined) {
             outcome.text = qsTr("No key could be read from this.")
         } else if (imported) {
-            outcome.text = qsTr("Imported %1 key(s).").arg(
-                        r.imported + r.secretImported)
+            // Keys counted once, a secret key with its public part; what a
+            // key already here gained is said apart.
+            const said = []
+            if (r.imported > 0) said.push(qsTr("Imported %1 key(s).").arg(r.imported))
+            if (r.updated > 0) said.push(qsTr("Updated %1 key(s).").arg(r.updated))
+            outcome.text = said.join(" ")
             KeyListController.refresh()
         } else if (r.unchanged > 0) {
             outcome.text = qsTr("You already have these keys.")

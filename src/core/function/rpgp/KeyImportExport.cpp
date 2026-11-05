@@ -176,7 +176,12 @@ auto CountImport(const std::optional<GFKey>& stored, const GFKey& saved,
 
   const bool newly_revoked =
       saved.metadata.is_revoked && !stored->metadata.is_revoked;
-  if (newly_revoked) info.new_revocations += 1;
+  // A revocation is a signature, and GnuPG's status says so: without the
+  // bit a key that was only revoked read as unchanged.
+  if (newly_revoked) {
+    info.new_revocations += 1;
+    status |= kImportNewSig;
+  }
 
   if (secret && !stored->metadata.has_secret) {
     info.secret_imported += 1;

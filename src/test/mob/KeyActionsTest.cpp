@@ -261,6 +261,49 @@ TEST_F(KeyActionsTest, ExportDeleteAndImportFromAFile) {
   EXPECT_TRUE(theirs.value("capabilities").toString().contains("S"));
 }
 
+// A key already here that an import adds to (here a user ID; a revocation
+// alike) is updated, and said to be: "no key was imported" hid it, and the
+// key list kept the key as it was.
+TEST_F(KeyActionsTest, AnUpdateToAKeyHereIsAnImport) {
+  const auto made = Act([](auto* a) {
+    a->generate("Uma Phone", "uma@mobile.example.invalid", 0, false);
+  });
+  ASSERT_TRUE(made.succeeded);
+  const auto fpr = made.detail.value("fingerprint").toString();
+  const auto exported = Act([&fpr](auto* a) { a->exportPublic(fpr); });
+  ASSERT_TRUE(exported.succeeded);
+  const auto before = exported.detail.value("armored").toString();
+
+  const auto added = Act([&](auto* a) {
+    a->addUid(fpr, "Uma Work", "uma.work@mobile.example.invalid", "");
+  });
+  ASSERT_TRUE(added.succeeded)
+      << added.detail.value("error").toString().toStdString();
+  const auto again = Act([&fpr](auto* a) { a->exportPublic(fpr); });
+  ASSERT_TRUE(again.succeeded);
+  const auto after = again.detail.value("armored").toString();
+
+  // As someone else has it: the key as it was first.
+  ASSERT_TRUE(Act([&fpr](auto* a) { a->remove(fpr); }).succeeded);
+  const auto first = Import([&before](auto* i) { i->importText(before); });
+  EXPECT_EQ(first.value("imported").toInt(), 1);
+  EXPECT_EQ(first.value("updated").toInt(), 0);
+
+  // Then its update.
+  bool told = false;
+  QMetaObject::Connection connection;
+  RunOnMainThread([&]() {
+    connection =
+        QObject::connect(importer_, &KeyImportController::SignalFinished,
+                         [&told](bool imported) { told = imported; });
+  });
+  const auto update = Import([&after](auto* i) { i->importText(after); });
+  RunOnMainThread([&]() { QObject::disconnect(connection); });
+  EXPECT_EQ(update.value("imported").toInt(), 0);
+  EXPECT_EQ(update.value("updated").toInt(), 1);
+  EXPECT_TRUE(told);
+}
+
 TEST_F(KeyActionsTest, AFileThatIsNotAKeyImportsNothing) {
   QTemporaryDir dir;
   const auto path = dir.filePath("notes.txt");

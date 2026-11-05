@@ -111,18 +111,29 @@ void KeyImportController::run(
               ExtractParams<QSharedPointer<GpgImportInformation>>(data, 0);
           if (info != nullptr) {
             QStringList fingerprints;
+            // A key already here that the import added to: a user ID, a
+            // subkey, a signature (a revocation is one), its secret part.
+            // GnuPG's status bits, which both engines give.
+            constexpr int kNewKey = 1;
+            int updated = 0;
             for (const auto& key : info->imported_keys) {
               fingerprints << key.fpr;
+              if (key.import_status != 0 &&
+                  (key.import_status & kNewKey) == 0) {
+                ++updated;
+              }
             }
             result = {
                 {QStringLiteral("considered"), info->considered},
                 {QStringLiteral("imported"), info->imported},
+                {QStringLiteral("updated"), updated},
                 {QStringLiteral("unchanged"), info->unchanged},
                 {QStringLiteral("notImported"), info->not_imported},
                 {QStringLiteral("secretImported"), info->secret_imported},
                 {QStringLiteral("fingerprints"), fingerprints},
             };
-            imported = info->imported > 0 || info->secret_imported > 0;
+            // Anything new is shown: an update too (a revocation above all).
+            imported = info->imported > 0 || updated > 0;
           }
         }
 

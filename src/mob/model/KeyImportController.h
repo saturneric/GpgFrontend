@@ -44,9 +44,10 @@ namespace GpgFrontend::Mobile {
  * file.
  *
  * Runs the core's KeyImportExportOperation on the GPG task runner and
- * reports {considered, imported, unchanged, notImported, secretImported,
- * fingerprints}, or an empty map when nothing could be read;
- * SignalImported asks the key list to be refreshed.
+ * reports {considered, imported (new keys), updated (keys already here that
+ * gained something: a user ID, a subkey, a signature or revocation, the
+ * secret part), unchanged, notImported, secretImported, fingerprints}, or an
+ * empty map when nothing could be read.
  */
 class KeyImportController : public QObject {
   Q_OBJECT
@@ -79,6 +80,8 @@ class KeyImportController : public QObject {
  signals:
   void SignalBusyChanged();
   void SignalResultChanged();
+  /// The import ended; @p imported when a key was added or updated, so the
+  /// key list is read again.
   void SignalFinished(bool imported);
 
  private:

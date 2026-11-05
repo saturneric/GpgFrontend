@@ -17,6 +17,7 @@
         <file alias="aux_good.asc">../lfs/test/rpgp_aux_keys/aux_good.asc</file>
         <file alias="aux_expired.asc">../lfs/test/rpgp_aux_keys/aux_expired.asc</file>
         <file alias="aux_revoked.asc">../lfs/test/rpgp_aux_keys/aux_revoked.asc</file>
+        <file alias="aux_revoked_before.asc">../lfs/test/rpgp_aux_keys/aux_revoked_before.asc</file>
         <file alias="aux_sha1.asc">../lfs/test/rpgp_aux_keys/aux_sha1.asc</file>
         <file alias="aux_forged_revocation.asc">../lfs/test/rpgp_aux_keys/aux_forged_revocation.asc</file>
     </qresource>
