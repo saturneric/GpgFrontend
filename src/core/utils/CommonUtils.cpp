@@ -30,6 +30,7 @@
 
 #include <sodium.h>
 
+#include "core/GFConstants.h"
 #include "core/module/ModuleManager.h"
 #include "plat/common/PlatformEnv.h"
 
@@ -192,6 +193,33 @@ auto IsEmailAddress(const QString& str) -> bool {
   static const QRegularExpression kReEmailAnchored(
       QRegularExpression::anchoredPattern(kReEmail.pattern()));
   return kReEmailAnchored.match(str).hasMatch();
+}
+
+auto HasTextOutsideSignedArmor(const QByteArray& data) -> bool {
+  constexpr auto kArmorBegin = QByteArrayView("-----BEGIN PGP ");
+  constexpr auto kArmorEnd = QByteArrayView("-----END PGP ");
+
+  const auto trimmed = data.trimmed();
+  if (!trimmed.contains(kArmorBegin)) return false;
+
+  const auto cleartext = trimmed.startsWith(kPgpSignedBegin);
+  if (!cleartext && !trimmed.startsWith(kPgpMessageBegin)) return true;
+  if (!trimmed.endsWith(cleartext
+                            ? QByteArrayView(kPgpSignatureEnd)
+                            : QByteArrayView("-----END PGP MESSAGE-----"))) {
+    return true;
+  }
+
+  // Inside cleartext every line starting with '-' is dash-escaped, and base64
+  // has no dashes, so armor lines can only be the envelope itself: two
+  // openings (message, signature) for cleartext, one otherwise, and one end.
+  int begins = 0;
+  int ends = 0;
+  for (const auto& line : trimmed.split('\n')) {
+    if (line.startsWith(kArmorBegin)) ++begins;
+    if (line.startsWith(kArmorEnd)) ++ends;
+  }
+  return begins != (cleartext ? 2 : 1) || ends != 1;
 }
 
 auto CurrentDateTime() -> QDateTime {

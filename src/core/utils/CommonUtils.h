@@ -127,6 +127,20 @@ auto GF_CORE_EXPORT ParseHexEncodedVersionTuple(const QString& s) -> int;
 auto GF_CORE_EXPORT IsEmailAddress(const QString& s) -> bool;
 
 /**
+ * @brief Return whether armored OpenPGP data carries text a signature over it
+ * does not cover.
+ *
+ * gpg skips whatever comes before or after the armor it verifies, so a
+ * verdict on such input says nothing about that text, while the editor shows
+ * it right next to the verdict. True when there is anything but whitespace
+ * outside a single signed or message block, or more than one block. Data with
+ * no armor at all is not judged here and gives false.
+ *
+ * @param data what is about to be verified
+ */
+auto GF_CORE_EXPORT HasTextOutsideSignedArmor(const QByteArray& data) -> bool;
+
+/**
  * @brief Return whether version string @p a is strictly greater than @p b.
  *
  * @param a first version string

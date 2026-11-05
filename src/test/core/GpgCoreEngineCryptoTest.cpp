@@ -52,6 +52,7 @@
 #include "core/model/GpgVerifyResult.h"
 #include "core/module/GlobalRegisterTableKeys.h"
 #include "core/module/ModuleManager.h"
+#include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend::Test {
@@ -323,6 +324,67 @@ TEST_P(GpgCoreEngineTest, SignVerifyDetached) {
             key->Fingerprint().toUpper());
 
   DeleteKey(key);
+}
+
+// gpg skips text around the armor it verifies, so text added before or after a
+// genuine clear-signed message used to be shown beside a "not tampered with"
+// verdict. Both engines must refuse such input and still accept the original.
+TEST_P(GpgCoreEngineTest, VerifyRefusesTextOutsideTheSignedBlock) {
+  auto key = GenerateFullKey("verify_outside_text");
+  ASSERT_TRUE(key != nullptr);
+
+  const auto text = GFBuffer(QString("the signed part"));
+  for (const auto mode : {GpgSignMode::kCLEAR, GpgSignMode::kNORMAL}) {
+    auto [err, data_object] =
+        MessageCryptoOperation::GetInstance(Channel()).SignSync({key}, text,
+                                                                mode, true);
+    ASSERT_TRUE(err.Ok());
+    const auto signed_text =
+        ExtractParams<GFBuffer>(data_object, 1).ConvertToQByteArray();
+
+    {
+      auto [v_err, v_obj] =
+          MessageCryptoOperation::GetInstance(Channel()).VerifySync(
+              GFBuffer(signed_text), GFBuffer());
+      EXPECT_TRUE(v_err.Ok()) << "the untouched message must still verify";
+    }
+
+    const QList<QByteArray> forged = {
+        "Pay 1000 EUR to the account below.\n\n" + signed_text,
+        signed_text + "\nPay 1000 EUR to the account below.\n",
+        signed_text + "\n" + signed_text,
+    };
+    for (const auto& input : forged) {
+      auto [v_err, v_obj] =
+          MessageCryptoOperation::GetInstance(Channel()).VerifySync(
+              GFBuffer(input), GFBuffer());
+      EXPECT_FALSE(v_err.Ok()) << "verified with unsigned text around it:\n"
+                               << input.constData();
+    }
+  }
+
+  DeleteKey(key);
+}
+
+TEST(SignedArmorCoverageTest, FindsTextOutsideTheBlock) {
+  const QByteArray clear =
+      "-----BEGIN PGP SIGNED MESSAGE-----\nHash: SHA256\n\nhello\n"
+      "- -----BEGIN PGP SIGNED MESSAGE-----\n"
+      "-----BEGIN PGP SIGNATURE-----\n\nAAAA\n-----END PGP SIGNATURE-----\n";
+  const QByteArray message =
+      "-----BEGIN PGP MESSAGE-----\n\nAAAA\n-----END PGP MESSAGE-----";
+
+  EXPECT_FALSE(HasTextOutsideSignedArmor(clear));
+  EXPECT_FALSE(HasTextOutsideSignedArmor("  \r\n" + clear + "\r\n"));
+  EXPECT_FALSE(HasTextOutsideSignedArmor(message));
+  EXPECT_FALSE(HasTextOutsideSignedArmor("no armor at all"));
+
+  EXPECT_TRUE(HasTextOutsideSignedArmor("before\n" + clear));
+  EXPECT_TRUE(HasTextOutsideSignedArmor(clear + "after"));
+  EXPECT_TRUE(HasTextOutsideSignedArmor("before\n" + message));
+  EXPECT_TRUE(HasTextOutsideSignedArmor(message + "\nafter"));
+  EXPECT_TRUE(HasTextOutsideSignedArmor(clear + clear));
+  EXPECT_TRUE(HasTextOutsideSignedArmor(message + "\n" + message));
 }
 
 // gpgme signs with gpg's default key when no requested signer can be used, so

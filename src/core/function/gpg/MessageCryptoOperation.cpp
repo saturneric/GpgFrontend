@@ -38,6 +38,7 @@
 #include "core/model/GpgEncryptResult.h"
 #include "core/model/GpgSignResult.h"
 #include "core/model/GpgVerifyResult.h"
+#include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
@@ -188,6 +189,15 @@ auto VerifyGnuPGImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
   auto& g_ctx = GpgCtx(ctx_);
   GpgData data_in(in_buffer);
   GpgData data_out;
+
+  // gpg verifies the armored block and skips anything around it, and the
+  // verdict would then stand next to text nobody signed.
+  if (sig_buffer.Empty() &&
+      HasTextOutsideSignedArmor(in_buffer.ConvertToQByteArray())) {
+    LOG_W() << "refusing to verify: the input has text outside its signature";
+    data_object->Swap({GpgVerifyResult(GFVerifyResult{}), GFBuffer()});
+    return GPG_ERR_BAD_DATA;
+  }
 
   if (!sig_buffer.Empty()) {
     GpgData sig_data(sig_buffer);

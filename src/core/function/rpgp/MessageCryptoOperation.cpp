@@ -39,6 +39,7 @@
 #include "core/model/GpgEncryptResult.h"
 #include "core/model/GpgSignResult.h"
 #include "core/model/GpgVerifyResult.h"
+#include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
@@ -204,6 +205,15 @@ auto VerifyRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
   if (!key_db) {
     LOG_E() << "Failed to get key database from context";
     return RpgpError(GFErrorCode::kGENERAL);
+  }
+
+  // Refused for the same reason as on GnuPG: a verdict would stand next to
+  // text the signature does not cover.
+  if (sig_buffer.Empty() &&
+      HasTextOutsideSignedArmor(in_buffer.ConvertToQByteArray())) {
+    LOG_W() << "refusing to verify: the input has text outside its signature";
+    data_object->Swap({GpgVerifyResult(GFVerifyResult{}), GFBuffer{}});
+    return RpgpError(GFErrorCode::kBAD_DATA);
   }
 
   Rust::GfrVerifyResultC verify_result;
