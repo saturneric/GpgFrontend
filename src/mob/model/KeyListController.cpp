@@ -46,6 +46,15 @@ auto RefresherSlot() -> KeyListController::Refresher& {
   return refresher;
 }
 
+auto DefaultDatabaseId() -> QString {
+  return LookupChannelHandle(UsableDefaultChannelHandle()).database_id;
+}
+
+auto DatabaseIdSlot() -> KeyListController::DatabaseId& {
+  static KeyListController::DatabaseId database_id = DefaultDatabaseId;
+  return database_id;
+}
+
 }  // namespace
 
 KeyListController::KeyListController(QObject* parent)
@@ -53,7 +62,7 @@ KeyListController::KeyListController(QObject* parent)
   timeout_.setSingleShot(true);
   timeout_.setInterval(kRefreshTimeoutMs);
   connect(&timeout_, &QTimer::timeout, this,
-          [this]() { finish(generation_, true); });
+          [this]() { finish(running_generation_, true); });
 }
 
 void KeyListController::SetRefresherForTesting(Refresher refresher) {
@@ -63,6 +72,11 @@ void KeyListController::SetRefresherForTesting(Refresher refresher) {
 
 void KeyListController::SetRefreshTimeoutForTesting(int ms) {
   timeout_.setInterval(ms);
+}
+
+void KeyListController::SetDatabaseIdForTesting(DatabaseId database_id) {
+  DatabaseIdSlot() =
+      database_id ? std::move(database_id) : DatabaseId(DefaultDatabaseId);
 }
 
 KeyListController::~KeyListController() = default;
@@ -80,41 +94,101 @@ auto KeyListController::Keys() const -> KeyRoleModel* { return keys_; }
 
 auto KeyListController::Refreshing() const -> bool { return refreshing_; }
 
-void KeyListController::refresh() {
-  // Nor while one that timed out still runs: two would flush the same
-  // repositories at once.
-  if (refreshing_ || late_pending_) return;
-  refreshing_ = true;
-  emit SignalRefreshingChanged();
+auto KeyListController::Loaded() const -> bool { return loaded_; }
 
-  const auto generation = ++generation_;
+auto KeyListController::Error() const -> QString { return error_; }
+
+auto KeyListController::LoadedDatabase() const -> QString { return loaded_db_; }
+
+void KeyListController::refresh() {
+  ++generation_;
+  // Another database than the one shown: what is shown is not its keys.
+  if (loaded_ && loaded_db_ != DatabaseIdSlot()()) loaded_ = false;
+  setRefreshing(true);
+  // Never two at once: this one runs when the one under way ends -- unless
+  // that one timed out, and may never report back (its end has been lost
+  // before): then this one starts now. The core runs the two one after the
+  // other on its one task thread, and the late report, of an older
+  // generation, changes nothing.
+  if (running_ && !timed_out_) {
+    rerun_ = true;
+    return;
+  }
+  start();
+}
+
+void KeyListController::ShowLoaded() {
+  if (running_) return;
+  ++generation_;
+  show(DatabaseIdSlot()(), {});
+}
+
+void KeyListController::start() {
+  running_ = true;
+  timed_out_ = false;
+  rerun_ = false;
+  running_generation_ = generation_;
+  running_db_ = DatabaseIdSlot()();
   timeout_.start();
+  const auto generation = running_generation_;
   RefresherSlot()(this, [this, generation]() { finish(generation, false); });
 }
 
 void KeyListController::finish(int generation, bool timed_out) {
-  // An earlier refresh's report: a later one is under way.
-  if (generation != generation_) return;
-  // The refresh that timed out reports back after all: the databases are
-  // read now, so the list is shown again.
-  const auto late = !refreshing_;
-  if (late && timed_out) return;
-  timeout_.stop();
-  late_pending_ = timed_out;
+  // Not the run under way (a late report already handled).
+  if (generation != running_generation_ || !running_) return;
+
   if (timed_out) {
     qWarning() << "the key database refresh did not report back within"
                << timeout_.interval() << "ms; showing what is loaded";
-  } else if (late) {
-    qInfo() << "the key database refresh that timed out ended after all";
+    timed_out_ = true;
+    // A later refresh asked for meanwhile starts now: the report it waited
+    // for may never come (as refresh() does after a timeout). The core runs
+    // the two in turn on its one task thread.
+    if (rerun_ || generation != generation_) {
+      start();
+      return;
+    }
+    // Otherwise what is loaded is shown; the late report, if it comes,
+    // changes nothing more.
+    show(DatabaseIdSlot()(), tr("The keys took too long to load."));
+    return;
   }
 
+  timeout_.stop();
+  running_ = false;
+  // Asked again meanwhile: this run's result is not the latest. Run again,
+  // for the latest; it alone changes what is shown.
+  if (rerun_ || generation != generation_) {
+    start();
+    return;
+  }
+  // Another database came into use while it ran, unasked: what it read may
+  // be the old one's.
+  const auto database = DatabaseIdSlot()();
+  if (database != running_db_) {
+    start();
+    return;
+  }
+  show(database, {});
+}
+
+void KeyListController::show(const QString& database, const QString& error) {
   const auto channel = UsableDefaultChannelHandle();
   SetTable(AbstractKeyRepository::GetInstance(channel).GetGpgKeyTableModel());
   qInfo() << "key list refreshed on channel" << channel << ":"
           << keys_->rowCount() << "entries";
+  loaded_db_ = database;
+  loaded_ = true;
+  error_ = error;
   refreshing_ = false;
-  if (!late) emit SignalRefreshingChanged();
+  emit SignalRefreshingChanged();
   emit SignalRefreshed();
+}
+
+void KeyListController::setRefreshing(bool refreshing) {
+  refreshing_ = refreshing;
+  emit SignalRefreshingChanged();
 }
 
 void KeyListController::Reload() {

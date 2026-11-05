@@ -28,6 +28,7 @@
 
 #include "KeyStorage.h"
 
+#include <QElapsedTimer>
 #include <optional>
 
 #include "core/GFCoreRust.h"
@@ -504,6 +505,8 @@ auto RefreshKeyMetadataIfStale(GFKeyDatabase& key_db) -> int {
   const auto stamp = KeyMetadataStamp();
   if (key_db.GetMeta(kKeyMetadataStampName) == stamp) return 0;
 
+  QElapsedTimer timer;
+  timer.start();
   int refreshed = 0;
   for (const auto& meta : key_db.GetMetadataList()) {
     // Read, re-parse and save as one unit, so a concurrent edit of the same
@@ -518,6 +521,8 @@ auto RefreshKeyMetadataIfStale(GFKeyDatabase& key_db) -> int {
   if (!key_db.SetMeta(kKeyMetadataStampName, stamp)) {
     LOG_W() << "cannot record which build refreshed the key metadata";
   }
+  LOG_I() << "key metadata derived again for" << refreshed << "keys in"
+          << timer.elapsed() << "ms (new build)";
   return refreshed;
 }
 

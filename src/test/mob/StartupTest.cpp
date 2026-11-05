@@ -139,10 +139,10 @@ TEST(StartupTest, TheKeyListShowsANewKey) {
 
 TEST(StartupTest, ARefreshThatNeverReportsBackStillEnds) {
   // A controller of the test's own: the application's stays as it is.
-  std::function<void()> held;
+  std::vector<std::function<void()>> held;
   KeyListController::SetRefresherForTesting(
       [&held](QObject*, std::function<void()> done) {
-        held = std::move(done);
+        held.push_back(std::move(done));
       });
   std::unique_ptr<KeyListController> keys;
   int refreshed = 0;
@@ -153,10 +153,11 @@ TEST(StartupTest, ARefreshThatNeverReportsBackStillEnds) {
                      keys.get(), [&refreshed]() { ++refreshed; });
     keys->refresh();
     EXPECT_TRUE(keys->Refreshing());
+    EXPECT_FALSE(keys->Loaded());
   });
-  KeyListController::SetRefresherForTesting({});
 
-  // Ended by the wait, showing what the default database holds.
+  // Ended by the wait, showing what the default database holds, and saying
+  // it did not end as it should.
   ASSERT_TRUE(WaitFor(
       [&]() {
         bool refreshing = true;
@@ -167,15 +168,227 @@ TEST(StartupTest, ARefreshThatNeverReportsBackStillEnds) {
   RunOnMainThread([&]() {
     EXPECT_EQ(refreshed, 1);
     EXPECT_NE(keys->Keys()->sourceModel(), nullptr);
-    // Not another while the first may still be flushing.
+    EXPECT_TRUE(keys->Loaded());
+    EXPECT_FALSE(keys->Error().isEmpty());
+    // Asked again after a run that may never report back: it starts now,
+    // not after a report that may never come (the core runs the two in
+    // turn on its one task thread).
     keys->refresh();
+    EXPECT_TRUE(keys->Refreshing());
+    EXPECT_EQ(held.size(), 2U);
+    // The late report of the first changes nothing ...
+    held[0]();
+    EXPECT_EQ(refreshed, 1);
+    EXPECT_TRUE(keys->Refreshing());
+    // ... the end of the one asked for is shown, without the error.
+    held[1]();
+    EXPECT_EQ(refreshed, 2);
     EXPECT_FALSE(keys->Refreshing());
-    // The late report shows the list again, and ends nothing twice.
-    held();
+    EXPECT_TRUE(keys->Error().isEmpty());
+    keys.reset();
+  });
+  KeyListController::SetRefresherForTesting({});
+}
+
+// A refresh asked for while one runs whose end is then lost: the timeout
+// starts it, rather than leave the list refreshing for good.
+TEST(StartupTest, ARefreshQueuedBehindALostOneStillRuns) {
+  std::vector<std::function<void()>> held;
+  KeyListController::SetRefresherForTesting(
+      [&held](QObject*, std::function<void()> done) {
+        held.push_back(std::move(done));
+      });
+  std::unique_ptr<KeyListController> keys;
+  int refreshed = 0;
+  RunOnMainThread([&]() {
+    keys = std::make_unique<KeyListController>(nullptr);
+    keys->SetRefreshTimeoutForTesting(50);
+    QObject::connect(keys.get(), &KeyListController::SignalRefreshed,
+                     keys.get(), [&refreshed]() { ++refreshed; });
+    keys->refresh();
+    keys->refresh();  // queued behind the first
+    EXPECT_EQ(held.size(), 1U);
+  });
+  // The first never reports back: its timeout starts the queued one.
+  ASSERT_TRUE(WaitFor(
+      [&]() {
+        size_t started = 0;
+        RunOnMainThread([&]() { started = held.size(); });
+        return started == 2;
+      },
+      10000));
+  RunOnMainThread([&]() {
+    EXPECT_TRUE(keys->Refreshing());
+    held[1]();
+    EXPECT_EQ(refreshed, 1);
+    EXPECT_FALSE(keys->Refreshing());
+    EXPECT_TRUE(keys->Error().isEmpty());
+    // The lost one's late report changes nothing.
+    held[0]();
+    EXPECT_EQ(refreshed, 1);
+    keys.reset();
+  });
+  KeyListController::SetRefresherForTesting({});
+}
+
+// The end of startup shows what the core has just read, without reading
+// every key database a second time; a refresh under way is left to show it.
+TEST(StartupTest, ShowingTheLoadedKeysReadsNothingAgain) {
+  // The application's own list, shown when the startup ended.
+  auto* app_keys = KeyListController::create(nullptr, nullptr);
+  ASSERT_NE(app_keys, nullptr);
+  RunOnMainThread([app_keys]() { EXPECT_TRUE(app_keys->Loaded()); });
+
+  std::vector<std::function<void()>> held;
+  KeyListController::SetRefresherForTesting(
+      [&held](QObject*, std::function<void()> done) {
+        held.push_back(std::move(done));
+      });
+  std::unique_ptr<KeyListController> keys;
+  int refreshed = 0;
+  RunOnMainThread([&]() {
+    keys = std::make_unique<KeyListController>(nullptr);
+    QObject::connect(keys.get(), &KeyListController::SignalRefreshed,
+                     keys.get(), [&refreshed]() { ++refreshed; });
+    keys->ShowLoaded();
+    EXPECT_TRUE(held.empty());
+    EXPECT_EQ(refreshed, 1);
+    EXPECT_TRUE(keys->Loaded());
+    EXPECT_FALSE(keys->Refreshing());
+    EXPECT_NE(keys->Keys()->sourceModel(), nullptr);
+
+    // While a refresh runs it changes nothing: the refresh shows its own.
+    keys->refresh();
+    keys->ShowLoaded();
+    EXPECT_EQ(refreshed, 1);
+    EXPECT_TRUE(keys->Refreshing());
+    ASSERT_EQ(held.size(), 1U);
+    held[0]();
     EXPECT_EQ(refreshed, 2);
     EXPECT_FALSE(keys->Refreshing());
     keys.reset();
   });
+  KeyListController::SetRefresherForTesting({});
+}
+
+// Switching A, then B, then back to A while the key list is read: the core
+// never refreshes twice at once, each run reads the database in use when it
+// starts, and only the last one asked for changes what is shown.
+TEST(StartupTest, SwitchingBackAndForthShowsTheLastDatabaseOnly) {
+  QString database = "A";
+  struct Run {
+    QString database;
+    std::function<void()> done;
+  };
+  std::vector<Run> runs;
+  int outstanding = 0;
+  int most = 0;
+  KeyListController::SetDatabaseIdForTesting(
+      [&database]() { return database; });
+  KeyListController::SetRefresherForTesting(
+      [&](QObject*, std::function<void()> done) {
+        most = std::max(most, ++outstanding);
+        runs.push_back({database, [&outstanding, done = std::move(done)]() {
+                          --outstanding;
+                          done();
+                        }});
+      });
+  std::unique_ptr<KeyListController> keys;
+  int refreshed = 0;
+  RunOnMainThread([&]() {
+    keys = std::make_unique<KeyListController>(nullptr);
+    QObject::connect(keys.get(), &KeyListController::SignalRefreshed,
+                     keys.get(), [&refreshed]() { ++refreshed; });
+    keys->refresh();  // A
+    database = "B";
+    keys->refresh();  // B, while A's runs
+    database = "A";
+    keys->refresh();  // A again
+    ASSERT_EQ(runs.size(), 1U);
+    EXPECT_EQ(runs[0].database, "A");
+
+    // The first run ends: not shown, it is not the latest. The latest runs.
+    runs[0].done();
+    EXPECT_EQ(refreshed, 0);
+    EXPECT_TRUE(keys->Refreshing());
+    EXPECT_FALSE(keys->Loaded());
+    ASSERT_EQ(runs.size(), 2U);
+    EXPECT_EQ(runs[1].database, "A");
+
+    runs[1].done();
+    EXPECT_EQ(refreshed, 1);
+    EXPECT_FALSE(keys->Refreshing());
+    EXPECT_TRUE(keys->Loaded());
+    EXPECT_EQ(keys->LoadedDatabase(), "A");
+    EXPECT_EQ(most, 1);
+
+    // A database that came into use while a run went on, without anyone
+    // asking: what the run read may be the old one's, so it runs again.
+    keys->refresh();
+    database = "B";
+    runs[2].done();
+    EXPECT_TRUE(keys->Refreshing());
+    ASSERT_EQ(runs.size(), 4U);
+    EXPECT_EQ(runs[3].database, "B");
+    runs[3].done();
+    EXPECT_EQ(keys->LoadedDatabase(), "B");
+    EXPECT_FALSE(keys->Refreshing());
+    EXPECT_EQ(most, 1);
+    keys.reset();
+  });
+  KeyListController::SetRefresherForTesting({});
+  KeyListController::SetDatabaseIdForTesting({});
+}
+
+// A run that timed out and reports back late, after a refresh of another
+// database was asked for, does not show its own result: the one asked for
+// runs then, and its end alone is shown.
+TEST(StartupTest, ALateReportOfAnEarlierRefreshShowsNothingOfItsOwn) {
+  QString database = "A";
+  std::vector<std::pair<QString, std::function<void()>>> runs;
+  KeyListController::SetDatabaseIdForTesting(
+      [&database]() { return database; });
+  KeyListController::SetRefresherForTesting(
+      [&](QObject*, std::function<void()> done) {
+        runs.emplace_back(database, std::move(done));
+      });
+  std::unique_ptr<KeyListController> keys;
+  int refreshed = 0;
+  RunOnMainThread([&]() {
+    keys = std::make_unique<KeyListController>(nullptr);
+    keys->SetRefreshTimeoutForTesting(50);
+    QObject::connect(keys.get(), &KeyListController::SignalRefreshed,
+                     keys.get(), [&refreshed]() { ++refreshed; });
+    keys->refresh();
+  });
+  ASSERT_TRUE(WaitFor(
+      [&]() {
+        bool refreshing = true;
+        RunOnMainThread([&]() { refreshing = keys->Refreshing(); });
+        return !refreshing;
+      },
+      10000));
+  RunOnMainThread([&]() {
+    EXPECT_EQ(keys->LoadedDatabase(), "A");
+    database = "B";
+    keys->refresh();
+    EXPECT_FALSE(keys->Loaded());
+    const int before = refreshed;
+    // B's run starts at once; A's late report shows nothing of A's.
+    ASSERT_EQ(runs.size(), 2U);
+    EXPECT_EQ(runs[1].first, "B");
+    runs[0].second();
+    EXPECT_EQ(refreshed, before);
+    EXPECT_TRUE(keys->Refreshing());
+    EXPECT_FALSE(keys->Loaded());
+    runs[1].second();
+    EXPECT_EQ(keys->LoadedDatabase(), "B");
+    EXPECT_TRUE(keys->Loaded());
+    EXPECT_TRUE(keys->Error().isEmpty());
+    keys.reset();
+  });
+  KeyListController::SetRefresherForTesting({});
+  KeyListController::SetDatabaseIdForTesting({});
 }
 
 TEST(StartupTest, AProfileHeldByALiveProcessIsNotForced) {

@@ -30,6 +30,7 @@
 
 #include <QtQml/qqmlregistration.h>
 
+#include <QElapsedTimer>
 #include <QObject>
 #include <QPointer>
 #include <QSharedPointer>
@@ -141,6 +142,8 @@ class StartupController : public QObject {
   InteractionBridge* bridge_;
   std::shared_ptr<StartupJob> job_;
   QThread* worker_ = nullptr;
+  /// Since the controller was made: what the startup log measures by.
+  QElapsedTimer clock_;
   State state_ = State::kSHELL;
   int progress_ = 0;
   QString message_;

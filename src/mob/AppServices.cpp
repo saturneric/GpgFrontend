@@ -82,8 +82,10 @@ AppServices::AppServices(QSharedPointer<BootContext> ctx)
   SetFileStores(&staging, &retention);
   FileWorkspace::SetInstance(&files);
 
+  // The core has just read every key database as it started: what it holds
+  // is shown as it is, not read a second time.
   QObject::connect(&startup, &StartupController::SignalReady, &keys,
-                   &KeyListController::refresh);
+                   &KeyListController::ShowLoaded);
   // The first listing of a profile's keys; later ones the selection hears
   // from the list itself.
   QObject::connect(

@@ -116,6 +116,7 @@ constexpr int kFirstFrameFallbackMs = 500;
 StartupController::StartupController(QSharedPointer<BootContext> ctx,
                                      InteractionBridge* bridge, QObject* parent)
     : QObject(parent), ctx_(std::move(ctx)), bridge_(bridge) {
+  clock_.start();
   // Created here so it belongs to this thread; the core emits through it from
   // its own threads, and this class listens with queued connections.
   CoreSignalStation::GetInstance();
@@ -133,6 +134,7 @@ auto StartupController::create(QQmlEngine*, QJSEngine*) -> StartupController* {
 }
 
 void StartupController::Start(QQuickWindow* window) {
+  qInfo() << "startup: interface loaded after" << clock_.elapsed() << "ms";
   if (window != nullptr) {
     connect(window, &QQuickWindow::frameSwapped, this,
             &StartupController::BeginOpening, Qt::SingleShotConnection);
@@ -244,7 +246,7 @@ auto StartupController::Message() const -> QString { return message_; }
 void StartupController::set_state(State state) {
   if (state_ == state) return;
   state_ = state;
-  qInfo() << "startup:" << state;
+  qInfo() << "startup:" << state << "after" << clock_.elapsed() << "ms";
   emit SignalStateChanged();
 }
 
