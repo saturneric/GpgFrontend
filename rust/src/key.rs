@@ -772,6 +772,56 @@ impl From<KeyVersion> for GfrOpenPGPKeyVersion {
 /// primary. Expiry, preferences and capabilities follow the same signature,
 /// so the listing and the engine always agree on which User ID speaks for
 /// the key.
+/// True if `user` carries at least one verified self-certification
+/// (0x10-0x13). Anyone can append a User ID packet to someone else's public
+/// key; only one the key holder certified belongs to the key.
+fn has_verified_uid_certification(primary: &PublicKey, user: &SignedUser) -> bool {
+    verified_uid_self_sigs(primary, user).iter().any(|sig| {
+        matches!(
+            sig.typ(),
+            Some(
+                SignatureType::CertGeneric
+                    | SignatureType::CertPersona
+                    | SignatureType::CertCasual
+                    | SignatureType::CertPositive
+            )
+        )
+    })
+}
+
+/// The User IDs a listing reports, primary first. A User ID without a verified
+/// self-certification is left out: it was listed as a valid, non-revoked UID
+/// of the key, so a third party could attach their own address to it and have
+/// a search by that address find this key.
+fn listed_user_ids(pk: &SignedPublicKey) -> Vec<ExtractUserId> {
+    let (primary_idx, primary_marked) = primary_user_index(&pk.primary_key, &pk.details);
+
+    let mut user_ids: Vec<ExtractUserId> = Vec::new();
+    let mut primary_pos = None;
+    for (i, u) in pk.details.users.iter().enumerate() {
+        if !has_verified_uid_certification(&pk.primary_key, u) {
+            continue;
+        }
+        let is_revoked = is_user_id_revoked(&pk.primary_key, u);
+        if i == primary_idx {
+            primary_pos = Some(user_ids.len());
+        }
+        user_ids.push(ExtractUserId {
+            user_id: String::from_utf8_lossy(u.id.id()).into_owned(),
+            is_primary: !is_revoked && primary_marked && i == primary_idx,
+            is_revoked,
+        });
+    }
+
+    // The primary UID always comes first, which simplifies capability
+    // extraction later.
+    if let Some(pos) = primary_pos.filter(|&pos| pos != 0) {
+        let primary_uid = user_ids.remove(pos);
+        user_ids.insert(0, primary_uid);
+    }
+    user_ids
+}
+
 fn primary_user_index(primary: &PublicKey, details: &SignedKeyDetails) -> (usize, bool) {
     let Some(in_force) = uid_certification_in_force(primary, details, None) else {
         return (0, false);
@@ -827,32 +877,7 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
         });
     }
 
-    let users = &pk.details.users;
-
-    let (primary_idx, primary_marked) = primary_user_index(&pk.primary_key, &pk.details);
-
-    // extract all user IDs into a vector of strings
-    let mut user_ids: Vec<ExtractUserId> = users
-        .iter()
-        .enumerate()
-        .map(|(i, u)| {
-            let is_revoked = is_user_id_revoked(&pk.primary_key, u);
-
-            ExtractUserId {
-                user_id: String::from_utf8_lossy(u.id.id()).into_owned(),
-                is_primary: !is_revoked && primary_marked && i == primary_idx,
-                is_revoked,
-            }
-        })
-        .collect();
-
-    // if the detected primary UID is not already the first one, reorder the
-    // vector so that it is. This ensures the primary UID is always at index 0
-    // in our output, which simplifies capability extraction later.
-    if primary_idx != 0 && primary_idx < user_ids.len() {
-        let primary_uid = user_ids.remove(primary_idx);
-        user_ids.insert(0, primary_uid);
-    }
+    let user_ids = listed_user_ids(&pk);
 
     let (can_sign, can_encrypt, can_auth, can_certify) = usable_capabilities(
         extract_capabilities(primary_sig_in_force(&pk.primary_key, &pk.details, None)),
@@ -931,32 +956,7 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
         .map(|sub| public_subkey_metadata(pk, sub))
         .collect();
 
-    let users = &pk.details.users;
-
-    let (primary_idx, primary_marked) = primary_user_index(&pk.primary_key, &pk.details);
-
-    // extract all user IDs into a vector of strings
-    let mut user_ids: Vec<ExtractUserId> = users
-        .iter()
-        .enumerate()
-        .map(|(i, u)| {
-            let is_revoked = is_user_id_revoked(&pk.primary_key, u);
-
-            ExtractUserId {
-                user_id: String::from_utf8_lossy(u.id.id()).into_owned(),
-                is_primary: !is_revoked && primary_marked && i == primary_idx,
-                is_revoked,
-            }
-        })
-        .collect();
-
-    // if the detected primary UID is not already the first one, reorder the
-    // vector so that it is. This ensures the primary UID is always at index 0
-    // in our output, which simplifies capability extraction later.
-    if primary_idx != 0 && primary_idx < user_ids.len() {
-        let primary_uid = user_ids.remove(primary_idx);
-        user_ids.insert(0, primary_uid);
-    }
+    let user_ids = listed_user_ids(pk);
 
     // use only cryptographically valid self-signatures of the primary key and its
     // primary User ID to determine capabilities / expiry / revocation.
@@ -2495,6 +2495,7 @@ fn merge_signatures(dst: &mut Vec<Signature>, src: &[Signature]) -> Result<(), G
 }
 
 fn merge_users(
+    primary: &PublicKey,
     dst: &mut Vec<pgp::types::SignedUser>,
     src: &[pgp::types::SignedUser],
 ) -> Result<(), GfrStatus> {
@@ -2506,8 +2507,12 @@ fn merge_users(
             .find(|u| String::from_utf8_lossy(u.id.id()) == src_uid)
         {
             merge_signatures(&mut dst_user.signatures, &src_user.signatures)?;
-        } else {
+        } else if has_verified_uid_certification(primary, src_user) {
             dst.push(src_user.clone());
+        } else {
+            // A User ID the key holder never certified, carried in by someone
+            // else's copy of the key: not stored, so not listed or searched.
+            log::warn!("dropping a User ID without a valid self-certification");
         }
     }
 
@@ -2592,6 +2597,7 @@ fn extract_key_revocation_signatures(block: &str) -> Result<Vec<Signature>, GfrS
 }
 
 fn merge_key_components(
+    primary: &PublicKey,
     base_direct: &mut Vec<Signature>,
     base_revocation: &mut Vec<Signature>,
     base_users: &mut Vec<pgp::types::SignedUser>,
@@ -2601,7 +2607,7 @@ fn merge_key_components(
 ) -> Result<(), GfrStatus> {
     merge_signatures(base_direct, incoming_direct)?;
     merge_signatures(base_revocation, incoming_revocation)?;
-    merge_users(base_users, incoming_users)?;
+    merge_users(primary, base_users, incoming_users)?;
 
     dedup_signatures_in_place(base_direct)?;
     dedup_signatures_in_place(base_revocation)?;
@@ -2664,7 +2670,9 @@ pub fn merge_key_block_internal(
                 if target_pk.fingerprint() != other_pk.fingerprint() {
                     return Err(GfrStatus::ErrorInvalidInput);
                 }
+                let primary = target_pk.primary_key.clone();
                 merge_key_components(
+                    &primary,
                     &mut target_pk.details.direct_signatures,
                     &mut target_pk.details.revocation_signatures,
                     &mut target_pk.details.users,
@@ -2685,7 +2693,9 @@ fn merge_sk_into_sk(
     target: &mut SignedSecretKey,
     source: &SignedSecretKey,
 ) -> Result<(), GfrStatus> {
+    let primary = target.primary_key.public_key();
     merge_key_components(
+        &primary,
         &mut target.details.direct_signatures,
         &mut target.details.revocation_signatures,
         &mut target.details.users,
@@ -2763,7 +2773,9 @@ fn merge_pk_into_sk(
     target: &mut SignedSecretKey,
     source: &SignedPublicKey,
 ) -> Result<(), GfrStatus> {
+    let primary = target.primary_key.public_key();
     merge_key_components(
+        &primary,
         &mut target.details.direct_signatures,
         &mut target.details.revocation_signatures,
         &mut target.details.users,
@@ -3891,6 +3903,54 @@ mod key_tests {
             .unwrap();
         assert!(sub.can_encrypt);
         assert!(!sub.can_sign, "the superseded binding's sign flag is gone");
+    }
+
+    #[test]
+    fn a_user_id_the_key_holder_never_certified_is_not_listed_or_merged_in() {
+        // Anyone can append a User ID packet to someone else's public key.
+        // Listed, it read as a valid UID of the key, and a search by its
+        // address found the key; merged in from an imported copy, it stayed.
+        let fixture = &keys::V4_SIGN;
+        let forged_uid = "Mallory <bob@corp.example>";
+        let mut pk = SignedPublicKey::from(fixture.secret.clone());
+        let forged =
+            pgp::packet::UserId::from_str(pgp::types::PacketHeaderVersion::New, forged_uid)
+                .unwrap();
+        pk.details.users.push(SignedUser::new(forged, vec![]));
+        let names = |users: &[ExtractUserId]| -> Vec<String> {
+            users.iter().map(|u| u.user_id.clone()).collect()
+        };
+
+        let listed = build_public_metadata(&pk);
+        assert!(
+            !listed.user_ids.is_empty(),
+            "the genuine UID is still listed"
+        );
+        assert!(!names(&listed.user_ids).contains(&forged_uid.to_string()));
+
+        let forged_block = export_public_key(pk).unwrap().public;
+        for base in [&fixture.public_armored, &fixture.secret_armored] {
+            let merged = merge_key_block_internal(base, &forged_block).unwrap();
+            let block = if merged.secret.is_empty() {
+                merged.public.clone()
+            } else {
+                merged.secret.to_string()
+            };
+            let metas = extract_metadata_many_internal(&block).unwrap();
+            assert!(!names(&metas[0].user_ids).contains(&forged_uid.to_string()));
+            assert!(!block_users(&block).contains(&forged_uid.to_string()));
+        }
+    }
+
+    fn block_users(block: &str) -> Vec<String> {
+        let users = match SignedSecretKey::from_string(block) {
+            Ok((sk, _)) => sk.details.users,
+            Err(_) => SignedPublicKey::from_string(block).unwrap().0.details.users,
+        };
+        users
+            .iter()
+            .map(|u| String::from_utf8_lossy(u.id.id()).into_owned())
+            .collect()
     }
 
     #[test]
