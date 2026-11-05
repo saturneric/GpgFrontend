@@ -35,6 +35,7 @@
 #include <QJsonDocument>
 #include <QScopeGuard>
 #include <QUuid>
+#include <algorithm>
 #include <optional>
 #include <thread>
 
@@ -58,6 +59,7 @@
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
+#include "core/utils/MemoryUtils.h"
 #include "plat/common/PlatformFs.h"
 
 namespace GpgFrontend {
@@ -1062,7 +1064,9 @@ auto ReadProfilePackage(const QString &package_path, const QString &staging_dir,
   // is a stream of chunks, each authenticated on its own, and is never held
   // whole -- so the payload buffer below, and the ceiling that guards it, exist
   // only for the legacy shape.
-  QByteArray legacy_payload;
+  // In secure memory: for a PIN package this is the decrypted archive, root
+  // key and settings included, and a QByteArray is freed without being wiped.
+  GFBuffer legacy_payload;
   if (!streamed) {
     // Opening a version 1 body holds it whole and then the plaintext beside it,
     // so a file several times larger than memory takes the process down part
@@ -1084,6 +1088,8 @@ auto ReadProfilePackage(const QString &package_path, const QString &staging_dir,
     }
 
     QByteArray bytes;
+    // An unprotected package is plaintext from the first byte.
+    const auto wipe_bytes = qScopeGuard([&bytes]() { WipeByteArray(bytes); });
     if (!ReadWholeFile(package_path, 0, bytes)) {
       result.status = ProfilePackageReadStatus::kIO_FAILED;
       result.detail = "this file could not be read";
@@ -1098,9 +1104,12 @@ auto ReadProfilePackage(const QString &package_path, const QString &staging_dir,
         result.detail = "the passphrase does not open this package";
         return result;
       }
-      legacy_payload = decrypted->ConvertToQByteArray();
+      legacy_payload = *decrypted;
     } else {
-      legacy_payload = bytes.mid(view.body_offset);
+      const auto offset = std::min<qsizetype>(
+          static_cast<qsizetype>(view.body_offset), bytes.size());
+      legacy_payload = GFBuffer(bytes.constData() + offset,
+                                static_cast<size_t>(bytes.size() - offset));
     }
   }
 
@@ -1128,8 +1137,8 @@ auto ReadProfilePackage(const QString &package_path, const QString &staging_dir,
   std::thread feeder([&]() {
     if (!streamed) {
       exchanger->Write(
-          reinterpret_cast<const std::byte *>(legacy_payload.constData()),
-          legacy_payload.size());
+          reinterpret_cast<const std::byte *>(legacy_payload.Data()),
+          legacy_payload.Size());
       exchanger->CloseWrite();
       return;
     }
