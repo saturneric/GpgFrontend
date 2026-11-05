@@ -662,6 +662,23 @@ auto SealAs(const ScopedKeyFile& file, FakeSecretStore& store,
 
 }  // namespace
 
+// With no usable random source a new profile key must fail to be made. The
+// fallback here once sealed a zero-filled key of random length instead.
+TEST(AppKeyGenerationTest, NoRandomSourceMeansNoKey) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  ProfileSecureKeyManager::SetRootKeySourceForTesting(
+      [](int) -> GFBufferOrNone { return std::nullopt; });
+
+  ProfileSecureKeyManager keys(
+      QSharedPointer<FsProfileAccessor>::create(dir.path(), QString{}));
+  const auto result = keys.Load({}, {}, false);
+
+  ProfileSecureKeyManager::SetRootKeySourceForTesting({});
+  EXPECT_EQ(result.status, ProfileKeyLoadStatus::kGENERATE_FAILED);
+  EXPECT_FALSE(QFileInfo::exists(dir.path() + "/secure/app.key"));
+}
+
 TEST(AppKeyProtectionTest, NoneToKeychainSealsFileAndStoresSecret) {
   const auto key = SampleKey();
   ScopedKeyFile file(key);

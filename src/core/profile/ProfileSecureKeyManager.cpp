@@ -531,14 +531,31 @@ auto ProfileSecureKeyManager::WouldOrphanSealedData(
   });
 }
 
+namespace {
+auto RootKeySourceOverride() -> std::function<GFBufferOrNone(int)>& {
+  static std::function<GFBufferOrNone(int)> source;
+  return source;
+}
+}  // namespace
+
+void ProfileSecureKeyManager::SetRootKeySourceForTesting(
+    std::function<GFBufferOrNone(int)> source) {
+  RootKeySourceOverride() = std::move(source);
+}
+
 auto ProfileSecureKeyManager::new_root_key(const GFBuffer& pin,
                                            const GFBuffer& wrap,
                                            ProfileKeyLoadResult& status)
     -> GFBuffer {
-  auto key = PassphraseGenerator::GenerateBytesByOpenSSL(kRootKeyLen);
+  const auto& source = RootKeySourceOverride();
+  auto key = source ? source(kRootKeyLen)
+                    : PassphraseGenerator::GenerateBytesByOpenSSL(kRootKeyLen);
+  // No fallback. The one here passed a random quint64 to GFBuffer's size
+  // constructor: a buffer of random LENGTH, zero-filled, sealed as the key.
+  // An empty key is how the caller learns generation failed.
   if (!key) {
-    LOG_E() << "generate app secure key failed, using qt random generator...";
-    key = GFBuffer(QRandomGenerator64::securelySeeded().generate());
+    LOG_E() << "generate app secure key failed: no usable random source";
+    return {};
   }
 
   auto plain_key = *key;
