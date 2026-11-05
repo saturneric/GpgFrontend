@@ -335,6 +335,41 @@ TEST_F(RpgpCoreTest, CoreModifyKeyPassphraseCoversSubkeysTest) {
   RestoreDefaultPassphraseFetcher();
 }
 
+// The imported copy used to be the base of the merge, so re-importing an older
+// export of one's own secret key replaced the stored secret key and the
+// passphrase protecting it.
+TEST_F(RpgpCoreTest, ReimportingAnOldExportKeepsTheStoredProtection) {
+  auto key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                 .GetKeyPtr(kFixtureKeyFpr);
+  ASSERT_TRUE(key != nullptr);
+
+  // An export still under the old passphrase.
+  auto [exp_err, old_export] =
+      KeyImportExportOperation::GetInstance(kRpgpChannelForUnitTest)
+          .ExportKey(key, true, true, false);
+  ASSERT_EQ(gpg_err_code(exp_err), GPG_ERR_NO_ERROR);
+  ASSERT_FALSE(old_export.Empty());
+
+  InstallPassphraseScript(
+      {.unlock_default = kDefaultPassphrase, .fresh = kNewPassphrase});
+  auto [err, _] = KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
+                      .ModifyPasswordSync(key);
+  ASSERT_EQ(gpg_err_code(err), GPG_ERR_NO_ERROR);
+
+  ASSERT_TRUE(KeyImportExportOperation::GetInstance(kRpgpChannelForUnitTest)
+                  .ImportKey(old_export) != nullptr);
+  GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest).FlushKeyCache();
+
+  // Still the new passphrase, and only it.
+  InstallPassphraseScript({.unlock_default = kDefaultPassphrase});
+  EXPECT_EQ(gpg_err_code(EncryptThenDecryptRoundTrip()),
+            GPG_ERR_BAD_PASSPHRASE);
+  InstallPassphraseScript({.unlock_default = kNewPassphrase});
+  EXPECT_EQ(gpg_err_code(EncryptThenDecryptRoundTrip()), GPG_ERR_NO_ERROR);
+
+  RestoreDefaultPassphraseFetcher();
+}
+
 // A per-subkey change must touch only the named subkey. The encryption subkey
 // moves to the new passphrase while the primary stays on the old one.
 TEST_F(RpgpCoreTest, CoreModifySubkeyPassphraseTest) {
