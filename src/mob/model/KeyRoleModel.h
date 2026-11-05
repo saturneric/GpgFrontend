@@ -115,6 +115,12 @@ class KeyRoleModel : public QIdentityProxyModel {
   /// kCapabilitiesRole for @p key.
   [[nodiscard]] static auto Capabilities(const GpgAbstractKey* key) -> QString;
 
+  /// kStatusRole, kStatusTextRole and kUsableRole for @p key, as
+  /// {status, statusText, usable}: what the list says of it, said again
+  /// where a key is read anew (its page, after a change).
+  [[nodiscard]] static auto StatusFacts(const GpgAbstractKey* key)
+      -> QVariantMap;
+
   [[nodiscard]] auto data(const QModelIndex& index, int role) const
       -> QVariant override;
   [[nodiscard]] auto setData(const QModelIndex& index, const QVariant& value,

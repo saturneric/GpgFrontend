@@ -28,9 +28,11 @@
 
 #include "model/KeyCategoriesController.h"
 
+#include <algorithm>
 #include <array>
 
 #include "core/function/SettingCatalog.h"
+#include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/KeyCategoryRepository.h"
 #include "core/profile/ProfileSession.h"
@@ -94,6 +96,9 @@ auto KeyCategoriesController::Categories() const -> QVariantList {
   if (!Ready()) return {};
   auto& repo = Repository();
   const auto all = repo.Fetch();
+  // Counted by what is still here: a deleted key or group stays in a
+  // category's record until it is taken out, but it is no longer in it.
+  auto& keys = AbstractKeyRepository::GetInstance(UsableDefaultChannelHandle());
   QVariantList list;
   for (const auto& id : ordered_ids()) {
     for (const auto& c : all) {
@@ -104,7 +109,11 @@ auto KeyCategoriesController::Categories() const -> QVariantList {
           {QStringLiteral("name"), c.name},
           {QStringLiteral("color"),
            color.isEmpty() ? KeyCategoryFallbackColor(c.id).name() : color},
-          {QStringLiteral("count"), c.key_ids.size()},
+          {QStringLiteral("count"),
+           static_cast<int>(std::count_if(c.key_ids.begin(), c.key_ids.end(),
+                                          [&keys](const QString& id) {
+                                            return keys.GetKey(id) != nullptr;
+                                          }))},
       });
     }
   }

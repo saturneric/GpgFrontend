@@ -109,12 +109,8 @@ auto KeyRoleModel::data(const QModelIndex& index, int role) const -> QVariant {
       return key->IsHasEncrCap();
     case kCanSignRole:
       return key->IsHasSignCap();
-    case kUsableRole: {
-      // A key about to lapse is still a key to use.
-      const auto status = GetKeyStatus(key);
-      return status == GpgKeyStatus::kOk ||
-             status == GpgKeyStatus::kExpiringSoon;
-    }
+    case kUsableRole:
+      return StatusFacts(key).value(QStringLiteral("usable"));
     case kStatusRole:
       return StatusName(GetKeyStatus(key));
     case kStatusTextRole:
@@ -156,6 +152,18 @@ auto KeyRoleModel::setData(const QModelIndex& index, const QVariant& value,
       source, value.toBool() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole);
   if (changed) emit dataChanged(index, index, {kCheckedRole});
   return changed;
+}
+
+auto KeyRoleModel::StatusFacts(const GpgAbstractKey* key) -> QVariantMap {
+  if (key == nullptr) return {};
+  const auto status = GetKeyStatus(key);
+  return {
+      {QStringLiteral("status"), StatusName(status)},
+      {QStringLiteral("statusText"), DescribeKeyStatus(status)},
+      // A key about to lapse is still a key to use.
+      {QStringLiteral("usable"),
+       status == GpgKeyStatus::kOk || status == GpgKeyStatus::kExpiringSoon},
+  };
 }
 
 auto KeyRoleModel::SecretState(const GpgAbstractKey* key) -> QString {

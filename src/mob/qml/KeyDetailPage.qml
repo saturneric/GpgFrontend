@@ -33,6 +33,10 @@ Page {
     // item tree).
     readonly property alias backupQuestion: confirmBackup
 
+    // The head of the page: the key as read now, once it is (after a change
+    // too), else as the list gave it.
+    readonly property var shown: Object.keys(details).length > 0 ? details : key
+
     signal back()
     // The key is gone; the list wants a refresh.
     signal deleted()
@@ -132,8 +136,8 @@ Page {
                 KeyAvatar {
                     Layout.alignment: Qt.AlignTop
                     size: 56
-                    name: page.key.name || page.key.email || ""
-                    usable: page.key.usable === true
+                    name: page.shown.name || page.shown.email || ""
+                    usable: page.shown.usable === true
                 }
 
                 ColumnLayout {
@@ -145,16 +149,16 @@ Page {
                         Layout.fillWidth: true
                         wrapMode: Text.Wrap
                         font.pixelSize: Theme.titleSize
-                        text: page.key.name || page.key.email || page.key.keyId || ""
+                        text: page.shown.name || page.shown.email || page.shown.keyId || ""
                     }
 
                     Label {
                         Layout.fillWidth: true
                         wrapMode: Text.WrapAnywhere
-                        visible: (page.key.name || "").length > 0
-                                 && (page.key.email || "").length > 0
+                        visible: (page.shown.name || "").length > 0
+                                 && (page.shown.email || "").length > 0
                         color: Material.secondaryTextColor
-                        text: page.key.email || ""
+                        text: page.shown.email || ""
                     }
 
                     Flow {
@@ -163,9 +167,9 @@ Page {
                         spacing: 6
 
                         Chip {
-                            visible: (page.key.status || "ok") !== "ok"
-                            text: page.key.statusText || ""
-                            tone: page.key.status === "expiring_soon"
+                            visible: (page.shown.status || "ok") !== "ok"
+                            text: page.shown.statusText || ""
+                            tone: page.shown.status === "expiring_soon"
                                   ? Theme.warning : Theme.danger
                         }
 
@@ -174,7 +178,7 @@ Page {
                         Chip {
                             objectName: "keyCapabilities"
                             visible: text.length > 0
-                            text: page.key.capabilities || ""
+                            text: page.shown.capabilities || ""
                             font.family: Theme.mono
                             tone: Material.secondaryTextColor
                             Accessible.name: Wording.capabilityWords(text)

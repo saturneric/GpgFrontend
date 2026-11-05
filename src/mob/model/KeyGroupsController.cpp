@@ -35,6 +35,7 @@
 #include "core/model/GpgKeyGroup.h"
 #include "core/profile/ProfileSession.h"
 #include "core/utils/GpgUtils.h"
+#include "model/KeyCategoriesController.h"
 #include "model/KeyListController.h"
 #include "shell/rules/KeyGroupRules.h"
 
@@ -211,6 +212,8 @@ auto KeyGroupsController::remove(const QString& id) -> bool {
       categories.RemoveKeyFromCategory(category.id, id);
     }
   }
+  // Their counts and member lists, wherever shown.
+  KeyCategoriesController::NotifyChanged();
   changed();
   return true;
 }

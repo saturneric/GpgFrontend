@@ -94,6 +94,10 @@ AppServices::AppServices(QSharedPointer<BootContext> ctx)
   // Every time the list is read again, the quick path is checked against it.
   QObject::connect(&keys, &KeyListController::SignalRefreshed, &selection,
                    [this]() { selection.KeysRefreshed(); });
+  // A key gone (deleted, another database's) leaves the categories it was
+  // in: their counts are told again.
+  QObject::connect(&keys, &KeyListController::SignalRefreshed, &keys,
+                   []() { KeyCategoriesController::NotifyChanged(); });
 
   // Another key database in use (a switch, here or by the core): its keys
   // and its categories, at once. The old channel's table goes as the new one

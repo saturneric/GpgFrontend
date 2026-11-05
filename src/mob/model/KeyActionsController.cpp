@@ -444,7 +444,10 @@ auto KeyActionsController::describe(const QString& fingerprint) const
        own && IsOpSupported<DeleteUserIdOpTag>(channel)},
   };
 
-  return {
+  // Its state as the key list says it, read now: the page shows it after a
+  // change rather than what the list said when it was opened.
+  auto described = KeyRoleModel::StatusFacts(key.get());
+  described.insert({
       {QStringLiteral("name"), key->Name()},
       {QStringLiteral("email"), key->Email()},
       {QStringLiteral("comment"), key->Comment()},
@@ -473,7 +476,8 @@ auto KeyActionsController::describe(const QString& fingerprint) const
       {QStringLiteral("uids"), uids},
       {QStringLiteral("subkeys"), subkeys},
       {QStringLiteral("can"), can},
-  };
+  });
+  return described;
 }
 
 void KeyActionsController::addSubkey(const QString& fingerprint,

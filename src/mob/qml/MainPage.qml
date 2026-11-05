@@ -218,6 +218,9 @@ Page {
             onDeleted: {
                 StackView.view.pop()
                 KeyListController.refresh()
+                // Said where the person now is: the page that would have said
+                // it is gone.
+                keysPage.notice.show(qsTr("Key deleted."))
             }
         }
     }

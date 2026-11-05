@@ -976,7 +976,9 @@ TEST_F(KeyActionsTest, KeysAreSortedIntoTheDesktopsCategories) {
     EXPECT_EQ(other.keyIdsOf(a_id), QStringList{key});
     categories.setMember(b_id, key, false);
     EXPECT_EQ(other.categoriesOf(key), QStringList{a_id});
-    EXPECT_EQ(other.Categories().at(before).toMap().value("count").toInt(), 1);
+    // Counted by what is in the keyring, as the category's page lists it:
+    // this key ID is only a name here.
+    EXPECT_EQ(other.Categories().at(before).toMap().value("count").toInt(), 0);
 
     // Many at once, as the category page adds them: one change, and a key
     // already in is not counted again.
@@ -1230,6 +1232,56 @@ TEST_F(KeyActionsTest, AGroupWithAMemberGoneIsRefusedNotNarrowed) {
 
     GpgFrontend::Mobile::KeyGroupsController groups;
     EXPECT_TRUE(groups.remove(id));
+  });
+}
+
+// A key's page reads its state anew, as the list says it: after a change it
+// shows the key as it is, not as it was when the page was opened. Deleted, a
+// key no longer counts in the categories it was put in.
+TEST_F(KeyActionsTest, AKeysStateIsReadAnewAndCountsWhileItIsHere) {
+  const auto made = Act([](auto* a) {
+    a->generate("Vera Phone", "vera@mobile.example.invalid", 0, false);
+  });
+  ASSERT_TRUE(made.succeeded);
+  const auto fpr = made.detail.value("fingerprint").toString();
+  QVariantMap described;
+  RunOnMainThread([&]() { described = actions_->describe(fpr); });
+  EXPECT_EQ(described.value("status").toString(), "ok");
+  EXPECT_FALSE(described.value("statusText").toString().isNull());
+  EXPECT_TRUE(described.value("usable").toBool());
+
+  const auto key_id = described.value("keyId").toString();
+  QString holder;
+  RunOnMainThread([&]() {
+    GpgFrontend::Mobile::KeyCategoriesController categories;
+    EXPECT_EQ(categories.add("Vera Holder", categories.suggestColor()), "");
+    for (const auto& c : categories.Categories()) {
+      if (c.toMap().value("name") == "Vera Holder") {
+        holder = c.toMap().value("id").toString();
+      }
+    }
+    ASSERT_FALSE(holder.isEmpty());
+    categories.setMember(holder, key_id, true);
+  });
+  const auto count = [&]() {
+    int n = -1;
+    RunOnMainThread([&]() {
+      GpgFrontend::Mobile::KeyCategoriesController categories;
+      for (const auto& c : categories.Categories()) {
+        if (c.toMap().value("id") == holder) {
+          n = c.toMap().value("count").toInt();
+        }
+      }
+    });
+    return n;
+  };
+  EXPECT_EQ(count(), 1);
+  ASSERT_TRUE(Act([&fpr](auto* a) { a->remove(fpr); }).succeeded);
+  ASSERT_FALSE(HasKey(fpr));
+  EXPECT_EQ(count(), 0);
+  RunOnMainThread([&]() {
+    GpgFrontend::Mobile::KeyCategoriesController categories;
+    categories.remove(holder);
   });
 }
 

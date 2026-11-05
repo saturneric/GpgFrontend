@@ -38,6 +38,7 @@
 #include "files/FileOperations.h"
 #include "files/ShareRetentionStore.h"
 #include "model/ChangeRelay.h"
+#include "model/KeyListController.h"
 #include "shell/present/TranslationUtils.h"
 
 namespace GpgFrontend::Mobile {
@@ -361,6 +362,9 @@ bool SettingsModel::setValue(int row, const QVariant& value) {
 
   emit dataChanged(changed, changed, {kValueRole});
   if (IsOperationSetting(meta)) emit OperationsRelay().SignalChanged();
+  // Which keys are about to lapse is read as the list is: the list again,
+  // its "Expiring soon" category too, at once.
+  if (meta == &SettingItems::kExpiringSoonDays) KeyListController::Reload();
   return true;
 }
 
