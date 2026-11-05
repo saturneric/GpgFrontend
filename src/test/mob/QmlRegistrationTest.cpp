@@ -257,6 +257,21 @@ TEST(QmlRegistrationTest, ExpertChoicesComeFromTheEngine) {
   StoreKeyGenSettings(before);
 }
 
+// Settings names the language in use, the system's until one is chosen.
+TEST(QmlRegistrationTest, SettingsNamesTheLanguage) {
+  RunOnMainThread([]() {
+    QQmlEngine engine;
+    QQmlComponent page_type(&engine, "GpgFrontend.Mobile", "SettingsPage");
+    std::unique_ptr<QObject> page(page_type.create());
+    ASSERT_NE(page, nullptr) << page_type.errorString().toStdString();
+    auto* row = FindItem(page.get(), "language");
+    ASSERT_NE(row, nullptr);
+    EXPECT_EQ(row->property("valueText").toString(),
+              page->property("languageName").toString());
+    EXPECT_FALSE(row->property("valueText").toString().isEmpty());
+  });
+}
+
 // Settings names the key database in use, and its sheet offers the others
 // and a new one by name.
 TEST(QmlRegistrationTest, KeyDatabaseSheetOffersTheDatabases) {

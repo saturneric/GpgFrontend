@@ -73,6 +73,13 @@ class SettingsModel : public QAbstractListModel {
       QString defaultEncrypt READ DefaultEncrypt NOTIFY SignalOperationsChanged)
   Q_PROPERTY(
       QString defaultDecrypt READ DefaultDecrypt NOTIFY SignalOperationsChanged)
+  /// The languages there is a catalog for: [{code, name}], the system's
+  /// own first (code ""), then by name, as the desktop offers them.
+  Q_PROPERTY(QVariantList languages READ Languages NOTIFY SignalLanguageChanged)
+  /// The language chosen ("de_DE"; "" for the system's), the desktop's
+  /// setting. Set, it applies at once: every page is translated again.
+  Q_PROPERTY(QString language READ Language WRITE SetLanguage NOTIFY
+                 SignalLanguageChanged)
 
  public:
   using Item = std::variant<const BoolSetting*, const IntSetting*,
@@ -128,9 +135,14 @@ class SettingsModel : public QAbstractListModel {
   [[nodiscard]] static auto DefaultEncrypt() -> QString;
   [[nodiscard]] static auto DefaultDecrypt() -> QString;
 
+  [[nodiscard]] auto Languages() const -> QVariantList;
+  [[nodiscard]] static auto Language() -> QString;
+  void SetLanguage(const QString& code);
+
  signals:
   void SignalSharedFilesChanged();
   void SignalOperationsChanged();
+  void SignalLanguageChanged();
 
  private:
   QList<Offer> items_;

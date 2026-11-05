@@ -32,6 +32,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/CommonUtils.h"
+#include "shell/present/TranslationUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/dialog/settings/SettingsAdvanced.h"
 #include "ui/dialog/settings/SettingsAppearance.h"
@@ -623,20 +624,8 @@ void SettingsDialog::SlotAccept() {
 auto SettingsDialog::ListLanguages() -> QHash<QString, QString> {
   QHash<QString, QString> languages;
   languages.insert(QString(), tr("System Default"));
-
-  auto filenames = QDir(":/i18n"_L1).entryList();
-  for (const auto& file : filenames) {
-    auto start = file.indexOf('.') + 1;
-    auto end = file.lastIndexOf('.');
-    if (start < 0 || end < 0 || start >= end) continue;
-
-    auto locale = file.mid(start, end - start);
-    QLocale const q_locale(locale);
-
-    if (q_locale.nativeTerritoryName().isEmpty()) continue;
-
-    auto language = q_locale.nativeLanguageName() + " (" + locale + ")";
-    languages.insert(q_locale.name(), language);
+  for (const auto& [locale, name] : AvailableUILanguages()) {
+    languages.insert(locale, name);
   }
   return languages;
 }

@@ -57,6 +57,40 @@ auto Keys(const SettingsModel& model) -> QStringList {
 
 }  // namespace
 
+// The languages there is a catalog for, the system's own first; one chosen
+// is kept and applies at once, and the system's again when asked for.
+TEST(SettingsModelTest, TheLanguageIsChosenAndAppliedAtOnce) {
+  RunOnMainThread([]() {
+    SettingsModel model;
+    const auto languages = model.Languages();
+    ASSERT_GT(languages.size(), 1);
+    EXPECT_TRUE(languages.first().toMap().value("code").toString().isEmpty());
+    QStringList codes;
+    for (const auto& l : languages) codes << l.toMap().value("code").toString();
+    ASSERT_TRUE(codes.contains("de_DE"));
+
+    const auto before = SettingsModel::Language();
+    int heard = 0;
+    QObject::connect(&model, &SettingsModel::SignalLanguageChanged,
+                     [&heard]() { ++heard; });
+    model.SetLanguage("de_DE");
+    EXPECT_EQ(SettingItems::kLanguage.Read(GetSettings()), "de_DE");
+    EXPECT_EQ(SettingsModel::Language(), "de_DE");
+    EXPECT_EQ(QLocale().name(), "de_DE");
+    EXPECT_EQ(heard, 1);
+    // Translated now, without a restart.
+    EXPECT_EQ(model.Languages().first().toMap().value("name").toString(),
+              QCoreApplication::translate("GpgFrontend::Mobile::SettingsModel",
+                                          "System default"));
+    model.SetLanguage("de_DE");
+    EXPECT_EQ(heard, 1);
+
+    model.SetLanguage(before);
+    EXPECT_EQ(SettingsModel::Language(), before);
+    EXPECT_EQ(heard, 2);
+  });
+}
+
 TEST(SettingsModelTest, AValueIsReadAndWrittenThroughTheCatalog) {
   RunOnMainThread([]() {
     SettingsModel model;

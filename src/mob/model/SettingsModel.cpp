@@ -28,6 +28,8 @@
 
 #include "model/SettingsModel.h"
 
+#include <QQmlEngine>
+
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
 #include "core/function/rpgp/PasswordFetcher.h"
@@ -36,6 +38,7 @@
 #include "files/FileOperations.h"
 #include "files/ShareRetentionStore.h"
 #include "model/ChangeRelay.h"
+#include "shell/present/TranslationUtils.h"
 
 namespace GpgFrontend::Mobile {
 
@@ -169,6 +172,38 @@ SettingsModel::SettingsModel(QObject* parent) : QAbstractListModel(parent) {
                      {kValueRole, kChoicesRole});
     emit SignalOperationsChanged();
   });
+}
+
+auto SettingsModel::Languages() const -> QVariantList {
+  QVariantList list{
+      QVariantMap{{QStringLiteral("code"), QString()},
+                  {QStringLiteral("name"), tr("System default")}}};
+  for (const auto& [code, name] : AvailableUILanguages()) {
+    list.append(QVariantMap{{QStringLiteral("code"), code},
+                            {QStringLiteral("name"), name}});
+  }
+  return list;
+}
+
+auto SettingsModel::Language() -> QString {
+  if (!ProfileSession::Loaded()) return {};
+  return SettingItems::kLanguage.Read(GetSettings());
+}
+
+void SettingsModel::SetLanguage(const QString& code) {
+  if (!ProfileSession::Loaded() || code == Language()) return;
+  {
+    auto settings = GetSettings();
+    SettingItems::kLanguage.Write(settings, code);
+  }
+  // As at start (InitLocale(), InstallTranslations()), but now: a phone
+  // application is not started again to change its language.
+  const auto locale =
+      code.trimmed().isEmpty() ? QLocale::system() : QLocale(code);
+  QLocale::setDefault(locale);
+  InstallTranslations(locale);
+  if (auto* engine = qmlEngine(this); engine != nullptr) engine->retranslate();
+  emit SignalLanguageChanged();
 }
 
 auto SettingsModel::DefaultEncrypt() -> QString {

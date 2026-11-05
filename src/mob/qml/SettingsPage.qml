@@ -50,6 +50,14 @@ Page {
         id: phoneProfiles
     }
 
+    // The language in use, by its name.
+    readonly property string languageName: {
+        for (const l of settings.languages) {
+            if (l.code === settings.language) return l.name
+        }
+        return settings.languages.length > 0 ? settings.languages[0].name : ""
+    }
+
     // The count changes behind the model's back as files are shared.
     onVisibleChanged: if (visible) settings.SignalSharedFilesChanged()
 
@@ -151,6 +159,19 @@ Page {
             SectionHeader {
                 Layout.fillWidth: true
                 topPadding: 8
+                text: qsTr("General")
+            }
+
+            ListRow {
+                objectName: "language"
+                Layout.fillWidth: true
+                text: qsTr("Language")
+                valueText: page.languageName
+                onClicked: languageSheet.open()
+            }
+
+            SectionHeader {
+                Layout.fillWidth: true
                 text: qsTr("Security")
             }
 
@@ -293,6 +314,43 @@ Page {
                 text: qsTr("Translators")
                 detail: qsTr("Who brought GpgFrontend to your language.")
                 onClicked: page.translatorsRequested()
+            }
+        }
+    }
+
+    // The languages, one under the other, the one in use ticked; a tap
+    // anywhere on a row chooses it, and every page is in it at once.
+    BottomSheet {
+        id: languageSheet
+
+        objectName: "languageSheet"
+        inset: 0
+        title: qsTr("Language")
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: 0
+
+            Repeater {
+                model: settings.languages
+
+                RadioDelegate {
+                    required property var modelData
+
+                    objectName: "language_" + (modelData.code || "system")
+                    Layout.fillWidth: true
+                    leftPadding: Theme.sheetPad
+                    text: modelData.name
+                    font.pixelSize: Theme.bodySize
+                    // What is in use, always: a tap chooses, it never ticks
+                    // the row itself (that would end the binding).
+                    checkable: false
+                    checked: settings.language === modelData.code
+                    onClicked: {
+                        languageSheet.close()
+                        settings.language = modelData.code
+                    }
+                }
             }
         }
     }

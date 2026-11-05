@@ -56,4 +56,13 @@ struct GF_SHELL_EXPORT TranslationCatalog {
  */
 void GF_SHELL_EXPORT InstallTranslations(const QLocale &locale);
 
+/**
+ * @brief The languages the application has a catalog for, as the language
+ * settings offer them: {locale name ("de_DE"), its own name and the locale
+ * ("Deutsch (de_DE)")}, by that name. Read from the catalogs built in, so
+ * the desktop and the phone offer what each carries. Without the system
+ * default, which each settings page names itself.
+ */
+auto GF_SHELL_EXPORT AvailableUILanguages() -> QList<QPair<QString, QString>>;
+
 }  // namespace GpgFrontend

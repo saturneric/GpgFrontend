@@ -28,7 +28,9 @@
 
 #include "shell/present/TranslationUtils.h"
 
+#include <QDir>
 #include <QTranslator>
+#include <algorithm>
 
 #include "core/utils/BuildInfoUtils.h"
 
@@ -68,6 +70,32 @@ void InstallTranslations(const QLocale &locale) {
   }
   qInfo() << "translations installed for" << locale.name() << ":"
           << installed.size() << "catalogs";
+}
+
+auto AvailableUILanguages() -> QList<QPair<QString, QString>> {
+  // "<name>.<locale>.qm": the application's catalogs and the modules', each
+  // locale once.
+  QHash<QString, QString> languages;
+  for (const auto &file : QDir(u":/i18n"_s).entryList()) {
+    const auto start = file.indexOf('.') + 1;
+    const auto end = file.lastIndexOf('.');
+    if (start <= 0 || end < 0 || start >= end) continue;
+
+    const auto name = file.mid(start, end - start);
+    const QLocale locale(name);
+    if (locale.nativeTerritoryName().isEmpty()) continue;
+    languages.insert(locale.name(),
+                     locale.nativeLanguageName() + " (" + name + ")");
+  }
+
+  QList<QPair<QString, QString>> entries;
+  for (auto it = languages.constBegin(); it != languages.constEnd(); ++it) {
+    entries.append({it.key(), it.value()});
+  }
+  std::sort(entries.begin(), entries.end(), [](const auto &a, const auto &b) {
+    return a.second.localeAwareCompare(b.second) < 0;
+  });
+  return entries;
 }
 
 }  // namespace GpgFrontend
