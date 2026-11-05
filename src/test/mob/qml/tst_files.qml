@@ -303,6 +303,23 @@ Item {
             tryVerify(() => files.fileDetails.opened)
             tryVerify(() => files.fileDetails.sha256.length === 64, 10000)
             compare(files.fileDetails.hashError, "")
+            // Shown by its two ends until asked for whole; copied whole.
+            const hash = files.fileDetails.sha256
+            const shown = findByName(findByName(files.fileDetails.contentItem,
+                                                "fileSha256"), "infoValue")
+            compare(shown.text, hash.slice(0, 8) + "…" + hash.slice(-8))
+            files.fileDetails.hashExpanded = true
+            compare(shown.text, hash)
+            // Name, size and hash: three lines of one height, the copy
+            // button still a full touch target.
+            const content = files.fileDetails.contentItem
+            const heightOf = n => findByName(content, n).height
+            compare(heightOf("fileSha256"), heightOf("fileName"))
+            compare(heightOf("fileSize"), heightOf("fileName"))
+            compare(findByName(content, "fileSha256").parent.height, heightOf("fileName"))
+            compare(findByName(content, "copySha256").height, Theme.touch)
+            // Taking it off the list stays, apart from what is done with it.
+            verify(findByName(files.fileDetails.contentItem, "detailsRemove").visible)
             // "Copied." is about this sheet's copy, not one before.
             const copied = findByName(files.fileDetails.contentItem, "fileCopied")
             copied.visible = true

@@ -192,6 +192,13 @@ QtObject {
         return qsTr("%1 GB").arg((bytes / 1000 / 1000 / 1000).toFixed(1))
     }
 
+    // A long hash at a glance: its first and last eight digits
+    // ("673d0b98…c1e28f54"); whole when it is no longer than that.
+    function shortHash(hash) {
+        return hash.length > 20 ? hash.slice(0, 8) + "\u2026" + hash.slice(-8)
+                                : hash
+    }
+
     // A date nobody can read two ways: 2026-11-03.
     function date(value) {
         return value && !isNaN(value) ? Qt.formatDate(value, "yyyy-MM-dd") : ""
