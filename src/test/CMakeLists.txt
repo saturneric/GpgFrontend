@@ -46,6 +46,7 @@ target_compile_definitions(gf_core_tests PRIVATE GF_TEST_PRIVATE
 target_precompile_headers(gf_core_tests PRIVATE GpgFrontendTest.h)
 target_link_libraries(gf_core_tests PRIVATE GTest::gtest gf_core gf_boot
   gf_res)
+add_test(NAME CoreTests COMMAND gf_core_tests)
 
 # The phone application's own tests.
 if(GF_BUILD_MOBILE)
@@ -135,7 +136,8 @@ target_link_libraries(${LIBRARY_TARGET} PRIVATE gf_ui)
 # check are ones modules depend on and cannot check for themselves.
 target_link_libraries(${LIBRARY_TARGET} PRIVATE gf_sdk)
 
-add_test(AllTestsInGpgFrontend ${LIBRARY_TARGET})
+# Not registered with CTest: this is a library, run by `gpgfrontend -t`, which
+# needs an isolated profile to start headless. scripts/run_tests.sh does that.
 
 # A shared library that writes a file when it is mapped.
 #

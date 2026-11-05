@@ -215,8 +215,10 @@ auto RunTest(const GFCxtWPtr& p_ctx) -> int {
   test_init_args.argv = ctx->argv;
 
   ctx->rtn = kNonRestartCode;
-  GpgFrontend::Test::ExecuteAllTestCaseOffMainThread(test_init_args);
-  return 0;
+  // The GoogleTest result is the exit code, as it is for gf_core_tests:
+  // returning 0 here made a failing run look green to anything but a parser
+  // of its summary.
+  return GpgFrontend::Test::ExecuteAllTestCaseOffMainThread(test_init_args);
 }
 #endif
 
