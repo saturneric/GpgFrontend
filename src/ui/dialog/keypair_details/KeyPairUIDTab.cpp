@@ -347,7 +347,7 @@ void KeyPairUIDTab::slot_del_uid() {
               tr("Are you sure that you want to delete the following UID?")) +
           "</b><br/><br/>" + target_uid.GetUID().toHtmlEscaped() + +"<br/>" +
           tr("The action can not be undone."),
-      QMessageBox::No | QMessageBox::Yes);
+      QMessageBox::No | QMessageBox::Yes, QMessageBox::No);
 
   if (ret == QMessageBox::Yes) {
     const auto uid = target_uid.GetUID();
@@ -392,7 +392,7 @@ void KeyPairUIDTab::slot_set_primary_uid() {
       "<b>" + tr("Are you sure that you want to set the Primary UID to?") +
           "</b><br/><br/>" + keynames + +"<br/>" +
           tr("The action can not be undone."),
-      QMessageBox::No | QMessageBox::Yes);
+      QMessageBox::No | QMessageBox::Yes, QMessageBox::No);
 
   if (ret != QMessageBox::Yes) return;
 
@@ -540,13 +540,14 @@ void KeyPairUIDTab::slot_del_sign() {
     keynames.append("<br/>");
   }
 
-  int ret = QMessageBox::warning(this, tr("Revoke Certification"),
-                                 "<b>" +
-                                     tr("Are you sure that you want to revoke "
-                                        "the following certification?") +
-                                     "</b><br/><br/>" + keynames + +"<br/>" +
-                                     tr("The action can not be undone."),
-                                 QMessageBox::No | QMessageBox::Yes);
+  int ret =
+      QMessageBox::warning(this, tr("Revoke Certification"),
+                           "<b>" +
+                               tr("Are you sure that you want to revoke "
+                                  "the following certification?") +
+                               "</b><br/><br/>" + keynames + +"<br/>" +
+                               tr("The action can not be undone."),
+                           QMessageBox::No | QMessageBox::Yes, QMessageBox::No);
 
   if (ret != QMessageBox::Yes) return;
 

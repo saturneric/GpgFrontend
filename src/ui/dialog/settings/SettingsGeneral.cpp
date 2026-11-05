@@ -150,7 +150,7 @@ GeneralTab::GeneralTab(QWidget* parent)
         tr("Are you sure you want to clear all data objects?\nThis will result "
            "in the loss of all cached form positions, statuses, key servers, "
            "etc."),
-        QMessageBox::Yes | QMessageBox::No);
+        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
     if (reply == QMessageBox::Yes) {
       GlobalSettingStation::GetInstance().ClearAllDataObjects();
       ui_->clearAllDataObjectsButton->setText(

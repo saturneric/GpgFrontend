@@ -171,7 +171,7 @@ void ExportKey::ExecShortPrivate(int channel, const GpgKeyPtr& key) {
 
   int ret = QMessageBox::warning(
       parentWidget(), tr("Exporting Short Private Key"), warning_message,
-      QMessageBox::Cancel | QMessageBox::Ok);
+      QMessageBox::Cancel | QMessageBox::Ok, QMessageBox::Cancel);
   if (ret != QMessageBox::Ok) {
     deleteLater();
     return;
@@ -192,9 +192,9 @@ void ExportKey::ExecPrivate(int channel, const GpgKeyPtr& key) {
       "</p>" + "<p>" +
       tr("Are you <b>ABSOLUTELY SURE</b> you want to proceed?") + "</p>";
 
-  int ret = QMessageBox::warning(parentWidget(), tr("Exporting Private Key"),
-                                 warning_message,
-                                 QMessageBox::Cancel | QMessageBox::Ok);
+  int ret = QMessageBox::warning(
+      parentWidget(), tr("Exporting Private Key"), warning_message,
+      QMessageBox::Cancel | QMessageBox::Ok, QMessageBox::Cancel);
   if (ret != QMessageBox::Ok) {
     deleteLater();
     return;

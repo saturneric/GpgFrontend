@@ -237,7 +237,7 @@ void KeyPairOperaTab::slot_import_revoke_cert() {
           tr("A successful import will result in the key being irreversibly "
              "revoked.") +
           "<br />" + tr("Do you REALLY want to execute this operation?"),
-      QMessageBox::Cancel | QMessageBox::Ok);
+      QMessageBox::Cancel | QMessageBox::Ok, QMessageBox::Cancel);
 
   // export key, if ok was clicked
   if (ret != QMessageBox::Ok) return;

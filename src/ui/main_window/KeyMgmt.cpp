@@ -843,7 +843,7 @@ void KeyMgmt::delete_keys_with_warning(const GpgAbstractKeyPtrList& keys) {
       "<b>" + tr("Are you sure that you want to delete the following keys?") +
           "</b><br/><br/>" + keynames + +"<br/>" +
           tr("The action can not be undone."),
-      QMessageBox::No | QMessageBox::Yes);
+      QMessageBox::No | QMessageBox::Yes, QMessageBox::No);
 
   if (ret == QMessageBox::Yes) {
     const auto deleted = KeyManagementOperation::GetInstance(

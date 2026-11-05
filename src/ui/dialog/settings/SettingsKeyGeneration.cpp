@@ -890,7 +890,9 @@ void KeyGenerationTab::slot_delete() {
           this, tr("Delete Profile"),
           tr("Delete the profile \"%1\"? Keys made with it are not "
              "affected.")
-              .arg(name)) != QMessageBox::Yes) {
+              .arg(name),
+          QMessageBox::Yes | QMessageBox::No,
+          QMessageBox::No) != QMessageBox::Yes) {
     return;
   }
   settings_.profiles.removeAt(row);
