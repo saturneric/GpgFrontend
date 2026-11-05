@@ -356,7 +356,7 @@ class FileWorkspace : public QAbstractListModel {
     QString signer;
     bool symmetric = false;
     bool verify = false;  ///< a decryption checks signatures too
-    int other = -1;  ///< the data a signature is verified over; -1: inline
+    int other = -1;       ///< the data a signature is verified over; -1: inline
     int op_id = 0;   ///< its OperationQueue record
   };
 

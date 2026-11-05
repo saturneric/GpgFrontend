@@ -274,8 +274,8 @@ auto FileWorkspace::receiveFiles(const QList<QUrl>& urls) -> QVariantList {
           entry->available = true;
           entry->size = QFileInfo(path).size();
           entry->content = ClassifyFile(entry->name, path);
-          self->changed(id, {kAvailableRole, kProgressRole, kSizeRole,
-                             kContentRole});
+          self->changed(
+              id, {kAvailableRole, kProgressRole, kSizeRole, kContentRole});
         },
         [self, id](qint64 copied, qint64 total) {
           self->copying(id, copied, total);

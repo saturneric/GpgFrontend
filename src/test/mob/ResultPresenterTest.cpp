@@ -81,14 +81,16 @@ TEST(ResultPresenterTest, AFailedDecryptionSaysWhyAndNoMessageFacts) {
   const auto failed = PresentResult(info);
   EXPECT_EQ(failed.value("reason").toString(), "no_secret_key");
   // The engine's words are kept for the details.
-  EXPECT_TRUE(failed.value("errors").toStringList().contains(
-      "Secret key not found"));
+  EXPECT_TRUE(
+      failed.value("errors").toStringList().contains("Secret key not found"));
   QStringList titles;
   for (const auto& card : failed.value("cards").toList()) {
     titles << card.toMap().value("title").toString();
   }
-  EXPECT_FALSE(titles.contains("Message Metadata")) << titles.join(", ").toStdString();
-  EXPECT_TRUE(titles.contains("Decryption Recipient")) << titles.join(", ").toStdString();
+  EXPECT_FALSE(titles.contains("Message Metadata"))
+      << titles.join(", ").toStdString();
+  EXPECT_TRUE(titles.contains("Decryption Recipient"))
+      << titles.join(", ").toStdString();
 
   // Decrypted: its facts are known, and shown.
   auto ok = Info(1);
@@ -100,7 +102,8 @@ TEST(ResultPresenterTest, AFailedDecryptionSaysWhyAndNoMessageFacts) {
   for (const auto& card : done.value("cards").toList()) {
     titles << card.toMap().value("title").toString();
   }
-  EXPECT_TRUE(titles.contains("Message Metadata")) << titles.join(", ").toStdString();
+  EXPECT_TRUE(titles.contains("Message Metadata"))
+      << titles.join(", ").toStdString();
 }
 
 }  // namespace GpgFrontend::Test::Mobile
