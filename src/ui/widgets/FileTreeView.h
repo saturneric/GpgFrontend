@@ -487,33 +487,6 @@ class FileTreeView : public QTreeView {
                               const QString& target_dir) -> bool;
 
   /**
-   * @brief Copies a file or folder into a target directory.
-   *
-   * Files are copied with QFile::copy(). Directories are copied recursively.
-   * Existing target names are rejected.
-   *
-   * @param source_path Source file or folder path.
-   * @param target_dir Target directory path.
-   * @return true if the copy succeeds, otherwise false.
-   */
-  auto copy_path_to_directory(const QString& source_path,
-                              const QString& target_dir) -> bool;
-
-  /**
-   * @brief Recursively copies one directory to another location.
-   *
-   * Hidden and system entries are included. Unsupported file-system entries
-   * such as symbolic links, sockets or special files are skipped.
-   *
-   * @param source_dir Source directory path.
-   * @param target_dir Target directory path to create and fill.
-   * @return true if the whole directory is copied successfully, otherwise
-   * false.
-   */
-  auto copy_directory_recursive(const QString& source_dir,
-                                const QString& target_dir) -> bool;
-
-  /**
    * @brief Returns the path of the current target directory.
    *
    * If the current index is a directory, that directory is returned. If it is a

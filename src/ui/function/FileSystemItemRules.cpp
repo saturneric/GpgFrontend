@@ -120,4 +120,75 @@ auto IsSameDirectoryOperation(const QStringList& source_paths,
   return true;
 }
 
+namespace {
+/// How deep a copied folder may nest. Far beyond any real tree; what it stops
+/// is a folder that contains itself through some path not seen here.
+constexpr int kMaxCopyDepth = 128;
+
+}  // namespace
+
+auto CopyIntoDirectory(const QString& source, const QString& target_dir,
+                       QStringList& errors, int depth) -> bool {
+  const QFileInfo info(source);
+  const auto name = info.fileName();
+  const auto target = QDir(target_dir).absoluteFilePath(name);
+
+  if (info.isSymLink()) {
+    errors.append(
+        QCoreApplication::translate("GpgFrontend::UI::FileTreeView",
+                                    "\"%1\" is a link and was not copied.")
+            .arg(name));
+    return false;
+  }
+  if (depth > kMaxCopyDepth) {
+    errors.append(QCoreApplication::translate("GpgFrontend::UI::FileTreeView",
+                                              "\"%1\" is nested too deeply.")
+                      .arg(name));
+    return false;
+  }
+  if (QFileInfo::exists(target) || QFileInfo(target).isSymLink()) {
+    errors.append(QCoreApplication::translate(
+                      "GpgFrontend::UI::FileTreeView",
+                      "\"%1\" already exists in the target folder.")
+                      .arg(name));
+    return false;
+  }
+
+  if (info.isFile()) {
+    if (QFile::copy(info.absoluteFilePath(), target)) return true;
+    errors.append(QCoreApplication::translate("GpgFrontend::UI::FileTreeView",
+                                              "Unable to copy \"%1\".")
+                      .arg(name));
+    return false;
+  }
+
+  if (!info.isDir()) {
+    errors.append(
+        QCoreApplication::translate("GpgFrontend::UI::FileTreeView",
+                                    "\"%1\" is not a regular file or folder.")
+            .arg(name));
+    return false;
+  }
+
+  if (!QDir(target_dir).mkdir(name)) {
+    errors.append(
+        QCoreApplication::translate("GpgFrontend::UI::FileTreeView",
+                                    "Unable to create the folder \"%1\".")
+            .arg(name));
+    return false;
+  }
+
+  bool all_ok = true;
+  const auto entries =
+      QDir(info.absoluteFilePath())
+          .entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries |
+                             QDir::Hidden | QDir::System,
+                         QDir::DirsFirst | QDir::Name);
+  for (const auto& entry : entries) {
+    all_ok &=
+        CopyIntoDirectory(entry.absoluteFilePath(), target, errors, depth + 1);
+  }
+  return all_ok;
+}
+
 }  // namespace GpgFrontend::UI

@@ -1113,27 +1113,57 @@ void FileTreeView::dropEvent(QDropEvent* event) {
 
   QStringList result_paths;
   bool all_ok = true;
-  bool detailed_error_shown = false;
 
-  for (const auto& source_path : source_paths) {
-    const QFileInfo source_info(source_path);
-    const auto new_path =
-        QDir(target_dir).absoluteFilePath(source_info.fileName());
-
-    bool ok = false;
-    if (internal_drag) {
-      ok = move_path_to_directory(source_path, target_dir);
-    } else {
-      ok = copy_path_to_directory(source_path, target_dir);
+  if (internal_drag) {
+    for (const auto& source_path : source_paths) {
+      if (!move_path_to_directory(source_path, target_dir)) {
+        all_ok = false;
+        continue;
+      }
+      result_paths.append(
+          QDir(target_dir).absoluteFilePath(QFileInfo(source_path).fileName()));
     }
-
-    if (!ok) {
-      all_ok = false;
-      detailed_error_shown = true;
-      continue;
+  } else {
+    // Off the GUI thread: a large folder used to be copied inside dropEvent,
+    // with the window frozen until it was done.
+    struct CopyOutcome {
+      QStringList copied;
+      QStringList errors;
+    };
+    auto outcome = std::make_shared<CopyOutcome>();
+    GpgOperaHelper::WaitForOpera(
+        this, tr("Copying"),
+        [outcome, source_paths, target_dir](const OperaWaitingHd& hd) {
+          RunOperaAsync(
+              [outcome, source_paths,
+               target_dir](const DataObjectPtr&) -> GFOperaStatus {
+                for (const auto& source_path : source_paths) {
+                  if (CopyIntoDirectory(source_path, target_dir,
+                                        outcome->errors)) {
+                    outcome->copied.append(
+                        QDir(target_dir)
+                            .absoluteFilePath(
+                                QFileInfo(source_path).fileName()));
+                  }
+                }
+                return 0;
+              },
+              [hd](GFOperaStatus, const DataObjectPtr&) { hd(); },
+              "file_panel_copy");
+        });
+    result_paths = outcome->copied;
+    all_ok = outcome->errors.isEmpty();
+    if (!all_ok) {
+      // One report for the whole drop, naming what went wrong; it used to be
+      // a dialog per failure, or nothing at all.
+      auto shown = outcome->errors.mid(0, 10);
+      if (outcome->errors.size() > shown.size()) {
+        shown.append(
+            tr("... and %1 more.").arg(outcome->errors.size() - shown.size()));
+      }
+      QMessageBox::warning(this, tr("Copy Partially Completed"),
+                           shown.join(QChar::LineFeed));
     }
-
-    result_paths.append(new_path);
   }
 
   refresh_current_path_and_select_paths(result_paths);
@@ -1147,119 +1177,12 @@ void FileTreeView::dropEvent(QDropEvent* event) {
                      : tr("Copied %1 item(s).").arg(result_paths.size()));
   }
 
-  if (!all_ok && !detailed_error_shown) {
+  if (!all_ok && internal_drag) {
     QMessageBox::warning(
-        this,
-        internal_drag ? tr("Move Partially Completed")
-                      : tr("Copy Partially Completed"),
-        internal_drag
-            ? tr("Some items could not be moved. Please check permissions or "
-                 "whether the target is on another volume.")
-            : tr("Some items could not be copied. Please check permissions."));
+        this, tr("Move Partially Completed"),
+        tr("Some items could not be moved. Please check permissions or "
+           "whether the target is on another volume."));
   }
-}
-
-auto FileTreeView::copy_path_to_directory(const QString& source_path,
-                                          const QString& target_dir) -> bool {
-  const QFileInfo source_info(source_path);
-  const QFileInfo target_info(target_dir);
-
-  if (!source_info.exists() || !target_info.exists() || !target_info.isDir()) {
-    return false;
-  }
-
-  if (!target_info.isWritable()) {
-    return false;
-  }
-
-  const auto target_path =
-      QDir(target_dir).absoluteFilePath(source_info.fileName());
-
-  if (QFileInfo::exists(target_path)) {
-    QMessageBox::warning(
-        this, tr("Copy Failed"),
-        tr("A file or folder named \"%1\" already exists in the target folder.")
-            .arg(source_info.fileName()));
-    return false;
-  }
-
-  if (source_info.isDir()) {
-    return copy_directory_recursive(source_info.absoluteFilePath(),
-                                    target_path);
-  }
-
-  if (source_info.isFile()) {
-    if (!QFile::copy(source_info.absoluteFilePath(), target_path)) {
-      QMessageBox::warning(
-          this, tr("Copy Failed"),
-          tr("Unable to copy \"%1\". Please check permissions.")
-              .arg(source_info.fileName()));
-      return false;
-    }
-
-    return true;
-  }
-
-  QMessageBox::warning(this, tr("Copy Failed"),
-                       tr("\"%1\" is not a regular file or folder.")
-                           .arg(source_info.fileName()));
-  return false;
-}
-
-auto FileTreeView::copy_directory_recursive(const QString& source_dir,
-                                            const QString& target_dir) -> bool {
-  const QDir source(source_dir);
-
-  if (!source.exists()) {
-    return false;
-  }
-
-  if (QFileInfo::exists(target_dir)) {
-    QMessageBox::warning(this, tr("Copy Failed"),
-                         tr("The target folder \"%1\" already exists.")
-                             .arg(QFileInfo(target_dir).fileName()));
-    return false;
-  }
-
-  QDir target_parent(QFileInfo(target_dir).absolutePath());
-  if (!target_parent.mkpath(QFileInfo(target_dir).fileName())) {
-    QMessageBox::warning(this, tr("Copy Failed"),
-                         tr("Unable to create target folder \"%1\".")
-                             .arg(QFileInfo(target_dir).fileName()));
-    return false;
-  }
-
-  const auto entries = source.entryInfoList(
-      QDir::NoDotAndDotDot | QDir::AllEntries | QDir::Hidden | QDir::System,
-      QDir::DirsFirst | QDir::Name);
-
-  for (const auto& entry : entries) {
-    const auto source_path = entry.absoluteFilePath();
-    const auto target_path =
-        QDir(target_dir).absoluteFilePath(entry.fileName());
-
-    if (entry.isDir()) {
-      if (!copy_directory_recursive(source_path, target_path)) {
-        return false;
-      }
-      continue;
-    }
-
-    if (entry.isFile()) {
-      if (!QFile::copy(source_path, target_path)) {
-        QMessageBox::warning(
-            this, tr("Copy Failed"),
-            tr("Unable to copy \"%1\".").arg(entry.fileName()));
-        return false;
-      }
-      continue;
-    }
-
-    // symbolic links, special files, sockets, etc.
-    LOG_W() << "skip unsupported file system entry:" << source_path;
-  }
-
-  return true;
 }
 
 void FileTreeView::SlotCopyPath() {
