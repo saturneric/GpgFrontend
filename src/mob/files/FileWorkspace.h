@@ -175,6 +175,18 @@ class FileWorkspace : public QAbstractListModel {
   /// worked on stays.
   Q_INVOKABLE void remove(const QVariantList& ids);
 
+  /// Whether @p op ("encrypt", "encrypt_sign", "symmetric", "sign",
+  /// "decrypt", "decrypt_verify", "verify") can be done to files called
+  /// @p names, by the desktop's rule (Shell::FileOperationAllowed). Whether
+  /// they are free to take one is the page's.
+  [[nodiscard]] Q_INVOKABLE bool allows(const QString& op,
+                                        const QStringList& names) const;
+
+  /// What a file called @p name is for verifying, by the desktop's rule
+  /// (Shell::MatchVerifyFile): {role: "combined", "signature" or "data",
+  /// partners: the names its other half may have, likeliest first}.
+  [[nodiscard]] Q_INVOKABLE QVariantMap verifyMatch(const QString& name) const;
+
   /// remove() everything.
   Q_INVOKABLE void clear();
 

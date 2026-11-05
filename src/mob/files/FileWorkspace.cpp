@@ -281,6 +281,45 @@ auto FileWorkspace::receiveFiles(const QList<QUrl>& urls) -> QVariantList {
   return ids;
 }
 
+auto FileWorkspace::allows(const QString& op, const QStringList& names) const
+    -> bool {
+  std::optional<Shell::FileOperation> kind;
+  if (op == QStringLiteral("encrypt") || op == QStringLiteral("encrypt_sign") ||
+      op == QStringLiteral("symmetric")) {
+    kind = Shell::FileOperation::kEncrypt;
+  } else if (op == QStringLiteral("sign")) {
+    kind = Shell::FileOperation::kSign;
+  } else if (op == QStringLiteral("decrypt") ||
+             op == QStringLiteral("decrypt_verify")) {
+    kind = Shell::FileOperation::kDecrypt;
+  } else if (op == QStringLiteral("verify")) {
+    kind = Shell::FileOperation::kVerify;
+  }
+  if (!kind) return false;
+
+  QList<Shell::FileOperand> operands;
+  for (const auto& name : names) operands.append({.name = name});
+  return Shell::FileOperationAllowed(*kind, operands);
+}
+
+auto FileWorkspace::verifyMatch(const QString& name) const -> QVariantMap {
+  const auto match = Shell::MatchVerifyFile(name);
+  QString role;
+  switch (match.role) {
+    case Shell::VerifyFileRole::kCombined:
+      role = QStringLiteral("combined");
+      break;
+    case Shell::VerifyFileRole::kSignature:
+      role = QStringLiteral("signature");
+      break;
+    case Shell::VerifyFileRole::kData:
+      role = QStringLiteral("data");
+      break;
+  }
+  return {{QStringLiteral("role"), role},
+          {QStringLiteral("partners"), match.partner_names}};
+}
+
 void FileWorkspace::remove(const QVariantList& ids) {
   const auto was = Busy();
   bool selection = false;

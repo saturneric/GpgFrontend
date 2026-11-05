@@ -87,22 +87,10 @@ Page {
         if (entries.length === 0) return false
         const usable = e => e.available === true && e.phase !== "queued"
                             && e.phase !== "running"
-        const related = e => (e.content || "").length > 0
         if (!entries.every(usable)) return false
-        switch (op) {
-        case "encrypt":
-        case "encrypt_sign":
-        case "symmetric":
-        case "sign":
-            return entries.every(e => !related(e))
-        case "decrypt":
-        case "decrypt_verify":
-            return entries.every(e => e.content === "message")
-        case "verify":
-            return entries.length === 1 && related(entries[0])
-        default:
-            return false
-        }
+        // Verify takes one file here: the verify sheet pairs it.
+        if (op === "verify" && entries.length !== 1) return false
+        return files.allows(op, entries.map(e => e.name || ""))
     }
 
     // @p op on @p ids, as the Text page runs one on its text.

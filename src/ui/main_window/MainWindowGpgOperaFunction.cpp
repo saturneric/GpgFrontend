@@ -36,6 +36,12 @@
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 #include "core/utils/MemoryUtils.h"
+#include "shell/present/InfoBoardCardConverter.h"
+#include "shell/rules/EncryptBlockReason.h"
+#include "shell/rules/FileNameRules.h"
+#include "shell/rules/FileOperationRules.h"
+#include "shell/rules/RecipientConfirm.h"
+#include "shell/rules/RecipientRules.h"
 #include "ui/dialog/KeysPicker.h"
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/function/InfoBoardCardConverter.h"
@@ -1044,12 +1050,14 @@ void MainWindow::SlotFileVerify(const QStringList& paths) {
     QString sign_file_path = path;
     QString data_file_path;
 
+    // The phone's verify sheet pairs by the same rule.
+    const auto match = Shell::MatchVerifyFile(info.fileName());
     bool const possible_singleton_target =
-        info.suffix() == "gpg" || info.suffix() == "pgp";
+        match.role == Shell::VerifyFileRole::kCombined;
     if (possible_singleton_target) {
       swap(data_file_path, sign_file_path);
-    } else {
-      data_file_path = info.path() + "/" + info.completeBaseName();
+    } else if (!match.partner_names.isEmpty()) {
+      data_file_path = info.path() + "/" + match.partner_names.first();
     }
 
     auto data_file_info = QFileInfo(data_file_path);

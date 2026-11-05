@@ -159,10 +159,10 @@ Item {
 
         // The desktop's rule for file operations, by what the names say.
         function test_operations_follow_what_the_files_are() {
-            const plain = {"available": true, "content": ""}
-            const message = {"available": true, "content": "message"}
-            const signature = {"available": true, "content": "signature"}
-            const gone = {"available": false, "content": ""}
+            const plain = {"available": true, "name": "notes.txt", "content": ""}
+            const message = {"available": true, "name": "notes.txt.gpg", "content": "message"}
+            const signature = {"available": true, "name": "notes.txt.sig", "content": "signature"}
+            const gone = {"available": false, "name": "gone.txt", "content": ""}
             verify(files.allowed("encrypt", [plain]))
             verify(files.allowed("encrypt_sign", [plain]))
             verify(files.allowed("symmetric", [plain]))

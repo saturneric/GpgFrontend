@@ -31,7 +31,10 @@ BottomSheet {
         originalId = -1
         signatureHow = ""
         originalHow = ""
-        const looksSigned = /\.(sig|asc)$/i.test(file.name || "")
+        // The desktop's rule for what a name is and what its other half
+        // is called.
+        const match = workspace.verifyMatch(file.name || "")
+        const looksSigned = match.role === "signature"
         if (file.madeBy === "sign") {
             signatureId = id
             if (workspace.entry(file.sourceId).fileId !== undefined) {
@@ -40,10 +43,9 @@ BottomSheet {
             }
         } else if (looksSigned) {
             signatureId = id
-            const base = file.name.replace(/\.(sig|asc)$/i, "")
-            const match = findByName(base)
-            if (match >= 0) {
-                originalId = match
+            const found = findFirst(match.partners)
+            if (found >= 0) {
+                originalId = found
                 originalHow = "suggested"
             }
         } else {
@@ -53,10 +55,10 @@ BottomSheet {
                 signatureId = made
                 signatureHow = "linked"
             } else {
-                const match = findByName(file.name + ".sig")
-                const armored = findByName(file.name + ".asc")
-                if (match >= 0 || armored >= 0) {
-                    signatureId = match >= 0 ? match : armored
+                const found = findFirst(match.role === "data" ? match.partners
+                                                    : [file.name + ".sig", file.name + ".asc"])
+                if (found >= 0) {
+                    signatureId = found
                     signatureHow = "suggested"
                 }
             }
@@ -66,6 +68,15 @@ BottomSheet {
 
     function findByName(name) {
         return workspace.idNamed(name)
+    }
+
+    // The first of @p names in the list; -1 when none is.
+    function findFirst(names) {
+        for (let i = 0; i < names.length; ++i) {
+            const id = findByName(names[i])
+            if (id >= 0) return id
+        }
+        return -1
     }
 
     // The signature made here of the file @p id, if one is still listed.

@@ -31,6 +31,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
 #include "core/profile/ProfileSession.h"
+#include "shell/rules/FileOperationRules.h"
 #include "ui/UISignalStation.h"
 #include "ui/function/FileTypeUtils.h"
 #include "ui/main_window/MainWindow.h"
@@ -344,12 +345,18 @@ void FilePage::update_main_basic_opera_menu(const QStringList& selected_paths) {
     infos.append(QFileInfo(path));
   }
 
-  bool c_encr =
-      std::all_of(infos.cbegin(), infos.cend(), [](const QFileInfo& info) {
-        return (info.isDir() || info.isFile()) && !IsOpenPGPRelatedFile(info);
-      });
+  // The phone's Files page applies the same rule.
+  QList<Shell::FileOperand> operands;
+  for (const auto& info : infos) {
+    operands.append({.name = info.fileName(),
+                     .is_file = info.isFile(),
+                     .is_dir = info.isDir()});
+  }
+  const auto allowed = [&operands](Shell::FileOperation op) {
+    return Shell::FileOperationAllowed(op, operands);
+  };
 
-  if (c_encr) {
+  if (allowed(Shell::FileOperation::kEncrypt)) {
     operation_type |= MainWindow::OperationMenu::kEncrypt |
                       MainWindow::OperationMenu::kEncryptAndSign |
                       MainWindow::OperationMenu::kSymmetricEncrypt;
