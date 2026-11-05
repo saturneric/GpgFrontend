@@ -115,9 +115,6 @@ Page {
                 onImportRequested: importSheet.begin()
                 onGenerateRequested: generateSheet.begin()
                 onQuickGenerateRequested: generateSheet.quick()
-                onCategoryOpened: function(category) {
-                    stack.push(categoryKeysPage, {"category": category})
-                }
                 onCategoriesManageRequested: stack.push(categoriesPage)
                 onGroupOpened: function(id, pick) {
                     stack.push(keyGroupPage, {"groupId": id, "pickOnOpen": pick})

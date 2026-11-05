@@ -105,8 +105,7 @@ Page {
 
             width: ListView.view.width
             inert: true
-            image: modelData.isGroup ? "qrc:/icons/key-group.png" : ""
-            symbol: modelData.isGroup ? "" : modelData.missing ? "warning" : "key"
+            symbol: modelData.isGroup ? "group" : modelData.missing ? "warning" : "key"
             symbolColor: modelData.missing ? Theme.warning : Material.secondaryTextColor
             text: modelData.name || modelData.email || modelData.id
             detail: modelData.missing ? qsTr("No longer in your keys")

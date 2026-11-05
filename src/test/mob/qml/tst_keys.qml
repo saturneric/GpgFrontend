@@ -157,6 +157,29 @@ Item {
             compare(button.text, "All keys")
             compare(findByName(keys, "categoryChips"), null)
             compare(findByName(keys, "categoryChip_new"), null)
+
+            // Only a colour and an arrow, as narrow whatever the category is
+            // called; its name is said aloud. All keys: an empty ring.
+            const width = button.width
+            const mark = findByName(button, "categoryMark")
+            verify(Qt.colorEqual(mark.color, "transparent"))
+            verify(mark.border.width > 0)
+            verify(button.Accessible.name.indexOf("All keys") >= 0)
+            button.category = {"id": "x", "color": "#d32f2f",
+                               "name": "A category with a very long name indeed"}
+            compare(button.width, width)
+            verify(Qt.colorEqual(mark.color, "#d32f2f"))
+            compare(mark.border.width, 0)
+            verify(button.Accessible.name.indexOf("very long name") >= 0)
+            button.category = {"id": "", "name": "All keys", "color": ""}
+
+            // The search beside it takes the rest; both drawn 44 high, both
+            // still a full touch target.
+            const search = findByName(keys, "keySearch")
+            verify(search.width > 3 * button.width)
+            compare(search.background.height, 44)
+            compare(button.background.height, 44)
+            verify(search.height >= 48 && button.height >= 48)
         }
 
         // Switching databases: choosing is one sheet, the switch another,
@@ -248,10 +271,10 @@ Item {
             const can = findByName(row, "keyCapabilities")
             verify(can.visible)
             compare(can.Accessible.name, "Encrypt, Sign")
-            // The letters in the chip the key's own page shows them in.
+            // The letters as quiet text, nothing that looks pressable.
             compare(can.text, "ES")
             compare(can.font.family, Theme.mono)
-            verify(can.tone !== undefined, "a Chip")
+            verify(can.tone === undefined, "not a Chip")
             compare(Wording.capabilityWords("CESA"),
                     "Certify, Encrypt, Sign, Authenticate")
             // Once the key ID has a line of its own, the letters go beside
@@ -263,7 +286,10 @@ Item {
             verify(findByName(row, "keyCapabilitiesBelow").visible)
             // The key ID keeps its place however long the address is.
             verify(findByName(row, "keyId").visible)
-            compare(findByName(row, "keyId").text, "0123456789ABCDEF")
+            // The list shows the short key ID; it is read out whole.
+            compare(findByName(row, "keyId").text, "89ABCDEF")
+            // A key group shows people, from the icons every page uses.
+            compare(findByName(group, "groupMark").symbol, "group")
         }
 
         function test_a_picker_takes_many_keys_and_keeps_those_already_in() {

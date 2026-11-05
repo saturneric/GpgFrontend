@@ -9,11 +9,13 @@ import GpgFrontend.Mobile
 // A key as every list shows it -- the Keys page, the key pickers, a group's
 // members, a new key -- the same everywhere:
 //  - who it is (the name, else the address), what it can do in GnuPG's
-//    letters (CESA: certify, encrypt, sign, authenticate) on a tint of
-//    their own, and GnuPG's mark for what of it is here (pub, sec, sec#,
-//    sec>), always last, in the accent;
-//  - the address, and the key ID always in the same place at the right, in
-//    the desktop's monospace, never pushed out by a long address;
+//    letters (CESA: certify, encrypt, sign, authenticate), quiet, as text,
+//    and GnuPG's mark for what of it is here (pub, sec, sec#, sec>), always
+//    last, in the accent;
+//  - the address, and the short key ID (its last eight digits; the key's
+//    own page has it whole, and the fingerprint) always in the same place
+//    at the right, in the desktop's monospace, never pushed out by a long
+//    address;
 //  - only when there is something to say: what is wrong with it (expired,
 //    revoked) or a note from the list that shows it.
 // A key group shows its mark and how many keys it holds. Controls declared
@@ -51,14 +53,17 @@ RowLayout {
 
     spacing: 12
 
-    // What it can do: GnuPG's letters in a chip, so they never read as part
-    // of the mark beside them; the same chip as on the key's own page.
-    component CapabilityPill: Chip {
+    // What it can do: GnuPG's letters, quiet beside the mark, in the
+    // secondary colour where the mark is in the accent, so they never read
+    // as part of it or as something to press.
+    component CapabilityPill: Label {
         property string letters
 
         text: letters
         font.family: Theme.mono
-        tone: Material.secondaryTextColor
+        font.pixelSize: Theme.labelSize
+        font.letterSpacing: 1
+        color: Material.secondaryTextColor
         Accessible.role: Accessible.StaticText
         Accessible.name: Wording.capabilityWords(letters)
     }
@@ -74,7 +79,7 @@ RowLayout {
         usable: face.usable
     }
 
-    // A key group: the desktop's mark for one.
+    // A key group: people, on the tint a key's avatar has.
     Rectangle {
         Layout.alignment: Qt.AlignTop
         Layout.topMargin: 2
@@ -84,12 +89,12 @@ RowLayout {
         radius: 20
         color: Theme.alpha(Material.accentColor, 0.12)
 
-        Image {
+        Icon {
             objectName: "groupMark"
             Accessible.ignored: true
             anchors.centerIn: parent
-            source: "qrc:/icons/key-group.png"
-            sourceSize: Qt.size(24, 24)
+            symbol: "group"
+            color: Material.accentColor
             opacity: face.usable ? 1 : 0.5
         }
     }
@@ -168,7 +173,7 @@ RowLayout {
                 Label {
                     objectName: "keyId"
                     Accessible.ignored: true
-                    text: face.keyId
+                    text: face.keyId.slice(-8)
                     font.family: Theme.mono
                     font.pixelSize: Theme.labelSize
                     color: Material.secondaryTextColor

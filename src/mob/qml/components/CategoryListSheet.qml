@@ -9,8 +9,8 @@ import GpgFrontend.Mobile
 // The key categories to choose from, one under the other: All keys, the
 // person's own, then the ready-made ones; the one shown is ticked. At the
 // foot, apart from them, making a new category and managing them -- never
-// confused with adding a key. One of the person's own also opens, to see and
-// change who is in it.
+// confused with adding a key. A whole row chooses; who is in a category is
+// seen and changed under Manage categories.
 BottomSheet {
     id: sheet
 
@@ -20,13 +20,10 @@ BottomSheet {
     property string current: ""
     // Offer New category and Manage categories.
     property bool manageable: true
-    // Ids of the person's own categories, which open.
-    property var ownIds: []
 
     signal chosen(var category)
     signal newRequested()
     signal manageRequested()
-    signal openRequested(var category)
 
     readonly property var all: [{"id": "", "name": qsTr("All keys"), "color": ""}]
                                .concat(entries)
@@ -48,7 +45,6 @@ BottomSheet {
                 id: row
 
                 required property var modelData
-                readonly property bool own: sheet.ownIds.includes(modelData.id)
 
                 objectName: "category_" + (modelData.id || "all")
                 Layout.fillWidth: true
@@ -80,17 +76,6 @@ BottomSheet {
                         text: row.text
                         wrapMode: Text.Wrap
                         font.pixelSize: Theme.bodySize
-                    }
-
-                    // One's own category: who is in it.
-                    BarButton {
-                        visible: row.own && sheet.manageable
-                        text: qsTr("Keys in %1").arg(row.modelData.name)
-                        icon.source: Theme.icon("chevron_right")
-                        onClicked: {
-                            sheet.close()
-                            sheet.openRequested(row.modelData)
-                        }
                     }
 
                     // The radio button's room, as the style's own label keeps it.

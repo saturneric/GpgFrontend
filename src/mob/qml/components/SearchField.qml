@@ -14,8 +14,17 @@ TextField {
 
     // What to search for, shown while nothing is typed.
     property string hint
+    // How tall the pill is drawn; the field itself stays a full touch
+    // target, and grows with the text size.
+    property int pillHeight: Theme.touch
 
-    implicitHeight: Theme.touch
+    // Taller only when its text needs it (large text): by the font, not by
+    // the field's own content, which follows its height.
+    implicitHeight: Math.max(Theme.touch, pillHeight,
+                             Math.ceil(lineMetrics.height) + 2 * Theme.gapSmall)
+    // The pill this much inside the touch target, and growing with it.
+    topInset: Math.max(0, (Theme.touch - pillHeight) / 2)
+    bottomInset: Math.max(0, (Theme.touch - pillHeight) / 2)
     leftPadding: 44
     rightPadding: clearButton.visible ? 48 : Theme.gap
     topPadding: 0
@@ -25,6 +34,11 @@ TextField {
     font.pixelSize: Theme.secondarySize + 1
     Accessible.role: Accessible.EditableText
     Accessible.name: hint
+
+    FontMetrics {
+        id: lineMetrics
+        font: field.font
+    }
 
     background: Rectangle {
         radius: height / 2
@@ -46,10 +60,10 @@ TextField {
 
     Icon {
         anchors.left: parent.left
-        anchors.leftMargin: 12
+        anchors.leftMargin: 14
         anchors.verticalCenter: parent.verticalCenter
         symbol: "search"
-        sourceSize: Qt.size(20, 20)
+        sourceSize: field.pillHeight < Theme.touch ? Qt.size(18, 18) : Qt.size(20, 20)
         color: Material.secondaryTextColor
     }
 

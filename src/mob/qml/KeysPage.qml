@@ -19,8 +19,6 @@ Page {
     signal generateRequested()
     // An anonymous key from the default profile, at once.
     signal quickGenerateRequested()
-    // A category of the person's own, to see and change who is in it.
-    signal categoryOpened(var category)
     // The categories, to add, edit, order and remove.
     signal categoriesManageRequested()
     // A key group to open (by its id); @p pick: ask for its keys at once.
@@ -131,11 +129,9 @@ Page {
             entries: page.categoryEntries
             category: page.category
             manageable: true
-            ownIds: categoryStore.categories.map(c => c.id)
             onCategoryChosen: id => page.category = id
             onNewRequested: newCategory.begin(null)
             onManageRequested: page.categoriesManageRequested()
-            onOpenRequested: category => page.categoryOpened(category)
         }
 
         ListView {
@@ -320,7 +316,8 @@ Page {
             objectName: "newKeyGroup"
             Layout.fillWidth: true
             leftPadding: Theme.sheetPad
-            image: "qrc:/icons/key-group.png"
+            symbol: "group"
+            symbolColor: Material.accentColor
             text: qsTr("New key group")
             detail: qsTr("Encrypt to several keys at once, as one recipient.")
             onClicked: {
