@@ -71,11 +71,17 @@ fn lock_memory(buf: &[u8]) -> io::Result<()> {
     }
 }
 
+/// Bytes handed to `unlock_memory`, so a test can see the unlock happen.
+#[cfg(test)]
+static UNLOCKED_BYTES: AtomicU64 = AtomicU64::new(0);
+
 #[cfg(unix)]
 fn unlock_memory(buf: &[u8]) -> io::Result<()> {
     if buf.is_empty() {
         return Ok(());
     }
+    #[cfg(test)]
+    UNLOCKED_BYTES.fetch_add(buf.len() as u64, Ordering::SeqCst);
 
     let ret = unsafe { libc::munlock(buf.as_ptr() as *const libc::c_void, buf.len()) };
 
@@ -150,13 +156,16 @@ impl CachedSecret {
 
 impl Drop for CachedSecret {
     fn drop(&mut self) {
-        // Zero the memory before dropping.
-        self.data.zeroize();
+        // Zero the bytes where they are, keeping the length: `Vec::zeroize`
+        // also empties the Vec, and unlocking an empty one unlocked nothing,
+        // so every cached passphrase left its pages locked.
+        self.data.as_mut_slice().zeroize();
 
         // Unlock the memory if it was successfully locked. This is a best-effort attempt;
         if self.locked {
             let _ = unlock_memory(&self.data);
         }
+        self.data.zeroize();
     }
 }
 
@@ -340,6 +349,22 @@ mod tests {
             fpr: "DEADBEEF".to_string(),
             info: "decrypt".to_string(),
         }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_dropped_secret_unlocks_what_it_locked() {
+        // An odd size, so the bytes counted below are this secret's own.
+        const LEN: usize = 4099;
+        let secret = CachedSecret::new(vec![0x5a; LEN]);
+        if !secret.locked {
+            // mlock refused (RLIMIT_MEMLOCK): there is nothing to unlock.
+            return;
+        }
+        let before = UNLOCKED_BYTES.load(Ordering::SeqCst);
+        drop(secret);
+        let after = UNLOCKED_BYTES.load(Ordering::SeqCst);
+        assert!(after - before >= LEN as u64, "unlocked {}", after - before);
     }
 
     #[test]
