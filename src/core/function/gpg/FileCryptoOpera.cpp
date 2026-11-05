@@ -59,6 +59,14 @@ auto ExtractArchiveHelper(const QString& out_path,
   return ex;
 }
 
+/// Why @p a or @p b could not be set up, or GPG_ERR_NO_ERROR. Checked before
+/// gpgme is called: a file that could not be opened is reported as that, not
+/// as gpgme refusing to be handed no data.
+auto DataError(const GpgData& a, const GpgData& b) -> GpgError {
+  if (a.Error() != GPG_ERR_NO_ERROR) return a.Error();
+  return b.Error();
+}
+
 // gpg succeeding says nothing about the archive: the tar inside may be
 // malformed, or a write may have failed half way. Report that as a failure so
 // the caller discards the staged output instead of committing a partial one.
@@ -143,6 +151,12 @@ auto EncryptFileGpgDataImpl(OpenPGPContext& ctx_,
                             const GpgAbstractKeyPtrList& keys, GpgData& data_in,
                             bool ascii, GpgData& data_out,
                             const DataObjectPtr& data_object) -> GpgError {
+  if (const auto data_err = DataError(data_in, data_out);
+      data_err != GPG_ERR_NO_ERROR) {
+    data_object->Swap({GpgEncryptResult(GFEncryptResult{})});
+    return data_err;
+  }
+
   auto& g_ctx = GpgCtx(ctx_);
   auto recipients = Convert2GpgKeyList(ctx_.GetChannel(), keys);
 
@@ -216,6 +230,13 @@ auto DecryptVerifyFileGpgDataImpl(OpenPGPContext& ctx_, GpgData& data_in,
                                   GpgData& data_out,
                                   const DataObjectPtr& data_object)
     -> GpgError {
+  if (const auto data_err = DataError(data_in, data_out);
+      data_err != GPG_ERR_NO_ERROR) {
+    data_object->Swap({GpgDecryptResult(GFDecryptResult{}),
+                       GpgVerifyResult(GFVerifyResult{})});
+    return data_err;
+  }
+
   auto& g_ctx = GpgCtx(ctx_);
   auto err = CheckGpgError(
       gpgme_op_decrypt_verify(g_ctx.DefaultContext(), data_in, data_out));
@@ -287,6 +308,12 @@ namespace {
 auto DecryptFileGpgDataImpl(OpenPGPContext& ctx_, GpgData& data_in,
                             GpgData& data_out, const DataObjectPtr& data_object)
     -> GpgError {
+  if (const auto data_err = DataError(data_in, data_out);
+      data_err != GPG_ERR_NO_ERROR) {
+    data_object->Swap({GpgDecryptResult(GFDecryptResult{})});
+    return data_err;
+  }
+
   auto& g_ctx = GpgCtx(ctx_);
   auto err = CheckGpgError(
       gpgme_op_decrypt(g_ctx.DefaultContext(), data_in, data_out));
@@ -320,6 +347,12 @@ auto SignFileGpgDataGnuPGImpl(OpenPGPContext& ctx_,
   GpgError err;
 
   GpgContext& g_ctx = GpgCtx(ctx_);
+
+  if (const auto data_err = DataError(data_in, data_out);
+      data_err != GPG_ERR_NO_ERROR) {
+    data_object->Swap({GpgSignResult(GFSignResult{})});
+    return data_err;
+  }
 
   // Set Singers of this opera
   err = SetSignersGnuPGImpl(ctx_, keys, ascii);
@@ -357,8 +390,17 @@ auto VerifyFileGnuPGImpl(OpenPGPContext& ctx_, const QString& data_path,
   auto& g_ctx = GpgCtx(ctx_);
   GpgData data_in(data_path, true);
   GpgData data_out;
+  if (const auto data_err = DataError(data_in, data_out);
+      data_err != GPG_ERR_NO_ERROR) {
+    data_object->Swap({GpgVerifyResult(GFVerifyResult{})});
+    return data_err;
+  }
   if (!sign_path.isEmpty()) {
     GpgData sig_data(sign_path, true);
+    if (sig_data.Error() != GPG_ERR_NO_ERROR) {
+      data_object->Swap({GpgVerifyResult(GFVerifyResult{})});
+      return sig_data.Error();
+    }
     err = CheckGpgError(
         gpgme_op_verify(g_ctx.DefaultContext(), sig_data, data_in, nullptr));
   } else {
@@ -380,6 +422,12 @@ auto EncryptSignFileGpgDataGnuPGImpl(
     GpgData& data_out, const DataObjectPtr& data_object) -> GpgError {
   GpgError err;
   auto& g_ctx = GpgCtx(ctx_);
+  if (const auto data_err = DataError(data_in, data_out);
+      data_err != GPG_ERR_NO_ERROR) {
+    data_object->Swap(
+        {GpgEncryptResult(GFEncryptResult{}), GpgSignResult(GFSignResult{})});
+    return data_err;
+  }
   auto recipients = Convert2GpgKeyList(ctx_.GetChannel(), keys);
 
   QList<gpgme_key_t> gpg_recipients;

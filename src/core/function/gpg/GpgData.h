@@ -32,6 +32,7 @@
 
 #include "core/model/GFBuffer.h"
 #include "core/typedef/CoreTypedef.h"
+#include "core/typedef/GpgErrorTypedef.h"
 
 namespace GpgFrontend {
 
@@ -99,13 +100,28 @@ class GF_CORE_EXPORT GpgData {
   operator gpgme_data_t();
 
   /**
-   * @brief
+   * @brief Everything gpgme wrote into this object, from the start.
    *
-   * @return ByteArrayPtr
+   * Empty, not truncated, when it cannot be read back in full.
+   *
+   * @return the bytes
    */
   auto Read2GFBuffer() -> GFBuffer;
 
+  /**
+   * @brief Why this object could not be set up, or GPG_ERR_NO_ERROR.
+   *
+   * One that failed holds no gpgme data, so an operation handed it fails
+   * instead of reading from or writing to nothing -- a file that could not be
+   * opened used to reach gpgme as a NULL stream. This says why, which the
+   * operation's own error cannot.
+   */
+  [[nodiscard]] auto Error() const -> GpgError;
+
  private:
+  /// Keeps @p data when @p err is a success, and records @p err otherwise.
+  void Adopt(GpgError err, gpgme_data_t data);
+
   /**
    * @brief
    *
@@ -121,6 +137,7 @@ class GF_CORE_EXPORT GpgData {
   std::unique_ptr<struct gpgme_data, DataRefDeleter> data_ref_ = nullptr;  ///<
   FILE* fp_ = nullptr;
   int fd_ = -1;
+  GpgError error_ = GPG_ERR_NO_ERROR;
 
   struct gpgme_data_cbs data_cbs_;
   QSharedPointer<GFDataExchanger> data_ex_;
