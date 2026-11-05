@@ -29,6 +29,7 @@
 #include <type_traits>
 
 #include "GpgFrontendTest.h"
+#include "core/function/openpgp/helper/Op.h"
 #include "core/function/result_analyse/GpgResultAnalyse.h"
 #include "core/typedef/GFError.h"
 #include "core/utils/GpgUtils.h"
@@ -74,6 +75,18 @@ TEST(GFErrorTest, EveryCodeCanBeDescribed) {
         DescribeGFError(GFError::Application(static_cast<GFErrorCode>(i)));
     EXPECT_FALSE(description.isEmpty()) << "code " << i;
   }
+}
+
+// An operation no engine may run used to return a default-constructed result,
+// and a default GFError, alone or first in a tuple, reads as success.
+TEST(GFErrorTest, AnUnsupportedOperationNeverReadsAsSuccess) {
+  EXPECT_EQ(NotSupportedResult<GFError>().code, GFErrorCode::kNOT_SUPPORTED);
+
+  const auto [err, buffer] = NotSupportedResult<std::tuple<GFError, int>>();
+  EXPECT_EQ(err.code, GFErrorCode::kNOT_SUPPORTED);
+  EXPECT_EQ(buffer, 0);
+
+  EXPECT_FALSE(NotSupportedResult<bool>());
 }
 
 }  // namespace GpgFrontend::Test

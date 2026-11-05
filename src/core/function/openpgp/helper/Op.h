@@ -29,6 +29,7 @@
 #pragma once
 
 #include <cassert>
+#include <tuple>
 #include <type_traits>
 
 #include "core/function/openpgp/OpenPGPContext.h"
@@ -123,6 +124,34 @@ struct OpTraitsBase : OpSupportTraits<OpTag> {
   }
 };
 
+template <typename T>
+struct IsGFErrorTuple : std::false_type {};
+
+template <typename... Ts>
+struct IsGFErrorTuple<std::tuple<GFError, Ts...>> : std::true_type {};
+
+/**
+ * @brief What an operation returns when no engine may run it.
+ *
+ * A default-constructed GFError reads as success, and so does a default
+ * std::tuple<GFError, ...>; both carry kNOT_SUPPORTED instead. Anything else
+ * is default-constructed (false for bool, empty for containers).
+ */
+template <typename Ret>
+auto NotSupportedResult() -> Ret {
+  if constexpr (std::is_void_v<Ret>) {
+    return;
+  } else if constexpr (std::is_same_v<Ret, GFError>) {
+    return GFError::Application(GFErrorCode::kNOT_SUPPORTED);
+  } else if constexpr (IsGFErrorTuple<Ret>::value) {
+    Ret ret{};
+    std::get<0>(ret) = GFError::Application(GFErrorCode::kNOT_SUPPORTED);
+    return ret;
+  } else {
+    return Ret{};
+  }
+}
+
 /**
  * @brief Dispatch a call to the engine-specific implementation in @p table
  * (context overload).
@@ -135,8 +164,8 @@ struct OpTraitsBase : OpSupportTraits<OpTag> {
  * @param ctx   OpenPGP context supplying the active engine
  * @param table dispatch table of (engine, function) pairs
  * @param args  arguments forwarded to the selected implementation
- * @return return value of the selected implementation, or default-constructed
- * Ret on mismatch
+ * @return return value of the selected implementation, or NotSupportedResult()
+ * on mismatch
  */
 template <typename Table, typename... Args>
 auto DispatchByEngine(OpenPGPContext& ctx, const Table& table, Args&&... args)
@@ -156,14 +185,7 @@ auto DispatchByEngine(OpenPGPContext& ctx, const Table& table, Args&&... args)
   LOG_E() << "no implementation found for engine: " << static_cast<int>(engine);
   assert(false && "no implementation found for the current engine");
 
-  if constexpr (std::is_void_v<Ret>) {
-    return;
-  } else if constexpr (std::is_same_v<Ret, GFError>) {
-    // A default GFError reads as success: say what happened instead.
-    return GFError::Application(GFErrorCode::kNOT_SUPPORTED);
-  } else {
-    return Ret{};
-  }
+  return NotSupportedResult<Ret>();
 }
 
 /**
@@ -178,8 +200,8 @@ auto DispatchByEngine(OpenPGPContext& ctx, const Table& table, Args&&... args)
  * @param engine engine enum value used for dispatch
  * @param table  dispatch table of (engine, function) pairs
  * @param args   arguments forwarded to the selected implementation
- * @return return value of the selected implementation, or default-constructed
- * Ret on mismatch
+ * @return return value of the selected implementation, or NotSupportedResult()
+ * on mismatch
  */
 template <typename Table, typename... Args>
 auto DispatchByEngine(OpenPGPEngine engine, const Table& table, Args&&... args)
@@ -197,14 +219,7 @@ auto DispatchByEngine(OpenPGPEngine engine, const Table& table, Args&&... args)
   LOG_E() << "no implementation found for engine: " << static_cast<int>(engine);
   assert(false && "no implementation found for the current engine");
 
-  if constexpr (std::is_void_v<Ret>) {
-    return;
-  } else if constexpr (std::is_same_v<Ret, GFError>) {
-    // A default GFError reads as success: say what happened instead.
-    return GFError::Application(GFErrorCode::kNOT_SUPPORTED);
-  } else {
-    return Ret{};
-  }
+  return NotSupportedResult<Ret>();
 }
 
 // Forward declarations for the partial specializations below.
@@ -234,8 +249,15 @@ struct DispatchOpTraitsBase<Derived, OpTag, R (*)(OpenPGPContext&, Args...)>
    * support).
    */
   static auto Call(OpenPGPContext& ctx, Args... args) -> R {
-    assert((OpTraitsBase<Derived, OpTag>::IsSupported(ctx)) &&
-           "operation implementation not found for the current engine");
+    // Checked, not only asserted: a release build used to run the operation
+    // on an engine version that does not support it, or fall through to a
+    // default result that read as success.
+    if (!OpTraitsBase<Derived, OpTag>::IsSupported(ctx)) {
+      LOG_E() << "operation not supported on this engine:"
+              << static_cast<int>(ctx.Engine());
+      assert(false && "operation not supported on the current engine");
+      return NotSupportedResult<R>();
+    }
 
     return DispatchByEngine(ctx, Derived::ImplTable(), args...);
   }
