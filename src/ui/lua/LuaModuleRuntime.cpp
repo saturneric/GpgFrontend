@@ -30,6 +30,8 @@
 
 #include <QPointer>
 #include <QRandomGenerator>
+#include <QScopeGuard>
+#include <QTimer>
 
 #include "LuaApi.h"
 #include "LuaBinding.h"
@@ -65,6 +67,36 @@ LuaModuleRuntime::LuaModuleRuntime(QString module, uint32_t caps,
 }
 
 LuaModuleRuntime::~LuaModuleRuntime() { Teardown(); }
+
+void LuaModuleRuntime::leave_entry() {
+  if (--entry_depth_ > 0) return;
+
+  if (teardown_pending_) {
+    teardown_pending_ = false;
+    Teardown();
+  }
+  if (!deferred_.isEmpty() && !stopping_.load()) {
+    // Queued, not run here: the entry that just ended is still unwinding in
+    // its caller. The runtime as context, so nothing runs if it is gone.
+    QMetaObject::invokeMethod(
+        this,
+        [this]() {
+          const auto work = std::exchange(deferred_, {});
+          for (const auto& f : work) f();
+        },
+        Qt::QueuedConnection);
+  } else {
+    deferred_.clear();
+  }
+  if (keep_alive_ != nullptr) {
+    QTimer::singleShot(0, qApp, [keep = std::move(keep_alive_)]() {});
+  }
+}
+
+void LuaModuleRuntime::KeepAliveUntilIdle(
+    std::shared_ptr<LuaModuleRuntime> self) {
+  if (InEntry()) keep_alive_ = std::move(self);
+}
 
 void LuaModuleRuntime::EndEntry() {
   ++epoch_;
@@ -107,6 +139,12 @@ auto LuaModuleRuntime::Load(const QByteArray& source, const QString& chunk,
     if (error != nullptr) *error = u"chunk already loaded"_s;
     return false;
   }
+  if (InEntry()) {
+    if (error != nullptr) *error = u"the UI runtime is busy"_s;
+    return false;
+  }
+  enter_entry();
+  const auto leave = qScopeGuard([this]() { leave_entry(); });
 
   phase_ = Phase::kLOAD;
   chunk_ = chunk;
@@ -355,6 +393,12 @@ auto LuaModuleRuntime::Evaluate(const QString& action_id, const UiContext& ctx)
     return st;
   }
 
+  // Asked again while a handler runs a nested event loop (a menu repainting,
+  // say): not shown for that moment rather than entering the script twice.
+  if (InEntry()) return st;
+  enter_entry();
+  const auto leave = qScopeGuard([this]() { leave_entry(); });
+
   phase_ = Phase::kPURE;
   ctx_ = &ctx;
   source_ = caller.source;
@@ -451,6 +495,14 @@ auto LuaModuleRuntime::Trigger(const QString& action_id, const UiContext& ctx)
 void LuaModuleRuntime::Deliver(const QString& event, const UiContext& ctx,
                                qint64 document_id) {
   if (state_ == nullptr || stopping_.load() || torn_down_) return;
+  if (InEntry()) {
+    deferred_.append([this, event, ctx, document_id]() {
+      Deliver(event, ctx, document_id);
+    });
+    return;
+  }
+  enter_entry();
+  const auto leave = qScopeGuard([this]() { leave_entry(); });
 
   for (auto& sub : subscriptions_) {
     if (sub.info.event != event || sub.info.disabled) continue;
@@ -502,6 +554,16 @@ void LuaModuleRuntime::Deliver(const QString& event, const UiContext& ctx,
 
 void LuaModuleRuntime::Complete(qint64 call_handle, gf::cmd::RawResult r) {
   if (state_ == nullptr || stopping_.load() || torn_down_) return;
+  // A result never enters the script from inside another of its entries; it
+  // waits for that entry to return.
+  if (InEntry()) {
+    deferred_.append([this, call_handle, r = std::move(r)]() mutable {
+      Complete(call_handle, std::move(r));
+    });
+    return;
+  }
+  enter_entry();
+  const auto leave = qScopeGuard([this]() { leave_entry(); });
   const auto call = calls_.take(call_handle);
   static_assert(PendingCall::kNoRef == LUA_NOREF);
   if (call.continuation == LUA_NOREF) return;
@@ -565,6 +627,13 @@ void LuaModuleRuntime::Complete(qint64 call_handle, gf::cmd::RawResult r) {
 
 void LuaModuleRuntime::Teardown() {
   if (torn_down_) return;
+  // Not with a call into the script on the stack: lua_close() under an active
+  // lua_pcall. Callbacks stop now; the rest happens as that call returns.
+  if (InEntry()) {
+    stopping_.store(true);
+    teardown_pending_ = true;
+    return;
+  }
 
   stopping_.store(true);
   teardown_log_ << u"callbacks stopped"_s;
