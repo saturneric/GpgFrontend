@@ -139,6 +139,14 @@ auto Settled(int channel, const GFError& err) -> QVariantMap {
   return {};
 }
 
+/// The first thing wrong with a user ID, the name before the email before
+/// the comment, as the desktop's wizard lists them.
+auto FirstProblem(const KeyGenIdentityCheck& identity) -> QString {
+  if (!identity.name.isEmpty()) return identity.name;
+  if (!identity.email.isEmpty()) return identity.email;
+  return identity.comment;
+}
+
 }  // namespace
 
 KeyActionsController::KeyActionsController(QObject* parent)
@@ -158,8 +166,20 @@ auto KeyActionsController::Profiles() const -> QVariantList {
   return list;
 }
 
+auto KeyActionsController::checkIdentity(const QString& name,
+                                         const QString& email,
+                                         const QString& comment) const
+    -> QVariantMap {
+  const auto identity = CheckKeyGenIdentity(name, email, comment);
+  return {{QStringLiteral("ok"), identity.Ok()},
+          {QStringLiteral("name"), identity.name},
+          {QStringLiteral("email"), identity.email},
+          {QStringLiteral("comment"), identity.comment}};
+}
+
 void KeyActionsController::generate(const QString& name, const QString& email,
-                                    int profile, bool with_passphrase) {
+                                    int profile, bool with_passphrase,
+                                    const QString& comment) {
   const auto offered = Offered();
   if (profile < 0 || profile >= offered.size()) {
     emit SignalFinished(QStringLiteral("generate"), false,
@@ -169,12 +189,10 @@ void KeyActionsController::generate(const QString& name, const QString& email,
   const auto resolved = offered.at(profile);
   // The name and comment become part of a mail address: what would break it
   // is refused here, as the desktop's wizard refuses it.
-  const auto identity = CheckKeyGenIdentity(name, email, {});
+  const auto identity = CheckKeyGenIdentity(name, email, comment);
   if (!identity.Ok()) {
-    emit SignalFinished(
-        QStringLiteral("generate"), false,
-        {{QStringLiteral("error"),
-          !identity.name.isEmpty() ? identity.name : identity.email}});
+    emit SignalFinished(QStringLiteral("generate"), false,
+                        {{QStringLiteral("error"), FirstProblem(identity)}});
     return;
   }
 
@@ -186,6 +204,7 @@ void KeyActionsController::generate(const QString& name, const QString& email,
     ApplyKeyGenProfile(resolved, QDateTime::currentDateTime(), *key, subkey);
     key->SetName(name.trimmed());
     key->SetEmail(email.trimmed());
+    key->SetComment(comment.trimmed());
     ApplyDefaultKeyVersion(*key, subkey);
 
     const auto channel = UsableDefaultChannelHandle();
@@ -203,17 +222,13 @@ void KeyActionsController::generate(const QString& name, const QString& email,
   });
 }
 
-void KeyActionsController::generateCustom(const QString& name,
-                                          const QString& email,
-                                          const QVariantMap& primary,
-                                          const QVariantMap& subkey,
-                                          bool with_passphrase) {
-  const auto identity = CheckKeyGenIdentity(name, email, {});
+void KeyActionsController::generateCustom(
+    const QString& name, const QString& email, const QVariantMap& primary,
+    const QVariantMap& subkey, bool with_passphrase, const QString& comment) {
+  const auto identity = CheckKeyGenIdentity(name, email, comment);
   if (!identity.Ok()) {
-    emit SignalFinished(
-        QStringLiteral("generate"), false,
-        {{QStringLiteral("error"),
-          !identity.name.isEmpty() ? identity.name : identity.email}});
+    emit SignalFinished(QStringLiteral("generate"), false,
+                        {{QStringLiteral("error"), FirstProblem(identity)}});
     return;
   }
   const auto channel = UsableDefaultChannelHandle();
@@ -235,6 +250,7 @@ void KeyActionsController::generateCustom(const QString& name,
   run(QStringLiteral("generate"), [=]() -> QVariantMap {
     key->SetName(name.trimmed());
     key->SetEmail(email.trimmed());
+    key->SetComment(comment.trimmed());
     key->SetNonPassPhrase(!with_passphrase);
     if (sub != nullptr) sub->SetNonPassPhrase(!with_passphrase);
     ApplyDefaultKeyVersion(*key, sub);
@@ -535,10 +551,7 @@ void KeyActionsController::addUid(const QString& fingerprint,
   const auto identity = CheckKeyGenIdentity(name, email, comment);
   if (!identity.Ok()) {
     emit SignalFinished(QStringLiteral("add_uid"), false,
-                        {{QStringLiteral("error"),
-                          !identity.name.isEmpty()    ? identity.name
-                          : !identity.email.isEmpty() ? identity.email
-                                                      : identity.comment}});
+                        {{QStringLiteral("error"), FirstProblem(identity)}});
     return;
   }
   run(QStringLiteral("add_uid"), [=]() -> QVariantMap {

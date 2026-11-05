@@ -69,12 +69,25 @@ class KeyActionsController : public QObject {
   [[nodiscard]] auto Validities() const -> QVariantList;
 
   /**
-   * @brief Generate a key for @p name and @p email with the profile at
-   * @p profile in Profiles(); protected by a passphrase unless
+   * @brief What is wrong with the user ID @p name <@p email> (@p comment),
+   * by the desktop's rule: a name is required, an email is optional but must
+   * be an address, and neither the name nor the comment may hold a mail
+   * address's delimiters.
+   *
+   * {ok, name, email, comment}: a sentence for each part that is wrong,
+   * empty for each that is not.
+   */
+  [[nodiscard]] Q_INVOKABLE QVariantMap checkIdentity(
+      const QString& name, const QString& email, const QString& comment) const;
+
+  /**
+   * @brief Generate a key for @p name and @p email (@p comment) with the
+   * profile at @p profile in Profiles(); protected by a passphrase unless
    * @p with_passphrase is false.
    */
   Q_INVOKABLE void generate(const QString& name, const QString& email,
-                            int profile, bool with_passphrase);
+                            int profile, bool with_passphrase,
+                            const QString& comment = {});
 
   /**
    * @brief Generate a key as chosen in Expert Mode: @p primary and, when
@@ -85,7 +98,8 @@ class KeyActionsController : public QObject {
   Q_INVOKABLE void generateCustom(const QString& name, const QString& email,
                                   const QVariantMap& primary,
                                   const QVariantMap& subkey,
-                                  bool with_passphrase);
+                                  bool with_passphrase,
+                                  const QString& comment = {});
 
   /// Read the profiles again, after Settings changed them.
   Q_INVOKABLE void reloadProfiles();

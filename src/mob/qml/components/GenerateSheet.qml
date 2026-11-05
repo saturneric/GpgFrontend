@@ -17,10 +17,15 @@ BottomSheet {
     // Quick key runs: the form is not shown, the passphrase alone is asked.
     property bool quickRunning: false
     readonly property bool working: actions.busy || quickRunning
+    // What is wrong with the user ID typed, by the desktop's rule: a name,
+    // an email only if wanted, no mail delimiters in the name or comment.
+    readonly property var identity: actions.checkIdentity(name.text, email.text,
+                                                          comment.text)
 
     function begin() {
         name.text = ""
         email.text = ""
+        comment.text = ""
         // Settings may have changed the profiles since.
         actions.reloadProfiles()
         profile.currentIndex = 0
@@ -39,6 +44,7 @@ BottomSheet {
         const uid = profileStore.anonymousUid()
         name.text = uid.name
         email.text = uid.email
+        comment.text = uid.comment
     }
 
     // Quick Generate, as the desktop's: an anonymous key from the default
@@ -49,7 +55,7 @@ BottomSheet {
         actions.reloadProfiles()
         const uid = profileStore.anonymousUid()
         quickRunning = true
-        actions.generate(uid.name, uid.email, 0, true)
+        actions.generate(uid.name, uid.email, 0, true, uid.comment)
     }
 
     // An encryption subkey of the primary key's family, as the desktop
@@ -85,12 +91,13 @@ BottomSheet {
     function create() {
         problem.text = ""
         if (!expert.checked) {
-            actions.generate(name.text, email.text, profile.currentIndex, protect.checked)
+            actions.generate(name.text, email.text, profile.currentIndex,
+                             protect.checked, comment.text)
             return
         }
         actions.generateCustom(name.text, email.text, primaryChooser.choices,
                                withSubkey.checked ? subkeyChooser.choices : ({}),
-                               protect.checked)
+                               protect.checked, comment.text)
     }
 
     function finished(action, succeeded, detail) {
@@ -110,7 +117,8 @@ BottomSheet {
 
     objectName: "generateSheet"
     title: qsTr("Create a key")
-    description: qsTr("Others see this name and email when they encrypt to you.")
+    description: qsTr("Others see this name and email when they encrypt to "
+                      + "you. Only the name is required.")
     interactive: !actions.busy
 
     // What makes the key; a test puts a stand-in here.
@@ -134,12 +142,35 @@ BottomSheet {
         placeholderText: qsTr("Name")
     }
 
+    // As the desktop: a name not typed yet is not yet wrong.
+    ProblemLabel {
+        objectName: "generateNameProblem"
+        text: name.text.length > 0 ? sheet.identity.name : ""
+    }
+
     TextField {
         id: email
         objectName: "generateEmail"
         Layout.fillWidth: true
-        placeholderText: qsTr("Email")
+        placeholderText: qsTr("Email (optional)")
         inputMethodHints: Qt.ImhEmailCharactersOnly | Qt.ImhNoAutoUppercase
+    }
+
+    ProblemLabel {
+        objectName: "generateEmailProblem"
+        text: sheet.identity.email
+    }
+
+    TextField {
+        id: comment
+        objectName: "generateComment"
+        Layout.fillWidth: true
+        placeholderText: qsTr("Comment (optional)")
+    }
+
+    ProblemLabel {
+        objectName: "generateCommentProblem"
+        text: sheet.identity.comment
     }
 
     Button {
@@ -254,8 +285,7 @@ BottomSheet {
             objectName: "generateRun"
             text: qsTr("Create")
             highlighted: true
-            enabled: !actions.busy && name.text.trim().length > 0
-                     && /^[^@\s]+@[^@\s]+$/.test(email.text.trim())
+            enabled: !actions.busy && sheet.identity.ok === true
                      && (!expert.checked || (primaryChooser.complete
                          && (!withSubkey.checked || subkeyChooser.complete)))
             onClicked: sheet.create()

@@ -32,6 +32,11 @@ Item {
         visible: false
     }
 
+    // What a user ID must be, as the real key maker says.
+    KeyActionsController {
+        id: identityRules
+    }
+
     // The key maker as Quick key sees it, run by hand.
     QtObject {
         id: fakeMaker
@@ -40,8 +45,11 @@ Item {
         property var validities: []
         property var made: []
         function reloadProfiles() {}
-        function generate(name, email, profile, protect) {
-            made = made.concat([[name, email, profile, protect]])
+        function checkIdentity(name, email, comment) {
+            return identityRules.checkIdentity(name, email, comment)
+        }
+        function generate(name, email, profile, protect, comment) {
+            made = made.concat([[name, email, profile, protect, comment]])
             busy = true
         }
     }
@@ -112,6 +120,11 @@ Item {
         id: fingerprintComponent
         FingerprintView {
         }
+    }
+
+    Component {
+        id: addUidComponent
+        AddUidSheet {}
     }
 
     AddSubkeySheet {
@@ -391,6 +404,18 @@ Item {
         name: "QuickKey"
         when: windowShown
 
+        function findByName(parent, name) {
+            for (var i = 0; i < parent.children.length; ++i) {
+                var child = parent.children[i]
+                if (child.objectName === name)
+                    return child
+                var found = findByName(child, name)
+                if (found)
+                    return found
+            }
+            return null
+        }
+
         function init() {
             fakeMaker.made = []
             fakeMaker.busy = false
@@ -407,6 +432,78 @@ Item {
             compare(fakeMaker.made[0][3], true)
             verify(!maker.opened)
             verify(maker.working)
+        }
+
+        // A user ID is made as the desktop makes it: a name is required, an
+        // email only if wanted, a comment too; what is wrong is said under
+        // the field it is in, and a name not typed yet is not yet wrong.
+        function test_a_new_key_s_user_id_follows_the_desktop() {
+            maker.begin()
+            const name = findByName(maker.contentItem, "generateName")
+            const email = findByName(maker.contentItem, "generateEmail")
+            const comment = findByName(maker.contentItem, "generateComment")
+            const run = findByName(maker.contentItem, "generateRun")
+            const nameProblem = findByName(maker.contentItem, "generateNameProblem")
+            const emailProblem = findByName(maker.contentItem, "generateEmailProblem")
+            const commentProblem = findByName(maker.contentItem, "generateCommentProblem")
+            verify(comment !== null)
+            verify(!run.enabled)
+            compare(nameProblem.text, "")
+            name.text = "Alice"
+            verify(run.enabled)
+            email.text = "not an address"
+            verify(!run.enabled)
+            verify(emailProblem.text.length > 0)
+            email.text = "alice@example.org"
+            verify(run.enabled)
+            compare(emailProblem.text, "")
+            comment.text = "work <x>"
+            verify(!run.enabled)
+            verify(commentProblem.text.length > 0)
+            comment.text = "work"
+            name.text = "Alice (A)"
+            verify(!run.enabled)
+            verify(nameProblem.text.length > 0)
+            name.text = "Alice"
+            verify(run.enabled)
+            maker.close()
+            tryVerify(() => !maker.visible)
+        }
+
+        // Quick key gives the key the comment of its made-up user ID.
+        function test_quick_key_passes_the_comment_on() {
+            fakeMaker.made = []
+            maker.quick()
+            compare(fakeMaker.made.length, 1)
+            compare(typeof fakeMaker.made[0][4], "string")
+            fakeMaker.busy = false
+            maker.finished("generate", false, {"reason": "cancelled"})
+        }
+
+        // Add a user ID asks what a new key asks, by the same rule.
+        function test_an_added_user_id_follows_the_desktop() {
+            const sheet = createTemporaryObject(addUidComponent, this)
+            sheet.begin()
+            const name = findByName(sheet.contentItem, "uidName")
+            const email = findByName(sheet.contentItem, "uidEmail")
+            const comment = findByName(sheet.contentItem, "uidComment")
+            const run = findByName(sheet.contentItem, "addUidRun")
+            verify(!run.enabled)
+            compare(findByName(sheet.contentItem, "uidNameProblem").text, "")
+            name.text = "Alice"
+            verify(run.enabled)
+            email.text = "alice@"
+            verify(!run.enabled)
+            verify(findByName(sheet.contentItem, "uidEmailProblem").text.length > 0)
+            email.text = ""
+            comment.text = "a)b"
+            verify(!run.enabled)
+            verify(findByName(sheet.contentItem, "uidCommentProblem").text.length > 0)
+            comment.text = "b"
+            let got = []
+            sheet.accepted.connect((n, e, c) => got = [n, e, c])
+            mouseClick(run)
+            compare(got, ["Alice", "", "b"])
         }
 
         // Cancelled: nothing said, nothing left open, nothing announced.

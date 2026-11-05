@@ -20,6 +20,10 @@ BottomSheet {
     // Why the last try did not work; empty when there is nothing to say.
     property string problem: ""
 
+    // What is wrong with the user ID typed, by the rule a new key's follows.
+    readonly property var identity: checker.checkIdentity(name.text, email.text,
+                                                          comment.text)
+
     signal accepted(string name, string email, string comment)
 
     function begin() {
@@ -49,6 +53,10 @@ BottomSheet {
     description: qsTr("Another name or address the key stands for. Share the "
                        + "key afterwards, so others learn of it.")
 
+    KeyActionsController {
+        id: checker
+    }
+
     TextField {
         id: name
         objectName: "uidName"
@@ -56,12 +64,23 @@ BottomSheet {
         placeholderText: qsTr("Name")
     }
 
+    // As the desktop: a name not typed yet is not yet wrong.
+    ProblemLabel {
+        objectName: "uidNameProblem"
+        text: name.text.length > 0 ? sheet.identity.name : ""
+    }
+
     TextField {
         id: email
         objectName: "uidEmail"
         Layout.fillWidth: true
-        placeholderText: qsTr("Email")
+        placeholderText: qsTr("Email (optional)")
         inputMethodHints: Qt.ImhEmailCharactersOnly | Qt.ImhNoAutoUppercase
+    }
+
+    ProblemLabel {
+        objectName: "uidEmailProblem"
+        text: sheet.identity.email
     }
 
     TextField {
@@ -69,6 +88,11 @@ BottomSheet {
         objectName: "uidComment"
         Layout.fillWidth: true
         placeholderText: qsTr("Comment (optional)")
+    }
+
+    ProblemLabel {
+        objectName: "uidCommentProblem"
+        text: sheet.identity.comment
     }
 
     ProblemLabel {
@@ -90,9 +114,7 @@ BottomSheet {
             objectName: "addUidRun"
             text: sheet.busy ? qsTr("Adding…") : qsTr("Add")
             highlighted: true
-            enabled: !sheet.busy && name.text.trim().length > 0
-                     && (email.text.trim().length === 0
-                         || /^[^@\s]+@[^@\s]+$/.test(email.text.trim()))
+            enabled: !sheet.busy && sheet.identity.ok === true
             onClicked: {
                 sheet.problem = ""
                 sheet.accepted(name.text, email.text, comment.text)

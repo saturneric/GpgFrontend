@@ -168,6 +168,42 @@ TEST_F(KeyActionsTest, AKeyIsGeneratedWithItsPassphrase) {
   EXPECT_TRUE(key->IsHasSignCap());
 }
 
+// As the desktop's wizard: a name, an email only if wanted, and a comment.
+TEST_F(KeyActionsTest, AKeyIsMadeWithACommentAndNoEmail) {
+  const auto done =
+      Act([](auto* a) { a->generate("Kim Comment", "", 0, false, "phone"); });
+  ASSERT_TRUE(done.succeeded)
+      << done.detail.value("error").toString().toStdString();
+  RunOnMainThread([&]() {
+    KeyActionsController a;
+    const auto d = a.describe(done.detail.value("fingerprint").toString());
+    EXPECT_EQ(d.value("name").toString(), "Kim Comment");
+    EXPECT_EQ(d.value("comment").toString(), "phone");
+    EXPECT_TRUE(d.value("email").toString().isEmpty());
+  });
+}
+
+// Each part of a user ID is judged on its own, as the desktop judges it.
+TEST_F(KeyActionsTest, AUserIdIsCheckedPartByPart) {
+  RunOnMainThread([]() {
+    KeyActionsController a;
+    auto c = a.checkIdentity("Lee", "", "");
+    EXPECT_TRUE(c.value("ok").toBool());
+    c = a.checkIdentity("", "lee@example.org", "");
+    EXPECT_FALSE(c.value("ok").toBool());
+    EXPECT_FALSE(c.value("name").toString().isEmpty());
+    c = a.checkIdentity("Lee", "lee@", "x<y");
+    EXPECT_FALSE(c.value("ok").toBool());
+    EXPECT_TRUE(c.value("name").toString().isEmpty());
+    EXPECT_FALSE(c.value("email").toString().isEmpty());
+    EXPECT_FALSE(c.value("comment").toString().isEmpty());
+  });
+  const auto done = Act(
+      [](auto* a) { a->generate("Lee", "lee@example.org", 0, false, "(x)"); });
+  EXPECT_FALSE(done.succeeded);
+  EXPECT_FALSE(done.detail.value("error").toString().isEmpty());
+}
+
 TEST_F(KeyActionsTest, AnUnknownProfileIsRefused) {
   const auto done = Act([](auto* a) {
     a->generate("Nobody", "nobody@mobile.example.invalid", 999, false);
