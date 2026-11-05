@@ -40,20 +40,32 @@ RowLayout {
     objectName: "keyFinder"
     spacing: Theme.gapSmall
 
+    // The room shared three to two, the button never wider than its words.
+    // Neither reads the row's own width: a size bound to it changed while
+    // the row was being laid out, and the row laid itself out again and
+    // again ("recursive rearrange").
     SearchField {
         id: search
 
         Layout.fillWidth: true
+        Layout.preferredWidth: 0
+        Layout.horizontalStretchFactor: 3
         hint: qsTr("Search name, email or key ID")
     }
 
     CategoryButton {
         id: button
 
-        Layout.maximumWidth: finder.width * 0.4
+        Layout.fillWidth: true
+        Layout.preferredWidth: 0
+        Layout.maximumWidth: implicitWidth
+        Layout.horizontalStretchFactor: 2
         category: finder.currentCategory
-        // Its mark alone where the search needs the room.
-        compact: Theme.fontScale > 1.3 || finder.width < 330
+        // Its mark alone where the search needs the room: large text, or a
+        // narrow window (by the window's width, which does not change while
+        // the row is laid out).
+        compact: Theme.fontScale > 1.3
+                 || (finder.Window.width > 0 && finder.Window.width < 370)
         onClicked: list.open()
     }
 
