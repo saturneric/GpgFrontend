@@ -320,6 +320,13 @@ void MainWindow::slot_result_analyse_show_helper(
 
   info_board_->SetInfoBoardReport(
       BuildReportFromResults(opera_results, context));
+
+  // A report on the document is withdrawn once the document is edited; one
+  // about files does not depend on it.
+  if (context.document_target && edit_->CurTextPage() != nullptr) {
+    info_board_->ResetWhenTextChanges(
+        edit_->CurTextPage()->GetTextPage()->document());
+  }
 }
 
 void MainWindow::slot_refresh_info_board(int status, const QString& text) {
@@ -686,6 +693,8 @@ void MainWindow::slot_gpg_opera_buffer_show_helper(
 auto MainWindow::exec_operas_helper(
     const QString& task,
     const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool {
+  // Taken before the wait: this is the tab the input came from.
+  const QPointer<QWidget> page = edit_->CurPage();
   GpgOperaHelper::WaitForMultipleOperas(
       this, task, contexts->operas, m_key_list_->GetCurrentGpgContextChannel());
 
@@ -694,8 +703,6 @@ auto MainWindow::exec_operas_helper(
 
   // A snapshot: an operation that was still in flight when the wait ended can
   // append one more result, and that must not happen while the list below is
-  // Taken before the wait: this is the tab the input came from.
-  const QPointer<QWidget> page = edit_->CurPage();
   // being iterated.
   const auto opera_results = contexts->opera_results;
 
