@@ -48,6 +48,8 @@ Page {
     // The search field is open in place of the title.
     property bool searching: false
     readonly property alias shown: shown
+    readonly property alias operationMenu: operationMenu
+    readonly property alias fileDetails: details
 
     // One step back, as Android's Back asks: out of the search (its text
     // first), then out of choosing files.
@@ -99,12 +101,6 @@ Page {
         }
     }
 
-    // Whether More offers @p op (Wording.inMore), by what Settings say.
-    function inMore(op) {
-        return Wording.inMore(op, prefs.extraOperations, prefs.defaultEncrypt,
-                              prefs.defaultDecrypt)
-    }
-
     // @p op on @p ids, as the Text page runs one on its text.
     function request(op, ids) { flow.request(op, ids) }
     function repeatLast(ids) { flow.repeatLast(ids) }
@@ -141,7 +137,9 @@ Page {
         recheck: function(ids) {
             const still = ids.filter(id => files.entry(id).fileId !== undefined)
             return still.length > 0
-                ? still : qsTr("Not started: the files are no longer in the list.")
+                ? {"ok": true, "targets": still}
+                : {"ok": false,
+                   "message": qsTr("Not started: the files are no longer in the list.")}
         }
         notice: page.notice
         sheets: page.sheets
@@ -310,8 +308,9 @@ Page {
                                         + "Save it instead."))
     }
 
-    // The line under a file's name: how large it is and where it came from,
-    // or how its last operation went.
+    // The line under a file's name: what is happening to it, or how large
+    // it is and, for a file made here, whether it is saved yet. Nothing on
+    // where it came from: the name says what it is.
     function detailOf(file) {
         if (file.progress >= 0)
             return qsTr("Copying in… %1%").arg(Math.round(file.progress * 100))
@@ -326,22 +325,13 @@ Page {
         if (file.operation === "verify" && file.phase === "done") {
             const signatures = file.result.signatures || []
             return signatures.length > 0
-                   ? qsTr("Signature: %1").arg(Wording.signatureFact(signatures[0].signature))
-                   : qsTr("No signature found")
+                   ? qsTr("%1 · Signature: %2").arg(size)
+                         .arg(Wording.signatureFact(signatures[0].signature))
+                   : qsTr("%1 · No signature found").arg(size)
         }
-        if (file.origin === "made") {
-            const made = file.madeBy === "encrypt" ? qsTr("Encrypted from %1")
-                       : file.madeBy === "decrypt" ? qsTr("Decrypted from %1")
-                                                   : qsTr("Signature of %1")
-            const kept = file.savedName.length > 0
-                         ? qsTr("Saved as %1").arg(file.savedName) : qsTr("Temporary")
-            return qsTr("%1 · %2 · %3").arg(size).arg(made.arg(file.sourceName)).arg(kept)
-        }
-        const holds = Wording.fileContent(file.content)
-        const from = file.origin === "shared" ? qsTr("Shared with GpgFrontend")
-                                              : qsTr("Added")
-        return holds.length > 0 ? qsTr("%1 · %2 · %3").arg(size).arg(holds).arg(from)
-                                : qsTr("%1 · %2").arg(size).arg(from)
+        if (file.origin === "made" && file.savedName.length === 0)
+            return qsTr("%1 · Temporary, not saved").arg(size)
+        return size
     }
 
     function detailColorOf(file) {
@@ -353,23 +343,35 @@ Page {
                  : signatures[0].verdict === "warning" ? Theme.warning
                                                        : Theme.danger
         }
+        if (file.origin === "made" && file.savedName.length === 0) return Theme.warning
         return Material.secondaryTextColor
     }
 
-    // A file's icon: what made it, for an output; a page for a document.
+    // A file's icon, by what its name says it holds.
     function symbolOf(file) {
-        if (file.kind !== "output") {
-            switch (file.content) {
-            case "message": return "lock"
-            case "signature": return "signature"
-            default: return "draft"
-            }
-        }
-        switch (file.madeBy) {
-        case "encrypt": return "lock"
-        case "decrypt": return "lock_open_right"
-        case "sign": return "signature"
+        switch (file.content) {
+        case "message": return "lock"
+        case "signature": return "signature"
         default: return "draft"
+        }
+    }
+
+    // Why @p op cannot be done to the files chosen; empty when it can.
+    function reasonFor(op) {
+        const entries = page.selectedEntries
+        if (page.allowed(op, entries)) return ""
+        const usable = e => e.available === true && e.phase !== "queued"
+                            && e.phase !== "running"
+        if (!entries.every(usable))
+            return qsTr("A chosen file is busy or can no longer be opened.")
+        switch (op) {
+        case "decrypt":
+        case "decrypt_verify":
+            return qsTr("Only for encrypted files.")
+        case "verify":
+            return qsTr("For one signature or signed file at a time.")
+        default:
+            return qsTr("Not for files that are OpenPGP data already.")
         }
     }
 
@@ -429,22 +431,22 @@ Page {
                 onClicked: page.openSearch()
             }
 
+            // While choosing: what is done with the chosen files apart from
+            // operations (those are the PGP button's).
             BarButton {
-                objectName: "filesHistory"
-                visible: !page.selecting && page.sheets !== null
-                         && page.sheets.revision >= 0 && OperationQueue.log.rowCount() > 0
-                text: qsTr("Results")
-                icon.source: Theme.icon("info")
-                onClicked: page.sheets.openLatest()
+                objectName: "saveSelected"
+                visible: page.selecting
+                text: qsTr("Save to a folder")
+                icon.source: Theme.icon("save")
+                onClicked: page.saveToFolder(files.selectedIds())
             }
 
-            // Adding, here as in the empty list: the bar below is for what
-            // is done to the files.
             BarButton {
-                objectName: "addFilesBar"
-                visible: !page.selecting && files.count > 0
-                action: addAction
-                icon.source: Theme.icon("add")
+                objectName: "removeSelected"
+                visible: page.selecting
+                text: qsTr("Remove from list")
+                icon.source: Theme.icon("delete")
+                onClicked: page.remove(files.selectedIds())
             }
 
             OverflowButton {
@@ -489,53 +491,12 @@ Page {
             }
         }
 
-        // What kind of file to show: by what their names say.
-        ListView {
-            id: chips
-
-            objectName: "fileFilters"
-            Layout.fillWidth: true
-            Layout.preferredHeight: visible ? Math.max(36, Theme.secondarySize * 2.4) + 8 : 0
-            // Kept while choosing: the rows do not jump under the finger.
-            visible: files.count > 0
-            orientation: ListView.Horizontal
-            spacing: 8
-            leftMargin: Theme.gap
-            rightMargin: Theme.gap
-            clip: true
-            boundsBehavior: Flickable.StopAtBounds
-            model: [
-                {"value": "all", "text": qsTr("All")},
-                {"value": "encrypted", "text": qsTr("Encrypted")},
-                {"value": "signatures", "text": qsTr("Signatures")},
-                {"value": "made", "text": qsTr("Made here")},
-                {"value": "unsaved", "text": qsTr("Not saved")}
-            ]
-
-            delegate: Button {
-                required property var modelData
-
-                objectName: "fileFilter_" + modelData.value
-                anchors.verticalCenter: parent ? parent.verticalCenter : undefined
-                text: modelData.text
-                flat: shown.category !== modelData.value
-                highlighted: shown.category === modelData.value
-                checkable: true
-                checked: shown.category === modelData.value
-                font.pixelSize: Theme.secondarySize
-                topInset: 0
-                bottomInset: 0
-                implicitHeight: Math.max(36, Theme.secondarySize * 2.4)
-                onClicked: shown.category = modelData.value
-                Accessible.name: qsTr("Show %1").arg(modelData.text)
-            }
-        }
-
         // What is made here goes with the session unless it is saved.
         Pane {
             objectName: "unsavedBanner"
             Layout.fillWidth: true
-            visible: page.unsaved > 0 && !page.selecting
+            // Also while choosing: the list under it never moves for that.
+            visible: page.unsaved > 0
             padding: 8
             leftPadding: Theme.gap
 
@@ -556,11 +517,12 @@ Page {
                     Layout.alignment: Qt.AlignVCenter
                     wrapMode: Text.Wrap
                     font.pixelSize: Theme.secondarySize
-                    text: page.unsaved === 1
-                          ? qsTr("1 file made here is not saved. It is deleted "
-                                 + "when the app closes.")
-                          : qsTr("%1 files made here are not saved. They are "
-                                 + "deleted when the app closes.").arg(page.unsaved)
+                    // As it happens: removed from the list, or when the
+                    // app closes (or, after a crash, when it next starts).
+                    // A plural: languages count more forms than two.
+                    text: qsTr("%n temporary file(s) not saved yet. Deleted "
+                               + "when removed from the list or when the app "
+                               + "closes.", "", page.unsaved)
                 }
 
                 Button {
@@ -570,7 +532,7 @@ Page {
                     bottomInset: 0
                     text: page.unsaved === 1 ? qsTr("Save") : qsTr("Save all")
                     onClicked: page.saveToFolder(page.unsavedIds())
-                    Accessible.description: qsTr("Save the files made here into a folder")
+                    Accessible.description: qsTr("Save the temporary files into a folder")
                 }
             }
         }
@@ -662,8 +624,9 @@ Page {
         }
 
         objectName: "takenDialog"
+        // Several: a plural, for the languages with more than two forms.
         title: names.length === 1 ? qsTr("Already in the folder")
-                                  : qsTr("%1 names are taken").arg(names.length)
+                                  : qsTr("%n name(s) taken", "", names.length)
 
         message: names.length === 1
                  ? qsTr("The folder has a file named “%1”.").arg(names[0] || "")
@@ -713,268 +676,183 @@ Page {
         anchors.fill: parent
         spacing: 0
 
-    ListView {
-        id: list
+        Item {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
 
-        objectName: "fileList"
-        Layout.fillWidth: true
-        Layout.fillHeight: true
-        clip: true
-        model: shown
-        currentIndex: -1
-        // Where in a long list one is; finding a file is the search's.
-        ScrollIndicator.vertical: ScrollIndicator {}
+            ListView {
+                id: list
 
-        delegate: ListRow {
-            id: row
+                objectName: "fileList"
+                anchors.fill: parent
+                clip: true
+                model: shown
+                currentIndex: -1
+                // The last row scrolls clear of the buttons at the foot.
+                bottomMargin: Theme.fabBand
+                // Where in a long list one is; finding a file is the search's.
+                ScrollIndicator.vertical: ScrollIndicator {}
 
-            required property int fileId
-            required property string name
-            required property real size
-            required property string kind
-            required property bool plaintext
-            required property string sourceName
-            required property string operation
-            required property string madeBy
-            required property string phase
-            required property var result
-            required property bool chosen
-            required property bool available
-            required property string origin
-            required property string savedName
-            required property string content
-            required property real progress
+                delegate: ListRow {
+                    id: row
 
-            objectName: "file_" + name
-            width: ListView.view.width
-            singleLineTitle: true
-            text: name
-            symbol: page.symbolOf(row)
-            symbolColor: kind === "output" ? Material.accentColor
-                                           : Material.secondaryTextColor
-            detail: page.detailOf(row)
-            detailColor: page.detailColorOf(row)
-            detailLines: 2
-            selected: chosen || (flash.running && ListView.isCurrentItem)
-            Accessible.description: detail
+                    required property int fileId
+                    required property string name
+                    required property real size
+                    required property string kind
+                    required property bool plaintext
+                    required property string operation
+                    required property string phase
+                    required property var result
+                    required property bool chosen
+                    required property bool available
+                    required property string origin
+                    required property string savedName
+                    required property string content
+                    required property real progress
 
-            onClicked: {
-                if (page.selecting) files.setSelected(fileId, !chosen)
-                else details.begin(fileId)
-            }
-            onPressAndHold: files.setSelected(fileId, true)
+                    readonly property bool working: phase === "running" || progress >= 0
 
-            // Always there: several files are chosen and worked on at once,
-            // without a long press first.
-            leading: CheckBox {
-                objectName: "fileCheck_" + row.name
-                checked: row.chosen
-                onToggled: files.setSelected(row.fileId, checked)
-                Accessible.name: qsTr("Choose %1").arg(row.name)
-            }
+                    objectName: "file_" + name
+                    width: ListView.view.width
+                    singleLineTitle: true
+                    text: name
+                    symbol: page.symbolOf(row)
+                    symbolColor: Material.secondaryTextColor
+                    detail: page.detailOf(row)
+                    detailColor: page.detailColorOf(row)
+                    detailLines: 2
+                    selected: chosen || (flash.running && ListView.isCurrentItem)
+                    Accessible.description: detail
 
-            BusyIndicator {
-                visible: row.phase === "running" || row.progress >= 0
-                running: visible
-                implicitWidth: Theme.touch
-                implicitHeight: Theme.touch
-            }
+                    onClicked: {
+                        if (page.selecting) files.setSelected(fileId, !chosen)
+                        else details.begin(fileId)
+                    }
+                    onPressAndHold: files.setSelected(fileId, true)
 
-            BarButton {
-                id: rowMore
+                    // Always there: several files are chosen and worked on at
+                    // once, without a long press first.
+                    leading: CheckBox {
+                        objectName: "fileCheck_" + row.name
+                        checked: row.chosen
+                        onToggled: files.setSelected(row.fileId, checked)
+                        Accessible.name: qsTr("Choose %1").arg(row.name)
+                    }
 
-                visible: row.phase !== "running" && row.progress < 0 && !page.selecting
-                text: qsTr("Actions for %1").arg(row.name)
-                icon.source: Theme.icon("more_vert")
-                onClicked: {
-                    rowMenu.target = row.fileId
-                    rowMenu.popup(rowMore, 0, rowMore.height)
+                    // One slot at the end, always as wide: the actions, or
+                    // the progress while it works. Choosing files changes
+                    // neither the width of the text nor the row's height.
+                    Item {
+                        objectName: "fileRowEnd"
+                        implicitWidth: Theme.touch
+                        implicitHeight: Theme.touch
+
+                        BusyIndicator {
+                            anchors.fill: parent
+                            visible: row.working
+                            running: visible
+                        }
+
+                        BarButton {
+                            id: rowMore
+
+                            objectName: "fileRowMore"
+                            anchors.fill: parent
+                            opacity: row.working || page.selecting ? 0 : 1
+                            enabled: !row.working && !page.selecting
+                            text: qsTr("Actions for %1").arg(row.name)
+                            icon.source: Theme.icon("more_vert")
+                            onClicked: {
+                                rowMenu.target = row.fileId
+                                rowMenu.popup(rowMore, 0, rowMore.height)
+                            }
+                        }
+                    }
+                }
+
+                // Files there are, none of them found.
+                EmptyState {
+                    objectName: "noMatchingFiles"
+                    parent: list
+                    anchors.centerIn: list
+                    width: list.width - 64
+                    visible: files.count > 0 && shown.count === 0
+                    image: "magnifier"
+                    text: qsTr("No files match")
+                    detail: qsTr("No file name contains “%1”.").arg(search.text)
+                }
+
+                // Nothing yet: what the page is for. Adding is the + button's.
+                EmptyState {
+                    objectName: "emptyFiles"
+                    // On the list itself, not in its content, empty here.
+                    parent: list
+                    anchors.centerIn: list
+                    width: list.width - 64
+                    visible: files.count === 0
+                    image: "folder"
+                    text: qsTr("No files yet")
+                    detail: qsTr("Use + to add files to encrypt, decrypt, sign or "
+                                 + "verify. GpgFrontend only sees the files you add "
+                                 + "here.")
                 }
             }
-        }
 
-        // Files there are, none of them shown.
-        EmptyState {
-            objectName: "noMatchingFiles"
-            parent: list
-            anchors.centerIn: list
-            width: list.width - 64
-            visible: files.count > 0 && shown.count === 0
-            image: "magnifier"
-            text: qsTr("No files match")
-            detail: page.searching && search.text.length > 0
-                    ? qsTr("No file name contains “%1”.").arg(search.text)
-                    : qsTr("None of the files is of this kind.")
+            // Adding files, at the foot on the right, the same with files or
+            // without; the PGP operations beside it, apart from adding.
+            Fab {
+                id: addButton
 
-            Button {
-                text: qsTr("Show all files")
-                onClicked: {
-                    page.closeSearch()
-                    shown.reset()
-                }
-            }
-        }
-
-        EmptyState {
-            objectName: "emptyFiles"
-            // On the list itself, not in its content, which is empty here.
-            parent: list
-            anchors.centerIn: list
-            width: list.width - 64
-            visible: files.count === 0
-            image: "folder"
-            text: qsTr("No files yet")
-            detail: qsTr("Add files to encrypt, decrypt, sign or verify them. "
-                         + "GpgFrontend only sees the files you add here.")
-
-            Button {
                 objectName: "addFilesButton"
                 text: qsTr("Add files")
-                highlighted: true
+                icon.source: Theme.icon("add")
                 enabled: !page.prompting
                 onClicked: page.addFiles()
             }
+
+            Fab {
+                id: operationButton
+
+                objectName: "operationButton"
+                variant: "operation"
+                offsetX: addButton.width + Theme.gapSmall
+                visible: files.count > 0
+                text: qsTr("PGP")
+                icon.source: Theme.operationIcon("encrypt")
+                Accessible.name: qsTr("PGP operations")
+                onClicked: operationMenu.openAbove(operationButton)
+            }
+        }
+
+        StatusLine {
+            Layout.fillWidth: true
+            host: page.sheets
         }
     }
 
-    StatusLine {
-        Layout.fillWidth: true
-        host: page.sheets
-    }
-
-    // What can be done to the files chosen, as on the Text page: the same
-    // bar, each operation only when it can be done to every file chosen
-    // (allowed()), as the desktop's file operations. The keys are asked for
-    // when an operation needs them (request()).
+    // The operations, on the files chosen, each only when it can be done to
+    // every one of them (allowed()), as the desktop's file operations; the
+    // keys are asked for when an operation needs them (request()). Never on
+    // files nobody chose: Select all is one tap away.
     SettingsModel {
         id: prefs
     }
 
-    Action {
-        id: encryptSelected
-        objectName: "encryptSelected"
-        // What the button does is chosen in Settings, as on the Text page.
-        text: Wording.actionText(Wording.buttonLabel(prefs.defaultEncrypt))
-        icon.source: Theme.operationIcon(prefs.defaultEncrypt)
-        enabled: page.allowed(prefs.defaultEncrypt, page.selectedEntries)
-        onTriggered: page.request(prefs.defaultEncrypt, files.selectedIds())
-    }
+    OperationMenu {
+        id: operationMenu
 
-    Action {
-        id: decryptSelected
-        objectName: "decryptSelected"
-        text: Wording.actionText(Wording.buttonLabel(prefs.defaultDecrypt))
-        icon.source: Theme.operationIcon(prefs.defaultDecrypt)
-        enabled: page.allowed(prefs.defaultDecrypt, page.selectedEntries)
-        onTriggered: page.request(prefs.defaultDecrypt, files.selectedIds())
-    }
-
-    Action {
-        id: signSelected
-        objectName: "signSelected"
-        text: qsTr("Sign")
-        icon.source: Theme.operationIcon("sign")
-        enabled: page.allowed("sign", page.selectedEntries)
-        onTriggered: page.sign(files.selectedIds())
-    }
-
-    Action {
-        id: verifySelected
-        objectName: "verifySelected"
-        text: qsTr("Verify")
-        icon.source: Theme.operationIcon("verify")
-        enabled: page.allowed("verify", page.selectedEntries)
-        onTriggered: verifier.begin(files.selectedIds()[0])
-    }
-
-    OperationBar {
-        id: selectionBar
-
-        objectName: "selectionBar"
-        Layout.fillWidth: true
-        operations: [encryptSelected, decryptSelected, signSelected, verifySelected]
-        quickText: page.selecting && page.allowed("encrypt", page.selectedEntries)
+        unavailable: !page.selecting ? qsTr("Select files first, or use Select all.")
+                                     : ""
+        reasonFor: op => page.reasonFor(op)
+        symmetric: prefs.extraOperations.includes("symmetric")
+        againText: page.selecting && page.allowed("encrypt", page.selectedEntries)
                    ? Wording.lastOperation(WorkSelection.lastOperation) : ""
-        onQuickTriggered: page.repeatLast(files.selectedIds())
-
-        // What the buttons do not, of what is turned on in Settings
-        // (Wording.inMore); else not shown (a hidden menu item still takes
-        // its row).
-        MenuItem {
-            objectName: "plainEncryptSelected"
-            text: qsTr("Encrypt")
-            icon.source: Theme.operationIcon("encrypt")
-            icon.color: "transparent"
-            height: page.inMore("encrypt") ? implicitHeight : 0
-            visible: height > 0
-            enabled: page.allowed("encrypt", page.selectedEntries)
-            onTriggered: page.request("encrypt", files.selectedIds())
+        onRequested: function(op) {
+            if (op === "verify") verifier.begin(files.selectedIds()[0])
+            else page.request(op, files.selectedIds())
         }
-        MenuItem {
-            objectName: "encryptSignSelected"
-            text: qsTr("Encrypt && Sign")
-            icon.source: Theme.operationIcon("encrypt_sign")
-            icon.color: "transparent"
-            height: page.inMore("encrypt_sign") ? implicitHeight : 0
-            visible: height > 0
-            enabled: page.allowed("encrypt_sign", page.selectedEntries)
-            onTriggered: page.request("encrypt_sign", files.selectedIds())
-        }
-        MenuItem {
-            objectName: "symmetricSelected"
-            text: qsTr("Encrypt with a passphrase")
-            icon.source: Theme.operationIcon("symmetric")
-            icon.color: "transparent"
-            height: page.inMore("symmetric") ? implicitHeight : 0
-            visible: height > 0
-            enabled: page.allowed("symmetric", page.selectedEntries)
-            onTriggered: page.request("symmetric", files.selectedIds())
-        }
-        MenuItem {
-            objectName: "plainDecryptSelected"
-            text: qsTr("Decrypt")
-            icon.source: Theme.operationIcon("decrypt")
-            icon.color: "transparent"
-            height: page.inMore("decrypt") ? implicitHeight : 0
-            visible: height > 0
-            enabled: page.allowed("decrypt", page.selectedEntries)
-            onTriggered: page.request("decrypt", files.selectedIds())
-        }
-        MenuItem {
-            objectName: "decryptVerifySelected"
-            text: qsTr("Decrypt && Verify")
-            icon.source: Theme.operationIcon("decrypt_verify")
-            icon.color: "transparent"
-            height: page.inMore("decrypt_verify") ? implicitHeight : 0
-            visible: height > 0
-            enabled: page.allowed("decrypt_verify", page.selectedEntries)
-            onTriggered: page.request("decrypt_verify", files.selectedIds())
-        }
-        MenuSeparator {
-            height: ["encrypt", "encrypt_sign", "symmetric", "decrypt",
-                     "decrypt_verify"].some(op => page.inMore(op))
-                    ? implicitHeight : 0
-            visible: height > 0
-        }
-        MenuItem {
-            text: qsTr("Save to a folder…")
-            enabled: page.selecting
-            onTriggered: page.saveToFolder(files.selectedIds())
-        }
-        MenuItem {
-            objectName: "removeSelected"
-            text: qsTr("Remove from list")
-            enabled: page.selecting
-            onTriggered: page.remove(files.selectedIds())
-        }
-    }
-    }
-
-    Action {
-        id: addAction
-        text: qsTr("Add files")
-        enabled: !page.prompting
-        onTriggered: page.addFiles()
+        onAgainRequested: page.repeatLast(files.selectedIds())
     }
 
     // A file that moved, picked again for a retry.
@@ -990,8 +868,9 @@ Page {
         }
     }
 
-    // What can be done with one file, from the three dots on its row.
-    Menu {
+    // What is done with one file, from the three dots on its row: managing
+    // it. The PGP operations are the PGP button's.
+    FitMenu {
         id: rowMenu
 
         property int target: -1
@@ -1006,66 +885,6 @@ Page {
             target = -1
             target = t
         }
-
-        // The same operations as the bar, by the same rule (allowed()); the
-        // ones turned on in Settings only then.
-        MenuItem {
-            text: qsTr("Encrypt")
-            icon.source: Theme.operationIcon("encrypt")
-            icon.color: "transparent"
-            enabled: page.allowed("encrypt", [rowMenu.file])
-            onTriggered: page.encrypt([rowMenu.target])
-        }
-        MenuItem {
-            text: qsTr("Encrypt && Sign")
-            icon.source: Theme.operationIcon("encrypt_sign")
-            icon.color: "transparent"
-            height: prefs.extraOperations.includes("encrypt_sign") ? implicitHeight : 0
-            visible: height > 0
-            enabled: page.allowed("encrypt_sign", [rowMenu.file])
-            onTriggered: page.request("encrypt_sign", [rowMenu.target])
-        }
-        MenuItem {
-            text: qsTr("Encrypt with a passphrase")
-            icon.source: Theme.operationIcon("symmetric")
-            icon.color: "transparent"
-            height: prefs.extraOperations.includes("symmetric") ? implicitHeight : 0
-            visible: height > 0
-            enabled: page.allowed("symmetric", [rowMenu.file])
-            onTriggered: page.request("symmetric", [rowMenu.target])
-        }
-        MenuItem {
-            text: qsTr("Decrypt")
-            icon.source: Theme.operationIcon("decrypt")
-            icon.color: "transparent"
-            enabled: page.allowed("decrypt", [rowMenu.file])
-            onTriggered: page.decrypt([rowMenu.target])
-        }
-        MenuItem {
-            text: qsTr("Decrypt && Verify")
-            icon.source: Theme.operationIcon("decrypt_verify")
-            icon.color: "transparent"
-            height: prefs.extraOperations.includes("decrypt_verify") ? implicitHeight : 0
-            visible: height > 0
-            enabled: page.allowed("decrypt_verify", [rowMenu.file])
-            onTriggered: page.request("decrypt_verify", [rowMenu.target])
-        }
-        MenuItem {
-            text: qsTr("Sign")
-            icon.source: Theme.operationIcon("sign")
-            icon.color: "transparent"
-            enabled: page.allowed("sign", [rowMenu.file])
-            onTriggered: page.sign([rowMenu.target])
-        }
-        MenuItem {
-            text: qsTr("Verify")
-            icon.source: Theme.operationIcon("verify")
-            icon.color: "transparent"
-            enabled: page.allowed("verify", [rowMenu.file])
-            onTriggered: verifier.begin(rowMenu.target)
-        }
-
-        MenuSeparator {}
 
         MenuItem {
             text: qsTr("Save as")
@@ -1098,6 +917,8 @@ Page {
     Snackbar {
         id: notice
         objectName: "fileNotice"
+        // Above the buttons at the foot, never over them.
+        bottomOffset: Theme.fabBand - 12
     }
 
     // Sharing plaintext leaves a copy behind for a while; say so first.
@@ -1137,17 +958,10 @@ Page {
         id: details
 
         workspace: files
-        onEncryptRequested: id => page.encrypt([id])
-        onDecryptRequested: id => page.decrypt([id])
-        onSignRequested: id => page.sign([id])
-        onVerifyRequested: id => verifier.begin(id)
         onSaveRequested: id => page.saveAs(id)
         onShareRequested: id => page.share(id)
         onOpenRequested: id => page.openWith(id)
         onRemoveRequested: id => page.remove([id])
-        onReportRequested: function(id) {
-            if (page.sheets) page.sheets.openStatus(page.latestRecordOf(id))
-        }
     }
 
     DetachedVerifySheet {

@@ -6,48 +6,39 @@ import QtQuick.Controls.Material
 import QtQuick.Layouts
 import GpgFrontend.Mobile
 
-// One file of the Files page: what it is, whose it is -- a document of the
-// person's, or a copy GpgFrontend made and keeps only for now -- how its last
-// operation went, and what can be done with it.
+// One file of the Files page, as it is: its name, its size and its SHA-256
+// (worked out when the sheet opens, copied whole), whether it is a temporary
+// file not saved yet, and what is done with it -- saving, sharing, opening
+// it in another app, taking it off the list. The PGP operations are the PGP
+// button's, on the files chosen.
 BottomSheet {
     id: sheet
 
     property FileWorkspace workspace
     property int fileId: -1
     property var file: ({})
+    // The SHA-256: empty while it is worked out; hashError when it could
+    // not be.
+    property string sha256: ""
+    property string hashError: ""
 
     readonly property bool isOutput: file.kind === "output"
-    readonly property bool usable: file.available === true
-                                   && file.phase !== "queued"
-                                   && file.phase !== "running"
-    // Why an action is not offered now, said under it.
-    readonly property string whyNot: file.available === false
-        ? qsTr("This file can no longer be opened.")
-        : file.phase === "queued" ? qsTr("It is waiting in the queue.")
-        : file.phase === "running" ? qsTr("It is being worked on.") : ""
-    readonly property bool hasReport: file.result !== undefined
-                                      && Object.keys(file.result).length > 0
-    // What the file is by its name alone, as the desktop tells: nothing is
-    // read. Its operations follow the desktop's rule: encrypting and signing
-    // what is not OpenPGP data, decrypting what is encrypted, verifying
-    // OpenPGP data.
-    readonly property bool looksEncrypted: file.content === "message"
-    readonly property bool openPgpData: (file.content || "").length > 0
+    readonly property bool temporary: file.origin === "made"
+                                      && (file.savedName || "").length === 0
+    readonly property bool hashing: sha256.length === 0 && hashError.length === 0
 
-    signal encryptRequested(int id)
-    signal decryptRequested(int id)
-    signal signRequested(int id)
-    signal verifyRequested(int id)
     signal saveRequested(int id)
     signal shareRequested(int id)
     signal openRequested(int id)
     signal removeRequested(int id)
-    // The status sheet for the file's last operation.
-    signal reportRequested(int id)
 
     function begin(id) {
         sheet.fileId = id
         sheet.file = workspace.entry(id)
+        sheet.sha256 = ""
+        sheet.hashError = ""
+        copied.visible = false
+        workspace.hash(id)
         open()
     }
 
@@ -64,63 +55,100 @@ BottomSheet {
             }
             sheet.file = file
         }
+
     }
+
+    // Its hash, whenever it comes: also before the sheet has finished coming
+    // up (a small file is hashed sooner than that). The file id tells which.
+    Connections {
+        target: sheet.workspace
+
+        function onHashReady(id, sha256, error) {
+            if (id !== sheet.fileId) return
+            sheet.sha256 = sha256
+            sheet.hashError = error.length > 0 ? qsTr("Could not be read.") : ""
+        }
+    }
+
+    OutputActions {
+        id: output
+    }
+
+    // Gone: a hash still being worked out is no longer wanted (a large
+    // file read for nothing would hold the thread the next one needs).
+    onClosed: if (workspace) workspace.cancelHash()
 
     objectName: "fileDetails"
-    title: file.name || ""
+    title: qsTr("File")
 
-    // An action of the sheet's: it closes, and the page is asked.
-    component SheetAction: ListRow {
+    InfoRow {
+        objectName: "fileName"
         Layout.fillWidth: true
-        Layout.leftMargin: -24
-        Layout.rightMargin: -24
-        leftPadding: 24
-        symbolColor: Material.foreground
-        onClicked: sheet.close()
+        label: qsTr("Name")
+        value: sheet.file.name || ""
     }
 
-    // What it is and where it came from.
-    Label {
+    InfoRow {
+        objectName: "fileSize"
         Layout.fillWidth: true
-        wrapMode: Text.Wrap
+        label: qsTr("Size")
+        value: Theme.fileSize(sheet.file.size || 0)
+    }
+
+    // The hash: worked out, then shown whole, a tap from the clipboard.
+    RowLayout {
+        Layout.fillWidth: true
+        spacing: 4
+
+        InfoRow {
+            objectName: "fileSha256"
+            Layout.fillWidth: true
+            label: qsTr("SHA-256")
+            mono: sheet.sha256.length > 0
+            value: sheet.sha256.length > 0 ? sheet.sha256
+                 : sheet.hashError.length > 0 ? sheet.hashError
+                 : qsTr("Working it out…")
+            valueColor: sheet.hashError.length > 0 ? Theme.danger
+                        : sheet.hashing ? Material.secondaryTextColor
+                                        : Material.foreground
+        }
+
+        // Its place is kept whatever shows in it: nothing moves when the
+        // hash arrives.
+        Item {
+            Layout.alignment: Qt.AlignTop
+            implicitWidth: Theme.touch
+            implicitHeight: Theme.touch
+
+            BusyIndicator {
+                anchors.fill: parent
+                padding: 10
+                running: sheet.hashing && sheet.opened
+                visible: running
+            }
+
+            BarButton {
+                objectName: "copySha256"
+                anchors.fill: parent
+                visible: sheet.sha256.length > 0
+                text: qsTr("Copy the SHA-256")
+                icon.source: Theme.icon("content_copy")
+                onClicked: {
+                    output.copy(sheet.sha256, false)
+                    copied.visible = true
+                }
+            }
+        }
+    }
+
+    Label {
+        id: copied
+        objectName: "fileCopied"
+        Layout.fillWidth: true
+        visible: false
+        text: qsTr("Copied.")
         color: Material.secondaryTextColor
-        font.pixelSize: Theme.secondarySize
-        text: {
-            const size = Theme.fileSize(sheet.file.size || 0)
-            if (sheet.file.origin === "shared")
-                return qsTr("%1 · Shared with GpgFrontend by another app. This "
-                            + "is a copy, deleted when you remove it from the "
-                            + "list or close the app.").arg(size)
-            if (!sheet.isOutput)
-                return qsTr("%1 · A file you added. Removing it from the list "
-                            + "does not delete it.").arg(size)
-            const made = sheet.file.operation === "encrypt"
-                       ? qsTr("Encrypted from %1")
-                       : sheet.file.operation === "decrypt"
-                         ? qsTr("Decrypted from %1") : qsTr("Signature of %1")
-            if ((sheet.file.savedName || "").length > 0)
-                return qsTr("%1 · %2. Saved as %3; the copy here is deleted "
-                            + "when you remove it from the list or close the app.")
-                       .arg(size).arg(made.arg(sheet.file.sourceName))
-                       .arg(sheet.file.savedName)
-            return qsTr("%1 · %2. A temporary copy GpgFrontend made: save it "
-                        + "to keep it. It is deleted when you remove it from "
-                        + "the list or close the app.")
-                   .arg(size).arg(made.arg(sheet.file.sourceName))
-        }
-    }
-
-    // What its name says it is.
-    Label {
-        objectName: "fileContent"
-        Layout.fillWidth: true
-        visible: text.length > 0
-        wrapMode: Text.Wrap
-        font.pixelSize: Theme.secondarySize
-        text: {
-            const kind = Wording.fileContent(sheet.file.content)
-            return kind.length > 0 ? qsTr("By its name: %1").arg(kind) : ""
-        }
+        font.pixelSize: Theme.labelSize
     }
 
     Label {
@@ -128,117 +156,98 @@ BottomSheet {
         visible: sheet.file.available === false
         wrapMode: Text.Wrap
         color: Theme.danger
+        font.pixelSize: Theme.secondarySize
         text: qsTr("This file can no longer be opened. It may have been "
                    + "moved or deleted, or access to it has ended.")
     }
 
-    // How the last operation went, with its full report a tap away.
-    ListRow {
-        objectName: "fileReport"
+    Label {
+        objectName: "fileTemporary"
         Layout.fillWidth: true
-        Layout.leftMargin: -24
-        Layout.rightMargin: -24
-        leftPadding: 24
-        visible: sheet.hasReport
-        symbol: Theme.reportSymbol(sheet.file.result || {})
-        symbolColor: Theme.reportColor(sheet.file.result || {},
-                                       Material.secondaryTextColor)
-        text: qsTr("Last result")
-        detail: {
-            const r = sheet.file.result || {}
-            if (r.cancelled === true) return qsTr("Cancelled")
-            if (r.status === undefined) return ""
-            return r.status > 0 ? qsTr("Done") : r.status === 0
-                   ? qsTr("Done, with warnings") : qsTr("Failed")
-        }
-        onClicked: {
-            sheet.close()
-            sheet.reportRequested(sheet.fileId)
-        }
-
-        Icon {
-            symbol: "chevron_right"
-            color: Material.secondaryTextColor
-        }
+        visible: sheet.temporary || sheet.file.origin === "shared"
+        wrapMode: Text.Wrap
+        color: sheet.temporary ? Theme.warning : Material.secondaryTextColor
+        font.pixelSize: Theme.secondarySize
+        text: sheet.temporary
+              ? qsTr("Temporary, not saved. It is deleted when you remove it "
+                     + "or close the app. Save it to keep it.")
+              : qsTr("A copy another app shared. It is deleted when you remove "
+                     + "it or close the app.")
     }
 
-    MenuSeparator {
+    Label {
         Layout.fillWidth: true
-        Layout.leftMargin: -24
-        Layout.rightMargin: -24
+        visible: (sheet.file.savedName || "").length > 0
+        wrapMode: Text.Wrap
+        color: Material.secondaryTextColor
+        font.pixelSize: Theme.secondarySize
+        text: qsTr("Saved as %1.").arg(sheet.file.savedName || "")
     }
 
-    SheetAction {
-        objectName: "detailsSave"
+    // What is done with it: side by side while they fit, one under the other
+    // on a narrow screen or with large text.
+    Flow {
+        objectName: "fileActions"
+        Layout.fillWidth: true
+        Layout.topMargin: 4
+        spacing: Theme.gapSmall
         visible: sheet.isOutput
-        symbol: "save"
-        text: qsTr("Save as")
-        onClicked: sheet.saveRequested(sheet.fileId)
+
+        ActionButton {
+            objectName: "detailsSave"
+            kind: "primary"
+            text: qsTr("Save as")
+            icon.source: Theme.icon("save")
+            onClicked: {
+                sheet.close()
+                sheet.saveRequested(sheet.fileId)
+            }
+        }
+
+        ActionButton {
+            objectName: "detailsShare"
+            kind: "secondary"
+            visible: sheet.workspace && sheet.workspace.canShare
+            text: qsTr("Share")
+            icon.source: Theme.icon("share")
+            onClicked: {
+                sheet.close()
+                sheet.shareRequested(sheet.fileId)
+            }
+        }
+
+        ActionButton {
+            objectName: "detailsOpenWith"
+            kind: "secondary"
+            visible: sheet.workspace && sheet.workspace.canShare
+            text: qsTr("Open with…")
+            icon.source: Theme.icon("visibility")
+            onClicked: {
+                sheet.close()
+                sheet.openRequested(sheet.fileId)
+            }
+        }
     }
 
-    SheetAction {
-        visible: sheet.isOutput && sheet.workspace && sheet.workspace.canShare
-        symbol: "share"
-        text: qsTr("Share")
-        onClicked: sheet.shareRequested(sheet.fileId)
-    }
-
-    SheetAction {
-        objectName: "detailsOpenWith"
-        visible: sheet.isOutput && sheet.workspace && sheet.workspace.canShare
-        symbol: "visibility"
-        text: qsTr("Open with…")
-        onClicked: sheet.openRequested(sheet.fileId)
-    }
-
-    SheetAction {
-        objectName: "detailsEncrypt"
-        enabled: sheet.usable && !sheet.openPgpData
-        image: Theme.operationIcon("encrypt")
-        text: qsTr("Encrypt")
-        detail: !sheet.usable ? sheet.whyNot
-              : sheet.openPgpData ? qsTr("It is OpenPGP data already.") : ""
-        onClicked: sheet.encryptRequested(sheet.fileId)
-    }
-
-    SheetAction {
-        objectName: "detailsDecrypt"
-        enabled: sheet.usable && sheet.looksEncrypted
-        image: Theme.operationIcon("decrypt")
-        text: qsTr("Decrypt")
-        detail: !sheet.usable ? sheet.whyNot
-              : sheet.looksEncrypted ? ""
-              : qsTr("Its name is not one of encrypted data.")
-        onClicked: sheet.decryptRequested(sheet.fileId)
-    }
-
-    SheetAction {
-        objectName: "detailsSign"
-        enabled: sheet.usable && !sheet.openPgpData
-        image: Theme.operationIcon("sign")
-        text: qsTr("Sign")
-        detail: !sheet.usable ? sheet.whyNot
-              : sheet.openPgpData ? qsTr("It is OpenPGP data already.") : ""
-        onClicked: sheet.signRequested(sheet.fileId)
-    }
-
-    SheetAction {
-        objectName: "detailsVerify"
-        enabled: sheet.usable && sheet.openPgpData
-        image: Theme.operationIcon("verify")
-        text: qsTr("Verify")
-        detail: !sheet.usable ? sheet.whyNot
-              : sheet.openPgpData ? qsTr("Check a detached signature against its file.")
-              : qsTr("Its name is not one of a signature or signed data.")
-        onClicked: sheet.verifyRequested(sheet.fileId)
-    }
-
-    SheetAction {
-        objectName: "detailsRemove"
-        Layout.bottomMargin: Theme.gapSmall
-        enabled: sheet.file.phase !== "running"
-        symbol: "delete"
-        text: qsTr("Remove from list")
-        onClicked: sheet.removeRequested(sheet.fileId)
-    }
+    footer: [
+        ActionButton {
+            objectName: "detailsRemove"
+            kind: "text"
+            enabled: sheet.file.phase !== "running"
+            text: qsTr("Remove from list")
+            icon.source: Theme.icon("delete")
+            onClicked: {
+                sheet.close()
+                sheet.removeRequested(sheet.fileId)
+            }
+        },
+        Item {
+            Layout.fillWidth: true
+        },
+        ActionButton {
+            kind: "text"
+            text: qsTr("Close")
+            onClicked: sheet.close()
+        }
+    ]
 }

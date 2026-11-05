@@ -158,7 +158,6 @@ qt_add_qml_module(gf_mob_lib
     qml/components/KeyGroupSheet.qml
     qml/components/KeyDatabaseSheet.qml
     qml/components/ProfileSheet.qml
-    qml/components/OperationBar.qml
     qml/components/OperationFlow.qml
     qml/components/ProblemLabel.qml
     qml/components/KeyPartFacts.qml

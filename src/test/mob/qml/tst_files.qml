@@ -32,13 +32,13 @@ Item {
 
         function test_an_empty_list_offers_to_add_files() {
             verify(findByName(files, "emptyFiles").visible)
+            // Adding is the + at the foot, the same with files or without;
+            // the empty list explains, it has no button of its own.
             verify(findByName(files, "addFilesButton").enabled)
-            // The operations are there, as on the Text page, and nothing can
-            // be done with no file chosen.
-            verify(findByName(files, "selectionBar").visible)
-            for (const name of ["encryptSelected", "decryptSelected",
-                                "signSelected", "verifySelected"])
-                verify(!findByName(files, name).enabled, name)
+            compare(findByName(files, "addFilesBar"), null)
+            compare(findByName(files, "selectionBar"), null)
+            // No operations without files.
+            verify(!findByName(files, "operationButton").visible)
             verify(!files.selecting)
         }
 
@@ -47,28 +47,36 @@ Item {
             files.workspace.addFiles([path])
             compare(files.workspace.count, 1)
             verify(!findByName(files, "emptyFiles").visible)
-            verify(findByName(files, "selectionBar").visible)
-            verify(findByName(files, "addFilesBar").visible)
+            verify(findByName(files, "operationButton").visible)
 
-            // A long press starts it ...
+            // Nothing chosen: the operations say so, none runs on all files.
+            compare(files.operationMenu.unavailable,
+                    "Select files first, or use Select all.")
+
             let row = null
             tryVerify(() => (row = findByName(files, "file_tst_files.qml")) !== null)
+            const height = row.height
+            const textWidth = row.contentItem.width
+            const end = findByName(row, "fileRowEnd")
+            const endX = end.x
+
+            // A long press starts choosing ...
             row.pressAndHold()
             verify(files.selecting)
             compare(files.workspace.selectedCount, 1)
-            // ... with what can be done to them, and only that: no keys
-            // there, they are asked for when an operation needs them ...
-            for (const name of ["encryptSelected", "decryptSelected",
-                                "signSelected", "verifySelected"])
-                verify(findByName(files, name).visible, name)
-            compare(findByName(files, "keysButton"), null)
-            // ... each when it can be done, as on the desktop: a file that
-            // is not OpenPGP data is encrypted or signed, not decrypted or
-            // verified ...
-            verify(findByName(files, "encryptSelected").enabled)
-            verify(findByName(files, "signSelected").enabled)
-            verify(!findByName(files, "decryptSelected").enabled)
-            verify(!findByName(files, "verifySelected").enabled)
+            compare(files.operationMenu.unavailable, "")
+            // ... and the row keeps its shape: same height, text as wide,
+            // the end slot where it was.
+            compare(row.height, height)
+            compare(row.contentItem.width, textWidth)
+            compare(end.x, endX)
+            // ... each operation when it can be done, as on the desktop, and
+            // why not when it cannot: a file that is not OpenPGP data is
+            // encrypted or signed, not decrypted or verified.
+            compare(files.reasonFor("encrypt"), "")
+            compare(files.reasonFor("sign"), "")
+            compare(files.reasonFor("decrypt"), "Only for encrypted files.")
+            verify(files.reasonFor("verify").length > 0)
             // ... a tap then chooses and unchooses ...
             row.clicked()
             verify(!files.selecting)
@@ -101,35 +109,51 @@ Item {
             compare(files.workspace.count, 0)
         }
 
-        function test_the_list_is_searched_and_narrowed() {
+        function test_the_list_is_searched() {
             files.workspace.addFiles([Qt.resolvedUrl("tst_files.qml"),
                                       Qt.resolvedUrl("tst_text.qml")])
             compare(files.shown.count, 2)
-            verify(findByName(files, "fileFilters").visible)
+            // No kinds of file to choose from: searching is enough.
+            compare(findByName(files, "fileFilters"), null)
 
-            // Searching: by name ...
             files.openSearch()
             verify(files.searching)
             findByName(files, "fileSearch").text = "files"
             compare(files.shown.count, 1)
-            // ... Back empties the field, then closes it.
+            findByName(files, "fileSearch").text = "nothing"
+            verify(findByName(files, "noMatchingFiles").visible)
+            findByName(files, "fileSearch").text = "files"
+            // Back empties the field, then closes it.
             verify(files.back())
             verify(files.searching)
             compare(files.shown.count, 2)
             verify(files.back())
             verify(!files.searching)
 
-            // Narrowed by what the files are, by name: .qml is neither.
-            compare(files.workspace.entry(files.workspace.idAt(0)).content, "")
-            findByName(files, "fileFilter_encrypted").clicked()
-            compare(files.shown.category, "encrypted")
-            compare(files.shown.count, 0)
-            verify(findByName(files, "noMatchingFiles").visible)
-            // Showing a file lets go of the filter that hides it.
-            files.showFile(files.workspace.idAt(0))
-            compare(files.shown.category, "all")
-            compare(files.shown.count, 2)
+            // Rows say the size, not where the file came from.
+            const entry = files.workspace.entry(files.workspace.idAt(0))
+            verify(files.detailOf(entry).indexOf("Added") < 0)
+            files.workspace.clear()
+        }
 
+        // A file's details: its name, size and SHA-256, worked out once the
+        // sheet is open.
+        function test_details_show_the_file_s_hash() {
+            files.workspace.addFiles([Qt.resolvedUrl("tst_files.qml")])
+            const id = files.workspace.idAt(0)
+            files.fileDetails.begin(id)
+            tryVerify(() => files.fileDetails.opened)
+            tryVerify(() => files.fileDetails.sha256.length === 64, 10000)
+            compare(files.fileDetails.hashError, "")
+            // "Copied." is about this sheet's copy, not one before.
+            const copied = findByName(files.fileDetails.contentItem, "fileCopied")
+            copied.visible = true
+            files.fileDetails.close()
+            tryVerify(() => !files.fileDetails.visible)
+            files.fileDetails.begin(id)
+            verify(!copied.visible)
+            files.fileDetails.close()
+            tryVerify(() => !files.fileDetails.visible)
             files.workspace.clear()
         }
 
