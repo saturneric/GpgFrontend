@@ -62,6 +62,13 @@ Item {
         id: importer
     }
 
+    // Buttons of each kind: one made primary, one that becomes primary.
+    Column {
+        ActionButton { id: madePrimary; kind: "primary"; text: "Save as" }
+        ActionButton { id: madeSecondary; kind: "secondary"; text: "Share" }
+        ActionButton { id: turnsPrimary; kind: "secondary"; text: "Save as" }
+    }
+
     // Puts white space on the clipboard: nothing to import, whatever an
     // earlier test copied.
     TextEdit {
@@ -196,6 +203,21 @@ Item {
             verify(outcome.text.indexOf("clipboard") >= 0)
             importer.close()
             tryVerify(() => !importer.visible)
+        }
+
+        // A button whose kind changes looks as one made of that kind: a
+        // secondary's tint is let go of, never left behind as a pale fill
+        // that reads as disabled (Save as, once a file is known temporary).
+        function test_a_button_that_changes_kind_looks_like_its_kind() {
+            verify(!Qt.colorEqual(madePrimary.background.color,
+                                  madeSecondary.background.color))
+            turnsPrimary.kind = "primary"
+            verify(Qt.colorEqual(turnsPrimary.background.color,
+                                 madePrimary.background.color),
+                   turnsPrimary.background.color + " vs " + madePrimary.background.color)
+            turnsPrimary.kind = "secondary"
+            verify(Qt.colorEqual(turnsPrimary.background.color,
+                                 madeSecondary.background.color))
         }
     }
 }

@@ -52,19 +52,13 @@ Button {
         }
     }
 
-    // A tint of what it sits on (not of itself, which reads back), and the
-    // accent for its text.
-    Binding {
-        target: button.Material
-        property: "background"
-        when: button.kind === "secondary"
-        value: Theme.surface(button.parent ? button.parent.Material.backgroundColor
-                                           : "white", 4)
-    }
-    Binding {
-        target: button.Material
-        property: "foreground"
-        when: button.kind === "secondary"
-        value: Theme.accent
-    }
+    // A secondary's tint of what it sits on (not of itself, which reads
+    // back), and the accent for its text. Any other kind resets both
+    // (undefined), so a button whose kind changes looks as one made of that
+    // kind: a Binding put the tint back as an explicit colour when it let go,
+    // and a primary drew it as its fill, pale, reading as disabled.
+    Material.background: kind === "secondary"
+        ? Theme.surface(parent ? parent.Material.backgroundColor : "white", 4)
+        : undefined
+    Material.foreground: kind === "secondary" ? Theme.accent : undefined
 }
