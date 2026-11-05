@@ -12,10 +12,92 @@ Item {
     TextPage {
         id: text
         anchors.fill: parent
+        crypto: fake
+    }
+
+    // The engine as the page sees it, run by hand: each operation starts,
+    // and ends when the test says how (finish()).
+    QtObject {
+        id: fake
+
+        property bool busy: false
+        property string output: ""
+        property var result: ({})
+        property bool sensitive: false
+        property int operationId: 0
+        property int finishedId: 0
+        property bool replacesText: false
+        property var held: ({})
+        property var started: []
+        property int clears: 0
+
+        function begin(op, text) {
+            started = started.concat([[op, text]])
+            ++operationId
+            busy = true
+            return true
+        }
+        function encrypt(t, r, s, sym) { return begin("encrypt", t) }
+        function decrypt(t, v) { return begin(v ? "decrypt_verify" : "decrypt", t) }
+        function sign(t, s) { return begin("sign", t) }
+        function verify(t) { return begin("verify", t) }
+        function holds(id) { return false }
+        function retry(id) { return false }
+        function clear() {
+            ++clears
+            held = {}
+            if (!busy) {
+                output = ""
+                sensitive = false
+            }
+        }
+        function hold(id) {
+            if (id !== finishedId || !replacesText) return false
+            held[id] = output
+            return true
+        }
+        function isHeld(id) { return held[id] !== undefined }
+        function take(id) {
+            const kept = held[id] || ""
+            delete held[id]
+            return kept
+        }
+        function release(id) { delete held[id] }
+
+        // The operation that runs ends: @p replaces with @p out, or not.
+        function finish(replaces, out, ok) {
+            busy = false
+            finishedId = operationId
+            replacesText = replaces
+            output = out
+            result = ok === false ? {"status": -1, "description": "It failed."}
+                                  : {"status": 1}
+            text.finished(ok !== false)
+        }
+
+        function reset() {
+            busy = false; output = ""; sensitive = false; replacesText = false
+            held = {}; started = []; clears = 0
+        }
     }
 
     PassphraseSheet {
         id: passphrase
+    }
+
+    // The flow alone, with a stand-in for the key toolbox: what it runs
+    // once the keys are chosen.
+    QtObject {
+        id: toolboxStandIn
+        property var pending: null
+        function openKeys(which, pending) { toolboxStandIn.pending = pending }
+        function track(id) {}
+    }
+
+    QtObject {
+        id: noticeStandIn
+        property string said: ""
+        function show(message) { said = message }
     }
 
     TestCase {
@@ -34,145 +116,179 @@ Item {
             return null
         }
 
+        function init() {
+            fake.reset()
+            text.editor.text = ""
+            text.notice.show("")
+        }
+
+        // Type @p words as an edit (an insert, which Undo takes back).
+        function type(words) {
+            text.editor.insert(text.editor.length, words)
+        }
+
         function test_nothing_to_do_without_text() {
-            var input = findByName(text, "textInput")
-            const actions = [text.encryptAction, text.decryptAction,
-                             text.signAction, text.verifyAction]
-            for (const action of actions) verify(!action.enabled, action.text)
-            // Nothing there: the ways to start, instead of an empty page.
+            // Nothing there: what the page is for, without buttons.
             verify(findByName(text, "emptyText").visible)
-            input.text = "hello"
-            for (const action of actions) verify(action.enabled, action.text)
+            compare(text.unavailable, "Type or paste text first.")
+            compare(text.operationMenu.unavailable, "Type or paste text first.")
+            type("hello")
+            compare(text.unavailable, "")
             verify(!findByName(text, "emptyText").visible)
-            input.text = ""
         }
 
-        function test_the_bar_offers_what_suits_the_text() {
-            var input = findByName(text, "textInput")
-            input.text = "Dear Bob"
-            compare(text.kind, "plain")
-            compare(text.primaryAction, text.encryptAction)
-            input.text = "-----BEGIN PGP MESSAGE-----\nhQ==\n"
-            compare(text.kind, "message")
-            compare(text.primaryAction, text.decryptAction)
-            compare(findByName(text, "textKind").text, "Encrypted message")
-            input.text = "-----BEGIN PGP SIGNED MESSAGE-----\nHash: SHA512\n"
-            compare(text.primaryAction, text.verifyAction)
-            input.text = "-----BEGIN PGP PUBLIC KEY BLOCK-----\n"
-            compare(text.primaryAction, text.importAction)
-            // Every operation stays offered whatever the text is.
-            verify(text.encryptAction.enabled && text.signAction.enabled)
-            input.text = ""
-        }
-
-        function test_the_operations_are_labelled_for_everyone() {
-            var input = findByName(text, "textInput")
-            input.text = "hello"
-            // Each operation its own button, named; the one that fits the
-            // text marked. No keys in the bar: they are asked for later.
-            for (const name of ["encryptButton", "decryptButton",
-                                "signButton", "verifyButton"]) {
-                var button = findByName(text, name)
-                verify(button !== null && button.visible, name)
-                verify(button.height >= 40)
-                verify(button.Accessible.name.length > 0)
+        // The menu is as wide as its longest name needs (translations are
+        // longer than English), right above the button, inside the window.
+        function test_the_operation_menu_fits_its_names() {
+            type("hello")
+            const menu = text.operationMenu
+            // A row longer than the style's 200 dp menu, as German names are.
+            const again = menu.againText
+            menu.againText = "Encrypt to Alice and Bob Example"
+            menu.openAbove(findByName(text, "operationButton"))
+            tryVerify(() => menu.opened)
+            let rows = 0
+            for (let i = 0; i < menu.count; ++i) {
+                const item = menu.itemAt(i)
+                if (!item || item.height <= 0) continue
+                ++rows
+                verify(item.width >= item.implicitWidth - 0.5,
+                       item.objectName + " cut: " + item.width + " < " + item.implicitWidth)
             }
-            compare(findByName(text, "encryptButton").text, "Encrypt")
-            // The one that fits is said, not drawn as chosen: action
-            // buttons are not tabs.
-            for (const name of ["encryptButton", "decryptButton",
-                                "signButton", "verifyButton"])
-                verify(!findByName(text, name).highlighted, name)
-            verify(findByName(text, "encryptButton").Accessible.description.length > 0)
-            compare(findByName(text, "decryptButton").Accessible.description, "")
-            // More is the fifth action, as wide as the others.
-            const more = findByName(text, "operationMore")
-            compare(more.width, findByName(text, "verifyButton").width)
-            verify(more.height >= 48)
-            compare(findByName(text, "keysButton"), null)
-            input.text = ""
+            verify(rows >= 6)
+            verify(menu.width <= text.width)
+            verify(menu.width > 200)
+            menu.close()
+            tryVerify(() => !menu.visible)
+            menu.againText = again
         }
 
-        function test_the_editor_s_tools_come_only_with_the_keyboard() {
-            verify(!findByName(text, "editTools").visible)
-            verify(findByName(text, "actionDock").visible)
+        function test_one_editor_and_no_status_badges() {
+            for (const gone of ["resultViews", "textKind", "textHistory",
+                                "editTools", "actionDock"])
+                compare(findByName(text, gone), null, gone)
+            verify(findByName(text, "operationButton").visible)
+            for (const name of ["undoButton", "redoButton", "copyButton"])
+                verify(findByName(text, name) !== null, name)
         }
 
-        function test_no_result_no_status() {
-            verify(!text.resultState)
-            verify(!findByName(text, "resultViews").visible)
-            verify(!findByName(text, "statusLine").visible)
+        function test_a_result_replaces_the_text_as_one_undo_step() {
+            type("-----BEGIN PGP MESSAGE-----")
+            text.request("decrypt")
+            compare(fake.started.length, 1)
+            fake.finish(true, "the secret")
+            compare(text.editor.text, "the secret")
+            text.editor.undo()
+            compare(text.editor.text, "-----BEGIN PGP MESSAGE-----")
+            text.editor.redo()
+            compare(text.editor.text, "the secret")
         }
 
-        function test_a_result_and_its_original_in_turn() {
-            var input = findByName(text, "textInput")
-            text.resultInput = "the message"
-            text.resultOutput = "-----BEGIN PGP MESSAGE-----"
-            text.resultState = true
-            text.setText(text.resultOutput)
-            verify(findByName(text, "resultViews").visible)
-            verify(input.readOnly)
-            compare(text.primaryAction, text.copyAction)
+        function test_an_empty_result_is_a_result_too() {
+            type("-----BEGIN PGP MESSAGE-----")
+            text.request("decrypt")
+            fake.finish(true, "")
+            compare(text.editor.text, "")
+            text.editor.undo()
+            compare(text.editor.text, "-----BEGIN PGP MESSAGE-----")
+        }
 
-            text.views.currentIndex = 0
-            compare(input.text, "the message")
-            text.views.currentIndex = 1
-            compare(input.text, "-----BEGIN PGP MESSAGE-----")
+        function test_a_verification_or_a_failure_leaves_the_text() {
+            type("-----BEGIN PGP SIGNED MESSAGE-----")
+            text.request("verify")
+            fake.finish(false, "")
+            compare(text.editor.text, "-----BEGIN PGP SIGNED MESSAGE-----")
+            text.request("decrypt")
+            fake.finish(false, "", false)
+            compare(text.editor.text, "-----BEGIN PGP SIGNED MESSAGE-----")
+            // With no status sheet, the failure is said at the foot.
+            compare(text.notice.text, "It failed.")
+        }
 
-            // Back leaves it, keeping what is shown as the text to work on,
-            // with an undo history of its own.
-            verify(text.back())
-            verify(!text.resultState)
-            verify(!input.readOnly)
-            compare(input.text, "-----BEGIN PGP MESSAGE-----")
-            verify(!input.canUndo)
-            verify(!text.back())
-            input.text = ""
+        function test_text_changed_meanwhile_is_not_overwritten() {
+            type("abc")
+            text.request("decrypt")
+            type("d")
+            fake.finish(true, "result")
+            compare(text.editor.text, "abcd")
+            compare(text.notice.actionText, "Replace anyway")
+            // The offer is that operation's result, put in as one step.
+            text.notice.handler()
+            compare(text.editor.text, "result")
+            text.editor.undo()
+            compare(text.editor.text, "abcd")
+        }
+
+        function test_undo_meanwhile_counts_as_a_change() {
+            type("abc")
+            text.request("decrypt")
+            // An edit of its own (not merged with the typing), then Undo:
+            // the same text again, yet it changed twice meanwhile.
+            text.editor.insert(0, "x")
+            text.editor.undo()
+            compare(text.editor.text, "abc")
+            fake.finish(true, "result")
+            compare(text.editor.text, "abc")
+            compare(text.notice.actionText, "Replace anyway")
+        }
+
+        function test_a_wiped_text_never_comes_back() {
+            type("-----BEGIN PGP MESSAGE-----")
+            fake.sensitive = true
+            text.request("decrypt")
+            // Cleared while it runs.
+            text.clearText()
+            compare(text.editor.text, "")
+            verify(!text.editor.canUndo)
+            fake.finish(true, "the secret")
+            compare(text.editor.text, "")
+            verify(fake.clears >= 2)
+            compare(text.notice.actionText, "")
         }
 
         function test_clear_is_taken_back_by_undo() {
-            var input = findByName(text, "textInput")
-            verify(!text.clearAction.enabled)
-            input.text = "keep me"
-            verify(text.clearAction.enabled)
-            text.clearAction.trigger()
-            compare(input.text, "")
-            // Said at the foot, with the way back ...
+            type("keep me")
+            text.clearText()
+            compare(text.editor.text, "")
             compare(text.notice.actionText, "Undo")
             verify(text.notice.visible)
-            // ... which brings the text back.
-            text.notice.action()
-            compare(input.text, "keep me")
-            input.text = ""
-            text.notice.show("")
+            text.notice.handler()
+            compare(text.editor.text, "keep me")
+        }
+
+        function test_short_text_stays_put() {
+            const flick = findByName(text, "textScroller")
+            type("short")
+            compare(flick.boundsBehavior, Flickable.StopAtBounds)
+            verify(!flick.interactive)
+            let many = ""
+            for (let i = 0; i < 200; ++i) many += "line " + i + "\n"
+            type(many)
+            tryVerify(() => flick.interactive)
+            // A result starts at its top.
+            text.replaceText(many)
+            compare(flick.contentY, 0)
         }
 
         function test_shared_text_never_overwrites_unasked() {
-            var input = findByName(text, "textInput")
-            // On an empty page it is simply put there ...
             text.receive("from another app")
-            compare(input.text, "from another app")
-            // ... over text, it waits for the person to agree.
-            input.text = "mine"
+            compare(text.editor.text, "from another app")
+            text.editor.text = "mine"
             text.receive("again")
-            compare(input.text, "mine")
+            compare(text.editor.text, "mine")
             const ask = text.confirmReplace
             tryVerify(() => ask.opened)
             ask.reject()
-            compare(input.text, "mine")
+            compare(text.editor.text, "mine")
             text.receive("again")
             tryVerify(() => ask.opened)
             ask.accept()
-            compare(input.text, "again")
-            input.text = ""
-            text.notice.show("")
+            compare(text.editor.text, "again")
         }
 
         function test_every_line_is_numbered() {
-            var input = findByName(text, "textInput")
-            input.text = "one\ntwo\n\nfour"
+            text.editor.text = "one\ntwo\n\nfour"
             compare(text.lineStarts, [0, 4, 8, 9])
-            input.text = ""
         }
 
         function test_a_share_that_went_nowhere_points_to_copy() {
@@ -182,9 +298,49 @@ Item {
             verify(notice.text.indexOf("Copy") >= 0)
             text.shared("handed_off")
             compare(notice.text, "Shared.")
-            // Not confirmed either way: nothing claimed.
             text.shared("dismissed")
             compare(notice.text, "")
+        }
+    }
+
+    TestCase {
+        name: "OperationFlow"
+
+        Component {
+            id: flowComponent
+            OperationFlow {
+                property var ran: []
+                start: function(op, target) { ran = ran.concat([[op, target]]); return true }
+                notice: noticeStandIn
+                sheets: toolboxStandIn
+            }
+        }
+
+        // A page's targets may be text: once the keys are chosen, the
+        // operation runs on it, and the text is not mistaken for a reason
+        // not to.
+        function test_text_targets_run_once_the_keys_are_chosen() {
+            const flow = createTemporaryObject(flowComponent, null, {
+                "recheck": function(t) { return {"ok": true, "targets": t} }
+            })
+            noticeStandIn.said = ""
+            flow.request("encrypt", "test")
+            verify(toolboxStandIn.pending !== null)
+            toolboxStandIn.pending.run()
+            compare(flow.ran.length, 1)
+            compare(flow.ran[0][0], "encrypt")
+            compare(flow.ran[0][1], "test")
+            compare(noticeStandIn.said, "")
+        }
+
+        function test_a_refused_recheck_is_said() {
+            const flow = createTemporaryObject(flowComponent, null, {
+                "recheck": function(t) { return {"ok": false, "message": "gone"} }
+            })
+            flow.request("sign", "test")
+            toolboxStandIn.pending.run()
+            compare(flow.ran.length, 0)
+            compare(noticeStandIn.said, "gone")
         }
     }
 
@@ -211,19 +367,11 @@ Item {
                     "Cancelled")
         }
 
-        // More has what the buttons do not: the plain operation when a
-        // button does another, the others once turned on in Settings.
-        function test_more_offers_what_the_buttons_do_not() {
-            verify(!Wording.inMore("encrypt", [], "encrypt", "decrypt"))
-            verify(!Wording.inMore("encrypt_sign", [], "encrypt", "decrypt"))
-            verify(Wording.inMore("encrypt_sign", ["encrypt_sign"], "encrypt", "decrypt"))
-            verify(!Wording.inMore("encrypt_sign", ["encrypt_sign"], "encrypt_sign", "decrypt"))
-            verify(Wording.inMore("encrypt", ["encrypt_sign"], "encrypt_sign", "decrypt"))
-            verify(Wording.inMore("decrypt", ["decrypt_verify"], "encrypt", "decrypt_verify"))
-            // The buttons say what they do, an ampersand kept for an Action.
-            compare(Wording.actionText(Wording.buttonLabel("encrypt_sign")),
+        // An ampersand is kept for an Action, which would read it as a
+        // shortcut mark.
+        function test_an_ampersand_is_kept_for_an_action() {
+            compare(Wording.actionText(Wording.operationLabel("encrypt_sign")),
                     "Encrypt && Sign")
-            compare(Wording.buttonLabel("symmetric"), "Sym. Encrypt")
         }
 
         function test_the_last_operation_is_said_in_a_line() {

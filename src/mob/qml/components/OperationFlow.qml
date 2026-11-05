@@ -14,9 +14,10 @@ QtObject {
 
     // Start @p op on @p targets: true when it started.
     required property var start
-    // What of @p targets is still there to run on once the keys are chosen;
-    // a sentence saying why not, when nothing is.
-    property var recheck: function(targets) { return targets }
+    // What of @p targets is still there to run on once the keys are chosen:
+    // {ok: true, targets} to go on with, or {ok: false, message} saying why
+    // not. An explicit result: a page's targets may themselves be text.
+    property var recheck: function(targets) { return {"ok": true, "targets": targets} }
     // The page's notice, for what cannot start.
     required property var notice
     // The sheet host, when there is one: the key toolbox is opened in it.
@@ -56,11 +57,11 @@ QtObject {
                    : op === "encrypt" ? qsTr("Encrypt now") : qsTr("Sign now"),
             "run": function() {
                 const still = flow.recheck(targets)
-                if (typeof still === "string") {
-                    flow.notice.show(still)
+                if (!still.ok) {
+                    flow.notice.show(still.message)
                     return
                 }
-                flow.run(op, still)
+                flow.run(op, still.targets)
             }
         })
     }
