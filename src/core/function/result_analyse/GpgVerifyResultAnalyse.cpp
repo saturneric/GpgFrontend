@@ -96,8 +96,13 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
           bool is_fully_valid = (sign.GetSummary() & kSIGSUM_VALID) != 0;
           bool is_green = (sign.GetSummary() & kSIGSUM_GREEN) != 0;
           bool is_red = (sign.GetSummary() & kSIGSUM_RED) != 0;
+          // GnuPG's own verdict on the key: never valid, as with a TOFU
+          // binding marked bad. gpg calls such a signature a likely forgery.
+          const bool distrusted = sign.GetValidity() == GpgValidity::kNEVER;
 
-          if (is_fully_valid && is_green && !sign.HasTrustModel()) {
+          if (distrusted) {
+            stream_ << tr("Signing Key Not to Be Trusted") << Qt::endl;
+          } else if (is_fully_valid && is_green && !sign.HasTrustModel()) {
             // No trust model behind it: sound, but not vouched for.
             stream_ << tr("Valid") << Qt::endl;
           } else if (is_fully_valid && is_green) {
@@ -110,6 +115,11 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
 
           // List specific warnings
           QStringList warnings;
+          if (distrusted) {
+            warnings.append(
+                tr("GnuPG marks the signing key as never valid: the signature "
+                   "may be a forgery"));
+          }
           if ((sign.GetSummary() & kSIGSUM_SIG_EXPIRED) != 0) {
             warnings.append(tr("Signature has expired"));
           }
@@ -133,7 +143,8 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
             }
           }
 
-          if (!is_fully_valid && warnings.isEmpty()) {
+          // Raising trust cannot help a key GnuPG itself rejected.
+          if (!is_fully_valid && !is_red && warnings.isEmpty()) {
             stream_ << "  - " << tr("Tips") << ": "
                     << tr("Adjust trust level to make it fully valid")
                     << Qt::endl;
@@ -146,7 +157,7 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
                     << " (" << tr("not present in keyring") << ")" << Qt::endl;
           }
 
-          setStatus(1);
+          setStatus(distrusted ? -1 : 1);
           break;
         }
         case GFErrorCode::kNO_PUBLIC_KEY:
@@ -256,6 +267,8 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
   // Whether a signing key is carried by more than one key pair, so the
   // signature cannot be credited to one identity.
   bool any_shared_signer = false;
+  // Whether GnuPG rated a signing key never valid (a likely forgery).
+  bool any_distrusted = false;
 
   for (const auto& sign : signatures) {
     GpgVerifySigInfo sig_info;
@@ -301,7 +314,14 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
         bool is_fully_valid = (sign.GetSummary() & kSIGSUM_VALID) != 0;
         bool is_green = (sign.GetSummary() & kSIGSUM_GREEN) != 0;
         bool is_red = (sign.GetSummary() & kSIGSUM_RED) != 0;
-        if (is_fully_valid && is_green) {
+        if (sign.GetValidity() == GpgValidity::kNEVER) {
+          sig_info.validity = GpgSigValidity::kVALID_WITH_ISSUES;
+          sig_info.rejected = true;
+          sig_info.warnings << tr(
+              "GnuPG marks the signing key as never valid: the signature may "
+              "be a forgery");
+          any_distrusted = true;
+        } else if (is_fully_valid && is_green) {
           sig_info.validity = GpgSigValidity::kFULLY_VALID;
         } else if (is_red) {
           sig_info.validity = GpgSigValidity::kVALID_WITH_ISSUES;
@@ -413,7 +433,11 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
              "details.");
     }
   } else {
-    if (any_bad_signature) {
+    if (any_distrusted) {
+      op_info_.description =
+          tr("Verification failed. GnuPG marks the signing key as never "
+             "valid, so the signature may be a forgery.");
+    } else if (any_bad_signature) {
       op_info_.description =
           tr("Invalid signature detected. The data may have been tampered "
              "with or the signature is corrupt.");

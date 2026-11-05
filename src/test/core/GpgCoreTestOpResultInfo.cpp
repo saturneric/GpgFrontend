@@ -307,4 +307,34 @@ TEST(GpgOpResultInfoTest, AnAnalysedOutcomeReleasesOnlyAProducedOutput) {
   EXPECT_FALSE(withheld.output.has_value());
 }
 
+// gpgme reports a good signature by a key whose validity is NEVER -- a TOFU
+// binding marked bad, say -- with the RED summary; gpg calls it a likely
+// forgery. It was shown as "valid but with issues", with advice to raise the
+// key's trust, and the operation as a success.
+TEST(GpgOpResultInfoTest, ASignatureByANeverValidKeyIsNotAccepted) {
+  constexpr int kUnusedChannel = 4099;
+
+  GFSignature sig;
+  sig.issuer_fpr = u"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"_s;
+  sig.status = GFSignatureStatus::kVALID;
+  sig.engine_status = GFError{};
+  sig.validity = GpgValidity::kNEVER;
+  sig.summary = kSIGSUM_RED;
+  sig.has_trust_model = true;
+  GFVerifyResult result;
+  result.signatures.append(sig);
+
+  GpgVerifyResultAnalyse analyse{kUnusedChannel, GFError{},
+                                 GpgVerifyResult(result)};
+  analyse.Analyse();
+
+  const auto report = analyse.GetResultReport();
+  EXPECT_LT(analyse.GetStatus(), 0) << report.toStdString();
+  EXPECT_FALSE(report.contains("Adjust trust level")) << report.toStdString();
+  ASSERT_EQ(analyse.GetOpInfo().signatures.size(), 1);
+  EXPECT_TRUE(analyse.GetOpInfo().signatures.front().rejected);
+  EXPECT_TRUE(analyse.GetOpInfo().description.contains("forgery"))
+      << analyse.GetOpInfo().description.toStdString();
+}
+
 }  // namespace GpgFrontend::Test
