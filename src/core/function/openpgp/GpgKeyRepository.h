@@ -35,6 +35,21 @@
 namespace GpgFrontend {
 
 /**
+ * @brief Index the keys that more than one key pair of @p keys carries.
+ *
+ * Each such key is listed under its fingerprint and its key ID, with every
+ * key pair carrying it, sorted by primary fingerprint. A key pair's primary
+ * counts too, so a primary claimed as another key pair's subkey is found.
+ * Additional decryption subkeys (ADSK) are left out: they are another
+ * holder's key by design.
+ *
+ * @param keys the key pairs of one key database
+ * @return shared key ID or fingerprint -> the key pairs carrying it
+ */
+auto GF_CORE_EXPORT IndexKeysSharedByKeyPairs(const GpgKeyPtrList& keys)
+    -> QHash<QString, GpgKeyPtrList>;
+
+/**
  * @brief Singleton repository for GPG keys on a given channel.
  *
  * Provides cached lookups by key ID or fingerprint for primary keys, public
@@ -122,6 +137,22 @@ class GF_CORE_EXPORT GpgKeyRepository
    * @return 4, 5 (LibrePGP) or 6; 0 if the version cannot be determined
    */
   auto GetKeyVersion(const QString& fpr) -> int;
+
+  /**
+   * @brief The key pairs that carry one key, when more than one does.
+   *
+   * A key database may hold two key pairs that both claim the same key,
+   * as a subkey of each or as one's primary and the other's subkey. A lookup
+   * by that key's ID then lands on one of them for no reason the user can
+   * see, so anything that names "the" key pair of such a key must name
+   * all of them instead. Additional decryption subkeys (ADSK) are left out:
+   * they are another holder's key by design.
+   *
+   * @param key_id key ID or fingerprint of the shared key
+   * @return every key pair carrying it, primary fingerprint order; empty
+   * when at most one key pair does
+   */
+  auto KeyPairsSharingKey(const QString& key_id) -> GpgKeyPtrList;
 
   /**
    * @brief Return all GPG keys known to this channel.

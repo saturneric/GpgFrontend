@@ -175,6 +175,21 @@ class KeyPairSubkeyTab : public QWidget {
   bool move_to_card_supported_ = false;
 
   QLabel* expire_title_label_ = nullptr;
+  QLabel* shared_title_label_ = nullptr;  ///< Shown only for a shared key
+  QLabel* shared_var_label_ = nullptr;    ///< The other key pairs
+
+  /**
+   * @brief The other key pairs in the key database that carry @p s_key
+   * too, as a subkey or as their primary; empty when only this one does.
+   */
+  auto other_key_pairs(const GpgSubKey& s_key) -> GpgKeyPtrList;
+
+  /**
+   * @brief A confirmation paragraph naming the other key pairs that
+   * carry @p s_key, saying @p consequence about them; empty when none do.
+   */
+  auto shared_key_notice(const GpgSubKey& s_key, const QString& consequence)
+      -> QString;
 
   /**
    * @brief Create a subkey list object

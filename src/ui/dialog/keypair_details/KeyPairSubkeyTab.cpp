@@ -252,6 +252,23 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
   subkey_detail_layout->addWidget(fingerprint_var_label_, detail_row, 1, 1, 2);
   ++detail_row;
 
+  // A key the key database finds in other key pairs too: what is done to
+  // it here (revoke, delete, expire) does not reach those, and a signature it
+  // made cannot say which key pair signed.
+  shared_title_label_ = add_title_label(tr("Also Part Of"));
+  shared_var_label_ = new QLabel();
+  shared_var_label_->setTextFormat(Qt::PlainText);
+  shared_var_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
+  shared_var_label_->setToolTip(
+      tr("Other key pairs in this key database carry this same key. A "
+         "signature made with it cannot say which key pair signed, and "
+         "changes made here do not reach the other key pairs."));
+  subkey_detail_layout->addWidget(shared_title_label_, detail_row, 0);
+  subkey_detail_layout->addWidget(shared_var_label_, detail_row, 1, 1, 2);
+  shared_title_label_->hide();
+  shared_var_label_->hide();
+  ++detail_row;
+
   // Spare width goes to the values, never to the titles, so the values start
   // at the same place whichever key is selected.
   subkey_detail_layout->setColumnStretch(1, 1);
@@ -500,6 +517,15 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
   fingerprint_var_label_->SetValue(FingerprintDisplayText(s_key.Fingerprint()),
                                    s_key.Fingerprint());
 
+  const auto others = other_key_pairs(s_key);
+  QStringList other_names;
+  for (const auto& other : others) {
+    other_names << QString("%1 (%2)").arg(other->UID(), other->ID());
+  }
+  shared_var_label_->setText(other_names.join("\n"));
+  shared_title_label_->setVisible(!others.isEmpty());
+  shared_var_label_->setVisible(!others.isEmpty());
+
   auto if_export_subkey_supported =
       IsOpSupported<ExportSubkeyOpTag>(current_gpg_context_channel_);
 
@@ -713,10 +739,13 @@ void KeyPairSubkeyTab::slot_delete_subkey() {
 
   const auto& s_key = get_selected_subkey();
 
-  QString message = tr("<h3>You are about to delete the subkey:</h3><br />"
-                       "<b>KeyID:</b> %1<br /><br />"
-                       "This action is irreversible. Please confirm.")
-                        .arg(s_key.ID());
+  QString message =
+      tr("<h3>You are about to delete the subkey:</h3><br />"
+         "<b>KeyID:</b> %1<br /><br />"
+         "This action is irreversible. Please confirm.")
+          .arg(s_key.ID()) +
+      shared_key_notice(s_key, tr("Deleting it here removes it from this "
+                                  "key pair only; it stays in those."));
 
   int ret = QMessageBox::warning(
       this, tr("Delete Subkey Confirmation"), message,
@@ -809,12 +838,17 @@ void KeyPairSubkeyTab::slot_revoke_subkey() {
   if (!revoke_subkey_supported_) return;
   const auto& s_key = get_selected_subkey();
 
-  QString message = tr("<h3>Revoke Subkey Confirmation</h3><br />"
-                       "<b>KeyID:</b> %1<br /><br />"
-                       "Revoking a subkey will make it permanently unusable. "
-                       "This action is <b>irreversible</b>.<br />"
-                       "Are you sure you want to revoke this subkey?")
-                        .arg(s_key.ID());
+  QString message =
+      tr("<h3>Revoke Subkey Confirmation</h3><br />"
+         "<b>KeyID:</b> %1<br /><br />"
+         "Revoking a subkey will make it permanently unusable. "
+         "This action is <b>irreversible</b>.<br />"
+         "Are you sure you want to revoke this subkey?")
+          .arg(s_key.ID()) +
+      shared_key_notice(s_key, tr("Revoking it here revokes it for this "
+                                  "key pair only; those key pairs keep "
+                                  "using it until it is revoked in each of "
+                                  "them."));
 
   int ret = QMessageBox::warning(this, tr("Revoke Subkey"), message,
                                  QMessageBox::Cancel | QMessageBox::Yes,
@@ -867,4 +901,32 @@ void KeyPairSubkeyTab::slot_revoke_subkey() {
 
   revocation_options_dialog->show();
 }
+auto KeyPairSubkeyTab::other_key_pairs(const GpgSubKey& s_key)
+    -> GpgKeyPtrList {
+  auto others = GpgKeyPtrList{};
+  if (s_key.IsADSK()) return others;
+  for (const auto& owner :
+       GpgKeyRepository::GetInstance(current_gpg_context_channel_)
+           .KeyPairsSharingKey(s_key.Fingerprint())) {
+    if (owner->Fingerprint() != key_->Fingerprint()) others.append(owner);
+  }
+  return others;
+}
+
+auto KeyPairSubkeyTab::shared_key_notice(const GpgSubKey& s_key,
+                                         const QString& consequence)
+    -> QString {
+  const auto others = other_key_pairs(s_key);
+  if (others.isEmpty()) return {};
+
+  QString list;
+  for (const auto& other : others) {
+    list += QString("<li>%1 (%2)</li>")
+                .arg(other->UID().toHtmlEscaped(), other->ID());
+  }
+  return "<br /><br />" +
+         tr("<b>This key is also part of other key pairs:</b>") + "<ul>" +
+         list + "</ul>" + consequence.toHtmlEscaped();
+}
+
 }  // namespace GpgFrontend::UI

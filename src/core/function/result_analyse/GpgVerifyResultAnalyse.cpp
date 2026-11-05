@@ -29,6 +29,7 @@
 #include "GpgVerifyResultAnalyse.h"
 
 #include "core/function/openpgp/AbstractKeyRepository.h"
+#include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/LocalizedUtils.h"
@@ -252,6 +253,9 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
   // Whether any signer's validity comes from a trust model (GnuPG); rPGP has
   // none, so its valid signatures must not be summarized as trusted.
   bool any_trust_model = false;
+  // Whether a signing key is carried by more than one key pair, so the
+  // signature cannot be credited to one identity.
+  bool any_shared_signer = false;
 
   for (const auto& sign : signatures) {
     GpgVerifySigInfo sig_info;
@@ -265,7 +269,22 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
 
     auto key = AbstractKeyRepository::GetInstance(GetChannel())
                    .GetKey(sign.GetFingerprint());
-    if (key != nullptr) {
+    const auto owners = sharing_key_pairs(GpgSignature(sign));
+    if (key != nullptr && !owners.isEmpty()) {
+      // No single identity: list every key pair that may have signed.
+      QStringList uids;
+      for (const auto& owner : owners) {
+        uids << QString("%1 (%2)").arg(owner->UID(), owner->ID());
+      }
+      sig_info.signer.uid = uids.join("; ");
+      sig_info.signer.keyId = key->ID();
+      sig_info.warnings << tr("Signing key is part of more than one "
+                              "key pair; any of them may "
+                              "have signed: %1")
+                               .arg(uids.join("; "));
+      op_info_.details << uids;
+      any_shared_signer = true;
+    } else if (key != nullptr) {
       sig_info.signer.uid = key->UID();
       sig_info.signer.keyId = key->ID();
       op_info_.details << key->UID();
@@ -375,7 +394,12 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
              "trusted. You may need to set a higher trust level.");
     }
   } else if (status_ == 0) {
-    if (any_validity(GpgSigValidity::kKEY_MISSING)) {
+    if (any_shared_signer) {
+      op_info_.description =
+          tr("The signing key belongs to more than one key pair in your "
+             "keyring, so it cannot be told which of them signed. Please "
+             "review the details.");
+    } else if (any_validity(GpgSigValidity::kKEY_MISSING)) {
       op_info_.description =
           tr("Verification incomplete. The signing key is not in your "
              "keyring. Please import the signer's public key.");
@@ -445,7 +469,25 @@ auto GpgFrontend::GpgVerifyResultAnalyse::print_signer(QTextStream& stream,
 
   auto key =
       AbstractKeyRepository::GetInstance(GetChannel()).GetKey(fingerprint);
-  if (key != nullptr) {
+  const auto owners = sharing_key_pairs(sign);
+  if (key != nullptr && !owners.isEmpty()) {
+    // The key alone cannot tell these key pairs apart, and naming the
+    // one a lookup lands on would credit the signature to an identity it
+    // does not prove.
+    stream << "- " << tr("Signed By") << ": "
+           << tr("Cannot be told apart, see below") << Qt::endl;
+    stream << "- " << tr("Key ID") << ": " << key->ID() << Qt::endl;
+    stream << "  - " << tr("Warning") << ": "
+           << tr("This signing key is part of more than one key pair in "
+                 "your keyring, and the signature does not say which of "
+                 "them made it. Each of them may have signed:")
+           << Qt::endl;
+    for (const auto& owner : owners) {
+      stream << "    - " << owner->UID() << " ("
+             << BeautifyFingerprint(owner->Fingerprint()) << ")" << Qt::endl;
+    }
+    setStatus(0);
+  } else if (key != nullptr) {
     stream << "- " << tr("Signed By") << ": " << key->UID() << Qt::endl;
 
     if (key->KeyType() == GpgAbstractKeyType::kGPG_SUBKEY) {
@@ -476,6 +518,13 @@ auto GpgFrontend::GpgVerifyResultAnalyse::print_signer(QTextStream& stream,
   stream << Qt::endl;
 
   return key != nullptr;
+}
+
+auto GpgFrontend::GpgVerifyResultAnalyse::sharing_key_pairs(
+    const GpgSignature& sign) -> GpgKeyPtrList {
+  if (sign.GetFingerprint().isEmpty()) return {};
+  return GpgKeyRepository::GetInstance(GetChannel())
+      .KeyPairsSharingKey(sign.GetFingerprint());
 }
 
 auto GpgFrontend::GpgVerifyResultAnalyse::TakeChargeOfResult()

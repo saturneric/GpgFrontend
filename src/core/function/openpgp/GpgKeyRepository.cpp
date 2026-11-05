@@ -28,6 +28,7 @@
 
 #include "GpgKeyRepository.h"
 
+#include <algorithm>
 #include <mutex>
 
 #include "core/function/openpgp/OpenPGPContext.h"
@@ -35,6 +36,40 @@
 #include "core/function/openpgp/traits/KeyStorageTraits.h"
 
 namespace GpgFrontend {
+
+auto IndexKeysSharedByKeyPairs(const GpgKeyPtrList& keys)
+    -> QHash<QString, GpgKeyPtrList> {
+  auto by_fpr = QHash<QString, GpgKeyPtrList>{};
+  auto key_ids = QHash<QString, QString>{};
+  for (const auto& key : keys) {
+    if (key == nullptr) continue;
+    // SubKeys() lists the primary first, so a primary claimed as another
+    // key pair's subkey is found too.
+    for (const auto& s_key : key->SubKeys()) {
+      if (s_key.IsADSK() || s_key.Fingerprint().isEmpty()) continue;
+      auto& owners = by_fpr[s_key.Fingerprint()];
+      const auto listed = std::any_of(
+          owners.cbegin(), owners.cend(), [&](const GpgKeyPtr& owner) {
+            return owner->Fingerprint() == key->Fingerprint();
+          });
+      if (!listed) owners.append(key);
+      key_ids.insert(s_key.Fingerprint(), s_key.ID());
+    }
+  }
+
+  auto shared = QHash<QString, GpgKeyPtrList>{};
+  for (auto it = by_fpr.begin(); it != by_fpr.end(); ++it) {
+    if (it.value().size() < 2) continue;
+    auto owners = it.value();
+    std::sort(owners.begin(), owners.end(),
+              [](const GpgKeyPtr& a, const GpgKeyPtr& b) {
+                return a->Fingerprint() < b->Fingerprint();
+              });
+    shared.insert(it.key(), owners);
+    shared.insert(key_ids.value(it.key()), owners);
+  }
+  return shared;
+}
 
 class GpgKeyRepository::Impl
     : public SingletonFunctionObject<GpgKeyRepository::Impl> {
@@ -139,10 +174,21 @@ class GpgKeyRepository::Impl
     const auto flushed =
         RunRegisteredForward<FlushKeyCacheOpTag>(ctx_, keys, search);
 
+    auto shared = QSharedPointer<QHash<QString, GpgKeyPtrList>>::create(
+        IndexKeysSharedByKeyPairs(*keys));
+
     std::lock_guard<std::mutex> lock(keys_cache_mutex_);
     keys_cache_ = keys;
     keys_search_cache_ = search;
+    shared_keys_ = shared;
     return flushed;
+  }
+
+  auto KeyPairsSharingKey(const QString& key_id) -> GpgKeyPtrList {
+    if (cache_empty()) FlushKeyCache();
+
+    std::lock_guard<std::mutex> lock(keys_cache_mutex_);
+    return shared_keys_->value(key_id);
   }
 
   auto GetKeys(const KeyIdArgsList& ids) -> GpgKeyList {
@@ -191,6 +237,10 @@ class GpgKeyRepository::Impl
   mutable std::mutex ctx_mutex_;
   QSharedPointer<QMap<QString, GpgAbstractKeyPtr>> keys_search_cache_;
   QSharedPointer<GpgKeyPtrList> keys_cache_;
+  /// key ID and fingerprint -> the key pairs carrying that key, for the
+  /// keys more than one key pair carries. Swapped with keys_cache_.
+  QSharedPointer<QHash<QString, GpgKeyPtrList>> shared_keys_ =
+      QSharedPointer<QHash<QString, GpgKeyPtrList>>::create();
   mutable std::mutex keys_cache_mutex_;
 
   /// fingerprint -> OpenPGP key packet version, memoised because the GnuPG
@@ -258,6 +308,11 @@ auto GpgKeyRepository::GetKeys(const KeyIdArgsList& ids) -> GpgKeyList {
 }
 
 auto GpgKeyRepository::Fetch() -> GpgKeyPtrList { return p_->Fetch(); }
+
+auto GpgKeyRepository::KeyPairsSharingKey(const QString& key_id)
+    -> GpgKeyPtrList {
+  return p_->KeyPairsSharingKey(key_id);
+}
 
 auto GpgKeyRepository::GetKeyORSubkeyPtr(const QString& key_id)
     -> GpgAbstractKeyPtr {

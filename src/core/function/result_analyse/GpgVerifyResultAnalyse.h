@@ -118,6 +118,15 @@ class GF_CORE_EXPORT GpgVerifyResultAnalyse : public GpgResultAnalyse {
    */
   auto print_signer_without_key(QTextStream &stream, GpgSignature sign) -> bool;
 
+  /**
+   * @brief The key pairs carrying the key that made @p sign, when more
+   * than one does; empty otherwise.
+   *
+   * Such a signature cannot say which of them signed, so the report names
+   * all of them instead of the one a lookup happens to land on.
+   */
+  auto sharing_key_pairs(const GpgSignature &sign) -> GpgKeyPtrList;
+
   // gpgme error code from the verify operation
   GFError error_;
   // Verification result containing the signature list

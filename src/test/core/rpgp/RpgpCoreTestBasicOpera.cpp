@@ -51,6 +51,7 @@
 #include "core/model/GpgSignResult.h"
 #include "core/model/GpgVerifyResult.h"
 #include "core/utils/AsyncUtils.h"
+#include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 #include "core/utils/RustUtils.h"
@@ -1438,6 +1439,80 @@ TEST_F(RpgpCoreTest, CoreVerifyRpgpValidSignatureDoesNotClaimTrustTest) {
   EXPECT_TRUE(description.contains("valid")) << description.toStdString();
   EXPECT_FALSE(analyse.GetResultReport().contains("trusted"))
       << analyse.GetResultReport().toStdString();
+}
+
+// A signing key that two key pairs carry cannot say which of them signed:
+// the verification names both and warns, instead of crediting the one a
+// lookup lands on.
+TEST_F(RpgpCoreTest, CoreVerifySharedSigningKeyNamesEveryKeyPair) {
+  const QString shared_key = "C0FFEE00C0FFEE00C0FFEE00C0FFEE00C0FFEE00";
+  const QStringList owners = {"5555555555555555555555555555555555555555",
+                              "6666666666666666666666666666666666666666"};
+
+  auto key_db =
+      OpenPGPContext::GetInstance(kRpgpChannelForUnitTest).KeyDatabase();
+  ASSERT_NE(key_db, nullptr);
+  auto& repo = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest);
+
+  // Taken out again however the test ends: the fixture's key DB is shared.
+  struct Cleanup {
+    QSharedPointer<GFKeyDatabase> db;
+    QStringList fprs;
+    GpgKeyRepository& repo;
+    ~Cleanup() {
+      for (const auto& fpr : fprs) db->DeleteKey(fpr);
+      repo.FlushKeyCache();
+    }
+  } cleanup{key_db, owners, repo};
+
+  for (const auto& fpr : owners) {
+    GFKeyMetadata meta;
+    meta.fpr = fpr;
+    meta.key_id = fpr.right(16);
+    meta.key_ver = 4;
+    meta.algo = 22;
+    GFUserId uid;
+    uid.name = "Owner " + fpr.left(1);
+    uid.email = fpr.left(1) + "@example.org";
+    meta.user_ids.append(uid);
+    GFSubKeyMetadata primary;
+    primary.fpr = fpr;
+    primary.key_id = meta.key_id;
+    GFSubKeyMetadata sub;
+    sub.fpr = shared_key;
+    sub.key_id = shared_key.right(16);
+    sub.can_sign = true;
+    meta.subkeys = {primary, sub};
+    GFKeyBlocks blocks;
+    blocks.public_key = GFBuffer(QString("not a real key"));
+    ASSERT_TRUE(key_db->SaveKey(meta, blocks));
+  }
+  repo.FlushKeyCache();
+  ASSERT_EQ(repo.KeyPairsSharingKey(shared_key).size(), 2);
+
+  GFVerifyResult gf_result{};
+  auto sig = MakeRpgpSignature(GFSignatureStatus::kVALID);
+  sig.issuer_fpr = shared_key;
+  gf_result.signatures.push_back(sig);
+
+  GpgVerifyResultAnalyse analyse{kRpgpChannelForUnitTest, GFError{},
+                                 GpgVerifyResult(gf_result)};
+  analyse.Analyse();
+
+  const auto report = analyse.GetResultReport();
+  EXPECT_EQ(analyse.GetStatus(), 0) << report.toStdString();
+  for (const auto& fpr : owners) {
+    EXPECT_TRUE(report.contains(BeautifyFingerprint(fpr)))
+        << report.toStdString();
+  }
+  ASSERT_EQ(analyse.GetOpInfo().signatures.size(), 1);
+  const auto& info = analyse.GetOpInfo().signatures.front();
+  EXPECT_TRUE(info.signer.uid.contains("Owner 5") &&
+              info.signer.uid.contains("Owner 6"))
+      << info.signer.uid.toStdString();
+  EXPECT_FALSE(info.warnings.isEmpty());
+  EXPECT_TRUE(analyse.GetOpInfo().description.contains("more than one"))
+      << analyse.GetOpInfo().description.toStdString();
 }
 
 }  // namespace GpgFrontend::Test

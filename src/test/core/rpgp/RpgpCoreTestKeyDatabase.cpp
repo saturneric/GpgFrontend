@@ -41,7 +41,9 @@
 
 #include "GpgFrontendTest.h"
 #include "core/function/GFKeyDatabase.h"
+#include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/rpgp/KeyStorage.h"
+#include "core/model/GpgKey.h"
 
 namespace GpgFrontend::Test {
 
@@ -146,6 +148,54 @@ TEST(RpgpKeyDatabaseTest, TwoCertificatesMayCarryOneSubkey) {
   ASSERT_TRUE(scratch.db->SaveKey(real.metadata, real.blocks))
       << "the real key could not be saved after a squatter";
   EXPECT_EQ(scratch.db->ResolvePrimaryFpr(kSharedSubkey), kRealKey);
+}
+
+// The key pairs carrying one key are all named, under its fingerprint and
+// its key ID; a key only one key pair carries, and an ADSK, are not.
+TEST(RpgpKeyDatabaseTest, KeysSharedByKeyPairsAreIndexed) {
+  const QString other_subkey = "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB";
+  const QString adsk_holder = "3333333333333333333333333333333333333333";
+  const QString primary_claimer = "4444444444444444444444444444444444444444";
+
+  auto as_key = [](GFKey key) {
+    // The primary is listed first, as the engines list it.
+    GFSubKeyMetadata primary;
+    primary.fpr = key.metadata.fpr;
+    primary.key_id = key.metadata.key_id;
+    key.metadata.subkeys.prepend(primary);
+    return QSharedPointer<GpgKey>::create(key.metadata);
+  };
+
+  // Listed with the higher fingerprint first: the index sorts its owners.
+  auto real = as_key(WithSubkey(FakeKey(kRealKey, "real"), kSharedSubkey));
+  auto squatter = as_key(WithSubkey(
+      WithSubkey(FakeKey(kSquatter, "squatter"), kSharedSubkey), kRealKey));
+  auto lone = as_key(
+      WithSubkey(FakeKey(kRealKey.left(39) + "3", "lone"), other_subkey));
+  auto adsk = WithSubkey(FakeKey(adsk_holder, "adsk"), kSharedSubkey);
+  adsk.metadata.subkeys.last().can_renc = true;
+  auto claimer =
+      as_key(WithSubkey(FakeKey(primary_claimer, "claimer"), kRealKey));
+
+  const auto shared =
+      IndexKeysSharedByKeyPairs({real, squatter, lone, as_key(adsk), claimer});
+
+  auto fprs = [](const GpgKeyPtrList& keys) {
+    QStringList ret;
+    for (const auto& key : keys) ret << key->Fingerprint();
+    return ret;
+  };
+
+  EXPECT_EQ(fprs(shared.value(kSharedSubkey)),
+            QStringList({kSquatter, kRealKey}))
+      << "an ADSK is another holder's key, not a shared one";
+  EXPECT_EQ(fprs(shared.value(kSharedSubkey.right(16))),
+            QStringList({kSquatter, kRealKey}));
+  EXPECT_EQ(fprs(shared.value(kRealKey)),
+            QStringList({kSquatter, kRealKey, primary_claimer}))
+      << "a primary claimed as a subkey elsewhere is shared too";
+  EXPECT_FALSE(shared.contains(other_subkey));
+  EXPECT_FALSE(shared.contains(kSquatter));
 }
 
 // A database written by the previous schema is rebuilt with the composite key

@@ -29,7 +29,9 @@
 #include "KeyImportDetailDialog.h"
 
 #include "core/function/openpgp/AbstractKeyRepository.h"
+#include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/model/GpgImportInformation.h"
+#include "core/model/GpgKey.h"
 #include "ui/function/AppearanceFont.h"
 #include "ui/function/KeyDatabaseRefresh.h"
 
@@ -82,6 +84,35 @@ KeyImportDetailDialog::KeyImportDetailDialog(
   this->activateWindow();
 }
 
+namespace {
+
+/**
+ * @brief The other key pairs of @p channel that carry a key of the
+ * key pair @p fpr too, as "UID (key ID)".
+ *
+ * Such a key cannot say which of them made a signature, and a revocation
+ * in one does not reach the other, so an import that brings one in says so.
+ */
+auto OtherKeyPairsSharingAKey(int channel, const QString& fpr) -> QStringList {
+  auto& repository = GpgKeyRepository::GetInstance(channel);
+  auto key = repository.GetKeyPtr(fpr);
+  if (key == nullptr) return {};
+
+  QStringList others;
+  for (const auto& s_key : key->SubKeys()) {
+    if (s_key.IsADSK()) continue;
+    for (const auto& owner :
+         repository.KeyPairsSharingKey(s_key.Fingerprint())) {
+      if (owner->Fingerprint() == fpr) continue;
+      const auto name = QString("%1 (%2)").arg(owner->UID(), owner->ID());
+      if (!others.contains(name)) others << name;
+    }
+  }
+  return others;
+}
+
+}  // namespace
+
 void KeyImportDetailDialog::showEvent(QShowEvent* event) {
   GeneralDialog::showEvent(event);
   this->movePosition2CenterOfParent();
@@ -120,6 +151,22 @@ void KeyImportDetailDialog::create_header_box() {
     title = tr("Nothing to Import");
     summary =
         tr("All %1 key(s) are already up to date.").arg(m_result_->considered);
+  }
+
+  int sharing = 0;
+  for (const auto& imp_key : m_result_->imported_keys) {
+    if (!OtherKeyPairsSharingAKey(current_gpg_context_channel_, imp_key.fpr)
+             .isEmpty()) {
+      sharing++;
+    }
+  }
+  if (sharing != 0) {
+    icon_path = ":/icons/warning.png";
+    summary += " " + tr("%1 of them carry a key that another key pair in "
+                        "this key database carries too. A signature made "
+                        "with such a key cannot say which key pair signed; "
+                        "the table names the others.")
+                         .arg(sharing);
   }
 
   auto* icon_label = new QLabel(header_box_);
@@ -240,6 +287,15 @@ void KeyImportDetailDialog::create_keys_table() {
     auto* status_item =
         new QTableWidgetItem(get_status_string(imp_key.import_status));
     status_item->setForeground(get_status_color(imp_key.import_status));
+
+    const auto others =
+        OtherKeyPairsSharingAKey(current_gpg_context_channel_, imp_key.fpr);
+    if (!others.isEmpty()) {
+      status_item->setText(status_item->text() + ", " + tr("Shares a Key"));
+      status_item->setForeground(QColor(0xef, 0x6c, 0x00));
+      status_item->setToolTip(tr("A key of this key pair is also part of:") +
+                              "\n" + others.join("\n"));
+    }
     keys_table_->setItem(row, 2, status_item);
 
     auto* fpr_item = new QTableWidgetItem(imp_key.fpr);
