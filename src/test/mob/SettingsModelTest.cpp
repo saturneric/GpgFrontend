@@ -28,6 +28,7 @@
 
 #include <QFile>
 #include <QStandardPaths>
+#include <QTimeZone>
 #include <algorithm>
 
 #include "MobileTest.h"
@@ -192,6 +193,20 @@ TEST(SettingsModelTest, AboutTellsTheBuildTheEngineAndTheTranslators) {
       EXPECT_EQ(row.toMap().value("full"), GetProjectBuildGitCommitHash());
       EXPECT_EQ(row.toMap().value("value").toString().size(),
                 std::min<qsizetype>(12, GetProjectBuildGitCommitHash().size()));
+    }
+    // Built at: short, in UTC, the zone said.
+    EXPECT_EQ(build.value("Built at"),
+              GpgFrontend::Mobile::AboutInfo::BuildTimeUtc(
+                  GetProjectBuildTimestamp()));
+    EXPECT_TRUE(build.value("Built at").endsWith(" UTC"));
+    EXPECT_EQ(GpgFrontend::Mobile::AboutInfo::BuildTimeUtc(
+                  QDateTime(QDate(2026, 11, 4), QTime(19, 7, 36),
+                            QTimeZone::fromSecondsAheadOfUtc(3600))),
+              "2026-11-04 18:07:36 UTC");
+    // The Rust compiler whole: version, commit and date.
+    for (const auto& row : about.engine()) {
+      if (row.toMap().value("label") != "Rust compiler") continue;
+      EXPECT_TRUE(row.toMap().value("value").toString().contains("("));
     }
     // Nothing without a value: a phone links no GnuPG library.
     for (const auto& value : build) EXPECT_FALSE(value.isEmpty());

@@ -90,6 +90,10 @@ auto AndroidRelease(int api) -> QString {
 
 }  // namespace
 
+auto AboutInfo::BuildTimeUtc(const QDateTime& when) -> QString {
+  return when.toUTC().toString(QStringLiteral("yyyy-MM-dd HH:mm:ss 'UTC'"));
+}
+
 AboutInfo::AboutInfo(QObject* parent) : QObject(parent) {}
 
 auto AboutInfo::build() const -> QVariantList {
@@ -103,13 +107,22 @@ auto AboutInfo::build() const -> QVariantList {
   }
   auto rows = Rows(facts);
   // The commit as git abbreviates it, beside its name like the others; the
-  // whole of it is what is copied.
+  // whole of it is what is copied. The time it was built, short and in UTC,
+  // the zone said: the desktop's long, local form takes three lines here.
   const auto commit = GetProjectBuildGitCommitHash();
+  const auto built = GetProjectBuildTimestamp();
+  const auto built_long = QLocale().toString(built);
   for (auto& row : rows) {
     auto fact = row.toMap();
-    if (fact.value(QStringLiteral("value")).toString() != commit) continue;
-    fact.insert(QStringLiteral("full"), commit);
-    fact.insert(QStringLiteral("value"), commit.left(12));
+    const auto value = fact.value(QStringLiteral("value")).toString();
+    if (value == commit) {
+      fact.insert(QStringLiteral("full"), commit);
+      fact.insert(QStringLiteral("value"), commit.left(12));
+    } else if (built.isValid() && value == built_long) {
+      fact.insert(QStringLiteral("value"), BuildTimeUtc(built));
+    } else {
+      continue;
+    }
     row = fact;
   }
   return rows;

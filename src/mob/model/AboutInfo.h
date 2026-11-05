@@ -48,6 +48,9 @@ class AboutInfo : public QObject {
   QML_ELEMENT
 
  public:
+  /// A build time as the pages show it: "2026-11-04 18:07:36 UTC".
+  static auto BuildTimeUtc(const QDateTime& when) -> QString;
+
   explicit AboutInfo(QObject* parent = nullptr);
 
   /// The build: versions of what it is made of, its commit and when.
