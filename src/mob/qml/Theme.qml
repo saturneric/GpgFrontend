@@ -56,11 +56,15 @@ QtObject {
     readonly property int fabIcon: 28
     readonly property int fabMargin: 16
     readonly property int fabBand: fabSize + 2 * fabMargin
-    // How high they float: the platform's resting and pressed elevations
-    // for a floating button. A shadow shows less on a dark page, so there
-    // they float a step higher, never with an outline or a glow.
-    readonly property int fabElevation: dark ? 8 : 6
-    readonly property int fabElevationPressed: dark ? 10 : 8
+    // How high they float: one soft shadow, at rest and deeper while
+    // pressed. It fits in the room around them (fabMargin), so nothing
+    // clips it. A shadow shows less on a dark page, so there it is denser,
+    // never an outline or a glow.
+    readonly property int fabShadowBlur: 14
+    readonly property int fabShadowBlurPressed: 18
+    readonly property int fabShadowOffset: 3
+    readonly property int fabShadowOffsetPressed: 6
+    readonly property color fabShadow: Qt.rgba(0, 0, 0, dark ? 0.8 : 0.3)
 
     readonly property bool dark: Application.styleHints.colorScheme === Qt.ColorScheme.Dark
 

@@ -84,6 +84,28 @@ Item {
         ListRow { id: inertRow; width: parent.width; text: "Inert"; inert: true }
     }
 
+    // The floating buttons, each kind.
+    Item {
+        width: 200
+        height: 200
+        y: 500
+
+        Fab {
+            id: addFab
+
+            text: "Add a key"
+            icon.source: Theme.icon("add")
+        }
+
+        Fab {
+            id: pgpFab
+
+            offsetX: 100
+            text: "PGP operations"
+            icon.source: Theme.icon("lock")
+        }
+    }
+
     // An icon in a bar, at the style's own size.
     BarButton {
         id: barButton
@@ -160,6 +182,32 @@ Item {
         // An entry hidden in a menu keeps its room: the menu is as tall as
         // before. Why a menu that leaves entries out (OperationMenu) gives
         // them no height as well.
+        // Both floating buttons round, an icon alone, their name read out
+        // and said while held.
+        function test_the_floating_buttons_are_round_icons() {
+            for (const fab of [addFab, pgpFab]) {
+                compare(fab.width, Theme.fabSize)
+                compare(fab.height, Theme.fabSize)
+                compare(fab.radius, Theme.fabSize / 2)
+                compare(fab.display, AbstractButton.IconOnly)
+                compare(fab.Accessible.name, fab.text)
+                compare(fab.ToolTip.text, fab.text)
+                // One shadow, its own: the style's layer (a second, faint
+                // shadow and an offscreen pass) is off.
+                compare(fab.background.layer.enabled, false)
+            }
+        }
+
+        // A button that cannot be used casts no shadow.
+        function test_a_disabled_floating_button_casts_no_shadow() {
+            const shadow = addFab.children.find(c => c.blur !== undefined)
+            verify(shadow, "the shadow")
+            verify(shadow.visible)
+            addFab.enabled = false
+            verify(!shadow.visible)
+            addFab.enabled = true
+        }
+
         // A row keeps the style's own press and focus feedback (its ripple);
         // a chosen row adds the brand's tint over it; a row that only says
         // something shows neither.

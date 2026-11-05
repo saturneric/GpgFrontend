@@ -517,10 +517,8 @@ Page {
                 id: operationButton
 
                 objectName: "operationButton"
-                variant: "operation"
-                text: qsTr("PGP")
-                icon.source: Theme.operationIcon("encrypt")
-                Accessible.name: qsTr("PGP operations")
+                text: qsTr("PGP operations")
+                icon.source: Theme.icon("lock")
                 onClicked: operationMenu.openAbove(operationButton)
             }
         }

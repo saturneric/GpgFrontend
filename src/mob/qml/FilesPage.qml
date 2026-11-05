@@ -815,12 +815,10 @@ Page {
                 id: operationButton
 
                 objectName: "operationButton"
-                variant: "operation"
                 offsetX: addButton.width + Theme.gapSmall
                 visible: files.count > 0
-                text: qsTr("PGP")
-                icon.source: Theme.operationIcon("encrypt")
-                Accessible.name: qsTr("PGP operations")
+                text: qsTr("PGP operations")
+                icon.source: Theme.icon("lock")
                 onClicked: operationMenu.openAbove(operationButton)
             }
         }
