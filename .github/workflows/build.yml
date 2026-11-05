@@ -1514,7 +1514,10 @@ jobs:
           "$bt/apksigner" verify --verbose --print-certs "$apk" |
             grep -E "^Verified using|^Signer #1 certificate (DN|SHA-256)"
 
-          aab="$out/GpgFrontend-${GITHUB_SHA:0:7}-android-${ARCH}.aab"
+          # The bundle is not a release download: it goes up apart, below.
+          bundle_out="$RUNNER_TEMP/upload-bundle"
+          mkdir -p "$bundle_out"
+          aab="$bundle_out/GpgFrontend-${GITHUB_SHA:0:7}-android-${ARCH}.aab"
           jarsigner -keystore "$ks" \
             -storepass:env ANDROID_KEYSTORE_PASSWORD \
             -keypass:env ANDROID_KEY_PASSWORD \
@@ -1534,11 +1537,21 @@ jobs:
             exit 1
           fi
 
-      - name: Upload Signed Packages
+      # The release takes the APK alone.
+      - name: Upload Signed APK
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: gpgfrontend-android-${{ matrix.arch }}
           path: ${{ runner.temp }}/upload-artifact/*
+          if-no-files-found: error
+
+      # NOT "gpgfrontend-*": the signed bundle stays with the run and never
+      # reaches the GitHub release.
+      - name: Upload Signed AAB
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: signed-android-aab-${{ matrix.arch }}
+          path: ${{ runner.temp }}/upload-bundle/*
           if-no-files-found: error
 
   # Compiles and deploys the macOS bundle. Deliberately holds no secrets: the
