@@ -64,6 +64,11 @@ pub fn build_tar_tempfile_from_directory(in_dir_path: &str) -> Result<(File, Str
 
     {
         let mut tar_builder = tar::Builder::new(&mut temp_archive);
+        // Store a symlink as a link, as the GnuPG engine's archiver does.
+        // Following it packed whatever it pointed at, outside the chosen
+        // folder included (a link to ~/.gnupg took the keyring along), and a
+        // link to a parent folder never ended.
+        tar_builder.follow_symlinks(false);
 
         tar_builder.append_dir_all(".", dir_path).map_err(|e| {
             log::error!("Failed to build tar archive: {}", e);
@@ -85,6 +90,76 @@ pub fn build_tar_tempfile_from_directory(in_dir_path: &str) -> Result<(File, Str
     })?;
 
     Ok((temp_archive, filename_hint))
+}
+
+/// True if a symlink at `entry_path` (relative to the archive root) whose
+/// target is `target` resolves, lexically, to somewhere inside the root.
+fn symlink_stays_inside(entry_path: &Path, target: &Path) -> bool {
+    use std::path::Component;
+    if target.has_root() || target.is_absolute() {
+        return false;
+    }
+    let mut depth: usize = 0;
+    let parent = entry_path.parent().unwrap_or_else(|| Path::new(""));
+    for component in parent.components().chain(target.components()) {
+        match component {
+            Component::Normal(_) => depth += 1,
+            Component::CurDir => {}
+            Component::ParentDir => {
+                if depth == 0 {
+                    return false;
+                }
+                depth -= 1;
+            }
+            Component::RootDir | Component::Prefix(_) => return false,
+        }
+    }
+    true
+}
+
+/// Unpack `archive` into `dest`, refusing anything that would land or point
+/// outside it.
+///
+/// `tar` already keeps entry paths and hard-link targets inside `dest`, but
+/// creates a symlink with whatever target the archive names, so a decrypted
+/// archive could plant `x -> /home/user/.ssh` among the files. Such a link,
+/// or an entry `tar` itself declines to place, fails the whole extraction;
+/// the caller extracts into a stage it discards on error.
+pub(crate) fn unpack_contained<R: std::io::Read>(
+    archive: &mut tar::Archive<R>,
+    dest: &Path,
+) -> std::io::Result<()> {
+    use std::io::{Error, ErrorKind};
+    std::fs::create_dir_all(dest)?;
+    for entry in archive.entries()? {
+        let mut entry = entry?;
+        let path = entry.path()?.into_owned();
+        if entry.header().entry_type().is_symlink() {
+            let target = entry.link_name()?.map(|t| t.into_owned());
+            let inside = target
+                .as_deref()
+                .is_some_and(|t| symlink_stays_inside(&path, t));
+            if !inside {
+                return Err(Error::new(
+                    ErrorKind::InvalidData,
+                    format!(
+                        "symbolic link {} points outside the archive",
+                        path.display()
+                    ),
+                ));
+            }
+        }
+        if !entry.unpack_in(dest)? {
+            return Err(Error::new(
+                ErrorKind::InvalidData,
+                format!(
+                    "entry {} would be placed outside the archive",
+                    path.display()
+                ),
+            ));
+        }
+    }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -283,5 +358,86 @@ mod tar_tests {
         let mut bytes = Vec::new();
         archive.read_to_end(&mut bytes).expect("read");
         assert!(bytes.len() > 64 * 1024, "got {} bytes", bytes.len());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_symlink_out_of_the_folder_is_stored_not_followed() {
+        let outside = tempfile::tempdir().expect("tempdir");
+        write(outside.path(), "secret.txt", b"not for the archive");
+        let dir = tempfile::tempdir().expect("tempdir");
+        write(dir.path(), "a.txt", b"a");
+        std::os::unix::fs::symlink(outside.path(), dir.path().join("out")).expect("symlink");
+        // A link to its own parent never ended when followed.
+        std::os::unix::fs::symlink("..", dir.path().join("up")).expect("symlink");
+
+        let (archive, _hint) =
+            build_tar_tempfile_from_directory(&dir.path().to_string_lossy()).expect("pack");
+        let entries = entries_of(archive);
+        assert!(
+            !entries.iter().any(|e| e.contains("secret.txt")),
+            "{entries:?}"
+        );
+        assert!(entries.iter().any(|e| e.ends_with("out")), "{entries:?}");
+    }
+
+    fn archive_with_symlink(path: &str, target: &str) -> Vec<u8> {
+        let mut builder = tar::Builder::new(Vec::new());
+        let mut file = tar::Header::new_gnu();
+        file.set_size(1);
+        file.set_mode(0o644);
+        file.set_cksum();
+        builder
+            .append_data(&mut file, "dir/a.txt", &b"a"[..])
+            .expect("file");
+        let mut link = tar::Header::new_gnu();
+        link.set_entry_type(tar::EntryType::Symlink);
+        link.set_size(0);
+        link.set_mode(0o777);
+        builder.append_link(&mut link, path, target).expect("link");
+        builder.into_inner().expect("finish")
+    }
+
+    #[test]
+    fn a_symlink_out_of_the_archive_fails_the_extraction() {
+        for target in ["/etc/passwd", "../../outside", "../.."] {
+            let dest = tempfile::tempdir().expect("tempdir");
+            let bytes = archive_with_symlink("dir/link", target);
+            let mut archive = tar::Archive::new(std::io::Cursor::new(bytes));
+            assert!(
+                unpack_contained(&mut archive, dest.path()).is_err(),
+                "a link to {target} was extracted"
+            );
+            assert!(std::fs::symlink_metadata(dest.path().join("dir/link")).is_err());
+        }
+    }
+
+    #[test]
+    fn a_symlink_inside_the_archive_is_extracted() {
+        let dest = tempfile::tempdir().expect("tempdir");
+        let bytes = archive_with_symlink("dir/link", "a.txt");
+        let mut archive = tar::Archive::new(std::io::Cursor::new(bytes));
+        unpack_contained(&mut archive, dest.path()).expect("unpack");
+        assert!(
+            std::fs::symlink_metadata(dest.path().join("dir/link"))
+                .expect("link")
+                .file_type()
+                .is_symlink()
+        );
+    }
+
+    #[test]
+    fn symlink_containment_is_judged_from_the_link_s_own_folder() {
+        assert!(symlink_stays_inside(Path::new("a/b/l"), Path::new("../c")));
+        assert!(symlink_stays_inside(
+            Path::new("a/l"),
+            Path::new("./x/../y")
+        ));
+        assert!(!symlink_stays_inside(
+            Path::new("a/l"),
+            Path::new("../../c")
+        ));
+        assert!(!symlink_stays_inside(Path::new("l"), Path::new("..")));
+        assert!(!symlink_stays_inside(Path::new("l"), Path::new("/etc")));
     }
 }
