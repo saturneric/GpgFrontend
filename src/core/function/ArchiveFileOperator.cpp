@@ -497,7 +497,26 @@ auto ArchiveFileOperator::NewArchive2DataExchangerSync(
                    qPrintable(relative_path_name),
                    archive_error_string(archive));
           }
-          if (r == ARCHIVE_FATAL) {
+          if (r < ARCHIVE_WARN) {
+            ret = -1;
+            archive_entry_free(entry);
+            break;
+          }
+          archive_write_finish_entry(archive);
+          archive_entry_free(entry);
+          continue;
+        }
+
+        // Every way a member can go missing or come out short is a failed
+        // archive. This used to skip them and return success, and the
+        // encryption built on top of it then reported a complete backup that
+        // lacked files or held zero-filled ones.
+        if (filetype != AE_IFREG) {
+          r = archive_write_header(archive, entry);
+          if (r < ARCHIVE_WARN) {
+            FLOG_W("archive_write_header() failed for %s, explain: %s",
+                   qPrintable(relative_path_name),
+                   archive_error_string(archive));
             ret = -1;
             archive_entry_free(entry);
             break;
@@ -508,42 +527,53 @@ auto ArchiveFileOperator::NewArchive2DataExchangerSync(
         }
 
         QFile file(source_path);
-        if (file.open(QIODevice::ReadOnly)) {
+        if (!file.open(QIODevice::ReadOnly)) {
+          FLOG_W("cannot open %s for the archive: %s", qPrintable(source_path),
+                 qPrintable(file.errorString()));
+          ret = -1;
+          archive_entry_free(entry);
+          break;
+        }
+
 #ifdef Q_OS_WINDOWS
-          auto source_path_utf16_wstr = std::wstring(
-              reinterpret_cast<const wchar_t *>(source_path.utf16()));
-          archive_entry_copy_sourcepath_w(entry,
-                                          source_path_utf16_wstr.c_str());
+        auto source_path_utf16_wstr = std::wstring(
+            reinterpret_cast<const wchar_t *>(source_path.utf16()));
+        archive_entry_copy_sourcepath_w(entry, source_path_utf16_wstr.c_str());
 #else
-          archive_entry_copy_sourcepath(entry, source_path.toUtf8());
+        archive_entry_copy_sourcepath(entry, source_path.toUtf8());
 #endif
 
-          r = archive_write_header(archive, entry);
-          if (r == ARCHIVE_FATAL) {
-            FLOG_W(
-                "archive_write_header() failed, ret: %d, explain: %s, "
-                "abort ...",
-                r, archive_error_string(archive));
-            ret = -1;
-            archive_entry_free(entry);
-            break;
-          }
-
-          if (r < ARCHIVE_OK) {
-            FLOG_W("archive_write_header() failed, ret: %d, explain: %s", r,
-                   archive_error_string(archive));
-            archive_entry_free(entry);
-            continue;
-          }
-
-          if (r > ARCHIVE_FAILED) {
-            auto buffer = file.read(1024);
-            while (!buffer.isEmpty()) {
-              archive_write_data(archive, buffer.data(), buffer.size());
-              buffer = file.read(1024);
-            }
-          }
+        r = archive_write_header(archive, entry);
+        if (r < ARCHIVE_WARN) {
+          FLOG_W("archive_write_header() failed, ret: %d, explain: %s", r,
+                 archive_error_string(archive));
+          ret = -1;
+          archive_entry_free(entry);
+          break;
         }
+
+        // The header promised this many bytes. A file that shrank or could
+        // not be read to the end would be padded with zeros by the format.
+        const auto declared = static_cast<qint64>(archive_entry_size(entry));
+        qint64 copied = 0;
+        while (copied < declared) {
+          const auto buffer =
+              file.read(std::min(kArchiveCopyChunk, declared - copied));
+          if (buffer.isEmpty()) break;
+          const auto n =
+              archive_write_data(archive, buffer.data(), buffer.size());
+          if (n < 0) break;
+          copied += buffer.size();
+        }
+        if (copied < declared) {
+          FLOG_W("%s could not be archived in full: %lld of %lld bytes",
+                 qPrintable(source_path), static_cast<long long>(copied),
+                 static_cast<long long>(declared));
+          ret = -1;
+          archive_entry_free(entry);
+          break;
+        }
+
         archive_write_finish_entry(archive);
         archive_entry_free(entry);
       }
