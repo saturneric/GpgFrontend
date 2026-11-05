@@ -1364,6 +1364,11 @@
         <source>Clear</source>
         <translation>Svuota</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1027"/>
+        <source>Remove from the list?</source>
+        <translation>Rimuovere dall&apos;elenco?</translation>
+    </message>
 </context>
 <context>
     <name>FingerprintView</name>
@@ -18770,6 +18775,11 @@ Aprirlo nel browser?</translation>
         <source>Import</source>
         <translation type="vanished">Importa</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/ImportSheet.qml" line="39"/>
+        <source>Updated %1 key(s).</source>
+        <translation>Chiavi aggiornate: %1.</translation>
+    </message>
 </context>
 <context>
     <name>KeyAlgoChooser</name>
@@ -18815,6 +18825,11 @@ Aprirlo nel browser?</translation>
         <location filename="../../../../src/mob/qml/components/KeyAlgoChooser.qml" line="160"/>
         <source>Expires after</source>
         <translation>Scade dopo</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyAlgoChooser.qml" line="155"/>
+        <source>Choose at least one usage.</source>
+        <translation>Scegli almeno un utilizzo.</translation>
     </message>
 </context>
 <context>
@@ -20295,6 +20310,11 @@ Aprirlo nel browser?</translation>
         <source>The key could not be generated: %1</source>
         <translation>Impossibile generare la chiave: %1</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="219"/>
+        <source>Key deleted.</source>
+        <translation>Chiave eliminata.</translation>
+    </message>
 </context>
 <context>
     <name>MessageAlert</name>
@@ -20479,6 +20499,11 @@ Aprirlo nel browser?</translation>
         <location filename="../../../../src/mob/qml/components/PinSheet.qml" line="88"/>
         <source>Unlock</source>
         <translation>Sblocca</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/PinSheet.qml" line="78"/>
+        <source>The two PINs are not the same.</source>
+        <translation>I due PIN non coincidono.</translation>
     </message>
 </context>
 <context>
@@ -23799,6 +23824,11 @@ Annulla tali modifiche oppure scegli Annulla per scartare tutto ciò che hai mod
         <source>Set</source>
         <translation>Imposta</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="33"/>
+        <source>No limit</source>
+        <translation>Nessun limite</translation>
+    </message>
 </context>
 <context>
     <name>SettingsPage</name>
@@ -24002,6 +24032,11 @@ Annulla tali modifiche oppure scegli Annulla per scartare tutto ciò che hai mod
         <source>Shared files are removed, and other apps can no longer open them.</source>
         <translation>I file condivisi vengono rimossi e le altre app non potranno più aprirli.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="190"/>
+        <source>The next operation asks for them again. They are also cleared whenever you leave GpgFrontend.</source>
+        <translation>La prossima operazione le chiederà di nuovo. Vengono cancellate anche ogni volta che esci da GpgFrontend.</translation>
+    </message>
 </context>
 <context>
     <name>SheetHost</name>
@@ -24121,6 +24156,11 @@ Annulla tali modifiche oppure scegli Annulla per scartare tutto ciò che hai mod
         <location filename="../../../../src/mob/qml/components/StatusLine.qml" line="75"/>
         <source>Dismiss</source>
         <translation>Chiudi</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusLine.qml" line="65"/>
+        <source>Show progress</source>
+        <translation>Mostra l&apos;avanzamento</translation>
     </message>
 </context>
 <context>
@@ -24258,6 +24298,16 @@ Annulla tali modifiche oppure scegli Annulla per scartare tutto ciò che hai mod
         <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="646"/>
         <source>Close</source>
         <translation>Chiudi</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="448"/>
+        <source>Show more</source>
+        <translation>Mostra di più</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="448"/>
+        <source>Show less</source>
+        <translation>Mostra di meno</translation>
     </message>
 </context>
 <context>
@@ -24565,6 +24615,11 @@ Annulla tali modifiche oppure scegli Annulla per scartare tutto ciò che hai mod
         <location filename="../../../../src/mob/qml/TextPage.qml" line="587"/>
         <source>It cannot be brought back with Undo. Decrypt the message again to see it. The keys you chose stay chosen.</source>
         <translation>Non è possibile recuperarlo con Annulla. Decifra di nuovo il messaggio per vederlo. Le chiavi scelte restano invariate.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="235"/>
+        <source>Done on an earlier text, so the result was not put in.</source>
+        <translation>Eseguito su un testo precedente, quindi il risultato non è stato inserito.</translation>
     </message>
 </context>
 <context>
@@ -25329,6 +25384,11 @@ Annulla tali modifiche oppure scegli Annulla per scartare tutto ciò che hai mod
         <location filename="../../../../src/mob/qml/Wording.qml" line="344"/>
         <source>It is no longer used</source>
         <translation>Non è più usato</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="195"/>
+        <source>Signature not checked</source>
+        <translation>Firma non controllata</translation>
     </message>
 </context>
 </TS>

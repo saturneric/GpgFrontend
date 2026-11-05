@@ -1370,6 +1370,11 @@
         <source>Clear</source>
         <translation>Wyczyść</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1027"/>
+        <source>Remove from the list?</source>
+        <translation>Usunąć z listy?</translation>
+    </message>
 </context>
 <context>
     <name>FingerprintView</name>
@@ -17841,6 +17846,11 @@ Otworzyć go w przeglądarce?</translation>
         <source>Import</source>
         <translation type="vanished">Importuj</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/ImportSheet.qml" line="39"/>
+        <source>Updated %1 key(s).</source>
+        <translation>Zaktualizowano %1 klucz(y).</translation>
+    </message>
 </context>
 <context>
     <name>KeyAlgoChooser</name>
@@ -17886,6 +17896,11 @@ Otworzyć go w przeglądarce?</translation>
         <location filename="../../../../src/mob/qml/components/KeyAlgoChooser.qml" line="160"/>
         <source>Expires after</source>
         <translation>Wygasa po</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyAlgoChooser.qml" line="155"/>
+        <source>Choose at least one usage.</source>
+        <translation>Wybierz co najmniej jedno zastosowanie.</translation>
     </message>
 </context>
 <context>
@@ -19363,6 +19378,11 @@ Otworzyć go w przeglądarce?</translation>
         <source>The key could not be generated: %1</source>
         <translation>Nie można wygenerować klucza: %1</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="219"/>
+        <source>Key deleted.</source>
+        <translation>Usunięto klucz.</translation>
+    </message>
 </context>
 <context>
     <name>MessageAlert</name>
@@ -19547,6 +19567,11 @@ Otworzyć go w przeglądarce?</translation>
         <location filename="../../../../src/mob/qml/components/PinSheet.qml" line="88"/>
         <source>Unlock</source>
         <translation>Odblokuj</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/PinSheet.qml" line="78"/>
+        <source>The two PINs are not the same.</source>
+        <translation>Kody PIN nie są takie same.</translation>
     </message>
 </context>
 <context>
@@ -22664,6 +22689,11 @@ Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone 
         <source>Set</source>
         <translation>Ustaw</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="33"/>
+        <source>No limit</source>
+        <translation>Bez limitu</translation>
+    </message>
 </context>
 <context>
     <name>SettingsPage</name>
@@ -22868,6 +22898,11 @@ Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone 
         <source>Shared files are removed, and other apps can no longer open them.</source>
         <translation>Udostępnione pliki zostaną usunięte, a inne aplikacje nie będą mogły ich już otworzyć.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="190"/>
+        <source>The next operation asks for them again. They are also cleared whenever you leave GpgFrontend.</source>
+        <translation>Następna operacja zapyta o nie ponownie. Są też czyszczone za każdym razem, gdy opuścisz GpgFrontend.</translation>
+    </message>
 </context>
 <context>
     <name>SheetHost</name>
@@ -22987,6 +23022,11 @@ Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone 
         <location filename="../../../../src/mob/qml/components/StatusLine.qml" line="75"/>
         <source>Dismiss</source>
         <translation>Zamknij</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusLine.qml" line="65"/>
+        <source>Show progress</source>
+        <translation>Pokaż postęp</translation>
     </message>
 </context>
 <context>
@@ -23124,6 +23164,16 @@ Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone 
         <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="646"/>
         <source>Close</source>
         <translation>Zamknij</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="448"/>
+        <source>Show more</source>
+        <translation>Pokaż więcej</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="448"/>
+        <source>Show less</source>
+        <translation>Pokaż mniej</translation>
     </message>
 </context>
 <context>
@@ -23431,6 +23481,11 @@ Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone 
         <location filename="../../../../src/mob/qml/TextPage.qml" line="587"/>
         <source>It cannot be brought back with Undo. Decrypt the message again to see it. The keys you chose stay chosen.</source>
         <translation>Nie można go przywrócić za pomocą Cofnij. Odszyfruj wiadomość ponownie, aby go zobaczyć. Wybrane klucze pozostaną wybrane.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="235"/>
+        <source>Done on an earlier text, so the result was not put in.</source>
+        <translation>Wykonano na wcześniejszym tekście, więc wynik nie został wstawiony.</translation>
     </message>
 </context>
 <context>
@@ -24197,6 +24252,11 @@ Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone 
         <location filename="../../../../src/mob/qml/Wording.qml" line="344"/>
         <source>It is no longer used</source>
         <translation>Nie jest już używany</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="195"/>
+        <source>Signature not checked</source>
+        <translation>Nie sprawdzono podpisu</translation>
     </message>
 </context>
 </TS>

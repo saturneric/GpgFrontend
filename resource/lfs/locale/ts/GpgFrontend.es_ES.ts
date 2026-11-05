@@ -1364,6 +1364,11 @@
         <source>Clear</source>
         <translation>Limpiar</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1027"/>
+        <source>Remove from the list?</source>
+        <translation>¿Quitar de la lista?</translation>
+    </message>
 </context>
 <context>
     <name>FingerprintView</name>
@@ -18781,6 +18786,11 @@ Open it in your browser?</source>
         <source>Import</source>
         <translation type="vanished">Importar</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/ImportSheet.qml" line="39"/>
+        <source>Updated %1 key(s).</source>
+        <translation>Se actualizaron %1 clave(s).</translation>
+    </message>
 </context>
 <context>
     <name>KeyAlgoChooser</name>
@@ -18826,6 +18836,11 @@ Open it in your browser?</source>
         <location filename="../../../../src/mob/qml/components/KeyAlgoChooser.qml" line="160"/>
         <source>Expires after</source>
         <translation>Caduca tras</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyAlgoChooser.qml" line="155"/>
+        <source>Choose at least one usage.</source>
+        <translation>Elija al menos un uso.</translation>
     </message>
 </context>
 <context>
@@ -20306,6 +20321,11 @@ Open it in your browser?</source>
         <source>The key could not be generated: %1</source>
         <translation>No se pudo generar la clave: %1</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="219"/>
+        <source>Key deleted.</source>
+        <translation>Clave eliminada.</translation>
+    </message>
 </context>
 <context>
     <name>MessageAlert</name>
@@ -20490,6 +20510,11 @@ Open it in your browser?</source>
         <location filename="../../../../src/mob/qml/components/PinSheet.qml" line="88"/>
         <source>Unlock</source>
         <translation>Desbloquear</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/PinSheet.qml" line="78"/>
+        <source>The two PINs are not the same.</source>
+        <translation>Los dos PIN no coinciden.</translation>
     </message>
 </context>
 <context>
@@ -23810,6 +23835,11 @@ Deshaga esos cambios o elija Cancelar para descartar todo lo que cambió en este
         <source>Set</source>
         <translation>Establecer</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="33"/>
+        <source>No limit</source>
+        <translation>Sin límite</translation>
+    </message>
 </context>
 <context>
     <name>SettingsPage</name>
@@ -24013,6 +24043,11 @@ Deshaga esos cambios o elija Cancelar para descartar todo lo que cambió en este
         <source>Shared files are removed, and other apps can no longer open them.</source>
         <translation>Se eliminan los archivos compartidos y otras apps ya no podrán abrirlos.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="190"/>
+        <source>The next operation asks for them again. They are also cleared whenever you leave GpgFrontend.</source>
+        <translation>La próxima operación las pedirá de nuevo. También se borran cada vez que sale de GpgFrontend.</translation>
+    </message>
 </context>
 <context>
     <name>SheetHost</name>
@@ -24132,6 +24167,11 @@ Deshaga esos cambios o elija Cancelar para descartar todo lo que cambió en este
         <location filename="../../../../src/mob/qml/components/StatusLine.qml" line="75"/>
         <source>Dismiss</source>
         <translation>Descartar</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusLine.qml" line="65"/>
+        <source>Show progress</source>
+        <translation>Mostrar el progreso</translation>
     </message>
 </context>
 <context>
@@ -24269,6 +24309,16 @@ Deshaga esos cambios o elija Cancelar para descartar todo lo que cambió en este
         <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="646"/>
         <source>Close</source>
         <translation>Cerrar</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="448"/>
+        <source>Show more</source>
+        <translation>Mostrar más</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="448"/>
+        <source>Show less</source>
+        <translation>Mostrar menos</translation>
     </message>
 </context>
 <context>
@@ -24576,6 +24626,11 @@ Deshaga esos cambios o elija Cancelar para descartar todo lo que cambió en este
         <location filename="../../../../src/mob/qml/TextPage.qml" line="587"/>
         <source>It cannot be brought back with Undo. Decrypt the message again to see it. The keys you chose stay chosen.</source>
         <translation>No se puede recuperar con Deshacer. Descifra el mensaje de nuevo para verlo. Las claves que elegiste se mantienen.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="235"/>
+        <source>Done on an earlier text, so the result was not put in.</source>
+        <translation>Se hizo sobre un texto anterior, así que el resultado no se aplicó.</translation>
     </message>
 </context>
 <context>
@@ -25340,6 +25395,11 @@ Deshaga esos cambios o elija Cancelar para descartar todo lo que cambió en este
         <location filename="../../../../src/mob/qml/Wording.qml" line="344"/>
         <source>It is no longer used</source>
         <translation>Ya no se utiliza</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="195"/>
+        <source>Signature not checked</source>
+        <translation>Firma no comprobada</translation>
     </message>
 </context>
 </TS>

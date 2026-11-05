@@ -29,7 +29,10 @@
 #include <gtest/gtest.h>
 
 #include <QCoreApplication>
+#include <QDirIterator>
 #include <QFile>
+#include <QFileInfo>
+#include <QRegularExpression>
 
 #include "MobileTest.h"
 #include "shell/present/TranslationUtils.h"
@@ -68,6 +71,76 @@ TEST(TranslationsTest, TheCoresStringsAreTranslatedOnThePhone) {
               QStringLiteral("1 key"));
     EXPECT_EQ(QCoreApplication::translate("Wording", "%n key(s)", nullptr, 2),
               QStringLiteral("2 keys"));
+    InstallTranslations(QLocale::c());
+  });
+}
+
+// Every word a page writes (a qsTr() of one literal) is in the catalog: one
+// that is the same in German and in Chinese was never translated. The
+// Language setting itself was English on a German phone, and a sample of
+// two strings could not tell.
+TEST(TranslationsTest, EveryPageStringIsTranslated) {
+  // The same in every language: names, units.
+  const QSet<QString> kSameEverywhere = {
+      QStringLiteral("GpgFrontend"), QStringLiteral("SHA-256"),
+      QStringLiteral("PIN"),         QStringLiteral("%1 kB"),
+      QStringLiteral("%1 MB"),       QStringLiteral("%1 GB"),
+  };
+  // One literal, closed at once: no "a" + "b", no plural's comment.
+  static const QRegularExpression kLiteral(
+      QStringLiteral(R"re(qsTr\(\s*"((?:[^"\\]|\\.)*)"\s*\))re"));
+  static const QRegularExpression kWords(QStringLiteral("[A-Za-z]{2,}"));
+
+  QList<QPair<QString, QString>> strings;  ///< context, source
+  QDirIterator it(QStringLiteral(":/qt/qml/GpgFrontend/Mobile"),
+                  {QStringLiteral("*.qml")}, QDir::Files,
+                  QDirIterator::Subdirectories);
+  while (it.hasNext()) {
+    const auto path = it.next();
+    QFile file(path);
+    ASSERT_TRUE(file.open(QIODevice::ReadOnly)) << path.toStdString();
+    const auto source = QString::fromUtf8(file.readAll());
+    const auto context = QFileInfo(path).completeBaseName();
+    auto match = kLiteral.globalMatch(source);
+    while (match.hasNext()) {
+      auto text = match.next().captured(1);
+      text.replace(QStringLiteral("\\\""), QStringLiteral("\""));
+      if (text.contains(QStringLiteral("%n"))) continue;
+      auto words = text;
+      words.remove(QRegularExpression(QStringLiteral("%\\d")));
+      if (!kWords.match(words).hasMatch()) continue;
+      if (kSameEverywhere.contains(text)) continue;
+      strings.append({context, text});
+    }
+  }
+  ASSERT_GT(strings.size(), 300) << "the pages' sources were not found";
+
+  const auto in = [&strings](const char* locale) {
+    QSet<QString> same;
+    RunOnMainThread([&]() {
+      InstallTranslations(QLocale(QString::fromLatin1(locale)));
+      for (const auto& [context, text] : strings) {
+        const auto said = QCoreApplication::translate(
+            context.toUtf8().constData(), text.toUtf8().constData());
+        if (said == text) same.insert(context + QStringLiteral(": ") + text);
+      }
+      InstallTranslations(QLocale::c());
+    });
+    return same;
+  };
+  const auto untranslated = in("de_DE") & in("zh_CN");
+  EXPECT_TRUE(untranslated.isEmpty())
+      << QStringList(untranslated.begin(), untranslated.end())
+             .join(QStringLiteral("\n"))
+             .toStdString();
+  // The setting that was found in English: in German now.
+  RunOnMainThread([]() {
+    InstallTranslations(QLocale(QStringLiteral("de_DE")));
+    EXPECT_EQ(QCoreApplication::translate("SettingsPage", "Language"),
+              QStringLiteral("Sprache"));
+    EXPECT_EQ(QCoreApplication::translate("GpgFrontend::Mobile::SettingsModel",
+                                          "System default"),
+              QStringLiteral("Systemstandard"));
     InstallTranslations(QLocale::c());
   });
 }

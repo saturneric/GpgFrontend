@@ -1364,6 +1364,11 @@
         <source>Clear</source>
         <translation>Vider</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1027"/>
+        <source>Remove from the list?</source>
+        <translation>Retirer de la liste ?</translation>
+    </message>
 </context>
 <context>
     <name>FingerprintView</name>
@@ -18761,6 +18766,11 @@ L&apos;ouvrir dans votre navigateur ?</translation>
         <source>Import</source>
         <translation type="vanished">Importer</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/ImportSheet.qml" line="39"/>
+        <source>Updated %1 key(s).</source>
+        <translation>%1 clé(s) mise(s) à jour.</translation>
+    </message>
 </context>
 <context>
     <name>KeyAlgoChooser</name>
@@ -18806,6 +18816,11 @@ L&apos;ouvrir dans votre navigateur ?</translation>
         <location filename="../../../../src/mob/qml/components/KeyAlgoChooser.qml" line="160"/>
         <source>Expires after</source>
         <translation>Expire après</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyAlgoChooser.qml" line="155"/>
+        <source>Choose at least one usage.</source>
+        <translation>Choisissez au moins une utilisation.</translation>
     </message>
 </context>
 <context>
@@ -20286,6 +20301,11 @@ L&apos;ouvrir dans votre navigateur ?</translation>
         <source>The key could not be generated: %1</source>
         <translation>La clé n&apos;a pas pu être générée : %1</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="219"/>
+        <source>Key deleted.</source>
+        <translation>Clé supprimée.</translation>
+    </message>
 </context>
 <context>
     <name>MessageAlert</name>
@@ -20470,6 +20490,11 @@ L&apos;ouvrir dans votre navigateur ?</translation>
         <location filename="../../../../src/mob/qml/components/PinSheet.qml" line="88"/>
         <source>Unlock</source>
         <translation>Déverrouiller</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/PinSheet.qml" line="78"/>
+        <source>The two PINs are not the same.</source>
+        <translation>Les deux codes PIN ne correspondent pas.</translation>
     </message>
 </context>
 <context>
@@ -23790,6 +23815,11 @@ Annulez ces modifications, ou choisissez Annuler pour abandonner tout ce que vou
         <source>Set</source>
         <translation>Définir</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="33"/>
+        <source>No limit</source>
+        <translation>Sans limite</translation>
+    </message>
 </context>
 <context>
     <name>SettingsPage</name>
@@ -23993,6 +24023,11 @@ Annulez ces modifications, ou choisissez Annuler pour abandonner tout ce que vou
         <source>Shared files are removed, and other apps can no longer open them.</source>
         <translation>Les fichiers partagés sont supprimés et les autres applis ne pourront plus les ouvrir.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="190"/>
+        <source>The next operation asks for them again. They are also cleared whenever you leave GpgFrontend.</source>
+        <translation>La prochaine opération les redemandera. Elles sont aussi effacées chaque fois que vous quittez GpgFrontend.</translation>
+    </message>
 </context>
 <context>
     <name>SheetHost</name>
@@ -24112,6 +24147,11 @@ Annulez ces modifications, ou choisissez Annuler pour abandonner tout ce que vou
         <location filename="../../../../src/mob/qml/components/StatusLine.qml" line="75"/>
         <source>Dismiss</source>
         <translation>Fermer</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusLine.qml" line="65"/>
+        <source>Show progress</source>
+        <translation>Afficher la progression</translation>
     </message>
 </context>
 <context>
@@ -24249,6 +24289,16 @@ Annulez ces modifications, ou choisissez Annuler pour abandonner tout ce que vou
         <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="646"/>
         <source>Close</source>
         <translation>Fermer</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="448"/>
+        <source>Show more</source>
+        <translation>Afficher plus</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="448"/>
+        <source>Show less</source>
+        <translation>Afficher moins</translation>
     </message>
 </context>
 <context>
@@ -24556,6 +24606,11 @@ Annulez ces modifications, ou choisissez Annuler pour abandonner tout ce que vou
         <location filename="../../../../src/mob/qml/TextPage.qml" line="587"/>
         <source>It cannot be brought back with Undo. Decrypt the message again to see it. The keys you chose stay chosen.</source>
         <translation>Impossible de le récupérer avec Annuler. Déchiffrez à nouveau le message pour le voir. Les clés que vous avez choisies restent choisies.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="235"/>
+        <source>Done on an earlier text, so the result was not put in.</source>
+        <translation>Effectué sur un texte précédent, le résultat n&apos;a donc pas été inséré.</translation>
     </message>
 </context>
 <context>
@@ -25320,6 +25375,11 @@ Annulez ces modifications, ou choisissez Annuler pour abandonner tout ce que vou
         <location filename="../../../../src/mob/qml/Wording.qml" line="344"/>
         <source>It is no longer used</source>
         <translation>Elle n&apos;est plus utilisée</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="195"/>
+        <source>Signature not checked</source>
+        <translation>Signature non vérifiée</translation>
     </message>
 </context>
 </TS>

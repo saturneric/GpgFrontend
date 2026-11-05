@@ -1358,6 +1358,11 @@
         <source>Clear</source>
         <translation>清空</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1027"/>
+        <source>Remove from the list?</source>
+        <translation>从列表中移除？</translation>
+    </message>
 </context>
 <context>
     <name>FingerprintView</name>
@@ -18732,6 +18737,11 @@ Open it in your browser?</source>
         <source>Import</source>
         <translation type="vanished">导入</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/ImportSheet.qml" line="39"/>
+        <source>Updated %1 key(s).</source>
+        <translation>已更新 %1 个密钥。</translation>
+    </message>
 </context>
 <context>
     <name>KeyAlgoChooser</name>
@@ -18777,6 +18787,11 @@ Open it in your browser?</source>
         <location filename="../../../../src/mob/qml/components/KeyAlgoChooser.qml" line="160"/>
         <source>Expires after</source>
         <translation>有效期</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyAlgoChooser.qml" line="155"/>
+        <source>Choose at least one usage.</source>
+        <translation>请至少选择一种用法。</translation>
     </message>
 </context>
 <context>
@@ -20252,6 +20267,11 @@ Open it in your browser?</source>
         <source>The key could not be generated: %1</source>
         <translation>无法生成密钥：%1</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="219"/>
+        <source>Key deleted.</source>
+        <translation>密钥已删除。</translation>
+    </message>
 </context>
 <context>
     <name>MessageAlert</name>
@@ -20436,6 +20456,11 @@ Open it in your browser?</source>
         <location filename="../../../../src/mob/qml/components/PinSheet.qml" line="88"/>
         <source>Unlock</source>
         <translation>解锁</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/PinSheet.qml" line="78"/>
+        <source>The two PINs are not the same.</source>
+        <translation>两次输入的 PIN 不一致。</translation>
     </message>
 </context>
 <context>
@@ -23752,6 +23777,11 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <source>Set</source>
         <translation>设定</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="33"/>
+        <source>No limit</source>
+        <translation>无限制</translation>
+    </message>
 </context>
 <context>
     <name>SettingsPage</name>
@@ -23954,6 +23984,11 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <source>Shared files are removed, and other apps can no longer open them.</source>
         <translation>共享文件已移除，其他应用将无法再打开它们。</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="190"/>
+        <source>The next operation asks for them again. They are also cleared whenever you leave GpgFrontend.</source>
+        <translation>下次操作时会再次询问。每次离开 GpgFrontend 时也会清除。</translation>
+    </message>
 </context>
 <context>
     <name>SheetHost</name>
@@ -24073,6 +24108,11 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <location filename="../../../../src/mob/qml/components/StatusLine.qml" line="75"/>
         <source>Dismiss</source>
         <translation>关闭</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusLine.qml" line="65"/>
+        <source>Show progress</source>
+        <translation>显示进度</translation>
     </message>
 </context>
 <context>
@@ -24210,6 +24250,16 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="646"/>
         <source>Close</source>
         <translation>关闭</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="448"/>
+        <source>Show more</source>
+        <translation>显示更多</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="448"/>
+        <source>Show less</source>
+        <translation>显示更少</translation>
     </message>
 </context>
 <context>
@@ -24517,6 +24567,11 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <location filename="../../../../src/mob/qml/TextPage.qml" line="587"/>
         <source>It cannot be brought back with Undo. Decrypt the message again to see it. The keys you chose stay chosen.</source>
         <translation>无法通过撤销恢复。请重新解密消息以查看。你选择的密钥保持不变。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="235"/>
+        <source>Done on an earlier text, so the result was not put in.</source>
+        <translation>此操作针对的是之前的文本，因此未填入结果。</translation>
     </message>
 </context>
 <context>
@@ -25279,6 +25334,11 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <location filename="../../../../src/mob/qml/Wording.qml" line="344"/>
         <source>It is no longer used</source>
         <translation>它已不再使用</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="195"/>
+        <source>Signature not checked</source>
+        <translation>签名未检查</translation>
     </message>
 </context>
 </TS>

@@ -1358,6 +1358,11 @@
         <source>Clear</source>
         <translation>Temizle</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1027"/>
+        <source>Remove from the list?</source>
+        <translation>Listeden kaldırılsın mı?</translation>
+    </message>
 </context>
 <context>
     <name>FingerprintView</name>
@@ -17274,6 +17279,11 @@ Tarayıcınızda açılsın mı?</translation>
         <source>Import</source>
         <translation type="vanished">İçe aktar</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/ImportSheet.qml" line="39"/>
+        <source>Updated %1 key(s).</source>
+        <translation>%1 anahtar güncellendi.</translation>
+    </message>
 </context>
 <context>
     <name>KeyAlgoChooser</name>
@@ -17319,6 +17329,11 @@ Tarayıcınızda açılsın mı?</translation>
         <location filename="../../../../src/mob/qml/components/KeyAlgoChooser.qml" line="160"/>
         <source>Expires after</source>
         <translation>Sona erme süresi</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyAlgoChooser.qml" line="155"/>
+        <source>Choose at least one usage.</source>
+        <translation>En az bir kullanım seçin.</translation>
     </message>
 </context>
 <context>
@@ -18794,6 +18809,11 @@ Tarayıcınızda açılsın mı?</translation>
         <source>The key could not be generated: %1</source>
         <translation>Anahtar oluşturulamadı: %1</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="219"/>
+        <source>Key deleted.</source>
+        <translation>Anahtar silindi.</translation>
+    </message>
 </context>
 <context>
     <name>MessageAlert</name>
@@ -18978,6 +18998,11 @@ Tarayıcınızda açılsın mı?</translation>
         <location filename="../../../../src/mob/qml/components/PinSheet.qml" line="88"/>
         <source>Unlock</source>
         <translation>Kilidi aç</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/PinSheet.qml" line="78"/>
+        <source>The two PINs are not the same.</source>
+        <translation>İki PIN aynı değil.</translation>
     </message>
 </context>
 <context>
@@ -22043,6 +22068,11 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
         <source>Set</source>
         <translation>Ayarla</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="33"/>
+        <source>No limit</source>
+        <translation>Sınır yok</translation>
+    </message>
 </context>
 <context>
     <name>SettingsPage</name>
@@ -22245,6 +22275,11 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
         <source>Shared files are removed, and other apps can no longer open them.</source>
         <translation>Paylaşılan dosyalar kaldırıldı ve diğer uygulamalar artık bunları açamaz.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="190"/>
+        <source>The next operation asks for them again. They are also cleared whenever you leave GpgFrontend.</source>
+        <translation>Sonraki işlem bunları yeniden sorar. GpgFrontend&apos;den her ayrıldığınızda da temizlenirler.</translation>
+    </message>
 </context>
 <context>
     <name>SheetHost</name>
@@ -22364,6 +22399,11 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
         <location filename="../../../../src/mob/qml/components/StatusLine.qml" line="75"/>
         <source>Dismiss</source>
         <translation>Kapat</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusLine.qml" line="65"/>
+        <source>Show progress</source>
+        <translation>İlerlemeyi göster</translation>
     </message>
 </context>
 <context>
@@ -22501,6 +22541,16 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
         <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="646"/>
         <source>Close</source>
         <translation>Kapat</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="448"/>
+        <source>Show more</source>
+        <translation>Daha fazla göster</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="448"/>
+        <source>Show less</source>
+        <translation>Daha az göster</translation>
     </message>
 </context>
 <context>
@@ -22808,6 +22858,11 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
         <location filename="../../../../src/mob/qml/TextPage.qml" line="587"/>
         <source>It cannot be brought back with Undo. Decrypt the message again to see it. The keys you chose stay chosen.</source>
         <translation>Geri Al ile geri getirilemez. Görmek için mesajın şifresini yeniden çözün. Seçtiğiniz anahtarlar seçili kalır.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="235"/>
+        <source>Done on an earlier text, so the result was not put in.</source>
+        <translation>Daha önceki bir metin üzerinde yapıldığı için sonuç metne yerleştirilmedi.</translation>
     </message>
 </context>
 <context>
@@ -23570,6 +23625,11 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
         <location filename="../../../../src/mob/qml/Wording.qml" line="344"/>
         <source>It is no longer used</source>
         <translation>Artık kullanılmıyor</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="195"/>
+        <source>Signature not checked</source>
+        <translation>İmza kontrol edilmedi</translation>
     </message>
 </context>
 </TS>
