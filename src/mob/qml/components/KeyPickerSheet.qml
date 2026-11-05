@@ -7,8 +7,9 @@ import QtQuick.Layouts
 import GpgFrontend.Mobile
 
 // Many keys chosen at once, the way the key toolbox chooses them: searched,
-// narrowed, ticked. Keys already where they are going are shown so, and not
-// offered again.
+// narrowed by category, ticked, the list filling the sheet. Keys already
+// where they are going are shown so, and not offered again. What is ticked
+// is its own (never the operation's keys), said in one line.
 BottomSheet {
     id: sheet
 
@@ -25,8 +26,12 @@ BottomSheet {
     // Ticked so far: key ID -> true.
     property var picked: ({})
     readonly property int pickedCount: Object.keys(picked).length
-    // "all", "mine" or "others".
-    property string filter: "all"
+    // The key category shown; "" for all keys.
+    property string category: ""
+
+    readonly property var categoryEntries: categoryStore.categories.concat(categoryStore.builtins)
+    // The search field (KeyFinder's).
+    readonly property alias search: finder.field
 
     // The ticked key IDs.
     signal accepted(var keyIds)
@@ -35,7 +40,7 @@ BottomSheet {
         sheet.title = title
         already = alreadyIn || []
         picked = {}
-        filter = "all"
+        category = ""
         search.clear()
         open()
     }
@@ -49,6 +54,7 @@ BottomSheet {
 
     objectName: "keyPicker"
     expandable: true
+    listMode: true
     stepBack: function() {
         if (search.text.length > 0) {
             search.clear()
@@ -57,32 +63,46 @@ BottomSheet {
         return false
     }
 
-    SearchField {
-        id: search
-        objectName: "keyPickerSearch"
-        Layout.fillWidth: true
-        hint: qsTr("Search name, email or key ID")
+    KeyCategoriesController {
+        id: categoryStore
     }
 
-    Row {
+    KeyFinder {
+        id: finder
+
+        Layout.fillWidth: true
+        searchName: "keyPickerSearch"
+        categoryName: "keyPickerCategory"
+        entries: sheet.categoryEntries
+        category: sheet.category
+        onCategoryChosen: id => sheet.category = id
+    }
+
+    // What is ticked, in one line, and a way to start again.
+    RowLayout {
+        objectName: "keyPickerSummary"
+        Layout.fillWidth: true
+        visible: sheet.pickedCount > 0
         spacing: 8
 
-        Repeater {
-            model: [{"id": "all", "name": qsTr("All")},
-                    {"id": "mine", "name": qsTr("Mine")},
-                    {"id": "others", "name": qsTr("Others'")}]
+        Icon {
+            symbol: "check_circle"
+            color: Material.accentColor
+            sourceSize: Qt.size(20, 20)
+        }
 
-            Button {
-                required property var modelData
-                text: modelData.name
-                flat: sheet.filter !== modelData.id
-                highlighted: sheet.filter === modelData.id
-                font.pixelSize: Theme.secondarySize
-                topInset: 0
-                bottomInset: 0
-                implicitHeight: Math.max(36, Theme.secondarySize * 2.4)
-                onClicked: sheet.filter = modelData.id
-            }
+        Label {
+            Layout.fillWidth: true
+            text: Wording.selectedCount(sheet.pickedCount)
+            elide: Text.ElideRight
+            font.pixelSize: Theme.secondarySize
+            font.weight: Font.Medium
+        }
+
+        ActionButton {
+            kind: "text"
+            text: qsTr("Clear")
+            onClicked: sheet.picked = {}
         }
     }
 
@@ -90,8 +110,7 @@ BottomSheet {
         id: filtered
         sourceModel: KeyListController.keys
         searchText: search.text
-        category: sheet.filter === "mine" ? "has_private_key"
-                : sheet.filter === "others" ? "only_public_key" : ""
+        category: sheet.category
     }
 
     // Only the rows in view are made: there may be a thousand keys.
@@ -100,14 +119,12 @@ BottomSheet {
 
         objectName: "keyPickerList"
         Layout.fillWidth: true
-        Layout.leftMargin: -24
-        Layout.rightMargin: -24
-        Layout.preferredHeight: Math.min(
-            contentHeight,
-            // What the keyboard leaves: with it up the list is shorter, so
-            // the field typed into stays in view.
-            Math.max(Theme.rowHeightTwoLine * 2,
-                     ((Window.height || 800) - Theme.keyboard) * 0.4))
+        Layout.leftMargin: -Theme.sheetPad
+        Layout.rightMargin: -Theme.sheetPad
+        Layout.fillHeight: true
+        Layout.preferredHeight: Math.max(contentHeight, Theme.touch * 2) + bottomMargin
+        Layout.minimumHeight: Theme.touch * 2
+        bottomMargin: Theme.gapSmall
         clip: true
         boundsBehavior: Flickable.StopAtBounds
         reuseItems: true
@@ -120,13 +137,14 @@ BottomSheet {
             required property string name
             required property string email
             required property string keyId
+            required property string secretState
 
             readonly property bool fixed: sheet.alreadySet[keyId] === true
             readonly property bool chosen: fixed || sheet.picked[keyId] === true
 
             objectName: "keyPick_" + keyId
             width: ListView.view.width
-            leftPadding: 24
+            leftPadding: Theme.sheetPad
             rightPadding: 8
             enabled: !fixed
             onClicked: sheet.toggle(keyId)
@@ -135,16 +153,21 @@ BottomSheet {
             Accessible.name: Wording.keyTitle(name, email, keyId)
 
             contentItem: KeyChoiceFace {
+                idBelow: true
                 name: choice.name
                 email: choice.email
                 keyId: choice.keyId
+                secretState: choice.secretState
                 note: choice.fixed ? qsTr("Already in") : ""
 
+                // The mark of the choice; a tap on it is a tap on the row.
                 CheckBox {
+                    checkable: false
                     checked: choice.chosen
                     enabled: !choice.fixed
                     focusPolicy: Qt.NoFocus
-                    onToggled: sheet.toggle(choice.keyId)
+                    onClicked: sheet.toggle(choice.keyId)
+                    Accessible.ignored: true
                 }
             }
         }
@@ -163,17 +186,16 @@ BottomSheet {
         Item {
             Layout.fillWidth: true
         },
-        Button {
+        ActionButton {
+            kind: "text"
             text: qsTr("Cancel")
-            flat: true
             onClicked: sheet.close()
         },
-        Button {
+        ActionButton {
             objectName: "keyPickerAccept"
             text: sheet.pickedCount > 0
                   ? qsTr("%1 (%2)").arg(sheet.actionText).arg(sheet.pickedCount)
                   : sheet.actionText
-            highlighted: true
             enabled: sheet.pickedCount > 0
             onClicked: {
                 const ids = Object.keys(sheet.picked)

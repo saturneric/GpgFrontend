@@ -199,13 +199,18 @@ auto WorkSelection::SignsEncryption() const -> bool {
   return signing_enabled_ && !passphrase_mode_;
 }
 
-auto WorkSelection::IssueCount() const -> int {
+auto WorkSelection::RecipientIssueCount() const -> int {
   int count = 0;
   for (const auto& key : recipient_keys()) {
     if (!key.toMap().value(QStringLiteral("issue")).toString().isEmpty()) {
       ++count;
     }
   }
+  return count;
+}
+
+auto WorkSelection::IssueCount() const -> int {
+  auto count = RecipientIssueCount();
   if (!preferred_signer_.isEmpty() && !signer_issue().isEmpty()) ++count;
   return count;
 }

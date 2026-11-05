@@ -94,6 +94,10 @@ class WorkSelection : public QObject {
   Q_PROPERTY(bool signsEncryption READ SignsEncryption NOTIFY SignalChanged)
   /// How many chosen keys, recipients and signer, cannot be used.
   Q_PROPERTY(int issueCount READ IssueCount NOTIFY SignalChanged)
+  /// Of those, the recipients' alone: what the summary of the chosen keys
+  /// warns of (a signer's problem is the signing step's).
+  Q_PROPERTY(
+      int recipientIssueCount READ RecipientIssueCount NOTIFY SignalChanged)
   /// Changes whenever anything above does: a row binds `revision` and calls
   /// isRecipient(), rather than copying and searching `recipients` (a
   /// thousand rows, each searching the whole list, on every tick).
@@ -140,6 +144,7 @@ class WorkSelection : public QObject {
   [[nodiscard]] auto SignBlock() const -> QString;
   [[nodiscard]] auto SignsEncryption() const -> bool;
   [[nodiscard]] auto IssueCount() const -> int;
+  [[nodiscard]] auto RecipientIssueCount() const -> int;
 
   /// The keys can be read now (a profile is open and its keys listed):
   /// the preferred signer and the last operation are read from the
