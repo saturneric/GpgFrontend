@@ -32,6 +32,8 @@
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/utils/GpgUtils.h"
+#include "shell/models/GpgKeyTableModel.h"
+#include "shell/rules/KeyGroupRules.h"
 #include "ui/UISignalStation.h"
 #include "ui/dialog/KeyGroupEditDialog.h"
 #include "ui/dialog/KeyGroupMetadataRules.h"
@@ -320,17 +322,17 @@ void KeyGroupManageDialog::init_panes(QVBoxLayout* layout) {
   // default one would drag every other key list's column widths around.
   available_list_->SetPersistenceScope("keygroup_manage", kAvailableColumns);
 
-  available_list_->AddListGroupTab(
-      tr("Available"), "keygroup-available",
-      GpgKeyTableDisplayMode::kPRIVATE_KEY |
-          GpgKeyTableDisplayMode::kPUBLIC_KEY,
-      [this](const GpgAbstractKey* key) -> bool {
-        if (key == nullptr || !key->IsHasEncrCap()) return false;
-        // One call covers the group itself, its current members, and any group
-        // that would nest back into this one.
-        return KeyGroupRepository::GetInstance(channel_).CanAddKeyToKeyGroup(
-            group_id_, key->ID());
-      });
+  available_list_->AddListGroupTab(tr("Available"), "keygroup-available",
+                                   GpgKeyTableDisplayMode::kPRIVATE_KEY |
+                                       GpgKeyTableDisplayMode::kPUBLIC_KEY,
+                                   [this](const GpgAbstractKey* key) -> bool {
+                                     // One call covers what can encrypt, the
+                                     // group itself, its current members, and
+                                     // any group that would nest back into this
+                                     // one.
+                                     return Shell::CanJoinKeyGroup(
+                                         channel_, group_id_, key);
+                                   });
   available_list_->SetTabOrderSettingsKey(
       SettingItems::kKeyGroupManageTabOrder.key);
 

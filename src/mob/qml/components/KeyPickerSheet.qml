@@ -28,6 +28,8 @@ BottomSheet {
     readonly property int pickedCount: Object.keys(picked).length
     // The key category shown; "" for all keys.
     property string category: ""
+    // Only keys that can encrypt are offered: what a key group takes.
+    property bool onlyEncryptCapable: false
 
     readonly property var categoryEntries: categoryStore.categories.concat(categoryStore.builtins)
     // The search field (KeyFinder's).
@@ -114,6 +116,7 @@ BottomSheet {
         sourceModel: KeyListController.keys
         searchText: search.text
         category: sheet.category
+        onlyEncryptCapable: sheet.onlyEncryptCapable
     }
 
     // Only the rows in view are made: there may be a thousand keys.

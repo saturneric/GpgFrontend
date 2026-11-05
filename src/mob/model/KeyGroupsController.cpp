@@ -35,6 +35,7 @@
 #include "core/profile/ProfileSession.h"
 #include "core/utils/GpgUtils.h"
 #include "model/KeyListController.h"
+#include "shell/rules/KeyGroupRules.h"
 
 namespace GpgFrontend::Mobile {
 
@@ -132,7 +133,11 @@ auto KeyGroupsController::addMembers(const QString& id,
     // Keys only: the desktop nests groups, its own dialog does that.
     if (IsKeyGroupID(key_id)) continue;
     const auto key = keys.GetKey(key_id);
-    if (key == nullptr || !Groups().CanAddKeyToKeyGroup(id, key_id)) continue;
+    // A group is a set of recipients: a key that cannot encrypt stays out,
+    // as on the desktop.
+    if (!Shell::CanJoinKeyGroup(UsableDefaultChannelHandle(), id, key.get())) {
+      continue;
+    }
     if (Groups().AddKey2KeyGroup(id, key)) ++added;
   }
   if (added > 0) changed();

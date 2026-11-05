@@ -160,6 +160,7 @@ Page {
     KeyPickerSheet {
         id: picker
         actionText: qsTr("Add")
+        onlyEncryptCapable: true
         onAccepted: function(keyIds) {
             const added = groups.addMembers(page.groupId, keyIds)
             done.show(qsTr("%n key(s) added.", "", added))
