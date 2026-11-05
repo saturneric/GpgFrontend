@@ -38,6 +38,7 @@
 #include "core/model/GpgSubKey.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/MemoryUtils.h"
+#include "shell/rules/RecipientRules.h"
 
 namespace GpgFrontend::Test {
 

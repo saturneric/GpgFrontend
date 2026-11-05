@@ -34,6 +34,7 @@
 
 #include "core/GFConstants.h"
 #include "core/utils/GpgUtils.h"
+#include "shell/rules/FileNameRules.h"
 
 namespace GpgFrontend::Mobile {
 

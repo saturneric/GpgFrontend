@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/utils/GpgUtils.h"
+#include "shell/rules/FileNameRules.h"
 
 namespace GpgFrontend::UI {
 

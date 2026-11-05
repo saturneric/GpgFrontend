@@ -30,6 +30,7 @@
 
 #include "GpgFrontendTest.h"
 #include "core/utils/GpgUtils.h"
+#include "shell/rules/FileNameRules.h"
 
 namespace GpgFrontend::Test {
 

@@ -28,6 +28,7 @@
 
 #include "ui/widgets/FileTreeItemDelegate.h"
 
+#include "shell/rules/FileNameRules.h"
 #include "ui/function/FileTypeUtils.h"
 
 namespace {

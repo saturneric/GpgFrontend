@@ -57,62 +57,6 @@ auto GF_CORE_EXPORT DescribeGFError(const GFError& err) -> GpgErrorDesc;
 auto GF_CORE_EXPORT GnuPGErrorValueOf(const GFError& err) -> std::uint32_t;
 
 /**
- * @brief Whether the entry looks like an OpenPGP message container.
- *
- * By its name alone, as every file list decides it: these are the files that
- * can be decrypted or verified inline. Shared by the desktop's file panel and
- * the phone's Files page, so both call the same file the same thing.
- *
- * @param info entry to inspect
- * @return true for .gpg, .pgp and .asc files
- */
-auto GF_CORE_EXPORT IsOpenPGPMessageFile(const QFileInfo& info) -> bool;
-
-/**
- * @brief Whether the entry is any kind of OpenPGP output.
- *
- * Adds detached signatures to the message containers. Used to keep already
- * processed files out of the encrypt/sign side of the operation menu.
- *
- * @param info entry to inspect
- * @return true for .gpg, .pgp, .asc and .sig files
- */
-auto GF_CORE_EXPORT IsOpenPGPRelatedFile(const QFileInfo& info) -> bool;
-
-/**
- * @brief Whether the entry is a detached OpenPGP signature.
- *
- * @param info entry to inspect
- * @return true for .sig files
- */
-auto GF_CORE_EXPORT IsOpenPGPSignatureFile(const QFileInfo& info) -> bool;
-
-/**
- * @brief Return the output file path with an extension appropriate for the
- * given operation.
- *
- * @param path input file path to derive the output path from
- * @param opera GPG operation type (encrypt, sign, etc.)
- * @param ascii true if ASCII-armored output is requested
- * @return output file path with the correct extension
- */
-auto GF_CORE_EXPORT SetExtensionOfOutputFile(const QString& path,
-                                             GpgOperation opera, bool ascii)
-    -> QString;
-
-/**
- * @brief Return the output file path with an archive-operation extension.
- *
- * @param path input file path
- * @param opera GPG operation type
- * @param ascii true if ASCII-armored output is requested
- * @return output file path with the correct archive extension
- */
-auto GF_CORE_EXPORT SetExtensionOfOutputFileForArchive(const QString& path,
-                                                       GpgOperation opera,
-                                                       bool ascii) -> QString;
-
-/**
  * @brief Resolve and canonicalize a key database path relative to @p app_path.
  *
  * @param app_path base application directory
@@ -165,32 +109,6 @@ inline constexpr int kMaxKeyDatabases = 8;
 
 /// The characters a key database's name may use: it becomes a folder.
 inline constexpr auto kKeyDatabaseNamePattern = R"([a-zA-Z0-9\s\-_]+)";
-
-/**
- * @brief Whether @p name uses only kKeyDatabaseNamePattern's characters.
- */
-auto GF_CORE_EXPORT IsKeyDatabaseNameText(const QString& name) -> bool;
-
-/**
- * @brief Whether a database in @p infos already answers to @p name, by its
- * stored name or the one it is shown under, compared case-insensitively:
- * "Work" and "work" are one folder on some systems.
- */
-auto GF_CORE_EXPORT IsKeyDatabaseNameTaken(const QString& name,
-                                           const QList<KeyDatabaseInfo>& infos)
-    -> bool;
-
-/**
- * @brief The first "<prefix> <n>" no database in @p infos is called, and, when
- * @p app_data_path is given, whose managed folder is not there already (a
- * removed database's, kept in the Recycle Bin).
- *
- * Not translated, deliberately: the name becomes a folder.
- */
-auto GF_CORE_EXPORT SuggestKeyDatabaseName(const QString& prefix,
-                                           const QList<KeyDatabaseInfo>& infos,
-                                           const QString& app_data_path = {})
-    -> QString;
 
 /**
  * @brief The name a key database is shown under.

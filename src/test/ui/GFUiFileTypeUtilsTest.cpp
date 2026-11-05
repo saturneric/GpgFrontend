@@ -29,6 +29,7 @@
 #include <gtest/gtest.h>
 
 #include "GpgFrontendTest.h"
+#include "shell/rules/FileNameRules.h"
 #include "ui/function/FileTypeUtils.h"
 
 namespace GpgFrontend::Test {

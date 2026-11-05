@@ -354,30 +354,16 @@ void FilePage::update_main_basic_opera_menu(const QStringList& selected_paths) {
                       MainWindow::OperationMenu::kEncryptAndSign |
                       MainWindow::OperationMenu::kSymmetricEncrypt;
   }
-
-  bool c_decr =
-      std::all_of(infos.cbegin(), infos.cend(), [](const QFileInfo& info) {
-        return info.isFile() && IsOpenPGPMessageFile(info);
-      });
-
-  if (c_decr) {
+  if (allowed(Shell::FileOperation::kDecrypt)) {
     operation_type |= MainWindow::OperationMenu::kDecrypt |
                       MainWindow::OperationMenu::kDecryptAndVerify;
   }
-
-  bool c_sign =
-      std::all_of(infos.cbegin(), infos.cend(), [](const QFileInfo& info) {
-        return info.isFile() && !IsOpenPGPRelatedFile(info);
-      });
-
-  if (c_sign) operation_type |= MainWindow::OperationMenu::kSign;
-
-  bool c_verify =
-      std::all_of(infos.cbegin(), infos.cend(), [](const QFileInfo& info) {
-        return info.isFile() && IsOpenPGPRelatedFile(info);
-      });
-
-  if (c_verify) operation_type |= MainWindow::OperationMenu::kVerify;
+  if (allowed(Shell::FileOperation::kSign)) {
+    operation_type |= MainWindow::OperationMenu::kSign;
+  }
+  if (allowed(Shell::FileOperation::kVerify)) {
+    operation_type |= MainWindow::OperationMenu::kVerify;
+  }
 
   emit SignalMainWindowUpdateBasicOperaMenu(operation_type);
 }

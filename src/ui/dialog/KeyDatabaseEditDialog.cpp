@@ -37,6 +37,7 @@
 #include "ui/function/KeyDatabaseDisplayNames.h"
 
 //
+#include "shell/rules/KeyDatabaseNames.h"
 #include "ui_KeyDatabaseEditDialog.h"
 
 namespace GpgFrontend::UI {
