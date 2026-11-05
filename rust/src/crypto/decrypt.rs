@@ -1063,7 +1063,7 @@ fn decrypt_archive_staged(
     // by default: never let decrypted plaintext become group or world
     // writable (the conventional 022 umask).
     archive.set_mask(0o022);
-    archive.unpack(&extract_dir).map_err(|e| {
+    crate::tar::unpack_contained(&mut archive, &extract_dir).map_err(|e| {
         log::error!("Failed to unpack tar archive: {}", e);
         set_last_error(&format!("decrypted data is not a valid archive: {}", e));
         crate::types::GfrStatus::ErrorInvalidData // Extraction failure may indicate the content is not a valid tar archive
