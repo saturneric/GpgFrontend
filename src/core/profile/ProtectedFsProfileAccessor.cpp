@@ -397,7 +397,11 @@ void ScrubDirectory(const QString &path) {
       written += put;
     }
 
+    // To the disk before the truncation: left in the page cache, the zeros
+    // were discarded by resize(0) and never overwrote anything. Still best
+    // effort -- an SSD or a copy-on-write filesystem may put them elsewhere.
     file.flush();
+    Platform::FlushToDisk(static_cast<int>(file.handle()));
     file.resize(0);
     file.close();
 
