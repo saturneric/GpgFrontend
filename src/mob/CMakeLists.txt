@@ -202,7 +202,7 @@ target_include_directories(gf_mob_lib PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/crypto
   ${CMAKE_CURRENT_SOURCE_DIR}/files)
 target_link_libraries(gf_mob_lib PUBLIC
-  gf_boot gf_core gf_res Qt::Quick Qt::QuickControls2 Qt::Svg)
+  gf_boot gf_core gf_shell gf_res Qt::Quick Qt::QuickControls2 Qt::Svg)
 
 qt_add_executable(gf_mob main.cpp)
 target_link_libraries(gf_mob PRIVATE gf_mob_lib gf_mob_libplugin)

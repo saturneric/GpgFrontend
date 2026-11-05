@@ -94,6 +94,8 @@ configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInstallInfo.h.in
 
 add_subdirectory(core)
 add_subdirectory(boot)
+# The interface logic both the desktop and the phone are built on.
+add_subdirectory(shell)
 if(GF_BUILD_DESKTOP)
   add_subdirectory(ui)
   add_subdirectory(sdk)

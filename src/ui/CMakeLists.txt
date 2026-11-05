@@ -106,6 +106,8 @@ target_link_libraries(${LIBRARY_TARGET}
 # link gpgfrontend_core
 target_link_libraries(${LIBRARY_TARGET} gf_core)
 
+target_link_libraries(${LIBRARY_TARGET} gf_shell)
+
 # The Lua interpreter behind module UI scripts. Private: nothing outside
 # gf_ui sees a lua_State, and no module links Lua at all.
 target_link_libraries(${LIBRARY_TARGET} gf_lua)

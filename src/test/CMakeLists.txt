@@ -35,6 +35,11 @@ if(GF_ENGINE_GNUPG)
   aux_source_directory(./core/gpg CORE_TEST_SOURCE)
 endif()
 aux_source_directory(./core/rpgp CORE_TEST_SOURCE)
+# The interface logic below both interfaces, tested without either of them.
+aux_source_directory(./shell CORE_TEST_SOURCE)
+if(GF_ENGINE_GNUPG)
+  aux_source_directory(./shell/gpg CORE_TEST_SOURCE)
+endif()
 
 # The core's own test program: the application's startup on a plain
 # QCoreApplication, so what passes here does not depend on gf_ui. The
@@ -44,7 +49,7 @@ add_executable(gf_core_tests runner/main.cpp GpgFrontendTest.cpp
 target_compile_definitions(gf_core_tests PRIVATE GF_TEST_PRIVATE
   GF_TEST_EXPORT= GF_TEST_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 target_precompile_headers(gf_core_tests PRIVATE GpgFrontendTest.h)
-target_link_libraries(gf_core_tests PRIVATE GTest::gtest gf_core gf_boot
+target_link_libraries(gf_core_tests PRIVATE GTest::gtest gf_core gf_shell gf_boot
   gf_res)
 add_test(NAME CoreTests COMMAND gf_core_tests)
 

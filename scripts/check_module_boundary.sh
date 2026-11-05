@@ -22,7 +22,7 @@
 #   2. The only defined GF* export is GFModuleGetApi, the one symbol the
 #      bootstrap requires. Anything else is host API leaking back out.
 #   3. No host implementation library in the needed list: libgf_core,
-#      libgf_ui, libgf_sdk.
+#      libgf_shell, libgf_ui, libgf_sdk.
 #   6. No Lua. The UI script interpreter is the host's (gf_lua, linked into
 #      gf_ui only): a module ships its scripts as data and the host runs them
 #      in a sandbox. A module carrying its own interpreter -- linked, imported
@@ -83,7 +83,7 @@ say()  { [[ "$QUIET" -eq 1 ]] || echo "$@"; }
 
 # The one symbol a module is required to export, and the only one it may.
 readonly ALLOWED_EXPORT="GFModuleGetApi"
-readonly FORBIDDEN_LIBS="libgf_core|libgf_ui|libgf_sdk"
+readonly FORBIDDEN_LIBS="libgf_core|libgf_shell|libgf_ui|libgf_sdk"
 # Rule 6: the Lua C API and library entry points, and a Lua shared library.
 readonly LUA_SYMBOLS='\b_?(lua_|luaL_|luaopen_)[A-Za-z0-9_]+'
 readonly LUA_LIBS='liblua[^ ]*|lua[0-9.]*\.dll'
@@ -195,7 +195,7 @@ check_pe() {
   # rule are one read.
   local imports exported
   imports=$(objdump -p "$f" 2>/dev/null \
-            | grep -iE "DLL Name: (gf_core|gf_ui|gf_sdk)" || true)
+            | grep -iE "DLL Name: (gf_core|gf_shell|gf_ui|gf_sdk)" || true)
   exported=$(objdump -p "$f" 2>/dev/null \
             | grep -oE '\bGF[A-Z][A-Za-z0-9_]*' | sort -u || true)
 

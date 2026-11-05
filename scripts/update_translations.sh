@@ -15,11 +15,11 @@
 #
 #   * The GpgFrontend application itself, whose .ts live in
 #     resource/lfs/locale/ts/GpgFrontend.<locale>.ts and whose translatable
-#     strings come from src/core, src/ui and the phone application's src/mob
-#     (C++ and QML), plus the top-level src/*.cpp. The desktop and the phone
-#     share this one catalog. The test/ and sdk/ trees are skipped: their tr()
-#     strings are not part of the shipped UI and are intentionally absent from
-#     the committed .ts.
+#     strings come from src/core, src/shell, src/ui and the phone
+#     application's src/mob (C++ and QML), plus the top-level src/*.cpp. The
+#     desktop and the phone share this one catalog. The test/ and sdk/ trees
+#     are skipped: their tr() strings are not part of the shipped UI and are
+#     intentionally absent from the committed .ts.
 #
 #   * Each module under modules/src/<name>/, which keeps its translations in a
 #     ts/ subdirectory (e.g. modules/src/m_email/ts/ModuleEMail.de_DE.ts). Only
@@ -66,7 +66,8 @@ APP_NAME="GpgFrontend"
 APP_TS_DIR="${REPO_ROOT}/resource/lfs/locale/ts"
 # Source roots scanned for the application target. test/ and sdk/ are left out
 # on purpose (see header).
-APP_SRC_ROOTS=("${REPO_ROOT}/src/core" "${REPO_ROOT}/src/ui" "${REPO_ROOT}/src/mob")
+APP_SRC_ROOTS=("${REPO_ROOT}/src/core" "${REPO_ROOT}/src/shell" "${REPO_ROOT}/src/ui"
+  "${REPO_ROOT}/src/mob")
 LOCALES_CMAKE="${REPO_ROOT}/cmake/Translations.cmake"
 NO_OBSOLETE=""
 LIST_ONLY="no"

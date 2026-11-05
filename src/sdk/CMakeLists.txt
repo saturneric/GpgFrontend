@@ -88,7 +88,7 @@ target_compile_features(gf_host_api PRIVATE cxx_std_20)
 target_include_directories(gf_host_api PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/host)
 target_link_libraries(gf_host_api PUBLIC gf_sdk_headers)
-target_link_libraries(gf_host_api PRIVATE gf_core gf_ui)
+target_link_libraries(gf_host_api PRIVATE gf_core gf_shell gf_ui)
 
 # ---------------------------------------------------------------------------
 # Proves the public SDK headers are consumable from C.
