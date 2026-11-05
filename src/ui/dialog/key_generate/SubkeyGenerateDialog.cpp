@@ -356,9 +356,11 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
         KeyGenerationOperation::GetInstance(current_gpg_context_channel_)
             .GenerateSubkey(
                 key, info,
-                [this, hd, succeeded](GpgError err,
-                                      const DataObjectPtr& data_obj) -> void {
+                [this, alive = QPointer<QObject>(this), hd, succeeded](
+                    GpgError err, const DataObjectPtr& data_obj) -> void {
                   hd();
+                  // The wait is over either way; the dialog may not be.
+                  if (alive.isNull()) return;
 
                   if (CheckGpgError(err) == GPG_ERR_USER_1) {
                     QMessageBox::critical(this, tr("Error"),

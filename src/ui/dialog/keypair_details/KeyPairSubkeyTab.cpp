@@ -756,12 +756,16 @@ void KeyPairSubkeyTab::slot_modify_subkey_passphrase() {
   const auto& s_key = get_selected_subkey();
   if (!s_key.IsSecretKey() || s_key.IsADSK()) return;
 
+  // See KeyPairOperaTab::slot_modify_password(): the tab may be gone by the
+  // time the answer comes.
+  QPointer<KeyPairSubkeyTab> self = this;
   KeyManagementOperation::GetInstance(current_gpg_context_channel_)
       .ModifySubkeyPassword(key_, s_key.Fingerprint(),
-                            [this](GpgError err, const DataObjectPtr&) {
-                              RaiseMessageBox(this, err);
+                            [self](GpgError err, const DataObjectPtr&) {
+                              if (self.isNull()) return;
+                              RaiseMessageBox(self, err);
                               if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-                                emit SignalKeyDatabaseRefresh();
+                                emit self->SignalKeyDatabaseRefresh();
                               }
                             });
 }

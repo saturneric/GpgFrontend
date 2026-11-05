@@ -185,9 +185,12 @@ void KeyNewUIDDialog::slot_create_new_uid() {
   auto f = [this, name, comment, email](const OperaWaitingHd& hd) {
     UserIdOperation::GetInstance(current_gpg_context_channel_)
         .AddUID(m_key_, name, comment, email,
-                [this, hd](GpgError err, const DataObjectPtr&) {
+                [this, alive = QPointer<QObject>(this), hd](
+                    GpgError err, const DataObjectPtr&) {
                   // stop showing the waiting dialog
                   hd();
+                  // The wait is over either way; the dialog may not be.
+                  if (alive.isNull()) return;
 
                   if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
                     emit SignalUIDCreated();
