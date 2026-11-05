@@ -3,7 +3,7 @@ release, so keep a backup of your keys.
 
 - **installed**: for most people.
 - **portable**: everything in one folder, e.g. a USB stick (not on macOS).
-- **android**: the `.apk` installs on a phone.
+- **android**: the `.apk` installs on a phone. Most phones need `arm64-v8a`.
 
 Found a bug? Tell us on [GitHub Issues](https://github.com/saturneric/GpgFrontend/issues).
 

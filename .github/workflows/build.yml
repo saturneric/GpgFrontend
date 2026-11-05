@@ -182,16 +182,18 @@ jobs:
           # platforms.
           echo "SHORT_SHA=${GITHUB_SHA:0:7}" >> $GITHUB_ENV
 
-          # Identifier the artifacts are named after. On Linux the runner label
-          # ("ubuntu-24.04-arm") is the wrong thing to publish: the build host's
-          # distro is not what an AppImage runs on, and the "-arm" suffix would
-          # read "arm-aarch64" next to the architecture. Just say "linux" — the
-          # architecture already keeps the two images apart. Windows keeps its
-          # runner label.
+          # The platform the artifacts are named after. Every download follows
+          # one pattern, GpgFrontend-<sha>-<platform>-<arch>[-portable].<ext>,
+          # with ARM spelled aarch64 (on Android, its ABI name arm64-v8a, the
+          # one phone users see). The runner label ("ubuntu-24.04-arm",
+          # "windows-2022") is the wrong thing to publish: the build host is
+          # not what the download runs on. macOS alone is named by its runner
+          # label (macos-15, macos-15-intel) and no architecture, since each
+          # disk image is built for that one macOS.
           if [[ "${{ runner.os }}" == "Linux" ]]; then
             echo "OS_IDENTIFIER=linux" >> $GITHUB_ENV
           else
-            echo "OS_IDENTIFIER=${{ matrix.os }}" >> $GITHUB_ENV
+            echo "OS_IDENTIFIER=windows" >> $GITHUB_ENV
           fi
 
           # Build flavour: "portable" keeps the profile beside the application,
@@ -1281,7 +1283,7 @@ jobs:
   #
   # Like build-macos, it holds no secrets: the APK and the app bundle (AAB)
   # leave here unsigned, after the checks that need the build tree, and are
-  # signed by sign-android below; play-upload signs the arm64 bundle again
+  # signed by sign-android below; play-upload signs the arm64-v8a bundle again
   # with the Play upload key.
   build-android:
     # Named by the ABI alone: by default every matrix value is listed.
@@ -1293,8 +1295,9 @@ jobs:
       matrix:
         include:
           # One APK and one AAB per ABI: ARM for phones, x86_64 for
-          # emulators and Chromebooks.
-          - arch: arm64
+          # emulators and Chromebooks. `arch` names the files, and on Android
+          # that is the ABI's own name, as phones and app stores show it.
+          - arch: arm64-v8a
             abi: arm64-v8a
             qt_arch: android_arm64_v8a
             rust_target: aarch64-linux-android
@@ -1436,7 +1439,7 @@ jobs:
       (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
     strategy:
       matrix:
-        arch: ["arm64", "x86_64"]
+        arch: ["arm64-v8a", "x86_64"]
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -2523,7 +2526,12 @@ jobs:
           set -euo pipefail
           OUT="$RUNNER_TEMP/upload-artifact"
           mkdir -p "$OUT"
-          DMG="$OUT/GpgFrontend-${OS_IDENTIFIER}-${SHORT_SHA}.dmg"
+          # The pattern every download follows (see the build job), with no
+          # architecture: the runner label (macos-15, macos-15-intel) already
+          # tells the images apart.
+          DMG_NAME="GpgFrontend-${SHORT_SHA}-${OS_IDENTIFIER}.dmg"
+          echo "DMG_NAME=$DMG_NAME" >> "$GITHUB_ENV"
+          DMG="$OUT/$DMG_NAME"
 
           # hdiutil rather than create-dmg: this job runs Apple tooling only.
           # create-dmg drove Finder over AppleScript to place the icons, which
@@ -2628,9 +2636,6 @@ jobs:
           "$RUNNER_TEMP/staple.sh" "$DMG"
 
       - name: Assess With Gatekeeper
-        env:
-          SHORT_SHA: ${{ steps.meta.outputs.short_sha }}
-          OS_IDENTIFIER: ${{ matrix.os }}
         run: |
           set -euo pipefail
           # The acceptance test: what macOS itself decides about the finished
@@ -2641,7 +2646,7 @@ jobs:
           # --type open with the primary-signature context is what Finder
           # performs when the downloaded disk image is mounted.
           spctl --assess --type open --context context:primary-signature --verbose=4 \
-            "$RUNNER_TEMP/upload-artifact/GpgFrontend-${OS_IDENTIFIER}-${SHORT_SHA}.dmg"
+            "$RUNNER_TEMP/upload-artifact/$DMG_NAME"
       - name: Upload Artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -2999,14 +3004,14 @@ jobs:
           body_path: ${{ github.workspace }}/.github/NIGHTLY_RELEASE.md
           files: ${{ steps.verify.outputs.files }}
 
-  # Puts the arm64 app bundle on Google Play's internal testing track, rolled
+  # Puts the arm64-v8a app bundle on Google Play's internal testing track, rolled
   # out to the testers at once, as soon as sign-android has signed it: it
   # waits for neither provenance nor the nightly's approval gate, which guard
   # the public GitHub release and not the testers.
   #   - a push to main  -> named nightly-<sha>.
   #   - a version tag   -> named after the tag. Promoting it beyond the
   #     testers is done by hand in Play Console.
-  # arm64 alone, as Play wants one bundle per release and phones are ARM;
+  # arm64-v8a alone, as Play wants one bundle per release and phones are ARM;
   # x86_64 stays on the nightly page.
   #
   # Play App Signing re-signs what users get, so the bundle is signed here
@@ -3072,7 +3077,7 @@ jobs:
       - name: Download Unsigned Bundle
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: unsigned-android-arm64
+          name: unsigned-android-arm64-v8a
           path: ${{ runner.temp }}/unsigned
 
       - name: Sign The Bundle With The Upload Key
@@ -3087,7 +3092,7 @@ jobs:
           ks="$RUNNER_TEMP/upload.keystore"
           trap 'rm -f "$ks"' EXIT
           printf '%s' "$PLAY_UPLOAD_KEYSTORE" | base64 -d > "$ks"
-          aab="$RUNNER_TEMP/play/GpgFrontend-${GITHUB_SHA:0:7}-android-arm64.aab"
+          aab="$RUNNER_TEMP/play/GpgFrontend-${GITHUB_SHA:0:7}-android-arm64-v8a.aab"
           mkdir -p "$(dirname "$aab")"
           jarsigner -keystore "$ks" \
             -storepass:env PLAY_UPLOAD_KEYSTORE_PASSWORD \
@@ -3112,6 +3117,6 @@ jobs:
           fi
           python3 -I scripts/android/play_upload.py \
             --package com.bktus.gpgfrontend \
-            --bundle "$RUNNER_TEMP/play/GpgFrontend-${GITHUB_SHA:0:7}-android-arm64.aab" \
+            --bundle "$RUNNER_TEMP/play/GpgFrontend-${GITHUB_SHA:0:7}-android-arm64-v8a.aab" \
             --track internal \
             --release-name "$name"

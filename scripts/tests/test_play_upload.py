@@ -272,8 +272,8 @@ class WorkflowTest(unittest.TestCase):
         perms = re.search(r"(?m)^    permissions:\n((?:      .*\n)+)", self.job)
         self.assertEqual(perms.group(1).split(), ["contents:", "read"])
 
-    def test_uploads_the_arm64_bundle_signed_with_the_upload_key(self):
-        self.assertIn("name: unsigned-android-arm64", self.job)
+    def test_uploads_the_arm64_v8a_bundle_signed_with_the_upload_key(self):
+        self.assertIn("name: unsigned-android-arm64-v8a", self.job)
         self.assertNotIn("pattern:", self.job)
         self.assertIn("jarsigner -keystore", self.job)
         self.assertIn("scripts/android/play_upload.py", self.job)
