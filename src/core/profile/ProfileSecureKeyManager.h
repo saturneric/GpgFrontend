@@ -296,6 +296,17 @@ class GF_CORE_EXPORT ProfileSecureKeyManager {
       -> ProfileKeyLoadResult;
 
   /**
+   * @brief Replace the random source new root keys are drawn from; an empty
+   * function restores the real one.
+   *
+   * For tests only: a failing random source cannot be produced any other way,
+   * and the path it takes is the one that once sealed a key of random length
+   * and zero content.
+   */
+  static void SetRootKeySourceForTesting(
+      std::function<GFBufferOrNone(int)> source);
+
+  /**
    * @brief Whether one key is in play or a rotating set.
    *
    * @return the mode this session loaded in
