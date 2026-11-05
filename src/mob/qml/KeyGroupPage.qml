@@ -48,7 +48,7 @@ Page {
             objectName: "groupMenu"
 
             MenuItem {
-                objectName: "groupRename"
+                objectName: "groupEdit"
                 text: qsTr("Edit")
                 onTriggered: namer.begin(page.group)
             }

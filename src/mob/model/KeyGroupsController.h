@@ -61,10 +61,6 @@ class KeyGroupsController : public QObject {
 
   [[nodiscard]] auto Revision() const -> int;
 
-  /// What is wrong with @p name for a group, by the desktop's rule:
-  /// "too_short" (fewer than five characters); "" when it will do.
-  [[nodiscard]] Q_INVOKABLE QString nameProblem(const QString& name) const;
-
   /**
    * @brief What is wrong with a group's @p name and @p email, by the
    * desktop's rule (ValidateKeyGroupMetadata): {field: "name" or "email",
@@ -97,9 +93,6 @@ class KeyGroupsController : public QObject {
 
   /// Take the member @p key_id (a key or a nested group) out of @p id.
   Q_INVOKABLE bool removeMember(const QString& id, const QString& key_id);
-
-  /// Rename the group @p id; why not ("" when done), as nameProblem().
-  Q_INVOKABLE QString rename(const QString& id, const QString& name);
 
   /// Change the group @p id's name, email and comment at once, as the
   /// desktop's edit dialog does; why not ("" when done), as problemOf().

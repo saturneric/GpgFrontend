@@ -951,8 +951,6 @@ Page {
 
         property int target: -1
         readonly property var file: target >= 0 ? files.entry(target) : ({})
-        readonly property bool usable: file.available === true
-                                       && file.phase !== "queued"
         readonly property bool isOutput: file.kind === "output"
 
         // Opened again for each row: what it knows is read afresh.

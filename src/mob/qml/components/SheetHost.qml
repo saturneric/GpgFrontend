@@ -99,11 +99,6 @@ Item {
         status.show(id, alone === true)
     }
 
-    // The newest operation's result, or nothing.
-    function openLatest() {
-        openStatus(OperationQueue.log.latest())
-    }
-
     function closeAll() {
         toolbox.close()
         status.close()

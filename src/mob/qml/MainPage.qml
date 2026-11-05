@@ -127,10 +127,6 @@ Page {
             id: textPage
             sheets: sheets
             onImportRequested: text => importSheet.begin(text)
-            onOpenFilesRequested: {
-                tabs.currentIndex = 1
-                filesPage.addFiles()
-            }
         }
 
         FilesPage {

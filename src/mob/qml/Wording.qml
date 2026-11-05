@@ -25,14 +25,6 @@ QtObject {
                         : shown.join(", ")
     }
 
-    // The keys summary's first line: who an encryption goes to.
-    function recipientsLine(selection) {
-        if (selection.passphraseMode) return qsTr("With a passphrase")
-        if (selection.recipientCount === 0) return qsTr("Choose recipients")
-        return qsTr("To: %1").arg(names(selection.shownRecipientKeys,
-                                        selection.recipientCount))
-    }
-
     // The word under the desktop's stamp, for the same report.
     function reportWord(report) {
         if (report.cancelled === true) return qsTr("Cancelled")
@@ -55,12 +47,6 @@ QtObject {
         return last.signs ? qsTr("%1 · signed as %2").arg(to)
                                                      .arg(keyName(last.signerKey))
                           : to
-    }
-
-    // Its second line: whether, and by whom, encryptions are signed.
-    function signerLine(selection) {
-        if (!selection.signsEncryption) return qsTr("Not signed")
-        return qsTr("Signed as %1").arg(keyName(selection.signerKey))
     }
 
     // A key in a list: its name, else its address, else its key ID.

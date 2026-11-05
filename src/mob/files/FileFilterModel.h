@@ -37,14 +37,8 @@
 namespace GpgFrontend::Mobile {
 
 /**
- * @brief The files the Files page shows: searched by name, narrowed to a
- * kind, in the workspace's order.
- *
- * Over a FileWorkspace. The kinds go by what a file holds (its content
- * role), never by its name alone: "encrypted" (an OpenPGP message),
- * "signatures" (a detached signature, or text signed in the clear), "made"
- * (made here) and "unsaved" (made here and never saved); "all" is every
- * file.
+ * @brief The files the Files page shows: searched by name, in the
+ * workspace's order. Over a FileWorkspace.
  */
 class FileFilterModel : public QSortFilterProxyModel {
   Q_OBJECT
@@ -56,8 +50,6 @@ class FileFilterModel : public QSortFilterProxyModel {
   /// Matched, ignoring case, against the file's name.
   Q_PROPERTY(QString searchText READ SearchText WRITE SetSearchText NOTIFY
                  SignalFilterChanged)
-  /// Whether anything is left out.
-  Q_PROPERTY(bool filtering READ Filtering NOTIFY SignalFilterChanged)
   Q_PROPERTY(int count READ rowCount NOTIFY SignalCountChanged)
 
  public:

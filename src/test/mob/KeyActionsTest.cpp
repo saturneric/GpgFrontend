@@ -1076,7 +1076,7 @@ TEST_F(KeyActionsTest, KeyGroupsAreMadeFilledAndEncryptedTo) {
     ASSERT_NE(keys, nullptr);
 
     // The desktop's rule: a name of five characters at least.
-    EXPECT_FALSE(groups.nameProblem("Team").isEmpty());
+    EXPECT_EQ(groups.problemOf("Team", "").value("field"), "name");
     EXPECT_EQ(groups.create("Team"), "");
     const auto id = groups.create("  Phone Group  ");
     ASSERT_TRUE(IsKeyGroupID(id)) << id.toStdString();
@@ -1167,8 +1167,8 @@ TEST_F(KeyActionsTest, KeyGroupsAreMadeFilledAndEncryptedTo) {
     EXPECT_TRUE(groups.remove(other));
 
     // Renamed by the same rule, emptied, deleted; its key stays.
-    EXPECT_FALSE(groups.rename(id, "Grp").isEmpty());
-    EXPECT_EQ(groups.rename(id, "Phone Group B"), "");
+    EXPECT_FALSE(groups.edit(id, "Grp", "", "").isEmpty());
+    EXPECT_EQ(groups.edit(id, "Phone Group B", "", ""), "");
     EXPECT_EQ(groups.group(id).value("name"), "Phone Group B");
     EXPECT_TRUE(groups.removeMember(id, member_id));
     EXPECT_TRUE(groups.memberIds(id).isEmpty());

@@ -66,10 +66,6 @@ KeyGroupsController::KeyGroupsController(QObject* parent) : QObject(parent) {
 
 auto KeyGroupsController::Revision() const -> int { return revision_; }
 
-auto KeyGroupsController::nameProblem(const QString& name) const -> QString {
-  return DescribeKeyGroupMetadataProblem(ValidateKeyGroupMetadata(name, {}));
-}
-
 auto KeyGroupsController::problemOf(const QString& name,
                                     const QString& email) const -> QVariantMap {
   const auto problem = ValidateKeyGroupMetadata(name, email.trimmed());
@@ -171,18 +167,6 @@ auto KeyGroupsController::removeMember(const QString& id, const QString& key_id)
   if (!Ready() || !Groups().RemoveKeyFromKeyGroup(id, key_id)) return false;
   changed();
   return true;
-}
-
-auto KeyGroupsController::rename(const QString& id, const QString& name)
-    -> QString {
-  if (const auto problem = nameProblem(name); !problem.isEmpty()) {
-    return problem;
-  }
-  if (!Ready() || !Groups().Rename(id, name.trimmed())) {
-    return tr("The group could not be renamed.");
-  }
-  changed();
-  return {};
 }
 
 auto KeyGroupsController::edit(const QString& id, const QString& name,

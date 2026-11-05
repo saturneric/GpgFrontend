@@ -419,18 +419,9 @@ Item {
             compare(Wording.names([{"name": "Alice"}]), "Alice")
             compare(Wording.names([{"name": "Alice"}, {"email": "b@x"},
                                    {"keyId": "C"}]), "Alice, b@x +1")
-            compare(Wording.recipientsLine({"passphraseMode": true}),
-                    "With a passphrase")
-            compare(Wording.recipientsLine({"passphraseMode": false,
-                                            "recipientCount": 0,
-                                            "shownRecipientKeys": []}),
-                    "Choose recipients")
             // Named from the few shown, counted from all of them.
-            compare(Wording.recipientsLine({"passphraseMode": false,
-                                            "recipientCount": 500,
-                                            "shownRecipientKeys": [{"name": "Alice"},
-                                                                   {"name": "Bob"}]}),
-                    "To: Alice, Bob +498")
+            compare(Wording.names([{"name": "Alice"}, {"name": "Bob"}], 500),
+                    "Alice, Bob +498")
         }
     }
 

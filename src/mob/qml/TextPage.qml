@@ -85,7 +85,6 @@ Page {
     }
 
     signal importRequested(string text)
-    signal openFilesRequested()
 
     // Nothing to step back from inside the page: Back goes on.
     function back() {
