@@ -7,8 +7,8 @@ import QtQuick.Layouts
 import GpgFrontend.Mobile
 
 // A whole fingerprint, in groups of four, in even rows: five groups to a
-// row for a v4 key (its two halves, as `gpg --fingerprint` splits it), four
-// for a v6 key's sixteen; fewer only where the width or the text size
+// row for a v4 key (its two halves, as `gpg --fingerprint` splits it), eight
+// or four for a v6 key's sixteen; fewer only where the width or the text size
 // leaves no room -- never a row cut off or scrolled sideways. A button
 // copies it whole, without the spaces.
 ColumnLayout {
@@ -19,13 +19,16 @@ ColumnLayout {
 
     readonly property var groups: Theme.fingerprintGroups(fingerprint)
     // How many groups a row takes: the most of these that fits beside the
-    // copy button, tried in order -- never three, which leaves one group
-    // alone on a v4 key's last row.
+    // copy button, tried in order, each a divisor of the whole so every row
+    // is as long as the others -- a v4 key's ten in two rows of five (four
+    // would leave two alone), a v6 key's sixteen in two of eight where the
+    // width allows, else four of four.
     readonly property int perRow: {
         const n = groups.length
-        const room = view.width - copyButton.implicitWidth - groupRow.spacing
+        // The button, and a gap each side of the spacer before it.
+        const room = view.width - copyButton.implicitWidth - 2 * groupRow.spacing
         const fits = k => k * groupWidth.width + (k - 1) * grid.columnSpacing <= room
-        const tried = n % 5 === 0 ? [5, 4, 2, 1] : [4, 2, 1]
+        const tried = n % 5 === 0 ? [5, 2, 1] : n % 8 === 0 ? [8, 4, 2, 1] : [4, 2, 1]
         for (const k of tried) {
             if (k <= Math.max(1, n) && fits(k)) return k
         }
@@ -83,6 +86,12 @@ ColumnLayout {
                     font.pixelSize: Theme.bodySize
                 }
             }
+        }
+
+        // The button at the right edge, apart from the groups: a layout
+        // whose children do not fill is no wider than they are.
+        Item {
+            Layout.fillWidth: true
         }
 
         BarButton {

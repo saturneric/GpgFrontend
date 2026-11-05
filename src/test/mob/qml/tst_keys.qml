@@ -628,11 +628,14 @@ Item {
             compare(view.groups.length, 10)
             compare(view.perRow, 5)
             view.width = 150
-            verify(view.perRow < 5)
-            verify(view.perRow >= 1)
+            // Never four: a v4 key's last row would hold two.
+            verify(view.perRow === 2 || view.perRow === 1)
             view.fingerprint = "CD34".repeat(16)
             view.width = 380
             compare(view.perRow, 4)
+            // A v6 key in two rows of eight where a wide screen has room.
+            view.width = 700
+            compare(view.perRow, 8)
             // Whatever the width, the groups and the copy button beside
             // them stay inside it.
             const copy = findByName(view, "copyFingerprint")
@@ -645,6 +648,10 @@ Item {
                            "copy button out at " + w + " (" + view.perRow + " per row)")
                 }
             }
+            // At the right edge, apart from the groups, whatever their count.
+            view.width = 380
+            waitForRendering(view)
+            fuzzyCompare(copy.mapToItem(view, copy.width, 0).x, 380, 0.5)
         }
 
         // Copying says so for a moment, and the saying goes by itself (it
