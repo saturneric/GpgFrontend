@@ -69,6 +69,15 @@ class GF_UI_EXPORT UIModuleManager
   ~UIModuleManager() override;
 
   /**
+   * @brief Say that the GUI event loop has ended for good.
+   *
+   * From then on a module thread asking the GUI for something gets the "no
+   * answer" result instead of waiting for a loop that will not run again, and
+   * one already waiting stops, as long as the GUI has not started on it.
+   */
+  static void MarkGuiLoopEnded();
+
+  /**
    * @brief Record a module's translator data reader, and install its
    *        translations -- now, rather than whenever the next full reinstall
    *        happens to run, so a module activated after startup is translated

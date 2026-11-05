@@ -479,6 +479,11 @@ void WaitingAllInitializationFinished() {
 }
 
 auto RunGpgFrontendUI(QApplication* app) -> int {
+  // However this returns, the GUI loop is over: a module thread still asking
+  // the GUI for something is told so instead of waiting on it.
+  const auto loop_ended =
+      qScopeGuard([]() { UIModuleManager::MarkGuiLoopEnded(); });
+
   // create main window and show it
   auto main_window = QSharedPointer<GpgFrontend::UI::MainWindow>::create();
   main_window->setAttribute(Qt::WA_DeleteOnClose, false);
