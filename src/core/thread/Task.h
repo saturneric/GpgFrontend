@@ -35,11 +35,44 @@ namespace GpgFrontend::Thread {
 class TaskRunner;
 
 /**
+ * @brief While alive, tasks and events made on this thread deliver their
+ * callbacks to this thread instead of the application's.
+ *
+ * For a caller that waits for the callback in an event loop of its own, such
+ * as a synchronous command run on a worker: delivered to the application's
+ * thread, its wait depended on the GUI being free, and stalled while the GUI
+ * itself waited. Only for such callers: a thread that waits by blocking
+ * instead never sees a callback queued to it.
+ */
+class GF_CORE_EXPORT DeliverCallbacksToThisThread {
+ public:
+  DeliverCallbacksToThisThread();
+  ~DeliverCallbacksToThisThread();
+  DeliverCallbacksToThisThread(const DeliverCallbacksToThisThread&) = delete;
+  auto operator=(const DeliverCallbacksToThisThread&)
+      -> DeliverCallbacksToThisThread& = delete;
+};
+
+/**
+ * @brief Where a callback made now is delivered.
+ *
+ * A QThread object cannot serve: it lives in the thread that created it, not
+ * in the thread it runs, so a callback queued to one ran on a thread nobody
+ * chose. Deleted with deleteLater() once the last copy is gone.
+ *
+ * @return an object living in this thread while a
+ * DeliverCallbacksToThisThread is alive on it; nullptr otherwise, meaning the
+ * application's thread
+ */
+auto GF_CORE_EXPORT CallbackContextOfThisThread() -> QSharedPointer<QObject>;
+
+/**
  * @brief Unit of work that runs on a TaskRunner's thread and optionally
  * delivers a result via callback to the construction thread.
  *
  * A Task wraps a TaskRunnable (executed on the runner thread) and an optional
- * TaskCallback (invoked on the thread that constructed the task). Subclasses
+ * TaskCallback (invoked on the application's thread, or on the constructing
+ * thread when it asked for that with DeliverCallbacksToThisThread). Subclasses
  * may override Run() instead of supplying a runnable. The return code from
  * Run() is stored and passed to the callback. Tasks are identified by a UUID
  * and a human-readable name.
@@ -52,7 +85,9 @@ class GF_CORE_EXPORT Task : public QObject, public QRunnable {
   // Called on the runner thread; receives the data object and returns an int
   // return code.
   using TaskRunnable = std::function<int(DataObjectPtr)>;
-  // Called on the construction thread after Run() completes; receives the
+  // Called after Run() completes, on the application's thread unless the
+  // constructing thread asked otherwise (see DeliverCallbacksToThisThread);
+  // receives the
   // return code and data object.
   using TaskCallback = std::function<void(int, DataObjectPtr)>;
 

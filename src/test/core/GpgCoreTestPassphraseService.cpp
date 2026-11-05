@@ -28,12 +28,16 @@
 
 #include <array>
 #include <atomic>
+#include <chrono>
+#include <memory>
+#include <thread>
 
 #include "GFCoreTest.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/openpgp/PassphraseService.h"
 #include "core/model/GpgPassphraseContext.h"
+#include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 
 namespace GpgFrontend::Test {
@@ -591,6 +595,50 @@ TEST_F(GFCoreTest, ClosingPromptsReleasesWaitersAndRefusesNewRequests) {
   ASSERT_TRUE(PumpUntilDone(remaining, 5000));
   EXPECT_EQ(asked.status, PassphraseRequestStatus::kProvided);
   EXPECT_EQ(asked.passphrase, u"secret"_s);
+}
+
+// A task's callback runs on the application's thread, unless the thread that
+// made it asked for it with DeliverCallbacksToThisThread, as a caller waiting
+// in an event loop of its own does. It used to be queued to the QThread object
+// of the constructing thread, which lives on whichever thread created that
+// object, so where it ran was nobody's choice.
+TEST_F(GFCoreTest, ATaskCallbackRunsWhereItWasAskedFor) {
+  auto io = Thread::TaskRunnerGetter::GetInstance().GetTaskRunner(
+      Thread::TaskRunnerGetter::kTaskRunnerType_IO);
+
+  auto called_on = std::make_shared<std::atomic<QThread*>>(nullptr);
+  auto make = [called_on]() {
+    return new Thread::Task([](const DataObjectPtr&) -> int { return 0; },
+                            "callback_thread", TransferParams(),
+                            [called_on](int, const DataObjectPtr&) {
+                              called_on->store(QThread::currentThread());
+                            });
+  };
+
+  // Asked for: waited for in a loop of this thread's own.
+  {
+    Thread::Task* task = nullptr;
+    {
+      const Thread::DeliverCallbacksToThisThread here;
+      task = make();
+    }
+    QEventLoop loop;
+    QObject::connect(task, &Thread::Task::SignalTaskEnd, &loop,
+                     &QEventLoop::quit);
+    QTimer::singleShot(10000, &loop, &QEventLoop::quit);
+    io->PostTask(task);
+    loop.exec();
+    EXPECT_EQ(called_on->load(), QThread::currentThread());
+  }
+
+  // Not asked for: the application's thread, waited for without a loop.
+  called_on->store(nullptr);
+  io->PostTask(make());
+  for (int waited = 0; called_on->load() == nullptr && waited < 10000;
+       ++waited) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  EXPECT_EQ(called_on->load(), QCoreApplication::instance()->thread());
 }
 
 }  // namespace GpgFrontend::Test

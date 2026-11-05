@@ -30,6 +30,7 @@
 
 #include <optional>
 
+#include "core/thread/Task.h"
 #include "core/utils/CommonUtils.h"
 #include "sdk/GFSDKTypes.h"
 
@@ -40,7 +41,7 @@ class Event::Impl {
   Impl(QString event_id, const Params& params, EventCallback callback)
       : event_identifier_(std::move(event_id)),
         callback_(std::move(callback)),
-        callback_thread_(QThread::currentThread()) {
+        callback_context_(Thread::CallbackContextOfThisThread()) {
     if (!params.empty()) data_.insert(params);
   }
 
@@ -83,8 +84,11 @@ class Event::Impl {
   void ExecuteCallback(const ListenerIdentifier& listener_id,
                        const Params& data_object) {
     if (callback_) {
+      QObject* receiver = callback_context_ != nullptr
+                              ? callback_context_.get()
+                              : QCoreApplication::instance();
       if (!QMetaObject::invokeMethod(
-              callback_thread_,
+              receiver,
               [callback = callback_, event_identifier = event_identifier_,
                listener_id, data_object]() {
                 callback(event_identifier, listener_id, data_object);
@@ -126,7 +130,9 @@ class Event::Impl {
   EventTriggerIdentifier trigger_uuid_ = QUuid::createUuid().toString();
   QMap<QString, GFBuffer> data_;
   EventCallback callback_;
-  QThread* callback_thread_ = nullptr;  ///<
+  /// Where the callback runs: the application's thread, unless the thread
+  /// that made the event asked for it (DeliverCallbacksToThisThread).
+  QSharedPointer<QObject> callback_context_;
 };
 
 Event::Event(const QString& event_id, const Params& params,
