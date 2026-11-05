@@ -254,10 +254,23 @@ TEST(ScrubDirectoryTest, ContentsAreOverwrittenNotJustUnlinked) {
 
 TEST(ScrubDirectoryTest, RefusesAnythingButAnAbsolutePath) {
   // A bug in the caller must not be able to turn this loose on the wrong tree,
-  // and "" resolves to the working directory.
+  // and "" resolves to the working directory. Run from a directory holding
+  // what both paths would reach, so a refusal is something to check rather
+  // than something to hope for.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  WriteFile(dir.path() + "/top", "in the working directory");
+  WriteFile(dir.path() + "/relative/path/inside", "under the relative path");
+
+  const auto previous = QDir::currentPath();
+  ASSERT_TRUE(QDir::setCurrent(dir.path()));
+  const auto restore = qScopeGuard([&]() { QDir::setCurrent(previous); });
+
   ScrubDirectory({});
   ScrubDirectory("relative/path");
-  SUCCEED();
+
+  EXPECT_TRUE(QFileInfo::exists(dir.path() + "/top"));
+  EXPECT_TRUE(QFileInfo::exists(dir.path() + "/relative/path/inside"));
 }
 
 TEST(ScrubDirectoryTest, AReadOnlyFileDoesNotAbandonTheRest) {
