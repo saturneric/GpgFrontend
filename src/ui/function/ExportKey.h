@@ -34,23 +34,6 @@
 namespace GpgFrontend::UI {
 
 /**
- * @brief Build the default filename offered when saving an exported key.
- *
- * Pure so the platform template and the sanitising can be pinned down without
- * touching gpg or a file dialog.
- *
- * @param name key owner's name
- * @param email key owner's email address
- * @param id key id
- * @param type suffix distinguishing what was exported ("pub", "full_secret",
- *        "short_secret")
- * @return a filename safe to hand to QFileDialog on this platform
- */
-auto GF_UI_EXPORT ExportKeyFileName(const QString& name, const QString& email,
-                                    const QString& id, const QString& type)
-    -> QString;
-
-/**
  * @brief Export one key to a file the user picks.
  *
  * Was private to the key details dialog's Operations tab, which meant the only

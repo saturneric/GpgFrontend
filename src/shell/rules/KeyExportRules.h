@@ -62,4 +62,22 @@ struct GF_SHELL_EXPORT KeyExportOptions {
 auto GF_SHELL_EXPORT KeyExportOptionsFor(KeyExportKind kind)
     -> KeyExportOptions;
 
+/**
+ * @brief Build the default filename offered when saving an exported key, on
+ * the desktop and the phone alike.
+ *
+ * Pure so the platform template and the sanitising can be pinned down without
+ * touching gpg or a file dialog.
+ *
+ * @param name key owner's name
+ * @param email key owner's email address
+ * @param id key id
+ * @param type suffix distinguishing what was exported (KeyExportOptions'
+ *        type: "pub", "full_secret", "short_secret")
+ * @return a filename safe to hand to a save dialog on this platform
+ */
+auto GF_SHELL_EXPORT ExportKeyFileName(const QString& name,
+                                       const QString& email, const QString& id,
+                                       const QString& type) -> QString;
+
 }  // namespace GpgFrontend::Shell

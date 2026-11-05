@@ -783,8 +783,8 @@ TEST_F(KeyActionsTest,
   ASSERT_TRUE(exported.succeeded);
   const auto armored = exported.detail.value("armored").toString();
   const auto name = exported.detail.value("fileName").toString();
-  EXPECT_TRUE(name.startsWith("Jo_Share_")) << name.toStdString();
-  EXPECT_TRUE(name.endsWith("_public.asc")) << name.toStdString();
+  EXPECT_TRUE(name.startsWith("Jo_Share")) << name.toStdString();
+  EXPECT_TRUE(name.endsWith("_pub.asc")) << name.toStdString();
 
   const auto document =
       QJsonDocument::fromJson(InspectOpenPGPData(GFBuffer(armored))).object();

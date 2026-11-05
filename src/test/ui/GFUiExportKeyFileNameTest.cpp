@@ -29,13 +29,13 @@
 #include <gtest/gtest.h>
 
 #include "GpgFrontendTest.h"
-#include "ui/function/ExportKey.h"
+#include "shell/rules/KeyExportRules.h"
 
 namespace GpgFrontend::Test {
 
 TEST(ExportKeyFileNameTest, BuildsTheConventionalShape) {
   const auto name =
-      UI::ExportKeyFileName("Alice", "alice@example.com", "4CAB31FD", "pub");
+      Shell::ExportKeyFileName("Alice", "alice@example.com", "4CAB31FD", "pub");
 
 #ifdef Q_OS_WINDOWS
   EXPECT_EQ(name, "Alice[alice@example.com](4CAB31FD)_pub.asc");
@@ -46,7 +46,7 @@ TEST(ExportKeyFileNameTest, BuildsTheConventionalShape) {
 
 TEST(ExportKeyFileNameTest, SpacesInTheNameBecomeUnderscores) {
   const auto name =
-      UI::ExportKeyFileName("Alice Example", "a@b.c", "ID", "pub");
+      Shell::ExportKeyFileName("Alice Example", "a@b.c", "ID", "pub");
   EXPECT_TRUE(name.startsWith("Alice_Example"));
   EXPECT_FALSE(name.contains(' '));
 }
@@ -56,7 +56,7 @@ TEST(ExportKeyFileNameTest, StripsCharactersNoFilesystemAccepts) {
   // straight into the template produced a default filename the save dialog
   // rejects — on every platform, not only Windows.
   const auto name =
-      UI::ExportKeyFileName(R"(A/B\C:D"E|F?G*H)", "a@b.c", "ID", "pub");
+      Shell::ExportKeyFileName(R"(A/B\C:D"E|F?G*H)", "a@b.c", "ID", "pub");
 
   for (const auto forbidden : {'/', '\\', ':', '"', '|', '?', '*'}) {
     EXPECT_FALSE(name.contains(QChar(forbidden)))
@@ -68,12 +68,12 @@ TEST(ExportKeyFileNameTest, StripsCharactersNoFilesystemAccepts) {
 TEST(ExportKeyFileNameTest, AngleBracketsInAFieldDoNotBreakTheTemplate) {
   // On POSIX the template's own <> must survive, but a pair smuggled in
   // through a field would produce a nested, unreadable name.
-  const auto name = UI::ExportKeyFileName("<Alice>", "a@b.c", "ID", "pub");
+  const auto name = Shell::ExportKeyFileName("<Alice>", "a@b.c", "ID", "pub");
   EXPECT_TRUE(name.startsWith("Alice"));
 }
 
 TEST(ExportKeyFileNameTest, EmptyFieldsStillProduceAUsableName) {
-  const auto name = UI::ExportKeyFileName("", "", "4CAB31FD", "pub");
+  const auto name = Shell::ExportKeyFileName("", "", "4CAB31FD", "pub");
 
   EXPECT_TRUE(name.endsWith("_pub.asc"));
   EXPECT_TRUE(name.contains("4CAB31FD"));
@@ -82,11 +82,11 @@ TEST(ExportKeyFileNameTest, EmptyFieldsStillProduceAUsableName) {
 TEST(ExportKeyFileNameTest, TypeDistinguishesWhatWasExported) {
   // Exporting the public and the private half of one key into the same folder
   // must not offer the same filename twice.
-  const auto pub = UI::ExportKeyFileName("Alice", "a@b.c", "ID", "pub");
+  const auto pub = Shell::ExportKeyFileName("Alice", "a@b.c", "ID", "pub");
   const auto full =
-      UI::ExportKeyFileName("Alice", "a@b.c", "ID", "full_secret");
+      Shell::ExportKeyFileName("Alice", "a@b.c", "ID", "full_secret");
   const auto shortest =
-      UI::ExportKeyFileName("Alice", "a@b.c", "ID", "short_secret");
+      Shell::ExportKeyFileName("Alice", "a@b.c", "ID", "short_secret");
 
   EXPECT_TRUE(pub.endsWith("_pub.asc"));
   EXPECT_TRUE(full.endsWith("_full_secret.asc"));

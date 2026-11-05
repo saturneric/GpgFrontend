@@ -29,7 +29,6 @@
 #include "model/KeyActionsController.h"
 
 #include <QPointer>
-#include <QRegularExpression>
 #include <algorithm>
 
 #include "core/function/openpgp/ChannelHandle.h"
@@ -52,6 +51,7 @@
 #include "model/ErrorWording.h"
 #include "model/KeyGenProfilesController.h"
 #include "model/KeyRoleModel.h"
+#include "shell/rules/KeyExportRules.h"
 #include "shell/rules/KeyGenProfile.h"
 
 namespace GpgFrontend::Mobile {
@@ -111,24 +111,6 @@ auto Usage(bool certify, bool encrypt, bool sign, bool authenticate)
 /// After a change to a key: read again, so what is shown is what is there.
 void Reread(int channel) {
   GpgKeyRepository::GetInstance(channel).FlushKeyCache();
-}
-
-/// What a shared public key's file is called: who it is and its key ID,
-/// "Alice_Example_0123456789ABCDEF_public.asc", with nothing a file system
-/// or a mail program would trip over.
-auto PublicKeyFileName(const QString& name, const QString& email,
-                       const QString& key_id) -> QString {
-  auto who = !name.trimmed().isEmpty() ? name : email;
-  who.replace(QRegularExpression(QStringLiteral("[^\\p{L}\\p{N}._-]+")),
-              QStringLiteral("_"));
-  who = who.left(48);
-  while (who.startsWith(QLatin1Char('_')) || who.startsWith(QLatin1Char('.'))) {
-    who.remove(0, 1);
-  }
-  while (who.endsWith(QLatin1Char('_'))) who.chop(1);
-  const auto id = key_id.toUpper();
-  return who.isEmpty() ? QStringLiteral("%1_public.asc").arg(id)
-                       : QStringLiteral("%1_%2_public.asc").arg(who, id);
 }
 
 /// How a change to a key on @p channel ended: read again when it was made,
@@ -299,14 +281,19 @@ void KeyActionsController::exportPublic(const QString& fingerprint) {
   run(QStringLiteral("export"), [fingerprint]() -> QVariantMap {
     const auto channel = UsableDefaultChannelHandle();
     const auto key = FindKey(channel, fingerprint);
-    if (key == nullptr) return Failure(GFError::Application(GFErrorCode::kNO_PUBLIC_KEY));
-    auto [err, armored] = KeyImportExportOperation::GetInstance(channel)
-                              .ExportKey(key, false, true, false);
+    if (key == nullptr)
+      return Failure(GFError::Application(GFErrorCode::kNO_PUBLIC_KEY));
+    const auto options =
+        Shell::KeyExportOptionsFor(Shell::KeyExportKind::kPublic);
+    auto [err, armored] =
+        KeyImportExportOperation::GetInstance(channel).ExportKey(
+            key, options.secret, options.ascii, options.shortest);
     if (!err.Ok()) return Failure(err);
     return {{QStringLiteral("armored"),
              QString::fromUtf8(armored.ConvertToQByteArray())},
             {QStringLiteral("fileName"),
-             PublicKeyFileName(key->Name(), key->Email(), key->ID())}};
+             Shell::ExportKeyFileName(key->Name(), key->Email(), key->ID(),
+                                      options.type)}};
   });
 }
 

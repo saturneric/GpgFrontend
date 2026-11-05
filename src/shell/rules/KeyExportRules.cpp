@@ -30,6 +30,32 @@
 
 namespace GpgFrontend::Shell {
 
+namespace {
+
+/**
+ * @brief Strip what no filesystem will accept in a name.
+ *
+ * A user ID may legitimately contain a slash or a colon, and substituting one
+ * straight into the template produced a default filename the save dialog would
+ * reject — on every platform, not just Windows.
+ */
+auto SanitiseFileNameField(const QString& field) -> QString {
+  QString out;
+  out.reserve(field.size());
+
+  for (const auto c : field) {
+    if (c == '/' || c == '\\' || c == ':' || c == '"' || c == '|' || c == '?' ||
+        c == '*' || c == '<' || c == '>' ||
+        c.category() == QChar::Other_Control) {
+      continue;
+    }
+    out.append(c == ' ' ? QChar('_') : c);
+  }
+  return out.trimmed();
+}
+
+}  // namespace
+
 auto KeyExportOptionsFor(KeyExportKind kind) -> KeyExportOptions {
   switch (kind) {
     case KeyExportKind::kPublic:
@@ -40,6 +66,28 @@ auto KeyExportOptionsFor(KeyExportKind kind) -> KeyExportOptions {
       return {.secret = true, .shortest = false, .type = u"full_secret"_s};
   }
   return {};
+}
+
+auto ExportKeyFileName(const QString& name, const QString& email,
+                       const QString& id, const QString& type) -> QString {
+  // The angle brackets are part of the conventional "Name <email>" shape, so
+  // they go in from the template rather than surviving inside a field; Windows
+  // will not take them at all, hence the square brackets there. On Android a
+  // document named with brackets or parentheses is created by the picker but
+  // cannot be opened again through its content URI (Qt's content file engine
+  // takes it for a missing file and fails to create it), so the export came
+  // out empty: plain underscores there.
+#if defined(Q_OS_ANDROID)
+  auto file_name = QString("%1_%2_%3_%4.asc");
+#elif defined(Q_OS_WINDOWS)
+  auto file_name = QString("%1[%2](%3)_%4.asc");
+#else
+  auto file_name = QString("%1<%2>(%3)_%4.asc");
+#endif
+
+  return file_name.arg(SanitiseFileNameField(name),
+                       SanitiseFileNameField(email), SanitiseFileNameField(id),
+                       SanitiseFileNameField(type));
 }
 
 }  // namespace GpgFrontend::Shell

@@ -36,48 +36,6 @@
 
 namespace GpgFrontend::UI {
 
-namespace {
-
-/**
- * @brief Strip what no filesystem will accept in a name.
- *
- * A user ID may legitimately contain a slash or a colon, and substituting one
- * straight into the template produced a default filename the save dialog would
- * reject — on every platform, not just Windows.
- */
-auto SanitiseFileNameField(const QString& field) -> QString {
-  QString out;
-  out.reserve(field.size());
-
-  for (const auto c : field) {
-    if (c == '/' || c == '\\' || c == ':' || c == '"' || c == '|' || c == '?' ||
-        c == '*' || c == '<' || c == '>' ||
-        c.category() == QChar::Other_Control) {
-      continue;
-    }
-    out.append(c == ' ' ? QChar('_') : c);
-  }
-  return out.trimmed();
-}
-
-}  // namespace
-
-auto ExportKeyFileName(const QString& name, const QString& email,
-                       const QString& id, const QString& type) -> QString {
-  // The angle brackets are part of the conventional "Name <email>" shape, so
-  // they go in from the template rather than surviving inside a field; Windows
-  // will not take them at all, hence the square brackets there.
-#ifdef Q_OS_WINDOWS
-  auto file_name = QString("%1[%2](%3)_%4.asc");
-#else
-  auto file_name = QString("%1<%2>(%3)_%4.asc");
-#endif
-
-  return file_name.arg(SanitiseFileNameField(name),
-                       SanitiseFileNameField(email), SanitiseFileNameField(id),
-                       SanitiseFileNameField(type));
-}
-
 ExportKey::ExportKey(QWidget* parent) : QWidget(parent) {}
 
 void ExportKey::exec_export(int channel, const GpgKeyPtr& key,
@@ -133,8 +91,8 @@ void ExportKey::exec_export(int channel, const GpgKeyPtr& key,
           return;
         }
 
-        const auto file_name =
-            ExportKeyFileName(key->Name(), key->Email(), key->ID(), type);
+        const auto file_name = Shell::ExportKeyFileName(
+            key->Name(), key->Email(), key->ID(), type);
 
         auto filepath = QFileDialog::getSaveFileName(
             dialog_parent, tr("Export Key To File"), file_name,
