@@ -56,9 +56,6 @@ class FileFilterModel : public QSortFilterProxyModel {
   /// Matched, ignoring case, against the file's name.
   Q_PROPERTY(QString searchText READ SearchText WRITE SetSearchText NOTIFY
                  SignalFilterChanged)
-  /// "all", "encrypted", "signatures", "made" or "unsaved".
-  Q_PROPERTY(QString category READ Category WRITE SetCategory NOTIFY
-                 SignalFilterChanged)
   /// Whether anything is left out.
   Q_PROPERTY(bool filtering READ Filtering NOTIFY SignalFilterChanged)
   Q_PROPERTY(int count READ rowCount NOTIFY SignalCountChanged)
@@ -70,8 +67,6 @@ class FileFilterModel : public QSortFilterProxyModel {
 
   [[nodiscard]] auto SearchText() const -> QString;
   void SetSearchText(const QString& text);
-  [[nodiscard]] auto Category() const -> QString;
-  void SetCategory(const QString& category);
   [[nodiscard]] auto Filtering() const -> bool;
 
   [[nodiscard]] Q_INVOKABLE int rowCount(
@@ -98,7 +93,6 @@ class FileFilterModel : public QSortFilterProxyModel {
 
  private:
   QString search_text_;
-  QString category_ = QStringLiteral("all");
 
   /// Make @p change to what is filtered, and filter again.
   void refilter(const std::function<void()>& change);

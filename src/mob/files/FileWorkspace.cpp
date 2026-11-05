@@ -28,6 +28,8 @@
 
 #include "files/FileWorkspace.h"
 
+#include <QCoreApplication>
+#include <QCryptographicHash>
 #include <QFile>
 #include <QFileInfo>
 #include <QJSEngine>
@@ -89,6 +91,9 @@ FileWorkspace::FileWorkspace(OperationQueue* queue, AppLifecycle* lifecycle,
 // The outputs go with their entries (StagedFile); what still waits or runs
 // goes with the workspace, which hears nothing more of it.
 FileWorkspace::~FileWorkspace() {
+  // A hash under way stops at its next chunk; the pool waits for it.
+  cancelHash();
+  hash_pool_.waitForDone();
   if (queue_ != nullptr) {
     disconnect(queue_, nullptr, this, nullptr);
     queue_->ForgetOwner(this);
@@ -118,7 +123,6 @@ auto FileWorkspace::roleNames() const -> QHash<int, QByteArray> {
       {kKindRole, "kind"},
       {kPlaintextRole, "plaintext"},
       {kSourceIdRole, "sourceId"},
-      {kSourceNameRole, "sourceName"},
       {kOperationRole, "operation"},
       {kMadeByRole, "madeBy"},
       {kStateRole, "phase"},
@@ -151,8 +155,6 @@ auto FileWorkspace::data(const QModelIndex& index, int role) const -> QVariant {
       return entry.plaintext;
     case kSourceIdRole:
       return entry.source_id;
-    case kSourceNameRole:
-      return entry.source_name;
     case kOperationRole:
       return entry.operation;
     case kMadeByRole:
@@ -742,6 +744,52 @@ auto FileWorkspace::UnsavedCount() const -> int {
       }));
 }
 
+void FileWorkspace::hash(int id) {
+  const auto ticket = ++*hash_ticket_;
+  const auto* entry = find(id);
+  if (entry == nullptr) {
+    emit hashReady(id, {}, QStringLiteral("missing"));
+    return;
+  }
+  const auto path =
+      entry->url.isEmpty() ? entry->file.Path() : LocalOrContent(entry->url);
+  hash_pool_.setMaxThreadCount(1);
+  QPointer<FileWorkspace> self(this);
+  hash_pool_.start([self, id, path, ticket, current = hash_ticket_]() {
+    constexpr qint64 kChunk = 1 << 20;
+    QFile file(path);
+    QCryptographicHash hasher(QCryptographicHash::Sha256);
+    QString sha256;
+    QString error;
+    if (!file.open(QIODevice::ReadOnly)) {
+      error = QStringLiteral("unreadable");
+    } else {
+      while (!file.atEnd()) {
+        // Asked again, or no longer wanted: nothing to report.
+        if (current->load() != ticket) return;
+        const auto chunk = file.read(kChunk);
+        if (chunk.isEmpty() && file.error() != QFileDevice::NoError) {
+          error = QStringLiteral("unreadable");
+          break;
+        }
+        hasher.addData(chunk);
+      }
+      if (error.isEmpty())
+        sha256 = QString::fromLatin1(hasher.result().toHex());
+    }
+    if (current->load() != ticket) return;
+    QMetaObject::invokeMethod(
+        QCoreApplication::instance(),
+        [self, id, sha256, error, ticket, current]() {
+          if (self == nullptr || current->load() != ticket) return;
+          emit self->hashReady(id, sha256, error);
+        },
+        Qt::QueuedConnection);
+  });
+}
+
+void FileWorkspace::cancelHash() { ++*hash_ticket_; }
+
 auto FileWorkspace::find(int id) const -> Entry* {
   const auto row = row_of(id);
   return row < 0 ? nullptr : entries_.at(row).get();
@@ -1053,7 +1101,6 @@ void FileWorkspace::end(const QVariantMap& result, bool produces) {
     output->file = std::move(job_output_);
     output->plaintext = job.op == Op::kDecrypt;
     output->source_id = job.id;
-    output->source_name = source != nullptr ? source->name : QString();
     output->operation = OpName(static_cast<int>(job.op));
     output->made_by = output->operation;
     output->state = QStringLiteral("done");

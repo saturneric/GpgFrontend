@@ -33,8 +33,10 @@
 #include <QAbstractListModel>
 #include <QDateTime>
 #include <QPointer>
+#include <QThreadPool>
 #include <QUrl>
 #include <QVariantMap>
+#include <atomic>
 #include <functional>
 #include <map>
 #include <memory>
@@ -98,8 +100,9 @@ class FileWorkspace : public QAbstractListModel {
     /// "external" (a document the person added) or "output" (made here).
     kKindRole,
     kPlaintextRole,
+    /// The file an output was made from: pairs a signature made here with
+    /// the file it signs.
     kSourceIdRole,
-    kSourceNameRole,
     /// What was last done to the file: "encrypt", "decrypt", "sign",
     /// "verify"; empty when nothing was.
     kOperationRole,
@@ -228,6 +231,20 @@ class FileWorkspace : public QAbstractListModel {
   /// share() hands it over; reported by SignalOpened.
   Q_INVOKABLE void openWith(int id);
 
+  /**
+   * @brief Work out the SHA-256 of the file @p id, off the interface thread;
+   * hashReady() says it. Read from where the file is (an added document
+   * from the place it was picked from), never copied for it.
+   *
+   * On a thread of its own, not the one that copies and saves: a large file
+   * read for its hash held saves up behind it. One at a time; asking again,
+   * or cancelHash(), stops the one under way, which reports nothing.
+   */
+  Q_INVOKABLE void hash(int id);
+
+  /// Stop working out a hash: the sheet that asked for it is gone.
+  Q_INVOKABLE void cancelHash();
+
   /// The names among @p ids' that the folder @p folder has already.
   [[nodiscard]] Q_INVOKABLE QStringList takenIn(const QVariantList& ids,
                                                 const QUrl& folder) const;
@@ -289,6 +306,10 @@ class FileWorkspace : public QAbstractListModel {
   void SignalSavedAll(int saved, int skipped, int failed);
   /// A shared document named @p name could not be copied in.
   void SignalReceiveFailed(const QString& name);
+  /// hash() of @p id is known: @p sha256 in lowercase hex, or @p error
+  /// ("missing", "unreadable") and an empty hash. A plain name, so a QML
+  /// Connections can take it.
+  void hashReady(int id, const QString& sha256, const QString& error);
 
  private:
   enum class Op { kEncrypt, kDecrypt, kSign, kVerify };
@@ -301,7 +322,6 @@ class FileWorkspace : public QAbstractListModel {
     StagedFile file;  ///< an output; empty for an added document
     bool plaintext = false;
     int source_id = -1;
-    QString source_name;
     QString operation;
     QString made_by;
     QString state = QStringLiteral("idle");
@@ -337,6 +357,11 @@ class FileWorkspace : public QAbstractListModel {
   QString job_output_name_;
   QString sort_key_ = QStringLiteral("added");
   int next_id_ = 1;
+  /// hash(): the one thread hashes run on, and the request that may report
+  /// (a hash of an older one stops at its next chunk).
+  QThreadPool hash_pool_;
+  std::shared_ptr<std::atomic<int>> hash_ticket_ =
+      std::make_shared<std::atomic<int>>(0);
 
   [[nodiscard]] auto find(int id) const -> Entry*;
   [[nodiscard]] auto row_of(int id) const -> int;

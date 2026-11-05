@@ -28,8 +28,13 @@
 
 #include "crypto/OutputActions.h"
 
+#include <QFile>
 #include <QPointer>
+#include <QSaveFile>
 
+#include "files/FileOperations.h"
+#include "files/ShareRetentionStore.h"
+#include "files/StagingArea.h"
 #include "plat/common/PlatformClipboard.h"
 #include "plat/common/PlatformShare.h"
 
@@ -68,6 +73,46 @@ void OutputActions::copy(const QString& text, bool sensitive) {
 void OutputActions::share(const QString& text, const QString& title) {
   QPointer<OutputActions> self(this);
   ShareText(text, title, [self](const ShareResult& result) {
+    if (self == nullptr) return;
+    emit self->SignalShared(OutcomeName(result.outcome));
+  });
+}
+
+auto OutputActions::KeepForSharing(const QByteArray& content,
+                                   const QString& file_name) -> QString {
+  auto* staging = FileStagingArea();
+  auto* store = SharedFileStore();
+  if (staging == nullptr || store == nullptr) return {};
+
+  const auto staged = staging->NewPath(file_name);
+  QSaveFile file(staged);
+  if (!file.open(QIODevice::WriteOnly) ||
+      file.write(content) != content.size() || !file.commit()) {
+    QFile::remove(staged);
+    return {};
+  }
+  // The next share is one of the store's chances to clean up.
+  const auto now = QDateTime::currentDateTimeUtc();
+  store->Cleanup(now);
+  const auto retained = store->Retain(staged, file_name, false, now);
+  if (!retained) {
+    QFile::remove(staged);
+    return {};
+  }
+  return retained->path;
+}
+
+void OutputActions::shareFile(const QString& content, const QString& file_name,
+                              const QString& mime_type) {
+  const auto path = KeepForSharing(content.toUtf8(), file_name);
+  if (path.isEmpty()) {
+    emit SignalShared(OutcomeName(ShareOutcome::kFailed));
+    return;
+  }
+  QPointer<OutputActions> self(this);
+  // Kept whatever the sheet says: closing it is not proof that a receiver
+  // has read the file. The store lets it go when its time is up.
+  ShareFile(path, mime_type, file_name, [self](const ShareResult& result) {
     if (self == nullptr) return;
     emit self->SignalShared(OutcomeName(result.outcome));
   });

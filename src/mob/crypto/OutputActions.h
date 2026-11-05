@@ -66,6 +66,24 @@ class OutputActions : public QObject {
   /// Share @p text through the platform's share sheet.
   Q_INVOKABLE void share(const QString& text, const QString& title = {});
 
+  /**
+   * @brief Share @p content as a file named @p file_name, of @p mime_type,
+   * through the platform's share sheet.
+   *
+   * The file is written into a directory of its own among the shared files
+   * (ShareRetentionStore), so a later share of the same name never replaces
+   * one a receiver may still be reading, and it stays readable for the
+   * store's time -- not only until the share sheet closes: a receiver may
+   * read it later. For content that is not secret (a public key).
+   */
+  Q_INVOKABLE void shareFile(const QString& content, const QString& file_name,
+                             const QString& mime_type);
+
+  /// shareFile()'s first part, for tests: the file kept for sharing, or
+  /// empty when it could not be written.
+  static auto KeepForSharing(const QByteArray& content,
+                             const QString& file_name) -> QString;
+
  signals:
   void SignalShared(const QString& outcome);
 };

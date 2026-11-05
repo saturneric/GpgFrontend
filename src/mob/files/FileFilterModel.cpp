@@ -59,20 +59,8 @@ void FileFilterModel::SetSearchText(const QString& text) {
   refilter([this, &text]() { search_text_ = text; });
 }
 
-auto FileFilterModel::Category() const -> QString { return category_; }
-
-void FileFilterModel::SetCategory(const QString& category) {
-  static const QStringList kCategories = {
-      QStringLiteral("all"), QStringLiteral("encrypted"),
-      QStringLiteral("signatures"), QStringLiteral("made"),
-      QStringLiteral("unsaved")};
-  if (category_ == category || !kCategories.contains(category)) return;
-  refilter([this, &category]() { category_ = category; });
-}
-
 auto FileFilterModel::Filtering() const -> bool {
-  return !search_text_.trimmed().isEmpty() ||
-         category_ != QStringLiteral("all");
+  return !search_text_.trimmed().isEmpty();
 }
 
 auto FileFilterModel::rowCount(const QModelIndex& parent) const -> int {
@@ -96,10 +84,7 @@ auto FileFilterModel::ids() const -> QVariantList {
 
 void FileFilterModel::reset() {
   if (!Filtering()) return;
-  refilter([this]() {
-    search_text_.clear();
-    category_ = QStringLiteral("all");
-  });
+  refilter([this]() { search_text_.clear(); });
 }
 
 auto FileFilterModel::filterAcceptsRow(int source_row,
@@ -114,18 +99,6 @@ auto FileFilterModel::filterAcceptsRow(int source_row,
     return false;
   }
 
-  const auto content = role(FileWorkspace::kContentRole);
-  const auto made = role(FileWorkspace::kOriginRole) == QStringLiteral("made");
-  if (category_ == QStringLiteral("encrypted")) {
-    return content == QStringLiteral("message");
-  }
-  if (category_ == QStringLiteral("signatures")) {
-    return content == QStringLiteral("signature");
-  }
-  if (category_ == QStringLiteral("made")) return made;
-  if (category_ == QStringLiteral("unsaved")) {
-    return made && role(FileWorkspace::kSavedNameRole).isEmpty();
-  }
   return true;
 }
 

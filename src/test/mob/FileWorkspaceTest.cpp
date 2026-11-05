@@ -26,6 +26,7 @@
  *
  */
 
+#include <QCryptographicHash>
 #include <QDir>
 #include <QDirIterator>
 #include <QFileInfo>
@@ -226,7 +227,9 @@ TEST_F(FileWorkspaceTest, EncryptAFileToAKeyAndDecryptIt) {
   EXPECT_EQ(output.value("kind").toString(), "output");
   EXPECT_EQ(output.value("operation").toString(), "encrypt");
   EXPECT_EQ(output.value("madeBy").toString(), "encrypt");
-  EXPECT_EQ(output.value("sourceName").toString(), "notes.txt");
+  // Paired with what it was made from by id; no name kept for show.
+  EXPECT_EQ(output.value("sourceId").toInt(), source);
+  EXPECT_FALSE(output.contains("sourceName"));
   EXPECT_FALSE(output.value("plaintext").toBool());
   // The copy of the input is gone; only the output is staged.
   EXPECT_EQ(StagedFiles().size(), staged_before + 1);
@@ -864,42 +867,102 @@ TEST_F(FileWorkspaceTest, TheListIsSearchedAndNarrowedByWhatFilesAre) {
     EXPECT_EQ(model.ids(), (QVariantList{made, signature, plain}));
     EXPECT_EQ(model.rowOf(armored), -1);
 
-    model.SetSearchText({});
-    model.SetCategory("encrypted");
-    // The armored message and the output, by their names.
-    EXPECT_EQ(model.ids(), (QVariantList{made, armored}));
-    model.SetCategory("signatures");
-    EXPECT_EQ(model.ids(), (QVariantList{signature}));
-    model.SetCategory("made");
-    EXPECT_EQ(model.ids(), (QVariantList{made}));
-    model.SetCategory("unsaved");
-    EXPECT_EQ(model.ids(), (QVariantList{made}));
-    model.SetCategory("nonsense");
-    EXPECT_EQ(model.Category(), "unsaved");
+    // Searching is the only narrowing: no kinds of file to choose from.
+    EXPECT_EQ(model.metaObject()->indexOfProperty("category"), -1);
 
     model.reset();
+    EXPECT_FALSE(model.Filtering());
     EXPECT_EQ(model.rowCount(), 4);
     EXPECT_EQ(model.rowOf(made), 0);
   });
 
-  // Saved, it is no longer among the unsaved: in a list made afterwards, and
-  // in the one on screen while it was saved.
-  std::unique_ptr<FileFilterModel> live;
-  RunOnMainThread([&]() {
-    live = std::make_unique<FileFilterModel>();
-    live->setSourceModel(files_);
-    live->SetCategory("unsaved");
-    EXPECT_EQ(live->rowCount(), 1);
-  });
+  // Saved, it is no longer counted among the unsaved.
+  int unsaved_before = 0;
+  RunOnMainThread([&]() { unsaved_before = files_->UnsavedCount(); });
+  EXPECT_EQ(unsaved_before, 1);
   ASSERT_FALSE(SaveAndRead(made, "kept.gpg").isEmpty());
+  RunOnMainThread([&]() { EXPECT_EQ(files_->UnsavedCount(), 0); });
+}
+
+// A file's SHA-256, worked out off the interface thread, read where the file
+// is; an unknown file says so.
+TEST_F(FileWorkspaceTest, AFilesHashIsWorkedOutAndSaid) {
+  const QByteArray content = "hash me\n";
+  const auto id = Add(content);
+  QString hex;
+  QString error = QStringLiteral("unset");
+  int calls = 0;
   RunOnMainThread([&]() {
-    EXPECT_EQ(live->rowCount(), 0);
-    FileFilterModel model;
-    model.setSourceModel(files_);
-    model.SetCategory("unsaved");
-    EXPECT_EQ(model.rowCount(), 0);
-    live.reset();
+    QObject::connect(files_, &GpgFrontend::Mobile::FileWorkspace::hashReady,
+                     files_,
+                     [&](int got, const QString& sha256, const QString& why) {
+                       if (got != id && got != 999999) return;
+                       ++calls;
+                       if (got == id) {
+                         hex = sha256;
+                         error = why;
+                       } else {
+                         EXPECT_EQ(why, "missing");
+                         EXPECT_TRUE(sha256.isEmpty());
+                       }
+                     });
+    // The unknown one is said at once; the file's then worked out.
+    files_->hash(999999);
+    files_->hash(id);
   });
+  ASSERT_TRUE(WaitFor(
+      [&]() {
+        int n = 0;
+        RunOnMainThread([&]() { n = calls; });
+        return n >= 2;
+      },
+      10000));
+  RunOnMainThread([&]() {
+    EXPECT_TRUE(error.isEmpty());
+    EXPECT_EQ(hex, QString::fromLatin1(QCryptographicHash::hash(
+                                           content, QCryptographicHash::Sha256)
+                                           .toHex()));
+  });
+}
+
+// One hash at a time: asking again stops the one under way, which reports
+// nothing, and so does cancelHash() (the sheet that asked is gone).
+TEST_F(FileWorkspaceTest, ALaterHashOrACancelStopsTheOneUnderWay) {
+  const QByteArray big(64 << 20, 'x');
+  const auto big_id = Add(big, "big.bin");
+  const auto small_id = Add("small\n", "small.txt");
+  QList<int> reported;
+  RunOnMainThread([&]() {
+    QObject::connect(
+        files_, &GpgFrontend::Mobile::FileWorkspace::hashReady, files_,
+        [&](int got, const QString&, const QString&) { reported.append(got); });
+    files_->hash(big_id);
+    files_->hash(small_id);
+  });
+  ASSERT_TRUE(WaitFor(
+      [&]() {
+        bool done = false;
+        RunOnMainThread([&]() { done = reported.contains(small_id); });
+        return done;
+      },
+      20000));
+  RunOnMainThread([&]() {
+    EXPECT_FALSE(reported.contains(big_id));
+    reported.clear();
+    files_->hash(big_id);
+    files_->cancelHash();
+  });
+  // Hashes run one at a time, in turn: had the cancelled one gone on, it
+  // would report before this later one.
+  RunOnMainThread([&]() { files_->hash(small_id); });
+  ASSERT_TRUE(WaitFor(
+      [&]() {
+        bool done = false;
+        RunOnMainThread([&]() { done = reported.contains(small_id); });
+        return done;
+      },
+      20000));
+  RunOnMainThread([&]() { EXPECT_EQ(reported, QList<int>{small_id}); });
 }
 
 TEST_F(FileWorkspaceTest, WhatIsSharedIsTakenOnceIntoTheApplicationsList) {
