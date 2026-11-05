@@ -53,7 +53,10 @@ auto StoreGeneratedKey(OpenPGPContext& ctx, const GFBuffer& secret_key)
     -> bool {
   auto import_info = KeyImportExportOperation::GetInstance(ctx.GetChannel())
                          .ImportKey(secret_key);
-  return import_info != nullptr && import_info->imported > 0;
+  // Saved, not "newly imported": a generated subkey is merged into a key
+  // that is already there, which counts as a new subkey, not a new key.
+  return import_info != nullptr && import_info->not_imported == 0 &&
+         !import_info->imported_keys.empty();
 }
 }  // namespace
 
