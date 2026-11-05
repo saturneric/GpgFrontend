@@ -631,7 +631,8 @@ auto MainWindow::handle_module_error(QMap<QString, GFBuffer> p) -> bool {
 }
 
 void MainWindow::slot_gpg_opera_buffer_show_helper(
-    const QList<GpgOperaResult>& results, InfoBoardBatchContext* context) {
+    const QList<GpgOperaResult>& results, const QPointer<QWidget>& page,
+    InfoBoardBatchContext* context) {
   const auto record = [context](const GpgOperaResult& result, OutputFate fate,
                                 const QString& error = {}) {
     if (context == nullptr) return;
@@ -669,15 +670,15 @@ void MainWindow::slot_gpg_opera_buffer_show_helper(
     if (applied) continue;
     applied = true;
 
-    // The current tab can have changed during the wait to one with no text
-    // to replace; filling it then does nothing, and that is a failure.
-    if (edit_->CurTextPage() == nullptr) {
+    // Into the tab the input came from. The current one may be another by now
+    // (the window stays usable while gpg waits on pinentry), and writing there
+    // replaced a document nobody had asked to change.
+    if (!edit_->SetGFBuffer2Page(page, result.o_buffer)) {
       record(result, OutputFate::kAPPLY_FAILED,
-             tr("The current tab has no text document to receive the "
-                "result."));
+             tr("The tab the text came from was closed, or no longer holds a "
+                "text document."));
       continue;
     }
-    edit_->SlotFillTextEditWithText(result.o_buffer);
     record(result, OutputFate::kAPPLIED);
   }
 }
@@ -693,6 +694,8 @@ auto MainWindow::exec_operas_helper(
 
   // A snapshot: an operation that was still in flight when the wait ended can
   // append one more result, and that must not happen while the list below is
+  // Taken before the wait: this is the tab the input came from.
+  const QPointer<QWidget> page = edit_->CurPage();
   // being iterated.
   const auto opera_results = contexts->opera_results;
 
@@ -711,7 +714,7 @@ auto MainWindow::exec_operas_helper(
   context.document_target = std::any_of(
       opera_results.cbegin(), opera_results.cend(),
       [](const GpgOperaResult& r) { return r.source_path.isEmpty(); });
-  slot_gpg_opera_buffer_show_helper(opera_results, &context);
+  slot_gpg_opera_buffer_show_helper(opera_results, page, &context);
 
   slot_result_analyse_show_helper(opera_results, context);
   return all_success;

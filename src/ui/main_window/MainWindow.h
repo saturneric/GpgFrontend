@@ -546,11 +546,13 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
    * @brief Put the first usable output into the current document.
    *
    * @param results the operation's results
+   * @param page the tab the operation's input came from, which is where its
+   *        output goes: not whichever tab is current when it finishes
    * @param context when given, receives what became of each result's output
    *        (applied, withheld, not produced, or could not be applied)
    */
   void slot_gpg_opera_buffer_show_helper(
-      const QList<GpgOperaResult>& results,
+      const QList<GpgOperaResult>& results, const QPointer<QWidget>& page,
       InfoBoardBatchContext* context = nullptr);
 
   /**

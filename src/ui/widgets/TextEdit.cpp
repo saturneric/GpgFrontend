@@ -349,7 +349,14 @@ auto TextEdit::SetGFBuffer2Page(const QPointer<QWidget>& page,
     return false;
   }
 
+  // As SlotFillTextEditWithText(): without undo for operations, the history
+  // goes, so the text an operation replaced (often the plaintext) is not left
+  // one Ctrl+Z away.
+  auto* edit = text_page->GetTextPage();
+  const bool keep_history = IsOperationUndoEnabled();
+  if (!keep_history) edit->setUndoRedoEnabled(false);
   SetOperationResultFromBuffer(text_page, buffer);
+  if (!keep_history) edit->setUndoRedoEnabled(true);
   return true;
 }
 

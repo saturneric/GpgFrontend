@@ -744,6 +744,8 @@ void MainWindow::exec_encoded_encrypt_helper(const QString& encoder,
   GpgOperaHelper::BuildOperas(contexts.Base(), 0, channel,
                               sign ? GpgOperaHelper::BuildOperasEncryptSign
                                    : GpgOperaHelper::BuildOperasEncrypt);
+  // Taken before the wait: this is the tab the input came from.
+  const QPointer<QWidget> page = edit_->CurPage();
   GpgOperaHelper::WaitForMultipleOperas(
       this, sign ? tr("Encrypting and Signing") : tr("Encrypting"),
       contexts->operas, channel);
@@ -796,16 +798,16 @@ void MainWindow::exec_encoded_encrypt_helper(const QString& encoder,
   // output, and the report says whether it got there.
   InfoBoardBatchContext context;
   context.document_target = true;
-  if (edit_->CurTextPage() == nullptr) {
+  if (!edit_->SetGFBuffer2Page(page, GFBuffer(text))) {
     context.fates.insert(result.input_index, OutputFate::kAPPLY_FAILED);
     context.output_errors[result.input_index].append(
         {OutputAction::kAPPLY_TO_DOCUMENT,
          {},
          std::nullopt,
-         tr("The current tab has no text document to receive the result."),
+         tr("The tab the text came from was closed, or no longer holds a "
+            "text document."),
          OutputErrorOrigin::kAPPLICATION});
   } else {
-    edit_->SlotFillTextEditWithText(text);
     context.fates.insert(result.input_index, OutputFate::kAPPLIED);
   }
 
@@ -862,6 +864,8 @@ auto MainWindow::exec_decoded_decrypt_helper(
     const QString& task,
     const QSharedPointer<GpgOperaContextBasement>& contexts,
     const CodecStageResult& decoded) -> bool {
+  // Taken before the wait: this is the tab the input came from.
+  const QPointer<QWidget> page = edit_->CurPage();
   GpgOperaHelper::WaitForMultipleOperas(
       this, task, contexts->operas, m_key_list_->GetCurrentGpgContextChannel());
 
@@ -885,7 +889,7 @@ auto MainWindow::exec_decoded_decrypt_helper(
   // record what became of it.
   InfoBoardBatchContext context;
   context.document_target = true;
-  slot_gpg_opera_buffer_show_helper(opera_results, &context);
+  slot_gpg_opera_buffer_show_helper(opera_results, page, &context);
 
   // The decoder's section first, in the same object as the OpenPGP result.
   auto codec_cards = CodecCards(decoded).cards;
