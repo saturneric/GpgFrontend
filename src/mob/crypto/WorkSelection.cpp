@@ -38,6 +38,7 @@
 #include "core/function/SettingCatalog.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/ChannelHandle.h"
+#include "core/utils/GpgUtils.h"
 #include "model/KeyRoleModel.h"
 #include "shell/rules/RecipientConfirm.h"
 
@@ -480,6 +481,10 @@ auto WorkSelection::lookup(const QString& fingerprint) const -> QVariantMap {
              {QStringLiteral("signNote"), at.data(KeyRoleModel::kSignNoteRole)},
              {QStringLiteral("isGroup"),
               !at.data(KeyRoleModel::kIsKeyRole).toBool()},
+             // As the key list's rows name them, which the faces and the
+             // key's details read: a group shows as one, never as a key.
+             {QStringLiteral("isKey"), at.data(KeyRoleModel::kIsKeyRole)},
+             {QStringLiteral("members"), at.data(KeyRoleModel::kMembersRole)},
              {QStringLiteral("memberCount"),
               at.data(KeyRoleModel::kMembersRole).toStringList().size()},
          };
@@ -501,6 +506,18 @@ auto WorkSelection::recipient_key(const QString& fingerprint) const
              key.value(QStringLiteral("memberCount")).toInt() == 0) {
     // A group with nobody in it would encrypt to nobody.
     issue = QStringLiteral("empty_group");
+  } else if (key.value(QStringLiteral("isGroup")).toBool()) {
+    // A member gone or disabled: the engine refuses the group (it would
+    // otherwise go to fewer people than it names), so it is stopped here.
+    const auto channel = UsableDefaultChannelHandle();
+    const auto group =
+        AbstractKeyRepository::GetInstance(channel).GetKey(fingerprint);
+    if (group != nullptr && !UnusableKeyIds(channel, {group}).isEmpty()) {
+      issue = QStringLiteral("cannot_encrypt");
+      key.insert(
+          QStringLiteral("encryptNote"),
+          QCoreApplication::translate("Wording", "Cannot be encrypted to"));
+    }
   }
   // A rule the shell decides for both interfaces: whatever it says stops
   // the key, said in its words.

@@ -1140,6 +1140,56 @@ TEST_F(KeyActionsTest, KeyGroupsAreMadeFilledAndEncryptedTo) {
   });
 }
 
+// A group whose member was deleted would be expanded to the members left:
+// a message for fewer people than the group names. It goes to the engine
+// whole instead, which refuses it and names the member that is gone.
+TEST_F(KeyActionsTest, AGroupWithAMemberGoneIsRefusedNotNarrowed) {
+  const auto stays = GenerateKey("Group Stays", "pw");
+  const auto leaves = GenerateKey("Group Leaves", "pw");
+  ASSERT_FALSE(stays.isEmpty());
+  ASSERT_FALSE(leaves.isEmpty());
+  const auto channel = UsableDefaultChannelHandle();
+  auto& repository = GpgKeyRepository::GetInstance(channel);
+  repository.FlushKeyCache();
+  const auto stays_key = repository.GetKeyPtr(stays.toUpper());
+  const auto leaves_key = repository.GetKeyPtr(leaves.toUpper());
+  ASSERT_NE(stays_key, nullptr);
+  ASSERT_NE(leaves_key, nullptr);
+  const auto leaves_id = leaves_key->ID();
+
+  QString id;
+  RunOnMainThread([&]() {
+    GpgFrontend::Mobile::KeyGroupsController groups;
+    id = groups.create("Two Member Group");
+    ASSERT_TRUE(IsKeyGroupID(id));
+    EXPECT_EQ(groups.addMembers(id, {stays_key->ID(), leaves_id}), 2);
+
+    // Whole, it stands for both keys.
+    const auto both = GpgFrontend::Mobile::SelectKeys(channel, {id});
+    EXPECT_TRUE(both.missing.isEmpty());
+    EXPECT_EQ(both.keys.size(), 2);
+  });
+
+  const auto deleted = Act([&](auto* a) { a->remove(leaves); });
+  ASSERT_TRUE(deleted.succeeded);
+  ASSERT_FALSE(HasKey(leaves));
+
+  RunOnMainThread([&]() {
+    const auto chosen = GpgFrontend::Mobile::SelectKeys(channel, {id});
+    EXPECT_TRUE(chosen.missing.isEmpty());
+    ASSERT_EQ(chosen.keys.size(), 1);
+    EXPECT_EQ(chosen.keys.first()->KeyType(),
+              GpgAbstractKeyType::kGPG_KEYGROUP);
+    // What the engine refuses it with, naming the member that is gone.
+    const auto refusal = UnusableRecipientsResult(channel, chosen.keys);
+    ASSERT_EQ(refusal.invalid_recipients.size(), 1);
+    EXPECT_EQ(refusal.invalid_recipients.first().fpr, leaves_id);
+
+    GpgFrontend::Mobile::KeyGroupsController groups;
+    EXPECT_TRUE(groups.remove(id));
+  });
+}
+
 TEST_F(KeyActionsTest, DeletingAnUnknownKeyFails) {
   const auto done = Act([](auto* a) {
     a->remove("0000000000000000000000000000000000000000");

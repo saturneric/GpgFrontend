@@ -67,6 +67,13 @@ auto SelectKeys(int channel, const QStringList& fingerprints) -> KeySelection {
         selection.missing.append(fpr);
         continue;
       }
+      // A member gone or disabled is left out of the expansion without a
+      // word: the group goes to the engine as it is instead, which refuses
+      // it naming those members (UnusableRecipientsResult), as the desktop.
+      if (!UnusableKeyIds(channel, {group}).isEmpty()) {
+        take(group);
+        continue;
+      }
       for (const auto& member : members) take(member);
       continue;
     }

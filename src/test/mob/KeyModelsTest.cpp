@@ -311,6 +311,23 @@ TEST(WorkSelectionTest, AKeyThatCannotBeUsedIsReportedNotDropped) {
   EXPECT_TRUE(selection.EncryptBlock().isEmpty());
 }
 
+// A chosen key group reads as a group where the chosen keys are shown, as
+// the key list's rows name it: never as a key, whose details it has none of.
+TEST(WorkSelectionTest, AChosenGroupIsShownAsAGroup) {
+  Fixture f;
+  WorkSelection selection(&f.roles);
+  selection.SetKeysReady();
+  selection.addRecipient(Fpr("GROUP001"));
+  selection.addRecipient(Fpr("CCCC0003"));
+  const auto group = selection.RecipientKeys().at(0).toMap();
+  EXPECT_FALSE(group.value("isKey").toBool());
+  EXPECT_TRUE(group.value("isGroup").toBool());
+  EXPECT_TRUE(group.contains("members"));
+  const auto key = selection.RecipientKeys().at(1).toMap();
+  EXPECT_TRUE(key.value("isKey").toBool());
+  EXPECT_FALSE(key.value("isGroup").toBool());
+}
+
 // What a summary shows of many recipients: those with a problem always, then
 // the others up to a few; the count is of all of them.
 TEST(WorkSelectionTest, ManyRecipientsAreSummedUp) {
