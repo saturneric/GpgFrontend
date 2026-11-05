@@ -372,6 +372,24 @@ Item {
             sheet.close()
         }
 
+        // A choice row is checkable (TalkBack says which is chosen), and a
+        // tap never leaves it with a state of its own: it follows the sheet.
+        function test_a_tapped_choice_still_follows_the_sheet() {
+            const sheet = createTemporaryObject(revokeComponent, keys)
+            sheet.begin({"keyId": "0123456789ABCDEF"})
+            tryVerify(() => sheet.opened)
+            const zero = findByName(sheet.contentItem, "revokeReason_0")
+            const three = findByName(sheet.contentItem, "revokeReason_3")
+            verify(zero.checkable)
+            mouseClick(zero)
+            verify(zero.checked)
+            verify(!three.checked)
+            sheet.reason = 3
+            verify(!zero.checked, "the tapped row kept a state of its own")
+            verify(three.checked)
+            sheet.close()
+        }
+
         // A note given to a key's row after it was made shows (a picker
         // learns which keys are already in after its rows are there).
         function test_a_note_given_later_shows() {

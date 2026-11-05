@@ -79,9 +79,12 @@ BottomSheet {
                 leftPadding: Theme.sheetPad
                 rightPadding: Theme.sheetPad - 8
                 text: modelData.text
-                // What is chosen, always: a tap never ticks the row itself.
-                checkable: false
+                // What is chosen, always: checkable, so TalkBack says which,
+                // but a tap that ticks the row gives it back its binding.
+                checkable: true
+                autoExclusive: false
                 checked: sheet.reason === modelData.code
+                onToggled: checked = Qt.binding(() => sheet.reason === modelData.code)
                 onClicked: sheet.reason = modelData.code
             }
         }

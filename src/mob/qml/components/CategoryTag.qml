@@ -22,7 +22,9 @@ AbstractButton {
     implicitWidth: row.implicitWidth + 24
     topInset: (Theme.touch - Math.max(32, row.implicitHeight + 8)) / 2
     bottomInset: topInset
-    focusPolicy: Qt.NoFocus
+    // Reached by a keyboard's Tab, never taken by a tap (the keyboard stays
+    // where it was).
+    focusPolicy: Qt.TabFocus
     Accessible.role: Accessible.CheckBox
     Accessible.checked: checked
     Accessible.name: name

@@ -832,6 +832,8 @@ Page {
                             anchors.fill: parent
                             opacity: row.working || page.selecting ? 0 : 1
                             enabled: !row.working && !page.selecting
+                            // Hidden, not there for TalkBack either.
+                            Accessible.ignored: row.working || page.selecting
                             text: qsTr("Actions for %1").arg(row.name)
                             icon.source: Theme.icon("more_vert")
                             onClicked: {

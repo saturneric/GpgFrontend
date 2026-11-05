@@ -414,8 +414,13 @@ Page {
                         checked: member
                         onClicked: categories.setMember(modelData.id, page.key.keyId,
                                                         !member)
-                        Accessible.name: member ? qsTr("Take out of %1").arg(modelData.name)
-                                                : qsTr("Put in %1").arg(modelData.name)
+                        // The membership is the categories' own: a tap gives
+                        // the tag back its binding.
+                        onToggled: checked = Qt.binding(() => member)
+                        // Its name, and checked or not, as a check box says
+                        // it; what a tap does, after.
+                        Accessible.description: member ? qsTr("Take out of %1").arg(modelData.name)
+                                                       : qsTr("Put in %1").arg(modelData.name)
                     }
                 }
 

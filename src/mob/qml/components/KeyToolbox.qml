@@ -315,9 +315,18 @@ BottomSheet {
             rightPadding: 4
             topPadding: 6
             bottomPadding: 6
-            enabled: reason.length === 0
+            // One that cannot be used is not chosen; one chosen before it
+            // could no longer be is let go of here, not only in the summary.
+            enabled: reason.length === 0 || chosen
+            // Checkable, so TalkBack says whether it is chosen; what is
+            // chosen is WorkSelection's, and a tap gives the row back its
+            // binding at once.
+            checkable: true
+            checked: chosen
+            onToggled: checked = Qt.binding(() => chosen)
             Accessible.role: sheet.signing ? Accessible.RadioButton
                                            : Accessible.CheckBox
+            Accessible.checkable: true
             Accessible.checked: chosen
             Accessible.name: Wording.keyTitle(name, email, keyId)
             Accessible.description: [email, keyId, reason,

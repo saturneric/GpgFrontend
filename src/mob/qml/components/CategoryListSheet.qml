@@ -50,10 +50,13 @@ BottomSheet {
                 Layout.fillWidth: true
                 leftPadding: Theme.sheetPad
                 text: modelData.name
-                // What is shown, always: a tap chooses, it never ticks the
-                // row itself (that would end the binding).
-                checkable: false
+                // What is shown, always: checkable, so TalkBack says which
+                // is chosen, but a tap that ticks the row gives it back its
+                // binding at once.
+                checkable: true
+                autoExclusive: false
                 checked: sheet.current === modelData.id
+                onToggled: checked = Qt.binding(() => sheet.current === modelData.id)
                 onClicked: {
                     sheet.close()
                     sheet.chosen(modelData)

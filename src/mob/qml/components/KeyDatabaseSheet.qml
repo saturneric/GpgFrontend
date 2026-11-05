@@ -98,10 +98,13 @@ BottomSheet {
                 leftPadding: Theme.sheetPad
                 rightPadding: Theme.sheetPad - 8
                 text: modelData.name
-                // The one in use, until another has worked: a tap asks for
-                // the switch and never ticks the row itself.
-                checkable: false
+                // The one in use, until another has worked: checkable, so
+                // TalkBack says which, but a tap that ticks the row gives it
+                // back its binding at once; the switch is asked for.
+                checkable: true
+                autoExclusive: false
                 checked: modelData.current
+                onToggled: checked = Qt.binding(() => modelData.current)
                 enabled: !sheet.busy
                 onClicked: sheet.choose(modelData.id, modelData.name, modelData.current)
             }

@@ -55,6 +55,8 @@ ItemDelegate {
     Accessible.role: inert ? Accessible.StaticText : Accessible.ListItem
     Accessible.name: text
     Accessible.description: detail
+    // A chosen row says so, as its tint shows it.
+    Accessible.selected: row.selected
 
     TextMetrics {
         id: valueMetrics
