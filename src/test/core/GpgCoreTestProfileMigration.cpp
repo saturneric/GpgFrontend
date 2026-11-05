@@ -32,6 +32,7 @@
 #include <QFile>
 #include <QTemporaryDir>
 
+#include "core/profile/ProfileMarker.h"
 #include "core/profile/ProfileMigration.h"
 #include "core/utils/BuildInfoUtils.h"
 
@@ -104,6 +105,54 @@ auto WriteMarker(const QString& path, const ProfileMarker& marker) -> bool {
 }  // namespace
 
 // --------------------------------------------------------------- the plan
+
+// A damaged profile.json used to read as absent and be rebuilt from defaults:
+// a new profile uuid, so a new keychain account, and a keychain-protected
+// profile locked out of its own key.
+TEST(ProfileMarkerRecoveryTest, ADamagedMarkerFallsBackToItsLastGoodCopy) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto path = dir.path() + "/profile.json";
+
+  ProfileMarker marker;
+  marker.schema_version = 3;
+  marker.profile_uuid = "0123456789abcdef0123456789abcdef";
+  marker.display_name = "Work";
+  ASSERT_TRUE(WriteProfileMarker(path, marker));
+  ASSERT_TRUE(QFileInfo::exists(path + ".bak"));
+
+  {
+    QFile damaged(path);
+    ASSERT_TRUE(damaged.open(QIODevice::WriteOnly | QIODevice::Truncate));
+    damaged.write(R"({"schema_version": 3, "profile_uuid": "0123)");
+  }
+
+  const auto read = ReadProfileMarker(path);
+  ASSERT_TRUE(read.has_value());
+  EXPECT_EQ(read->profile_uuid, marker.profile_uuid);
+  EXPECT_EQ(read->display_name, "Work");
+
+  // The damaged bytes are kept for whoever wants to look at them.
+  EXPECT_EQ(QDir(dir.path())
+                .entryList({"profile.json.corrupt-*"}, QDir::Files)
+                .size(),
+            1);
+}
+
+TEST(ProfileMarkerRecoveryTest, TheUuidIsSalvagedFromATruncatedMarker) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto path = dir.path() + "/profile.json";
+  {
+    QFile damaged(path);
+    ASSERT_TRUE(damaged.open(QIODevice::WriteOnly));
+    damaged.write(
+        R"({"profile_uuid": "0123456789abcdef0123456789abcdef", "disp)");
+  }
+
+  EXPECT_FALSE(ReadProfileMarker(path).has_value());
+  EXPECT_EQ(SalvageProfileUuid(path), "0123456789abcdef0123456789abcdef");
+}
 
 TEST(ProfileMigrationPlanTest, MissingMarkerIsAFirstRunNotAFailure) {
   const auto plan = PlanProfileMigration(ProfileMarker{}, false, 2, {});
