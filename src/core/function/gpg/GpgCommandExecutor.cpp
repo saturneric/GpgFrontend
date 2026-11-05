@@ -118,11 +118,21 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
             << "\n========================";
 
     pcs->start();
-    pcs->waitForFinished();
+    // No timeout: these commands can sit behind a pinentry prompt for as long
+    // as the user takes. The default cut them off after 30 s, and the exit code
+    // of a process that has not finished reads as 0, a success.
+    const auto finished = pcs->waitForFinished(-1);
 
     auto out = pcs->readAllStandardOutput();
     auto err = pcs->readAllStandardError();
     auto code = pcs->exitCode();
+    // Never started, crashed or killed: exitCode() says nothing then, and
+    // whatever it holds must not be taken for the command's answer.
+    if (!finished || pcs->exitStatus() != QProcess::NormalExit) {
+      LOG_W() << "command did not finish normally:" << cmd << joined_argument
+              << ", error:" << pcs->error();
+      code = -1;
+    }
 
     LOG_D() << "\n==== Process Execution Summary ====\n"
             << "Command: " << cmd << "\n"
