@@ -2036,6 +2036,16 @@ mod packet_syntax_tests {
     }
 
     #[test]
+    fn an_exact_handoff_keeps_the_bytes_and_drops_the_spare_capacity() {
+        let mut data = Vec::with_capacity(100);
+        data.extend_from_slice(b"plaintext");
+        let boxed = crate::ffi::mem::into_wiped_boxed_slice(data);
+        assert_eq!(&*boxed, b"plaintext");
+        let exact = crate::ffi::mem::into_wiped_boxed_slice(b"exact".to_vec());
+        assert_eq!(&*exact, b"exact");
+    }
+
+    #[test]
     fn read_to_end_capped_maps_an_overrun_to_invalid_data() {
         // A bomb surfaces to the caller as a data error, not as an internal
         // error or an OOM abort.

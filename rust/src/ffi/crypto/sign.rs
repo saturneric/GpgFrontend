@@ -87,7 +87,7 @@ pub extern "C" fn gfr_crypto_sign_data(
         // 1. Process the output payload (data)
         // Boxed slice guarantees `capacity == len` for the allocation handed to
         // C; `gfr_crypto_free_buffer` reconstructs the Vec with `capacity == len`.
-        let mut data_boxed = internal_result.data.into_boxed_slice();
+        let mut data_boxed = crate::ffi::mem::into_wiped_boxed_slice(internal_result.data);
         let data_ptr = data_boxed.as_mut_ptr();
         let data_len = data_boxed.len();
         std::mem::forget(data_boxed); // Leak payload to C
@@ -280,7 +280,7 @@ pub extern "C" fn gfr_crypto_verify_data(
         // 1. Process the extracted payload (data)
         // Boxed slice guarantees `capacity == len` for the allocation handed to
         // C; `gfr_crypto_free_buffer` reconstructs the Vec with `capacity == len`.
-        let mut data_boxed = internal_result.data.into_boxed_slice();
+        let mut data_boxed = crate::ffi::mem::into_wiped_boxed_slice(internal_result.data);
         let data_ptr = data_boxed.as_mut_ptr();
         let data_len = data_boxed.len();
         std::mem::forget(data_boxed); // Leak payload to C
@@ -439,7 +439,8 @@ pub extern "C" fn gfr_crypto_verify_file(
                     })?;
                 } else {
                     // Boxed slice guarantees `capacity == len` for the C handoff.
-                    let mut data_boxed = internal_result.data.into_boxed_slice();
+                    let mut data_boxed =
+                        crate::ffi::mem::into_wiped_boxed_slice(internal_result.data);
                     out_data_ptr = data_boxed.as_mut_ptr();
                     out_data_len = data_boxed.len();
                     std::mem::forget(data_boxed);
