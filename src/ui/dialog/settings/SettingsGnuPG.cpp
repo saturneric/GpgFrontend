@@ -202,7 +202,7 @@ GnuPGTab::GnuPGTab(QWidget* parent)
         this, tr("Confirm"),
         tr("Are you sure you want to restart all of GnuPG's components?\nAny "
            "GnuPG operation still running will be interrupted."),
-        QMessageBox::Yes | QMessageBox::No);
+        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
     if (reply != QMessageBox::Yes) return;
 
     run_advanced_operation(
