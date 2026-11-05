@@ -141,6 +141,15 @@ auto GF_CORE_EXPORT IsEmailAddress(const QString& s) -> bool;
 auto GF_CORE_EXPORT HasTextOutsideSignedArmor(const QByteArray& data) -> bool;
 
 /**
+ * @brief HasTextOutsideSignedArmor() for a file, read a line at a time.
+ *
+ * @param path the file about to be verified; false when it cannot be read,
+ *        which the verification itself then reports
+ */
+auto GF_CORE_EXPORT HasTextOutsideSignedArmorInFile(const QString& path)
+    -> bool;
+
+/**
  * @brief Return whether version string @p a is strictly greater than @p b.
  *
  * @param a first version string
