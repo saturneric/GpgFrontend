@@ -150,4 +150,34 @@ TEST(FileSystemItemRulesTest, ADropIsANoOpOnlyWhenEverySourceIsAlreadyThere) {
   EXPECT_TRUE(UI::IsSameDirectoryOperation({}, "/x"));
 }
 
+#ifndef _WIN32
+// A dropped folder is copied without following links: a link to a folder was
+// copied as that folder's contents, and a link to a parent never ended.
+TEST(FileSystemItemRulesTest, CopyIntoDirectorySkipsLinksAndKeepsGoing) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto source = dir.path() + "/src";
+  const auto target = dir.path() + "/dst";
+  ASSERT_TRUE(QDir().mkpath(source + "/sub"));
+  ASSERT_TRUE(QDir().mkpath(target));
+  {
+    QFile file(source + "/sub/a.txt");
+    ASSERT_TRUE(file.open(QIODevice::WriteOnly));
+    file.write("a");
+  }
+  ASSERT_TRUE(QFile::link(dir.path(), source + "/up"));
+
+  QStringList errors;
+  EXPECT_FALSE(UI::CopyIntoDirectory(source, target, errors));
+  EXPECT_TRUE(QFileInfo::exists(target + "/src/sub/a.txt"));
+  EXPECT_FALSE(QFileInfo(target + "/src/up").exists());
+  EXPECT_EQ(errors.size(), 1) << errors.join("; ").toStdString();
+
+  // An existing name is refused, not merged into.
+  errors.clear();
+  EXPECT_FALSE(UI::CopyIntoDirectory(source, target, errors));
+  EXPECT_EQ(errors.size(), 1);
+}
+#endif
+
 }  // namespace GpgFrontend::Test

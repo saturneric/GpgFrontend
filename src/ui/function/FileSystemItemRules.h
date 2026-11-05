@@ -120,4 +120,20 @@ auto GF_UI_EXPORT IsMoveIntoItselfOrChild(const QString& source_path,
 auto GF_UI_EXPORT IsSameDirectoryOperation(const QStringList& source_paths,
                                            const QString& target_dir) -> bool;
 
+/**
+ * @brief Copy @p source, a file or a folder, into @p target_dir.
+ *
+ * Shows no dialog, so it can run off the GUI thread; each problem is appended
+ * to @p errors instead, and the rest is still copied. A symbolic link is
+ * skipped, not followed: isDir() and isFile() follow links, so a link to a
+ * folder used to be copied as that folder's whole contents, and a link to a
+ * parent folder never ended. An existing name in @p target_dir is refused.
+ *
+ * @param depth how deep in the copy this is; callers pass 0
+ * @return true when everything under @p source was copied
+ */
+auto GF_UI_EXPORT CopyIntoDirectory(const QString& source,
+                                    const QString& target_dir,
+                                    QStringList& errors, int depth = 0) -> bool;
+
 }  // namespace GpgFrontend::UI
