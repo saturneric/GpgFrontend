@@ -31,13 +31,19 @@
  * @brief gf_mob_qml_tests: the application's pages, tested in QML.
  *
  * The same plugin and singletons as the application, but no startup: the
- * pages are tested on their own, with an empty key list.
+ * pages are tested on their own, with an empty key list. They are laid out as
+ * on the phone: in the Material style (qtquickcontrols2.conf names no style,
+ * and the host's default has other measures), with the application's
+ * resources (its fonts and icons) loaded.
  */
 
 #include <QtQml/qqmlextensionplugin.h>
 #include <QtQuickTest/quicktest.h>
 
+#include <QtQuickControls2/QQuickStyle>
+
 #include "AppServices.h"
+#include "GpgFrontendResource.h"
 #include "boot/BootContext.h"
 
 Q_IMPORT_QML_PLUGIN(GpgFrontend_MobilePlugin)
@@ -47,6 +53,8 @@ class Setup : public QObject {
 
  public slots:
   void applicationAvailable() {
+    GpgFrontend::InitResources();
+    QQuickStyle::setStyle(QStringLiteral("Material"));
     services_ = std::make_unique<GpgFrontend::Mobile::AppServices>(
         QSharedPointer<GpgFrontend::BootContext>::create(0, nullptr));
   }
