@@ -1313,53 +1313,108 @@ impl Serialize for MergedRawKeys {
 /// If an input block is a secret key it is accepted and its public component
 /// is extracted. The merge is done at the raw packet level (no re-signing).
 pub fn export_merged_public_keys(key_blocks: &[&str]) -> Result<String, GfrStatus> {
-    let mut combined_bytes = Vec::new();
+    let mut armored = export_merged_keys(key_blocks, false, true, false)?;
+    String::from_utf8(std::mem::take(&mut *armored)).map_err(|_| GfrStatus::ErrorArmorFailed)
+}
+
+/// Keep only the signatures the key's owner made on its own User IDs and
+/// attributes, as gpg's `export-minimal` does: third-party certifications
+/// tell whoever receives the key who else vouched for its owner.
+fn strip_third_party_signatures(details: &mut SignedKeyDetails, primary: &PublicKey) {
+    for user in &mut details.users {
+        user.signatures
+            .retain(|sig| names_primary_as_issuer(sig, primary));
+    }
+    for attr in &mut details.user_attributes {
+        attr.signatures
+            .retain(|sig| names_primary_as_issuer(sig, primary));
+    }
+}
+
+/// Merge key blocks into one keyring, as the caller asked for it: secret or
+/// public, armored or as plain packets, whole or minimal.
+///
+/// `secret` takes only secret key blocks (a public one is `ErrorInvalidInput`);
+/// otherwise secret blocks are reduced to their public part. `minimal` drops
+/// third-party certifications ([`strip_third_party_signatures`]). The merge is
+/// done at the raw packet level (no re-signing).
+///
+/// The bytes may be unprotected secret key packets, so every buffer that holds
+/// them is wiped when it goes, and each is sized up front: a Vec that grows
+/// frees its old allocation without wiping it.
+pub fn export_merged_keys(
+    key_blocks: &[&str],
+    secret: bool,
+    armored: bool,
+    minimal: bool,
+) -> Result<Zeroizing<Vec<u8>>, GfrStatus> {
+    // The packets are never larger than the armored blocks they came from.
+    let mut combined_bytes = Zeroizing::new(Vec::with_capacity(
+        key_blocks.iter().map(|b| b.len()).sum::<usize>(),
+    ));
     let mut v4_only = true;
 
     for block in key_blocks {
-        // 3. Try parsing as secret key first, fallback to public key.
-        let pub_key = if let Ok((sk, _)) = SignedSecretKey::from_string(block) {
-            SignedPublicKey::from(sk)
-        } else if let Ok((pk, _)) = SignedPublicKey::from_string(block) {
-            pk
+        if secret {
+            let Ok((mut sec_key, _)) = SignedSecretKey::from_string(block) else {
+                return Err(GfrStatus::ErrorInvalidInput);
+            };
+            v4_only &= is_v4_era(sec_key.primary_key.version());
+            if minimal {
+                let primary = sec_key.primary_key.public_key().clone();
+                strip_third_party_signatures(&mut sec_key.details, &primary);
+            }
+            sec_key
+                .to_writer(&mut *combined_bytes)
+                .map_err(|_| GfrStatus::ErrorInvalidInput)?;
         } else {
-            return Err(GfrStatus::ErrorInvalidInput);
-        };
-
-        v4_only &= is_v4_era(pub_key.primary_key.version());
-
-        // 4. Serialize the underlying packets of this public key into our buffer.
-        pub_key
-            .to_writer(&mut combined_bytes)
-            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+            let mut pub_key = if let Ok((sk, _)) = SignedSecretKey::from_string(block) {
+                SignedPublicKey::from(sk)
+            } else if let Ok((pk, _)) = SignedPublicKey::from_string(block) {
+                pk
+            } else {
+                return Err(GfrStatus::ErrorInvalidInput);
+            };
+            v4_only &= is_v4_era(pub_key.primary_key.version());
+            if minimal {
+                let primary = pub_key.primary_key.clone();
+                strip_third_party_signatures(&mut pub_key.details, &primary);
+            }
+            pub_key
+                .to_writer(&mut *combined_bytes)
+                .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+        }
     }
 
     if combined_bytes.is_empty() {
         return Err(GfrStatus::ErrorInvalidInput);
     }
+    if !armored {
+        return Ok(combined_bytes);
+    }
 
-    // 5. Wrap the merged bytes into our custom struct.
+    // Armor is 4/3 of its input, plus line breaks, headers and the checksum.
+    let mut armored_output = Zeroizing::new(Vec::with_capacity(
+        combined_bytes.len() / 3 * 4 + combined_bytes.len() / 32 + 1024,
+    ));
     let merged_source = MergedRawKeys {
-        packet_bytes: combined_bytes,
+        packet_bytes: std::mem::take(&mut *combined_bytes),
     };
-
-    let mut armored_output = Vec::new();
-
-    // 6. Call the armor::write function you found in the source code.
-    // The arguments are: source, block_type, writer, headers, include_checksum.
     armor::write(
         &merged_source,
-        BlockType::PublicKey,
-        &mut armored_output,
+        if secret {
+            BlockType::PrivateKey
+        } else {
+            BlockType::PublicKey
+        },
+        &mut *armored_output,
         None,
         // RFC 9580 §6.1: a CRC24 footer for v4-only keyrings (GnuPG
         // interoperability), never with a v6 key (see `armor_opts_for`).
         v4_only,
     )
     .map_err(|_| GfrStatus::ErrorArmorFailed)?;
-
-    // 7. Convert the armored bytes back to a String.
-    String::from_utf8(armored_output).map_err(|_| GfrStatus::ErrorArmorFailed)
+    Ok(armored_output)
 }
 
 /// What [`filter_public_keys_internal`] kept and how many it left out.
@@ -1437,50 +1492,8 @@ pub fn filter_public_keys_internal(
 ///
 /// All input blocks must be secret keys; a public-key block returns `ErrorInvalidInput`.
 pub fn export_merged_secret_keys(key_blocks: &[&str]) -> Result<String, GfrStatus> {
-    let mut combined_bytes = Vec::new();
-    let mut v4_only = true;
-
-    for block in key_blocks {
-        // 1. Only accept valid secret keys. Fallback to public key is NOT possible here.
-        let sec_key = if let Ok((sk, _)) = SignedSecretKey::from_string(block) {
-            sk
-        } else {
-            // Fails if the block is a public key or invalid data
-            return Err(GfrStatus::ErrorInvalidInput);
-        };
-
-        v4_only &= is_v4_era(sec_key.primary_key.version());
-
-        // 2. Serialize the underlying packets of the secret key into our buffer.
-        sec_key
-            .to_writer(&mut combined_bytes)
-            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
-    }
-
-    if combined_bytes.is_empty() {
-        return Err(GfrStatus::ErrorInvalidInput);
-    }
-
-    // 3. Wrap the merged bytes into our custom struct (reusing the one from before).
-    let merged_source = MergedRawKeys {
-        packet_bytes: combined_bytes,
-    };
-
-    let mut armored_output = Vec::new();
-
-    // 4. Call armor::write, but use BlockType::PrivateKey this time.
-    armor::write(
-        &merged_source,
-        BlockType::PrivateKey, // Crucial change: PRIVATE KEY BLOCK
-        &mut armored_output,
-        None,
-        // RFC 9580 §6.1: see the public keyring above.
-        v4_only,
-    )
-    .map_err(|_| GfrStatus::ErrorArmorFailed)?;
-
-    // 5. Convert the armored bytes back to a String.
-    String::from_utf8(armored_output).map_err(|_| GfrStatus::ErrorArmorFailed)
+    let mut armored = export_merged_keys(key_blocks, true, true, false)?;
+    String::from_utf8(std::mem::take(&mut *armored)).map_err(|_| GfrStatus::ErrorArmorFailed)
 }
 
 /// Prompt for the key's current passphrase, to unlock it before re-protection.
@@ -3929,6 +3942,47 @@ mod key_tests {
         let attrs = &merged.details.user_attributes;
         assert_eq!(attrs.len(), 1, "{attrs:?}");
         assert_eq!(attrs[0].attr, certified);
+    }
+
+    #[test]
+    fn a_minimal_export_keeps_only_the_owners_own_signatures() {
+        // gpg's export-minimal: the rPGP engine used to ignore the request
+        // and hand out every certification, naming who vouched for the key.
+        let target = &keys::V4_SIGN;
+        let signer = &keys::V4_PRIMARY_ONLY;
+        let mut cert = SignedPublicKey::from(target.secret.clone());
+        let created = cert.primary_key.created_at().as_secs();
+        let own = cert.details.users[0].signatures.len();
+        let certification = certification_by(
+            signer,
+            &cert,
+            signer.secret.primary_key.fingerprint(),
+            created + 1,
+        );
+        cert.details.users[0].signatures.push(certification);
+        let block = export_public_key(cert).unwrap().public;
+
+        let whole = export_merged_keys(&[&block], false, true, false).unwrap();
+        let (whole, _) =
+            SignedPublicKey::from_string(std::str::from_utf8(&whole).unwrap()).unwrap();
+        assert_eq!(whole.details.users[0].signatures.len(), own + 1);
+
+        let minimal = export_merged_keys(&[&block], false, true, true).unwrap();
+        let (minimal, _) =
+            SignedPublicKey::from_string(std::str::from_utf8(&minimal).unwrap()).unwrap();
+        let sigs = &minimal.details.users[0].signatures;
+        assert_eq!(sigs.len(), own);
+        assert!(
+            sigs.iter()
+                .all(|s| names_primary_as_issuer(s, &minimal.primary_key))
+        );
+
+        // Not armored: the same packets, as bytes.
+        let binary = export_merged_keys(&[&block], false, false, true).unwrap();
+        assert!(!binary.starts_with(b"-----BEGIN"));
+        let parsed = SignedPublicKey::from_bytes(binary.as_slice()).unwrap();
+        assert_eq!(parsed.fingerprint(), minimal.fingerprint());
+        assert_eq!(parsed.details.users[0].signatures.len(), own);
     }
 
     #[test]

@@ -74,6 +74,36 @@ TEST_F(RpgpCoreTest, CoreExportPublicKeyTest) {
   ASSERT_FALSE(gf_buffer.Empty());
 }
 
+// The rPGP engine ignored the export flags: a binary export came out armored,
+// and an SSH one as an OpenPGP key under an SSH file name.
+TEST_F(RpgpCoreTest, AnExportIsWhatWasAskedFor) {
+  auto key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                 .GetKeyPtr("3BEDAB48EAAAA195006330414DD9733454846D0C");
+  ASSERT_TRUE(key != nullptr);
+  auto& op = KeyImportExportOperation::GetInstance(kRpgpChannelForUnitTest);
+
+  auto [armored_err, armored] = op.ExportKey(key, false, true, false);
+  ASSERT_TRUE(armored_err.Ok());
+  EXPECT_TRUE(armored.ConvertToQByteArray().startsWith("-----BEGIN PGP"));
+
+  auto [binary_err, binary] = op.ExportKey(key, false, false, false);
+  ASSERT_TRUE(binary_err.Ok());
+  ASSERT_FALSE(binary.Empty());
+  EXPECT_FALSE(binary.ConvertToQByteArray().startsWith("-----BEGIN"));
+  // An OpenPGP packet: the tag octet always has its top bit set.
+  EXPECT_NE(static_cast<unsigned char>(binary.ConvertToQByteArray().at(0)) &
+                0x80U,
+            0U);
+
+  auto [minimal_err, minimal] = op.ExportKey(key, false, true, true);
+  ASSERT_TRUE(minimal_err.Ok());
+  EXPECT_LE(minimal.Size(), armored.Size());
+
+  auto [ssh_err, ssh] = op.ExportKey(key, false, true, false, true);
+  EXPECT_EQ(ssh_err.code, GFErrorCode::kNOT_SUPPORTED);
+  EXPECT_TRUE(ssh.Empty());
+}
+
 TEST_F(RpgpCoreTest, CoreImportKeyTest) {
   auto key_files = QDir(":/test/rpgp_keys").entryList();
   ASSERT_FALSE(key_files.empty());

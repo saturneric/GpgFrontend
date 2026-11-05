@@ -200,6 +200,14 @@ auto ExportKeysRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
     return {RpgpError(GFErrorCode::kGENERAL), {}};
   }
 
+  // An SSH public key is a different format altogether, which this engine
+  // does not write; handing out an OpenPGP key instead was a silently wrong
+  // file.
+  if (ssh_mode) {
+    LOG_W() << "rPGP cannot export a key in SSH format";
+    return {RpgpError(GFErrorCode::kNOT_SUPPORTED), {}};
+  }
+
   QStringList key_ids;
   for (const auto& key : keys) {
     if (!key) continue;
@@ -212,8 +220,6 @@ auto ExportKeysRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
     return {RpgpError(GFErrorCode::kNO_DATA), {}};
   }
 
-  char* out_armored_string = nullptr;
-
   std::vector<QByteArray> null_terminated_blocks;
   std::vector<char*> key_block_ptrs;
   null_terminated_blocks.reserve(key_blocks.size());
@@ -224,18 +230,23 @@ auto ExportKeysRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
     key_block_ptrs.push_back(null_terminated_blocks.back().data());
   }
 
-  auto err =
-      Rust::gfr_export_merged_keys(key_block_ptrs.data(), key_block_ptrs.size(),
-                                   secret, &out_armored_string);
+  // As asked: armored or as plain packets, whole or minimal. Both used to be
+  // ignored, so a "minimal" export carried every certification of the key.
+  uint8_t* out_data = nullptr;
+  size_t out_len = 0;
+  auto err = Rust::gfr_export_merged_keys_as(
+      key_block_ptrs.data(), key_block_ptrs.size(), secret, ascii, shortest,
+      &out_data, &out_len);
   if (err != Rust::GfrStatus::Success) {
-    LOG_E() << "gfr_export_merged_keys error, code: " << static_cast<int>(err);
+    LOG_E() << "gfr_export_merged_keys_as error, code: "
+            << static_cast<int>(err);
     return {RpgpError(GFErrorCode::kGENERAL), {}};
   }
 
-  auto qs_armored = QString::fromUtf8(out_armored_string);
-  Rust::gfr_crypto_free_string(out_armored_string);
-
-  return {GFError{}, GFBuffer(qs_armored)};
+  GFBuffer exported(QByteArray(reinterpret_cast<const char*>(out_data),
+                               static_cast<qsizetype>(out_len)));
+  Rust::gfr_crypto_free_buffer(out_data, out_len);
+  return {GFError{}, exported};
 }
 
 auto ExportKeysAsyncRpgpImpl(OpenPGPContext& ctx,
