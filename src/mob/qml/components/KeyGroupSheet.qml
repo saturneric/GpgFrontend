@@ -6,13 +6,15 @@ import QtQuick.Controls.Material
 import QtQuick.Layouts
 import GpgFrontend.Mobile
 
-// A key group's name, new or to change, by the desktop's rule: five
-// characters at least. Its keys are chosen after, on its page.
+// A key group's name, email and comment, new or to change, as the
+// desktop's dialogs have them: a name of five characters at least, an email
+// and a comment if wanted, the email only one that looks like one. Its keys
+// are chosen after, on its page.
 BottomSheet {
     id: sheet
 
     property KeyGroupsController groups
-    // The group being renamed; empty for a new one.
+    // The group being edited; empty for a new one.
     property string groupId: ""
 
     // A new group was made: its id.
@@ -21,6 +23,10 @@ BottomSheet {
     function begin(group) {
         groupId = group ? group.id : ""
         name.text = group ? group.name : ""
+        email.text = group ? (group.email || "") : ""
+        comment.text = group ? (group.comment || "") : ""
+        nameProblem.text = ""
+        emailProblem.text = ""
         problem.text = ""
         open()
     }
@@ -30,18 +36,19 @@ BottomSheet {
     onOpened: name.forceActiveFocus()
 
     function save() {
+        // What is wrong, under the field it is about.
+        const why = groups.problemOf(name.text, email.text)
+        nameProblem.text = why.field === "name" ? why.text : ""
+        emailProblem.text = why.field === "email" ? why.text : ""
+        problem.text = ""
+        if (why.field.length > 0) return
         if (groupId.length > 0) {
-            const why = groups.rename(groupId, name.text)
-            problem.text = why
-            if (why.length === 0) close()
+            const failed = groups.edit(groupId, name.text, email.text, comment.text)
+            problem.text = failed
+            if (failed.length === 0) close()
             return
         }
-        const why = groups.nameProblem(name.text)
-        if (why.length > 0) {
-            problem.text = why
-            return
-        }
-        const id = groups.create(name.text)
+        const id = groups.create(name.text, email.text, comment.text)
         if (id.length === 0) {
             problem.text = qsTr("The group could not be made.")
             return
@@ -51,7 +58,7 @@ BottomSheet {
     }
 
     objectName: "keyGroupSheet"
-    title: groupId.length > 0 ? qsTr("Rename key group") : qsTr("New key group")
+    title: groupId.length > 0 ? qsTr("Edit key group") : qsTr("New key group")
     description: groupId.length > 0 ? ""
                  : qsTr("Encrypting to a key group encrypts to every key in it. "
                         + "The desktop shows the same groups.")
@@ -62,6 +69,36 @@ BottomSheet {
         Layout.fillWidth: true
         placeholderText: qsTr("Name, for example Project team")
         maximumLength: 64
+        onAccepted: email.forceActiveFocus()
+    }
+
+    ProblemLabel {
+        id: nameProblem
+        objectName: "keyGroupNameProblem"
+    }
+
+    TextField {
+        id: email
+        objectName: "keyGroupEmail"
+        Layout.fillWidth: true
+        placeholderText: qsTr("Email (optional)")
+        inputMethodHints: Qt.ImhEmailCharactersOnly | Qt.ImhNoAutoUppercase
+                          | Qt.ImhNoPredictiveText
+        maximumLength: 128
+        onAccepted: comment.forceActiveFocus()
+    }
+
+    ProblemLabel {
+        id: emailProblem
+        objectName: "keyGroupEmailProblem"
+    }
+
+    TextField {
+        id: comment
+        objectName: "keyGroupComment"
+        Layout.fillWidth: true
+        placeholderText: qsTr("Comment (optional)")
+        maximumLength: 128
         onAccepted: sheet.save()
     }
 

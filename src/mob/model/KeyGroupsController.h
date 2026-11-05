@@ -65,8 +65,19 @@ class KeyGroupsController : public QObject {
   /// "too_short" (fewer than five characters); "" when it will do.
   [[nodiscard]] Q_INVOKABLE QString nameProblem(const QString& name) const;
 
-  /// A new, empty group named @p name; its id, or "" when it was not made.
-  Q_INVOKABLE QString create(const QString& name);
+  /**
+   * @brief What is wrong with a group's @p name and @p email, by the
+   * desktop's rule (ValidateKeyGroupMetadata): {field: "name" or "email",
+   * text}; field "" when they will do. The email may be empty.
+   */
+  [[nodiscard]] Q_INVOKABLE QVariantMap problemOf(const QString& name,
+                                                  const QString& email) const;
+
+  /// A new, empty group named @p name, with an @p email and a @p comment
+  /// if given, as the desktop's dialog makes one; its id, or "" when it
+  /// was not made.
+  Q_INVOKABLE QString create(const QString& name, const QString& email = {},
+                             const QString& comment = {});
 
   /// The group @p id: {id, name, email, comment, memberCount}; empty when
   /// there is none.
@@ -89,6 +100,11 @@ class KeyGroupsController : public QObject {
 
   /// Rename the group @p id; why not ("" when done), as nameProblem().
   Q_INVOKABLE QString rename(const QString& id, const QString& name);
+
+  /// Change the group @p id's name, email and comment at once, as the
+  /// desktop's edit dialog does; why not ("" when done), as problemOf().
+  Q_INVOKABLE QString edit(const QString& id, const QString& name,
+                           const QString& email, const QString& comment);
 
   /// Delete the group @p id; its keys are not touched.
   Q_INVOKABLE bool remove(const QString& id);

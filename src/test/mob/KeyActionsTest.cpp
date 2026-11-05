@@ -1102,6 +1102,25 @@ TEST_F(KeyActionsTest, KeyGroupsAreMadeFilledAndEncryptedTo) {
     EXPECT_FALSE(rows(holder, false).contains(id));
     EXPECT_FALSE(rows("has_private_key", true).contains(id));
 
+    // An email and a comment, as the desktop's dialogs keep them: the
+    // email checked when given, the three changed at once.
+    EXPECT_EQ(groups.problemOf("Phone Group", "").value("field"), "");
+    EXPECT_EQ(groups.problemOf("Phone Group", "not an email").value("field"),
+              "email");
+    EXPECT_EQ(groups.problemOf("Grp", "a@b.example").value("field"), "name");
+    EXPECT_FALSE(groups.edit(id, "Phone Group", "bad@", "").isEmpty());
+    EXPECT_EQ(groups.edit(id, "Phone Group", " team@example.org ", " phones "),
+              "");
+    EXPECT_EQ(groups.group(id).value("email"), "team@example.org");
+    EXPECT_EQ(groups.group(id).value("comment"), "phones");
+    // Made with them too.
+    const auto other = groups.create("Other Group", "other@example.org", "c");
+    ASSERT_TRUE(IsKeyGroupID(other));
+    EXPECT_EQ(groups.group(other).value("email"), "other@example.org");
+    EXPECT_EQ(groups.group(other).value("comment"), "c");
+    EXPECT_TRUE(groups.create("Bad Mail Group", "nope").isEmpty());
+    EXPECT_TRUE(groups.remove(other));
+
     // Renamed by the same rule, emptied, deleted; its key stays.
     EXPECT_FALSE(groups.rename(id, "Grp").isEmpty());
     EXPECT_EQ(groups.rename(id, "Phone Group B"), "");

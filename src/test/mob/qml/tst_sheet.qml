@@ -77,6 +77,12 @@ Item {
         text: " \n "
     }
 
+    // A key group's name, email and comment.
+    KeyGroupSheet {
+        id: groupSheet
+        groups: KeyGroupsController {}
+    }
+
     // A sheet whose first item is a text field, as Rename key group.
     BottomSheet {
         id: named
@@ -284,6 +290,31 @@ Item {
             verify(!scroller.interactive, "nothing to scroll")
             named.close()
             tryVerify(() => !named.visible)
+        }
+
+        // A key group takes a name, an email and a comment, as on the
+        // desktop; what is wrong shows under the field it is about.
+        function test_a_key_group_has_an_email_and_a_comment() {
+            groupSheet.begin({"id": "", "name": "Project team",
+                              "email": "team@example.org", "comment": "phones"})
+            tryVerify(() => groupSheet.opened)
+            const c = groupSheet.contentItem
+            compare(findChild(c, "keyGroupName").text, "Project team")
+            compare(findChild(c, "keyGroupEmail").text, "team@example.org")
+            compare(findChild(c, "keyGroupComment").text, "phones")
+
+            findChild(c, "keyGroupEmail").text = "not an email"
+            groupSheet.save()
+            verify(findChild(c, "keyGroupEmailProblem").text.length > 0)
+            compare(findChild(c, "keyGroupNameProblem").text, "")
+
+            findChild(c, "keyGroupName").text = "Tea"
+            groupSheet.save()
+            verify(findChild(c, "keyGroupNameProblem").text.length > 0)
+            compare(findChild(c, "keyGroupEmailProblem").text, "")
+            verify(groupSheet.opened)
+            groupSheet.close()
+            tryVerify(() => !groupSheet.visible)
         }
     }
 }

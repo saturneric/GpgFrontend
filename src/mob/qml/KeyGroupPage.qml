@@ -49,7 +49,7 @@ Page {
 
             MenuItem {
                 objectName: "groupRename"
-                text: qsTr("Rename")
+                text: qsTr("Edit")
                 onTriggered: namer.begin(page.group)
             }
             MenuItem {
@@ -93,25 +93,56 @@ Page {
         // The last row scrolls clear of the add button.
         bottomMargin: Theme.fabBand
 
-        // A section label; what a group means is a tap on (i) away.
-        header: RowLayout {
+        // The group's email and comment, as the desktop keeps them, when it
+        // has any; then a section label, what a group means a tap on (i)
+        // away.
+        header: ColumnLayout {
             width: ListView.view.width
-            visible: list.count > 0
-            height: visible ? implicitHeight : 0
             spacing: 0
 
-            SectionHeader {
-                objectName: "groupMembersLabel"
+            ColumnLayout {
+                objectName: "groupDetails"
                 Layout.fillWidth: true
-                text: qsTr("Member keys (%1)").arg(list.count)
+                Layout.leftMargin: Theme.gap
+                Layout.rightMargin: Theme.gap
+                Layout.topMargin: Theme.gapSmall
+                visible: (page.group.email || "").length > 0
+                         || (page.group.comment || "").length > 0
+                spacing: Theme.gapSmall
+
+                InfoRow {
+                    objectName: "groupEmail"
+                    Layout.fillWidth: true
+                    label: qsTr("Email")
+                    value: page.group.email || ""
+                }
+
+                InfoRow {
+                    objectName: "groupComment"
+                    Layout.fillWidth: true
+                    label: qsTr("Comment")
+                    value: page.group.comment || ""
+                }
             }
 
-            BarButton {
-                objectName: "groupHelp"
-                Layout.rightMargin: 4
-                text: qsTr("About key groups")
-                icon.source: Theme.icon("info")
-                onClicked: groupHelp.open()
+            RowLayout {
+                Layout.fillWidth: true
+                visible: list.count > 0
+                spacing: 0
+
+                SectionHeader {
+                    objectName: "groupMembersLabel"
+                    Layout.fillWidth: true
+                    text: qsTr("Member keys (%1)").arg(list.count)
+                }
+
+                BarButton {
+                    objectName: "groupHelp"
+                    Layout.rightMargin: 4
+                    text: qsTr("About key groups")
+                    icon.source: Theme.icon("info")
+                    onClicked: groupHelp.open()
+                }
             }
         }
 

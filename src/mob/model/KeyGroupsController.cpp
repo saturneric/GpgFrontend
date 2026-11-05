@@ -69,9 +69,29 @@ auto KeyGroupsController::nameProblem(const QString& name) const -> QString {
   return DescribeKeyGroupMetadataProblem(ValidateKeyGroupMetadata(name, {}));
 }
 
-auto KeyGroupsController::create(const QString& name) -> QString {
-  if (!Ready() || !nameProblem(name).isEmpty()) return {};
-  const GpgKeyGroup group{name.trimmed(), {}, {}, {}};
+auto KeyGroupsController::problemOf(const QString& name,
+                                    const QString& email) const -> QVariantMap {
+  const auto problem = ValidateKeyGroupMetadata(name, email.trimmed());
+  QString field;
+  if (problem == KeyGroupMetadataProblem::kNameTooShort) {
+    field = QStringLiteral("name");
+  } else if (problem == KeyGroupMetadataProblem::kEmailMalformed) {
+    field = QStringLiteral("email");
+  }
+  return {{QStringLiteral("field"), field},
+          {QStringLiteral("text"), DescribeKeyGroupMetadataProblem(problem)}};
+}
+
+auto KeyGroupsController::create(const QString& name, const QString& email,
+                                 const QString& comment) -> QString {
+  if (!Ready() || !problemOf(name, email)
+                       .value(QStringLiteral("field"))
+                       .toString()
+                       .isEmpty()) {
+    return {};
+  }
+  const GpgKeyGroup group{
+      name.trimmed(), email.trimmed(), comment.trimmed(), {}};
   Groups().AddKeyGroup(group);
   changed();
   return group.ID();
@@ -159,6 +179,22 @@ auto KeyGroupsController::rename(const QString& id, const QString& name)
   }
   if (!Ready() || !Groups().Rename(id, name.trimmed())) {
     return tr("The group could not be renamed.");
+  }
+  changed();
+  return {};
+}
+
+auto KeyGroupsController::edit(const QString& id, const QString& name,
+                               const QString& email, const QString& comment)
+    -> QString {
+  const auto problem = problemOf(name, email);
+  if (const auto text = problem.value(QStringLiteral("text")).toString();
+      !text.isEmpty()) {
+    return text;
+  }
+  if (!Ready() || !Groups().UpdateMetadata(id, name.trimmed(), email.trimmed(),
+                                           comment.trimmed())) {
+    return tr("The group could not be changed.");
   }
   changed();
   return {};
