@@ -33,16 +33,16 @@
 #include "core/gpg/GpgCoreTest.h"
 #include "core/model/GpgKey.h"
 #include "core/model/GpgKeyGroup.h"
-#include "ui/main_window/EncryptBlockReason.h"
+#include "shell/rules/EncryptBlockReason.h"
 
 namespace GpgFrontend::Test {
 
 namespace {
 
-using UI::CollectEncryptKeyFacts;
-using UI::DescribeEncryptBlock;
-using UI::EncryptKeyFacts;
-using UI::EncryptSubkeyFacts;
+using Shell::CollectEncryptKeyFacts;
+using Shell::DescribeEncryptBlock;
+using Shell::EncryptKeyFacts;
+using Shell::EncryptSubkeyFacts;
 
 auto Date(const char* iso) -> QDateTime {
   return QDateTime::fromString(iso, Qt::ISODate);

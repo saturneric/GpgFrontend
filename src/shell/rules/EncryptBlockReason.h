@@ -28,9 +28,10 @@
 
 #pragma once
 
+#include "GFShellExport.h"
 #include "core/typedef/GpgTypedef.h"
 
-namespace GpgFrontend::UI {
+namespace GpgFrontend::Shell {
 
 /**
  * @brief What decides whether one subkey can take an encryption.
@@ -55,6 +56,9 @@ struct EncryptKeyFacts {
   bool usable = false;  ///< the key can encrypt right now
   bool revoked = false;
   bool expired = false;
+  bool disabled = false;
+  /// A key group with nobody in it: it would encrypt to nobody.
+  bool empty_group = false;
   QDateTime expires;
   QList<EncryptSubkeyFacts> subkeys;  ///< includes the primary
 };
@@ -66,16 +70,32 @@ struct EncryptKeyFacts {
  * @param facts the key
  * @return QString
  */
-auto GF_UI_EXPORT DescribeEncryptBlock(const EncryptKeyFacts& facts) -> QString;
+auto GF_SHELL_EXPORT DescribeEncryptBlock(const EncryptKeyFacts& facts)
+    -> QString;
 
 /**
- * @brief Read the facts off a checked entry. A key group always counts as
- * usable: its members are resolved later.
+ * @brief The same reason in a word or two, for a note under the key's name
+ * in a list ("Expired", "Has no keys"). Empty when it can be encrypted to.
  *
- * @param key a checked entry
+ * @param facts the key
+ * @return QString
+ */
+auto GF_SHELL_EXPORT EncryptBlockNote(const EncryptKeyFacts& facts) -> QString;
+
+/**
+ * @brief Read the facts off a key or key group. A key group counts as usable
+ * while it has members: they are resolved later.
+ *
+ * @param key a key, subkey or key group; nullptr gives empty facts
  * @return EncryptKeyFacts
  */
-auto GF_UI_EXPORT CollectEncryptKeyFacts(const GpgAbstractKeyPtr& key)
+auto GF_SHELL_EXPORT CollectEncryptKeyFacts(const GpgAbstractKey* key)
+    -> EncryptKeyFacts;
+
+/**
+ * @brief CollectEncryptKeyFacts() for a shared key.
+ */
+auto GF_SHELL_EXPORT CollectEncryptKeyFacts(const GpgAbstractKeyPtr& key)
     -> EncryptKeyFacts;
 
 /**
@@ -84,6 +104,48 @@ auto GF_UI_EXPORT CollectEncryptKeyFacts(const GpgAbstractKeyPtr& key)
  * @param key a checked entry
  * @return QString
  */
-auto GF_UI_EXPORT DescribeEncryptBlock(const GpgAbstractKeyPtr& key) -> QString;
+auto GF_SHELL_EXPORT DescribeEncryptBlock(const GpgAbstractKeyPtr& key)
+    -> QString;
 
-}  // namespace GpgFrontend::UI
+/**
+ * @brief What decides whether a key can sign.
+ */
+struct SignKeyFacts {
+  QString label;        ///< "Name <email>"
+  bool usable = false;  ///< the key can sign right now, here
+  bool secret = false;  ///< its secret key is here
+  bool revoked = false;
+  bool expired = false;
+  bool disabled = false;
+  bool group = false;  ///< a key group, which never signs
+  QDateTime expires;
+};
+
+/**
+ * @brief Read the facts off a key or key group.
+ *
+ * @param key a key; nullptr gives empty facts
+ * @return SignKeyFacts
+ */
+auto GF_SHELL_EXPORT CollectSignKeyFacts(const GpgAbstractKey* key)
+    -> SignKeyFacts;
+
+/**
+ * @brief Why this key cannot sign, in one sentence naming it. Empty when it
+ * can.
+ *
+ * @param facts the key
+ * @return QString
+ */
+auto GF_SHELL_EXPORT DescribeSignBlock(const SignKeyFacts& facts) -> QString;
+
+/**
+ * @brief The same reason in a word or two, for a note in a list. Empty when
+ * it can sign.
+ *
+ * @param facts the key
+ * @return QString
+ */
+auto GF_SHELL_EXPORT SignBlockNote(const SignKeyFacts& facts) -> QString;
+
+}  // namespace GpgFrontend::Shell

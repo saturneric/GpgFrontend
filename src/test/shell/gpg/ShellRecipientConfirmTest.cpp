@@ -32,13 +32,13 @@
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/gpg/GpgCoreTest.h"
 #include "core/model/GpgKeyGroup.h"
-#include "core/model/GpgKeyTableModel.h"
-#include "ui/main_window/RecipientConfirm.h"
+#include "shell/models/GpgKeyTableModel.h"
+#include "shell/rules/RecipientConfirm.h"
 
 namespace GpgFrontend::Test {
 
-using UI::BuildRecipientConfirmHtml;
-using UI::NeedsRecipientConfirmation;
+using Shell::BuildRecipientConfirmHtml;
+using Shell::NeedsRecipientConfirmation;
 
 // Off by default means never asking; on asks only once a second recipient
 // would learn about the first.
@@ -54,10 +54,10 @@ TEST(RecipientConfirmTest, AsksOnlyWhenOnAndMoreThanOneRecipient) {
 }
 
 TEST(RecipientConfirmTest, KeyIdIsGroupedInFours) {
-  EXPECT_EQ(UI::FormatKeyIdForDisplay("2B5F42197E62FBCF"),
+  EXPECT_EQ(Shell::FormatKeyIdForDisplay("2B5F42197E62FBCF"),
             "2B5F 4219 7E62 FBCF");
-  EXPECT_EQ(UI::FormatKeyIdForDisplay("ABCDEF"), "ABCD EF");
-  EXPECT_EQ(UI::FormatKeyIdForDisplay(""), "");
+  EXPECT_EQ(Shell::FormatKeyIdForDisplay("ABCDEF"), "ABCD EF");
+  EXPECT_EQ(Shell::FormatKeyIdForDisplay(""), "");
 }
 
 TEST(RecipientConfirmTest, ListsAKeyGroupByNameAndSize) {
@@ -84,8 +84,7 @@ TEST(RecipientConfirmTest, EscapesUserSuppliedText) {
 }
 
 TEST_F(GpgCoreTest, RecipientConfirmHtmlListsEveryKeyById) {
-  auto model = AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
-                   .GetGpgKeyTableModel();
+  auto model = MakeGpgKeyTableModel(kGpgFrontendDefaultChannel);
   ASSERT_TRUE(model != nullptr);
 
   GpgAbstractKeyPtrList keys;
@@ -100,7 +99,7 @@ TEST_F(GpgCoreTest, RecipientConfirmHtmlListsEveryKeyById) {
 
   EXPECT_EQ(html.count("<tr>"), 2) << html.toStdString();
   for (const auto& key : keys) {
-    EXPECT_TRUE(html.contains(UI::FormatKeyIdForDisplay(key->ID())))
+    EXPECT_TRUE(html.contains(Shell::FormatKeyIdForDisplay(key->ID())))
         << html.toStdString();
     EXPECT_TRUE(html.contains(key->Name().toHtmlEscaped()))
         << html.toStdString();

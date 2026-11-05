@@ -36,8 +36,10 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
+#include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/ChannelHandle.h"
 #include "model/KeyRoleModel.h"
+#include "shell/rules/RecipientConfirm.h"
 
 namespace GpgFrontend::Mobile {
 
@@ -384,6 +386,32 @@ auto WorkSelection::isRecipient(const QString& fingerprint) const -> bool {
   return recipient_set_.contains(fingerprint.toUpper());
 }
 
+auto WorkSelection::encryptQuestions() const -> QVariantList {
+  if (passphrase_mode_ || recipients_.isEmpty()) return {};
+  auto& repository =
+      AbstractKeyRepository::GetInstance(UsableDefaultChannelHandle());
+  GpgAbstractKeyPtrList keys;
+  for (const auto& fingerprint : recipients_) {
+    if (auto key = repository.GetKey(fingerprint); key != nullptr) {
+      keys.append(key);
+    }
+  }
+  const auto confirm_many =
+      SettingItems::kConfirmMultipleRecipients.Read(GetSettings());
+
+  QVariantList questions;
+  for (const auto& question :
+       Shell::EncryptQuestions(recipients_.size(), keys, confirm_many)) {
+    questions.append(QVariantMap{
+        {QStringLiteral("title"), question.title},
+        {QStringLiteral("text"), question.text},
+        {QStringLiteral("detail"), question.detail},
+        {QStringLiteral("accept"), question.accept},
+    });
+  }
+  return questions;
+}
+
 void WorkSelection::clearRecipients() {
   if (recipients_.isEmpty()) return;
   recipients_.clear();
@@ -447,6 +475,9 @@ auto WorkSelection::lookup(const QString& fingerprint) const -> QVariantMap {
              {QStringLiteral("status"), at.data(KeyRoleModel::kStatusRole)},
              {QStringLiteral("statusText"),
               at.data(KeyRoleModel::kStatusTextRole)},
+             {QStringLiteral("encryptNote"),
+              at.data(KeyRoleModel::kEncryptNoteRole)},
+             {QStringLiteral("signNote"), at.data(KeyRoleModel::kSignNoteRole)},
              {QStringLiteral("isGroup"),
               !at.data(KeyRoleModel::kIsKeyRole).toBool()},
              {QStringLiteral("memberCount"),
@@ -471,8 +502,18 @@ auto WorkSelection::recipient_key(const QString& fingerprint) const
     // A group with nobody in it would encrypt to nobody.
     issue = QStringLiteral("empty_group");
   }
+  // A rule the shell decides for both interfaces: whatever it says stops
+  // the key, said in its words.
+  const auto note = key.value(QStringLiteral("encryptNote")).toString();
+  if (issue.isEmpty() && !note.isEmpty())
+    issue = QStringLiteral("cannot_encrypt");
   if (key.isEmpty()) key.insert(QStringLiteral("fingerprint"), fingerprint);
   key.insert(QStringLiteral("issue"), issue);
+  key.insert(
+      QStringLiteral("note"),
+      issue == QStringLiteral("missing")
+          ? QCoreApplication::translate("Wording", "No longer in your keys")
+          : note);
   return key;
 }
 

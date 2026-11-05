@@ -89,6 +89,12 @@ class KeyRoleModel : public QIdentityProxyModel {
     /// are here. Empty for a key that cannot be used at all (its status
     /// says why) and for a key group.
     kCapabilitiesRole,
+    /// Why it cannot be encrypted to, in a word or two
+    /// (Shell::EncryptBlockNote): "Expired", "Has no keys"; empty when it
+    /// can be.
+    kEncryptNoteRole,
+    /// Why it cannot sign (Shell::SignBlockNote); empty when it can.
+    kSignNoteRole,
   };
   Q_ENUM(Role)
 

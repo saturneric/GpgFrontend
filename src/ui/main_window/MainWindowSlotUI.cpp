@@ -42,6 +42,7 @@
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "sdk/GFSDKTypes.h"
+#include "shell/rules/EncryptBlockReason.h"
 #include "ui/GpgFrontendApplication.h"
 #include "ui/UISignalStation.h"
 #include "ui/dialog/LogViewDialog.h"
@@ -53,7 +54,6 @@
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/function/KeyDatabaseRefresh.h"
 #include "ui/function/ProfileController.h"
-#include "ui/main_window/EncryptBlockReason.h"
 #include "ui/main_window/KeyMgmt.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/PlainTextEditorPage.h"
@@ -752,7 +752,7 @@ auto MainWindow::OperationsMaskForCheckedKeys(const GpgAbstractKeyPtrList& keys,
       if (!key->IsHasEncrCap()) {
         temp &= ~(OperationMenu::kEncrypt | OperationMenu::kEncryptAndSign);
         if (block_reason != nullptr && block_reason->isEmpty()) {
-          *block_reason = DescribeEncryptBlock(key);
+          *block_reason = Shell::DescribeEncryptBlock(key);
         }
       }
       if (!key->IsHasSignCap()) {

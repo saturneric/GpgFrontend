@@ -147,6 +147,11 @@ Page {
         }
         notice: page.notice
         sheets: page.sheets
+        ask: function(question, goOn) { encryptQuestion.ask(question, goOn) }
+    }
+
+    EncryptQuestionAlert {
+        id: encryptQuestion
     }
 
     // The system's picker, unless a prompt would be lost to it.

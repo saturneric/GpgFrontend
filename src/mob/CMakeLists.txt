@@ -139,6 +139,7 @@ qt_add_qml_module(gf_mob_lib
     qml/components/SecretField.qml
     qml/components/Alert.qml
     qml/components/MessageAlert.qml
+    qml/components/EncryptQuestionAlert.qml
     qml/components/BarButton.qml
     qml/components/ListRow.qml
     qml/components/SectionHeader.qml

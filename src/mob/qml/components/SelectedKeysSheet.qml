@@ -60,7 +60,7 @@ BottomSheet {
                 isKey: row.modelData.isKey !== false
                 usable: row.issue.length === 0
                 members: row.modelData.members || []
-                note: row.issue.length > 0 ? Wording.keyIssue(row.issue) : ""
+                note: row.issue.length > 0 ? (row.modelData.note || "") : ""
                 problem: row.issue.length > 0
 
                 BarButton {

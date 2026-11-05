@@ -31,6 +31,9 @@
 #include "core/model/GpgKey.h"
 #include "core/model/GpgKeyGroup.h"
 #include "core/utils/GpgUtils.h"
+#include "shell/models/GpgKeyTableModel.h"
+#include "shell/present/KeyStatus.h"
+#include "shell/rules/EncryptBlockReason.h"
 
 namespace GpgFrontend::Mobile {
 
@@ -121,6 +124,10 @@ auto KeyRoleModel::data(const QModelIndex& index, int role) const -> QVariant {
       return SecretState(key);
     case kCapabilitiesRole:
       return Capabilities(key);
+    case kEncryptNoteRole:
+      return Shell::EncryptBlockNote(Shell::CollectEncryptKeyFacts(key));
+    case kSignNoteRole:
+      return Shell::SignBlockNote(Shell::CollectSignKeyFacts(key));
     case kMembersRole: {
       // By its class, not its type alone: anything may say it is a group.
       const auto* group = dynamic_cast<const GpgKeyGroup*>(key);
@@ -216,6 +223,8 @@ auto KeyRoleModel::roleNames() const -> QHash<int, QByteArray> {
       {kMembersRole, "members"},
       {kSecretStateRole, "secretState"},
       {kCapabilitiesRole, "capabilities"},
+      {kEncryptNoteRole, "encryptNote"},
+      {kSignNoteRole, "signNote"},
   });
   return names;
 }

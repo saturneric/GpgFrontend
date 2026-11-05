@@ -78,7 +78,6 @@ if(GF_ENGINE_GNUPG)
   list(APPEND TEST_SOURCE core/gpg/GpgCoreTest.cpp)
 else()
   list(REMOVE_ITEM TEST_SOURCE
-    ./ui/GFUiEncryptBlockReasonTest.cpp
     ./ui/GFUiInfoBoardRenderTest.cpp
     ./ui/GFUiInfoBoardReportTest.cpp
     ./ui/GFUiRecipientConfirmTest.cpp)

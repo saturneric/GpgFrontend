@@ -296,6 +296,13 @@ TEST(WorkSelectionTest, AKeyThatCannotBeUsedIsReportedNotDropped) {
   const auto first = selection.RecipientKeys().first().toMap();
   EXPECT_EQ(first.value("name").toString(), "Bob");
   EXPECT_EQ(selection.RecipientKeys().at(2).toMap().value("fingerprint"), gone);
+  // Each says why in the words both interfaces use (Shell::EncryptBlockNote).
+  QStringList notes;
+  for (const auto& key : selection.RecipientKeys()) {
+    notes << key.toMap().value("note").toString();
+  }
+  EXPECT_EQ(notes, (QStringList{"Expired", "Cannot be encrypted to",
+                                "No longer in your keys", ""}));
 
   // Removing them is the person's to do.
   selection.removeRecipient(Fpr("BBBB0002"));
@@ -484,6 +491,41 @@ TEST(WorkSelectionTest, ASignerThatIsGoneIsReported) {
   selection.setPreferredSigner(QStringLiteral("FFFF").repeated(10));
   EXPECT_EQ(selection.SignerKey().value("issue").toString(), "missing");
   EXPECT_EQ(selection.SignBlock(), "signer_issue");
+}
+
+TEST(WorkSelectionTest, SeveralRecipientsAreConfirmedAsOnTheDesktop) {
+  Fixture f;
+  WorkSelection selection(&f.roles);
+  selection.SetKeysReady();
+  selection.addRecipient(Fpr("AAAA0001"));
+  selection.addRecipient(Fpr("CCCC0003"));
+
+  const auto set = [](bool on) {
+    auto settings = GetSettings();
+    SettingItems::kConfirmMultipleRecipients.Write(settings, on);
+  };
+  const auto before =
+      SettingItems::kConfirmMultipleRecipients.Read(GetSettings());
+
+  set(false);
+  EXPECT_TRUE(selection.encryptQuestions().isEmpty());
+
+  // The desktop's question, in its words (Shell::EncryptQuestions).
+  set(true);
+  const auto questions = selection.encryptQuestions();
+  ASSERT_EQ(questions.size(), 1);
+  const auto question = questions.first().toMap();
+  EXPECT_EQ(question.value("title").toString(), "Confirm Recipients");
+  EXPECT_EQ(question.value("accept").toString(), "Encrypt");
+
+  // One recipient, or a passphrase, is never asked about.
+  selection.removeRecipient(Fpr("CCCC0003"));
+  EXPECT_TRUE(selection.encryptQuestions().isEmpty());
+  selection.addRecipient(Fpr("CCCC0003"));
+  selection.SetPassphraseMode(true);
+  EXPECT_TRUE(selection.encryptQuestions().isEmpty());
+
+  set(before);
 }
 
 }  // namespace GpgFrontend::Test::Mobile

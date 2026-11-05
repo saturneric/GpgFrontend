@@ -102,6 +102,7 @@ Item {
                         "secretState": "", "capabilities": "ESC",
                         "hasSecret": false, "canEncrypt": true, "canSign": false,
                         "usable": true, "status": "ok", "statusText": "",
+                        "encryptNote": "", "signNote": "",
                         "isKey": true, "members": []})
             }
         }

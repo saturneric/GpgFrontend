@@ -28,9 +28,10 @@
 
 #pragma once
 
+#include "GFShellExport.h"
 #include "core/typedef/GpgTypedef.h"
 
-namespace GpgFrontend::UI {
+namespace GpgFrontend::Shell {
 
 /**
  * @brief Whether encrypting to checked_count recipients should first be
@@ -44,8 +45,8 @@ namespace GpgFrontend::UI {
  * @param setting_on the user setting
  * @return bool
  */
-auto GF_UI_EXPORT NeedsRecipientConfirmation(qsizetype checked_count,
-                                             bool setting_on) -> bool;
+auto GF_SHELL_EXPORT NeedsRecipientConfirmation(qsizetype checked_count,
+                                                bool setting_on) -> bool;
 
 /**
  * @brief A key id split into groups of four ("2B5F 4219 7E62 FBCF"), the
@@ -54,7 +55,7 @@ auto GF_UI_EXPORT NeedsRecipientConfirmation(qsizetype checked_count,
  * @param id key id
  * @return QString
  */
-auto GF_UI_EXPORT FormatKeyIdForDisplay(const QString& id) -> QString;
+auto GF_SHELL_EXPORT FormatKeyIdForDisplay(const QString& id) -> QString;
 
 /**
  * @brief The recipient list shown in the confirmation, as a rich-text table
@@ -68,7 +69,41 @@ auto GF_UI_EXPORT FormatKeyIdForDisplay(const QString& id) -> QString;
  * colour), so the list stays readable in dark themes
  * @return QString
  */
-auto GF_UI_EXPORT BuildRecipientConfirmHtml(const GpgAbstractKeyPtrList& keys,
-                                            const QColor& muted) -> QString;
+auto GF_SHELL_EXPORT BuildRecipientConfirmHtml(
+    const GpgAbstractKeyPtrList& keys, const QColor& muted) -> QString;
 
-}  // namespace GpgFrontend::UI
+/**
+ * @brief What is asked before an encryption to keys goes ahead.
+ */
+// NOLINTNEXTLINE(performance-enum-size)
+enum class EncryptQuestionKind {
+  kManyRecipients,   ///< every recipient sees the others' key ids
+  kMixedRecipients,  ///< post-quantum and classical recipients together
+};
+
+/**
+ * @brief One question, in words both interfaces show.
+ */
+struct GF_SHELL_EXPORT EncryptQuestion {
+  EncryptQuestionKind kind;
+  QString title;   ///< the dialog's title
+  QString text;    ///< the question
+  QString detail;  ///< why it is asked
+  QString accept;  ///< the button that goes ahead
+};
+
+/**
+ * @brief The questions to ask, in order, before encrypting to @p keys; none
+ * when it may go ahead at once. Cancelling any one cancels the encryption.
+ *
+ * @param recipient_count the entries chosen (a key group counts as one)
+ * @param keys the chosen keys and groups, groups not expanded
+ * @param confirm_many the "confirm multiple recipients" setting
+ * @return the questions
+ */
+auto GF_SHELL_EXPORT EncryptQuestions(qsizetype recipient_count,
+                                      const GpgAbstractKeyPtrList& keys,
+                                      bool confirm_many)
+    -> QList<EncryptQuestion>;
+
+}  // namespace GpgFrontend::Shell

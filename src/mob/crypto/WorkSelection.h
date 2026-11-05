@@ -176,6 +176,10 @@ class WorkSelection : public QObject {
   Q_INVOKABLE void toggleRecipient(const QString& fingerprint);
   [[nodiscard]] Q_INVOKABLE bool isRecipient(const QString& fingerprint) const;
   Q_INVOKABLE void clearRecipients();
+  /// What to ask before encrypting to the chosen recipients, in order, as
+  /// the desktop asks it (Shell::EncryptQuestions): [{title, text, detail,
+  /// accept}]; empty when it may go ahead.
+  [[nodiscard]] Q_INVOKABLE QVariantList encryptQuestions() const;
 
   /// Remember @p fingerprint as the signing key; empty forgets it.
   Q_INVOKABLE void setPreferredSigner(const QString& fingerprint);

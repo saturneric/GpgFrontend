@@ -22,6 +22,10 @@ QtObject {
     required property var notice
     // The sheet host, when there is one: the key toolbox is opened in it.
     property var sheets: null
+    // Asks one question before an encryption goes ahead: called with
+    // ({title, text, detail, accept}, goOn); goOn() when the person agrees.
+    // Without it nothing is asked.
+    property var ask: null
 
     // @p op on @p targets.
     function request(op, targets) {
@@ -84,8 +88,24 @@ QtObject {
     }
 
     // Start @p op, and keep what was done with keys to be done again in one
-    // tap.
+    // tap. An encryption to keys first asks what the desktop asks
+    // (WorkSelection.encryptQuestions), one question after the other.
     function run(op, targets) {
+        if (op === "encrypt" && flow.ask)
+            askThen(WorkSelection.encryptQuestions(), function() { flow.go(op, targets) })
+        else
+            go(op, targets)
+    }
+
+    function askThen(questions, goOn) {
+        if (questions.length === 0) {
+            goOn()
+            return
+        }
+        flow.ask(questions[0], function() { flow.askThen(questions.slice(1), goOn) })
+    }
+
+    function go(op, targets) {
         if (!flow.start(op, targets)) return
         if (op === "encrypt")
             WorkSelection.rememberOperation(WorkSelection.passphraseMode ? "symmetric"

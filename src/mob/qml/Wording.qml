@@ -116,20 +116,6 @@ QtObject {
         return qsTr("%n key(s)", "", count)
     }
 
-    function keyIssue(issue) {
-        switch (issue) {
-        case "empty_group": return qsTr("Has no keys")
-        case "missing": return qsTr("No longer in your keys")
-        case "expired": return qsTr("Expired")
-        case "revoked": return qsTr("Revoked")
-        case "disabled": return qsTr("Disabled")
-        case "cannot_encrypt": return qsTr("Cannot be encrypted to")
-        case "cannot_sign": return qsTr("Cannot sign")
-        case "no_secret": return qsTr("Not a key of your own")
-        default: return ""
-        }
-    }
-
     // Why Encrypt or Sign cannot run, as the toolbox heads its answer.
     function block(reason) {
         switch (reason) {

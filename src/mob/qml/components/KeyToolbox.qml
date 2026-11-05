@@ -298,15 +298,13 @@ BottomSheet {
             required property string statusText
             required property bool isKey
             required property var members
+            required property string encryptNote
+            required property string signNote
             required property var model
 
             // A key that cannot be used stays listed, saying why; so does a
-            // key group with nobody in it.
-            readonly property string reason: !usable ? statusText
-                : !isKey && (members || []).length === 0
-                  ? Wording.keyIssue("empty_group")
-                : sheet.signing ? (canSign ? "" : Wording.keyIssue("cannot_sign"))
-                                : (canEncrypt ? "" : Wording.keyIssue("cannot_encrypt"))
+            // key group with nobody in it. The reasons are the desktop's.
+            readonly property string reason: sheet.signing ? signNote : encryptNote
             readonly property bool chosen: sheet.signing
                 ? WorkSelection.preferredSigner.toUpperCase() === fingerprint.toUpperCase()
                 : WorkSelection.revision >= 0

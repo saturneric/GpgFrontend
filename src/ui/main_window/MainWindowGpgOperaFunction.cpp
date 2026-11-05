@@ -41,7 +41,6 @@
 #include "ui/function/InfoBoardCardConverter.h"
 #include "ui/main_window/EncryptBlockReason.h"
 #include "ui/main_window/FileOperaOutcome.h"
-#include "ui/main_window/RecipientConfirm.h"
 #include "ui/struct/GpgOperaResultContext.h"
 #include "ui/widgets/InfoBoardWidget.h"
 #include "ui/widgets/KeyList.h"
@@ -378,7 +377,7 @@ auto MainWindow::check_encrypt_keys_helper(const GpgAbstractKeyPtrList& keys)
   for (const auto& key : keys) {
     if (key == nullptr || can_encrypt(key)) continue;
 
-    const auto reason = DescribeEncryptBlock(key);
+    const auto reason = Shell::DescribeEncryptBlock(key);
     QMessageBox::critical(this, tr("Cannot Encrypt"),
                           reason.isEmpty() ? generic : reason);
     return {};
@@ -387,61 +386,57 @@ auto MainWindow::check_encrypt_keys_helper(const GpgAbstractKeyPtrList& keys)
   return check_keys_helper(keys, can_encrypt, generic);
 }
 
-auto MainWindow::confirm_recipients_helper(const GpgAbstractKeyPtrList& keys)
-    -> bool {
-  const auto setting_on =
-      SettingItems::kConfirmMultipleRecipients.Read(GetSettings());
-  if (!NeedsRecipientConfirmation(keys.size(), setting_on)) return true;
+namespace {
 
-  const int count = static_cast<int>(keys.size());
-
-  // Only reached with two or more recipients, so the English source can say
-  // "recipients" outright; %n still lets other languages pick their form.
-  QMessageBox box(this);
+/// Ask @p question in a message box; true when the person goes ahead.
+/// @p list, when given, is shown under the question (the recipients).
+auto AskEncryptQuestion(QWidget* parent, const Shell::EncryptQuestion& question,
+                        const QString& list = {}) -> bool {
+  QMessageBox box(parent);
   box.setIcon(QMessageBox::Warning);
-  box.setWindowTitle(tr("Confirm Recipients"));
-  box.setTextFormat(Qt::RichText);
-  box.setText(QString("<b>%1</b><br/>%2")
-                  .arg(tr("Encrypt to %n recipients?", nullptr, count),
-                       tr("Each recipient will be able to see the key IDs of "
-                          "all the others.")));
-  box.setInformativeText(BuildRecipientConfirmHtml(
-      keys, box.palette().color(QPalette::PlaceholderText)));
+  box.setWindowTitle(question.title);
+  if (list.isEmpty()) {
+    box.setText(question.text);
+    box.setInformativeText(question.detail);
+  } else {
+    box.setTextFormat(Qt::RichText);
+    box.setText(QString("<b>%1</b><br/>%2")
+                    .arg(question.text.toHtmlEscaped(),
+                         question.detail.toHtmlEscaped()));
+    box.setInformativeText(list);
+  }
 
-  auto* encrypt = box.addButton(tr("Encrypt"), QMessageBox::AcceptRole);
+  auto* go = box.addButton(question.accept, QMessageBox::AcceptRole);
   auto* cancel = box.addButton(QMessageBox::Cancel);
   box.setDefaultButton(cancel);
   box.setEscapeButton(cancel);
 
   box.exec();
-  return box.clickedButton() == encrypt;
+  return box.clickedButton() == go;
+}
+
+}  // namespace
+
+auto MainWindow::confirm_recipients_helper(const GpgAbstractKeyPtrList& keys)
+    -> bool {
+  // The phone asks the same (Shell::EncryptQuestions).
+  const auto setting_on =
+      SettingItems::kConfirmMultipleRecipients.Read(GetSettings());
+  for (const auto& question :
+       Shell::EncryptQuestions(keys.size(), {}, setting_on)) {
+    const auto list = Shell::BuildRecipientConfirmHtml(
+        keys, palette().color(QPalette::PlaceholderText));
+    if (!AskEncryptQuestion(this, question, list)) return false;
+  }
+  return true;
 }
 
 auto MainWindow::confirm_recipient_mix_helper(const GpgAbstractKeyPtrList& keys)
     -> bool {
-  if (!RecipientsMixPostQuantumAndClassical(keys)) return true;
-
-  // Allowed, never silently: every recipient can unwrap the same session key,
-  // so the message is only as strong as its weakest recipient.
-  QMessageBox box(this);
-  box.setIcon(QMessageBox::Warning);
-  box.setWindowTitle(tr("Mixed Recipient Types"));
-  box.setText(
-      tr("Some recipients use post-quantum encryption and others do "
-         "not."));
-  box.setInformativeText(
-      tr("The message key is encrypted to every recipient, so anyone able "
-         "to break the classical recipients' encryption can read the whole "
-         "message: the post-quantum protection does not hold for it. To keep "
-         "that protection, encrypt separately for the post-quantum "
-         "recipients."));
-  auto* encrypt = box.addButton(tr("Encrypt Anyway"), QMessageBox::AcceptRole);
-  auto* cancel = box.addButton(QMessageBox::Cancel);
-  box.setDefaultButton(cancel);
-  box.setEscapeButton(cancel);
-
-  box.exec();
-  return box.clickedButton() == encrypt;
+  for (const auto& question : Shell::EncryptQuestions(0, keys, false)) {
+    if (!AskEncryptQuestion(this, question)) return false;
+  }
+  return true;
 }
 
 auto MainWindow::same_key_database_helper(int channel) -> bool {

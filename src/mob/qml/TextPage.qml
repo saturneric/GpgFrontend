@@ -191,6 +191,7 @@ Page {
         }
         notice: page.notice
         sheets: page.sheets
+        ask: function(question, goOn) { encryptQuestion.ask(question, goOn) }
     }
 
     function finished(succeeded) {
@@ -554,6 +555,10 @@ Page {
         onClosed: Qt.callLater(function() {
             if (!notice.opened) page.dropOffer()
         })
+    }
+
+    EncryptQuestionAlert {
+        id: encryptQuestion
     }
 
     MessageAlert {
