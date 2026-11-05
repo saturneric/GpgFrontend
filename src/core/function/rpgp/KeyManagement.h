@@ -80,7 +80,7 @@ auto ModifySubkeyPassphraseRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
  * @return true if the subkey was deleted
  */
 auto DeleteSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
-                          int skey_idx) -> bool;
+                          int skey_idx) -> GFError;
 
 /**
  * @brief
@@ -95,7 +95,7 @@ auto DeleteSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
  */
 auto RevokeSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                           int subkey_index, int reason_code,
-                          const QString& reason_text) -> bool;
+                          const QString& reason_text) -> GFError;
 
 /**
  * @brief

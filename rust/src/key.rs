@@ -1534,6 +1534,29 @@ where
     Err(GfrStatus::ErrorBadPassphrase)
 }
 
+/// Check that `pwd` unlocks `key` before anything is signed with it.
+///
+/// A wrong passphrase is then reported as such — `ErrorBadPassphrase`, which
+/// the C++ side reads as a bad passphrase — rather than as whatever the
+/// signing step fails with (an invalid-data error the user would see as
+/// "General error"), and it is dropped from the cache so the next try asks
+/// again. A key whose secret is not encrypted needs no passphrase.
+pub(crate) fn require_unlocking_passphrase(
+    key: &pgp::packet::SecretKey,
+    pwd: &Password,
+    fpr: &str,
+) -> Result<(), GfrStatus> {
+    if !matches!(key.secret_params(), SecretParams::Encrypted(_)) {
+        return Ok(());
+    }
+    if matches!(key.unlock(pwd, |_, _| Ok(())), Ok(Ok(()))) {
+        return Ok(());
+    }
+    PASSWORD_CACHE.remove_by_fpr(fpr);
+    crate::err::set_last_error("the passphrase does not unlock the secret key");
+    Err(GfrStatus::ErrorBadPassphrase)
+}
+
 /// Re-protect every secret key in the block — primary and all subkeys — under a
 /// single new passphrase.
 ///
@@ -2017,10 +2040,8 @@ pub fn update_key_expiration_internal(
 
     // Check the passphrase before re-signing, so a wrong one is reported as
     // such rather than as whatever the signing step fails with.
-    if is_enc && secret_key.primary_key.unlock(&pwd, |_, _| Ok(())).is_err() {
-        PASSWORD_CACHE.remove_by_fpr(&primary_fpr);
-        crate::err::set_last_error("the passphrase does not unlock the secret key");
-        return Err(GfrStatus::ErrorBadPassphrase);
+    if is_enc {
+        require_unlocking_passphrase(&secret_key.primary_key, &pwd, &primary_fpr)?;
     }
 
     if is_primary_target {
@@ -2269,6 +2290,7 @@ pub fn revoke_subkey_internal(
         Zeroizing::new(Vec::new())
     };
     let pwd = password_from_zeroizing_bytes(pwd_bytes);
+    require_unlocking_passphrase(&secret_key.primary_key, &pwd, &fpr)?;
 
     let pk = secret_key.primary_key.public_key();
 
@@ -4266,6 +4288,24 @@ mod key_tests {
         );
         assert_eq!(result.err(), Some(GfrStatus::ErrorBadPassphrase));
         assert!(crate::err::last_error().contains("passphrase"));
+    }
+
+    #[test]
+    fn a_wrong_passphrase_on_a_subkey_revocation_is_a_bad_passphrase() {
+        let key1 = &crate::testutil::corpus::KEY1;
+        let fpr = key1.primary_key.fingerprint().to_string();
+        let subkey = key1.secret_subkeys[0].key.fingerprint().to_string();
+        crate::cache::PASSWORD_CACHE.remove_by_fpr(&fpr);
+        let result = revoke_subkey_internal(
+            0,
+            crate::testutil::corpus::KEY1_SECRET,
+            &subkey,
+            GfrRevocationCode::NoReason,
+            None,
+            Some(crate::testutil::cb::pwd_wrong),
+        );
+        assert_eq!(result.err(), Some(GfrStatus::ErrorBadPassphrase));
+        crate::cache::PASSWORD_CACHE.remove_by_fpr(&fpr);
     }
 
     #[test]

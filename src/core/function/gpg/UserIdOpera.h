@@ -43,7 +43,7 @@ namespace GpgFrontend {
  * @return false
  */
 auto AddUIDGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
-                     const QString& uid) -> bool;
+                     const QString& uid) -> GFError;
 
 /**
  * @brief
@@ -55,7 +55,7 @@ auto AddUIDGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
  * @return false
  */
 auto DeleteUIDGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
-                        const QString& uid) -> bool;
+                        const QString& uid) -> GFError;
 
 /**
  * @brief
@@ -70,7 +70,7 @@ auto DeleteUIDGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
  */
 auto RevokeUIDGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                         const QString& uid, int reason_code,
-                        const QString& reason_text) -> bool;
+                        const QString& reason_text) -> GFError;
 
 /**
  * @brief
@@ -82,5 +82,5 @@ auto RevokeUIDGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
  * @return false
  */
 auto SetPrimaryUIDGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
-                            const QString& uid) -> bool;
+                            const QString& uid) -> GFError;
 }  // namespace GpgFrontend

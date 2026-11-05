@@ -36,7 +36,7 @@
 namespace GpgFrontend {
 
 auto AddUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
-                    const QString& uid) -> bool {
+                    const QString& uid) -> GFError {
   const auto uid_utf8 = uid.toUtf8();
   return EditSecretKeyRpgp(ctx, key->Fingerprint(), "Adding a user ID",
                            [&](const GFKeyMetadata&,
@@ -44,12 +44,11 @@ auto AddUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                              return Rust::gfr_crypto_add_user_id(
                                  ctx.GetChannel(), block, uid_utf8.constData(),
                                  FetchPasswordCallback, out);
-                           })
-      .Ok();
+                           });
 }
 
 auto DeleteUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
-                       const QString& uid) -> bool {
+                       const QString& uid) -> GFError {
   const auto uid_utf8 = uid.toUtf8();
   return EditSecretKeyRpgp(ctx, key->Fingerprint(), "Deleting a user ID",
                            [&](const GFKeyMetadata& meta,
@@ -65,12 +64,11 @@ auto DeleteUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                              }
                              return Rust::gfr_crypto_delete_user_id(
                                  block, uid_utf8.constData(), out);
-                           })
-      .Ok();
+                           });
 }
 
 auto SetPrimaryUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
-                           const QString& uid) -> bool {
+                           const QString& uid) -> GFError {
   const auto uid_utf8 = uid.toUtf8();
   return EditSecretKeyRpgp(ctx, key->Fingerprint(),
                            "Setting the primary user ID",
@@ -79,13 +77,12 @@ auto SetPrimaryUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                              return Rust::gfr_crypto_set_primary_user_id(
                                  ctx.GetChannel(), block, uid_utf8.constData(),
                                  FetchPasswordCallback, out);
-                           })
-      .Ok();
+                           });
 }
 
 auto RevokeUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                        const QString& uid, int reason_code,
-                       const QString& reason_text) -> bool {
+                       const QString& reason_text) -> GFError {
   const auto uid_utf8 = uid.toUtf8();
   const auto reason_text_utf8 = reason_text.toUtf8();
   // 4 is GnuPG's "user ID is no longer valid"; anything else gives no reason.
@@ -101,8 +98,7 @@ auto RevokeUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                                  mapped_reason_code,
                                  reason_text_utf8.constData(),
                                  FetchPasswordCallback, out);
-                           })
-      .Ok();
+                           });
 }
 
 }  // namespace GpgFrontend

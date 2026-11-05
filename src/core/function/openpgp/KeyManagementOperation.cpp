@@ -123,15 +123,27 @@ auto KeyManagementOperation::SetOwnerTrustLevel(const GpgAbstractKeyPtr& key,
   return RunRegisteredForward<SetOwnerTrustLevelOpTag>(ctx_, key, trust_level);
 }
 
+auto KeyManagementOperation::DeleteSubkeySync(const GpgKeyPtr& key,
+                                              int skey_idx) -> GFError {
+  return RunRegisteredForward<DeleteSubKeyOpTag>(ctx_, key, skey_idx);
+}
+
+auto KeyManagementOperation::RevokeSubkeySync(const GpgKeyPtr& key,
+                                              int skey_idx, int reason_code,
+                                              const QString& reason_text)
+    -> GFError {
+  return RunRegisteredForward<RevokeSubKeyOpTag>(ctx_, key, skey_idx,
+                                                 reason_code, reason_text);
+}
+
 auto KeyManagementOperation::DeleteSubkey(const GpgKeyPtr& key, int skey_idx)
     -> bool {
-  return RunRegisteredForward<DeleteSubKeyOpTag>(ctx_, key, skey_idx);
+  return DeleteSubkeySync(key, skey_idx).Ok();
 }
 
 auto KeyManagementOperation::RevokeSubkey(const GpgKeyPtr& key, int skey_idx,
                                           int reason_code,
                                           const QString& reason_text) -> bool {
-  return RunRegisteredForward<RevokeSubKeyOpTag>(ctx_, key, skey_idx,
-                                                 reason_code, reason_text);
+  return RevokeSubkeySync(key, skey_idx, reason_code, reason_text).Ok();
 }
 }  // namespace GpgFrontend

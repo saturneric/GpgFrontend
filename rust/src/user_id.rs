@@ -45,7 +45,10 @@ use zeroize::Zeroizing;
 use crate::{
     cache::{PASSWORD_CACHE, PasswordCachePolicy},
     err::IntoGfrResult,
-    key::{is_user_id_revoked, names_primary_as_issuer, uid_reissue_template},
+    key::{
+        is_user_id_revoked, names_primary_as_issuer, require_unlocking_passphrase,
+        uid_reissue_template,
+    },
     types::{GfrPasswordFetchCb, GfrRevocationCode, GfrStatus},
     utils::{
         PassphraseStateInternal, build_revocation_reason_subpacket, fetch_password_with_cache,
@@ -140,7 +143,7 @@ pub fn add_user_id_internal(
             PasswordCachePolicy::Default,
             channel,
             PassphraseStateInternal {
-                fpr,
+                fpr: fpr.clone(),
                 info: "Add User ID".to_string(),
                 retry: false,
                 ask_for_new: false,
@@ -152,6 +155,7 @@ pub fn add_user_id_internal(
         Zeroizing::new(Vec::new())
     };
     let pwd = password_from_zeroizing_bytes(pwd_bytes);
+    require_unlocking_passphrase(&skey.primary_key, &pwd, &fpr)?;
 
     let new_uid = pgp::packet::UserId::from_str(PacketHeaderVersion::New, new_uid_str)
         .map_err(|_| GfrStatus::ErrorInternal)?;
@@ -320,7 +324,7 @@ pub fn set_primary_user_id_internal(
             PasswordCachePolicy::Default,
             channel,
             PassphraseStateInternal {
-                fpr,
+                fpr: fpr.clone(),
                 info: "Set Primary User ID".to_string(),
                 retry: false,
                 ask_for_new: false,
@@ -332,6 +336,7 @@ pub fn set_primary_user_id_internal(
         Zeroizing::new(Vec::new())
     };
     let pwd = password_from_zeroizing_bytes(pwd_bytes);
+    require_unlocking_passphrase(&skey.primary_key, &pwd, &fpr)?;
 
     let pk = skey.primary_key.public_key();
     let primary_hash = pgp::types::SigningKey::hash_alg(&skey.primary_key);
@@ -435,7 +440,7 @@ pub fn revoke_user_id_internal(
             PasswordCachePolicy::Default,
             channel,
             PassphraseStateInternal {
-                fpr,
+                fpr: fpr.clone(),
                 info: "Revoke User ID".to_string(),
                 retry: false,
                 ask_for_new: false,
@@ -447,6 +452,7 @@ pub fn revoke_user_id_internal(
         Zeroizing::new(Vec::new())
     };
     let pwd = password_from_zeroizing_bytes(pwd_bytes);
+    require_unlocking_passphrase(&skey.primary_key, &pwd, &fpr)?;
 
     let pk = skey.primary_key.public_key();
 
@@ -1386,6 +1392,53 @@ mod user_id_tests {
             .find(|s| matches!(s.typ(), Some(SignatureType::CertRevocation)))
             .expect("a revocation signature");
         assert_eq!(rev.version(), pgp::packet::SignatureVersion::V6);
+    }
+
+    #[test]
+    fn a_wrong_passphrase_on_a_user_id_change_is_a_bad_passphrase() {
+        // INV-MAP: a passphrase problem reaches the GUI as one, not as
+        // "invalid data" from the signing step that would fail afterwards;
+        // the right passphrase then works.
+        use crate::testutil::{cb, corpus};
+        let fpr = corpus::KEY1.primary_key.fingerprint().to_string();
+        let uid = String::from_utf8_lossy(corpus::KEY1.details.users[0].id.id()).to_string();
+
+        crate::cache::PASSWORD_CACHE.remove_by_fpr(&fpr);
+        let added = add_user_id_internal(
+            0,
+            corpus::KEY1_SECRET,
+            "Another <a@x.invalid>",
+            Some(cb::pwd_wrong),
+        );
+        assert_eq!(added.err(), Some(GfrStatus::ErrorBadPassphrase));
+        assert!(crate::err::last_error().contains("passphrase"));
+
+        crate::cache::PASSWORD_CACHE.remove_by_fpr(&fpr);
+        let primary =
+            set_primary_user_id_internal(0, corpus::KEY1_SECRET, &uid, Some(cb::pwd_wrong));
+        assert_eq!(primary.err(), Some(GfrStatus::ErrorBadPassphrase));
+
+        crate::cache::PASSWORD_CACHE.remove_by_fpr(&fpr);
+        let revoked = revoke_user_id_internal(
+            0,
+            corpus::KEY1_SECRET,
+            &uid,
+            GfrRevocationCode::UserIdInvalid,
+            None,
+            Some(cb::pwd_wrong),
+        );
+        assert_eq!(revoked.err(), Some(GfrStatus::ErrorBadPassphrase));
+
+        crate::cache::PASSWORD_CACHE.remove_by_fpr(&fpr);
+        let out = add_user_id_internal(
+            0,
+            corpus::KEY1_SECRET,
+            "Another <a@x.invalid>",
+            Some(cb::pwd_corpus),
+        )
+        .expect("the right passphrase adds it");
+        assert!(uids_of(&out).contains(&"Another <a@x.invalid>".to_string()));
+        crate::cache::PASSWORD_CACHE.remove_by_fpr(&fpr);
     }
 
     #[test]

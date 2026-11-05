@@ -106,6 +106,25 @@ class GF_CORE_EXPORT UserIdOperation
   auto SetPrimaryUID(const GpgKeyPtr& key, const QString& uid) -> bool;
 
   /**
+   * @brief AddUID() with the engine's own error: a wrong passphrase reads
+   * as one (kBAD_PASSPHRASE), a cancelled prompt as cancelled, a malformed
+   * name or comment as kINVALID_VALUE.
+   */
+  auto AddUIDSync(const GpgKeyPtr& key, const QString& uid) -> GFError;
+  auto AddUIDSync(const GpgKeyPtr& key, const QString& name,
+                  const QString& comment, const QString& email) -> GFError;
+
+  /// DeleteUID() with the engine's own error.
+  auto DeleteUIDSync(const GpgKeyPtr& key, const QString& uid) -> GFError;
+
+  /// RevokeUID() with the engine's own error.
+  auto RevokeUIDSync(const GpgKeyPtr& key, const QString& uid, int reason_code,
+                     const QString& reason_text) -> GFError;
+
+  /// SetPrimaryUID() with the engine's own error.
+  auto SetPrimaryUIDSync(const GpgKeyPtr& key, const QString& uid) -> GFError;
+
+  /**
    * @brief Asynchronously add a new user ID from individual components.
    *
    * Runs the operation on the GPG task runner so the caller's thread stays

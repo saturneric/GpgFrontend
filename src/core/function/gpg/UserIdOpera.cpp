@@ -37,15 +37,15 @@
 namespace GpgFrontend {
 
 auto AddUIDGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
-                     const QString& uid) -> bool {
+                     const QString& uid) -> GFError {
   auto& g_ctx = GpgCtx(ctx);
   auto err = gpgme_op_adduid(g_ctx.DefaultContext(), GpgmeKeyOf(*key),
                              uid.toUtf8(), 0);
-  return CheckGpgError(err) == GPG_ERR_NO_ERROR;
+  return FromGpgError(CheckGpgError(err));
 }
 
 auto DeleteUIDGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
-                        const QString& uid) -> bool {
+                        const QString& uid) -> GFError {
   auto& g_ctx = GpgCtx(ctx);
   auto& auto_hdlr = GpgAutomatonHandler::GetInstance(g_ctx.GetChannel());
 
@@ -61,7 +61,7 @@ auto DeleteUIDGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 
   if (uid_index < 2 || uid_index > static_cast<int>(key->UIDs().size())) {
     LOG_W() << "illegal uid_index index: " << uid_index;
-    return false;
+    return GFError::Application(GFErrorCode::kINVALID_VALUE);
   }
 
   AutomatonNextStateHandler next_state_handler = [](AutomatonState state,
@@ -132,12 +132,14 @@ auto DeleteUIDGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 
   auto [err, succ] =
       auto_hdlr.DoInteract(key, next_state_handler, action_handler);
-  return err == GPG_ERR_NO_ERROR && succ;
+  if (err != GPG_ERR_NO_ERROR) return FromGpgError(err);
+  // The interaction ended without saying why: no code of its own.
+  return succ ? GFError{} : FromGpgError(gpg_error(GPG_ERR_GENERAL));
 }
 
 auto RevokeUIDGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                         const QString& uid, int reason_code,
-                        const QString& reason_text) -> bool {
+                        const QString& reason_text) -> GFError {
   auto& auto_hdlr = GpgAutomatonHandler::GetInstance(ctx.GetChannel());
 
   int uid_index = -1;
@@ -152,12 +154,12 @@ auto RevokeUIDGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 
   if (uid_index < 2 || uid_index > static_cast<int>(key->UIDs().size())) {
     LOG_W() << "illegal uid index: " << uid_index;
-    return false;
+    return GFError::Application(GFErrorCode::kINVALID_VALUE);
   }
 
   if (reason_code != 0 && reason_code != 4) {
     LOG_W() << "illegal reason code: " << reason_code;
-    return false;
+    return GFError::Application(GFErrorCode::kINVALID_VALUE);
   }
 
   // dealing with reason text
@@ -260,16 +262,18 @@ auto RevokeUIDGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 
   auto [err, succ] =
       auto_hdlr.DoInteract(key, next_state_handler, action_handler);
-  return err == GPG_ERR_NO_ERROR && succ;
+  if (err != GPG_ERR_NO_ERROR) return FromGpgError(err);
+  // The interaction ended without saying why: no code of its own.
+  return succ ? GFError{} : FromGpgError(gpg_error(GPG_ERR_GENERAL));
 }
 
 auto SetPrimaryUIDGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
-                            const QString& uid) -> bool {
+                            const QString& uid) -> GFError {
   auto& g_ctx = GpgCtx(ctx);
   auto err = CheckGpgError(gpgme_op_set_uid_flag(g_ctx.DefaultContext(),
                                                  GpgmeKeyOf(*key), uid.toUtf8(),
                                                  "primary", nullptr));
-  return CheckGpgError(err) == GPG_ERR_NO_ERROR;
+  return FromGpgError(CheckGpgError(err));
 }
 
 }  // namespace GpgFrontend

@@ -219,6 +219,14 @@ class GF_CORE_EXPORT KeyManagementOperation
   auto RevokeSubkey(const GpgKeyPtr& key, int skey_idx, int reason_code,
                     const QString& reason_text) -> bool;
 
+  /// DeleteSubkey() with the engine's own error (a wrong passphrase reads
+  /// as kBAD_PASSPHRASE).
+  auto DeleteSubkeySync(const GpgKeyPtr& key, int skey_idx) -> GFError;
+
+  /// RevokeSubkey() with the engine's own error.
+  auto RevokeSubkeySync(const GpgKeyPtr& key, int skey_idx, int reason_code,
+                        const QString& reason_text) -> GFError;
+
  private:
   // OpenPGP context for this channel.
   OpenPGPContext& ctx_ =

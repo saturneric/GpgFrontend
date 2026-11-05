@@ -111,26 +111,23 @@ auto ModifySubkeyPassphraseRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 }
 
 auto DeleteSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
-                          int skey_idx) -> bool {
+                          int skey_idx) -> GFError {
   return EditSecretKeyRpgp(
-             ctx, key->Fingerprint(), "Deleting a subkey",
-             [&](const GFKeyMetadata& meta, const Rust::GfrBuffer& block,
-                 char** out) {
-               if (skey_idx < 0 ||
-                   skey_idx >= static_cast<int>(meta.subkeys.size())) {
-                 LOG_E() << "illegal subkey index:" << skey_idx
-                         << "for key:" << meta.fpr;
-                 return Rust::GfrStatus::ErrorInvalidInput;
-               }
-               return Rust::gfr_crypto_delete_subkey(
-                   block, meta.subkeys[skey_idx].fpr.toUtf8().constData(), out);
-             })
-      .Ok();
+      ctx, key->Fingerprint(), "Deleting a subkey",
+      [&](const GFKeyMetadata& meta, const Rust::GfrBuffer& block, char** out) {
+        if (skey_idx < 0 || skey_idx >= static_cast<int>(meta.subkeys.size())) {
+          LOG_E() << "illegal subkey index:" << skey_idx
+                  << "for key:" << meta.fpr;
+          return Rust::GfrStatus::ErrorInvalidInput;
+        }
+        return Rust::gfr_crypto_delete_subkey(
+            block, meta.subkeys[skey_idx].fpr.toUtf8().constData(), out);
+      });
 }
 
 auto RevokeSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                           int subkey_index, int reason_code,
-                          const QString& reason_text) -> bool {
+                          const QString& reason_text) -> GFError {
   const auto reason_text_utf8 = reason_text.toUtf8();
 
   auto mapped_reason_code = Rust::GfrRevocationCode::NoReason;
@@ -149,22 +146,20 @@ auto RevokeSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   }
 
   return EditSecretKeyRpgp(
-             ctx, key->Fingerprint(), "Revoking a subkey",
-             [&](const GFKeyMetadata& meta, const Rust::GfrBuffer& block,
-                 char** out) {
-               if (subkey_index < 0 ||
-                   subkey_index >= static_cast<int>(meta.subkeys.size())) {
-                 LOG_E() << "illegal subkey index:" << subkey_index
-                         << "for key:" << meta.fpr;
-                 return Rust::GfrStatus::ErrorInvalidInput;
-               }
-               return Rust::gfr_crypto_revoke_subkey(
-                   ctx.GetChannel(), block,
-                   meta.subkeys[subkey_index].fpr.toUtf8().constData(),
-                   mapped_reason_code, reason_text_utf8.constData(),
-                   FetchPasswordCallback, out);
-             })
-      .Ok();
+      ctx, key->Fingerprint(), "Revoking a subkey",
+      [&](const GFKeyMetadata& meta, const Rust::GfrBuffer& block, char** out) {
+        if (subkey_index < 0 ||
+            subkey_index >= static_cast<int>(meta.subkeys.size())) {
+          LOG_E() << "illegal subkey index:" << subkey_index
+                  << "for key:" << meta.fpr;
+          return Rust::GfrStatus::ErrorInvalidInput;
+        }
+        return Rust::gfr_crypto_revoke_subkey(
+            ctx.GetChannel(), block,
+            meta.subkeys[subkey_index].fpr.toUtf8().constData(),
+            mapped_reason_code, reason_text_utf8.constData(),
+            FetchPasswordCallback, out);
+      });
 }
 
 auto GenerateRevCertRpgpImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key,

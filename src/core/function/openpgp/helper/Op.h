@@ -33,6 +33,7 @@
 
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/function/openpgp/helper/OpSupport.h"
+#include "core/typedef/GFError.h"
 
 /**
  * @brief One GnuPG row of an engine dispatch table, or nothing.
@@ -157,6 +158,9 @@ auto DispatchByEngine(OpenPGPContext& ctx, const Table& table, Args&&... args)
 
   if constexpr (std::is_void_v<Ret>) {
     return;
+  } else if constexpr (std::is_same_v<Ret, GFError>) {
+    // A default GFError reads as success: say what happened instead.
+    return GFError::Application(GFErrorCode::kNOT_SUPPORTED);
   } else {
     return Ret{};
   }
@@ -195,6 +199,9 @@ auto DispatchByEngine(OpenPGPEngine engine, const Table& table, Args&&... args)
 
   if constexpr (std::is_void_v<Ret>) {
     return;
+  } else if constexpr (std::is_same_v<Ret, GFError>) {
+    // A default GFError reads as success: say what happened instead.
+    return GFError::Application(GFErrorCode::kNOT_SUPPORTED);
   } else {
     return Ret{};
   }

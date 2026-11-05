@@ -224,12 +224,12 @@ auto AddADSKGnuPGIImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 }
 
 auto DeleteSubKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
-                           int skey_index) -> bool {
+                           int skey_index) -> GFError {
   auto& ah = GpgAutomatonHandler::GetInstance(ctx.GetChannel());
 
   if (skey_index < 0 || skey_index >= static_cast<int>(key->SubKeys().size())) {
     LOG_W() << "illegal subkey index: " << skey_index;
-    return false;
+    return GFError::Application(GFErrorCode::kINVALID_VALUE);
   }
 
   AutomatonNextStateHandler next_state_handler =
@@ -301,23 +301,25 @@ auto DeleteSubKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   };
 
   auto [err, succ] = ah.DoInteract(key, next_state_handler, action_handler);
-  return err == GPG_ERR_NO_ERROR && succ;
+  if (err != GPG_ERR_NO_ERROR) return FromGpgError(err);
+  // The interaction ended without saying why: no code of its own.
+  return succ ? GFError{} : FromGpgError(gpg_error(GPG_ERR_GENERAL));
 }
 
 auto RevokeSubKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                            int subkey_index, int reason_code,
-                           const QString& reason_text) -> bool {
+                           const QString& reason_text) -> GFError {
   auto& ah = GpgAutomatonHandler::GetInstance(ctx.GetChannel());
 
   if (subkey_index < 0 ||
       subkey_index >= static_cast<int>(key->SubKeys().size())) {
     LOG_W() << "illegal subkey index: " << subkey_index;
-    return false;
+    return GFError::Application(GFErrorCode::kINVALID_VALUE);
   }
 
   if (reason_code < 0 || reason_code > 3) {
     LOG_W() << "illegal reason code: " << reason_code;
-    return false;
+    return GFError::Application(GFErrorCode::kINVALID_VALUE);
   }
 
   // dealing with reason text
@@ -420,7 +422,9 @@ auto RevokeSubKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
       };
 
   auto [err, succ] = ah.DoInteract(key, next_state_handler, action_handler);
-  return err == GPG_ERR_NO_ERROR && succ;
+  if (err != GPG_ERR_NO_ERROR) return FromGpgError(err);
+  // The interaction ended without saying why: no code of its own.
+  return succ ? GFError{} : FromGpgError(gpg_error(GPG_ERR_GENERAL));
 }
 
 auto SetOwnerTrustLevelGnuPGImpl(OpenPGPContext& ctx,

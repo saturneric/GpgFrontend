@@ -110,7 +110,7 @@ auto ModifySubkeyPassphraseGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
  * @return false
  */
 auto DeleteSubKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
-                           int skey_index) -> bool;
+                           int skey_index) -> GFError;
 
 /**
  * @brief
@@ -125,7 +125,7 @@ auto DeleteSubKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
  */
 auto RevokeSubKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                            int subkey_index, int reason_code,
-                           const QString& reason_text) -> bool;
+                           const QString& reason_text) -> GFError;
 /**
  * @brief
  *
