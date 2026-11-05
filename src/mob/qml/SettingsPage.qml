@@ -185,7 +185,10 @@ Page {
                 objectName: "forgetPassphrases"
                 Layout.fillWidth: true
                 text: qsTr("Clear cached passphrases")
-                detail: qsTr("The next operation asks for them again.")
+                // The cache times above hold only while GpgFrontend is in
+                // front: leaving it clears them as well (AppLifecycle).
+                detail: qsTr("The next operation asks for them again. They are "
+                             + "also cleared whenever you leave GpgFrontend.")
                 onClicked: {
                     settings.forgetPassphrases()
                     done.show(qsTr("Cached passphrases are cleared."))

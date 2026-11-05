@@ -64,10 +64,18 @@ Alert {
 
         SecretField {
             id: repeat
+            objectName: "pinRepeat"
             Layout.fillWidth: true
             visible: sheet.creating
             placeholderText: qsTr("Repeat the PIN")
             onAccepted: if (unlock.enabled) unlock.clicked()
+        }
+
+        // Why Set PIN cannot be pressed yet, once the repeat is typed.
+        ProblemLabel {
+            objectName: "pinMismatch"
+            text: sheet.creating && repeat.text.length > 0 && pin.text !== repeat.text
+                  ? qsTr("The two PINs are not the same.") : ""
         }
 
         // The buttons at the right, side by side while they fit and on to a

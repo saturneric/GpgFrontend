@@ -95,6 +95,25 @@ Item {
             answered(() => TestSupport.answer(), "cancelled")
         }
 
+        // A new PIN typed twice: two that differ are said to, and cannot be
+        // set; the same twice can.
+        function test_two_different_pins_are_said_to_differ() {
+            TestSupport.askPin(true, 0)
+            tryVerify(() => pinSheet.opened, 3000, "the PIN prompt came up")
+            const pin = findByName(pinSheet.contentItem, "pinField")
+            const repeat = findByName(pinSheet.contentItem, "pinRepeat")
+            const problem = findByName(pinSheet.contentItem, "pinMismatch")
+            verify(repeat.visible)
+            pin.text = "2468"
+            verify(!problem.visible)
+            repeat.text = "2469"
+            verify(problem.visible)
+            repeat.text = "2468"
+            verify(!problem.visible)
+            mouseClick(findByName(pinSheet.contentItem, "pinQuit"))
+            answered(() => TestSupport.answer(), "cancelled")
+        }
+
         // After a few wrong ones, a way out for a forgotten PIN.
         function test_a_forgotten_pin_can_be_reset_after_failures() {
             openPin(0)

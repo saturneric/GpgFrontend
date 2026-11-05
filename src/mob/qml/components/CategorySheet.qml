@@ -235,8 +235,11 @@ BottomSheet {
         ActionButton {
             objectName: "categorySave"
             text: sheet.categoryId.length > 0 ? qsTr("Save") : qsTr("Create")
+            // The colour typed, not the last one that was a colour: never
+            // saved while the field says it is not one.
             enabled: name.text.trim().length > 0
                      && sheet.parseHex(sheet.color).length > 0
+                     && (hex.text.length === 0 || sheet.parseHex(hex.text).length > 0)
             onClicked: sheet.save()
         }
     ]

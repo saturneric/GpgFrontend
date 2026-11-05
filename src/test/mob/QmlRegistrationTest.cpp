@@ -220,6 +220,17 @@ TEST(QmlRegistrationTest, ExpertChoicesComeFromTheEngine) {
     auto* subkey = find(sheet.get(), "subkeyChooser");
     EXPECT_EQ(subkey->property("algo").toMap().value("id").toString(),
               "cv25519");
+    // A subkey for nothing is not made: every usage taken away, it is not
+    // complete, and says why.
+    EXPECT_TRUE(subkey->property("complete").toBool());
+    const auto usage = subkey->property("usage");
+    subkey->setProperty("usage", QVariantMap{{"encrypt", false},
+                                             {"sign", false},
+                                             {"authenticate", false}});
+    EXPECT_FALSE(subkey->property("complete").toBool());
+    EXPECT_TRUE(subkey->property("usageMissing").toBool());
+    subkey->setProperty("usage", usage);
+    EXPECT_TRUE(subkey->property("complete").toBool());
 
     // Another profile, chosen in Expert Mode, fills the choices in again.
     auto* profile = find(sheet.get(), "generateProfile");

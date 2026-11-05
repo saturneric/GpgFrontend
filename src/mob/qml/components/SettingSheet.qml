@@ -29,6 +29,8 @@ BottomSheet {
         if (unit === "operation") return Wording.operationLabel(amount)
         if (unit === "days") return qsTr("%n day(s)", "", amount)
         if (unit !== "seconds") return String(amount)
+        // A prompt that waits as long as it takes.
+        if (amount === 0) return qsTr("No limit")
         if (amount > 0 && amount % 3600 === 0) {
             const hours = amount / 3600
             return qsTr("%n hour(s)", "", hours)
@@ -97,8 +99,10 @@ BottomSheet {
 
         SpinBox {
             id: amount
-            from: 0
-            to: 1000000
+            // What takes effect: days as the key list counts them (1 to
+            // 365), seconds from none (no limit) to a day.
+            from: sheet.unit === "days" ? 1 : 0
+            to: sheet.unit === "days" ? 365 : 86400
             editable: true
             inputMethodHints: Qt.ImhDigitsOnly
         }

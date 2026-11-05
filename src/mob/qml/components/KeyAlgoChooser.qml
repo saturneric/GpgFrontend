@@ -31,8 +31,15 @@ ColumnLayout {
     // The hybrid's possible second halves, and what this algorithm allows.
     readonly property var pairings: profiles && algo.id ? profiles.pairings(algo) : []
     readonly property var allowed: profiles && algo.id ? profiles.usage(algo, subkey) : ({})
+    // A subkey is for something: one with no usage would be of no use
+    // (a primary key always certifies, so it may have none of these).
+    readonly property bool hasUsage: usage.encrypt === true || usage.sign === true
+                                     || usage.authenticate === true
+    readonly property bool usageMissing: subkey && showUsage && algo.id !== undefined
+                                         && !hasUsage
     readonly property bool complete: algo.id !== undefined
                                      && (pairings.length === 0 || pair.id !== undefined)
+                                     && !usageMissing
     readonly property var choices: ({"algo": algo, "pair": pair, "usage": usage,
                                      "validity": validity})
 
@@ -141,6 +148,11 @@ ColumnLayout {
                 onToggled: chooser.setUsage(modelData.key, checked)
             }
         }
+    }
+
+    ProblemLabel {
+        objectName: "usageProblem"
+        text: chooser.usageMissing ? qsTr("Choose at least one usage.") : ""
     }
 
     Caption {
