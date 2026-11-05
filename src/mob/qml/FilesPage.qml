@@ -316,7 +316,8 @@ Page {
         case "queued": return qsTr("Waiting…")
         case "running": return Wording.running(file.operation)
         case "cancelled": return qsTr("Cancelled")
-        case "failed": return qsTr("%1. Tap for details.").arg(Wording.failed(file.operation))
+        case "failed":
+            return page.failureText(file)
         }
         const size = Theme.fileSize(file.size)
         if (file.operation === "verify" && file.phase === "done") {
@@ -329,6 +330,14 @@ Page {
         if (file.origin === "made" && file.savedName.length === 0)
             return qsTr("%1 · Temporary, not saved").arg(size)
         return size
+    }
+
+    // A failed file's line: what did not happen, and why when the result
+    // says (by its kind, never by matching the engine's words).
+    function failureText(file) {
+        const why = Wording.failureReason((file.result || {}).reason || "")
+        return why.length > 0 ? qsTr("%1 · %2").arg(Wording.failed(file.operation)).arg(why)
+                              : Wording.failed(file.operation)
     }
 
     function detailColorOf(file) {

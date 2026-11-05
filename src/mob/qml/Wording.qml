@@ -219,6 +219,59 @@ QtObject {
         }
     }
 
+    // Why an operation failed, in a few words, by the kind ResultPresenter
+    // names (report.reason); empty for a kind with no words of its own.
+    function failureReason(kind) {
+        switch (kind) {
+        case "no_secret_key": return qsTr("No matching secret key")
+        case "no_public_key": return qsTr("Public key not found")
+        case "no_key": return qsTr("Key not found")
+        case "bad_passphrase": return qsTr("Wrong passphrase")
+        case "no_passphrase": return qsTr("No passphrase given")
+        case "not_openpgp": return qsTr("Not OpenPGP data")
+        case "damaged": return qsTr("Damaged data")
+        case "decrypt_failed": return qsTr("Could not be decrypted")
+        case "bad_signature": return qsTr("Bad signature")
+        case "key_expired": return qsTr("Key expired")
+        case "key_revoked": return qsTr("Key revoked")
+        case "unsupported_algorithm": return qsTr("Unsupported algorithm")
+        default: return ""
+        }
+    }
+
+    // The same, as a sentence that says what it means.
+    function failureExplanation(kind) {
+        switch (kind) {
+        case "no_secret_key":
+            return qsTr("This message cannot be decrypted because no matching "
+                        + "secret key is available.")
+        case "no_public_key":
+            return qsTr("The public key this needs is not in your keys.")
+        case "no_key":
+            return qsTr("The key this needs is not in your keys.")
+        case "bad_passphrase":
+            return qsTr("The passphrase was wrong. Try again with the right one.")
+        case "no_passphrase":
+            return qsTr("No passphrase was given, so the key could not be used.")
+        case "not_openpgp":
+            return qsTr("This is not OpenPGP data, or not complete.")
+        case "damaged":
+            return qsTr("The OpenPGP data is damaged and cannot be read.")
+        case "decrypt_failed":
+            return qsTr("The message could not be decrypted. It may be damaged "
+                        + "or made for another key.")
+        case "bad_signature":
+            return qsTr("The signature does not match the data.")
+        case "key_expired":
+            return qsTr("The key has expired and can no longer be used for this.")
+        case "key_revoked":
+            return qsTr("The key was revoked and can no longer be used for this.")
+        case "unsupported_algorithm":
+            return qsTr("This uses an algorithm this app does not support.")
+        default: return ""
+        }
+    }
+
     // What a record was for: "the text", or the file's name.
     function target(record) {
         const targets = (record && record.targets) || []

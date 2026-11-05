@@ -41,7 +41,12 @@ namespace GpgFrontend::Mobile {
  *  signatures: [{uid, fingerprint, keyId, validity, good, verdict,
  *                signature, keyStatus, identityTrust, signTime, warnings}],
  *  recipients: [{uid, keyId, keyFound}],
- *  errors: [text]}
+ *  errors: [text], reason}
+ *
+ * reason is why it failed, as a kind the pages word themselves
+ * ("no_secret_key", "bad_passphrase", "not_openpgp", "damaged", ...), from
+ * the first failing stage's error code; empty when no kind says more than
+ * the engine's own words (errors), which are kept for the technical details.
  *
  * status is the analysers' own: 1 success, 0 success with warnings, -1
  * failure; cancelled says the failure was a refused passphrase prompt (the

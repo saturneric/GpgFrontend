@@ -28,6 +28,8 @@
 
 #include "GpgOpResultInfo.h"
 
+#include <algorithm>
+
 #include "core/utils/GpgUtils.h"
 #include "shell/result_analyse/InfoBoardCard.h"
 
@@ -371,9 +373,25 @@ auto ConvertOpInfoToCards(const GpgOpResultInfo& info) -> QList<InfoBoardCard> {
   const bool is_encrypt = info.op == GpgOperation::kENCRYPT ||
                           info.op == GpgOperation::kENCRYPT_SIGN;
 
+  // The message's own facts (its file name, cipher, MIME, integrity) are
+  // known only once it was decrypted: a failed decryption leaves them at
+  // their defaults, and "not MIME" or "not protected" would be told as
+  // findings about a message nobody read. What its outer packets say (the
+  // recipients) stays: that needs no decryption. A success an engine still
+  // reported an error under was decrypted all the same.
+  const bool decrypt_failed =
+      info.status < 0 &&
+      std::any_of(
+          info.stageErrors.begin(), info.stageErrors.end(),
+          [](const GpgOpStageError& e) {
+            return e.error.Failed() &&
+                   (e.scope == GpgOperation::kDECRYPT ||
+                    e.scope == GpgOperation::kDECRYPT_VERIFY);
+          });
   const bool is_decrypt_with_data =
       info.newSignatures.isEmpty() && info.invalidSigners.isEmpty() &&
-      (!info.recipients.isEmpty() || !info.details.isEmpty()) && is_decrypt;
+      (!info.recipients.isEmpty() || !info.details.isEmpty()) && is_decrypt &&
+      !decrypt_failed;
   if (is_decrypt_with_data) {
     InfoBoardCard meta_card;
     meta_card.kind = InfoBoardCardKind::kMESSAGE_METADATA;

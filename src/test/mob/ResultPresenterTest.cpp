@@ -64,4 +64,43 @@ TEST(ResultPresenterTest, HowItWentIsTheDesktopsReading) {
   EXPECT_FALSE(report.value("headline").toString().isEmpty());
 }
 
+// A decryption no key here could open: why, as a kind the pages word, and
+// none of the message's own facts, which nobody read; the recipients its
+// outer packets name stay.
+TEST(ResultPresenterTest, AFailedDecryptionSaysWhyAndNoMessageFacts) {
+  auto info = Info(-1);
+  GpgRecipientInfo recipient;
+  recipient.keyId = "0123456789ABCDEF";
+  info.recipients.append(recipient);
+  GpgOpStageError error;
+  error.scope = GpgOperation::kDECRYPT;
+  error.error = {GFErrorCode::kNO_SECRET_KEY, GFErrorOrigin::kRPGP, 0};
+  error.codeText = "Secret key not found";
+  info.stageErrors.append(error);
+
+  const auto failed = PresentResult(info);
+  EXPECT_EQ(failed.value("reason").toString(), "no_secret_key");
+  // The engine's words are kept for the details.
+  EXPECT_TRUE(failed.value("errors").toStringList().contains(
+      "Secret key not found"));
+  QStringList titles;
+  for (const auto& card : failed.value("cards").toList()) {
+    titles << card.toMap().value("title").toString();
+  }
+  EXPECT_FALSE(titles.contains("Message Metadata")) << titles.join(", ").toStdString();
+  EXPECT_TRUE(titles.contains("Decryption Recipient")) << titles.join(", ").toStdString();
+
+  // Decrypted: its facts are known, and shown.
+  auto ok = Info(1);
+  ok.recipients.append(recipient);
+  ok.messageIntegrityProtected = true;
+  titles.clear();
+  const auto done = PresentResult(ok);
+  EXPECT_TRUE(done.value("reason").toString().isEmpty());
+  for (const auto& card : done.value("cards").toList()) {
+    titles << card.toMap().value("title").toString();
+  }
+  EXPECT_TRUE(titles.contains("Message Metadata")) << titles.join(", ").toStdString();
+}
+
 }  // namespace GpgFrontend::Test::Mobile

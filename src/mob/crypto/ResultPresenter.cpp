@@ -132,6 +132,45 @@ auto IdentityTrustFact(const GpgVerifySigInfo& sig) -> QString {
              : QStringLiteral("not_trusted");
 }
 
+/// Why an operation failed, as a kind the pages put in their own words
+/// (Wording.failureReason()); empty where no kind says more than the
+/// engine's own text. From the error's code, never its wording.
+auto ReasonName(const GFError& error) -> QString {
+  switch (error.code) {
+    case GFErrorCode::kNO_SECRET_KEY:
+    case GFErrorCode::kUNUSABLE_SECRET_KEY:
+      return QStringLiteral("no_secret_key");
+    case GFErrorCode::kNO_PUBLIC_KEY:
+    case GFErrorCode::kUNUSABLE_PUBLIC_KEY:
+      return QStringLiteral("no_public_key");
+    case GFErrorCode::kNO_KEY:
+      return QStringLiteral("no_key");
+    case GFErrorCode::kBAD_PASSPHRASE:
+    case GFErrorCode::kINVALID_PASSPHRASE:
+      return QStringLiteral("bad_passphrase");
+    case GFErrorCode::kNO_PASSPHRASE:
+      return QStringLiteral("no_passphrase");
+    case GFErrorCode::kNO_DATA:
+    case GFErrorCode::kBAD_ARMOR:
+    case GFErrorCode::kINVALID_DATA:
+      return QStringLiteral("not_openpgp");
+    case GFErrorCode::kBAD_DATA:
+      return QStringLiteral("damaged");
+    case GFErrorCode::kDECRYPT_FAILED:
+      return QStringLiteral("decrypt_failed");
+    case GFErrorCode::kBAD_SIGNATURE:
+      return QStringLiteral("bad_signature");
+    case GFErrorCode::kKEY_EXPIRED:
+      return QStringLiteral("key_expired");
+    case GFErrorCode::kKEY_REVOKED:
+      return QStringLiteral("key_revoked");
+    case GFErrorCode::kUNSUPPORTED_ALGORITHM:
+      return QStringLiteral("unsupported_algorithm");
+    default:
+      return {};
+  }
+}
+
 }  // namespace
 
 auto PresentResult(const GpgOpResultInfo& info) -> QVariantMap {
@@ -167,8 +206,13 @@ auto PresentResult(const GpgOpResultInfo& info) -> QVariantMap {
 
   QStringList errors;
   bool cancelled = false;
+  QString reason;
   for (const auto& error : info.stageErrors) {
     if (error.error.Canceled()) cancelled = true;
+    // The first failure that has a kind: what stopped the operation.
+    if (reason.isEmpty() && error.error.Failed()) {
+      reason = ReasonName(error.error);
+    }
     if (!error.codeText.isEmpty()) errors << error.codeText;
     for (const auto& detail : error.engineDetails) {
       if (!detail.second.isEmpty()) errors << detail.second;
@@ -224,6 +268,7 @@ auto PresentResult(const GpgOpResultInfo& info) -> QVariantMap {
       {QStringLiteral("signatures"), signatures},
       {QStringLiteral("recipients"), recipients},
       {QStringLiteral("errors"), errors},
+      {QStringLiteral("reason"), reason},
       {QStringLiteral("cards"), cards},
   };
 }

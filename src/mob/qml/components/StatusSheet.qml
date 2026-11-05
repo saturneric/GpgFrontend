@@ -133,6 +133,25 @@ BottomSheet {
                                  : {"cancelled": true}
     }
     readonly property bool hasReport: outcome !== null
+    // Why one operation failed, as a kind with words of its own; then the
+    // sheet says it once, in those words, and keeps the engine's for the
+    // details.
+    readonly property string failureKind: !isBatch && record.phase === "failed"
+                                          ? ((record.report || {}).reason || "") : ""
+    readonly property bool explained: Wording.failureReason(failureKind).length > 0
+    // The engine's own texts, each once and none the description already
+    // holds.
+    readonly property var engineErrors: {
+        const description = ((record.report || {}).description || "").toLowerCase()
+        const seen = []
+        for (const e of ((record.report || {}).errors || [])) {
+            const t = (e || "").trim()
+            if (t.length === 0 || seen.includes(t)) continue
+            if (description.includes(t.toLowerCase())) continue
+            seen.push(t)
+        }
+        return seen
+    }
     // Finished, the header below says it: the outcome, then what it was.
     title: hasReport ? "" : isBatch ? host.batchTitle(items, counts)
                                     : Wording.title(record)
@@ -235,13 +254,26 @@ BottomSheet {
         text: sheet.host ? sheet.host.countsText(sheet.counts) : ""
     }
 
+    // Why it failed, when its kind is known: in a few words, then what
+    // that means; the engine's words are under Details.
+    Label {
+        objectName: "statusReason"
+        Layout.fillWidth: true
+        visible: sheet.explained
+        wrapMode: Text.Wrap
+        font.weight: Font.DemiBold
+        color: Theme.danger
+        text: Wording.failureReason(sheet.failureKind)
+    }
+
     Label {
         objectName: "statusDescription"
         Layout.fillWidth: true
         visible: !sheet.isBatch && text.length > 0
         wrapMode: Text.Wrap
-        text: (sheet.record.report || {}).description
-              || Wording.reason(sheet.record.reason || "")
+        text: sheet.explained ? Wording.failureExplanation(sheet.failureKind)
+              : (sheet.record.report || {}).description
+                || Wording.reason(sheet.record.reason || "")
     }
 
     // Each signature: does it hold, what state is the key in, and was the
@@ -326,9 +358,10 @@ BottomSheet {
     }
 
     Repeater {
-        // A cancel says so in the title; the engine's word for it is not an error.
-        model: sheet.isBatch || sheet.record.phase === "cancelled" ? []
-               : ((sheet.record.report || {}).errors || [])
+        // A cancel says so in the title; the engine's word for it is not an
+        // error. A failure already said in words is not said again.
+        model: sheet.isBatch || sheet.record.phase === "cancelled"
+               || sheet.explained ? [] : sheet.engineErrors
 
         Label {
             required property var modelData
@@ -482,6 +515,38 @@ BottomSheet {
         TabButton {
             objectName: "statusViewDetails"
             text: qsTr("Details")
+        }
+    }
+
+    // The engine's own words for a failure already explained above, and
+    // what it reported, in full: nothing of the diagnosis is lost.
+    ColumnLayout {
+        objectName: "statusTechnical"
+        Layout.fillWidth: true
+        visible: sheet.expanded && !showReport.checked && sheet.explained
+        spacing: 2
+
+        Label {
+            Layout.fillWidth: true
+            text: qsTr("Technical details")
+            color: Material.secondaryTextColor
+            font.pixelSize: Theme.labelSize
+        }
+
+        Repeater {
+            model: sheet.explained
+                   ? [(sheet.record.report || {}).description || ""]
+                     .concat(sheet.engineErrors).filter(t => t.length > 0)
+                   : []
+
+            Label {
+                required property var modelData
+                Layout.fillWidth: true
+                wrapMode: Text.Wrap
+                font.family: Theme.mono
+                font.pixelSize: Theme.labelSize
+                text: modelData
+            }
         }
     }
 
