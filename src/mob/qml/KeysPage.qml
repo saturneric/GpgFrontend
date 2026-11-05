@@ -159,17 +159,11 @@ Page {
                 required property var model
 
                 width: ListView.view.width
-                // A key group has no categories: a long press opens it, as
-                // a tap does.
-                onCategoriesRequested: {
-                    if (!model.isKey) {
-                        page.groupOpened(model.fingerprint, false)
-                        return
-                    }
-                    keyCategories.begin({
-                        "keyId": model.keyId, "name": primaryText
-                    })
-                }
+                // A long press: which categories the key, or the key group,
+                // is in (a group by its id, as the desktop keeps it).
+                onCategoriesRequested: keyCategories.begin({
+                    "keyId": model.keyId, "name": primaryText
+                })
                 onClicked: if (!model.isKey) page.groupOpened(model.fingerprint, false)
                            else page.keyChosen({
                     "name": model.name, "email": model.email,

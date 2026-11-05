@@ -134,12 +134,18 @@ auto KeyFilterModel::filterAcceptsRow(int source_row,
   const auto index = sourceModel()->index(source_row, 0, source_parent);
   const auto role = [&index](int r) { return index.data(r); };
 
-  // Key groups: in their own category, and where they are asked for when
-  // all are shown; every other category holds keys.
+  // Key groups: in their own category, in one of the person's own they
+  // were put in (as the desktop matches a category: by the id), and where
+  // they are asked for when all are shown; the ready-made categories hold
+  // keys.
   const bool group = !role(KeyRoleModel::kIsKeyRole).toBool();
+  const bool in_own_category =
+      !category_.isEmpty() && !IsBuiltinKeyCategory(category_) &&
+      category_key_ids_.contains(role(KeyRoleModel::kKeyIdRole).toString());
   if (category_ == QLatin1String(kKeyGroupCategory)) {
     if (!group) return false;
-  } else if (group && (!with_groups_ || !category_.isEmpty())) {
+  } else if (group &&
+             (!with_groups_ || (!category_.isEmpty() && !in_own_category))) {
     return false;
   } else if (!category_.isEmpty()) {
     if (IsBuiltinKeyCategory(category_)) {

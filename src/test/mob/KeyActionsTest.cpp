@@ -1086,6 +1086,22 @@ TEST_F(KeyActionsTest, KeyGroupsAreMadeFilledAndEncryptedTo) {
     EXPECT_EQ(chosen.keys.first()->Fingerprint().toUpper(),
               member_fpr.toUpper());
 
+    // Put in one of the person's categories, as a key is (by its id): shown
+    // there where groups are listed, still never in a ready-made one.
+    GpgFrontend::Mobile::KeyCategoriesController categories;
+    EXPECT_EQ(categories.add("Group Holder", categories.suggestColor()), "");
+    QString holder;
+    for (const auto& c : categories.Categories()) {
+      if (c.toMap().value("name") == "Group Holder") {
+        holder = c.toMap().value("id").toString();
+      }
+    }
+    ASSERT_FALSE(holder.isEmpty());
+    categories.setMember(holder, id, true);
+    EXPECT_TRUE(rows(holder, true).contains(id));
+    EXPECT_FALSE(rows(holder, false).contains(id));
+    EXPECT_FALSE(rows("has_private_key", true).contains(id));
+
     // Renamed by the same rule, emptied, deleted; its key stays.
     EXPECT_FALSE(groups.rename(id, "Grp").isEmpty());
     EXPECT_EQ(groups.rename(id, "Phone Group B"), "");
@@ -1099,6 +1115,9 @@ TEST_F(KeyActionsTest, KeyGroupsAreMadeFilledAndEncryptedTo) {
     EXPECT_TRUE(groups.group(id).isEmpty());
     EXPECT_FALSE(rows({}, true).contains(id));
     EXPECT_TRUE(HasKey(member_fpr));
+    // Gone from its category with it.
+    EXPECT_FALSE(categories.keyIdsOf(holder).contains(id));
+    categories.remove(holder);
   });
 }
 

@@ -202,6 +202,9 @@ Page {
             onKeyChosen: function(key) {
                 StackView.view.push(keyDetail, {"key": key})
             }
+            onGroupOpened: function(id) {
+                StackView.view.push(keyGroupPage, {"groupId": id})
+            }
         }
     }
 

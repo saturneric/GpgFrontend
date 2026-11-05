@@ -30,6 +30,7 @@
 
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/ChannelHandle.h"
+#include "core/function/openpgp/KeyCategoryRepository.h"
 #include "core/function/openpgp/KeyGroupRepository.h"
 #include "core/model/GpgKeyGroup.h"
 #include "core/profile/ProfileSession.h"
@@ -165,6 +166,15 @@ auto KeyGroupsController::rename(const QString& id, const QString& name)
 
 auto KeyGroupsController::remove(const QString& id) -> bool {
   if (!Ready() || !Groups().Remove(id)) return false;
+  // Gone from the categories it was put in too: a later group never
+  // inherits them by chance.
+  auto& categories =
+      KeyCategoryRepository::GetInstance(UsableDefaultChannelHandle());
+  for (const auto& category : categories.Fetch()) {
+    if (!category.builtin && category.key_ids.contains(id)) {
+      categories.RemoveKeyFromCategory(category.id, id);
+    }
+  }
   changed();
   return true;
 }

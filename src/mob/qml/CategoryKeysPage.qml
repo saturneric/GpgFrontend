@@ -22,6 +22,8 @@ Page {
     signal back()
     // A key of it was tapped: its page.
     signal keyChosen(var key)
+    // A key group in the category, to open (by its id).
+    signal groupOpened(string id)
 
     // What the page last said in passing (a pop-up, not in the item tree).
     readonly property alias notice: done
@@ -81,6 +83,8 @@ Page {
             id: members
             sourceModel: KeyListController.keys
             category: page.category.id || ""
+            // The key groups put in it too.
+            withGroups: true
         }
 
         delegate: KeyRow {
@@ -89,7 +93,8 @@ Page {
             required property var model
 
             width: ListView.view.width
-            onClicked: page.keyChosen({
+            onClicked: if (!model.isKey) page.groupOpened(model.fingerprint)
+                       else page.keyChosen({
                 "name": model.name, "email": model.email,
                 "comment": model.comment, "keyId": model.keyId,
                 "fingerprint": model.fingerprint,

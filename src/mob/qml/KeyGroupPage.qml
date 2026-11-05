@@ -53,6 +53,13 @@ Page {
                 onTriggered: namer.begin(page.group)
             }
             MenuItem {
+                objectName: "groupCategories"
+                text: qsTr("Categories")
+                onTriggered: groupCategories.begin({
+                    "keyId": page.groupId, "name": page.group.name || ""
+                })
+            }
+            MenuItem {
                 objectName: "groupDelete"
                 text: qsTr("Delete")
                 onTriggered: confirmDelete.open()
@@ -62,6 +69,16 @@ Page {
 
     KeyGroupsController {
         id: groups
+    }
+
+    // Which of the person's categories the group is in, as for a key.
+    KeyCategoriesController {
+        id: categoryStore
+    }
+
+    KeyCategoriesSheet {
+        id: groupCategories
+        categories: categoryStore
     }
 
     ListView {
