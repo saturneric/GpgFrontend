@@ -354,8 +354,12 @@ void KeyPairUIDTab::slot_del_uid() {
     auto f = [this, uid](const OperaWaitingHd& hd) {
       UserIdOperation::GetInstance(current_gpg_context_channel_)
           .DeleteUID(
-              m_key_, uid, [this, hd, uid](GFError err, const DataObjectPtr&) {
+              m_key_, uid,
+              [this, alive = QPointer<QObject>(this), hd, uid](
+                  GFError err, const DataObjectPtr&) {
                 hd();
+                // The wait is over either way; the dialog may not be.
+                if (alive.isNull()) return;
                 if (err.Canceled()) return;
                 if (!err.Ok()) {
                   QMessageBox::critical(
@@ -400,8 +404,11 @@ void KeyPairUIDTab::slot_set_primary_uid() {
   auto f = [this, uid](const OperaWaitingHd& hd) {
     UserIdOperation::GetInstance(current_gpg_context_channel_)
         .SetPrimaryUID(m_key_, uid,
-                       [this, hd](GFError err, const DataObjectPtr&) {
+                       [this, alive = QPointer<QObject>(this), hd](
+                           GFError err, const DataObjectPtr&) {
                          hd();
+                         // The wait is over either way; the dialog may not be.
+                         if (alive.isNull()) return;
                          if (err.Canceled()) return;
                          if (!err.Ok()) {
                            QMessageBox::critical(
@@ -554,8 +561,12 @@ void KeyPairUIDTab::slot_del_sign() {
   auto f = [this, selected_signs](const OperaWaitingHd& hd) {
     KeyManagementOperation::GetInstance(current_gpg_context_channel_)
         .RevKeySignature(m_key_, selected_signs,
-                         [this, hd](GFError err, const DataObjectPtr&) {
+                         [this, alive = QPointer<QObject>(this), hd](
+                             GFError err, const DataObjectPtr&) {
                            hd();
+                           // The wait is over either way; the dialog may not
+                           // be.
+                           if (alive.isNull()) return;
                            if (err.Canceled()) return;
                            if (!err.Ok()) {
                              QMessageBox::critical(
@@ -632,8 +643,11 @@ void KeyPairUIDTab::slot_rev_uid() {
                       text](const OperaWaitingHd& hd) {
               UserIdOperation::GetInstance(channel).RevokeUID(
                   key, uid, code == 1 ? 4 : 0, text,
-                  [this, hd](GFError err, const DataObjectPtr&) {
+                  [this, alive = QPointer<QObject>(this), hd](
+                      GFError err, const DataObjectPtr&) {
                     hd();
+                    // The wait is over either way; the dialog may not be.
+                    if (alive.isNull()) return;
                     if (err.Canceled()) return;
                     if (!err.Ok()) {
                       QMessageBox::critical(

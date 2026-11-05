@@ -217,9 +217,13 @@ void KeyPairOperaTab::slot_gen_revoke_cert() {
 }
 
 void KeyPairOperaTab::slot_modify_password() {
+  // The window stays open while gpg's pinentry waits, and can be closed; the
+  // answer must not land on a deleted tab.
+  QPointer<KeyPairOperaTab> self = this;
   KeyManagementOperation::GetInstance(current_gpg_context_channel_)
-      .ModifyPassword(m_key_, [this](GFError err, const DataObjectPtr&) {
-        RaiseMessageBox(this, err);
+      .ModifyPassword(m_key_, [self](GFError err, const DataObjectPtr&) {
+        if (self.isNull()) return;
+        RaiseMessageBox(self, err);
       });
 }
 
