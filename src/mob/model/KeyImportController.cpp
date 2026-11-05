@@ -28,7 +28,9 @@
 
 #include "model/KeyImportController.h"
 
+#include <QClipboard>
 #include <QFile>
+#include <QGuiApplication>
 #include <QPointer>
 
 #include "core/function/openpgp/ChannelHandle.h"
@@ -51,6 +53,16 @@ auto KeyImportController::Result() const -> QVariantMap { return result_; }
 void KeyImportController::importText(const QString& text) {
   const auto block = GFBuffer(text);
   run([block]() { return std::optional<GFBuffer>(block); });
+}
+
+auto KeyImportController::importClipboard() -> bool {
+  auto* clipboard = QGuiApplication::clipboard();
+  if (clipboard == nullptr || busy_) return false;
+  auto text = clipboard->text();
+  if (text.trimmed().isEmpty()) return false;
+  importText(text);
+  text.fill(QChar(u'\0'));
+  return true;
 }
 
 void KeyImportController::importFile(const QUrl& url) {

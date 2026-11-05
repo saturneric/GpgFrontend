@@ -58,6 +58,18 @@ Item {
         Label { text: "On top" }
     }
 
+    ImportSheet {
+        id: importer
+    }
+
+    // Puts white space on the clipboard: nothing to import, whatever an
+    // earlier test copied.
+    TextEdit {
+        id: clipboardSetter
+        visible: false
+        text: " \n "
+    }
+
     TestCase {
         name: "BottomSheet"
         when: windowShown
@@ -156,6 +168,34 @@ Item {
             wait(300)
             verify(small.opened)
             small.interactive = true
+        }
+
+        // Importing keys: two direct ways in, no field to paste into and no
+        // Import button; an empty clipboard says so instead of doing nothing.
+        function test_keys_are_imported_by_a_tap() {
+            function find(item, name) {
+                if (item.objectName === name) return item
+                for (let i = 0; i < item.children.length; ++i) {
+                    const found = find(item.children[i], name)
+                    if (found) return found
+                }
+                return null
+            }
+            importer.begin()
+            tryVerify(() => importer.opened)
+            verify(find(importer.contentItem, "importFromFile") !== null)
+            const clip = find(importer.contentItem, "importFromClipboard")
+            verify(clip !== null && clip.enabled)
+            compare(find(importer.contentItem, "importText"), null)
+            compare(find(importer.contentItem, "importRun"), null)
+            clipboardSetter.selectAll()
+            clipboardSetter.copy()
+            clip.clicked()
+            const outcome = find(importer.contentItem, "importOutcome")
+            verify(outcome.visible)
+            verify(outcome.text.indexOf("clipboard") >= 0)
+            importer.close()
+            tryVerify(() => !importer.visible)
         }
     }
 }

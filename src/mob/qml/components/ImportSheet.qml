@@ -7,14 +7,18 @@ import QtQuick.Dialogs
 import QtQuick.Layouts
 import GpgFrontend.Mobile
 
+// Importing keys: from a file, or from what was copied, each a tap that
+// imports at once -- no text to paste into a field first. The clipboard is
+// read only on that tap, and its text never comes to this page. A key block
+// the Text page hands over is imported as the sheet opens.
 BottomSheet {
     id: sheet
 
-    // Open with @p text (a key block from the Text page), or empty.
+    // Open; with @p text (a key block from the Text page), import it at once.
     function begin(text) {
-        block.text = text || ""
         outcome.text = ""
         open()
+        if ((text || "").trim().length > 0) importer.importText(text)
     }
 
     objectName: "importSheet"
@@ -23,19 +27,14 @@ BottomSheet {
                                : Popup.CloseOnEscape | Popup.CloseOnPressOutside
     interactive: !importer.busy
 
-    // A secret key block is as sensitive as it gets: gone when the sheet
-    // closes, and when the application goes to the background.
-    onClosed: block.text = ""
-
     function finished(imported) {
         const r = importer.result
         if (r.considered === undefined) {
-            outcome.text = qsTr("No key could be read from this text.")
+            outcome.text = qsTr("No key could be read from this.")
         } else if (imported) {
             outcome.text = qsTr("Imported %1 key(s).").arg(
                         r.imported + r.secretImported)
             KeyListController.refresh()
-            block.text = ""
         } else if (r.unchanged > 0) {
             outcome.text = qsTr("You already have these keys.")
         } else {
@@ -43,21 +42,19 @@ BottomSheet {
         }
     }
 
+    function importClipboard() {
+        outcome.text = ""
+        if (!importer.importClipboard())
+            outcome.text = qsTr("The clipboard has no text to import. Copy a "
+                                + "key first.")
+    }
+
     KeyImportController {
         id: importer
     }
 
-    // Going to the background forgets whatever was pasted.
-    function wipe() {
-        if (!importer.busy) block.text = ""
-    }
-
-    // The bridge outlives the sheet: let go of it with the sheet.
-    Component.onCompleted: {
-        importer.SignalFinished.connect(sheet.finished)
-        InteractionBridge.SignalWipeSecretInputs.connect(sheet.wipe)
-    }
-    Component.onDestruction: InteractionBridge.SignalWipeSecretInputs.disconnect(sheet.wipe)
+    // Signals named Signal... have no on-handler in QML.
+    Component.onCompleted: importer.SignalFinished.connect(sheet.finished)
 
     // No name filters: Android's picker filters by MIME type, and it has none
     // that covers .asc, so a filter greys out the very files it names. What a
@@ -65,7 +62,10 @@ BottomSheet {
     FileDialog {
         id: keyFile
         fileMode: FileDialog.OpenFile
-        onAccepted: importer.importFile(selectedFile)
+        onAccepted: {
+            outcome.text = ""
+            importer.importFile(selectedFile)
+        }
     }
 
     ListRow {
@@ -83,32 +83,18 @@ BottomSheet {
     }
 
     ListRow {
+        objectName: "importFromClipboard"
         Layout.fillWidth: true
         Layout.leftMargin: -Theme.sheetPad
         Layout.rightMargin: -Theme.sheetPad
+        Layout.topMargin: -Theme.gapSmall
         leftPadding: Theme.sheetPad
-        enabled: !importer.busy && block.canPaste
+        enabled: !importer.busy
         symbol: "content_paste"
         symbolColor: Material.accentColor
         text: qsTr("From the clipboard")
-        detail: qsTr("Paste a key block copied from somewhere else.")
-        onClicked: {
-            block.selectAll()
-            block.paste()
-        }
-    }
-
-    TextArea {
-        id: block
-        objectName: "importText"
-        Layout.fillWidth: true
-        Layout.minimumHeight: 120
-        Layout.maximumHeight: 240
-        wrapMode: TextEdit.WrapAnywhere
-        inputMethodHints: Qt.ImhSensitiveData | Qt.ImhNoPredictiveText
-        placeholderText: qsTr("-----BEGIN PGP PUBLIC KEY BLOCK-----")
-        font.family: Theme.mono
-        font.pixelSize: Theme.labelSize
+        detail: qsTr("A key block you copied from somewhere else.")
+        onClicked: sheet.importClipboard()
     }
 
     Label {
@@ -134,13 +120,6 @@ BottomSheet {
             flat: true
             enabled: !importer.busy
             onClicked: sheet.close()
-        },
-        Button {
-            objectName: "importRun"
-            text: qsTr("Import")
-            highlighted: true
-            enabled: block.text.trim().length > 0 && !importer.busy
-            onClicked: importer.importText(block.text)
         }
     ]
 }

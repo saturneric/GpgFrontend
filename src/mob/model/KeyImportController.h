@@ -66,6 +66,16 @@ class KeyImportController : public QObject {
   /// Import from @p url: a local file, or a document a picker returned.
   Q_INVOKABLE void importFile(const QUrl& url);
 
+  /**
+   * @brief Import what the clipboard holds as text, read only now, when the
+   * person asked for it, and never handed to QML.
+   *
+   * @return false, importing nothing, when the clipboard holds no text (or
+   * only white space); what text there is goes through importText()'s path
+   * and reports as it does.
+   */
+  Q_INVOKABLE bool importClipboard();
+
  signals:
   void SignalBusyChanged();
   void SignalResultChanged();

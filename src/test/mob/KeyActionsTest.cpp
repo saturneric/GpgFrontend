@@ -26,7 +26,9 @@
  *
  */
 
+#include <QClipboard>
 #include <QFileInfo>
+#include <QGuiApplication>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -274,6 +276,44 @@ TEST_F(KeyActionsTest, AFileThatIsNotAKeyImportsNothing) {
     i->importFile(QUrl::fromLocalFile(dir.filePath("no-such-file.asc")));
   });
   EXPECT_TRUE(missing.isEmpty());
+}
+
+// The clipboard is read only when asked, and what it says decides: nothing
+// to import, text that is no key, or a key.
+TEST_F(KeyActionsTest, KeysAreImportedFromTheClipboard) {
+  const auto made = Act([](auto* a) {
+    a->generate("Clip Board", "clip@mobile.example.invalid", 0, false);
+  });
+  ASSERT_TRUE(made.succeeded);
+  const auto fpr = made.detail.value("fingerprint").toString();
+  const auto exported = Act([&fpr](auto* a) { a->exportPublic(fpr); });
+  ASSERT_TRUE(exported.succeeded);
+  const auto armored = exported.detail.value("armored").toString();
+  ASSERT_TRUE(Act([&fpr](auto* a) { a->remove(fpr); }).succeeded);
+
+  // Empty, or only white space: nothing is started.
+  bool started = true;
+  RunOnMainThread([&]() {
+    QGuiApplication::clipboard()->setText(QStringLiteral("  \n "));
+    started = importer_->importClipboard();
+  });
+  EXPECT_FALSE(started);
+
+  // Text that is no key: read, and nothing imported.
+  const auto notes = Import([](auto* i) {
+    QGuiApplication::clipboard()->setText(QStringLiteral("just some notes"));
+    EXPECT_TRUE(i->importClipboard());
+  });
+  EXPECT_EQ(notes.value("imported").toInt(), 0);
+
+  // A key block: imported.
+  const auto imported = Import([&armored](auto* i) {
+    QGuiApplication::clipboard()->setText(armored);
+    EXPECT_TRUE(i->importClipboard());
+  });
+  EXPECT_EQ(imported.value("imported").toInt(), 1);
+  EXPECT_TRUE(HasKey(fpr));
+  RunOnMainThread([]() { QGuiApplication::clipboard()->clear(); });
 }
 
 TEST_F(KeyActionsTest, AKeyIsDescribedAsTheDesktopDescribesIt) {
