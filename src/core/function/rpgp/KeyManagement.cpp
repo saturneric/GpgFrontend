@@ -247,9 +247,9 @@ auto GenerateRevCertRpgpImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key,
     return false;
   }
 
-  auto out_block_str = QString::fromUtf8(out_secret_block);
+  const GFBuffer out_block(out_secret_block, std::strlen(out_secret_block));
   Rust::gfr_crypto_free_string(out_secret_block);
-  return WriteFileGFBuffer(output_path, GFBuffer(out_block_str));
+  return WriteFileGFBuffer(output_path, out_block);
 }
 
 auto SetExpireRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,

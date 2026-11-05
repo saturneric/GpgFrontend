@@ -438,30 +438,34 @@ auto ImportRevCertRpgpImpl(OpenPGPContext& ctx, const GFBuffer& in_buffer)
     return {};
   }
 
-  auto qs_sec_armored = QString::fromUtf8(out_sec);
-  Rust::gfr_crypto_free_string(out_sec);
-  auto qs_pub_armored = QString::fromUtf8(out_pub);
-  Rust::gfr_crypto_free_string(out_pub);
+  // Straight into secure memory, never through a QString that is freed
+  // without being wiped: the first is the secret key.
+  auto take = [](char* block) -> GFBuffer {
+    GFBuffer out =
+        block != nullptr ? GFBuffer(block, std::strlen(block)) : GFBuffer{};
+    if (block != nullptr) Rust::gfr_crypto_free_string(block);
+    return out;
+  };
+  const auto sec_armored = take(out_sec);
+  const auto pub_armored = take(out_pub);
 
-  if (qs_sec_armored.isEmpty() && qs_pub_armored.isEmpty()) {
+  if (sec_armored.Empty() && pub_armored.Empty()) {
     LOG_E() << "both imported public and secret key blocks are empty after "
                "importing revocation certificate";
     return {};
   }
 
-  if (db_gf_key->metadata.has_secret && qs_sec_armored.isEmpty()) {
+  if (db_gf_key->metadata.has_secret && sec_armored.Empty()) {
     LOG_E() << "imported revocation certificate did not return a secret key "
                "block for a key that has secret key in database";
     return {};
   }
 
   LOG_D() << "imported revocation certificate, got secret block size: "
-          << qs_sec_armored.size()
-          << ", public block size: " << qs_pub_armored.size();
+          << sec_armored.Size() << ", public block size: " << pub_armored.Size();
 
-  return ImportKeyRpgpImpl(ctx, qs_sec_armored.isEmpty()
-                                    ? GFBuffer(qs_pub_armored)
-                                    : GFBuffer(qs_sec_armored));
+  return ImportKeyRpgpImpl(ctx,
+                           sec_armored.Empty() ? pub_armored : sec_armored);
 }
 
 }  // namespace GpgFrontend
