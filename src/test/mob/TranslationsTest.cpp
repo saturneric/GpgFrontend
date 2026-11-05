@@ -32,7 +32,7 @@
 #include <QFile>
 
 #include "MobileTest.h"
-#include "core/utils/TranslationUtils.h"
+#include "shell/present/TranslationUtils.h"
 
 namespace GpgFrontend::Test::Mobile {
 

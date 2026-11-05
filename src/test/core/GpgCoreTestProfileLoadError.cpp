@@ -29,6 +29,7 @@
 #include <gtest/gtest.h>
 
 #include "core/profile/ProfileLoader.h"
+#include "shell/present/ProfileLoadErrorText.h"
 
 namespace GpgFrontend::Test {
 

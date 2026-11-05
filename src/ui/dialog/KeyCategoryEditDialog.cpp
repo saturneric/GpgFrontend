@@ -29,6 +29,7 @@
 #include "KeyCategoryEditDialog.h"
 
 #include "core/function/openpgp/KeyCategoryRepository.h"
+#include "shell/rules/KeyCategoryRules.h"
 #include "ui/UISignalStation.h"
 #include "ui/dialog/KeyCategoryRules.h"
 #include "ui/function/KeyDatabaseRefresh.h"

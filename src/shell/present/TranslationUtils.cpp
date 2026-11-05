@@ -26,7 +26,7 @@
  *
  */
 
-#include "core/utils/TranslationUtils.h"
+#include "shell/present/TranslationUtils.h"
 
 #include <QTranslator>
 

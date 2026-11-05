@@ -33,6 +33,7 @@
 #include "core/function/SystemSecretStore.h"
 #include "core/profile/ProfilePackage.h"
 #include "core/profile/ProfileSession.h"
+#include "shell/present/ProfileLoadErrorText.h"
 #include "ui/dialog/AppKeyPinDialog.h"
 #include "ui/dialog/MetaListDialog.h"
 #include "ui/dialog/profile/ProfilePackageMeta.h"

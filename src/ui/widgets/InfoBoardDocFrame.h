@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/utils/ReportSealPainter.h"
+#include "shell/present/ReportSealPainter.h"
 #include "ui/function/UIStyle.h"
 
 namespace GpgFrontend::UI {

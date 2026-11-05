@@ -32,7 +32,7 @@
 #include <QPainter>
 
 #include "GpgFrontendTest.h"
-#include "core/utils/ReportSealPainter.h"
+#include "shell/present/ReportSealPainter.h"
 
 namespace GpgFrontend::Test {
 

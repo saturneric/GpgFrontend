@@ -30,7 +30,7 @@
 
 #include <QPainter>
 
-#include "core/utils/ReportSealPainter.h"
+#include "shell/present/ReportSealPainter.h"
 
 namespace GpgFrontend::Mobile {
 

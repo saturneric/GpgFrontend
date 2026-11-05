@@ -32,7 +32,7 @@
 #include <QFont>
 #include <QRectF>
 
-#include "GFCoreExport.h"
+#include "GFShellExport.h"
 
 class QPainter;
 
@@ -59,8 +59,8 @@ struct ReportSealStyle {
 /**
  * @brief @p a and @p b mixed @p wa to @p wb.
  */
-auto GF_CORE_EXPORT BlendReportColor(const QColor& a, const QColor& b, int wa,
-                                     int wb) -> QColor;
+auto GF_SHELL_EXPORT BlendReportColor(const QColor& a, const QColor& b, int wa,
+                                      int wb) -> QColor;
 
 /**
  * @brief Paint a report's seal, as the desktop's Status Panel and the phone's
@@ -75,9 +75,9 @@ auto GF_CORE_EXPORT BlendReportColor(const QColor& a, const QColor& b, int wa,
  * @param bounds the seal is its right-hand square; the waves fill the rest
  * @param detail with lettering and ornament: they need real pixels
  */
-void GF_CORE_EXPORT PaintReportSeal(QPainter& p, const QRectF& bounds,
-                                    ReportSealKind kind,
-                                    const QString& inscription,
-                                    const ReportSealStyle& style, bool detail);
+void GF_SHELL_EXPORT PaintReportSeal(QPainter& p, const QRectF& bounds,
+                                     ReportSealKind kind,
+                                     const QString& inscription,
+                                     const ReportSealStyle& style, bool detail);
 
 }  // namespace GpgFrontend

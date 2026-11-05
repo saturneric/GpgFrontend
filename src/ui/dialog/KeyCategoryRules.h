@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/function/openpgp/KeyCategoryRepository.h"
+#include "shell/rules/KeyCategoryRules.h"
 
 namespace GpgFrontend::UI {
 

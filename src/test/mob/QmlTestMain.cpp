@@ -55,7 +55,7 @@
 #include "boot/BootContext.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/model/GpgPassphraseContext.h"
-#include "core/utils/TranslationUtils.h"
+#include "shell/present/TranslationUtils.h"
 #include "startup/InteractionBridge.h"
 
 Q_IMPORT_QML_PLUGIN(GpgFrontend_MobilePlugin)

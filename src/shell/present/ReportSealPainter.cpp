@@ -26,7 +26,7 @@
  *
  */
 
-#include "core/utils/ReportSealPainter.h"
+#include "shell/present/ReportSealPainter.h"
 
 #include <QFontMetricsF>
 #include <QLinearGradient>

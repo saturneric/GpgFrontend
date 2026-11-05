@@ -36,6 +36,7 @@
 #include "core/profile/ProfileSession.h"
 #include "model/ChangeRelay.h"
 #include "model/KeyFilterModel.h"
+#include "shell/rules/KeyCategoryRules.h"
 
 namespace GpgFrontend::Mobile {
 

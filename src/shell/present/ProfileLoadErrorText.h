@@ -28,32 +28,24 @@
 
 #pragma once
 
-#include "GFCoreExport.h"
+#include "GFShellExport.h"
+#include "core/profile/ProfileLoader.h"
 
 namespace GpgFrontend {
 
-/// A translation catalog: `<directory>/<name><separator><locale>.qm`.
-struct GF_CORE_EXPORT TranslationCatalog {
-  QString name;
-  QString separator;
-  QString directory;
-  /// A language of its own, for a fallback beneath the one asked for (an
-  /// English catalog that spells out plurals); empty: the one asked for.
-  QString locale;
+/// What to tell someone about a profile that would not open.
+struct GF_SHELL_EXPORT ProfileLoadErrorText {
+  QString title;
+  QString text;
 };
 
 /**
- * @brief Translate the application into @p locale: Qt's own strings and the
- * application's catalog (the core's, the desktop's and the phone's), over its
- * English one, which spells out plurals for a language that has no catalog.
+ * @brief The words for @p error, the same in every interface.
  *
- * What an earlier call installed is taken out first, so this runs again on a
- * language switch. Installing posts QEvent::LanguageChange. A catalog a
- * locale has none of is skipped, and its strings stay as written. Modules'
- * catalogs are not among these: they are their own.
- *
- * @param locale the language
+ * @return nothing for a failure that needs none: the person backed out, or
+ * declined a reset that was already explained
  */
-void GF_CORE_EXPORT InstallTranslations(const QLocale &locale);
+auto GF_SHELL_EXPORT DescribeProfileLoadError(const ProfileLoadError &error)
+    -> std::optional<ProfileLoadErrorText>;
 
 }  // namespace GpgFrontend
