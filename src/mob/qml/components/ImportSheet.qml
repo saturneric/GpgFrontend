@@ -71,9 +71,9 @@ BottomSheet {
     ListRow {
         objectName: "importFromFile"
         Layout.fillWidth: true
-        Layout.leftMargin: -24
-        Layout.rightMargin: -24
-        leftPadding: 24
+        Layout.leftMargin: -Theme.sheetPad
+        Layout.rightMargin: -Theme.sheetPad
+        leftPadding: Theme.sheetPad
         enabled: !importer.busy
         symbol: "note_add"
         symbolColor: Material.accentColor
@@ -84,9 +84,9 @@ BottomSheet {
 
     ListRow {
         Layout.fillWidth: true
-        Layout.leftMargin: -24
-        Layout.rightMargin: -24
-        leftPadding: 24
+        Layout.leftMargin: -Theme.sheetPad
+        Layout.rightMargin: -Theme.sheetPad
+        leftPadding: Theme.sheetPad
         enabled: !importer.busy && block.canPaste
         symbol: "content_paste"
         symbolColor: Material.accentColor

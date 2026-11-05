@@ -69,9 +69,9 @@ BottomSheet {
 
                 objectName: "keyCategoryChoice_" + modelData.id
                 Layout.fillWidth: true
-                Layout.leftMargin: -24
-                Layout.rightMargin: -24
-                leftPadding: 24
+                Layout.leftMargin: -Theme.sheetPad
+                Layout.rightMargin: -Theme.sheetPad
+                leftPadding: Theme.sheetPad
                 text: modelData.name
                 checked: member
                 onToggled: sheet.categories.setMember(modelData.id,
@@ -112,9 +112,9 @@ BottomSheet {
         ListRow {
             objectName: "keyCategoryNew"
             Layout.fillWidth: true
-            Layout.leftMargin: -24
-            Layout.rightMargin: -24
-            leftPadding: 24
+            Layout.leftMargin: -Theme.sheetPad
+            Layout.rightMargin: -Theme.sheetPad
+            leftPadding: Theme.sheetPad
             symbol: "add"
             symbolColor: Material.foreground
             text: qsTr("New category")

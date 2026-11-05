@@ -36,9 +36,9 @@ BottomSheet {
 
     component SheetAction: ListRow {
         Layout.fillWidth: true
-        Layout.leftMargin: -24
-        Layout.rightMargin: -24
-        leftPadding: 24
+        Layout.leftMargin: -Theme.sheetPad
+        Layout.rightMargin: -Theme.sheetPad
+        leftPadding: Theme.sheetPad
         symbolColor: Material.foreground
         enabled: !sheet.busy
         onClicked: sheet.close()
@@ -80,8 +80,8 @@ BottomSheet {
 
     MenuSeparator {
         Layout.fillWidth: true
-        Layout.leftMargin: -24
-        Layout.rightMargin: -24
+        Layout.leftMargin: -Theme.sheetPad
+        Layout.rightMargin: -Theme.sheetPad
         visible: makePrimary.visible || revoke.visible || remove.visible
     }
 
