@@ -29,7 +29,7 @@
 #include "GpgKeyTreeProxyModel.h"
 
 #include "core/model/GpgKey.h"
-#include "core/model/GpgKeyTreeModel.h"
+#include "shell/models/GpgKeyTreeModel.h"
 
 namespace GpgFrontend::UI {
 

@@ -30,6 +30,7 @@
 
 #include "GpgFrontendTest.h"
 #include "core/utils/GpgUtils.h"
+#include "shell/present/KeyStatus.h"
 
 namespace GpgFrontend::Test {
 

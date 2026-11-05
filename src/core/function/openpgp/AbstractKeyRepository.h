@@ -35,8 +35,6 @@
 
 namespace GpgFrontend {
 
-class GpgKeyTableModel;
-
 /**
  * @brief Unified singleton repository for looking up both GPG keys and key
  * groups.
@@ -91,13 +89,6 @@ class GF_CORE_EXPORT AbstractKeyRepository
    * @return true if the cache was flushed successfully
    */
   auto FlushCache() -> bool;
-
-  /**
-   * @brief Return the QAbstractTableModel for displaying GPG keys in a view.
-   *
-   * @return shared pointer to the GpgKeyTableModel for this channel
-   */
-  auto GetGpgKeyTableModel() -> QSharedPointer<GpgKeyTableModel>;
 
  private:
   // Underlying GPG key repository for this channel.

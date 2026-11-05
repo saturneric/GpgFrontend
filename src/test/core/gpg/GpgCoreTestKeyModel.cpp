@@ -35,6 +35,7 @@
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/model/GpgKey.h"
 #include "core/utils/GpgUtils.h"
+#include "shell/models/GpgKeyTableModel.h"
 
 namespace GpgFrontend::Test {
 
@@ -253,8 +254,7 @@ TEST_F(GpgCoreTest, GpgKeyVersionOfAMalformedFingerprintIsUnknown) {
 }
 
 TEST_F(GpgCoreTest, GpgKeyTableModelCheckedKeyIdsRoundTrip) {
-  auto model = AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
-                   .GetGpgKeyTableModel();
+  auto model = MakeGpgKeyTableModel(kGpgFrontendDefaultChannel);
   ASSERT_TRUE(model != nullptr);
 
   const auto rows = model->rowCount({});
@@ -270,8 +270,7 @@ TEST_F(GpgCoreTest, GpgKeyTableModelCheckedKeyIdsRoundTrip) {
 }
 
 TEST_F(GpgCoreTest, GpgKeyTableModelCheckedKeyIdsReplacesAndIgnoresUnknown) {
-  auto model = AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
-                   .GetGpgKeyTableModel();
+  auto model = MakeGpgKeyTableModel(kGpgFrontendDefaultChannel);
   ASSERT_TRUE(model != nullptr);
   ASSERT_GT(model->rowCount({}), 0);
 
@@ -290,8 +289,7 @@ TEST_F(GpgCoreTest, GpgKeyTableModelCheckedKeyIdsReplacesAndIgnoresUnknown) {
 // Single-recipient mode: checking a key must drop every other one, so a
 // recipient left over from the last message never rides along on the next.
 TEST_F(GpgCoreTest, GpgKeyTableModelExclusiveCheckKeepsOne) {
-  auto model = AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
-                   .GetGpgKeyTableModel();
+  auto model = MakeGpgKeyTableModel(kGpgFrontendDefaultChannel);
   ASSERT_TRUE(model != nullptr);
   ASSERT_GE(model->rowCount({}), 2);
   ASSERT_FALSE(model->IsExclusiveCheck());
@@ -311,8 +309,7 @@ TEST_F(GpgCoreTest, GpgKeyTableModelExclusiveCheckKeepsOne) {
 }
 
 TEST_F(GpgCoreTest, GpgKeyTableModelExclusiveUncheckLeavesNone) {
-  auto model = AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
-                   .GetGpgKeyTableModel();
+  auto model = MakeGpgKeyTableModel(kGpgFrontendDefaultChannel);
   ASSERT_TRUE(model != nullptr);
   ASSERT_GT(model->rowCount({}), 0);
 
@@ -326,8 +323,7 @@ TEST_F(GpgCoreTest, GpgKeyTableModelExclusiveUncheckLeavesNone) {
 
 // A remembered multi-key working set is cut down to one key on restore.
 TEST_F(GpgCoreTest, GpgKeyTableModelExclusiveSetCheckedKeyIdsKeepsFirst) {
-  auto model = AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
-                   .GetGpgKeyTableModel();
+  auto model = MakeGpgKeyTableModel(kGpgFrontendDefaultChannel);
   ASSERT_TRUE(model != nullptr);
   ASSERT_GE(model->rowCount({}), 2);
 
@@ -343,8 +339,7 @@ TEST_F(GpgCoreTest, GpgKeyTableModelExclusiveSetCheckedKeyIdsKeepsFirst) {
 // Turning the mode on while several keys are checked must not leave the old
 // multi-selection behind.
 TEST_F(GpgCoreTest, GpgKeyTableModelEnablingExclusiveCollapsesExisting) {
-  auto model = AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
-                   .GetGpgKeyTableModel();
+  auto model = MakeGpgKeyTableModel(kGpgFrontendDefaultChannel);
   ASSERT_TRUE(model != nullptr);
   ASSERT_GE(model->rowCount({}), 2);
 
@@ -366,8 +361,7 @@ TEST_F(GpgCoreTest, GpgKeyTableModelEnablingExclusiveCollapsesExisting) {
 // The default stays plain multi-check, and switching the mode off again
 // restores it.
 TEST_F(GpgCoreTest, GpgKeyTableModelNonExclusiveAllowsMany) {
-  auto model = AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
-                   .GetGpgKeyTableModel();
+  auto model = MakeGpgKeyTableModel(kGpgFrontendDefaultChannel);
   ASSERT_TRUE(model != nullptr);
   ASSERT_GE(model->rowCount({}), 2);
 
@@ -390,8 +384,7 @@ TEST_F(GpgCoreTest, GpgKeyTableModelNonExclusiveAllowsMany) {
 // The Expire Date column was inserted between Create Date and Algorithm. This
 // guards both the header order and the renumbering of every column after it.
 TEST_F(GpgCoreTest, GpgKeyTableModelExpireColumnLayout) {
-  auto model = AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
-                   .GetGpgKeyTableModel();
+  auto model = MakeGpgKeyTableModel(kGpgFrontendDefaultChannel);
   ASSERT_TRUE(model != nullptr);
 
   ASSERT_EQ(model->columnCount({}), 13);
@@ -413,8 +406,7 @@ TEST_F(GpgCoreTest, GpgKeyTableModelExpireColumnLayout) {
 // A key that carries an actual expiry renders the formatted date, and the
 // columns after the insertion point still return the right values.
 TEST_F(GpgCoreTest, GpgKeyTableModelExpireColumnData) {
-  auto model = AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
-                   .GetGpgKeyTableModel();
+  auto model = MakeGpgKeyTableModel(kGpgFrontendDefaultChannel);
   ASSERT_TRUE(model != nullptr);
 
   const auto rows = model->rowCount({});
@@ -446,8 +438,7 @@ TEST_F(GpgCoreTest, GpgKeyTableModelExpireColumnData) {
 // readable by a screen reader, not sortable, and expired and revoked shared one
 // colour. The Status column says it in words.
 TEST_F(GpgCoreTest, GpgKeyTableModelStatusColumnIsNeverBlank) {
-  auto model = AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
-                   .GetGpgKeyTableModel();
+  auto model = MakeGpgKeyTableModel(kGpgFrontendDefaultChannel);
   ASSERT_TRUE(model != nullptr);
 
   const auto rows = model->rowCount({});
@@ -463,8 +454,7 @@ TEST_F(GpgCoreTest, GpgKeyTableModelStatusColumnIsNeverBlank) {
 // The columns whose display text does not sort the way a reader expects expose
 // a comparable value instead; the proxy sorts on that.
 TEST_F(GpgCoreTest, GpgKeyTableModelExposesSortKeysForTheAwkwardColumns) {
-  auto model = AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
-                   .GetGpgKeyTableModel();
+  auto model = MakeGpgKeyTableModel(kGpgFrontendDefaultChannel);
   ASSERT_TRUE(model != nullptr);
   ASSERT_GT(model->rowCount({}), 0);
 
@@ -494,8 +484,7 @@ TEST_F(GpgCoreTest, GpgKeyTableModelExposesSortKeysForTheAwkwardColumns) {
 // model reports a sentinel far past any real expiry so those keys gather at the
 // end of an ascending sort.
 TEST_F(GpgCoreTest, GpgKeyTableModelNeverExpiresSortsAfterRealExpiries) {
-  auto model = AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
-                   .GetGpgKeyTableModel();
+  auto model = MakeGpgKeyTableModel(kGpgFrontendDefaultChannel);
   ASSERT_TRUE(model != nullptr);
 
   const auto rows = model->rowCount({});

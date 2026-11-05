@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "GFShellExport.h"
+
 /**
  * @brief
  *
@@ -43,7 +45,7 @@ class GpgKeyGroup;
 // namespace scope when a class/struct definition sits between a typed enum and
 // a following Q_OBJECT class, which would strip the GpgFrontend:: prefix from
 // GpgKeyTableModel's translation context and break its tr() lookups at runtime.
-class GF_CORE_EXPORT GpgKeyTableItem {
+class GF_SHELL_EXPORT GpgKeyTableItem {
  public:
   GpgKeyTableItem() = default;
 
@@ -159,7 +161,7 @@ inline auto operator&(GpgKeyTableDisplayMode lhs, GpgKeyTableDisplayMode rhs)
   return (static_cast<T>(lhs) & static_cast<T>(rhs)) != 0;
 }
 
-class GF_CORE_EXPORT GpgKeyTableModel : public QAbstractTableModel {
+class GF_SHELL_EXPORT GpgKeyTableModel : public QAbstractTableModel {
   Q_OBJECT
  public:
   /**
@@ -338,5 +340,14 @@ class GF_CORE_EXPORT GpgKeyTableModel : public QAbstractTableModel {
 
   void emit_all_check_state_changed();
 };
+
+/**
+ * @brief A table of every key in the key database on @p channel, for a view.
+ *
+ * @param channel the key database's channel
+ * @return the model
+ */
+auto GF_SHELL_EXPORT MakeGpgKeyTableModel(int channel)
+    -> QSharedPointer<GpgKeyTableModel>;
 
 }  // namespace GpgFrontend

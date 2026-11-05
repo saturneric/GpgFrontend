@@ -37,13 +37,14 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/KeyDatabaseRuntime.h"
-#include "core/model/KeyDatabaseSettingsModel.h"
 #include "core/model/SettingsObject.h"
 #include "core/profile/ProfileSession.h"
 #include "core/struct/settings_object/KeyDatabaseListSO.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/GpgUtils.h"
+#include "shell/models/KeyDatabaseSettingsModel.h"
+#include "shell/rules/KeyDatabaseNames.h"
 
 namespace GpgFrontend::Mobile {
 

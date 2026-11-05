@@ -68,6 +68,7 @@
 #include "GFHostImpl.h"
 #include "private/GFHostContext.h"
 #include "private/GFSDKPrivate.h"
+#include "shell/present/KeyStatus.h"
 
 namespace {
 

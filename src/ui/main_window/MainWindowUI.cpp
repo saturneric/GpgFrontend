@@ -42,6 +42,8 @@
 #if GF_ENGINE_GNUPG
 #include "ui/dialog/controller/SmartCardControllerDialog.h"
 #endif
+#include "shell/models/GpgKeyTableModel.h"
+#include "shell/present/KeyStatus.h"
 #include "ui/dialog/help/AboutDialog.h"
 #include "ui/dialog/key_generate/KeyGenerateWizard.h"
 #include "ui/dialog/profile/ProfileManagerDialog.h"

@@ -27,11 +27,14 @@
  */
 
 #include "MobileTest.h"
-#include "core/model/GpgKeyTableModel.h"
+#include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/utils/GpgUtils.h"
 #include "crypto/WorkSelection.h"
 #include "model/KeyFilterModel.h"
 #include "model/KeyRoleModel.h"
+#include "shell/models/GpgKeyTableModel.h"
+#include "shell/present/KeyStatus.h"
 
 namespace GpgFrontend::Test::Mobile {
 

@@ -26,7 +26,7 @@
  *
  */
 
-#include "core/utils/KeySearchMatcher.h"
+#include "shell/models/KeySearchMatcher.h"
 
 namespace GpgFrontend {
 

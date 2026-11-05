@@ -37,6 +37,7 @@
 #include <functional>
 
 #include "model/KeyRoleModel.h"
+#include "shell/models/GpgKeyTableModel.h"
 
 class QQmlEngine;
 class QJSEngine;

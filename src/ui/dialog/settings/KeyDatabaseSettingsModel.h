@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/model/KeyDatabaseSettingsModel.h"
+#include "shell/models/KeyDatabaseSettingsModel.h"
 
 namespace GpgFrontend::UI {
 

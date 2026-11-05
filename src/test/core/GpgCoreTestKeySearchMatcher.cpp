@@ -29,7 +29,7 @@
 #include <gtest/gtest.h>
 
 #include "GpgFrontendTest.h"
-#include "core/utils/KeySearchMatcher.h"
+#include "shell/models/KeySearchMatcher.h"
 
 namespace GpgFrontend::Test {
 

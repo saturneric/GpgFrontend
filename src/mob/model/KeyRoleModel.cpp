@@ -30,7 +30,6 @@
 
 #include "core/model/GpgKey.h"
 #include "core/model/GpgKeyGroup.h"
-#include "core/model/GpgKeyTableModel.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend::Mobile {

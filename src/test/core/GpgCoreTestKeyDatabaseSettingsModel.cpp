@@ -29,8 +29,9 @@
 #include <gtest/gtest.h>
 
 #include "GpgFrontendTest.h"
-#include "core/model/KeyDatabaseSettingsModel.h"
 #include "core/utils/GpgUtils.h"
+#include "shell/models/KeyDatabaseSettingsModel.h"
+#include "shell/rules/KeyDatabaseNames.h"
 
 namespace GpgFrontend::Test {
 

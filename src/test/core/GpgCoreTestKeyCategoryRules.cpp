@@ -31,6 +31,8 @@
 #include "GpgFrontendTest.h"
 #include "core/function/openpgp/KeyCategoryRepository.h"
 #include "core/utils/GpgUtils.h"
+#include "shell/present/KeyStatus.h"
+#include "shell/rules/KeyCategoryRules.h"
 
 namespace GpgFrontend::Test {
 

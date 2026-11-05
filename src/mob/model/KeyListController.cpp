@@ -33,7 +33,7 @@
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/KeyDatabaseRefresh.h"
-#include "core/model/GpgKeyTableModel.h"
+#include "shell/models/GpgKeyTableModel.h"
 
 namespace GpgFrontend::Mobile {
 
@@ -175,7 +175,7 @@ void KeyListController::finish(int generation, bool timed_out) {
 
 void KeyListController::show(const QString& database, const QString& error) {
   const auto channel = UsableDefaultChannelHandle();
-  SetTable(AbstractKeyRepository::GetInstance(channel).GetGpgKeyTableModel());
+  SetTable(MakeGpgKeyTableModel(channel));
   qInfo() << "key list refreshed on channel" << channel << ":"
           << keys_->rowCount() << "entries";
   loaded_db_ = database;
@@ -194,8 +194,7 @@ void KeyListController::setRefreshing(bool refreshing) {
 void KeyListController::Reload() {
   if (g_instance == nullptr || g_instance->refreshing_) return;
   const auto channel = UsableDefaultChannelHandle();
-  g_instance->SetTable(
-      AbstractKeyRepository::GetInstance(channel).GetGpgKeyTableModel());
+  g_instance->SetTable(MakeGpgKeyTableModel(channel));
   emit g_instance->SignalRefreshed();
 }
 

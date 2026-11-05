@@ -29,7 +29,7 @@
 #pragma once
 
 #include "core/model/GpgKey.h"
-#include "core/model/GpgKeyTableModel.h"
+#include "shell/models/GpgKeyTableModel.h"
 #include "ui/model/GpgKeyTableProxyModel.h"
 
 namespace GpgFrontend::UI {

@@ -36,6 +36,8 @@
 #include "core/model/GpgKey.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/RustUtils.h"
+#include "shell/models/GpgKeyTableModel.h"
+#include "shell/present/KeyStatus.h"
 
 namespace GpgFrontend::Test {
 
@@ -269,8 +271,7 @@ TEST_F(RpgpCoreTest, GpgKeyTableModelExpireColumnRendersNever) {
   ASSERT_TRUE(key != nullptr);
   ASSERT_TRUE(IsKeyNeverExpires(key.get()));
 
-  auto model = AbstractKeyRepository::GetInstance(kRpgpChannelForUnitTest)
-                   .GetGpgKeyTableModel();
+  auto model = MakeGpgKeyTableModel(kRpgpChannelForUnitTest);
   ASSERT_TRUE(model != nullptr);
 
   const auto rows = model->rowCount({});

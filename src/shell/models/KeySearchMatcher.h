@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "GFShellExport.h"
+
 namespace GpgFrontend {
 
 /**
@@ -41,7 +43,7 @@ namespace GpgFrontend {
  * @param text fingerprint or query
  * @return lower-cased text with spaces, colons and dashes removed
  */
-auto GF_CORE_EXPORT KeySearchNormalize(const QString& text) -> QString;
+auto GF_SHELL_EXPORT KeySearchNormalize(const QString& text) -> QString;
 
 /**
  * @brief Decide whether one key matches the search box.
@@ -51,8 +53,8 @@ auto GF_CORE_EXPORT KeySearchNormalize(const QString& text) -> QString;
  * @param keyword raw contents of the search box
  * @return true if the key should stay visible
  */
-auto GF_CORE_EXPORT KeySearchMatches(const QStringList& fields,
-                                     const QString& fingerprint,
-                                     const QString& keyword) -> bool;
+auto GF_SHELL_EXPORT KeySearchMatches(const QStringList& fields,
+                                      const QString& fingerprint,
+                                      const QString& keyword) -> bool;
 
 }  // namespace GpgFrontend

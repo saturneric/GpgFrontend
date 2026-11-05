@@ -31,7 +31,7 @@
 #include <QFont>
 #include <QFontMetrics>
 
-#include "core/model/GpgKeyTableModel.h"
+#include "shell/models/GpgKeyTableModel.h"
 
 namespace GpgFrontend::UI {
 

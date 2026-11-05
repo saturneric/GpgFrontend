@@ -38,6 +38,7 @@
 #include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
+#include "shell/models/GpgKeyTableModel.h"
 #include "ui/GpgFrontendApplication.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"

@@ -30,9 +30,12 @@
 
 #include <QColor>
 
+#include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/model/GpgKey.h"
 #include "core/model/GpgKeyGroup.h"
 #include "core/utils/GpgUtils.h"
+#include "core/utils/MemoryUtils.h"
+#include "shell/present/KeyStatus.h"
 
 namespace GpgFrontend {
 
@@ -491,5 +494,10 @@ auto GpgKeyTableItem::SharedKey() const -> GpgAbstractKeyPtr { return key_; }
 void GpgKeyTableItem::SetChecked(bool checked) { checked_ = checked; }
 
 auto GpgKeyTableItem::Checked() const -> bool { return checked_; }
+
+auto MakeGpgKeyTableModel(int channel) -> QSharedPointer<GpgKeyTableModel> {
+  return SecureCreateSharedObject<GpgKeyTableModel>(
+      channel, AbstractKeyRepository::GetInstance(channel).Fetch(), nullptr);
+}
 
 }  // namespace GpgFrontend

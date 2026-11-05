@@ -48,6 +48,8 @@
 #include "ui/function/KeyDatabaseDisplayNames.h"
 
 //
+#include "shell/models/GpgKeyTableModel.h"
+#include "shell/rules/KeyCategoryRules.h"
 #include "ui_KeyList.h"
 
 namespace GpgFrontend::UI {
@@ -265,8 +267,7 @@ constexpr int kCategoryColorRole = Qt::UserRole + 1;
 KeyList::KeyList(QWidget* parent)
     : QWidget(parent),
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyList>()),
-      model_(AbstractKeyRepository::GetInstance(UsableDefaultChannelHandle())
-                 .GetGpgKeyTableModel()),
+      model_(MakeGpgKeyTableModel(UsableDefaultChannelHandle())),
       global_column_filter_(
           LoadColumnFilter("global", GpgKeyTableColumn::kALL)) {
   ui_->setupUi(this);
@@ -278,7 +279,7 @@ KeyList::KeyList(int channel, KeyMenuAbility menu_ability,
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyList>()),
       current_gpg_context_channel_(channel),
       menu_ability_(menu_ability),
-      model_(AbstractKeyRepository::GetInstance(channel).GetGpgKeyTableModel()),
+      model_(MakeGpgKeyTableModel(channel)),
       fixed_columns_filter_(fixed_columns_filter),
       global_column_filter_(
           LoadColumnFilter("global", GpgKeyTableColumn::kALL)) {
@@ -1586,8 +1587,7 @@ void KeyList::SlotRefresh() {
 
   LOG_D() << "request new key table module, current gpg context channel: "
           << current_gpg_context_channel_;
-  model_ = AbstractKeyRepository::GetInstance(current_gpg_context_channel_)
-               .GetGpgKeyTableModel();
+  model_ = MakeGpgKeyTableModel(current_gpg_context_channel_);
 
   // Another database is shown now, and its categories and tab colours are its
   // own. Rebuilt before the tables take the new model so the pages it adds get
@@ -1832,7 +1832,7 @@ void KeyList::InitAfter(int channel, KeyMenuAbility menu_ability,
   current_gpg_context_channel_ = channel;
   menu_ability_ = menu_ability;
   fixed_columns_filter_ = fixed_columns_filter;
-  model_ = AbstractKeyRepository::GetInstance(channel).GetGpgKeyTableModel();
+  model_ = MakeGpgKeyTableModel(channel);
 
   init();
 }

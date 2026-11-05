@@ -46,6 +46,8 @@
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 #include "core/utils/MemoryUtils.h"
+#include "shell/models/GpgKeyTableModel.h"
+#include "shell/present/KeyStatus.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
 #include "ui/dialog/KeyCategoryEditDialog.h"

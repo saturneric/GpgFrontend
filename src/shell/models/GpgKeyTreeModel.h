@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "GFShellExport.h"
+
 /**
  * @brief
  *
@@ -44,7 +46,7 @@ namespace GpgFrontend {
 // and a following Q_OBJECT class, which would strip the GpgFrontend:: prefix
 // from GpgKeyTreeModel's translation context and break its tr() lookups at
 // runtime.
-class GF_CORE_EXPORT GpgKeyTreeItem {
+class GF_SHELL_EXPORT GpgKeyTreeItem {
  public:
   GpgKeyTreeItem() = default;
 
@@ -256,7 +258,7 @@ enum class GpgKeyTreeBuildMode : unsigned int {
   kKEY_GROUP_MEMBERS = 1,
 };
 
-class GF_CORE_EXPORT GpgKeyTreeModel : public QAbstractItemModel {
+class GF_SHELL_EXPORT GpgKeyTreeModel : public QAbstractItemModel {
   Q_OBJECT
  public:
   using Detector = std::function<bool(GpgAbstractKey *)>;

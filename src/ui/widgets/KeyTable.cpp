@@ -29,6 +29,7 @@
 #include "ui/widgets/KeyTable.h"
 
 #include "core/function/CacheManager.h"
+#include "shell/models/GpgKeyTableModel.h"
 #include "ui/UISignalStation.h"
 #include "ui/function/ShowKeyDetails.h"
 #include "ui/widgets/KeyTableEmptyState.h"

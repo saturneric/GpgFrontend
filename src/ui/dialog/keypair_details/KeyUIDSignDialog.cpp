@@ -31,6 +31,7 @@
 #include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
+#include "shell/models/GpgKeyTableModel.h"
 #include "ui/UISignalStation.h"
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/function/KeyDatabaseRefresh.h"

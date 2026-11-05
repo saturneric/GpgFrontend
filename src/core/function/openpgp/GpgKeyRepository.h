@@ -29,7 +29,6 @@
 #pragma once
 
 #include "core/function/basic/GpgFunctionObject.h"
-#include "core/model/GpgKeyTableModel.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {

@@ -31,8 +31,8 @@
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/KeyCategoryRepository.h"
 #include "core/model/GpgKey.h"
-#include "core/model/GpgKeyTableModel.h"
-#include "core/utils/KeySearchMatcher.h"
+#include "shell/models/GpgKeyTableModel.h"
+#include "shell/models/KeySearchMatcher.h"
 #include "ui/model/SortKeyCompare.h"
 
 namespace GpgFrontend::UI {

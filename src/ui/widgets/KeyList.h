@@ -33,6 +33,8 @@
 #include "core/function/SettingCatalog.h"
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/KeyCategoryRepository.h"
+#include "shell/models/GpgKeyTableModel.h"
+#include "shell/rules/KeyCategoryRules.h"
 #include "ui/widgets/KeyTable.h"
 
 class Ui_KeyList;

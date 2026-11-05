@@ -32,8 +32,9 @@
 #include "core/function/openpgp/KeyCategoryRepository.h"
 #include "core/profile/ProfileSession.h"
 #include "core/utils/GpgUtils.h"
-#include "core/utils/KeySearchMatcher.h"
 #include "model/KeyRoleModel.h"
+#include "shell/models/KeySearchMatcher.h"
+#include "shell/present/KeyStatus.h"
 
 namespace GpgFrontend::Mobile {
 

@@ -28,7 +28,6 @@
 
 #include "AbstractKeyRepository.h"
 
-#include "core/model/GpgKeyTableModel.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
@@ -50,12 +49,6 @@ auto AbstractKeyRepository::Fetch() -> GpgAbstractKeyPtrList {
   }
 
   return ret;
-}
-
-auto AbstractKeyRepository::GetGpgKeyTableModel()
-    -> QSharedPointer<GpgKeyTableModel> {
-  return SecureCreateSharedObject<GpgKeyTableModel>(
-      SingletonFunctionObject::GetChannel(), Fetch(), nullptr);
 }
 
 auto AbstractKeyRepository::FlushCache() -> bool {
