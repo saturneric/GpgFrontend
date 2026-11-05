@@ -289,7 +289,11 @@ auto SignFileGpgDataGnuPGImpl(OpenPGPContext& ctx_,
   GpgContext& g_ctx = GpgCtx(ctx_);
 
   // Set Singers of this opera
-  SetSignersGnuPGImpl(ctx_, keys, ascii);
+  err = SetSignersGnuPGImpl(ctx_, keys, ascii);
+  if (err != GPG_ERR_NO_ERROR) {
+    data_object->Swap({GpgSignResult(GFSignResult{})});
+    return err;
+  }
 
   auto* ctx = ascii ? g_ctx.DefaultContext() : g_ctx.BinaryContext();
   err = CheckGpgError(
@@ -352,7 +356,12 @@ auto EncryptSignFileGpgDataGnuPGImpl(
   }
   gpg_recipients.push_back(nullptr);
 
-  SetSignersGnuPGImpl(ctx_, signer_keys, ascii);
+  err = SetSignersGnuPGImpl(ctx_, signer_keys, ascii);
+  if (err != GPG_ERR_NO_ERROR) {
+    data_object->Swap(
+        {GpgEncryptResult(GFEncryptResult{}), GpgSignResult(GFSignResult{})});
+    return err;
+  }
 
   auto* ctx = ascii ? g_ctx.DefaultContext() : g_ctx.BinaryContext();
   err = CheckGpgError(gpgme_op_encrypt_sign(ctx, gpg_recipients.data(),

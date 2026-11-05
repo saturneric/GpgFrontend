@@ -42,8 +42,9 @@ namespace GpgFrontend {
  * @param signers
  * @param ascii
  */
-void SetSignersGnuPGImpl(OpenPGPContext& ctx_,
-                         const GpgAbstractKeyPtrList& signers, bool ascii);
+auto SetSignersGnuPGImpl(OpenPGPContext& ctx_,
+                         const GpgAbstractKeyPtrList& signers, bool ascii)
+    -> GpgError;
 
 /**
  * @brief

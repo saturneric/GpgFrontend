@@ -321,6 +321,48 @@ TEST_P(GpgCoreEngineTest, SignVerifyDetached) {
   DeleteKey(key);
 }
 
+// gpgme signs with gpg's default key when no requested signer can be used, so
+// a public-only signer used to produce a signature by some other key in the
+// keyring, reported as a success. Both engines must refuse instead.
+TEST_P(GpgCoreEngineTest, SignWithPublicOnlyKeyFails) {
+  auto key = GenerateFullKey("sign_public_only");
+  ASSERT_TRUE(key != nullptr);
+  // a usable secret key in the keyring, for gpg to fall back to
+  auto other = GenerateFullKey("sign_public_only_other");
+  ASSERT_TRUE(other != nullptr);
+  const auto fpr = key->Fingerprint().toUpper();
+
+  auto [exp_err, public_buf] =
+      KeyImportExportOperation::GetInstance(Channel()).ExportKey(key, false,
+                                                                 true, false);
+  ASSERT_TRUE(exp_err.Ok());
+  DeleteKey(key);
+  ASSERT_TRUE(KeyImportExportOperation::GetInstance(Channel()).ImportKey(
+                  public_buf) != nullptr);
+  GpgKeyRepository::GetInstance(Channel()).FlushKeyCache();
+  auto public_only = GpgKeyRepository::GetInstance(Channel()).GetKeyPtr(fpr);
+  ASSERT_TRUE(public_only != nullptr);
+  ASSERT_FALSE(public_only->IsPrivateKey());
+
+  const auto text = GFBuffer(QString("signed by whom?"));
+  {
+    auto [err, data_object] =
+        MessageCryptoOperation::GetInstance(Channel()).SignSync(
+            {public_only}, text, GpgSignMode::kNORMAL, true);
+    EXPECT_FALSE(err.Ok()) << "signing with a public-only key succeeded";
+  }
+  {
+    auto [err, data_object] =
+        MessageCryptoOperation::GetInstance(Channel()).EncryptSignSync(
+            {other}, {public_only}, text, true);
+    EXPECT_FALSE(err.Ok())
+        << "encrypt+sign with a public-only signer succeeded";
+  }
+
+  DeleteKey(public_only);
+  DeleteKey(other);
+}
+
 TEST_P(GpgCoreEngineTest, SignVerifyInline) {
   auto key = GenerateFullKey("signverify_inline");
   ASSERT_TRUE(key != nullptr);
