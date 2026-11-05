@@ -28,6 +28,8 @@
 
 #include "UserIdOperation.h"
 
+#include <algorithm>
+
 #include "core/function/openpgp/helper/Async.h"
 #include "core/function/openpgp/traits/UserIdOperaTraits.h"
 #include "core/utils/AsyncUtils.h"
@@ -60,14 +62,51 @@ auto UserIdOperation::SetPrimaryUIDSync(const GpgKeyPtr& key,
   return RunRegisteredForward<SetPrimaryUserIdOpTag>(ctx_, key, uid);
 }
 
+namespace {
+
+/**
+ * @brief Whether @p uid may be deleted from or revoked on @p key.
+ *
+ * One rule for both engines, decided here rather than in each: GnuPG refused
+ * the first User ID while rPGP deleted it, and matched User IDs differently.
+ * The first User ID is the one the key is known by, and taking it away leaves
+ * a key whose identity is whatever happens to be listed next.
+ */
+auto CheckRemovableUID(const GpgKeyPtr& key, const QString& uid) -> GFError {
+  if (key == nullptr) return GFError::Application(GFErrorCode::kINVALID_VALUE);
+  const auto uids = key->UIDs();
+  const auto it = std::find_if(uids.begin(), uids.end(), [&](const auto& u) {
+    return u.GetUID() == uid;
+  });
+  if (it == uids.end()) {
+    LOG_W() << "no such user ID on the key:" << key->Fingerprint();
+    return GFError::Application(GFErrorCode::kINVALID_VALUE);
+  }
+  if (it == uids.begin()) {
+    LOG_W() << "refusing to remove the first user ID of" << key->Fingerprint();
+    return GFError::Application(GFErrorCode::kINVALID_VALUE);
+  }
+  return {};
+}
+
+}  // namespace
+
 auto UserIdOperation::DeleteUIDSync(const GpgKeyPtr& key, const QString& uid)
     -> GFError {
+  if (auto err = CheckRemovableUID(key, uid); !err.Ok()) return err;
   return RunRegisteredForward<DeleteUserIdOpTag>(ctx_, key, uid);
 }
 
 auto UserIdOperation::RevokeUIDSync(const GpgKeyPtr& key, const QString& uid,
                                     int reason_code, const QString& reason_text)
     -> GFError {
+  if (auto err = CheckRemovableUID(key, uid); !err.Ok()) return err;
+  // The reasons a User ID revocation can give (RFC 9580 §5.2.3.31): none, or
+  // "no longer valid". rPGP turned any other into "no reason" without a word.
+  if (reason_code != 0 && reason_code != 4) {
+    LOG_W() << "illegal reason code for a user ID revocation:" << reason_code;
+    return GFError::Application(GFErrorCode::kINVALID_VALUE);
+  }
   return RunRegisteredForward<RevokeUserIdOpTag>(ctx_, key, uid, reason_code,
                                                  reason_text);
 }

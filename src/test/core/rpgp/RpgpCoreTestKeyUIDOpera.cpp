@@ -167,6 +167,37 @@ TEST_F(RpgpCoreTest, CoreDeleteUIDTest) {
   ASSERT_FALSE(HasUID(uids, added));
 }
 
+// The rPGP engine deleted the first User ID that GnuPG refuses to touch, and
+// turned any revocation reason it did not know into "no reason". One rule now
+// holds for both engines, in the facade.
+TEST_F(RpgpCoreTest, TheFirstUIDIsNeverRemovedAndReasonsAreChecked) {
+  auto key = ImportTestKey();
+  ASSERT_TRUE(key != nullptr);
+  auto& op = UserIdOperation::GetInstance(kRpgpChannelForUnitTest);
+  const auto first = key->UIDs().front().GetUID();
+
+  EXPECT_EQ(op.DeleteUIDSync(key, first).code, GFErrorCode::kINVALID_VALUE);
+  EXPECT_EQ(op.RevokeUIDSync(key, first, 0, {}).code,
+            GFErrorCode::kINVALID_VALUE);
+  EXPECT_EQ(op.DeleteUIDSync(key, "Nobody <nobody@example.com>").code,
+            GFErrorCode::kINVALID_VALUE);
+
+  const QString added = "Dave Example (test) <dave@example.com>";
+  ASSERT_TRUE(op.AddUID(key, "Dave Example", "test", "dave@example.com"));
+  key = RefetchTestKey();
+  ASSERT_TRUE(key != nullptr);
+  // 2 is a key revocation reason ("key compromised"), not a User ID one.
+  EXPECT_EQ(op.RevokeUIDSync(key, added, 2, "wrong reason").code,
+            GFErrorCode::kINVALID_VALUE);
+
+  key = RefetchTestKey();
+  ASSERT_TRUE(key != nullptr);
+  EXPECT_EQ(key->UIDs().front().GetUID(), first);
+  for (const auto& u : key->UIDs()) {
+    EXPECT_FALSE(u.GetRevoked()) << u.GetUID().toStdString();
+  }
+}
+
 TEST_F(RpgpCoreTest, CoreSetPrimaryUIDTest) {
   auto key = ImportTestKey();
   ASSERT_TRUE(key != nullptr);
