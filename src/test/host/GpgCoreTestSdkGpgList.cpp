@@ -31,6 +31,7 @@
 #include <QByteArray>
 
 #include "GpgFrontendTest.h"
+#include "core/GpgCoreEngineTest.h"
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "host/SdkTestContext.h"
@@ -71,25 +72,27 @@ TEST(SdkGpgListTest, ANullOutParameterIsRejectedRatherThanDereferenced) {
   EXPECT_LT(GFGpgListAddresses(Ctx(), 0, 1, nullptr), 0);
 }
 
-TEST(SdkGpgListTest, ABorrowedInputIsNotTakenOwnershipOf) {
-  if (!ChannelIsUsable(0)) GTEST_SKIP() << "no usable engine on channel 0";
-
+// On the engine fixture's own channels, which always have an engine: on
+// channel 0, which unit-test mode never opens, this skipped in every run.
+TEST_P(GpgCoreEngineTest, SdkABorrowedInputIsNotTakenOwnershipOf) {
   // The address stays the caller's: readable, unchanged, and freeable by us
   // afterwards. Under the one ownership rule no SDK argument is ever consumed.
   QByteArray address = "nobody@example.invalid";
   GFGpgKeyBriefListRef list = nullptr;
 
-  ASSERT_EQ(GFGpgFindKeys(Ctx(), 0, address.constData(), &list), 0);
+  ASSERT_EQ(GFGpgFindKeys(Ctx(), Channel(), address.constData(), &list), 0);
   EXPECT_EQ(address, QByteArray("nobody@example.invalid"));
 
   GFGpgKeyBriefRelease(Ctx(), list);
 }
 
-TEST(SdkGpgListTest, AnEmptyResultIsSuccessNotAnError) {
-  if (!ChannelIsUsable(0)) GTEST_SKIP() << "no usable engine on channel 0";
+// On the engine fixture's own channels, which always have an engine: on
+// channel 0, which unit-test mode never opens, this skipped in every run.
+TEST_P(GpgCoreEngineTest, SdkAnEmptyResultIsSuccessNotAnError) {
   GFGpgKeyBriefListRef list = nullptr;
   // "matches nothing" is an answer, not a failure.
-  ASSERT_EQ(GFGpgFindKeys(Ctx(), 0, "definitely-nobody@example.invalid", &list),
+  ASSERT_EQ(GFGpgFindKeys(Ctx(), Channel(), "definitely-nobody@example.invalid",
+                          &list),
             0);
   ASSERT_NE(list, nullptr);
   EXPECT_EQ(GFGpgKeyBriefCount(Ctx(), list), 0U);

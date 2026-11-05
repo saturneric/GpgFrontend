@@ -207,14 +207,15 @@ TEST(SdkGpgResultTest, MovingTheWrapperTransfersOwnershipExactlyOnce) {
 
 /* --- round trips that need a real engine -------------------------------- */
 
-TEST(SdkGpgResultTest, ASignRoundTripCarriesItsPayloadAndCapsule) {
-  if (!ChannelIsUsable(0)) GTEST_SKIP() << "no usable engine on channel 0";
-
+// On the engine fixture's own channels, which always have an engine: on
+// channel 0, which unit-test mode never opens, this skipped in every run.
+TEST_P(GpgCoreEngineTest, SdkASignRoundTripCarriesItsPayloadAndCapsule) {
   // Without a secret key this is a request or operation failure, not a crash;
   // either way the result must be owned, self-describing, and releasable.
   auto in = GFBuf::Copy(Ctx(), QByteArray("sign me"));
   GFGpgResult r(Ctx());
-  const auto ret = GFGpgSign(Ctx(), 0, nullptr, 0, in.View(), 0, 1, r.Out());
+  const auto ret =
+      GFGpgSign(Ctx(), Channel(), nullptr, 0, in.View(), 0, 1, r.Out());
 
   ASSERT_GE(ret, 0);
   ASSERT_TRUE(static_cast<bool>(r));
@@ -224,11 +225,12 @@ TEST(SdkGpgResultTest, ASignRoundTripCarriesItsPayloadAndCapsule) {
 
 // Verification produces no payload -- the input IS the message -- so Data()
 // must be empty rather than undefined.
-TEST(SdkGpgResultTest, AVerifyResultCarriesNoPayload) {
-  if (!ChannelIsUsable(0)) GTEST_SKIP() << "no usable engine on channel 0";
+// On the engine fixture's own channels, which always have an engine: on
+// channel 0, which unit-test mode never opens, this skipped in every run.
+TEST_P(GpgCoreEngineTest, SdkAVerifyResultCarriesNoPayload) {
   auto in = GFBuf::Copy(Ctx(), QByteArray("not a signed message"));
   GFGpgResult r(Ctx());
-  const auto ret = GFGpgVerify(Ctx(), 0, in.View(), nullptr, r.Out());
+  const auto ret = GFGpgVerify(Ctx(), Channel(), in.View(), nullptr, r.Out());
 
   ASSERT_GE(ret, 0);
   ASSERT_TRUE(static_cast<bool>(r));

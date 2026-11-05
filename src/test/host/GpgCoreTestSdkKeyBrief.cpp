@@ -31,6 +31,7 @@
 #include <QByteArray>
 
 #include "GpgFrontendTest.h"
+#include "core/GpgCoreEngineTest.h"
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "host/SdkTestContext.h"
@@ -82,9 +83,9 @@ TEST(SdkKeyBriefTest, ARejectedAddressIsStillNotTakenOwnershipOf) {
   EXPECT_EQ(address, original);
 }
 
-TEST(SdkKeyBriefTest, LookupDoesNotTakeOwnershipOfTheAddress) {
-  if (!ChannelIsUsable(0)) GTEST_SKIP() << "no usable engine on channel 0";
-
+// On the engine fixture's own channels, which always have an engine: on
+// channel 0, which unit-test mode never opens, this skipped in every run.
+TEST_P(GpgCoreEngineTest, SdkLookupDoesNotTakeOwnershipOfTheAddress) {
   // Deliberately a buffer this test owns, allocated by the ordinary heap rather
   // than the SDK's allocator -- exactly what a module passes in.
   QByteArray address = QByteArray("nobody-") + QByteArray(32, 'a') +
@@ -92,7 +93,7 @@ TEST(SdkKeyBriefTest, LookupDoesNotTakeOwnershipOfTheAddress) {
   const QByteArray original = address;
 
   GFGpgKeyBriefListRef briefs = nullptr;
-  ASSERT_EQ(GFGpgFindKeys(Ctx(), 0, address.constData(), &briefs), 0);
+  ASSERT_EQ(GFGpgFindKeys(Ctx(), Channel(), address.constData(), &briefs), 0);
   const auto count = GFGpgKeyBriefCount(Ctx(), briefs);
 
   // The caller's buffer must come back untouched and still be its own to use.
@@ -101,7 +102,7 @@ TEST(SdkKeyBriefTest, LookupDoesNotTakeOwnershipOfTheAddress) {
   // And it must survive a second lookup: under the ownership bug the first call
   // had already released it.
   GFGpgKeyBriefListRef again = nullptr;
-  ASSERT_EQ(GFGpgFindKeys(Ctx(), 0, address.constData(), &again), 0);
+  ASSERT_EQ(GFGpgFindKeys(Ctx(), Channel(), address.constData(), &again), 0);
   EXPECT_EQ(GFGpgKeyBriefCount(Ctx(), again), count);
   EXPECT_EQ(address, original);
 
@@ -110,11 +111,12 @@ TEST(SdkKeyBriefTest, LookupDoesNotTakeOwnershipOfTheAddress) {
   GFGpgKeyBriefRelease(Ctx(), again);
 }
 
-TEST(SdkKeyBriefTest, AnAddressThatMatchesNothingIsNotAnError) {
-  if (!ChannelIsUsable(0)) GTEST_SKIP() << "no usable engine on channel 0";
-
+// On the engine fixture's own channels, which always have an engine: on
+// channel 0, which unit-test mode never opens, this skipped in every run.
+TEST_P(GpgCoreEngineTest, SdkAnAddressThatMatchesNothingIsNotAnError) {
   GFGpgKeyBriefListRef briefs = nullptr;
-  EXPECT_EQ(GFGpgFindKeys(Ctx(), 0, "nobody@example.invalid", &briefs), 0);
+  EXPECT_EQ(GFGpgFindKeys(Ctx(), Channel(), "nobody@example.invalid", &briefs),
+            0);
   ASSERT_NE(briefs, nullptr) << "an empty result is still an owned list";
   EXPECT_EQ(GFGpgKeyBriefCount(Ctx(), briefs), 0U);
 
