@@ -299,6 +299,11 @@ class FileWorkspace : public QAbstractListModel {
   /// The id of the file named @p name; -1 when there is none.
   [[nodiscard]] Q_INVOKABLE int idNamed(const QString& name) const;
 
+  /// The ids of the files that may be the one called @p name: so named,
+  /// first, then those named apart from it ("name (2).ext"), as two files
+  /// of one name are listed. More than one: which is meant is not known.
+  [[nodiscard]] Q_INVOKABLE QVariantList idsNamed(const QString& name) const;
+
   /// The output made here by signing the file @p id; -1 when none is listed.
   [[nodiscard]] Q_INVOKABLE int signatureOf(int id) const;
 

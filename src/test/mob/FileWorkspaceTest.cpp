@@ -806,6 +806,36 @@ TEST_F(FileWorkspaceTest, FilesAreFoundByRowNameAndWhatTheyMade) {
   Do([&](auto* f) { EXPECT_EQ(f->UnsavedCount(), 0); });
 }
 
+// Two files of one name, from two folders, are told apart in the list; what
+// may be the file a signature is named after is each of them, never only the
+// first. Picked again, a listed file is looked at again.
+TEST_F(FileWorkspaceTest, FilesOfOneNameAreToldApart) {
+  ASSERT_TRUE(QDir(dir_.path()).mkpath("other"));
+  const auto first = Add("first notes", "notes.txt");
+  const auto second = Add("other notes", "other/notes.txt");
+  ASSERT_NE(first, second);
+  EXPECT_EQ(Entry(first).value("name").toString(), "notes.txt");
+  EXPECT_EQ(Entry(second).value("name").toString(), "notes (2).txt");
+  Do([&](auto* f) {
+    EXPECT_EQ(f->idNamed("notes.txt"), first);
+    EXPECT_EQ(f->idsNamed("notes.txt"), (QVariantList{first, second}));
+    EXPECT_EQ(f->idsNamed("notes (2).txt"), QVariantList{second});
+    EXPECT_TRUE(f->idsNamed("nothing.txt").isEmpty());
+  });
+
+  // Gone, noticed, back: added again, it can be opened once more.
+  const auto path = dir_.filePath("notes.txt");
+  ASSERT_TRUE(QFile::remove(path));
+  Do([&](auto* f) { f->refreshAvailability(); });
+  EXPECT_FALSE(Entry(first).value("available").toBool());
+  WriteFile(path, "first notes, again");
+  QVariantList again;
+  Do([&](auto* f) { again = f->addFiles({QUrl::fromLocalFile(path)}); });
+  EXPECT_EQ(again, QVariantList{first});
+  EXPECT_TRUE(Entry(first).value("available").toBool());
+  EXPECT_EQ(Entry(first).value("name").toString(), "notes.txt");
+}
+
 // As the desktop tells files apart: by the name, nothing read.
 // What a file is: its name a hint, its first bytes the proof, whether it
 // was added or made here.

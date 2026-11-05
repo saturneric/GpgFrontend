@@ -190,11 +190,14 @@ Page {
         }
         const record = OperationQueue.log.record(opId)
         if (why === "unavailable") {
-            // Picked again from where it now is.
-            relinkDialog.target = record.targets[0].fileId
+            // Picked again from where it now is: the one that cannot be
+            // opened, which for a detached signature may be its data file.
+            const target = record.targets.find(t => files.entry(t.fileId).available === false)
+                           || record.targets[0]
+            relinkDialog.target = target.fileId
             relinkDialog.retryId = opId
             notice.show(qsTr("“%1” can no longer be opened. Pick it again.")
-                        .arg(record.targets[0].name))
+                        .arg(target.name))
             if (!page.prompting) relinkDialog.open()
         } else if (why === "missing") {
             notice.show(qsTr("Its file is no longer in the list. Add it again."))

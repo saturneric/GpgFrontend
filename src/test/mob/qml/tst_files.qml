@@ -249,6 +249,48 @@ Item {
             ws.clear()
         }
 
+        // Two files of the name a signature is made for, from two folders:
+        // which one it is over is not known, so the person chooses.
+        function test_two_files_of_one_name_are_never_paired_at_once() {
+            const ws = files.workspace
+            ws.addFiles([Qt.resolvedUrl("data/notes.txt"),
+                         Qt.resolvedUrl("data/other/notes.txt"),
+                         Qt.resolvedUrl("data/notes.txt.sig")])
+            const data = ws.idNamed("notes.txt")
+            const other = ws.idNamed("notes (2).txt")
+            const sig = ws.idNamed("notes.txt.sig")
+            verify(other >= 0, "the second is told apart by its name")
+            tryVerify(() => verifier.usable(data) && verifier.usable(other)
+                             && verifier.usable(sig))
+            verifyAsked.clear()
+            verifier.begin(sig)
+            tryVerify(() => verifier.opened)
+            compare(verifyAsked.count, 0)
+            compare(verifier.signatureId, sig)
+            compare(verifier.originalHow, "suggested")
+            verifier.close()
+            tryVerify(() => !verifier.visible)
+            ws.clear()
+        }
+
+        // Signed in the clear, an .asc is verified alone even beside a file
+        // named like the data a detached signature would be over.
+        function test_a_message_beside_a_namesake_is_verified_alone() {
+            const ws = files.workspace
+            const vectors = "../../../../resource/lfs/test/rpgp_vectors/"
+            ws.addFiles([Qt.resolvedUrl(vectors + "sig_good_cleartext.asc"),
+                         Qt.resolvedUrl("data/other/sig_good_cleartext")])
+            const id = ws.idNamed("sig_good_cleartext.asc")
+            tryVerify(() => verifier.usable(id))
+            verifyAsked.clear()
+            verifier.begin(id)
+            compare(verifyAsked.count, 1)
+            compare(verifyAsked.signalArguments[0][0], id)
+            compare(verifyAsked.signalArguments[0][1], -1)
+            verify(!verifier.visible)
+            ws.clear()
+        }
+
         // A file that holds its signature (signed inline, or in the clear)
         // is verified alone, at once, with no second file asked for.
         function test_an_inline_signed_file_is_verified_alone() {

@@ -60,9 +60,12 @@ BottomSheet {
                 result.originalHow = "linked"
             }
         } else if (match.role === "signature") {
+            // A message in its first bytes (signed in the clear, or
+            // encrypted) is verified alone, whatever file is named like
+            // the data it would be a signature of.
+            if (file.content === "message") return asInline()
             result.signatureId = id
             found = findAll(match.partners)
-            if (found.length === 0 && file.content === "message") return asInline()
             if (found.length > 0) {
                 result.originalId = found[0]
                 result.originalHow = "suggested"
@@ -114,16 +117,15 @@ BottomSheet {
         open()
     }
 
-    function findByName(name) {
-        return workspace.idNamed(name)
-    }
-
-    // The ids of those of @p names that are in the list, in their order.
+    // The ids of those of @p names that are in the list, in their order;
+    // two files of one name (the second listed as "name (2).ext") both, so
+    // which is meant is never taken as known.
     function findAll(names) {
         const ids = []
         for (let i = 0; i < names.length; ++i) {
-            const id = findByName(names[i])
-            if (id >= 0 && !ids.includes(id)) ids.push(id)
+            for (const id of workspace.idsNamed(names[i])) {
+                if (!ids.includes(id)) ids.push(id)
+            }
         }
         return ids
     }

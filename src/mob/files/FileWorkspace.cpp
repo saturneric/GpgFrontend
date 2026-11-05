@@ -35,6 +35,7 @@
 #include <QJSEngine>
 #include <QMimeDatabase>
 #include <QPointer>
+#include <QRegularExpression>
 #include <algorithm>
 
 #include "crypto/ContentKind.h"
@@ -219,7 +220,15 @@ auto FileWorkspace::addFiles(const QList<QUrl>& urls) -> QVariantList {
         std::find_if(entries_.begin(), entries_.end(),
                      [&url](const auto& entry) { return entry->url == url; });
     if (known != entries_.end()) {
-      ids << (*known)->id;
+      // Picked again: looked at again, as it may have changed or come back
+      // since (relink()); a file being worked on is left as it is.
+      auto& entry = **known;
+      ids << entry.id;
+      if (!is_running(entry.id) && entry.state != QStringLiteral("queued")) {
+        std::tie(entry.available, entry.size) = Probe(url);
+        entry.content = ClassifyFile(entry.name, LocalOrContent(url));
+        changed(entry.id, {kAvailableRole, kSizeRole, kContentRole});
+      }
       continue;
     }
 
@@ -227,7 +236,10 @@ auto FileWorkspace::addFiles(const QList<QUrl>& urls) -> QVariantList {
     entry->id = next_id_++;
     ids << entry->id;
     entry->url = url;
-    entry->name = DisplayName(url);
+    // Two files of one name from two folders are told apart, as shared
+    // files and outputs are: a signature is never paired with the wrong one
+    // by name, and a save never writes both into one document.
+    entry->name = unique_name(DisplayName(url));
     std::tie(entry->available, entry->size) = Probe(url);
     // What it holds, by its name and its first bytes, as a file made here.
     entry->content = ClassifyFile(entry->name, LocalOrContent(url));
@@ -491,7 +503,9 @@ auto FileWorkspace::relink(int id, const QUrl& url) -> bool {
     return false;
   }
   entry->url = url;
-  entry->name = DisplayName(url);
+  // Its own name is not taken from it again by the file itself.
+  entry->name.clear();
+  entry->name = unique_name(DisplayName(url));
   std::tie(entry->available, entry->size) = Probe(url);
   entry->content = ClassifyFile(entry->name, LocalOrContent(url));
   changed(id, {kNameRole, kAvailableRole, kSizeRole, kContentRole});
@@ -781,6 +795,26 @@ auto FileWorkspace::idNamed(const QString& name) const -> int {
     if (entry->name == name) return entry->id;
   }
   return -1;
+}
+
+auto FileWorkspace::idsNamed(const QString& name) const -> QVariantList {
+  QVariantList ids;
+  if (name.isEmpty()) return ids;
+  if (const auto exact = idNamed(name); exact >= 0) ids << exact;
+  // As unique_name() names a second file of the same name.
+  const auto dot = name.lastIndexOf(QLatin1Char('.'));
+  const auto base = dot > 0 ? name.left(dot) : name;
+  const auto extension = dot > 0 ? name.mid(dot) : QString();
+  const QRegularExpression apart(
+      QStringLiteral("^%1 \\(\\d+\\)%2$")
+          .arg(QRegularExpression::escape(base),
+               QRegularExpression::escape(extension)));
+  for (const auto& entry : entries_) {
+    if (entry->name != name && apart.match(entry->name).hasMatch()) {
+      ids << entry->id;
+    }
+  }
+  return ids;
 }
 
 auto FileWorkspace::signatureOf(int id) const -> int {
