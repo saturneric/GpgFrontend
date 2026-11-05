@@ -70,6 +70,17 @@ auto GpgSignature::GetStatus() const -> GFError {
         return RpgpSignatureError(GFErrorCode::kKEY_EXPIRED);
       case GFSignatureStatus::kKEY_NOT_AUTHORIZED:
         return RpgpSignatureError(GFErrorCode::kWRONG_KEY_USAGE);
+      case GFSignatureStatus::kSIGNATURE_EXPIRED:
+        return RpgpSignatureError(GFErrorCode::kSIGNATURE_EXPIRED);
+      case GFSignatureStatus::kWEAK_HASH:
+        return RpgpSignatureError(GFErrorCode::kUNSUPPORTED_ALGORITHM);
+      // Reported as GnuPG reports EXPKEYSIG and REVKEYSIG; that the key was
+      // still good when it signed tells them apart from kKEY_EXPIRED and
+      // kKEY_REVOKED (see IsKeyExpiredAtSigning()).
+      case GFSignatureStatus::kKEY_EXPIRED_SINCE:
+        return RpgpSignatureError(GFErrorCode::kKEY_EXPIRED);
+      case GFSignatureStatus::kKEY_REVOKED_SINCE:
+        return RpgpSignatureError(GFErrorCode::kKEY_REVOKED);
       default:
         return RpgpSignatureError(GFErrorCode::kGENERAL);
     }
@@ -88,7 +99,12 @@ auto GpgSignature::GetSummary() const -> std::uint32_t {
       case GFSignatureStatus::kKEY_REVOKED:
         return kSIGSUM_RED | kSIGSUM_KEY_REVOKED;
       case GFSignatureStatus::kKEY_EXPIRED:
+      case GFSignatureStatus::kKEY_EXPIRED_SINCE:
         return kSIGSUM_RED | kSIGSUM_KEY_EXPIRED;
+      case GFSignatureStatus::kKEY_REVOKED_SINCE:
+        return kSIGSUM_RED | kSIGSUM_KEY_REVOKED;
+      case GFSignatureStatus::kSIGNATURE_EXPIRED:
+        return kSIGSUM_RED | kSIGSUM_SIG_EXPIRED;
       default:
         return kSIGSUM_RED;
     }

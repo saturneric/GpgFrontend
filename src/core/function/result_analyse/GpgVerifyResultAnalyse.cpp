@@ -222,6 +222,18 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
           }
           setStatus(-1);
           break;
+        case GFErrorCode::kUNSUPPORTED_ALGORITHM:
+          stream_ << tr("Weak Hash Algorithm") << Qt::endl;
+          stream_ << "  - "
+                  << tr("The signature relies on %1, a hash algorithm too "
+                        "weak to trust, so it is not accepted")
+                         .arg(sign.GetHashAlgo())
+                  << Qt::endl;
+          if (!print_signer(stream_, GpgSignature(sign))) {
+            setStatus(0);
+          }
+          setStatus(-1);
+          break;
         case GFErrorCode::kGENERAL:
           stream_ << tr("Verification Error") << Qt::endl;
           stream_ << "  - "
@@ -269,6 +281,8 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
   bool any_shared_signer = false;
   // Whether GnuPG rated a signing key never valid (a likely forgery).
   bool any_distrusted = false;
+  // Whether a signature was refused for its weak hash algorithm.
+  bool any_weak_hash = false;
 
   for (const auto& sign : signatures) {
     GpgVerifySigInfo sig_info;
@@ -360,6 +374,14 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
             "certificate");
         any_not_authorized = true;
         break;
+      case GFErrorCode::kUNSUPPORTED_ALGORITHM:
+        // Refused for its hash, not because it does not match the data.
+        sig_info.validity = GpgSigValidity::kINVALID;
+        sig_info.warnings
+            << tr("Signature relies on a weak hash algorithm (%1)")
+                   .arg(sign.GetHashAlgo());
+        any_weak_hash = true;
+        break;
       case GFErrorCode::kGENERAL:
         sig_info.validity = GpgSigValidity::kERROR;
         break;
@@ -437,6 +459,10 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
       op_info_.description =
           tr("Verification failed. GnuPG marks the signing key as never "
              "valid, so the signature may be a forgery.");
+    } else if (any_weak_hash && !any_bad_signature) {
+      op_info_.description =
+          tr("Verification failed. The signature relies on a hash algorithm "
+             "too weak to trust.");
     } else if (any_bad_signature) {
       op_info_.description =
           tr("Invalid signature detected. The data may have been tampered "

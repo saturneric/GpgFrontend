@@ -272,6 +272,10 @@ enum class GFSignatureStatus : uint8_t {
   kKEY_REVOKED = 4,         ///< valid, but the key was revoked as of it
   kKEY_EXPIRED = 5,         ///< valid, but made after the key expired
   kKEY_NOT_AUTHORIZED = 6,  ///< valid, but the key may not sign
+  kSIGNATURE_EXPIRED = 7,   ///< by an authorized key, but expired itself
+  kWEAK_HASH = 8,           ///< by an authorized key, over a weak hash
+  kKEY_EXPIRED_SINCE = 9,   ///< valid when made; the key has expired since
+  kKEY_REVOKED_SINCE = 10,  ///< valid when made; the key was revoked since
 };
 
 struct GFSignature {
@@ -315,7 +319,7 @@ struct GFEncryptResult {
 struct GFDecryptResult {
   GFBuffer data;
   QString filename;
-  QString symkey_algo;  ///< Cipher and mode, as gpgme's (e.g. "AES256.OCB").
+  QString symkey_algo;     ///< Cipher and mode, as gpgme's (e.g. "AES256.OCB").
   QString cipher_warning;  ///< Why the cipher deserves a warning (RFC 9580
                            ///< §9.3, §12.2), or empty.
   QList<GFRecipient> recipients;

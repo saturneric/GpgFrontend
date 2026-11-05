@@ -206,6 +206,18 @@ auto ParseSignatures(const Rust::GfrSignatureResultC* sigs, size_t count)
       case Rust::GfrSignatureStatus::KeyNotAuthorized:
         sig_status = GFSignatureStatus::kKEY_NOT_AUTHORIZED;
         break;
+      case Rust::GfrSignatureStatus::SignatureExpired:
+        sig_status = GFSignatureStatus::kSIGNATURE_EXPIRED;
+        break;
+      case Rust::GfrSignatureStatus::WeakHash:
+        sig_status = GFSignatureStatus::kWEAK_HASH;
+        break;
+      case Rust::GfrSignatureStatus::KeyExpiredSince:
+        sig_status = GFSignatureStatus::kKEY_EXPIRED_SINCE;
+        break;
+      case Rust::GfrSignatureStatus::KeyRevokedSince:
+        sig_status = GFSignatureStatus::kKEY_REVOKED_SINCE;
+        break;
       case Rust::GfrSignatureStatus::UnknownError:
       default:
         break;

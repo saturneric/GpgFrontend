@@ -40,6 +40,7 @@
 
 #include "RpgpCoreTestRfc9580.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
+#include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
 #include "core/model/GpgVerifyResult.h"
 #include "core/utils/GpgUtils.h"
 
@@ -166,10 +167,12 @@ TEST_F(RpgpCoreTest, Rfc9580VerifySha1DetachedIsNotValid) {
   auto out = RunVerify(LoadRfc9580Vector("payload.txt"),
                        LoadRfc9580Vector("sig_sha1_detached.sig"));
   // The signature is cryptographically sound but uses a weak digest; the
-  // weak-hash gate must prevent it from being reported as Valid.
+  // weak-hash gate must prevent it from being reported as Valid, and report
+  // it for its digest rather than as a bad signature.
   ASSERT_EQ(out.sigs.size(), 1);
   EXPECT_FALSE(AnyValid(out.sigs));
-  EXPECT_EQ(out.sigs.front().GetStatus().code, GFErrorCode::kBAD_SIGNATURE);
+  EXPECT_EQ(out.sigs.front().GetStatus().code,
+            GFErrorCode::kUNSUPPORTED_ALGORITHM);
 }
 
 // --- Negative: expired key --------------------------------------------------
@@ -177,15 +180,31 @@ TEST_F(RpgpCoreTest, Rfc9580VerifySha1DetachedIsNotValid) {
 // A detached signature made on 2020-03-01 by a key that expired on 2020-06-01.
 // Key expiry is judged at the signature's creation time (key-validity
 // decision, matching GnuPG and Sequoia): the key was live when it signed, so
-// the signature is Valid. A signature made *after* expiry is reported as
-// GPG_ERR_KEY_EXPIRED; that case is covered on the Rust side
+// the signature verifies. But the creation time is the signer's to choose,
+// so that the key has expired since is reported as GnuPG reports EXPKEYSIG:
+// GPG_ERR_KEY_EXPIRED, not expired at signing, and not a failure. It used to
+// read as plainly valid. A signature made *after* expiry is the rejected case,
+// covered on the Rust side
 // (a_signature_made_after_the_key_expired_is_key_expired).
 
-TEST_F(RpgpCoreTest, Rfc9580VerifyKeyExpiredAfterSigningStaysValid) {
+TEST_F(RpgpCoreTest, Rfc9580VerifyKeyExpiredAfterSigningIsFlagged) {
   ImportAuxKeys({"aux_expired.asc"});
-  auto out = RunVerify(LoadRfc9580Vector("payload.txt"),
-                       LoadRfc9580Vector("sig_expired.sig"));
-  EXPECT_TRUE(AnyValid(out.sigs));
+  auto [err, dobj] =
+      MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+          .VerifySync(LoadRfc9580Vector("payload.txt"),
+                      LoadRfc9580Vector("sig_expired.sig"));
+  ASSERT_TRUE((dobj->Check<GpgVerifyResult, GFBuffer>()));
+  const auto result = ExtractParams<GpgVerifyResult>(dobj, 0);
+  const auto sigs = result.GetSignature();
+  ASSERT_EQ(sigs.size(), 1);
+  EXPECT_EQ(sigs.front().GetStatus().code, GFErrorCode::kKEY_EXPIRED);
+  EXPECT_FALSE(sigs.front().IsKeyExpiredAtSigning());
+
+  GpgVerifyResultAnalyse analyse{kRpgpChannelForUnitTest, err, result};
+  analyse.Analyse();
+  EXPECT_GE(analyse.GetStatus(), 0) << analyse.GetResultReport().toStdString();
+  ASSERT_EQ(analyse.GetOpInfo().signatures.size(), 1);
+  EXPECT_FALSE(analyse.GetOpInfo().signatures.front().rejected);
 }
 
 // --- Negative: revoked key --------------------------------------------------
