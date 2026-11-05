@@ -257,9 +257,16 @@ auto GenerateKeyWithSubkeyGnuPGImpl(
         GenerateKeyResultOf(gpgme_op_genkey_result(g_ctx.DefaultContext()));
     auto key = key_getter.GetKeyPtr(result.GetFingerprint());
     if (key == nullptr) {
+      // gpg made both keys; only the listing has not caught up. Reporting
+      // that as a cancel ("Canceled") invited generating the pair again.
+      key_getter.FlushKeyCache();
+      key = key_getter.GetKeyPtr(result.GetFingerprint());
+    }
+    if (key == nullptr) {
       LOG_W() << "cannot get key which has been generated, fpr: "
               << result.GetFingerprint();
-      return GPG_ERR_CANCELED;
+      data_object->Swap({result, GpgGenerateKeyResult{}});
+      return err;
     }
 
     // SubKeys() lists the primary first; the one subkey made here is last.
@@ -287,9 +294,15 @@ auto GenerateKeyWithSubkeyGnuPGImpl(
 
   if (s_params == nullptr) return err;
 
+  // The primary is committed from here on. If the subkey fails, the result
+  // still names it first, so the caller can tell a key that exists without
+  // its subkey from one that was never made (see RunKeyGeneration()).
   data_object->Swap({});
   err = GenerateSubKeyGnuPGImpl(ctx, key, s_params, data_object);
-  auto s_result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
+  const auto s_result =
+      data_object->Check<GpgGenerateKeyResult>()
+          ? ExtractParams<GpgGenerateKeyResult>(data_object, 0)
+          : GpgGenerateKeyResult{};
 
   data_object->Swap({result, s_result});
   return err;
