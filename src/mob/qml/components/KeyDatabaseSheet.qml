@@ -15,10 +15,23 @@ BottomSheet {
     property KeyDatabasesController databases
     // Naming a new database rather than choosing one.
     property bool naming: false
-    readonly property bool busy: databases !== null && databases.busy
+    // Switched: waiting for the new database's keys before closing.
+    property bool awaitingKeys: false
+    // The database being switched to or made, by name, for the progress line.
+    property string targetName: ""
+    // From the tap until the new database's keys are read, or it failed.
+    property bool switching: false
+    readonly property bool busy: (databases !== null && databases.busy) || awaitingKeys
+                                 || switching
 
-    // Said once the sheet is closed: "Now using ...".
-    signal finished(string message)
+    function hold(target) {
+        targetName = target
+        switching = true
+    }
+
+    // The new database is in use and its keys are shown: the page behind
+    // says so by its name and its list, nothing more is needed.
+    signal finished()
 
     function begin() {
         naming = false
@@ -37,7 +50,10 @@ BottomSheet {
     function create() {
         const why = databases.nameProblem(name.text)
         problem.text = why
-        if (why.length === 0) databases.create(name.text)
+        if (why.length === 0) {
+            hold(name.text.trim())
+            databases.create(name.text)
+        }
     }
 
     objectName: "keyDatabaseSheet"
@@ -50,25 +66,52 @@ BottomSheet {
         return true
     }
 
+    // Only a switch this sheet began: the core may switch on its own.
     function switched(succeeded, error) {
-        if (!opened) return
+        if (!switching) return
         if (succeeded) {
-            close()
-            finished(qsTr("Now using %1.").arg(databases.currentName))
-        } else {
-            problem.text = error
+            awaitKeys()
+            return
         }
+        switching = false
+        problem.text = error
     }
 
     function created(succeeded, error) {
-        if (!opened) return
-        if (succeeded) {
-            close()
-            finished(qsTr("%1 is made, and in use.").arg(databases.currentName))
-        } else {
-            problem.text = error
-        }
+        switched(succeeded, error)
     }
+
+    // The database is in use; the sheet stays, busy, until its keys are
+    // read, so the list behind it never shows the old database's keys or
+    // an empty "No keys yet" meanwhile.
+    function awaitKeys() {
+        awaitingKeys = true
+        keysSettled()
+    }
+
+    function keysSettled() {
+        if (!awaitingKeys || KeyListController.refreshing || !KeyListController.loaded)
+            return
+        awaitingKeys = false
+        switching = false
+        if (KeyListController.error.length > 0) {
+            problem.text = qsTr("%1 is in use, but its keys could not be read: %2")
+                           .arg(targetName).arg(KeyListController.error)
+            return
+        }
+        close()
+        finished()
+    }
+
+    // The key list's state, followed through a property of the sheet's own:
+    // its change signal (Signal...) has no handler in QML.
+    readonly property bool keysPending: KeyListController.refreshing
+                                        || !KeyListController.loaded
+    onKeysPendingChanged: Qt.callLater(sheet.keysSettled)
+
+    interactive: !busy
+    onClosed: awaitingKeys = false
+
 
     // Signals named Signal... have no handler property in QML. Once per
     // controller: an initial value raises no change.
@@ -81,6 +124,32 @@ BottomSheet {
     }
     onDatabasesChanged: listen()
     Component.onCompleted: listen()
+
+    // The one progress shown while switching, under the title, always
+    // taking its room: it comes and goes without moving anything.
+    ColumnLayout {
+        objectName: "keyDatabaseBusy"
+        Layout.fillWidth: true
+        spacing: 2
+        opacity: sheet.busy ? 1 : 0
+        Accessible.role: Accessible.ProgressBar
+        Accessible.name: progressText.text
+
+        ProgressBar {
+            Layout.fillWidth: true
+            indeterminate: sheet.busy
+        }
+
+        Label {
+            id: progressText
+            Layout.fillWidth: true
+            elide: Text.ElideRight
+            font.pixelSize: Theme.secondarySize
+            color: Material.secondaryTextColor
+            text: sheet.naming ? qsTr("Making %1…").arg(sheet.targetName)
+                               : qsTr("Switching to %1…").arg(sheet.targetName)
+        }
+    }
 
     Label {
         Layout.fillWidth: true
@@ -111,6 +180,7 @@ BottomSheet {
                 enabled: !sheet.busy
                 onClicked: {
                     problem.text = ""
+                    sheet.hold(modelData.name)
                     sheet.databases.switchTo(modelData.id)
                 }
             }
@@ -135,30 +205,15 @@ BottomSheet {
         objectName: "keyDatabaseProblem"
     }
 
-    RowLayout {
-        Layout.fillWidth: true
-        visible: sheet.busy
-        spacing: Theme.gap
-
-        BusyIndicator {
-            running: sheet.busy
-            Layout.preferredWidth: 32
-            Layout.preferredHeight: 32
-        }
-        Label {
-            Layout.fillWidth: true
-            wrapMode: Text.Wrap
-            text: qsTr("Opening the key databases…")
-        }
-    }
 
     footer: [
-        Button {
+        ActionButton {
             objectName: "keyDatabaseNew"
+            kind: "secondary"
             visible: !sheet.naming
             enabled: !sheet.busy
             text: qsTr("New key database")
-            flat: true
+            icon.source: Theme.icon("add")
             onClicked: sheet.beginNew()
         },
         Item {

@@ -40,13 +40,6 @@ Page {
         raised: list.contentY > list.originY
         onBack: page.back()
 
-        BarButton {
-            objectName: "groupAddKeys"
-            text: qsTr("Add keys")
-            icon.source: Theme.icon("add")
-            onClicked: page.addKeys()
-        }
-
         OverflowButton {
             objectName: "groupMenu"
 
@@ -76,16 +69,29 @@ Page {
         ScrollIndicator.vertical: ScrollIndicator {}
         model: page.members
 
-        header: Label {
+        // The last row scrolls clear of the add button.
+        bottomMargin: Theme.fabBand
+
+        // A section label; what a group means is a tap on (i) away.
+        header: RowLayout {
             width: ListView.view.width
-            padding: Theme.gap
-            wrapMode: Text.Wrap
-            color: Material.secondaryTextColor
-            font.pixelSize: Theme.secondarySize
             visible: list.count > 0
             height: visible ? implicitHeight : 0
-            text: qsTr("%1. Encrypting to this group encrypts to every key in it.")
-                  .arg(Wording.memberCount(list.count))
+            spacing: 0
+
+            SectionHeader {
+                objectName: "groupMembersLabel"
+                Layout.fillWidth: true
+                text: qsTr("Member keys (%1)").arg(list.count)
+            }
+
+            BarButton {
+                objectName: "groupHelp"
+                Layout.rightMargin: 4
+                text: qsTr("About key groups")
+                icon.source: Theme.icon("info")
+                onClicked: groupHelp.open()
+            }
         }
 
         delegate: ListRow {
@@ -104,9 +110,10 @@ Page {
                   : [modelData.email || "", (modelData.keyId || "").slice(-8)]
                     .filter(t => t.length > 0).join(" · ")
 
+            // Out of the group only: the key itself stays in the key list.
             BarButton {
                 objectName: "groupTakeOut_" + member.modelData.id
-                text: qsTr("Take %1 out").arg(member.text)
+                text: qsTr("Remove %1 from the group").arg(member.text)
                 icon.source: Theme.icon("close")
                 onClicked: {
                     if (groups.removeMember(page.groupId, member.modelData.id))
@@ -124,15 +131,26 @@ Page {
             visible: list.count === 0
             image: "key_generate"
             text: qsTr("No keys in it yet")
-            detail: qsTr("Encrypting to a key group encrypts to every key in "
-                         + "it. Add the keys, many at once.")
-
-            Button {
-                text: qsTr("Add keys")
-                highlighted: true
-                onClicked: page.addKeys()
-            }
+            detail: qsTr("Use + to add keys, many at once. Encrypting to a "
+                         + "key group encrypts to every key in it.")
         }
+    }
+
+    Fab {
+        objectName: "addGroupMembers"
+        text: qsTr("Add keys to the group")
+        icon.source: Theme.icon("add")
+        onClicked: page.addKeys()
+    }
+
+    MessageAlert {
+        id: groupHelp
+
+        objectName: "groupHelpAlert"
+        title: qsTr("Key groups")
+        message: qsTr("Encrypting to a key group encrypts to every key in it, "
+                      + "as if each were chosen. Removing a key from the group "
+                      + "keeps the key in your key list.")
     }
 
     KeyPickerSheet {
@@ -163,5 +181,7 @@ Page {
 
     Snackbar {
         id: done
+        // Above the add button, never over it.
+        bottomOffset: Theme.fabBand - 12
     }
 }

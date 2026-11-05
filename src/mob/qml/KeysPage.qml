@@ -15,13 +15,29 @@ Page {
     signal generateRequested()
     // An anonymous key from the default profile, at once.
     signal quickGenerateRequested()
-    // A category of the person's own, to manage (long press on its chip).
+    // A category of the person's own, to see and change who is in it.
     signal categoryOpened(var category)
+    // The categories, to add, edit, order and remove.
+    signal categoriesManageRequested()
     // A key group to open (by its id); @p pick: ask for its keys at once.
     signal groupOpened(string id, bool pick)
 
     // The key category shown; empty for every key.
     property string category: ""
+    // A quick key is being made.
+    property bool creatingKey: false
+    // The name of the database whose keys are listed: while another is
+    // being switched to, the one before, so the name and the list change
+    // together, in the same frame.
+    readonly property string databaseName: {
+        const listed = KeyListController.loadedDatabase
+        for (const database of keyDatabases.databases || []) {
+            if (database.id === listed) return database.name
+        }
+        return keyDatabases.currentName
+    }
+    readonly property alias notice: notice
+    readonly property alias databaseSheet: databaseSheet
 
     KeyCategoriesController {
         id: categoryStore
@@ -58,38 +74,32 @@ Page {
     KeyDatabaseSheet {
         id: databaseSheet
         databases: keyDatabases
-        onFinished: function(message) { notice.show(message) }
     }
 
+    // The categories to show, in the order the list offers them: the
+    // person's own, then the ready-made ones.
+    readonly property var categoryEntries: categoryStore.categories.concat(categoryStore.builtins)
+    // The search field (KeyFinder's).
+    readonly property alias search: finder.field
+    // The key list is still being read (a database opening, the first
+    // refresh): not empty yet, only not known.
+    property bool loading: keyDatabases.busy || !KeyListController.loaded
+                                    || (KeyListController.refreshing && filtered.count === 0)
+
     header: AppBar {
-        title: WorkSelection.recipientCount > 0
-               ? qsTr("%1 to encrypt to").arg(WorkSelection.recipientCount)
-               : qsTr("Keys")
+        title: qsTr("Keys")
         raised: list.contentY > list.originY
 
-        // The key database the list shows; tapped, the others and a new
-        // one. Always there: recipients stay chosen for the session, and
-        // hiding it while they were left no way to switch.
+        // The key database the list shows; tapped, the others and a new one.
         Button {
             objectName: "keyDatabaseButton"
             flat: true
-            text: keyDatabases.currentName
-            icon.source: Theme.icon("folder")
-            display: WorkSelection.recipientCount > 0 ? AbstractButton.IconOnly
-                                                       : AbstractButton.TextBesideIcon
+            text: page.databaseName
+            icon.source: Theme.icon("database")
             Layout.maximumWidth: page.width * 0.5
             onClicked: databaseSheet.begin()
             Accessible.name: qsTr("Key database: %1. Choose another")
-                             .arg(keyDatabases.currentName)
-        }
-
-        Button {
-            objectName: "clearRecipients"
-            visible: WorkSelection.recipientCount > 0
-            flat: true
-            text: qsTr("Clear")
-            onClicked: WorkSelection.clearRecipients()
-            Accessible.name: qsTr("Clear the keys to encrypt to")
+                             .arg(page.databaseName)
         }
     }
 
@@ -97,87 +107,23 @@ Page {
         anchors.fill: parent
         spacing: 0
 
-        SearchField {
-            id: search
+        // Finding a key: by what it says, and by its category.
+        KeyFinder {
+            id: finder
 
-            objectName: "keySearch"
             Layout.fillWidth: true
             Layout.leftMargin: Theme.gap
             Layout.rightMargin: Theme.gap
             Layout.bottomMargin: Theme.gapSmall
-            hint: qsTr("Search name, email or key ID")
-        }
-
-        // The categories, as the desktop's key list tabs them: all keys, or
-        // one group of them; a long press on one of the person's own opens
-        // it. "+" at the end of the row, always in reach, makes one.
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 0
-
-            ListView {
-                id: categoryChips
-
-                objectName: "categoryChips"
-                Layout.fillWidth: true
-                Layout.preferredHeight: Math.max(36, Theme.secondarySize * 2.4) + 8
-                orientation: ListView.Horizontal
-                spacing: 8
-                leftMargin: Theme.gap
-                rightMargin: 8
-                clip: true
-                boundsBehavior: Flickable.StopAtBounds
-                model: [{"id": "", "name": qsTr("All keys"), "color": ""}]
-                // The person's own first, in reach without scrolling the row;
-                // the ready-made ones after them.
-                       .concat(categoryStore.categories)
-                       .concat(categoryStore.builtins)
-
-                delegate: Button {
-                    id: chip
-
-                    required property var modelData
-                    // One of the person's own, which a long press opens.
-                    readonly property bool custom: modelData.id.length > 0
-                        && !categoryStore.builtins.some(b => b.id === modelData.id)
-
-                    objectName: "categoryChip_" + modelData.id
-                    anchors.verticalCenter: parent ? parent.verticalCenter : undefined
-                    text: modelData.name
-                    flat: page.category !== modelData.id
-                    highlighted: page.category === modelData.id
-                    checkable: true
-                    checked: page.category === modelData.id
-                    font.pixelSize: Theme.secondarySize
-                    topInset: 0
-                    bottomInset: 0
-                    implicitHeight: Math.max(36, Theme.secondarySize * 2.4)
-                    leftPadding: modelData.color ? 28 : 16
-                    onClicked: page.category = modelData.id
-                    onPressAndHold: if (custom) page.categoryOpened(modelData)
-                    Accessible.name: qsTr("Show %1").arg(modelData.name)
-                    Accessible.description: custom ? qsTr("Long-press to manage it") : ""
-
-                    Rectangle {
-                        visible: chip.modelData.color.length > 0
-                        anchors.left: parent.left
-                        anchors.leftMargin: 12
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: 10
-                        height: 10
-                        radius: 5
-                        color: chip.modelData.color
-                    }
-                }
-            }
-
-            BarButton {
-                objectName: "categoryChip_new"
-                Layout.rightMargin: 4
-                text: qsTr("New category")
-                icon.source: Theme.icon("add")
-                onClicked: newCategory.begin(null)
-            }
+            searchName: "keySearch"
+            entries: page.categoryEntries
+            category: page.category
+            manageable: true
+            ownIds: categoryStore.categories.map(c => c.id)
+            onCategoryChosen: id => page.category = id
+            onNewRequested: newCategory.begin(null)
+            onManageRequested: page.categoriesManageRequested()
+            onOpenRequested: category => page.categoryOpened(category)
         }
 
         ListView {
@@ -192,10 +138,8 @@ Page {
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
-            // Room under the last row for the add button.
-            footer: Item {
-                height: 88
-            }
+            // The last row scrolls clear of the add button.
+            bottomMargin: Theme.fabBand
             model: KeyFilterModel {
                 id: filtered
                 sourceModel: KeyListController.keys
@@ -218,19 +162,13 @@ Page {
                         "keyId": model.keyId, "name": primaryText
                     })
                 }
-                onRecipientToggled: {
-                    if (!model.canEncrypt || !model.usable) {
-                        notice.show(qsTr("%1 cannot be encrypted to.").arg(primaryText))
-                        return
-                    }
-                    WorkSelection.toggleRecipient(fingerprint)
-                }
                 onClicked: if (!model.isKey) page.groupOpened(model.fingerprint, false)
                            else page.keyChosen({
                     "name": model.name, "email": model.email,
                     "comment": model.comment, "keyId": model.keyId,
                     "fingerprint": model.fingerprint,
                     "hasSecret": model.hasSecret,
+                    "secretState": model.secretState,
                     "canEncrypt": model.canEncrypt, "canSign": model.canSign,
                     "usable": model.usable, "expired": model.expired,
                     "revoked": model.revoked, "status": model.status,
@@ -252,53 +190,53 @@ Page {
                 color: Material.secondaryTextColor
             }
 
+            // Nothing to show: said as it is -- nothing matches, the
+            // category is empty, the database holds no keys, or they could
+            // not be read. Never while they are still being read.
             EmptyState {
+                id: emptyKeys
+
                 objectName: "emptyKeys"
                 // On the list itself, not in its content, which is only as
                 // tall as what it holds -- nothing, here.
                 parent: list
                 anchors.centerIn: list
                 width: list.width - 64
-                visible: filtered.count === 0 && !KeyListController.refreshing
-                image: search.text.length > 0 ? "magnifier" : "key_generate"
+                visible: filtered.count === 0 && !page.loading
+                readonly property bool failed: KeyListController.error.length > 0
+                                               && search.text.length === 0
+                                               && page.category.length === 0
+                image: search.text.length > 0 ? "magnifier"
+                       : failed ? "" : "key_generate"
                 text: search.text.length > 0
                       ? qsTr("No key matches “%1”.").arg(search.text)
                       : page.category.length > 0 ? qsTr("No keys in this category.")
+                      : failed ? qsTr("The keys could not be read.")
                       : qsTr("No keys yet.")
                 detail: search.text.length > 0 ? ""
                         : page.category.length > 0
                         ? (categoryStore.builtins.some(c => c.id === page.category)
-                           ? "" : qsTr("Add keys to it on each key's page."))
-                        : qsTr("Create a key of your own, or import the keys "
-                               + "of the people you write to.")
+                           ? "" : qsTr("Add keys to it from the category's page."))
+                        : failed ? KeyListController.error
+                        : qsTr("Use + to create a key of your own or import "
+                               + "the keys of the people you write to.")
 
                 Button {
-                    objectName: "clearSearch"
-                    visible: search.text.length > 0
-                    text: qsTr("Clear search")
+                    objectName: "retryKeys"
+                    visible: emptyKeys.failed
+                    text: qsTr("Try again")
                     flat: true
-                    onClicked: search.clear()
-                }
-
-                Button {
-                    visible: search.text.length === 0 && page.category.length === 0
-                    text: qsTr("Import")
-                    flat: true
-                    onClicked: page.importRequested()
-                }
-
-                Button {
-                    visible: search.text.length === 0 && page.category.length === 0
-                    text: qsTr("Create a key")
-                    highlighted: true
-                    onClicked: page.generateRequested()
+                    onClicked: KeyListController.refresh()
                 }
             }
 
             BusyIndicator {
+                objectName: "keysLoading"
                 anchors.horizontalCenter: parent.horizontalCenter
                 y: filtered.count === 0 ? (parent.height - height) / 2 : 8
-                running: KeyListController.refreshing
+                // Never a second one under the database sheet's.
+                running: (page.loading || KeyListController.refreshing || page.creatingKey)
+                         && !databaseSheet.opened
             }
         }
     }
@@ -306,6 +244,8 @@ Page {
     Snackbar {
         id: notice
         objectName: "keysNotice"
+        // Above the add button, never over it.
+        bottomOffset: Theme.fabBand - 12
     }
 
     KeyGroupsController {
@@ -325,6 +265,7 @@ Page {
         onClicked: addSheet.open()
     }
 
+
     BottomSheet {
         id: addSheet
 
@@ -333,9 +274,9 @@ Page {
         ListRow {
             objectName: "generateKey"
             Layout.fillWidth: true
-            Layout.leftMargin: -24
-            Layout.rightMargin: -24
-            leftPadding: 24
+            Layout.leftMargin: -Theme.sheetPad
+            Layout.rightMargin: -Theme.sheetPad
+            leftPadding: Theme.sheetPad
             symbol: "key"
             symbolColor: Material.accentColor
             text: qsTr("Create a key")
@@ -350,9 +291,9 @@ Page {
         ListRow {
             objectName: "quickGenerateKey"
             Layout.fillWidth: true
-            Layout.leftMargin: -24
-            Layout.rightMargin: -24
-            leftPadding: 24
+            Layout.leftMargin: -Theme.sheetPad
+            Layout.rightMargin: -Theme.sheetPad
+            leftPadding: Theme.sheetPad
             symbol: "redo"
             symbolColor: Material.accentColor
             text: qsTr("Quick key")
@@ -367,9 +308,9 @@ Page {
         ListRow {
             objectName: "newKeyGroup"
             Layout.fillWidth: true
-            Layout.leftMargin: -24
-            Layout.rightMargin: -24
-            leftPadding: 24
+            Layout.leftMargin: -Theme.sheetPad
+            Layout.rightMargin: -Theme.sheetPad
+            leftPadding: Theme.sheetPad
             image: "qrc:/icons/key-group.png"
             text: qsTr("New key group")
             detail: qsTr("Encrypt to several keys at once, as one recipient.")
@@ -382,10 +323,10 @@ Page {
         ListRow {
             objectName: "importKeys"
             Layout.fillWidth: true
-            Layout.leftMargin: -24
-            Layout.rightMargin: -24
+            Layout.leftMargin: -Theme.sheetPad
+            Layout.rightMargin: -Theme.sheetPad
             Layout.bottomMargin: Theme.gapSmall
-            leftPadding: 24
+            leftPadding: Theme.sheetPad
             symbol: "note_add"
             symbolColor: Material.accentColor
             text: qsTr("Import a key")

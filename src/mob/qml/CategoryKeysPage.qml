@@ -45,13 +45,6 @@ Page {
         raised: list.contentY > list.originY
         onBack: page.back()
 
-        BarButton {
-            objectName: "categoryAddKeys"
-            text: qsTr("Add keys")
-            icon.source: Theme.icon("add")
-            onClicked: page.addKeys()
-        }
-
         OverflowButton {
             objectName: "categoryMenu"
 
@@ -77,6 +70,8 @@ Page {
         objectName: "categoryKeys"
         anchors.fill: parent
         clip: true
+        // The last row scrolls clear of the add button.
+        bottomMargin: Theme.fabBand
         ScrollIndicator.vertical: ScrollIndicator {}
         model: KeyFilterModel {
             id: members
@@ -95,6 +90,7 @@ Page {
                 "comment": model.comment, "keyId": model.keyId,
                 "fingerprint": model.fingerprint,
                 "hasSecret": model.hasSecret,
+                "secretState": model.secretState,
                 "canEncrypt": model.canEncrypt, "canSign": model.canSign,
                 "usable": model.usable, "expired": model.expired,
                 "revoked": model.revoked, "status": model.status,
@@ -104,7 +100,7 @@ Page {
 
             BarButton {
                 objectName: "categoryTakeOut_" + member.keyId
-                text: qsTr("Take %1 out").arg(member.primaryText)
+                text: qsTr("Remove %1 from the category").arg(member.primaryText)
                 icon.source: Theme.icon("close")
                 onClicked: {
                     store.setMember(page.category.id, member.keyId, false)
@@ -122,15 +118,17 @@ Page {
             visible: list.count === 0
             image: "key_generate"
             text: qsTr("No keys in it yet")
-            detail: qsTr("Add keys here, many at once, or long-press a key "
-                         + "in the key list.")
-
-            Button {
-                text: qsTr("Add keys")
-                highlighted: true
-                onClicked: page.addKeys()
-            }
+            detail: qsTr("Use + to add keys you have, many at once, or "
+                         + "long-press a key in the key list.")
         }
+    }
+
+    // Adding keys one has to the category: never making a new key.
+    Fab {
+        objectName: "categoryAddKeys"
+        text: qsTr("Add keys to the category")
+        icon.source: Theme.icon("add")
+        onClicked: page.addKeys()
     }
 
     KeyPickerSheet {
@@ -162,5 +160,7 @@ Page {
 
     Snackbar {
         id: done
+        // Above the add button, never over it.
+        bottomOffset: Theme.fabBand - 12
     }
 }
