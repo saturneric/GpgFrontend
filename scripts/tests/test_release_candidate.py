@@ -533,9 +533,10 @@ def permissions(job_text):
 
 
 def upload_names(text):
+    """Every upload-artifact name, whole: `${{ matrix.os }}` has spaces in it."""
     return re.findall(
         r"uses: actions/upload-artifact@\S+.*\n\s+with:\n(?:\s+#.*\n)*"
-        r"\s+name: (\S+)", text)
+        r"\s+name: (.+?)\s*$", text, re.M)
 
 
 def normalize(expr):
@@ -621,6 +622,12 @@ class WorkflowTest(unittest.TestCase):
         for name in upload_names(self.text):
             if name.startswith(("gpgfrontend-", "buildinfo-")):
                 self.assertIn("${{", name)
+
+
+    def test_build_info_names_are_whole(self):
+        # The pairing above is only a check if it sees whole names.
+        for name in upload_names(self.text):
+            self.assertEqual(name.count("${{"), name.count("}}"), name)
 
 
 if __name__ == "__main__":
