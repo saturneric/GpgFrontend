@@ -56,6 +56,25 @@ Page {
     // and wraps anywhere.
     readonly property string kind: ContentKind.textKind(editor.text)
     readonly property bool armored: kind !== "plain" && kind !== "empty"
+    // How the editor shows text (Settings > Text editor).
+    property var editorPrefs: prefs.editor
+    readonly property alias editorLayout: editorLayout
+    // A face by kind, as installed: Android's fonts go by their own names
+    // (its "serif" alias is not one Qt knows), a desktop's by others.
+    readonly property var installedFamilies: Qt.fontFamilies()
+    function installed(candidates) {
+        return candidates.find(f => installedFamilies.includes(f)) || candidates[0]
+    }
+    readonly property string editorFamily: {
+        switch (editorPrefs.font) {
+        case "mono": return Theme.mono
+        case "sans": return installed(["Roboto", "Noto Sans", "DejaVu Sans", "sans-serif"])
+        case "serif": return installed(["Noto Serif", "Droid Serif", "DejaVu Serif",
+                                        "Liberation Serif", "serif"])
+        default: return Qt.application.font.family
+        }
+    }
+    readonly property int editorSize: editorPrefs.size > 0 ? editorPrefs.size : 16
     readonly property bool isKey: kind === "public_key" || kind === "private_key"
 
     // How much of the editor the on-screen keyboard covers. The window does
@@ -299,7 +318,8 @@ Page {
         ? qsTr("Type or paste text first.")
         : crypto.busy ? qsTr("An operation is still running.") : ""
 
-    // The operations besides the four, offered once turned on in Settings.
+    // The operations besides the four, and how the editor shows text, as set
+    // in Settings.
     SettingsModel {
         id: prefs
     }
@@ -440,10 +460,34 @@ Page {
                     textFormat: TextEdit.PlainText
                     inputMethodHints: Qt.ImhNoPredictiveText
                     selectByMouse: true
-                    font.family: page.armored ? Theme.mono : Qt.application.font.family
-                    font.pixelSize: page.armored ? Theme.secondarySize : Theme.bodySize
+                    // As set in Settings > Text editor, with the system's
+                    // text size on top. Armor is always in the fixed-width
+                    // face, a little smaller: one long run of letters.
+                    font.family: page.armored ? Theme.mono : page.editorFamily
+                    font.pixelSize: Math.round((page.armored ? page.editorSize - 2
+                                                             : page.editorSize)
+                                               * Theme.fontScale)
+                    // Never left to the editor: it would follow the paragraph
+                    // the cursor is in and lay the text out again as it moves.
+                    // "Automatic" is the text's leading side (EditorLayout).
+                    horizontalAlignment: page.editorPrefs.alignment === "right"
+                                         ? TextEdit.AlignRight
+                                         : page.editorPrefs.alignment === "left"
+                                           || !editorLayout.leadingRight
+                                           ? TextEdit.AlignLeft : TextEdit.AlignRight
                     background: null
                     Accessible.name: qsTr("Text")
+
+                    EditorLayout {
+                        id: editorLayout
+
+                        objectName: "editorLayout"
+
+                        target: editor
+                        direction: page.editorPrefs.direction
+                        alignment: page.editorPrefs.alignment
+                        armored: page.armored
+                    }
 
                     onTextChanged: {
                         ++page.docRevision

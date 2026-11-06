@@ -3493,6 +3493,46 @@ Una traducción simplificada sería aludir exclusivamente al término &apos;huel
         <source>Remembered tab orders and column choices.</source>
         <translation>Orden de pestañas y columnas recordados.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>Font</source>
+        <translation>Tipo de letra</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>Text size</source>
+        <translation>Tamaño del texto</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>Text direction</source>
+        <translation>Dirección del texto</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>Alignment</source>
+        <translation>Alineación</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>The typeface of the text editor.</source>
+        <translation>El tipo de letra del editor de texto.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>The size of the text in the editor. The system&apos;s text size applies on top of it.</source>
+        <translation>El tamaño del texto en el editor. El tamaño de texto del sistema se aplica además.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>Which way lines run. Automatic follows each paragraph&apos;s own letters; OpenPGP text always runs left to right.</source>
+        <translation>En qué dirección van las líneas. Automático sigue las letras de cada párrafo; el texto OpenPGP siempre va de izquierda a derecha.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>Which side lines start at. Automatic follows the text direction.</source>
+        <translation>En qué lado empiezan las líneas. Automático sigue la dirección del texto.</translation>
+    </message>
 </context>
 <context>
     <name>GpgFrontend::Shell::EncryptBlockReason</name>
@@ -24020,6 +24060,51 @@ Deshaga esos cambios o elija Cancelar para descartar todo lo que cambió en este
         <source>No limit</source>
         <translation>Sin límite</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Monospace</source>
+        <translation>Monoespaciada</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Sans-serif</source>
+        <translation>Sin serifa</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Serif</source>
+        <translation>Con serifa</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>System default</source>
+        <translation>Predeterminado del sistema</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Left to right</source>
+        <translation>De izquierda a derecha</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Right to left</source>
+        <translation>De derecha a izquierda</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Automatic</source>
+        <translation>Automático</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Left</source>
+        <translation>Izquierda</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Right</source>
+        <translation>Derecha</translation>
+    </message>
 </context>
 <context>
     <name>SettingsPage</name>
@@ -24227,6 +24312,11 @@ Deshaga esos cambios o elija Cancelar para descartar todo lo que cambió en este
         <location filename="../../../../src/mob/qml/SettingsPage.qml" line="190"/>
         <source>The next operation asks for them again. They are also cleared whenever you leave GpgFrontend.</source>
         <translation>La próxima operación las pedirá de nuevo. También se borran cada vez que sale de GpgFrontend.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="1"/>
+        <source>Text editor</source>
+        <translation>Editor de texto</translation>
     </message>
 </context>
 <context>

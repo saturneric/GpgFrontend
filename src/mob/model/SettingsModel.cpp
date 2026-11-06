@@ -78,6 +78,19 @@ auto DecryptChoices() -> QStringList {
   return choices;
 }
 
+/// Tells every model that how the editor shows text changed.
+auto EditorRelay() -> ChangeRelay& {
+  static ChangeRelay relay;
+  return relay;
+}
+
+auto IsEditorSetting(const SettingMeta* meta) -> bool {
+  return meta == &SettingItems::kEditorFont ||
+         meta == &SettingItems::kEditorFontSize ||
+         meta == &SettingItems::kEditorDirection ||
+         meta == &SettingItems::kEditorAlignment;
+}
+
 auto IsOperationSetting(const SettingMeta* meta) -> bool {
   return meta == &SettingItems::kShowEncryptSign ||
          meta == &SettingItems::kShowDecryptVerify ||
@@ -167,6 +180,29 @@ auto SettingsModel::Offered() -> QList<Offer> {
        QStringLiteral("operations"),
        {},
        false},
+      // How the Text page's editor shows text: only what is offered.
+      {&SettingItems::kEditorFont,
+       QStringLiteral("font"),
+       QStringLiteral("editor"),
+       {QStringLiteral("system"), QStringLiteral("mono"),
+        QStringLiteral("sans"), QStringLiteral("serif")},
+       false},
+      {&SettingItems::kEditorFontSize,
+       QStringLiteral("size"),
+       QStringLiteral("editor"),
+       {12, 14, 16, 18, 20, 24, 28},
+       false},
+      {&SettingItems::kEditorDirection,
+       QStringLiteral("direction"),
+       QStringLiteral("editor"),
+       {QStringLiteral("auto"), QStringLiteral("ltr"), QStringLiteral("rtl")},
+       false},
+      {&SettingItems::kEditorAlignment,
+       QStringLiteral("alignment"),
+       QStringLiteral("editor"),
+       {QStringLiteral("auto"), QStringLiteral("left"),
+        QStringLiteral("right")},
+       false},
   };
 }
 
@@ -178,6 +214,8 @@ SettingsModel::SettingsModel(QObject* parent) : QAbstractListModel(parent) {
                      {kValueRole, kChoicesRole});
     emit SignalOperationsChanged();
   });
+  connect(&EditorRelay(), &ChangeRelay::SignalChanged, this,
+          &SettingsModel::SignalEditorChanged);
   // Its titles, descriptions and choices are translated as they are read.
   connect(&LanguageRelay(), &ChangeRelay::SignalChanged, this, [this]() {
     if (rowCount() > 0) emit dataChanged(index(0), index(rowCount() - 1));
@@ -231,6 +269,25 @@ auto SettingsModel::DefaultDecrypt() -> QString {
   const auto chosen =
       SettingItems::kDefaultDecryptOperation.Read(GetSettings());
   return DecryptChoices().contains(chosen) ? chosen : QStringLiteral("decrypt");
+}
+
+auto SettingsModel::Editor() -> QVariantMap {
+  using SettingItems::kEditorAlignment;
+  using SettingItems::kEditorDirection;
+  using SettingItems::kEditorFont;
+  using SettingItems::kEditorFontSize;
+  // Before a profile is open (and in tests without one): the defaults.
+  if (!ProfileSession::Loaded()) {
+    return {{QStringLiteral("font"), kEditorFont.Default()},
+            {QStringLiteral("size"), kEditorFontSize.Default()},
+            {QStringLiteral("direction"), kEditorDirection.Default()},
+            {QStringLiteral("alignment"), kEditorAlignment.Default()}};
+  }
+  const auto settings = GetSettings();
+  return {{QStringLiteral("font"), kEditorFont.Read(settings)},
+          {QStringLiteral("size"), kEditorFontSize.Read(settings)},
+          {QStringLiteral("direction"), kEditorDirection.Read(settings)},
+          {QStringLiteral("alignment"), kEditorAlignment.Read(settings)}};
 }
 
 auto SettingsModel::ExtraOperations() -> QStringList {
@@ -335,6 +392,14 @@ bool SettingsModel::setValue(int row, const QVariant& value) {
     return false;
   }
 
+  // The editor's settings take only what is offered.
+  if (const auto& offer = items_.at(row);
+      offer.section == QLatin1String("editor") && !offer.custom &&
+      !offer.choices.contains(value)) {
+    emit dataChanged(changed, changed, {kValueRole});
+    return false;
+  }
+
   bool stored = false;
   {
     auto settings = GetSettings();
@@ -362,6 +427,7 @@ bool SettingsModel::setValue(int row, const QVariant& value) {
 
   emit dataChanged(changed, changed, {kValueRole});
   if (IsOperationSetting(meta)) emit OperationsRelay().SignalChanged();
+  if (IsEditorSetting(meta)) emit EditorRelay().SignalChanged();
   // Which keys are about to lapse is read as the list is: the list again,
   // its "Expiring soon" category too, at once.
   if (meta == &SettingItems::kExpiringSoonDays) KeyListController::Reload();

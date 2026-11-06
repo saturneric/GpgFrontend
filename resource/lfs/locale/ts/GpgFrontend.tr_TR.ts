@@ -3457,6 +3457,46 @@
         <source>Remembered tab orders and column choices.</source>
         <translation>Hatırlanan sekme sıraları ve sütun seçimleri.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>Font</source>
+        <translation>Yazı tipi</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>Text size</source>
+        <translation>Metin boyutu</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>Text direction</source>
+        <translation>Metin yönü</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>Alignment</source>
+        <translation>Hizalama</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>The typeface of the text editor.</source>
+        <translation>Metin düzenleyicinin yazı tipi.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>The size of the text in the editor. The system&apos;s text size applies on top of it.</source>
+        <translation>Düzenleyicideki metnin boyutu. Sistemin metin boyutu bunun üzerine uygulanır.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>Which way lines run. Automatic follows each paragraph&apos;s own letters; OpenPGP text always runs left to right.</source>
+        <translation>Satırların yönü. Otomatik, her paragrafın kendi harflerini izler; OpenPGP metni her zaman soldan sağa akar.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>Which side lines start at. Automatic follows the text direction.</source>
+        <translation>Satırların hangi taraftan başladığı. Otomatik, metin yönünü izler.</translation>
+    </message>
 </context>
 <context>
     <name>GpgFrontend::Shell::EncryptBlockReason</name>
@@ -22248,6 +22288,51 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
         <source>No limit</source>
         <translation>Sınır yok</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Monospace</source>
+        <translation>Eş aralıklı</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Sans-serif</source>
+        <translation>Tırnaksız</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Serif</source>
+        <translation>Tırnaklı</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>System default</source>
+        <translation>Sistem varsayılanı</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Left to right</source>
+        <translation>Soldan sağa</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Right to left</source>
+        <translation>Sağdan sola</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Automatic</source>
+        <translation>Otomatik</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Left</source>
+        <translation>Sol</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Right</source>
+        <translation>Sağ</translation>
+    </message>
 </context>
 <context>
     <name>SettingsPage</name>
@@ -22454,6 +22539,11 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
         <location filename="../../../../src/mob/qml/SettingsPage.qml" line="190"/>
         <source>The next operation asks for them again. They are also cleared whenever you leave GpgFrontend.</source>
         <translation>Sonraki işlem bunları yeniden sorar. GpgFrontend&apos;den her ayrıldığınızda da temizlenirler.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="1"/>
+        <source>Text editor</source>
+        <translation>Metin düzenleyici</translation>
     </message>
 </context>
 <context>

@@ -205,6 +205,16 @@ Page {
                 section: "operations"
             }
 
+            // How the Text page's editor shows text; nothing else follows it.
+            SectionHeader {
+                Layout.fillWidth: true
+                text: qsTr("Text editor")
+            }
+
+            SettingRows {
+                section: "editor"
+            }
+
             SectionHeader {
                 Layout.fillWidth: true
                 text: qsTr("Keys")

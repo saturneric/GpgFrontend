@@ -3483,6 +3483,46 @@
         <source>Remembered tab orders and column choices.</source>
         <translation>Запоминаемые порядок вкладок и набор столбцов.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>Font</source>
+        <translation>Шрифт</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>Text size</source>
+        <translation>Размер текста</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>Text direction</source>
+        <translation>Направление текста</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>Alignment</source>
+        <translation>Выравнивание</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>The typeface of the text editor.</source>
+        <translation>Шрифт текстового редактора.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>The size of the text in the editor. The system&apos;s text size applies on top of it.</source>
+        <translation>Размер текста в редакторе. Системный размер текста применяется поверх него.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>Which way lines run. Automatic follows each paragraph&apos;s own letters; OpenPGP text always runs left to right.</source>
+        <translation>В какую сторону идут строки. «Автоматически» следует буквам каждого абзаца; текст OpenPGP всегда идёт слева направо.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>Which side lines start at. Automatic follows the text direction.</source>
+        <translation>С какой стороны начинаются строки. «Автоматически» следует направлению текста.</translation>
+    </message>
 </context>
 <context>
     <name>GpgFrontend::Shell::EncryptBlockReason</name>
@@ -24035,6 +24075,51 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <source>No limit</source>
         <translation>Без ограничения</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Monospace</source>
+        <translation>Моноширинный</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Sans-serif</source>
+        <translation>Без засечек</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Serif</source>
+        <translation>С засечками</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>System default</source>
+        <translation>Системный по умолчанию</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Left to right</source>
+        <translation>Слева направо</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Right to left</source>
+        <translation>Справа налево</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Automatic</source>
+        <translation>Автоматически</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Left</source>
+        <translation>По левому краю</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Right</source>
+        <translation>По правому краю</translation>
+    </message>
 </context>
 <context>
     <name>SettingsPage</name>
@@ -24243,6 +24328,11 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <location filename="../../../../src/mob/qml/SettingsPage.qml" line="190"/>
         <source>The next operation asks for them again. They are also cleared whenever you leave GpgFrontend.</source>
         <translation>При следующей операции они будут запрошены снова. Они также очищаются каждый раз, когда вы покидаете GpgFrontend.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="1"/>
+        <source>Text editor</source>
+        <translation>Текстовый редактор</translation>
     </message>
 </context>
 <context>

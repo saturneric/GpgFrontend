@@ -3136,6 +3136,46 @@
         <source>Remembered tab orders and column choices.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>Font</source>
+        <translation>Font</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>Text size</source>
+        <translation>Text size</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>Text direction</source>
+        <translation>Text direction</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>Alignment</source>
+        <translation>Alignment</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>The typeface of the text editor.</source>
+        <translation>The typeface of the text editor.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>The size of the text in the editor. The system&apos;s text size applies on top of it.</source>
+        <translation>The size of the text in the editor. The system&apos;s text size applies on top of it.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>Which way lines run. Automatic follows each paragraph&apos;s own letters; OpenPGP text always runs left to right.</source>
+        <translation>Which way lines run. Automatic follows each paragraph&apos;s own letters; OpenPGP text always runs left to right.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
+        <source>Which side lines start at. Automatic follows the text direction.</source>
+        <translation>Which side lines start at. Automatic follows the text direction.</translation>
+    </message>
 </context>
 <context>
     <name>GpgFrontend::Shell::EncryptBlockReason</name>
@@ -20457,6 +20497,51 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <source>No limit</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Monospace</source>
+        <translation>Monospace</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Sans-serif</source>
+        <translation>Sans-serif</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Serif</source>
+        <translation>Serif</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>System default</source>
+        <translation>System default</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Left to right</source>
+        <translation>Left to right</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Right to left</source>
+        <translation>Right to left</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Automatic</source>
+        <translation>Automatic</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Left</source>
+        <translation>Left</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
+        <source>Right</source>
+        <translation>Right</translation>
+    </message>
 </context>
 <context>
     <name>SettingsPage</name>
@@ -20664,6 +20749,11 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <location filename="../../../../src/mob/qml/SettingsPage.qml" line="190"/>
         <source>The next operation asks for them again. They are also cleared whenever you leave GpgFrontend.</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="1"/>
+        <source>Text editor</source>
+        <translation>Text editor</translation>
     </message>
 </context>
 <context>

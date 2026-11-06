@@ -274,6 +274,52 @@ inline constexpr StringSetting kDefaultDecryptOperation{
                                       "What the Decrypt button does.")},
     "decrypt"};
 
+/// The typeface of the phone's text editor: "system", "mono", "sans" or
+/// "serif". Only the editor's: the rest of the app keeps the system's.
+inline constexpr StringSetting kEditorFont{
+    {.key = "mobile/editor_font",
+     .group = kAPPEARANCE,
+     .title = QT_TRANSLATE_NOOP("GpgFrontend::SettingItem", "Font"),
+     .description = QT_TRANSLATE_NOOP("GpgFrontend::SettingItem",
+                                      "The typeface of the text editor.")},
+    "system"};
+
+/// The size of the phone editor's text, before the system's own text
+/// scaling, which applies on top of it.
+inline constexpr IntSetting kEditorFontSize{
+    {.key = "mobile/editor_font_size",
+     .group = kAPPEARANCE,
+     .title = QT_TRANSLATE_NOOP("GpgFrontend::SettingItem", "Text size"),
+     .description = QT_TRANSLATE_NOOP(
+         "GpgFrontend::SettingItem",
+         "The size of the text in the editor. The system's text size "
+         "applies on top of it.")},
+    16};
+
+/// Which way the lines of the phone's text editor run: "auto" (each
+/// paragraph by its first letters, OpenPGP text always left to right),
+/// "ltr" or "rtl".
+inline constexpr StringSetting kEditorDirection{
+    {.key = "mobile/editor_direction",
+     .group = kAPPEARANCE,
+     .title = QT_TRANSLATE_NOOP("GpgFrontend::SettingItem", "Text direction"),
+     .description = QT_TRANSLATE_NOOP(
+         "GpgFrontend::SettingItem",
+         "Which way lines run. Automatic follows each paragraph's own "
+         "letters; OpenPGP text always runs left to right.")},
+    "auto"};
+
+/// Where the lines of the phone's text editor start: "auto" (as each
+/// paragraph runs), "left" or "right".
+inline constexpr StringSetting kEditorAlignment{
+    {.key = "mobile/editor_alignment",
+     .group = kAPPEARANCE,
+     .title = QT_TRANSLATE_NOOP("GpgFrontend::SettingItem", "Alignment"),
+     .description = QT_TRANSLATE_NOOP(
+         "GpgFrontend::SettingItem",
+         "Which side lines start at. Automatic follows the text direction.")},
+    "auto"};
+
 inline constexpr BoolSetting kUndoableOperations{
     {.key = "basic/undoable_operations",
      .group = kBEHAVIOUR,
@@ -507,7 +553,7 @@ inline constexpr StateSetting kLastOperation{.key = "mobile/last_operation",
 /// Every entry above. A setting missing from here is invisible to every
 /// policy that walks the catalog, so a new entry is added in both places;
 /// SettingCatalogTest checks that each key appears once.
-inline constexpr std::array<const SettingMeta *, 56> kAll = {
+inline constexpr std::array<const SettingMeta *, 60> kAll = {
     &kDefaultEngine,
     &kUseCustomGnuPGInstallPath,
     &kCustomGnuPGInstallPath,
@@ -564,6 +610,10 @@ inline constexpr std::array<const SettingMeta *, 56> kAll = {
     &kToolboxColumnsFilter,
     &kCustomCategoryOrder,
     &kLastOperation,
+    &kEditorFont,
+    &kEditorFontSize,
+    &kEditorDirection,
+    &kEditorAlignment,
 };
 
 }  // namespace GpgFrontend::SettingItems

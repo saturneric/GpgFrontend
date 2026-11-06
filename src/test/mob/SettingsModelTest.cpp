@@ -336,6 +336,77 @@ TEST(SettingsModelTest, ATimeSaysItsUnitAndOffersItsDefault) {
   });
 }
 
+// How the Text page's editor shows text: four rows of their own section,
+// only the values offered, heard by every page's model at once.
+TEST(SettingsModelTest, TheEditorTakesOnlyWhatIsOffered) {
+  RunOnMainThread([]() {
+    SettingsModel settings_page;
+    SettingsModel text_page;
+    int heard = 0;
+    QObject::connect(&text_page, &SettingsModel::SignalEditorChanged,
+                     [&heard]() { ++heard; });
+    const auto keys = Keys(settings_page);
+    const auto row = [&keys](const SettingMeta& meta) {
+      return static_cast<int>(keys.indexOf(QString::fromLatin1(meta.key)));
+    };
+
+    const auto defaults = SettingsModel::Editor();
+    EXPECT_EQ(defaults.value("font").toString(), "system");
+    EXPECT_EQ(defaults.value("size").toInt(), 16);
+    EXPECT_EQ(defaults.value("direction").toString(), "auto");
+    EXPECT_EQ(defaults.value("alignment").toString(), "auto");
+
+    for (const auto* meta :
+         {static_cast<const SettingMeta*>(&SettingItems::kEditorFont),
+          static_cast<const SettingMeta*>(&SettingItems::kEditorFontSize),
+          static_cast<const SettingMeta*>(&SettingItems::kEditorDirection),
+          static_cast<const SettingMeta*>(&SettingItems::kEditorAlignment)}) {
+      const auto at = row(*meta);
+      ASSERT_GE(at, 0) << meta->key;
+      const auto index = settings_page.index(at);
+      EXPECT_EQ(settings_page.data(index, SettingsModel::kSectionRole),
+                "editor");
+      EXPECT_EQ(settings_page.data(index, SettingsModel::kCustomRole), false);
+    }
+    EXPECT_EQ(
+        settings_page
+            .data(settings_page.index(row(SettingItems::kEditorDirection)),
+                  SettingsModel::kChoicesRole)
+            .toStringList(),
+        (QStringList{"auto", "ltr", "rtl"}));
+
+    // Nothing that is not offered: no unknown face, no size out of reach.
+    EXPECT_FALSE(settings_page.setValue(row(SettingItems::kEditorFont),
+                                        QStringLiteral("comic")));
+    EXPECT_FALSE(settings_page.setValue(row(SettingItems::kEditorFontSize), 3));
+    EXPECT_FALSE(
+        settings_page.setValue(row(SettingItems::kEditorFontSize), 200));
+    EXPECT_FALSE(settings_page.setValue(row(SettingItems::kEditorAlignment),
+                                        QStringLiteral("centre")));
+    EXPECT_EQ(heard, 0);
+
+    ASSERT_TRUE(settings_page.setValue(row(SettingItems::kEditorFont),
+                                       QStringLiteral("serif")));
+    ASSERT_TRUE(settings_page.setValue(row(SettingItems::kEditorFontSize), 20));
+    ASSERT_TRUE(settings_page.setValue(row(SettingItems::kEditorDirection),
+                                       QStringLiteral("rtl")));
+    EXPECT_EQ(heard, 3);
+    const auto now = text_page.Editor();
+    EXPECT_EQ(now.value("font").toString(), "serif");
+    EXPECT_EQ(now.value("size").toInt(), 20);
+    EXPECT_EQ(now.value("direction").toString(), "rtl");
+
+    // Kept: a model made later reads them back.
+    EXPECT_EQ(SettingsModel().Editor().value("size").toInt(), 20);
+
+    settings_page.setValue(row(SettingItems::kEditorFont),
+                           QStringLiteral("system"));
+    settings_page.setValue(row(SettingItems::kEditorFontSize), 16);
+    settings_page.setValue(row(SettingItems::kEditorDirection),
+                           QStringLiteral("auto"));
+  });
+}
+
 TEST(SettingsModelTest, ClearingSharedFilesEmptiesTheStoreAndItsSize) {
   RunOnMainThread([]() {
     auto* store = SharedFileStore();

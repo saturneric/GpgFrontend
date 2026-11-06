@@ -325,6 +325,94 @@ Item {
                    "last line ends at " + lastBottom)
         }
 
+        // Where a line of @p editor starting at @p pos begins, across the
+        // editor: near 0 at the left, near 1 at the right.
+        function startOf(pos) {
+            const editor = text.editor
+            const r = editor.positionToRectangle(pos)
+            return (r.x - editor.leftPadding)
+                   / (editor.width - editor.leftPadding - editor.rightPadding)
+        }
+
+        function prefs(direction, alignment, font, size) {
+            text.editorPrefs = {"direction": direction, "alignment": alignment,
+                                "font": font || "system", "size": size || 16}
+        }
+
+        // Each paragraph runs its own way by itself: a Hebrew line from the
+        // right, an English one from the left, in the same text.
+        function test_each_paragraph_runs_its_own_way() {
+            prefs("auto", "auto")
+            text.editor.text = "שלום עולם\nhello world"
+            const english = text.editor.text.indexOf("hello")
+            tryVerify(() => startOf(0) > 0.5, 1000, "Hebrew starts at " + startOf(0))
+            verify(startOf(english) < 0.1, "English starts at " + startOf(english))
+            // Moving the cursor lays nothing out again.
+            const before = text.editor.positionToRectangle(english).x
+            text.editor.cursorPosition = 1
+            text.editor.cursorPosition = english + 1
+            compare(text.editor.positionToRectangle(english).x, before)
+        }
+
+        // Text that runs one way, as most does, is left as the editor lays
+        // it out: typing never lays the whole text out twice.
+        function test_typing_lays_the_text_out_once() {
+            prefs("auto", "auto")
+            text.editor.text = "hello"
+            const layout = text.editorLayout
+            wait(20)
+            const before = layout.overrides
+            for (let i = 0; i < 20; ++i) type(" more")
+            wait(20)
+            compare(layout.overrides, before)
+            text.editor.text = "שלום"
+            wait(20)
+            const rtl = layout.overrides
+            for (let i = 0; i < 20; ++i) type(" עוד")
+            wait(20)
+            compare(layout.overrides, rtl)
+        }
+
+        // Armor reads the same whatever the setting "auto" finds around it.
+        function test_armor_runs_left_to_right() {
+            prefs("auto", "auto")
+            text.editor.text = "-----BEGIN PGP MESSAGE-----\n\nhQEMA\n=abcd\n"
+                               + "-----END PGP MESSAGE-----\n"
+            tryVerify(() => text.armored)
+            verify(startOf(0) < 0.1)
+            compare(text.editor.font.family, Theme.mono)
+        }
+
+        // Fixed by hand: every line runs, or starts, where it is told.
+        function test_direction_and_alignment_set_by_hand() {
+            text.editor.text = "hello world"
+            prefs("rtl", "auto")
+            tryVerify(() => startOf(0) > 0.5, 1000, "right to left: " + startOf(0))
+            prefs("auto", "right")
+            tryVerify(() => startOf(0) > 0.5, 1000, "at the right: " + startOf(0))
+            prefs("auto", "left")
+            text.editor.text = "שלום עולם"
+            tryVerify(() => startOf(0) < 0.5, 1000, "at the left: " + startOf(0))
+            prefs("auto", "auto")
+        }
+
+        // The face and size are the editor's own, with the system's text size
+        // on top; a change keeps what can be undone.
+        function test_the_editor_s_face_and_size() {
+            type("hello")
+            prefs("auto", "auto", "serif", 20)
+            // A serif face that is installed, by its own name.
+            compare(text.editor.font.family, text.editorFamily)
+            verify(text.editorFamily.length > 0)
+            compare(text.editor.font.pixelSize, Math.round(20 * Theme.fontScale))
+            prefs("auto", "auto", "mono", 14)
+            compare(text.editor.font.family, Theme.mono)
+            verify(text.editor.canUndo)
+            text.editor.undo()
+            compare(text.editor.text, "")
+            prefs("auto", "auto")
+        }
+
         function test_short_text_stays_put() {
             const flick = findByName(text, "textScroller")
             type("short")

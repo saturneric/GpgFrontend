@@ -27,6 +27,28 @@ BottomSheet {
     // no "(s)" is ever shown.
     function describe(amount, unit) {
         if (unit === "operation") return Wording.operationLabel(amount)
+        if (unit === "font") {
+            switch (amount) {
+            case "mono": return qsTr("Monospace")
+            case "sans": return qsTr("Sans-serif")
+            case "serif": return qsTr("Serif")
+            default: return qsTr("System default")
+            }
+        }
+        if (unit === "direction") {
+            switch (amount) {
+            case "ltr": return qsTr("Left to right")
+            case "rtl": return qsTr("Right to left")
+            default: return qsTr("Automatic")
+            }
+        }
+        if (unit === "alignment") {
+            switch (amount) {
+            case "left": return qsTr("Left")
+            case "right": return qsTr("Right")
+            default: return qsTr("Automatic")
+            }
+        }
         if (unit === "days") return qsTr("%n day(s)", "", amount)
         if (unit !== "seconds") return String(amount)
         // A prompt that waits as long as it takes.
