@@ -20,6 +20,13 @@ from pathlib import Path
 from common import ReleaseError, check_relpath, run, sha256_file
 
 
+# rclone's exit status for "directory not found" / "file not found": the only
+# answers that mean an object is absent. Anything else (a 403, a network
+# failure) is an error, and must never pass for "not there": the immutability
+# check below would then upload over whatever it could not see.
+_NOT_FOUND = (3, 4)
+
+
 class Store:
     def __init__(self, root: str, rclone: str = "rclone"):
         if not root:
@@ -39,16 +46,20 @@ class Store:
         if include:
             cmd[2:2] = ["--include", include]
         out = run(cmd, check=False)
+        if out.returncode in _NOT_FOUND:
+            return []
         if out.returncode != 0:
-            if "directory not found" in out.stderr or "not found" in out.stderr:
-                return []
             raise ReleaseError(f"listing {self._at(prefix)}: {out.stderr.strip()}")
         return sorted(line for line in out.stdout.splitlines() if line)
 
     def exists(self, path: str) -> bool:
         out = run([self.rclone, "lsjson", "--files-only", self._at(path)],
                   check=False)
-        return out.returncode == 0 and json.loads(out.stdout or "[]") != []
+        if out.returncode in _NOT_FOUND:
+            return False
+        if out.returncode != 0:
+            raise ReleaseError(f"looking up {self._at(path)}: {out.stderr.strip()}")
+        return json.loads(out.stdout or "[]") != []
 
     def read(self, path: str) -> bytes:
         out = run([self.rclone, "cat", self._at(path)], text=False)

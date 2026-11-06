@@ -300,6 +300,15 @@ class ChainTest(unittest.TestCase):
                                       index_keys=[other], artifact_key=self.art_pub),
             "no pinned key")
 
+    def test_a_store_that_cannot_be_read_is_an_error_not_an_absence(self):
+        # A 403 or an unreachable endpoint must never read as "not there":
+        # the immutability check would then upload blind.
+        broken = Store("nosuchremote:bucket")
+        self.assert_refused(lambda: broken.exists("a/b"), "looking up")
+        self.assert_refused(lambda: broken.files("a"), "listing")
+        self.assertFalse(self.builds.exists("nightly/none/release.json"))
+        self.assertEqual(self.builds.files("nightly"), [])
+
     def test_paths_cannot_leave_the_product_root(self):
         for bad in ("../demo/v1/index.json", "/etc/passwd", "a/../b",
                     "https://x/y", "a%2fb", "a//b", ""):
