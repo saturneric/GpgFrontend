@@ -41,6 +41,9 @@ Page {
 
     Connections {
         target: files
+        function onFolderAdded(added, folders, left, failed) {
+            page.folderAdded(added, folders, left, failed)
+        }
         function onDataChanged() { ++page.filesRevision }
         function onRowsInserted() { ++page.filesRevision }
         function onRowsRemoved() { ++page.filesRevision }
@@ -54,6 +57,7 @@ Page {
     readonly property alias shown: shown
     readonly property alias operationMenu: operationMenu
     readonly property alias fileDetails: details
+    readonly property alias addChoice: addSheet
 
     // One step back, as Android's Back asks: out of the search (its text
     // first), then out of choosing files.
@@ -148,10 +152,24 @@ Page {
         id: encryptQuestion
     }
 
-    // The system's picker, unless a prompt would be lost to it.
+    // Files or a folder, then the system's picker for it, unless a prompt
+    // would be lost to it.
     function addFiles() {
         if (page.prompting) notice.show(page.pickerBlocked)
-        else addDialog.open()
+        else addSheet.open()
+    }
+
+    // What a folder added: said once, with what it left out.
+    function folderAdded(added, folders, left, failed) {
+        if (failed) {
+            notice.show(qsTr("This folder could not be read."))
+            return
+        }
+        let said = added > 0 ? qsTr("%n file(s) added.", "", added)
+                             : qsTr("No new files in this folder.")
+        if (folders > 0) said += " " + qsTr("%n folder(s) in it not included.", "", folders)
+        if (left > 0) said += " " + qsTr("%n more file(s) not added.", "", left)
+        notice.show(said)
     }
 
     function encrypt(ids) { request("encrypt", ids) }
@@ -647,6 +665,53 @@ Page {
         id: addDialog
         fileMode: FileDialog.OpenFiles
         onAccepted: files.addFiles(selectedFiles)
+    }
+
+    // A folder whose files are added.
+    FolderDialog {
+        id: addFolderDialog
+        onAccepted: files.addFolder(selectedFolder)
+    }
+
+    // Files one by one, or all of a folder's.
+    BottomSheet {
+        id: addSheet
+
+        objectName: "addSheet"
+        title: qsTranslate("AddUidSheet", "Add")
+        inset: 0
+
+        ListRow {
+            objectName: "addPickFiles"
+            Layout.fillWidth: true
+            leftPadding: Theme.sheetPad
+            symbol: "note_add"
+            symbolColor: Material.accentColor
+            text: qsTr("Files")
+            detail: qsTr("Choose one or more files.")
+            onClicked: {
+                addSheet.close()
+                if (page.prompting) notice.show(page.pickerBlocked)
+                else addDialog.open()
+            }
+        }
+
+        ListRow {
+            objectName: "addPickFolder"
+            Layout.fillWidth: true
+            Layout.bottomMargin: Theme.gapSmall
+            leftPadding: Theme.sheetPad
+            symbol: "folder"
+            symbolColor: Material.accentColor
+            text: qsTr("A folder")
+            detail: qsTr("Every file directly in it, up to %1. Folders inside are "
+                         + "not included.").arg(500)
+            onClicked: {
+                addSheet.close()
+                if (page.prompting) notice.show(page.pickerBlocked)
+                else addFolderDialog.open()
+            }
+        }
     }
 
     // Where several files go at once.

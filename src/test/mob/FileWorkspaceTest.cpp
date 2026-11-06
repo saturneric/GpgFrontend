@@ -496,6 +496,70 @@ TEST_F(FileWorkspaceTest, ADocumentThatGoesAwayIsUnavailable) {
   EXPECT_EQ(State(source), "idle");
 }
 
+// A folder adds the files directly in it, read where they are: its own
+// folders are counted, not gone into; a file already here is not added
+// twice; a folder that cannot be listed says so.
+TEST_F(FileWorkspaceTest, AFolderAddsItsOwnFilesOnly) {
+  QTemporaryDir folder;
+  WriteFile(folder.filePath("one.txt"), "one");
+  WriteFile(folder.filePath("two.txt.asc"), "two");
+  ASSERT_TRUE(QDir(folder.path()).mkpath("inner"));
+  WriteFile(folder.filePath("inner/deep.txt"), "deep");
+  // Picked alone first: not listed again from the folder.
+  Do([&](auto* f) {
+    f->addFiles({QUrl::fromLocalFile(folder.filePath("one.txt"))});
+  });
+  ASSERT_EQ(Count(), 1);
+
+  QVariantList outcome;
+  RunOnMainThread([this, &outcome]() {
+    QObject::connect(files_, &FileWorkspace::folderAdded, files_,
+                     [&outcome](int added, int folders, int left, bool failed) {
+                       outcome = {added, folders, left, failed};
+                     });
+    files_->addFolder(QUrl::fromLocalFile(QDir(dir_.path()).filePath("x")));
+  });
+  ASSERT_TRUE(WaitFor(
+      [&outcome]() {
+        bool done = false;
+        RunOnMainThread([&]() { done = !outcome.isEmpty(); });
+        return done;
+      },
+      10000));
+  // Not there: said so, nothing added.
+  EXPECT_TRUE(outcome.at(3).toBool());
+  EXPECT_EQ(Count(), 1);
+
+  RunOnMainThread([&]() {
+    outcome.clear();
+    files_->addFolder(QUrl::fromLocalFile(folder.path()));
+  });
+  ASSERT_TRUE(WaitFor(
+      [&outcome]() {
+        bool done = false;
+        RunOnMainThread([&]() { done = !outcome.isEmpty(); });
+        return done;
+      },
+      10000));
+  EXPECT_EQ(outcome.at(0).toInt(), 1);  // two.txt.asc; one.txt was here
+  EXPECT_EQ(outcome.at(1).toInt(), 1);  // inner, not gone into
+  EXPECT_EQ(outcome.at(2).toInt(), 0);
+  EXPECT_FALSE(outcome.at(3).toBool());
+  EXPECT_EQ(Count(), 2);
+  QStringList names;
+  RunOnMainThread([&]() {
+    for (int row = 0; row < files_->rowCount(); ++row) {
+      names << files_->data(files_->index(row), FileWorkspace::kNameRole)
+                   .toString();
+      EXPECT_TRUE(
+          files_->data(files_->index(row), FileWorkspace::kAvailableRole)
+              .toBool());
+    }
+  });
+  names.sort();
+  EXPECT_EQ(names, (QStringList{"one.txt", "two.txt.asc"}));
+}
+
 TEST_F(FileWorkspaceTest, SortedByNameSizeOrWhenAdded) {
   Add("bb", "b.txt");
   Add("a", "a.txt");

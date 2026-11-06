@@ -221,6 +221,25 @@ auto FolderDocumentNames(const QUrl& folder) -> std::optional<QStringList> {
   return Strings(names);
 }
 
+auto FolderFiles(const QUrl& folder) -> std::optional<FolderContents> {
+  const auto found = QJniObject::callStaticObjectMethod(
+      kBridge, "childDocuments",
+      "(Landroid/content/Context;Ljava/lang/String;)[Ljava/lang/String;",
+      Activity().object(),
+      QJniObject::fromString(folder.toString(QUrl::FullyEncoded))
+          .object<jstring>());
+  if (!found.isValid()) return std::nullopt;
+  FolderContents contents;
+  for (const auto& entry : Strings(found)) {
+    if (entry.startsWith(QStringLiteral("d:"))) {
+      ++contents.folders;
+    } else if (entry.startsWith(QStringLiteral("f:"))) {
+      contents.files.append(QUrl(entry.mid(2)));
+    }
+  }
+  return contents;
+}
+
 auto FindFolderDocument(const QUrl& folder, const QString& name) -> QUrl {
   const auto uri = QJniObject::callStaticObjectMethod(
       kBridge, "findChild",

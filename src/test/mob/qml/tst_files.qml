@@ -59,6 +59,31 @@ Item {
             verify(!files.selecting)
         }
 
+        // Adding offers files one by one, or a folder's; what a folder
+        // added is said once, with what it left out.
+        function test_add_offers_files_or_a_folder() {
+            findByName(files, "addFilesButton").clicked()
+            const sheet = files.addChoice
+            tryVerify(() => sheet.opened)
+            verify(findByName(sheet.contentItem, "addPickFiles").visible)
+            verify(findByName(sheet.contentItem, "addPickFolder").visible)
+            sheet.close()
+            tryVerify(() => !sheet.visible)
+
+            // Counted as the language counts (English: one file, files).
+            TestSupport.useLanguage("en_US")
+            files.folderAdded(3, 2, 0, false)
+            compare(files.notice.text, "3 files added. 2 folders in it not included.")
+            files.folderAdded(0, 0, 0, false)
+            compare(files.notice.text, "No new files in this folder.")
+            files.folderAdded(500, 0, 12, false)
+            compare(files.notice.text, "500 files added. 12 more files not added.")
+            files.folderAdded(1, 1, 0, false)
+            compare(files.notice.text, "1 file added. 1 folder in it not included.")
+            files.folderAdded(0, 0, 0, true)
+            compare(files.notice.text, "This folder could not be read.")
+        }
+
         function test_choosing_files_is_a_mode_back_leaves() {
             const path = Qt.resolvedUrl("tst_files.qml")
             files.workspace.addFiles([path])

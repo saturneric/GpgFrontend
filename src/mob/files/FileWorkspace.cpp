@@ -38,6 +38,8 @@
 #include <QRegularExpression>
 #include <algorithm>
 
+#include "core/thread/Task.h"
+#include "core/thread/TaskRunnerGetter.h"
 #include "crypto/ContentKind.h"
 #include "crypto/OperationQueue.h"
 #include "crypto/ResultPresenter.h"
@@ -74,6 +76,26 @@ auto Probe(const QUrl& url) -> std::pair<bool, qint64> {
   if (!file.open(QIODevice::ReadOnly)) return {false, 0};
   return {true, file.size()};
 }
+
+/// One document however it was reached: picked alone (".../document/ID")
+/// or inside a picked folder (".../tree/T/document/ID") its URL differs,
+/// its provider and document id do not.
+auto DocumentKey(const QUrl& url) -> QString {
+  if (url.scheme() != QStringLiteral("content")) return url.toString();
+  const auto path = url.path(QUrl::FullyEncoded);
+  const auto at = path.lastIndexOf(QStringLiteral("/document/"));
+  if (at < 0) return url.toString();
+  return url.host() + QLatin1Char('|') + path.mid(at + 10);
+}
+
+/// A file found in a folder, looked at off the interface thread.
+struct FoundFile {
+  QUrl url;
+  QString name;
+  bool available = false;
+  qint64 size = 0;
+  QString content;
+};
 
 }  // namespace
 
@@ -216,9 +238,11 @@ auto FileWorkspace::addFiles(const QList<QUrl>& urls) -> QVariantList {
   QVariantList ids;
   for (const auto& url : urls) {
     if (url.isEmpty()) continue;
-    const auto known =
-        std::find_if(entries_.begin(), entries_.end(),
-                     [&url](const auto& entry) { return entry->url == url; });
+    const auto key = DocumentKey(url);
+    const auto known = std::find_if(
+        entries_.begin(), entries_.end(), [&key](const auto& entry) {
+          return !entry->url.isEmpty() && DocumentKey(entry->url) == key;
+        });
     if (known != entries_.end()) {
       // Picked again: looked at again, as it may have changed or come back
       // since (relink()); a file being worked on is left as it is.
@@ -247,6 +271,68 @@ auto FileWorkspace::addFiles(const QList<QUrl>& urls) -> QVariantList {
     insert(std::move(entry));
   }
   return ids;
+}
+
+void FileWorkspace::addFolder(const QUrl& folder) {
+  struct Found {
+    bool listed = false;
+    int folders = 0;
+    int left = 0;
+    QList<FoundFile> files;
+  };
+  auto found = QSharedPointer<Found>::create();
+  QPointer<FileWorkspace> self(this);
+  auto* task = new Thread::Task(
+      [folder, found](const DataObjectPtr&) -> int {
+        const auto contents = FolderFiles(folder);
+        if (!contents) return 0;
+        found->listed = true;
+        found->folders = contents->folders;
+        const auto files = contents->files;
+        found->left = std::max(
+            0, static_cast<int>(files.size()) - FileWorkspace::kMaxFolderFiles);
+        for (const auto& url : files.mid(0, FileWorkspace::kMaxFolderFiles)) {
+          FoundFile file;
+          file.url = url;
+          file.name = DisplayName(url);
+          std::tie(file.available, file.size) = Probe(url);
+          file.content = ClassifyFile(file.name, LocalOrContent(url));
+          found->files.append(file);
+        }
+        return 0;
+      },
+      "mobile_add_folder", TransferParams(),
+      [self, found](int, const DataObjectPtr&) {
+        if (self == nullptr) return;
+        if (!found->listed) {
+          emit self->folderAdded(0, 0, 0, true);
+          return;
+        }
+        int added = 0;
+        for (const auto& file : found->files) {
+          const auto key = DocumentKey(file.url);
+          const auto known = std::any_of(
+              self->entries_.begin(), self->entries_.end(),
+              [&key](const auto& entry) {
+                return !entry->url.isEmpty() && DocumentKey(entry->url) == key;
+              });
+          if (known) continue;
+          auto entry = std::make_unique<Entry>();
+          entry->id = self->next_id_++;
+          entry->url = file.url;
+          entry->name = self->unique_name(file.name);
+          entry->available = file.available;
+          entry->size = file.size;
+          entry->content = file.content;
+          entry->added = QDateTime::currentDateTimeUtc();
+          self->insert(std::move(entry));
+          ++added;
+        }
+        emit self->folderAdded(added, found->folders, found->left, false);
+      });
+  Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_IO)
+      ->PostTask(task);
 }
 
 auto FileWorkspace::receiveFiles(const QList<QUrl>& urls) -> QVariantList {

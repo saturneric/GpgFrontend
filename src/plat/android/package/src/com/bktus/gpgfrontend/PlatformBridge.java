@@ -303,7 +303,8 @@ public final class PlatformBridge {
             try (Cursor cursor = context.getContentResolver().query(
                     children,
                     new String[] {DocumentsContract.Document.COLUMN_DOCUMENT_ID,
-                                  DocumentsContract.Document.COLUMN_DISPLAY_NAME},
+                                  DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+                                  DocumentsContract.Document.COLUMN_MIME_TYPE},
                     null, null, null)) {
                 if (cursor == null) return false;
                 while (cursor.moveToNext()) {
@@ -324,6 +325,25 @@ public final class PlatformBridge {
             return false;
         });
         return listed ? names.toArray(new String[0]) : null;
+    }
+
+    /**
+     * The documents directly in the folder, each as "f:" and its URI for a
+     * file, or "d:" and its URI for a folder (not gone into); null when it
+     * cannot be listed.
+     */
+    public static String[] childDocuments(Context context, String tree) {
+        List<String> found = new ArrayList<>();
+        Uri root = Uri.parse(tree);
+        boolean listed = eachChild(context, tree, cursor -> {
+            String uri = DocumentsContract.buildDocumentUriUsingTree(
+                    root, cursor.getString(0)).toString();
+            boolean folder = DocumentsContract.Document.MIME_TYPE_DIR.equals(
+                    cursor.getString(2));
+            found.add((folder ? "d:" : "f:") + uri);
+            return false;
+        });
+        return listed ? found.toArray(new String[0]) : null;
     }
 
     /** The document named name in the folder; null when there is none. */

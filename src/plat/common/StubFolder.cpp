@@ -51,6 +51,23 @@ auto FolderDocumentNames(const QUrl& folder) -> std::optional<QStringList> {
   return dir.entryList(QDir::Files | QDir::Hidden | QDir::System);
 }
 
+auto FolderFiles(const QUrl& folder) -> std::optional<FolderContents> {
+  const QDir dir(DirectoryOf(folder));
+  if (DirectoryOf(folder).isEmpty() || !dir.exists()) return std::nullopt;
+  FolderContents contents;
+  for (const auto& info :
+       dir.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot |
+                             QDir::Hidden | QDir::System,
+                         QDir::Name)) {
+    if (info.isDir()) {
+      ++contents.folders;
+    } else {
+      contents.files.append(QUrl::fromLocalFile(info.absoluteFilePath()));
+    }
+  }
+  return contents;
+}
+
 auto FindFolderDocument(const QUrl& folder, const QString& name) -> QUrl {
   const auto directory = DirectoryOf(folder);
   if (directory.isEmpty() || name.contains(QLatin1Char('/'))) return {};

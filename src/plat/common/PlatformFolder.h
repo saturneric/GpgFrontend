@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include <QList>
 #include <QStringList>
 #include <QUrl>
 #include <optional>
@@ -46,6 +47,17 @@ namespace GpgFrontend {
 
 /// The names of the documents in @p folder; none when it cannot be listed.
 auto FolderDocumentNames(const QUrl& folder) -> std::optional<QStringList>;
+
+/// What is directly in a folder: its files, and how many folders beside
+/// them were not gone into.
+struct FolderContents {
+  QList<QUrl> files;
+  int folders = 0;
+};
+
+/// The files directly in @p folder, each a URL to open, and the folders
+/// beside them counted; none when it cannot be listed.
+auto FolderFiles(const QUrl& folder) -> std::optional<FolderContents>;
 
 /// The document named @p name in @p folder; empty when there is none.
 auto FindFolderDocument(const QUrl& folder, const QString& name) -> QUrl;

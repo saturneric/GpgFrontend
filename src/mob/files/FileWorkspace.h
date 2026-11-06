@@ -160,6 +160,19 @@ class FileWorkspace : public QAbstractListModel {
   /// twice. The ids of all of them, in order, the ones already here too.
   Q_INVOKABLE QVariantList addFiles(const QList<QUrl>& urls);
 
+  /// The most files one folder adds.
+  static constexpr int kMaxFolderFiles = 500;
+
+  /**
+   * @brief Add the files directly in @p folder (a picked folder: on Android
+   * a document tree), as added files: read where they are, not copied.
+   *
+   * Folders in it are not gone into, only counted. Listed and looked at
+   * away from the interface thread; folderAdded() says how it went. At most
+   * kMaxFolderFiles; a file already here is not added twice.
+   */
+  Q_INVOKABLE void addFolder(const QUrl& folder);
+
   /**
    * @brief Add the documents another application shared, as copies.
    *
@@ -332,6 +345,10 @@ class FileWorkspace : public QAbstractListModel {
   /// ("missing", "unreadable") and an empty hash. A plain name, so a QML
   /// Connections can take it.
   void hashReady(int id, const QString& sha256, const QString& error);
+  /// addFolder() is done: @p added files new to the list, @p folders not
+  /// gone into, @p left files over the limit not added; @p failed when the
+  /// folder could not be listed at all.
+  void folderAdded(int added, int folders, int left, bool failed);
 
  private:
   enum class Op { kEncrypt, kDecrypt, kSign, kVerify };
