@@ -1375,6 +1375,63 @@
         <source>Remove from the list?</source>
         <translation>Usunąć z listy?</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="107"/>
+        <source>“%1” is still being copied in.</source>
+        <translation>„%1” jest jeszcze kopiowany.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="179"/>
+        <source>This folder could not be read.</source>
+        <translation>Nie udało się odczytać tego folderu.</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="182"/>
+        <source>%n file(s) added.</source>
+        <translation>
+            <numerusform>Dodano %n plik.</numerusform>
+            <numerusform>Dodano %n pliki.</numerusform>
+            <numerusform>Dodano %n plików.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="183"/>
+        <source>No new files in this folder.</source>
+        <translation>Brak nowych plików w tym folderze.</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="184"/>
+        <source>%n folder(s) in it not included.</source>
+        <translation>
+            <numerusform>%n folder w nim nie został uwzględniony.</numerusform>
+            <numerusform>%n foldery w nim nie zostały uwzględnione.</numerusform>
+            <numerusform>%n folderów w nim nie zostało uwzględnionych.</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="185"/>
+        <source>%n more file(s) not added.</source>
+        <translation>
+            <numerusform>%n kolejny plik nie został dodany.</numerusform>
+            <numerusform>%n kolejne pliki nie zostały dodane.</numerusform>
+            <numerusform>%n kolejnych plików nie zostało dodanych.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="706"/>
+        <source>Choose one or more files.</source>
+        <translation>Wybierz jeden lub więcej plików.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="685"/>
+        <source>A folder</source>
+        <translation>Folder</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="722"/>
+        <source>Every file directly in it, up to %1. Folders inside are not included.</source>
+        <translation>Każdy plik bezpośrednio w nim, do %1. Foldery w środku nie są uwzględniane.</translation>
+    </message>
 </context>
 <context>
     <name>FingerprintView</name>
@@ -2839,6 +2896,21 @@
         <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="247"/>
         <source>This key database could not be opened.</source>
         <translation>Nie udało się otworzyć tej bazy kluczy.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="129"/>
+        <source>It could not be opened.</source>
+        <translation>Nie udało się jej otworzyć.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="130"/>
+        <source>Uses %1, which this app does not have. It is kept as it is for the desktop.</source>
+        <translation>Używa %1, którego ta aplikacja nie ma. Pozostaje bez zmian dla komputera.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="185"/>
+        <source>This key database cannot be used here.</source>
+        <translation>Tej bazy kluczy nie można tu użyć.</translation>
     </message>
 </context>
 <context>
@@ -18467,6 +18539,61 @@ Otworzyć go w przeglądarce?</translation>
         <source>You will no longer be able to encrypt to this key or check its signatures, until you import it again.</source>
         <translation>Nie będziesz już mógł szyfrować do tego klucza ani sprawdzać jego podpisów, dopóki nie zaimportujesz go ponownie.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="82"/>
+        <source>Revocation certificate saved.</source>
+        <translation>Certyfikat unieważnienia zapisany.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="88"/>
+        <source>Key revoked. Share it so others learn of it.</source>
+        <translation>Klucz unieważniony. Udostępnij go, aby inni się o tym dowiedzieli.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="519"/>
+        <source>To revoke the key later, even without it.</source>
+        <translation>Aby później unieważnić klucz, nawet bez niego.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="529"/>
+        <source>Change the key&apos;s passphrase</source>
+        <translation>Zmień hasło klucza</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="548"/>
+        <source>Revoke key</source>
+        <translation>Unieważnij klucz</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="775"/>
+        <source>Revoke this key?</source>
+        <translation>Unieważnić ten klucz?</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="776"/>
+        <source>You are asked for its passphrase, then the key is revoked here at once. This cannot be undone.</source>
+        <translation>Zostaniesz poproszony o hasło klucza, a następnie klucz zostanie tu od razu unieważniony. Tego nie można cofnąć.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="803"/>
+        <source>Continue</source>
+        <translation>Dalej</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="79"/>
+        <source>Secret key</source>
+        <translation>Klucz tajny</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="840"/>
+        <source>The whole key, public and secret parts, still protected by its passphrase.</source>
+        <translation>Cały klucz, część publiczna i tajna, nadal chroniony hasłem.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="851"/>
+        <source>Save as file</source>
+        <translation>Zapisz jako plik</translation>
+    </message>
 </context>
 <context>
     <name>KeyFacts</name>
@@ -22591,6 +22718,26 @@ Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone 
         <source>Revoke</source>
         <translation>Unieważnij</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="61"/>
+        <source>Save a revocation certificate</source>
+        <translation>Zapisz certyfikat unieważnienia</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="62"/>
+        <source>Revoke this key</source>
+        <translation>Unieważnij ten klucz</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="79"/>
+        <source>Keep it apart from the key. If the key is lost or its passphrase forgotten, importing it elsewhere still ends the key&apos;s use. Anyone who has it can do that, so keep it safe. The reason is written into it now.</source>
+        <translation>Przechowuj go oddzielnie od klucza. Jeśli klucz zostanie utracony lub hasło zapomniane, zaimportowanie go gdzie indziej i tak zakończy używanie klucza. Każdy, kto go ma, może to zrobić, więc przechowuj go bezpiecznie. Powód zostaje w nim zapisany teraz.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="84"/>
+        <source>A revoked key can no longer be used to encrypt to you or to sign, and this cannot be undone. Unlike deleting, it tells others: share the key afterwards, so they learn of it.</source>
+        <translation>Unieważnionego klucza nie można już używać do szyfrowania dla Ciebie ani do podpisywania i nie można tego cofnąć. W przeciwieństwie do usunięcia informuje to innych: udostępnij potem klucz, aby się o tym dowiedzieli.</translation>
+    </message>
 </context>
 <context>
     <name>SearchField</name>
@@ -24257,6 +24404,19 @@ Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone 
         <location filename="../../../../src/mob/qml/Wording.qml" line="195"/>
         <source>Signature not checked</source>
         <translation>Nie sprawdzono podpisu</translation>
+    </message>
+</context>
+<context>
+    <name>GpgFrontend::Mobile::KeyActionsController</name>
+    <message>
+        <location filename="../../../../src/mob/model/KeyActionsController.cpp" line="154"/>
+        <source>The revocation certificate could not be made. Was the passphrase entered?</source>
+        <translation>Nie udało się utworzyć certyfikatu unieważnienia. Czy wpisano hasło?</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyActionsController.cpp" line="631"/>
+        <source>The revocation could not be applied, so the key has not been revoked.</source>
+        <translation>Nie udało się zastosować unieważnienia, więc klucz nie został unieważniony.</translation>
     </message>
 </context>
 </TS>

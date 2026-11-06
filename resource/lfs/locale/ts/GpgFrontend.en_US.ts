@@ -1065,6 +1065,60 @@
         <source>Remove from the list?</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="107"/>
+        <source>“%1” is still being copied in.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="179"/>
+        <source>This folder could not be read.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="182"/>
+        <source>%n file(s) added.</source>
+        <translation>
+            <numerusform>%n file added.</numerusform>
+            <numerusform>%n files added.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="183"/>
+        <source>No new files in this folder.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="184"/>
+        <source>%n folder(s) in it not included.</source>
+        <translation>
+            <numerusform>%n folder in it not included.</numerusform>
+            <numerusform>%n folders in it not included.</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="185"/>
+        <source>%n more file(s) not added.</source>
+        <translation>
+            <numerusform>%n more file not added.</numerusform>
+            <numerusform>%n more files not added.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="706"/>
+        <source>Choose one or more files.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="685"/>
+        <source>A folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="722"/>
+        <source>Every file directly in it, up to %1. Folders inside are not included.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>FingerprintView</name>
@@ -2502,6 +2556,21 @@
     <message>
         <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="247"/>
         <source>This key database could not be opened.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="129"/>
+        <source>It could not be opened.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="130"/>
+        <source>Uses %1, which this app does not have. It is kept as it is for the desktop.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="185"/>
+        <source>This key database cannot be used here.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -16314,6 +16383,61 @@ Open it in your browser?</source>
         <source>You will no longer be able to encrypt to this key or check its signatures, until you import it again.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="82"/>
+        <source>Revocation certificate saved.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="88"/>
+        <source>Key revoked. Share it so others learn of it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="519"/>
+        <source>To revoke the key later, even without it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="529"/>
+        <source>Change the key&apos;s passphrase</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="548"/>
+        <source>Revoke key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="775"/>
+        <source>Revoke this key?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="776"/>
+        <source>You are asked for its passphrase, then the key is revoked here at once. This cannot be undone.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="803"/>
+        <source>Continue</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="79"/>
+        <source>Secret key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="840"/>
+        <source>The whole key, public and secret parts, still protected by its passphrase.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="851"/>
+        <source>Save as file</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>KeyFacts</name>
@@ -20178,6 +20302,26 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <source>Revoke</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="61"/>
+        <source>Save a revocation certificate</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="62"/>
+        <source>Revoke this key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="79"/>
+        <source>Keep it apart from the key. If the key is lost or its passphrase forgotten, importing it elsewhere still ends the key&apos;s use. Anyone who has it can do that, so keep it safe. The reason is written into it now.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="84"/>
+        <source>A revoked key can no longer be used to encrypt to you or to sign, and this cannot be undone. Unlike deleting, it tells others: share the key afterwards, so they learn of it.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>SearchField</name>
@@ -21712,6 +21856,19 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
     <message>
         <location filename="../../../../src/mob/qml/Wording.qml" line="195"/>
         <source>Signature not checked</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>GpgFrontend::Mobile::KeyActionsController</name>
+    <message>
+        <location filename="../../../../src/mob/model/KeyActionsController.cpp" line="154"/>
+        <source>The revocation certificate could not be made. Was the passphrase entered?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyActionsController.cpp" line="631"/>
+        <source>The revocation could not be applied, so the key has not been revoked.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

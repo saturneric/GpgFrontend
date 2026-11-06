@@ -836,7 +836,7 @@
     <message>
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="31"/>
         <source>Finish or cancel the passphrase prompt first.</source>
-        <translation>Schließe zuerst die Passphrase-Abfrage ab oder brich sie ab.</translation>
+        <translation>Schließen Sie zuerst die Passphrase-Abfrage ab oder brechen Sie sie ab.</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="134"/>
@@ -851,7 +851,7 @@
     <message>
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="185"/>
         <source>“%1” can no longer be opened. Pick it again.</source>
-        <translation>„%1“ kann nicht mehr geöffnet werden. Wähle sie erneut aus.</translation>
+        <translation>„%1“ kann nicht mehr geöffnet werden. Wählen Sie die Datei erneut aus.</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="189"/>
@@ -1368,6 +1368,60 @@
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="1027"/>
         <source>Remove from the list?</source>
         <translation>Aus der Liste entfernen?</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="107"/>
+        <source>“%1” is still being copied in.</source>
+        <translation>„%1“ wird noch hineinkopiert.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="179"/>
+        <source>This folder could not be read.</source>
+        <translation>Dieser Ordner konnte nicht gelesen werden.</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="182"/>
+        <source>%n file(s) added.</source>
+        <translation>
+            <numerusform>%n Datei hinzugefügt.</numerusform>
+            <numerusform>%n Dateien hinzugefügt.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="183"/>
+        <source>No new files in this folder.</source>
+        <translation>Keine neuen Dateien in diesem Ordner.</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="184"/>
+        <source>%n folder(s) in it not included.</source>
+        <translation>
+            <numerusform>%n Ordner darin nicht einbezogen.</numerusform>
+            <numerusform>%n Ordner darin nicht einbezogen.</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="185"/>
+        <source>%n more file(s) not added.</source>
+        <translation>
+            <numerusform>%n weitere Datei nicht hinzugefügt.</numerusform>
+            <numerusform>%n weitere Dateien nicht hinzugefügt.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="706"/>
+        <source>Choose one or more files.</source>
+        <translation>Eine oder mehrere Dateien auswählen.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="685"/>
+        <source>A folder</source>
+        <translation>Einen Ordner</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="722"/>
+        <source>Every file directly in it, up to %1. Folders inside are not included.</source>
+        <translation>Jede Datei direkt darin, bis zu %1. Ordner darin werden nicht einbezogen.</translation>
     </message>
 </context>
 <context>
@@ -2835,6 +2889,21 @@
         <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="247"/>
         <source>This key database could not be opened.</source>
         <translation>Diese Schlüsseldatenbank konnte nicht geöffnet werden.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="129"/>
+        <source>It could not be opened.</source>
+        <translation>Sie konnte nicht geöffnet werden.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="130"/>
+        <source>Uses %1, which this app does not have. It is kept as it is for the desktop.</source>
+        <translation>Verwendet %1, das diese App nicht hat. Sie bleibt für den Desktop unverändert erhalten.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="185"/>
+        <source>This key database cannot be used here.</source>
+        <translation>Diese Schlüsseldatenbank kann hier nicht verwendet werden.</translation>
     </message>
 </context>
 <context>
@@ -19036,7 +19105,7 @@ Im Browser öffnen?</translation>
     <message>
         <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="80"/>
         <source>Expiration changed.</source>
-        <translation>Ablaufzeitpunkt geändert.</translation>
+        <translation>Ablaufdatum geändert.</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="81"/>
@@ -19271,7 +19340,7 @@ Im Browser öffnen?</translation>
         <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="472"/>
         <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="603"/>
         <source>Change expiration</source>
-        <translation>Ablaufzeitpunkt ändern</translation>
+        <translation>Ablaufdatum ändern</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="473"/>
@@ -19382,6 +19451,61 @@ Im Browser öffnen?</translation>
         <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="731"/>
         <source>You will no longer be able to encrypt to this key or check its signatures, until you import it again.</source>
         <translation>Sie können nicht mehr an diesen Schlüssel verschlüsseln und seine Signaturen nicht mehr prüfen, bis Sie ihn erneut importieren.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="82"/>
+        <source>Revocation certificate saved.</source>
+        <translation>Widerrufszertifikat gespeichert.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="88"/>
+        <source>Key revoked. Share it so others learn of it.</source>
+        <translation>Schlüssel widerrufen. Teilen Sie ihn, damit andere davon erfahren.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="519"/>
+        <source>To revoke the key later, even without it.</source>
+        <translation>Um den Schlüssel später zu widerrufen, auch ohne ihn.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="529"/>
+        <source>Change the key&apos;s passphrase</source>
+        <translation>Passphrase des Schlüssels ändern</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="548"/>
+        <source>Revoke key</source>
+        <translation>Schlüssel widerrufen</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="775"/>
+        <source>Revoke this key?</source>
+        <translation>Diesen Schlüssel widerrufen?</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="776"/>
+        <source>You are asked for its passphrase, then the key is revoked here at once. This cannot be undone.</source>
+        <translation>Sie werden nach seiner Passphrase gefragt, dann wird der Schlüssel hier sofort widerrufen. Das kann nicht rückgängig gemacht werden.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="803"/>
+        <source>Continue</source>
+        <translation>Weiter</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="79"/>
+        <source>Secret key</source>
+        <translation>Geheimer Schlüssel</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="840"/>
+        <source>The whole key, public and secret parts, still protected by its passphrase.</source>
+        <translation>Der ganze Schlüssel, öffentliche und geheime Teile, weiterhin durch seine Passphrase geschützt.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="851"/>
+        <source>Save as file</source>
+        <translation>Als Datei speichern</translation>
     </message>
 </context>
 <context>
@@ -20049,7 +20173,7 @@ Im Browser öffnen?</translation>
     <message>
         <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="498"/>
         <source>Reset keys</source>
-        <translation>Schlüssel zurücksetzen</translation>
+        <translation>Auswahl zurücksetzen</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="506"/>
@@ -20451,7 +20575,7 @@ Im Browser öffnen?</translation>
     <message>
         <location filename="../../../../src/mob/qml/components/PinSheet.qml" line="48"/>
         <source>That PIN was wrong. Try again.</source>
-        <translation>Diese PIN war falsch. Versuche es erneut.</translation>
+        <translation>Diese PIN war falsch. Bitte erneut versuchen.</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/components/PinSheet.qml" line="49"/>
@@ -23718,6 +23842,26 @@ Machen Sie diese Änderungen rückgängig oder wählen Sie Abbrechen, um alle Ih
         <source>Revoke</source>
         <translation>Widerrufen</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="61"/>
+        <source>Save a revocation certificate</source>
+        <translation>Widerrufszertifikat speichern</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="62"/>
+        <source>Revoke this key</source>
+        <translation>Diesen Schlüssel widerrufen</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="79"/>
+        <source>Keep it apart from the key. If the key is lost or its passphrase forgotten, importing it elsewhere still ends the key&apos;s use. Anyone who has it can do that, so keep it safe. The reason is written into it now.</source>
+        <translation>Bewahren Sie es getrennt vom Schlüssel auf. Geht der Schlüssel verloren oder ist seine Passphrase vergessen, beendet ein Import anderswo trotzdem seine Verwendung. Jeder, der es hat, kann das tun, also bewahren Sie es sicher auf. Der Grund wird jetzt hineingeschrieben.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="84"/>
+        <source>A revoked key can no longer be used to encrypt to you or to sign, and this cannot be undone. Unlike deleting, it tells others: share the key afterwards, so they learn of it.</source>
+        <translation>Ein widerrufener Schlüssel kann nicht mehr verwendet werden, um an Sie zu verschlüsseln oder zu signieren, und das kann nicht rückgängig gemacht werden. Anders als Löschen teilt es dies anderen mit: Teilen Sie den Schlüssel danach, damit sie davon erfahren.</translation>
+    </message>
 </context>
 <context>
     <name>SearchField</name>
@@ -24206,7 +24350,7 @@ Machen Sie diese Änderungen rückgängig oder wählen Sie Abbrechen, um alle Ih
     <message>
         <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="352"/>
         <source>A valid signature proves the content was signed with this key. Compare the key&apos;s fingerprint with its owner to know whose it is.</source>
-        <translation>Eine gültige Signatur beweist, dass der Inhalt mit diesem Schlüssel signiert wurde. Vergleiche den Fingerabdruck des Schlüssels mit seinem Besitzer, um zu wissen, wem er gehört.</translation>
+        <translation>Eine gültige Signatur beweist, dass der Inhalt mit diesem Schlüssel signiert wurde. Vergleichen Sie den Fingerabdruck des Schlüssels mit seinem Besitzer, um zu wissen, wem er gehört.</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="387"/>
@@ -24349,7 +24493,7 @@ Machen Sie diese Änderungen rückgängig oder wählen Sie Abbrechen, um alle Ih
     <message>
         <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="108"/>
         <source>Change expiration</source>
-        <translation>Ablauf ändern</translation>
+        <translation>Ablaufdatum ändern</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="118"/>
@@ -24727,7 +24871,7 @@ Machen Sie diese Änderungen rückgängig oder wählen Sie Abbrechen, um alle Ih
     <message>
         <location filename="../../../../src/mob/qml/components/UidSheet.qml" line="117"/>
         <source>Only here: copies of the key others have keep it. To withdraw it, revoke it instead.</source>
-        <translation>Nur hier: Kopien des Schlüssels bei anderen behalten ihn. Um ihn zurückzuziehen, widerrufen Sie ihn stattdessen.</translation>
+        <translation>Nur hier: Kopien des Schlüssels bei anderen behalten sie. Um sie zurückzuziehen, widerrufen Sie sie stattdessen.</translation>
     </message>
 </context>
 <context>
@@ -24927,17 +25071,17 @@ Machen Sie diese Änderungen rückgängig oder wählen Sie Abbrechen, um alle Ih
     <message>
         <location filename="../../../../src/mob/qml/Wording.qml" line="126"/>
         <source>Some chosen keys cannot be used. Remove them or choose others.</source>
-        <translation>Einige gewählte Schlüssel können nicht verwendet werden. Entferne sie oder wähle andere.</translation>
+        <translation>Einige gewählte Schlüssel können nicht verwendet werden. Entfernen Sie sie oder wählen Sie andere.</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/Wording.qml" line="127"/>
         <source>Choose a key to sign with.</source>
-        <translation>Wähle einen Schlüssel zum Signieren.</translation>
+        <translation>Wählen Sie einen Schlüssel zum Signieren.</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/Wording.qml" line="128"/>
         <source>The signing key cannot be used. Choose another.</source>
-        <translation>Der Signaturschlüssel kann nicht verwendet werden. Wähle einen anderen.</translation>
+        <translation>Der Signaturschlüssel kann nicht verwendet werden. Wählen Sie einen anderen.</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/Wording.qml" line="135"/>
@@ -25377,6 +25521,19 @@ Machen Sie diese Änderungen rückgängig oder wählen Sie Abbrechen, um alle Ih
         <location filename="../../../../src/mob/qml/Wording.qml" line="195"/>
         <source>Signature not checked</source>
         <translation>Signatur nicht geprüft</translation>
+    </message>
+</context>
+<context>
+    <name>GpgFrontend::Mobile::KeyActionsController</name>
+    <message>
+        <location filename="../../../../src/mob/model/KeyActionsController.cpp" line="154"/>
+        <source>The revocation certificate could not be made. Was the passphrase entered?</source>
+        <translation>Das Widerrufszertifikat konnte nicht erstellt werden. Wurde die Passphrase eingegeben?</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyActionsController.cpp" line="631"/>
+        <source>The revocation could not be applied, so the key has not been revoked.</source>
+        <translation>Der Widerruf konnte nicht angewendet werden, daher wurde der Schlüssel nicht widerrufen.</translation>
     </message>
 </context>
 </TS>

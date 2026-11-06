@@ -1369,6 +1369,60 @@
         <source>Remove from the list?</source>
         <translation>Rimuovere dall&apos;elenco?</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="107"/>
+        <source>“%1” is still being copied in.</source>
+        <translation>«%1» è ancora in fase di copia.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="179"/>
+        <source>This folder could not be read.</source>
+        <translation>Impossibile leggere questa cartella.</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="182"/>
+        <source>%n file(s) added.</source>
+        <translation>
+            <numerusform>%n file aggiunto.</numerusform>
+            <numerusform>%n file aggiunti.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="183"/>
+        <source>No new files in this folder.</source>
+        <translation>Nessun file nuovo in questa cartella.</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="184"/>
+        <source>%n folder(s) in it not included.</source>
+        <translation>
+            <numerusform>%n cartella al suo interno non inclusa.</numerusform>
+            <numerusform>%n cartelle al suo interno non incluse.</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="185"/>
+        <source>%n more file(s) not added.</source>
+        <translation>
+            <numerusform>Altro %n file non aggiunto.</numerusform>
+            <numerusform>Altri %n file non aggiunti.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="706"/>
+        <source>Choose one or more files.</source>
+        <translation>Scegli uno o più file.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="685"/>
+        <source>A folder</source>
+        <translation>Una cartella</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="722"/>
+        <source>Every file directly in it, up to %1. Folders inside are not included.</source>
+        <translation>Ogni file contenuto direttamente, fino a %1. Le cartelle al suo interno non sono incluse.</translation>
+    </message>
 </context>
 <context>
     <name>FingerprintView</name>
@@ -2835,6 +2889,21 @@
         <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="247"/>
         <source>This key database could not be opened.</source>
         <translation>Impossibile aprire questo database delle chiavi.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="129"/>
+        <source>It could not be opened.</source>
+        <translation>Non è stato possibile aprirlo.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="130"/>
+        <source>Uses %1, which this app does not have. It is kept as it is for the desktop.</source>
+        <translation>Usa %1, che questa app non ha. Viene conservato così com’è per il desktop.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="185"/>
+        <source>This key database cannot be used here.</source>
+        <translation>Questo database di chiavi non può essere usato qui.</translation>
     </message>
 </context>
 <context>
@@ -19395,6 +19464,61 @@ Aprirlo nel browser?</translation>
         <source>You will no longer be able to encrypt to this key or check its signatures, until you import it again.</source>
         <translation>Non potrai più cifrare per questa chiave né controllarne le firme, finché non la importerai di nuovo.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="82"/>
+        <source>Revocation certificate saved.</source>
+        <translation>Certificato di revoca salvato.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="88"/>
+        <source>Key revoked. Share it so others learn of it.</source>
+        <translation>Chiave revocata. Condividila perché gli altri lo sappiano.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="519"/>
+        <source>To revoke the key later, even without it.</source>
+        <translation>Per revocare la chiave in seguito, anche senza di essa.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="529"/>
+        <source>Change the key&apos;s passphrase</source>
+        <translation>Cambia la passphrase della chiave</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="548"/>
+        <source>Revoke key</source>
+        <translation>Revoca chiave</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="775"/>
+        <source>Revoke this key?</source>
+        <translation>Revocare questa chiave?</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="776"/>
+        <source>You are asked for its passphrase, then the key is revoked here at once. This cannot be undone.</source>
+        <translation>Ti viene chiesta la sua passphrase, poi la chiave viene revocata subito qui. Non si può annullare.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="803"/>
+        <source>Continue</source>
+        <translation>Continua</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="79"/>
+        <source>Secret key</source>
+        <translation>Chiave segreta</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="840"/>
+        <source>The whole key, public and secret parts, still protected by its passphrase.</source>
+        <translation>L’intera chiave, parti pubblica e segreta, ancora protetta dalla sua passphrase.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="851"/>
+        <source>Save as file</source>
+        <translation>Salva come file</translation>
+    </message>
 </context>
 <context>
     <name>KeyFacts</name>
@@ -23730,6 +23854,26 @@ Annulla tali modifiche oppure scegli Annulla per scartare tutto ciò che hai mod
         <source>Revoke</source>
         <translation>Revoca</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="61"/>
+        <source>Save a revocation certificate</source>
+        <translation>Salva un certificato di revoca</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="62"/>
+        <source>Revoke this key</source>
+        <translation>Revoca questa chiave</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="79"/>
+        <source>Keep it apart from the key. If the key is lost or its passphrase forgotten, importing it elsewhere still ends the key&apos;s use. Anyone who has it can do that, so keep it safe. The reason is written into it now.</source>
+        <translation>Conservalo separato dalla chiave. Se la chiave va persa o se ne dimentica la passphrase, importarlo altrove ne termina comunque l’uso. Chiunque lo abbia può farlo, quindi conservalo al sicuro. Il motivo viene scritto adesso al suo interno.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="84"/>
+        <source>A revoked key can no longer be used to encrypt to you or to sign, and this cannot be undone. Unlike deleting, it tells others: share the key afterwards, so they learn of it.</source>
+        <translation>Una chiave revocata non può più essere usata per cifrare per te o per firmare, e non si può annullare. A differenza dell’eliminazione, lo comunica agli altri: condividi poi la chiave perché lo sappiano.</translation>
+    </message>
 </context>
 <context>
     <name>SearchField</name>
@@ -25389,6 +25533,19 @@ Annulla tali modifiche oppure scegli Annulla per scartare tutto ciò che hai mod
         <location filename="../../../../src/mob/qml/Wording.qml" line="195"/>
         <source>Signature not checked</source>
         <translation>Firma non controllata</translation>
+    </message>
+</context>
+<context>
+    <name>GpgFrontend::Mobile::KeyActionsController</name>
+    <message>
+        <location filename="../../../../src/mob/model/KeyActionsController.cpp" line="154"/>
+        <source>The revocation certificate could not be made. Was the passphrase entered?</source>
+        <translation>Impossibile creare il certificato di revoca. È stata inserita la passphrase?</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyActionsController.cpp" line="631"/>
+        <source>The revocation could not be applied, so the key has not been revoked.</source>
+        <translation>Impossibile applicare la revoca, quindi la chiave non è stata revocata.</translation>
     </message>
 </context>
 </TS>

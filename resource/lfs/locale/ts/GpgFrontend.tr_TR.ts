@@ -1363,6 +1363,57 @@
         <source>Remove from the list?</source>
         <translation>Listeden kaldırılsın mı?</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="107"/>
+        <source>“%1” is still being copied in.</source>
+        <translation>“%1” hâlâ kopyalanıyor.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="179"/>
+        <source>This folder could not be read.</source>
+        <translation>Bu klasör okunamadı.</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="182"/>
+        <source>%n file(s) added.</source>
+        <translation>
+            <numerusform>%n dosya eklendi.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="183"/>
+        <source>No new files in this folder.</source>
+        <translation>Bu klasörde yeni dosya yok.</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="184"/>
+        <source>%n folder(s) in it not included.</source>
+        <translation>
+            <numerusform>İçindeki %n klasör dahil edilmedi.</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="185"/>
+        <source>%n more file(s) not added.</source>
+        <translation>
+            <numerusform>%n dosya daha eklenmedi.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="706"/>
+        <source>Choose one or more files.</source>
+        <translation>Bir veya daha fazla dosya seçin.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="685"/>
+        <source>A folder</source>
+        <translation>Bir klasör</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="722"/>
+        <source>Every file directly in it, up to %1. Folders inside are not included.</source>
+        <translation>Doğrudan içindeki her dosya, en fazla %1. İçindeki klasörler dahil edilmez.</translation>
+    </message>
 </context>
 <context>
     <name>FingerprintView</name>
@@ -2823,6 +2874,21 @@
         <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="247"/>
         <source>This key database could not be opened.</source>
         <translation>Bu anahtar veritabanı açılamadı.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="129"/>
+        <source>It could not be opened.</source>
+        <translation>Açılamadı.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="130"/>
+        <source>Uses %1, which this app does not have. It is kept as it is for the desktop.</source>
+        <translation>Bu uygulamada bulunmayan %1 kullanıyor. Masaüstü için olduğu gibi korunur.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="185"/>
+        <source>This key database cannot be used here.</source>
+        <translation>Bu anahtar veritabanı burada kullanılamaz.</translation>
     </message>
 </context>
 <context>
@@ -17898,6 +17964,61 @@ Tarayıcınızda açılsın mı?</translation>
         <source>You will no longer be able to encrypt to this key or check its signatures, until you import it again.</source>
         <translation>Bu anahtarı yeniden içe aktarıncaya kadar, bu anahtarla şifreleme yapamayacak veya imzalarını denetleyemeyeceksiniz.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="82"/>
+        <source>Revocation certificate saved.</source>
+        <translation>İptal sertifikası kaydedildi.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="88"/>
+        <source>Key revoked. Share it so others learn of it.</source>
+        <translation>Anahtar iptal edildi. Başkalarının öğrenmesi için paylaşın.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="519"/>
+        <source>To revoke the key later, even without it.</source>
+        <translation>Anahtarı daha sonra, anahtar olmadan bile iptal etmek için.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="529"/>
+        <source>Change the key&apos;s passphrase</source>
+        <translation>Anahtarın parolasını değiştir</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="548"/>
+        <source>Revoke key</source>
+        <translation>Anahtarı iptal et</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="775"/>
+        <source>Revoke this key?</source>
+        <translation>Bu anahtar iptal edilsin mi?</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="776"/>
+        <source>You are asked for its passphrase, then the key is revoked here at once. This cannot be undone.</source>
+        <translation>Parolası sorulur, ardından anahtar burada hemen iptal edilir. Bu geri alınamaz.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="803"/>
+        <source>Continue</source>
+        <translation>Devam</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="79"/>
+        <source>Secret key</source>
+        <translation>Gizli anahtar</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="840"/>
+        <source>The whole key, public and secret parts, still protected by its passphrase.</source>
+        <translation>Anahtarın tamamı, açık ve gizli kısımları, hâlâ parolasıyla korunur.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="851"/>
+        <source>Save as file</source>
+        <translation>Dosya olarak kaydet</translation>
+    </message>
 </context>
 <context>
     <name>KeyFacts</name>
@@ -21978,6 +22099,26 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
         <source>Revoke</source>
         <translation>İptal Et</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="61"/>
+        <source>Save a revocation certificate</source>
+        <translation>İptal sertifikasını kaydet</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="62"/>
+        <source>Revoke this key</source>
+        <translation>Bu anahtarı iptal et</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="79"/>
+        <source>Keep it apart from the key. If the key is lost or its passphrase forgotten, importing it elsewhere still ends the key&apos;s use. Anyone who has it can do that, so keep it safe. The reason is written into it now.</source>
+        <translation>Anahtardan ayrı saklayın. Anahtar kaybolursa veya parolası unutulursa, başka bir yerde içe aktarılması yine de anahtarın kullanımını sona erdirir. Ona sahip olan herkes bunu yapabilir, bu yüzden güvende tutun. Neden şimdi içine yazılır.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="84"/>
+        <source>A revoked key can no longer be used to encrypt to you or to sign, and this cannot be undone. Unlike deleting, it tells others: share the key afterwards, so they learn of it.</source>
+        <translation>İptal edilmiş bir anahtar artık size şifrelemek veya imzalamak için kullanılamaz ve bu geri alınamaz. Silmenin aksine bunu başkalarına bildirir: öğrenmeleri için anahtarı ardından paylaşın.</translation>
+    </message>
 </context>
 <context>
     <name>SearchField</name>
@@ -23630,6 +23771,19 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
         <location filename="../../../../src/mob/qml/Wording.qml" line="195"/>
         <source>Signature not checked</source>
         <translation>İmza kontrol edilmedi</translation>
+    </message>
+</context>
+<context>
+    <name>GpgFrontend::Mobile::KeyActionsController</name>
+    <message>
+        <location filename="../../../../src/mob/model/KeyActionsController.cpp" line="154"/>
+        <source>The revocation certificate could not be made. Was the passphrase entered?</source>
+        <translation>İptal sertifikası oluşturulamadı. Parola girildi mi?</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyActionsController.cpp" line="631"/>
+        <source>The revocation could not be applied, so the key has not been revoked.</source>
+        <translation>İptal uygulanamadı, bu yüzden anahtar iptal edilmedi.</translation>
     </message>
 </context>
 </TS>
