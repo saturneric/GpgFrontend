@@ -37,6 +37,14 @@ $info = Get-Content "$root/build/artifacts/build-info.json" -Raw | ConvertFrom-J
 $version = $info.version_core
 Write-Host "Project version: $($info.project_version) (MSI ProductVersion $version)"
 
+# Nightlies are their own product ("GpgFrontend Testing"), installed beside a
+# release rather than over it; see the Identity block in Package.wxs.
+$identity = $info.identity
+if ($identity -ne 'stable' -and $identity -ne 'testing') {
+  throw "build-info.json has no usable identity: '$identity'"
+}
+Write-Host "Package identity: $identity"
+
 # Toolset and extension versions must match: an unpinned extension resolves to
 # the latest major (7.x), which a WiX 5 host cannot load (wixext5 vs wixext7).
 $wixVersion = '5.0.2'
@@ -55,6 +63,7 @@ wix build -arch x64 `
   -ext WixToolset.Util.wixext/$wixVersion `
   -d PayloadDir="$root/build/artifacts" `
   -d ProductVersion="$version" `
+  -d Identity="$identity" `
   -d IconSource="$root/gpgfrontend.ico" `
   -d BrandingDir="$root/resource/wix" `
   -o "$out/$OutputName" `

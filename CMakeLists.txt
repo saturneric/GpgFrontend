@@ -946,6 +946,7 @@ file(GENERATE
   \"version_series\": \"${GF_VERSION_SERIES}\",
   \"build_number\": ${GF_VERSION_BUILD_NUMBER},
   \"commit\": \"${GF_VERSION_COMMIT}\",
+  \"identity\": \"$<IF:${GPGFRONTEND_BUILD_STABLE_INT},stable,testing>\",
   \"build_id\": \"${GPGFRONTEND_BUILD_ID}\",
   \"host_os\": \"${_gf_build_os}\",
   \"host_tool_dir\": \"${GPGFRONTEND_HOST_TOOL_DIR}\",
