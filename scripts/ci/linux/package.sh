@@ -26,12 +26,13 @@
 #   3. reseal    re-describe the rewritten natives, then audit them;
 #   4. image     appimagetool.
 #
-# Environment: SHORT_SHA, FLAVOR_SUFFIX, RUNNER_TEMP.
-# Writes build/upload-artifact/GpgFrontend-<sha>-linux-<arch>[-portable].AppImage.
+# Environment: ARTIFACT_VERSION, FLAVOR_SUFFIX, RUNNER_TEMP.
+# Writes build/upload-artifact/GpgFrontend-<version>-linux-<arch>[-portable].AppImage,
+# <version> being the file-safe one scripts/ci/build_mode.sh derives.
 
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-: "${SHORT_SHA:?}" "${FLAVOR_SUFFIX?}" "${RUNNER_TEMP:?}"
+: "${ARTIFACT_VERSION:?}" "${FLAVOR_SUFFIX?}" "${RUNNER_TEMP:?}"
 
 BUILD="$ROOT/build"
 APP_DIR="$BUILD/artifacts/AppDir"
@@ -279,7 +280,7 @@ fi
 # named the image after the .desktop entry, so both flavours came out as
 # Gpg_Frontend-<arch>.AppImage and collided once the release job merged every
 # runner's artifacts into one directory.
-OUTPUT="$OUT_DIR/GpgFrontend-${SHORT_SHA}-linux-${ARCH}${FLAVOR_SUFFIX}.AppImage"
+OUTPUT="$OUT_DIR/GpgFrontend-${ARTIFACT_VERSION}-linux-${ARCH}${FLAVOR_SUFFIX}.AppImage"
 ARCH="$ARCH" "$APPIMAGETOOL" "${APPSTREAM_ARGS[@]}" "$APP_DIR" "$OUTPUT"
 ls -l "$OUT_DIR"
 echo "::endgroup::"

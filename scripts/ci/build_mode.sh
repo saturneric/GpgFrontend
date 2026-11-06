@@ -28,12 +28,18 @@
 #   BUILD_MODE_INPUT  workflow_dispatch's build_mode choice
 #   SCREENSHOT_INPUT  "true" for a screenshot-mode build
 #
-# Single-branch (trunk + tags) model:
-#   - a version tag (v*)  -> stable release build
-#   - a push to main      -> nightly build
-#   - a pull request      -> PR validation build
-#   - workflow_dispatch   -> honour the chosen input, so a release package can
-#                            be produced without re-tagging
+# Trunk model: main is the next minor release, release/X.Y receives fixes
+# for one series, and versions come from tags (cmake/GitVersion.cmake):
+#   - a version tag (v*)    -> release build (final, beta or rc alike: they
+#                              share the stable identity)
+#   - a push to main        -> nightly build
+#   - a push to release/X.Y -> nightly build of that series
+#   - a pull request        -> PR validation build
+#   - workflow_dispatch     -> honour the chosen input, so a release package
+#                              can be produced without re-tagging
+#
+# Also prints the version, derived once here from the full history (the
+# checkout must have fetch-depth: 0) so every job names its files alike.
 
 set -euo pipefail
 
@@ -77,16 +83,28 @@ if [[ "${SCREENSHOT_INPUT:-false}" == "true" ]]; then
   screenshot_cmake_flag="-DGPGFRONTEND_BUILD_SCREENSHOT_MODE=ON -DGPGFRONTEND_BUILD_TESTS=ON"
 fi
 
-# A fixed slice of GITHUB_SHA, not `git rev-parse --short`: git's abbreviation
-# length scales with object count, so it yields 7 in a shallow checkout and 8
-# in a full clone. Pinning it keeps artifact names stable across platforms.
-echo "short_sha=${GITHUB_SHA:0:7}"
+# The version, from the one derivation the build itself uses. artifact_version
+# is its file-safe spelling ("+" folded to "-"), which names every artifact.
+version_field() {
+  cmake -DGF_FIELD="$1" -P cmake/GitVersion.cmake
+}
+version="$(version_field version)"
+artifact_version="$(version_field filesafe)"
+[[ "$artifact_version" =~ ^[0-9A-Za-z.-]+$ ]] || {
+  echo "::error::unexpected file-safe version: $artifact_version" >&2
+  exit 1
+}
+echo "version=$version"
+echo "artifact_version=$artifact_version"
+echo "version_series=$(version_field series)"
+echo "build_number=$(version_field build_number)"
 echo "build_mode=$build_mode"
 echo "build_type=$build_type"
 echo "gpgfrontend_build_mode=$gpgfrontend_build_mode"
 echo "screenshot_cmake_flag=$screenshot_cmake_flag"
 
 {
+  echo "Version: $version"
   echo "Build mode: $build_mode"
   echo "Build type: $build_type"
   echo "Screenshot mode: ${SCREENSHOT_INPUT:-false}"

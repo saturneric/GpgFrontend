@@ -57,9 +57,10 @@
 #     MAS_INSTALLER_CODE_SIGN_IDENTITY     identity string productbuild selects
 #     MAS_PROVISIONING_PROFILE_DATA        base64 .provisionprofile
 #
-# Maintainer: configure both environments' deployment branch rule to allow
-# only `main` and tags matching `v*`, as defence in depth behind the callers'
-# `if:`.
+# Maintainer: configure the `macos-signing` environment's deployment branch
+# rule to allow only `main`, `release/*` and tags matching `v*`, and
+# `mas-signing`'s only `main` and `v*` tags, as defence in depth behind the
+# callers' `if:`.
 
 name: Sign Apple Bundle
 
@@ -74,6 +75,12 @@ on:
       # The runner labels to sign on, as a JSON list; each signs the bundle
       # its build leg uploaded as unsigned-<macos|mas>-app-<label>.
       runners:
+        type: string
+        required: true
+      # The file-safe version (cmake/GitVersion.cmake) the output is named
+      # after. It comes from the caller's own derivation from git, never from
+      # a build artifact, and is checked to be a plain token before use.
+      artifact_version:
         type: string
         required: true
     # Declared so the names are known; never passed by a caller. The job's
@@ -142,8 +149,15 @@ jobs:
       # side steer the privileged job.
       - name: Resolve Artifact Metadata
         id: meta
+        env:
+          ARTIFACT_VERSION: ${{ inputs.artifact_version }}
         run: |
-          echo "short_sha=${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
+          set -euo pipefail
+          [[ "$ARTIFACT_VERSION" =~ ^[0-9A-Za-z.-]+$ ]] || {
+            echo "::error::artifact_version is not a plain token" >&2
+            exit 1
+          }
+          echo "artifact_version=$ARTIFACT_VERSION" >> "$GITHUB_OUTPUT"
           echo "APP=$RUNNER_TEMP/app/GpgFrontend.app" >> "$GITHUB_ENV"
           echo "OUT=$RUNNER_TEMP/upload-artifact" >> "$GITHUB_ENV"
 
@@ -202,7 +216,7 @@ jobs:
           ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-          DMG_NAME: GpgFrontend-${{ steps.meta.outputs.short_sha }}-${{ matrix.os }}.dmg
+          DMG_NAME: GpgFrontend-${{ steps.meta.outputs.artifact_version }}-${{ matrix.os }}.dmg
         run: |
           scripts/ci/apple/make_dmg.sh "$APP" "$RUNNER_TEMP/unsigned" "$OUT/$DMG_NAME"
           scripts/ci/apple/notarize.sh "$OUT/$DMG_NAME"
@@ -219,7 +233,7 @@ jobs:
         if: inputs.target == 'app-store'
         env:
           INSTALLER_IDENTITY: ${{ secrets.MAS_INSTALLER_CODE_SIGN_IDENTITY }}
-          PKG_NAME: GpgFrontend-${{ matrix.os }}-sandbox-${{ steps.meta.outputs.short_sha }}.pkg
+          PKG_NAME: GpgFrontend-${{ steps.meta.outputs.artifact_version }}-${{ matrix.os }}-sandbox.pkg
         run: scripts/ci/apple/make_pkg.sh package "$APP" "$OUT/$PKG_NAME"
 
       # The Developer ID dmg is a release deliverable: provenance collects
@@ -239,7 +253,7 @@ jobs:
         if: inputs.target == 'app-store'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: app-store-pkg-${{ matrix.os }}-${{ steps.meta.outputs.short_sha }}
+          name: app-store-pkg-${{ matrix.os }}-${{ steps.meta.outputs.artifact_version }}
           path: ${{ runner.temp }}/upload-artifact/*
           if-no-files-found: error
 

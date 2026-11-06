@@ -27,7 +27,7 @@ name: Develop CI Qt6 Build & Test
 
 on:
   push:
-    branches: ["develop", "dev/**", "main"]
+    branches: ["develop", "dev/**", "main", "release/**"]
     paths-ignore:
       - "resource/lfs/locale/**"
       - "**.md"
@@ -42,6 +42,8 @@ jobs:
         with:
           lfs: "false"
           submodules: recursive
+          # The version comes from git describe: full history and tags.
+          fetch-depth: 0
 
       - name: Get Short SHA of Commit
         id: vars
@@ -268,6 +270,8 @@ jobs:
         with:
           lfs: "false"
           submodules: recursive
+          # The version comes from git describe: full history and tags.
+          fetch-depth: 0
 
       - name: Install Dependence
         run: |
@@ -343,6 +347,8 @@ jobs:
         with:
           lfs: "false"
           submodules: recursive
+          # The version comes from git describe: full history and tags.
+          fetch-depth: 0
 
       - name: Install Dependence
         run: |

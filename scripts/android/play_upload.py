@@ -5,7 +5,14 @@
 
 One edit of the Google Play Developer API (v3), in order:
 
-  insert edit -> upload bundle -> set the track's release -> commit
+  insert edit -> [check the versionCode] -> upload bundle
+              -> set the track's release -> commit
+
+With --version-code, the code the build was given (cmake/GitVersion.cmake)
+must be greater than every code Play already holds, uploaded or on any
+track, and the uploaded bundle must report exactly it. A device only updates
+to a greater versionCode, and Play refuses a code twice: failing here, before
+the upload, beats a release no phone will install.
 
 On any failure the edit is deleted, so a half-made edit never lingers in
 Play Console. The service account authenticates with a JWT it signs itself
@@ -18,7 +25,8 @@ JSON key file Google Cloud gives for the service account. The token endpoint
 is fixed here, never read from that file.
 
 usage: play_upload.py --package NAME --bundle FILE [--track internal]
-                      [--status completed] [--release-name NAME] [--dry-run]
+                      [--status completed] [--release-name NAME]
+                      [--version-code N] [--dry-run]
 
 --dry-run signs the assertion (so a broken key fails here too) and prints
 the requests it would make, sending none.
@@ -194,6 +202,19 @@ class Edit:
         if not self.id:
             raise PlayError("creating the edit returned no edit id")
 
+    def highest_version_code(self):
+        """The greatest versionCode Play knows: every uploaded bundle and
+        every release on every track (a track may hold an APK)."""
+        codes = []
+        for bundle in self.call("GET", self.url("/bundles"),
+                                "listing the bundles").json().get("bundles", []):
+            codes.append(int(bundle.get("versionCode", 0)))
+        for track in self.call("GET", self.url("/tracks"),
+                               "listing the tracks").json().get("tracks", []):
+            for release in track.get("releases", []):
+                codes.extend(int(c) for c in release.get("versionCodes", []))
+        return max(codes, default=0)
+
     def upload_bundle(self, path):
         """Resumable upload in one piece; returns the bundle's versionCode."""
         data = path.read_bytes()
@@ -242,11 +263,21 @@ class Edit:
             pass
 
 
-def publish(package, bundle, track, status, name, token, transport=http):
+def publish(package, bundle, track, status, name, token, transport=http,
+            expect_code=None):
     edit = Edit(package, token, transport)
     try:
         edit.insert()
+        if expect_code is not None:
+            highest = edit.highest_version_code()
+            if expect_code <= highest:
+                raise PlayError(
+                    f"versionCode {expect_code} is not greater than {highest}, "
+                    "the highest Play already holds; no device would update")
         code = edit.upload_bundle(bundle)
+        if expect_code is not None and code != expect_code:
+            raise PlayError(f"the bundle carries versionCode {code}, "
+                            f"not the build's {expect_code}")
         edit.set_track(track, code, status, name)
         edit.commit()
     except BaseException:
@@ -265,13 +296,18 @@ def dry_run_transport(method, url, headers, body):
         return Response(200, {}, b'{"access_token": "dry-run"}')
     if url.endswith("/bundles?uploadType=resumable"):
         return Response(200, {"Location": UPLOAD_API + "/dry-run"}, b"")
+    if method == "GET":
+        return Response(200, {}, b"{}")
     if method == "PUT" and url == UPLOAD_API + "/dry-run":
         return Response(200, {}, json.dumps(
-            {"versionCode": 0,
+            {"versionCode": dry_run_transport.code,
              "sha256": hashlib.sha256(body).hexdigest()}).encode())
     if method == "POST" and url.endswith("/edits"):
         return Response(200, {}, b'{"id": "dry-run"}')
     return Response(200, {}, b"{}")
+
+
+dry_run_transport.code = 0
 
 
 def main(argv=None):
@@ -283,10 +319,13 @@ def main(argv=None):
     parser.add_argument("--status", default="completed",
                         choices=["completed", "draft"])
     parser.add_argument("--release-name", default="")
+    parser.add_argument("--version-code", type=int, default=None)
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(argv)
 
     transport = dry_run_transport if args.dry_run else http
+    if args.dry_run and args.version_code is not None:
+        dry_run_transport.code = args.version_code
     try:
         if not args.bundle.is_file():
             raise PlayError(f"{args.bundle}: no such bundle")
@@ -294,7 +333,8 @@ def main(argv=None):
         assertion = make_assertion(creds, int(time.time()))
         token = fetch_token(assertion, transport)
         code = publish(args.package, args.bundle, args.track, args.status,
-                       args.release_name, token, transport)
+                       args.release_name, token, transport,
+                       expect_code=args.version_code)
     except PlayError as e:
         print(f"error: {e}", file=sys.stderr)
         return 1

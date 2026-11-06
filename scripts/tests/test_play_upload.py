@@ -47,10 +47,14 @@ def creds(**extra):
 class FakePlay:
     """The Play API as far as one edit goes, recording every request."""
 
-    def __init__(self, fail=None, sha256=None):
+    def __init__(self, fail=None, sha256=None, code=2531012, bundles=(),
+                 tracks=()):
         self.calls = []
         self.fail = fail
         self.sha256 = sha256
+        self.code = code
+        self.bundles = list(bundles)
+        self.tracks = list(tracks)
 
     def __call__(self, method, url, headers, body):
         self.calls.append((method, url, dict(headers), body))
@@ -58,12 +62,19 @@ class FakePlay:
             return pu.Response(400, {}, b'{"error": "nope"}')
         if method == "POST" and url.endswith("/edits"):
             return pu.Response(200, {}, b'{"id": "e1"}')
+        if method == "GET" and url.endswith("/bundles"):
+            return pu.Response(200, {}, json.dumps({"bundles": [
+                {"versionCode": c} for c in self.bundles]}).encode())
+        if method == "GET" and url.endswith("/tracks"):
+            return pu.Response(200, {}, json.dumps({"tracks": [
+                {"track": "internal", "releases": [
+                    {"versionCodes": [str(c)]}]} for c in self.tracks]}).encode())
         if url.endswith("/bundles?uploadType=resumable"):
             return pu.Response(200, {"Location": SESSION}, b"")
         if url == SESSION:
             digest = self.sha256 or hashlib.sha256(body).hexdigest()
             return pu.Response(200, {}, json.dumps(
-                {"versionCode": 2531012, "sha256": digest}).encode())
+                {"versionCode": self.code, "sha256": digest}).encode())
         return pu.Response(200, {}, b"{}")
 
     def methods(self):
@@ -172,6 +183,30 @@ class PublishTest(unittest.TestCase):
         self.assertEqual(start["X-Upload-Content-Length"],
                          str(len(b"PK bundle bytes")))
 
+    def test_version_code_is_checked_before_the_upload(self):
+        play = FakePlay(code=1_203_000_400, bundles=[263101230],
+                        tracks=[1_203_000_399])
+        self.assertEqual(pu.publish(PACKAGE, self.bundle, "internal",
+                                    "completed", "n", "tok", play,
+                                    expect_code=1_203_000_400), 1_203_000_400)
+        self.assertEqual(play.methods()[:3], [
+            ("POST", ""), ("GET", "/e1/bundles"), ("GET", "/e1/tracks")])
+
+    def test_a_code_not_above_plays_is_refused_without_uploading(self):
+        for existing in ([1_203_000_400], [1_203_000_401]):
+            play = FakePlay(code=1_203_000_400, tracks=existing)
+            with self.assertRaisesRegex(pu.PlayError, "not greater"):
+                pu.publish(PACKAGE, self.bundle, "internal", "completed", "n",
+                           "tok", play, expect_code=1_203_000_400)
+            self.assertFalse(any("uploadType" in u for _, u, _, _ in play.calls))
+            self.assertEqual(play.calls[-1][0], "DELETE")
+
+    def test_the_bundle_must_carry_the_builds_code(self):
+        play = FakePlay(code=1_203_000_399)
+        with self.assertRaisesRegex(pu.PlayError, "not the build's"):
+            pu.publish(PACKAGE, self.bundle, "internal", "completed", "n",
+                       "tok", play, expect_code=1_203_000_400)
+
     def test_token_only_goes_to_the_api(self):
         play = FakePlay()
         self.publish(play)
@@ -251,7 +286,7 @@ class WorkflowTest(unittest.TestCase):
         return " ".join(match.group(1).split())
 
     def test_right_after_signing_without_the_approval_gate(self):
-        self.assertRegex(self.job, r"(?m)^    needs: \[sign-android\]$")
+        self.assertRegex(self.job, r"(?m)^    needs: \[setup, sign-android\]$")
 
     def test_pushes_to_main_and_version_tags_only(self):
         self.assertEqual(self.condition(),
@@ -277,6 +312,9 @@ class WorkflowTest(unittest.TestCase):
         self.assertNotIn("pattern:", self.job)
         self.assertIn("jarsigner -keystore", self.job)
         self.assertIn("scripts/android/play_upload.py", self.job)
+
+    def test_the_version_code_is_asserted(self):
+        self.assertIn('--version-code "$BUILD_NUMBER"', self.job)
 
 
 if __name__ == "__main__":

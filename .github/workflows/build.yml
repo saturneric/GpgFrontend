@@ -53,6 +53,7 @@ on:
   push:
     branches:
       - main
+      - "release/**"
     tags:
       - "v*"
     paths-ignore:
@@ -62,6 +63,7 @@ on:
   pull_request:
     branches:
       - main
+      - "release/**"
     paths-ignore:
       - "resource/lfs/locale/**"
       - "**.md"
@@ -87,8 +89,8 @@ on:
         type: boolean
 
 # Supersede in-flight work: a new commit on a ref makes the run already going
-# for that ref obsolete. Grouping by ref keeps each PR, main, and each v* tag
-# in its own lane, so a tag build is never cancelled by unrelated activity.
+# for that ref obsolete. Grouping by ref keeps each PR, main, each release/X.Y
+# branch and each v* tag in its own lane, so a tag build is never cancelled by unrelated activity.
 # A screenshot build has a lane of its own beside its ref's: it is a tool for
 # the manual, not a newer nightly or release, so it neither cancels nor is
 # cancelled by one; a newer screenshot dispatch still supersedes an older one.
@@ -114,15 +116,20 @@ jobs:
     permissions:
       contents: read
     outputs:
-      short_sha: ${{ steps.mode.outputs.short_sha }}
+      version: ${{ steps.mode.outputs.version }}
+      artifact_version: ${{ steps.mode.outputs.artifact_version }}
+      build_number: ${{ steps.mode.outputs.build_number }}
       build_type: ${{ steps.mode.outputs.build_type }}
       gpgfrontend_build_mode: ${{ steps.mode.outputs.gpgfrontend_build_mode }}
       screenshot_cmake_flag: ${{ steps.mode.outputs.screenshot_cmake_flag }}
       macos_runners: ${{ steps.mode.outputs.macos_runners }}
     steps:
+      # The whole history and every tag: the version is derived from them
+      # (cmake/GitVersion.cmake), and a shallow clone has neither.
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           lfs: "false"
+          fetch-depth: 0
 
       # Every `run:` block is its own process. A variable set in one step is
       # gone by the next, and neither shell says so usefully: bash under
@@ -137,6 +144,20 @@ jobs:
       # main, where a failure costs a nightly.
       - name: Test Release Candidate Rules
         run: python3 -m unittest discover -s scripts/tests
+
+      # release/policy.toml is the one statement of which series exist and in
+      # what state; SECURITY.md's table is generated from it.
+      - name: Check Release Policy
+        run: |
+          set -euo pipefail
+          python3 scripts/release/policy.py check
+          python3 scripts/release/policy.py check-security
+
+      # A nightly must sort after every release on its line, and a release tag
+      # must carry its reviewed notes. Fails main when the base tag of the
+      # last cut was not pushed (scripts/release/cut.sh).
+      - name: Check Version Order
+        run: python3 scripts/release/check_order.py
 
       - name: Resolve Build Mode
         id: mode
@@ -188,7 +209,7 @@ jobs:
       CCACHE_SLOPPINESS: pch_defines,time_macros,include_file_mtime,include_file_ctime
       BUILD_TYPE: ${{ needs.setup.outputs.build_type }}
       GPGFRONTEND_BUILD_MODE: ${{ needs.setup.outputs.gpgfrontend_build_mode }}
-      SHORT_SHA: ${{ needs.setup.outputs.short_sha }}
+      ARTIFACT_VERSION: ${{ needs.setup.outputs.artifact_version }}
       FLAVOR: ${{ matrix.flavor }}
       # "installed" is the default flavour, so only "portable" is spelled out
       # in artifact names.
@@ -198,6 +219,8 @@ jobs:
         with:
           lfs: "false"
           submodules: recursive
+          # The version comes from git describe: full history and tags.
+          fetch-depth: 0
 
       # One compiler cache per runner, shared by both flavours: the portable
       # flag reaches a single translation unit (BuildInfoUtils.cpp), not the
@@ -326,7 +349,7 @@ jobs:
       CCACHE_SLOPPINESS: pch_defines,time_macros,include_file_mtime,include_file_ctime
       BUILD_TYPE: ${{ needs.setup.outputs.build_type }}
       GPGFRONTEND_BUILD_MODE: ${{ needs.setup.outputs.gpgfrontend_build_mode }}
-      SHORT_SHA: ${{ needs.setup.outputs.short_sha }}
+      ARTIFACT_VERSION: ${{ needs.setup.outputs.artifact_version }}
       SCREENSHOT_CMAKE_FLAG: ${{ needs.setup.outputs.screenshot_cmake_flag }}
       FLAVOR: ${{ matrix.flavor }}
     steps:
@@ -341,6 +364,8 @@ jobs:
         with:
           lfs: "false"
           submodules: recursive
+          # The version comes from git describe: full history and tags.
+          fetch-depth: 0
 
       # See build-linux: one cache per runner, written by the installed leg.
       - name: ccache
@@ -439,13 +464,13 @@ jobs:
         if: matrix.flavor == 'portable'
         run: |
           cd "$(cygpath -u "$GITHUB_WORKSPACE")/build/artifacts"
-          zip -r "../upload-artifact/GpgFrontend-${SHORT_SHA}-windows-x86_64-portable.zip" *
+          zip -r "../upload-artifact/GpgFrontend-${ARTIFACT_VERSION}-windows-x86_64-portable.zip" *
 
       - name: Build MSI Installer
         if: matrix.flavor == 'installed'
         shell: pwsh
         run: |
-          ./scripts/ci/windows/build_msi.ps1 -OutputName "GpgFrontend-$env:SHORT_SHA-windows-x86_64.msi"
+          ./scripts/ci/windows/build_msi.ps1 -OutputName "GpgFrontend-$env:ARTIFACT_VERSION-windows-x86_64.msi"
 
       - name: Smoke Test The Portable Archive
         if: matrix.flavor == 'portable'
@@ -535,6 +560,8 @@ jobs:
         with:
           lfs: "false"
           submodules: recursive
+          # The version comes from git describe: full history and tags.
+          fetch-depth: 0
 
       - name: Install Android Toolchain
         run: |
@@ -649,13 +676,16 @@ jobs:
   # jarsigner, the only signer for a bundle. Like sign-macos: no checkout, no
   # build, and nothing read from the artifact but the two packages.
   sign-android:
-    needs: build-android
+    needs: [setup, build-android]
     # Two independent gates on which refs may ever request the signing key: this
     # condition, and the deployment branch rule on the environment below. Never
-    # a pull request, never a branch other than main, never a non-v tag.
+    # a pull request, never a branch other than main or release/*, never a
+    # non-v tag.
     if: >-
       github.event_name != 'pull_request' &&
-      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+      (github.ref == 'refs/heads/main' ||
+       startsWith(github.ref, 'refs/heads/release/') ||
+       startsWith(github.ref, 'refs/tags/v'))
     strategy:
       matrix:
         arch: ["arm64-v8a", "x86_64"]
@@ -663,8 +693,9 @@ jobs:
     permissions:
       contents: read
     # The keystore lives in this environment, not in repository secrets.
-    # Maintainer: configure its deployment branch rule to allow only `main`
-    # and tags matching `v*`, as defence in depth behind the `if:` above.
+    # Maintainer: configure its deployment branch rule to allow only `main`,
+    # `release/*` and tags matching `v*`, as defence in depth behind the
+    # `if:` above.
     environment: android-signing
     steps:
       # Runs before anything else, and only tests for emptiness; no value is
@@ -718,6 +749,7 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           ARCH: ${{ matrix.arch }}
+          ARTIFACT_VERSION: ${{ needs.setup.outputs.artifact_version }}
         run: |
           set -euo pipefail
           export JAVA_HOME="$JAVA_HOME_17_X64" PATH="$JAVA_HOME_17_X64/bin:$PATH"
@@ -727,7 +759,7 @@ jobs:
           printf '%s' "$ANDROID_KEYSTORE" | base64 -d > "$ks"
           out="$RUNNER_TEMP/upload-artifact"
           mkdir -p "$out"
-          apk="$out/GpgFrontend-${GITHUB_SHA:0:7}-android-${ARCH}.apk"
+          apk="$out/GpgFrontend-${ARTIFACT_VERSION}-android-${ARCH}.apk"
           "$bt/apksigner" sign --ks "$ks" --ks-key-alias "$ANDROID_KEY_ALIAS" \
             --ks-pass env:ANDROID_KEYSTORE_PASSWORD \
             --key-pass env:ANDROID_KEY_PASSWORD \
@@ -739,7 +771,7 @@ jobs:
           # The bundle is not a release download: it goes up apart, below.
           bundle_out="$RUNNER_TEMP/upload-bundle"
           mkdir -p "$bundle_out"
-          aab="$bundle_out/GpgFrontend-${GITHUB_SHA:0:7}-android-${ARCH}.aab"
+          aab="$bundle_out/GpgFrontend-${ARTIFACT_VERSION}-android-${ARCH}.aab"
           jarsigner -keystore "$ks" \
             -storepass:env ANDROID_KEYSTORE_PASSWORD \
             -keypass:env ANDROID_KEY_PASSWORD \
@@ -803,6 +835,8 @@ jobs:
         with:
           lfs: "false"
           submodules: recursive
+          # The version comes from git describe: full history and tags.
+          fetch-depth: 0
 
       # Before anything is built: cheap, and it fails before a build is spent
       # rather than after one is signed.
@@ -897,16 +931,20 @@ jobs:
     needs: [setup, build-macos]
     # Two independent gates on which refs may ever request the signing key: this
     # condition, and the deployment branch rule on the environment. Never a
-    # pull request, never a branch other than main, never a non-v tag.
+    # pull request, never a branch other than main or release/*, never a
+    # non-v tag.
     if: >-
       github.event_name != 'pull_request' &&
-      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+      (github.ref == 'refs/heads/main' ||
+       startsWith(github.ref, 'refs/heads/release/') ||
+       startsWith(github.ref, 'refs/tags/v'))
     permissions:
       contents: read
     uses: ./.github/workflows/sign-apple.yml
     with:
       target: developer-id
       runners: ${{ needs.setup.outputs.macos_runners }}
+      artifact_version: ${{ needs.setup.outputs.artifact_version }}
 
   # Does the thing we ship actually work. Deliberately the dmg from sign-macos
   # -- signed, notarized, stapled -- and not the bundle build-macos produced,
@@ -916,7 +954,9 @@ jobs:
     needs: [setup, sign-macos]
     if: >-
       github.event_name != 'pull_request' &&
-      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+      (github.ref == 'refs/heads/main' ||
+       startsWith(github.ref, 'refs/heads/release/') ||
+       startsWith(github.ref, 'refs/tags/v'))
     strategy:
       # Same legs as sign-macos: an arm64 bundle cannot be smoke-tested on an
       # Intel runner, and a module that loads on one may not on the other.
@@ -1143,7 +1183,7 @@ jobs:
   # While the app has never been published, Play takes only draft releases:
   # pass --status draft until then.
   play-upload:
-    needs: [sign-android]
+    needs: [setup, sign-android]
     if: >-
       github.event_name == 'push' &&
       (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
@@ -1201,13 +1241,14 @@ jobs:
           PLAY_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEYSTORE_PASSWORD }}
           PLAY_UPLOAD_KEY_ALIAS: ${{ secrets.PLAY_UPLOAD_KEY_ALIAS }}
           PLAY_UPLOAD_KEY_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEY_PASSWORD }}
+          ARTIFACT_VERSION: ${{ needs.setup.outputs.artifact_version }}
         run: |
           set -euo pipefail
           export JAVA_HOME="$JAVA_HOME_17_X64" PATH="$JAVA_HOME_17_X64/bin:$PATH"
           ks="$RUNNER_TEMP/upload.keystore"
           trap 'rm -f "$ks"' EXIT
           printf '%s' "$PLAY_UPLOAD_KEYSTORE" | base64 -d > "$ks"
-          aab="$RUNNER_TEMP/play/GpgFrontend-${GITHUB_SHA:0:7}-android-arm64-v8a.aab"
+          aab="$RUNNER_TEMP/play/GpgFrontend-${ARTIFACT_VERSION}-android-arm64-v8a.aab"
           mkdir -p "$(dirname "$aab")"
           jarsigner -keystore "$ks" \
             -storepass:env PLAY_UPLOAD_KEYSTORE_PASSWORD \
@@ -1219,19 +1260,23 @@ jobs:
           keytool -printcert -jarfile "$aab" | grep -E "^[[:space:]]*SHA256:"
 
       # The ref was already checked by the job's `if:`; anything but a v* tag
-      # here is main.
+      # here is main. The versionCode is the build number cmake/GitVersion.cmake
+      # derived; Play must not already hold one as great, or no phone updates.
       - name: Upload To The Internal Track
         env:
           PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          ARTIFACT_VERSION: ${{ needs.setup.outputs.artifact_version }}
+          BUILD_NUMBER: ${{ needs.setup.outputs.build_number }}
         run: |
           set -euo pipefail
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
             name="$GITHUB_REF_NAME"
           else
-            name="nightly-${GITHUB_SHA:0:7}"
+            name="nightly-${ARTIFACT_VERSION}"
           fi
           python3 -I scripts/android/play_upload.py \
             --package com.bktus.gpgfrontend \
-            --bundle "$RUNNER_TEMP/play/GpgFrontend-${GITHUB_SHA:0:7}-android-arm64-v8a.aab" \
+            --bundle "$RUNNER_TEMP/play/GpgFrontend-${ARTIFACT_VERSION}-android-arm64-v8a.aab" \
             --track internal \
-            --release-name "$name"
+            --release-name "$name" \
+            --version-code "$BUILD_NUMBER"
