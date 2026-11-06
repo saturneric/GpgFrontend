@@ -19,11 +19,11 @@ directory:
 The provenance job then signs SHA256SUMS.txt, once, and uploads the directory
 as the `release-candidate` artifact. Nothing writes to it after that.
 
-`verify` runs in the release job, over the downloaded candidate, and is the
-whole publication gate: the Sigstore identity, then the manifest, then exact
-set equality between the manifest and the directory, then every hash. It
-prints the verified file list for the publish step, so what
-is published is what was verified and not whatever a glob finds.
+`verify` runs on the signing host (scripts/release/gfrelease promote), over
+the staged candidate, and is the whole publication gate: the Sigstore
+identity, then the manifest, then exact set equality between the manifest
+and the directory, then every hash. It returns the verified file list, so
+what is published is what was verified and not whatever a glob finds.
 
 ## One authority per fact
 

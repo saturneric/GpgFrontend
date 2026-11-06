@@ -31,7 +31,8 @@
 #   build-android   unsigned APK and AAB  -> sign-android -> play-upload
 #   build-macos     unsigned bundle       -> sign-macos   -> macos-smoke
 #   provenance      signs the release candidate after every platform check
-#   release         verifies it and publishes the nightly
+#   stage           hands it to the signing host, which verifies, signs and
+#                   publishes it (scripts/release/gfrelease)
 #
 # The work itself lives in scripts/ci/<platform>/, where each step's
 # rationale sits beside its code. A job here only says what runs, in which
@@ -100,7 +101,8 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}${{ inputs.screenshot && '-screenshot' || '' }}
   cancel-in-progress: true
 
-# Least privilege by default; only the release job is granted contents: write.
+# Least privilege by default: no job is granted contents: write. Nothing here
+# publishes a release; the signing host promotes what `stage` hands it.
 permissions:
   contents: read
 
@@ -661,7 +663,7 @@ jobs:
       - name: Upload Unsigned Artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          # NOT "gpgfrontend-*": that is the pattern the release job downloads,
+          # NOT "gpgfrontend-*": that is the pattern provenance downloads,
           # and an unsigned package must never reach a release.
           name: unsigned-android-${{ matrix.arch }}
           path: |
@@ -1038,10 +1040,8 @@ jobs:
   # (`gpgfrontend-<leg>` with `buildinfo-<leg>`), so adding a leg changes
   # nothing below.
   #
-  # Least privilege is the reason this is a separate job rather than a step in
-  # `release`: `release` needs `contents: write` to publish, and nothing should
-  # hold both the ability to mint an identity token and the ability to rewrite
-  # the repository.
+  # The only job that can mint an identity token, and it can write nothing:
+  # what it signs leaves through `stage`, and is published by the signing host.
   provenance:
     needs: [build-linux, build-windows, sign-macos, macos-smoke, sign-android]
     runs-on: ubuntu-latest
@@ -1170,88 +1170,15 @@ jobs:
             --filesafe "$ARTIFACT_VERSION" \
             --built-at "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-  # Verify-only publication. This job builds nothing, hashes nothing new and
-  # signs nothing: it downloads the release candidate, proves it is exactly
-  # what provenance signed, and publishes the files that proof listed.
-  #
-  # Only pushes to main publish the rolling nightly. Stable releases (version
-  # tags) are packaged manually/offline.
-  release:
-    needs: [provenance]
-    runs-on: ubuntu-latest
-    # provenance already needs every build, signing and smoke job, so this
-    # inherits all of them. success() is implied, as above.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    environment: nightly-release-approval
-    permissions:
-      # Deletes and re-creates the nightly tag and its release.
-      contents: write
-    steps:
-      # For the verifier, the release notes and the tag. No submodules.
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
-        with:
-          lfs: "false"
-
-      - name: Download Release Candidate
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
-        with:
-          name: release-candidate
-          path: candidate/
-
-      - name: Install cosign
-        uses: sigstore/cosign-installer@d58896d6a1865668819e1d91763c7751a165e159 # v3.9.2
-
-      # The whole publication gate, in order: the Sigstore identity (exactly
-      # this workflow file at this ref, at this commit, from GitHub's issuer),
-      # the manifest, exact set equality between the manifest and the
-      # directory, and every hash. A valid signature made by some other
-      # workflow is not evidence about this release.
-      - name: Verify Release Candidate
-        id: verify
-        run: |
-          set -euo pipefail
-          python3 ./scripts/release_candidate.py verify \
-            --dir candidate/ \
-            --identity "https://github.com/${{ github.workflow_ref }}" \
-            --sha "${{ github.sha }}" \
-            --github-output "$GITHUB_OUTPUT"
-
-      - name: Generate Nightly Release Title
-        id: release_title
-        run: echo "title=Nightly Build $(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
-
-      # Last, not first: deleting the release before the download and the
-      # verification meant any failure among them left the project with no
-      # nightly at all and a tag already moved.
-      - name: Re-create nightly tag
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          cd ${{github.workspace}}
-          gh release delete nightly --repo saturneric/GpgFrontend --cleanup-tag --yes || true
-          git tag -f nightly $GITHUB_SHA
-          git push origin nightly --force
-
-      # Exactly the verified list, not a glob over a directory.
-      - name: Update Nightly Release
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
-        with:
-          tag_name: nightly
-          name: ${{ steps.release_title.outputs.title }}
-          draft: false
-          prerelease: true
-          body_path: ${{ github.workspace }}/.github/NIGHTLY_RELEASE.md
-          files: ${{ steps.verify.outputs.files }}
-
   # Puts the arm64-v8a app bundle on Google Play's internal testing track, rolled
   # out to the testers at once, as soon as sign-android has signed it: it
-  # waits for neither provenance nor the nightly's approval gate, which guard
-  # the public GitHub release and not the testers.
+  # does not wait for provenance, which guards the public update channel and
+  # not the testers.
   #   - a push to main  -> named nightly-<sha>.
   #   - a version tag   -> named after the tag. Promoting it beyond the
   #     testers is done by hand in Play Console.
   # arm64-v8a alone, as Play wants one bundle per release and phones are ARM;
-  # x86_64 stays on the nightly page.
+  # x86_64 is on the update channel.
   #
   # Play App Signing re-signs what users get, so the bundle is signed here
   # with the upload key, not the release key that signs the APKs: it is the
