@@ -20168,6 +20168,25 @@ Open it in your browser?</source>
         <source>No signing key chosen yet</source>
         <translation>尚未選擇簽署金鑰</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="1"/>
+        <source>Cannot be used</source>
+        <translation>無法使用</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="1"/>
+        <source>%n unusable</source>
+        <translation>
+            <numerusform>%n 個無法使用</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="1"/>
+        <source>%n key(s) chosen before were left out: they can no longer be used.</source>
+        <translation>
+            <numerusform>先前選擇的 %n 個金鑰已被略去：它們已無法使用。</numerusform>
+        </translation>
+    </message>
 </context>
 <context>
     <name>KeysPage</name>

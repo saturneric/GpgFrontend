@@ -6,18 +6,24 @@ import QtQuick.Controls.Material
 import QtQuick.Layouts
 import GpgFrontend.Mobile
 
-// What is chosen in a list of keys, in one row above it: the same in the
-// key toolbox and in the pickers that fill a key group or a category. Always
-// there and always as tall, whether none, one or many are chosen, so the
-// list under it never moves as keys are ticked: a title, one line under it
-// (empty, a warning or a problem), and what may be done at its end.
+// What is chosen in a list of keys, in one compact row above it: the same
+// in the key toolbox and in the pickers that fill a key group or a category.
+// Always there and always as tall, whether none, one or many are chosen, so
+// the list under it never moves as keys are ticked: a mark, the title, a
+// short tag when something is wrong (the whole sentence is said where there
+// is room for it, and read out), and what may be done at its end.
+//
+// It takes a full touch target's height, drawn 40 tall, and gives back the
+// rest to the gaps of the column it sits in.
 ItemDelegate {
     id: summary
 
-    // Under the title: why something is held up, or empty.
+    // What is wrong, in a few words at the end of the row; empty for none.
+    property string tag: ""
+    property color tagColor: Theme.danger
+    // The whole sentence, read out with the row.
     property string detail: ""
-    property color detailColor: Material.secondaryTextColor
-    // A mark at the start: none, "check_circle", "warning".
+    // A mark at the start: none, "check_circle", "warning", "info".
     property string symbol: ""
     property color symbolColor: Material.accentColor
     // At the end: an action, or a mark that it opens something.
@@ -26,10 +32,16 @@ ItemDelegate {
     Layout.fillWidth: true
     Layout.leftMargin: -Theme.sheetPad
     Layout.rightMargin: -Theme.sheetPad
+    // The touch target overlaps the column's gaps, not its neighbours.
+    Layout.topMargin: -6
+    Layout.bottomMargin: -6
     leftPadding: Theme.sheetPad
     rightPadding: 8
-    topPadding: 4
-    bottomPadding: 4
+    topPadding: 0
+    bottomPadding: 0
+    topInset: 4
+    bottomInset: 4
+    implicitHeight: Math.max(Theme.touch, implicitContentHeight + 8)
     // Only a summary that opens something is pressed and takes the focus.
     focusPolicy: enabled ? Qt.StrongFocus : Qt.NoFocus
     background.visible: enabled
@@ -52,30 +64,26 @@ ItemDelegate {
             }
         }
 
-        ColumnLayout {
+        Label {
+            objectName: "summaryTitle"
             Layout.fillWidth: true
             Layout.preferredWidth: 0
-            spacing: 0
+            text: summary.text
+            elide: Text.ElideRight
+            font.pixelSize: Theme.secondarySize
+            font.weight: Font.Medium
+        }
 
-            Label {
-                objectName: "summaryTitle"
-                Layout.fillWidth: true
-                text: summary.text
-                elide: Text.ElideRight
-                font.pixelSize: Theme.secondarySize
-                font.weight: Font.Medium
-            }
-
-            // One line, always: an empty one keeps its height.
-            Label {
-                objectName: "summaryDetail"
-                Layout.fillWidth: true
-                text: summary.detail
-                maximumLineCount: 1
-                elide: Text.ElideRight
-                font.pixelSize: Theme.labelSize
-                color: summary.detailColor
-            }
+        Label {
+            objectName: "summaryTag"
+            visible: text.length > 0
+            // Never more than half the row: the title keeps its room.
+            Layout.maximumWidth: summary.availableWidth / 2
+            text: summary.tag
+            elide: Text.ElideRight
+            font.pixelSize: Theme.labelSize
+            font.weight: Font.Medium
+            color: summary.tagColor
         }
 
         RowLayout {

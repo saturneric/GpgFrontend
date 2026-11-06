@@ -500,6 +500,115 @@ TEST(WorkSelectionTest, APassphraseOrASignatureIsKeptToo) {
   selection.forgetLast();
 }
 
+// Each key database has a choice of its own: switching away puts it away,
+// switching back takes it up again, and the other database never shows the
+// first one's keys as chosen (nor warns of them as gone).
+TEST(WorkSelectionTest, EachKeyDatabaseHasAChoiceOfItsOwn) {
+  SignerReset reset;
+  Fixture f;
+  QString database = QStringLiteral("A");
+  WorkSelection selection(&f.roles);
+  selection.SetDatabaseSource([&database]() { return database; });
+  selection.SetKeysReady();
+  selection.addRecipient(Fpr("CCCC0003"));
+  selection.setPreferredSigner(Fpr("AAAA0001"));
+  selection.SetRecipientCategory(QStringLiteral("friends"));
+  selection.SetSignerCategory(QStringLiteral("mine"));
+
+  GpgKeyTableModel other{0,
+                         {Key("Erin", "erin@example.org", "EEEE0005",
+                              [](FakeKey& k) { k.secret = true; })}};
+  database = QStringLiteral("B");
+  f.roles.setSourceModel(&other);
+  EXPECT_TRUE(selection.Recipients().isEmpty());
+  EXPECT_EQ(selection.RecipientIssueCount(), 0);
+  EXPECT_EQ(selection.EncryptBlock(), "no_recipients");
+  // A's signer is not in B: none, and nothing said of it.
+  EXPECT_TRUE(selection.PreferredSigner().isEmpty());
+  EXPECT_TRUE(selection.RecipientCategory().isEmpty());
+  EXPECT_TRUE(selection.SignerCategory().isEmpty());
+  EXPECT_EQ(selection.DroppedCount(), 0);
+  selection.addRecipient(Fpr("EEEE0005"));
+
+  database = QStringLiteral("A");
+  f.roles.setSourceModel(&f.table);
+  EXPECT_EQ(selection.Recipients(), QStringList{Fpr("CCCC0003")});
+  EXPECT_EQ(selection.PreferredSigner(), Fpr("AAAA0001"));
+  EXPECT_EQ(selection.RecipientCategory(), "friends");
+  EXPECT_EQ(selection.SignerCategory(), "mine");
+  EXPECT_EQ(selection.DroppedCount(), 0);
+  EXPECT_TRUE(selection.EncryptBlock().isEmpty());
+
+  database = QStringLiteral("B");
+  f.roles.setSourceModel(&other);
+  EXPECT_EQ(selection.Recipients(), QStringList{Fpr("EEEE0005")});
+  // The signer chosen in A stays A's.
+  EXPECT_TRUE(selection.PreferredSigner().isEmpty());
+}
+
+// A choice taken up again never brings back, as chosen, a key that can no
+// longer be used: it is left out and counted. Keys that go bad while they
+// are being chosen from stay, flagged, until the choice is taken up again.
+TEST(WorkSelectionTest, AChoiceTakenUpAgainLeavesOutWhatCannotBeUsed) {
+  SignerReset reset;
+  QString database = QStringLiteral("A");
+  GpgKeyTableModel before{0,
+                          {Key("Carol", "carol@example.org", "CCCC0003"),
+                           Key("Erin", "erin@example.org", "EEEE0005"),
+                           Key("Frank", "frank@example.org", "FFFF0006"),
+                           Key("alice", "alice@example.org", "AAAA0001",
+                               [](FakeKey& k) { k.secret = true; })}};
+  KeyRoleModel roles;
+  roles.setSourceModel(&before);
+  WorkSelection selection(&roles);
+  selection.SetDatabaseSource([&database]() { return database; });
+  selection.SetKeysReady();
+  selection.addRecipient(Fpr("CCCC0003"));
+  selection.addRecipient(Fpr("EEEE0005"));
+  selection.addRecipient(Fpr("FFFF0006"));
+  selection.setPreferredSigner(Fpr("AAAA0001"));
+  selection.SetRecipientCategory(QStringLiteral("friends"));
+
+  GpgKeyTableModel elsewhere{0, {}};
+  database = QStringLiteral("B");
+  roles.setSourceModel(&elsewhere);
+
+  // Meanwhile Erin was revoked, Frank deleted and alice's key expired.
+  GpgKeyTableModel after{
+      0,
+      {Key("Carol", "carol@example.org", "CCCC0003"),
+       Key("Erin", "erin@example.org", "EEEE0005",
+           [](FakeKey& k) { k.revoked = true; }),
+       Key("alice", "alice@example.org", "AAAA0001", [](FakeKey& k) {
+         k.secret = true;
+         k.expired = true;
+       })}};
+  database = QStringLiteral("A");
+  roles.setSourceModel(&after);
+  EXPECT_EQ(selection.Recipients(), QStringList{Fpr("CCCC0003")});
+  EXPECT_TRUE(selection.PreferredSigner().isEmpty());
+  EXPECT_EQ(selection.DroppedCount(), 3);
+  EXPECT_EQ(selection.RecipientIssueCount(), 0);
+
+  // Reset keys: none chosen, nothing left to say, the category kept.
+  selection.clearRecipients();
+  EXPECT_TRUE(selection.Recipients().isEmpty());
+  EXPECT_EQ(selection.DroppedCount(), 0);
+  EXPECT_EQ(selection.RecipientCategory(), "friends");
+
+  // Chosen while it can no longer be used: flagged, not dropped behind the
+  // person's back; opening the toolbox again leaves it out.
+  selection.addRecipient(Fpr("EEEE0005"));
+  EXPECT_EQ(selection.RecipientIssueCount(), 1);
+  EXPECT_EQ(selection.EncryptBlock(), "recipient_issue");
+  selection.revalidate();
+  EXPECT_TRUE(selection.Recipients().isEmpty());
+  EXPECT_EQ(selection.DroppedCount(), 1);
+  // The next choice makes it old news.
+  selection.addRecipient(Fpr("CCCC0003"));
+  EXPECT_EQ(selection.DroppedCount(), 0);
+}
+
 TEST(WorkSelectionTest, ASignerThatIsGoneIsReported) {
   SignerReset reset;
   Fixture f;

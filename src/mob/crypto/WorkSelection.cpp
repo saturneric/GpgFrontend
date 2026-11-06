@@ -66,7 +66,9 @@ auto StatusIssue(const QVariantMap& key) -> QString {
 }  // namespace
 
 WorkSelection::WorkSelection(QAbstractItemModel* keys, QObject* parent)
-    : QObject(parent), keys_(keys) {
+    : QObject(parent), keys_(keys), database_([]() {
+        return LookupChannelHandle(UsableDefaultChannelHandle()).database_id;
+      }) {
   connect(this, &WorkSelection::SignalChanged, this, [this]() { ++revision_; });
   if (keys == nullptr) return;
   // Whatever the list learns of a key may change what can be done with it,
@@ -75,11 +77,21 @@ WorkSelection::WorkSelection(QAbstractItemModel* keys, QObject* parent)
     rows_valid_ = false;
     emit SignalChanged();
   };
-  connect(keys, &QAbstractItemModel::modelReset, this, changed);
+  // A list read anew may be another database's: its own choice is taken up
+  // before anything shows the old one's keys as gone.
+  connect(keys, &QAbstractItemModel::modelReset, this, [this, changed]() {
+    rows_valid_ = false;
+    follow_database();
+    changed();
+  });
   connect(keys, &QAbstractItemModel::layoutChanged, this, changed);
   connect(keys, &QAbstractItemModel::rowsInserted, this, changed);
   connect(keys, &QAbstractItemModel::rowsRemoved, this, changed);
   connect(keys, &QAbstractItemModel::dataChanged, this, changed);
+}
+
+void WorkSelection::SetDatabaseSource(DatabaseSource source) {
+  database_ = std::move(source);
 }
 
 void WorkSelection::SetInstance(WorkSelection* instance) {
@@ -218,8 +230,31 @@ auto WorkSelection::IssueCount() const -> int {
   return count;
 }
 
+auto WorkSelection::RecipientCategory() const -> QString {
+  return recipient_category_;
+}
+
+void WorkSelection::SetRecipientCategory(const QString& category) {
+  if (recipient_category_ == category) return;
+  recipient_category_ = category;
+  emit SignalChanged();
+}
+
+auto WorkSelection::SignerCategory() const -> QString {
+  return signer_category_;
+}
+
+void WorkSelection::SetSignerCategory(const QString& category) {
+  if (signer_category_ == category) return;
+  signer_category_ = category;
+  emit SignalChanged();
+}
+
+auto WorkSelection::DroppedCount() const -> int { return dropped_; }
+
 void WorkSelection::SetKeysReady() {
   ready_ = true;
+  database_id_ = database_ ? database_() : QString();
   auto settings = GetSettings();
   preferred_signer_ = SettingItems::kPreferredSigner.Read(settings);
   last_ =
@@ -233,6 +268,7 @@ void WorkSelection::SetKeysReady() {
 }
 
 void WorkSelection::KeysRefreshed() {
+  follow_database();
   if (!ready_ || last_.isEmpty()) return;
   // Made with other keys than there are now: what it would do is not what
   // was done, so it is not offered again.
@@ -363,6 +399,7 @@ void WorkSelection::forgetLast() {
 
 void WorkSelection::addRecipient(const QString& fingerprint) {
   if (fingerprint.isEmpty() || isRecipient(fingerprint)) return;
+  touched();
   recipients_ << fingerprint;
   recipient_set_.insert(fingerprint.toUpper());
   emit SignalChanged();
@@ -370,6 +407,7 @@ void WorkSelection::addRecipient(const QString& fingerprint) {
 
 void WorkSelection::removeRecipient(const QString& fingerprint) {
   if (!recipient_set_.remove(fingerprint.toUpper())) return;
+  touched();
   recipients_.removeIf(
       [&fingerprint](const QString& f) { return Same(f, fingerprint); });
   emit SignalChanged();
@@ -414,7 +452,8 @@ auto WorkSelection::encryptQuestions() const -> QVariantList {
 }
 
 void WorkSelection::clearRecipients() {
-  if (recipients_.isEmpty()) return;
+  if (recipients_.isEmpty() && dropped_ == 0) return;
+  touched();
   recipients_.clear();
   recipient_set_.clear();
   emit SignalChanged();
@@ -422,6 +461,7 @@ void WorkSelection::clearRecipients() {
 
 void WorkSelection::setPreferredSigner(const QString& fingerprint) {
   if (preferred_signer_ == fingerprint) return;
+  touched();
   preferred_signer_ = fingerprint;
   if (ready_) {
     auto settings = GetSettings();
@@ -431,11 +471,86 @@ void WorkSelection::setPreferredSigner(const QString& fingerprint) {
 }
 
 void WorkSelection::reset() {
+  touched();
   recipients_.clear();
   recipient_set_.clear();
   passphrase_mode_ = false;
   signing_enabled_ = false;
   emit SignalChanged();
+}
+
+void WorkSelection::revalidate() {
+  if (!ready_) return;
+  follow_database();
+  if (const auto dropped = drop_unusable(); dropped > 0) {
+    dropped_ = dropped;
+    emit SignalChanged();
+  }
+}
+
+void WorkSelection::touched() { dropped_ = 0; }
+
+void WorkSelection::follow_database() {
+  if (!ready_ || !database_) return;
+  const auto id = database_();
+  if (id == database_id_) return;
+
+  if (!database_id_.isEmpty()) {
+    remembered_.insert(database_id_, {recipients_, preferred_signer_,
+                                      recipient_category_, signer_category_});
+  }
+  database_id_ = id;
+  rows_valid_ = false;
+
+  const auto known = remembered_.constFind(id);
+  const auto chosen = known != remembered_.constEnd() ? *known : Remembered{};
+  recipients_.clear();
+  recipient_set_.clear();
+  for (const auto& fpr : chosen.recipients) {
+    recipients_ << fpr;
+    recipient_set_.insert(fpr.toUpper());
+  }
+  recipient_category_ = chosen.recipient_category;
+  signer_category_ = chosen.signer_category;
+  dropped_ = 0;
+  if (known != remembered_.constEnd()) {
+    preferred_signer_ = chosen.signer;
+    dropped_ = drop_unusable();
+  } else {
+    // Never here before: the signer kept beyond the session, if this
+    // database has it and it can sign; else none. Not chosen here, so not
+    // counted as left out.
+    preferred_signer_ = SettingItems::kPreferredSigner.Read(GetSettings());
+    if (!signer_issue().isEmpty()) preferred_signer_.clear();
+  }
+  emit SignalChanged();
+}
+
+auto WorkSelection::drop_unusable() -> int {
+  if (!ready_) return 0;
+  int dropped = 0;
+  QStringList kept;
+  for (const auto& fpr : recipients_) {
+    if (recipient_key(fpr)
+            .value(QStringLiteral("issue"))
+            .toString()
+            .isEmpty()) {
+      kept << fpr;
+    } else {
+      ++dropped;
+    }
+  }
+  if (dropped > 0) {
+    recipients_ = kept;
+    recipient_set_.clear();
+    for (const auto& fpr : kept) recipient_set_.insert(fpr.toUpper());
+  }
+  // Left out here only: the setting keeps it for the database it is of.
+  if (!preferred_signer_.isEmpty() && !signer_issue().isEmpty()) {
+    preferred_signer_.clear();
+    ++dropped;
+  }
+  return dropped;
 }
 
 auto WorkSelection::lookup(const QString& fingerprint) const -> QVariantMap {

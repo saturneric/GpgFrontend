@@ -31,9 +31,11 @@
 #include <QtQml/qqmlregistration.h>
 
 #include <QAbstractItemModel>
+#include <QHash>
 #include <QObject>
 #include <QPointer>
 #include <QVariantMap>
+#include <functional>
 
 class QQmlEngine;
 class QJSEngine;
@@ -50,10 +52,18 @@ namespace GpgFrontend::Mobile {
  * signer is kept beyond the session (SettingItems::kPreferredSigner), and
  * remembering it never turns signing on.
  *
+ * Each key database has a choice of its own: switching to another puts the
+ * recipients, the signer and the category each step showed away under the
+ * database left, and takes up what was chosen in the one switched to (none
+ * the first time). A key of one database is never offered as chosen in
+ * another.
+ *
  * A chosen key that can no longer be used -- gone, expired, revoked,
  * disabled, unable to encrypt or sign -- stays chosen and is reported
- * (issues, encryptBlock, signBlock): dropping it would encrypt to fewer
- * people than were chosen, and look no different.
+ * (issues, encryptBlock, signBlock) while it is being chosen from: dropping
+ * it would encrypt to fewer people than were chosen, and look no different.
+ * A choice taken up again (revalidate(), a database switched back to) leaves
+ * such keys out, and says how many (droppedCount).
  *
  * What it knows of each key it reads from @p keys, the key list's
  * KeyRoleModel, and nothing of a key before SetKeysReady().
@@ -114,10 +124,25 @@ class WorkSelection : public QObject {
   /// none, or when the keys have changed since (any import, deletion, edit
   /// or switch of key database makes it stale).
   Q_PROPERTY(QVariantMap lastOperation READ LastOperation NOTIFY SignalChanged)
+  /// The key category the recipients were last chosen in; "" for all keys.
+  Q_PROPERTY(QString recipientCategory READ RecipientCategory WRITE
+                 SetRecipientCategory NOTIFY SignalChanged)
+  /// The key category the signer was last chosen in; "" for all keys.
+  Q_PROPERTY(QString signerCategory READ SignerCategory WRITE SetSignerCategory
+                 NOTIFY SignalChanged)
+  /// How many chosen keys (the signer among them) were left out when the
+  /// choice was last taken up again, because they could no longer be used;
+  /// 0 once anything is chosen or taken out.
+  Q_PROPERTY(int droppedCount READ DroppedCount NOTIFY SignalChanged)
 
  public:
   /// @p keys is the key list's KeyRoleModel (KeyListController::Keys()).
   explicit WorkSelection(QAbstractItemModel* keys, QObject* parent = nullptr);
+
+  /// Where the key database in use is read from: by default the default
+  /// channel's. Tests stand in their own.
+  using DatabaseSource = std::function<QString()>;
+  void SetDatabaseSource(DatabaseSource source);
 
   static void SetInstance(WorkSelection* instance);
   static auto create(QQmlEngine*, QJSEngine*) -> WorkSelection*;
@@ -143,6 +168,11 @@ class WorkSelection : public QObject {
   [[nodiscard]] auto SignsEncryption() const -> bool;
   [[nodiscard]] auto IssueCount() const -> int;
   [[nodiscard]] auto RecipientIssueCount() const -> int;
+  [[nodiscard]] auto RecipientCategory() const -> QString;
+  void SetRecipientCategory(const QString& category);
+  [[nodiscard]] auto SignerCategory() const -> QString;
+  void SetSignerCategory(const QString& category);
+  [[nodiscard]] auto DroppedCount() const -> int;
 
   /// The keys can be read now (a profile is open and its keys listed):
   /// the preferred signer and the last operation are read from the
@@ -150,7 +180,8 @@ class WorkSelection : public QObject {
   void SetKeysReady();
 
   /// The key list was read again: a last operation remembered with other
-  /// keys than there are now is forgotten.
+  /// keys than there are now is forgotten, and a key database switched to
+  /// takes up its own choice.
   void KeysRefreshed();
 
   [[nodiscard]] auto LastOperation() const -> QVariantMap;
@@ -174,6 +205,10 @@ class WorkSelection : public QObject {
   Q_INVOKABLE void toggleRecipient(const QString& fingerprint);
   [[nodiscard]] Q_INVOKABLE bool isRecipient(const QString& fingerprint) const;
   Q_INVOKABLE void clearRecipients();
+  /// The choice taken up again (the toolbox opened): chosen keys that can no
+  /// longer be used are left out, counted in droppedCount. Never runs
+  /// anything.
+  Q_INVOKABLE void revalidate();
   /// What to ask before encrypting to the chosen recipients, in order, as
   /// the desktop asks it (Shell::EncryptQuestions): [{title, text, detail,
   /// accept}]; empty when it may go ahead.
@@ -190,7 +225,22 @@ class WorkSelection : public QObject {
   void SignalChanged();
 
  private:
+  /// What was chosen in a key database, put away while another is in use.
+  struct Remembered {
+    QStringList recipients;
+    QString signer;
+    QString recipient_category;
+    QString signer_category;
+  };
+
   QPointer<QAbstractItemModel> keys_;
+  DatabaseSource database_;
+  /// The database the choice is of; empty before the keys are ready.
+  QString database_id_;
+  QHash<QString, Remembered> remembered_;
+  QString recipient_category_;
+  QString signer_category_;
+  int dropped_ = 0;
   /// The last operation as stored: op, recipients, signs, signer, digest.
   QVariantMap last_;
   QStringList recipients_;           ///< in the order chosen
@@ -220,6 +270,12 @@ class WorkSelection : public QObject {
       -> QVariantMap;
   [[nodiscard]] auto signer_issue() const -> QString;
   [[nodiscard]] auto any_recipient_issue() const -> bool;
+  /// The key database in use changed: put the choice away, take up its own.
+  void follow_database();
+  /// Leave out what can no longer be used; how many were.
+  auto drop_unusable() -> int;
+  /// Something chosen or taken out: what was dropped before is old news.
+  void touched();
 };
 
 }  // namespace GpgFrontend::Mobile

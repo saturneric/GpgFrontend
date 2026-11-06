@@ -20223,6 +20223,27 @@ Open it in your browser?</source>
         <source>No signing key chosen yet</source>
         <translation>Aún no se ha elegido una clave de firma</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="1"/>
+        <source>Cannot be used</source>
+        <translation>No se puede usar</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="1"/>
+        <source>%n unusable</source>
+        <translation>
+            <numerusform>%n no utilizable</numerusform>
+            <numerusform>%n no utilizables</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="1"/>
+        <source>%n key(s) chosen before were left out: they can no longer be used.</source>
+        <translation>
+            <numerusform>Se omitió %n clave elegida antes: ya no se puede usar.</numerusform>
+            <numerusform>Se omitieron %n claves elegidas antes: ya no se pueden usar.</numerusform>
+        </translation>
+    </message>
 </context>
 <context>
     <name>KeysPage</name>

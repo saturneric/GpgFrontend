@@ -11,7 +11,10 @@ import GpgFrontend.Mobile
 // the key that signs; for Sign, the key that signs. Whether to sign is the
 // operation's, chosen in the menu, never asked here. Encrypting with a
 // passphrase needs no keys and does not come here. What is chosen is the
-// session's (WorkSelection) and stays chosen; Reset keys starts afresh.
+// session's (WorkSelection), kept for each key database, and stays chosen
+// with the category each step showed; Reset keys takes the keys away and
+// keeps the category. Opened again, keys that can no longer be used are
+// left out, and the sheet says how many.
 //
 // The keys are one list that fills the sheet and scrolls on its own; the
 // sheet is dragged taller by its header. What is chosen is said in one line
@@ -42,8 +45,17 @@ BottomSheet {
         value: sheet.canExpand
         restoreMode: Binding.RestoreValue
     }
-    // The key category shown: "" for all keys.
-    property string category: ""
+    // The key category shown: "" for all keys. Each step's own, as last
+    // chosen in this key database; one that is gone shows all keys.
+    readonly property string category: {
+        const id = signing ? WorkSelection.signerCategory
+                           : WorkSelection.recipientCategory
+        return id.length === 0 || categoryEntries.some(e => e.id === id) ? id : ""
+    }
+    function chooseCategory(id) {
+        if (signing) WorkSelection.signerCategory = id
+        else WorkSelection.recipientCategory = id
+    }
 
     readonly property bool signing: step === 1
     // The signer list shows whenever the step is the signer's.
@@ -83,8 +95,9 @@ BottomSheet {
         step = which === "sign" ? 1 : 0
         pending = action || null
         infoKey = null
-        category = ""
         search.text = ""
+        // What was chosen before, without what can no longer be used.
+        WorkSelection.revalidate()
         open()
     }
 
@@ -164,24 +177,27 @@ BottomSheet {
         categoryName: "toolboxCategory"
         entries: sheet.categoryEntries
         category: sheet.category
-        onCategoryChosen: id => sheet.category = id
+        onCategoryChosen: id => sheet.chooseCategory(id)
     }
 
-    // What is chosen, in one row that is always there and always as tall
-    // (none, one or many chosen, the list under it never moves), with what
-    // still holds the action up under it: the recipients first, then the
-    // signer. Tapped, the chosen recipients, to take one out.
+    // What is chosen, in one compact row that is always there and always as
+    // tall (none, one or many chosen, the list under it never moves). A
+    // problem with the chosen keys is a short tag here and said in full above
+    // the buttons. Tapped, the chosen recipients, each with what is wrong.
     KeyChoiceSummary {
         id: summary
 
         objectName: "selectedSummary"
         visible: sheet.infoKey === null
-        // Only what this step is about.
-        readonly property string concern: sheet.signing ? sheet.blocking
-            : (sheet.recipientsReady ? "" : sheet.blocking)
-        // A chosen key that cannot be used, saying how many.
-        readonly property int issues: sheet.signing ? 0 : WorkSelection.recipientIssueCount
+        // A chosen key that cannot be used, saying how many: the recipients
+        // here, the signer on its own step.
+        readonly property int issues: sheet.signing
+            ? (WorkSelection.preferredSigner.length > 0
+               && (WorkSelection.signerKey.issue || "").length > 0 ? 1 : 0)
+            : WorkSelection.recipientIssueCount
         readonly property int count: WorkSelection.recipientCount
+        readonly property bool chosen: sheet.signing
+            ? WorkSelection.preferredSigner.length > 0 : count > 0
 
         enabled: !sheet.signing && count > 0
         text: sheet.signing
@@ -189,12 +205,11 @@ BottomSheet {
                  ? qsTr("Signing as %1").arg(Wording.keyName(WorkSelection.signerKey))
                  : qsTr("No signing key chosen yet"))
               : count > 0 ? Wording.selectedCount(count) : qsTr("No keys chosen yet")
-        detail: issues > 0 ? qsTr("%n of them cannot be used. Tap to see why.", "", issues)
-              : concern.length > 0 ? Wording.block(concern) : ""
-        detailColor: issues > 0 ? Theme.danger : Theme.warning
-        symbol: issues > 0 ? "warning"
-              : (sheet.signing ? WorkSelection.preferredSigner.length > 0 : count > 0)
-                ? "check_circle" : ""
+        tag: issues > 0 ? (sheet.signing ? qsTr("Cannot be used")
+                                         : qsTr("%n unusable", "", issues))
+                        : ""
+        detail: notice.text
+        symbol: issues > 0 ? "warning" : chosen ? "check_circle" : ""
         symbolColor: issues > 0 ? Theme.danger : Material.accentColor
         onClicked: selected.open()
 
@@ -383,6 +398,26 @@ BottomSheet {
         }
     }
 
+    // Said in full, never cut short: what holds the chosen keys up, or what
+    // was left out of them when they were taken up again. Nothing while
+    // nothing is chosen yet: the summary already says so.
+    status: Label {
+        id: notice
+
+        objectName: "toolboxNotice"
+        Layout.fillWidth: true
+        visible: text.length > 0 && sheet.infoKey === null
+        wrapMode: Text.Wrap
+        font.pixelSize: Theme.labelSize
+        color: summary.issues > 0 ? Theme.danger : Material.secondaryTextColor
+        text: summary.issues > 0
+              ? Wording.block(sheet.signing ? "signer_issue" : "recipient_issue")
+              : WorkSelection.droppedCount > 0
+                ? qsTr("%n key(s) chosen before were left out: they can no longer be used.",
+                       "", WorkSelection.droppedCount)
+                : ""
+    }
+
     footer: [
         // At the foot, with the sheet's other buttons: never under them.
         ActionButton {
@@ -424,7 +459,6 @@ BottomSheet {
             enabled: sheet.recipientsReady
             onClicked: {
                 search.clear()
-                sheet.category = ""
                 sheet.step = 1
             }
         },

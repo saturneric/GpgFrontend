@@ -180,6 +180,44 @@ Item {
             compare(problems.join("; "), "")
         }
 
+        function test_the_key_summary_holds_its_words_data() {
+            return [{"tag": "en x1", "language": "en_US", "scale": 1},
+                    {"tag": "de x1", "language": "de_DE", "scale": 1},
+                    {"tag": "de x2", "language": "de_DE", "scale": 2}]
+        }
+
+        // The toolbox's line of what is chosen: one row as tall for none as
+        // for many, inside the sheet, with large German words too.
+        function test_the_key_summary_holds_its_words(data) {
+            TestSupport.useLanguage(data.language)
+            Theme.fontScale = data.scale
+            const component = Qt.createComponent(
+                "qrc:/qt/qml/GpgFrontend/Mobile/qml/components/KeyToolbox.qml")
+            compare(component.status, Component.Ready, component.errorString())
+            const box = component.createObject(root)
+            if (data.scale > 1) box.font.pixelSize = Theme.secondarySize
+            box.begin("encrypt", {"op": "encrypt", "label": "Encrypt now",
+                                  "run": () => {}})
+            tryVerify(() => box.opened)
+            const summary = descendants(box.contentItem, []).find(
+                i => i.objectName === "selectedSummary")
+            verify(summary, "the summary")
+            waitForPolish(box.contentItem)
+            const empty = summary.height
+            for (let i = 0; i < 3; ++i)
+                WorkSelection.addRecipient(String.fromCharCode(65 + i).repeat(40))
+            waitForPolish(box.contentItem)
+            compare(summary.height, empty)
+            verify(summary.height >= 48)
+            if (data.scale === 1) compare(summary.height, 48)
+            const end = summary.mapToItem(null, summary.width, 0).x
+            verify(end <= root.width + 0.5, "summary ends at " + end)
+            WorkSelection.reset()
+            box.close()
+            tryVerify(() => !box.visible)
+            box.destroy()
+        }
+
         function test_a_top_bar_holds_its_title_data() {
             return [{"tag": "en x1", "language": "en_US", "scale": 1},
                     {"tag": "en x2", "language": "en_US", "scale": 2},

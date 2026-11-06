@@ -34,6 +34,8 @@ Item {
         function cleanup() {
             box.close()
             WorkSelection.reset()
+            WorkSelection.recipientCategory = ""
+            WorkSelection.signerCategory = ""
         }
 
         // Closed while its search had the focus, it opens again on the list:
@@ -124,9 +126,37 @@ Item {
             compare(finder.currentCategory.id, "has_private_key")
             compare(findByName(root, "toolboxCategory").category.id, "has_private_key")
             compare(findByName(root, "keyDatabaseButton"), null)
-            // Begun again: all keys.
+            // The signer's step has a category of its own.
             box.begin("sign", {"op": "sign", "label": "Sign now", "run": () => {}})
             compare(box.category, "")
+            // Opened again to encrypt: the category it was left in.
+            box.close()
+            box.begin("encrypt", {"op": "encrypt", "label": "Encrypt now",
+                                  "run": () => {}})
+            compare(box.category, "has_private_key")
+            // Reset keys keeps it.
+            WorkSelection.addRecipient("A".repeat(40))
+            findByName(root, "resetKeys").clicked()
+            compare(WorkSelection.recipientCount, 0)
+            compare(box.category, "has_private_key")
+            // One that no longer exists shows all keys.
+            WorkSelection.recipientCategory = "gone_category"
+            compare(box.category, "")
+        }
+
+        // Encrypt & Sign: on to the signer and back keeps each step's
+        // category.
+        function test_each_step_keeps_its_category() {
+            box.begin("encrypt", {"op": "encrypt", "signs": true,
+                                  "label": "Encrypt and sign now", "run": () => {}})
+            const finder = findByName(box.contentItem, "keyFinder")
+            finder.categoryChosen("has_private_key")
+            WorkSelection.addRecipient("A".repeat(40))
+            box.step = 1
+            compare(box.category, "")
+            box.step = 0
+            compare(box.category, "has_private_key")
+            compare(WorkSelection.recipientCount, 1)
         }
 
         // What is chosen is one line, not a row per key; it opens the chosen
@@ -143,25 +173,34 @@ Item {
             verify(summary.visible)
             verify(!summary.enabled)
             const height = summary.height
+            const sheetHeight = box.height
             const listTop = findByName(root, "toolboxKeys").y
+            // One compact row: a touch target's height, drawn smaller.
+            compare(height, 48)
+            verify(summary.background.height <= 40)
             WorkSelection.addRecipient("A".repeat(40))
             compare(summary.text, Wording.selectedCount(1))
             WorkSelection.addRecipient("B".repeat(40))
+            WorkSelection.addRecipient("C".repeat(40))
             verify(summary.visible && summary.enabled)
-            compare(summary.text, Wording.selectedCount(2))
-            verify(summary.text.indexOf("2") >= 0)
+            compare(summary.text, Wording.selectedCount(3))
+            verify(summary.text.indexOf("3") >= 0)
+            waitForRendering(box.contentItem)
             compare(summary.height, height)
+            compare(box.height, sheetHeight)
             compare(findByName(root, "toolboxKeys").y, listTop)
             // Ordinary words: a warning only when a chosen key cannot be
             // used, and nothing here says these cannot.
             compare(WorkSelection.recipientIssueCount, 0)
-            verify(findByName(root, "summaryDetail").text.indexOf("cannot be used") < 0)
+            compare(findByName(root, "summaryTag").text, "")
+            compare(findByName(root, "toolboxNotice").text, "")
+            WorkSelection.removeRecipient("C".repeat(40))
 
-            box.category = "has_private_key"
+            findByName(root, "keyFinder").categoryChosen("has_private_key")
             findByName(root, "toolboxSearch").text = "nobody"
             compare(WorkSelection.recipientCount, 2)
             findByName(root, "toolboxSearch").text = ""
-            box.category = ""
+            findByName(root, "keyFinder").categoryChosen("")
 
             summary.clicked()
             const chosen = box.selectedSheet

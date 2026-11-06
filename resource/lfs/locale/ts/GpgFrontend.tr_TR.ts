@@ -18709,6 +18709,25 @@ Tarayıcınızda açılsın mı?</translation>
         <source>No signing key chosen yet</source>
         <translation>Henüz imzalama anahtarı seçilmedi</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="1"/>
+        <source>Cannot be used</source>
+        <translation>Kullanılamaz</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="1"/>
+        <source>%n unusable</source>
+        <translation>
+            <numerusform>%n kullanılamaz</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="1"/>
+        <source>%n key(s) chosen before were left out: they can no longer be used.</source>
+        <translation>
+            <numerusform>Daha önce seçilen %n anahtar dışarıda bırakıldı: artık kullanılamıyor.</numerusform>
+        </translation>
+    </message>
 </context>
 <context>
     <name>KeysPage</name>

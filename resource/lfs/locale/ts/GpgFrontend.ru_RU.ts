@@ -20231,6 +20231,29 @@ Open it in your browser?</source>
         <source>No signing key chosen yet</source>
         <translation>Ключ подписи ещё не выбран</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="1"/>
+        <source>Cannot be used</source>
+        <translation>Нельзя использовать</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="1"/>
+        <source>%n unusable</source>
+        <translation>
+            <numerusform>%n непригоден</numerusform>
+            <numerusform>%n непригодны</numerusform>
+            <numerusform>%n непригодны</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="1"/>
+        <source>%n key(s) chosen before were left out: they can no longer be used.</source>
+        <translation>
+            <numerusform>%n ранее выбранный ключ пропущен: его больше нельзя использовать.</numerusform>
+            <numerusform>%n ранее выбранных ключа пропущены: их больше нельзя использовать.</numerusform>
+            <numerusform>%n ранее выбранных ключей пропущены: их больше нельзя использовать.</numerusform>
+        </translation>
+    </message>
 </context>
 <context>
     <name>KeysPage</name>
