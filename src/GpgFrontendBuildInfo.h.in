@@ -61,6 +61,13 @@
 #define APP_INSTALL_FLAG "@APP_INSTALL_FLAG@"
 
 /**
+ * How the build reaches its users (GPGFRONTEND_INSTALL_KIND): appimage,
+ * appimage-portable, msi, msix, portable-zip, dmg, mas, flatpak, distro,
+ * android or source.
+ */
+#define APP_INSTALL_KIND "@GPGFRONTEND_INSTALL_KIND@"
+
+/**
  * @brief Network
  *
  */

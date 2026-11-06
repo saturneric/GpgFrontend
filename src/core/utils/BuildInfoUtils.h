@@ -172,6 +172,17 @@ auto GF_CORE_EXPORT IsStableBuild() -> bool;
 auto GF_CORE_EXPORT IsPortableBuild() -> bool;
 
 /**
+ * @brief How this build reaches its users (GPGFRONTEND_INSTALL_KIND), fixed
+ * when it is built: "appimage", "appimage-portable", "msi", "msix",
+ * "portable-zip", "dmg", "mas", "flatpak", "distro", "android" or "source".
+ *
+ * Decides what an update check may offer: which file to download, and
+ * whether the application may ever replace itself (a store, a distribution
+ * or Flatpak update it for the user).
+ */
+auto GF_CORE_EXPORT GetInstallKind() -> QString;
+
+/**
  * @brief Return the profile layout version this build understands.
  * @return schema version number
  */
