@@ -92,8 +92,6 @@ class WorkSelection : public QObject {
   Q_PROPERTY(QString signBlock READ SignBlock NOTIFY SignalChanged)
   /// Whether an encryption now would be signed.
   Q_PROPERTY(bool signsEncryption READ SignsEncryption NOTIFY SignalChanged)
-  /// How many chosen keys, recipients and signer, cannot be used.
-  Q_PROPERTY(int issueCount READ IssueCount NOTIFY SignalChanged)
   /// Of those, the recipients' alone: what the summary of the chosen keys
   /// warns of (a signer's problem is the signing step's).
   Q_PROPERTY(
@@ -168,8 +166,8 @@ class WorkSelection : public QObject {
   /// Choose the keys of the last operation again; its op, or empty when
   /// there is none. The caller then runs it, or asks for what is missing.
   Q_INVOKABLE QString restoreLast();
-  /// Forget the last operation.
-  Q_INVOKABLE void forgetLast();
+  /// Forget the last operation (any change to the keys does it).
+  void forgetLast();
 
   Q_INVOKABLE void addRecipient(const QString& fingerprint);
   Q_INVOKABLE void removeRecipient(const QString& fingerprint);

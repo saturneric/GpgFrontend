@@ -271,11 +271,6 @@ Page {
         flash.restart()
     }
 
-    // The newest operation on the file @p id; 0 when none.
-    function latestRecordOf(id) {
-        return OperationQueue.log.latestOnFile(id)
-    }
-
     function share(id) {
         const entry = files.entry(id)
         if (entry.plaintext === true) {
