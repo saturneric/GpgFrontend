@@ -577,9 +577,11 @@ class WorkflowTest(unittest.TestCase):
         self.assertEqual(
             [n for n, j in self.jobs.items()
              if permissions(j).get("id-token") == "write"], ["provenance"])
+        # Nothing in CI publishes: the signing host promotes what `stage`
+        # hands it, so no job may rewrite the repository or its releases.
         self.assertEqual(
             [n for n, j in self.jobs.items()
-             if permissions(j).get("contents") == "write"], ["release"])
+             if permissions(j).get("contents") == "write"], [])
 
     def test_provenance_signs_after_every_platform_check(self):
         needs = re.search(r"^    needs: \[(.*)\]", self.jobs["provenance"], re.M)
@@ -587,39 +589,20 @@ class WorkflowTest(unittest.TestCase):
                          {"build-linux", "build-windows", "sign-macos",
                           "macos-smoke", "sign-android"})
 
-    def test_release_depends_only_on_the_candidate(self):
-        self.assertRegex(self.jobs["release"], r"(?m)^    needs: \[provenance\]$")
-
-    def test_single_signature(self):
-        self.assertEqual(self.text.count("cosign sign-blob"), 1)
-        self.assertIn("cosign sign-blob", self.code("provenance"))
-        self.assertIn("--bundle candidate/SHA256SUMS.txt.sigstore.json",
-                      self.code("provenance"))
+    def test_stage_hands_over_only_the_signed_candidate(self):
+        stage = self.code("stage")
+        self.assertRegex(self.jobs["stage"], r"(?m)^    needs: \[setup, provenance\]$")
+        self.assertEqual(permissions(self.jobs["stage"]), {"contents": "read"})
+        self.assertEqual(stage.count("download-artifact"), 1)
+        self.assertIn("name: release-candidate", stage)
+        self.assertIn("gfrelease stage", stage)
+        self.assertNotIn("gh release", self.text)
+        self.assertNotIn("action-gh-release", self.text)
 
     def test_candidate_uploaded_once_never_overwritten(self):
         self.assertEqual(upload_names(self.run_text).count("release-candidate"), 1)
         self.assertNotRegex(self.code("provenance"), r"overwrite:\s*true")
-        self.assertNotIn("upload-artifact", self.code("release"))
-
-    def test_release_is_verify_only(self):
-        release = self.code("release")
-        for forbidden in ("sha256sum", "sign-blob", "merge-multiple",
-                          "pattern:", "regexp", "artifacts/*", "mv ", "cp "):
-            with self.subTest(forbidden=forbidden):
-                self.assertNotIn(forbidden, release)
-        self.assertEqual(release.count("download-artifact"), 1)
-        self.assertIn("name: release-candidate", release)
-        self.assertIn("release_candidate.py verify", release)
-        self.assertIn('--identity "https://github.com/${{ github.workflow_ref }}"',
-                      release)
-        self.assertIn('--sha "${{ github.sha }}"', release)
-        self.assertRegex(release,
-                         r"(?m)^\s+files: \$\{\{ steps\.verify\.outputs\.files \}\}$")
-
-    def test_verify_runs_before_the_tag_moves(self):
-        release = self.code("release")
-        self.assertLess(release.index("release_candidate.py verify"),
-                        release.index("gh release delete"))
+        self.assertNotIn("upload-artifact", self.code("stage"))
 
     def test_every_deliverable_has_build_info_with_the_same_key(self):
         names = [normalize(n) for n in upload_names(self.run_text)]
