@@ -74,8 +74,8 @@ Popup {
 
     // What Back does with the sheet open: one step, never more.
     function back() {
-        // A sheet that is busy is not let go.
-        if (!interactive) return
+        // A sheet that is busy is not let go; one going already is gone.
+        if (!interactive || closing) return
         if (stepBack && stepBack()) return
         if (expandable && (expanded || heldHeight > 0)) {
             expanded = false
@@ -164,6 +164,16 @@ Popup {
         Theme.openSheets = Theme.openSheets.filter(o => o !== sheet).concat([sheet])
         Qt.callLater(keepFocus)
     }
+    // Gone from the open sheets as soon as it starts to go: Back pressed
+    // while it slides away is for what is under it (the page just opened
+    // from it), not for a sheet already closing, which took it and did
+    // nothing.
+    property bool closing: false
+    onAboutToHide: {
+        closing = true
+        Theme.openSheets = Theme.openSheets.filter(o => o !== sheet)
+    }
+    onAboutToShow: closing = false
     onClosed: {
         settleBack.stop()
         release.stop()

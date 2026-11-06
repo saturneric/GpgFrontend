@@ -131,6 +131,24 @@ Item {
             tryVerify(() => !pageSheet.visible)
         }
 
+        // A sheet sliding away is no longer the one Back is for: Back then
+        // goes to what is under it (the page just opened from it), never
+        // to a sheet already closing, which took it and did nothing.
+        function test_a_closing_sheet_lets_back_through() {
+            pageSheet.open()
+            tryVerify(() => pageSheet.opened)
+            pageSheet.close()
+            verify(pageSheet.visible, "still sliding away")
+            verify(Theme.openSheets.indexOf(pageSheet) < 0)
+            tryVerify(() => !pageSheet.visible)
+            // Opened again, it is Back's again.
+            pageSheet.open()
+            tryVerify(() => pageSheet.opened)
+            compare(Theme.openSheets[Theme.openSheets.length - 1], pageSheet)
+            pageSheet.back()
+            tryVerify(() => !pageSheet.visible)
+        }
+
         // Escape, as a hardware keyboard sends it, is Back too.
         function test_escape_is_back() {
             const box = openDeep()
