@@ -20387,6 +20387,11 @@ Open it in your browser?</source>
         <source>Import from a file or the clipboard.</source>
         <translation>Импорт из файла или буфера обмена.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="259"/>
+        <source>Refreshing</source>
+        <translation>Обновление</translation>
+    </message>
 </context>
 <context>
     <name>MainPage</name>

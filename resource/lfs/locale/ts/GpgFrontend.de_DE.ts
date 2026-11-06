@@ -20356,6 +20356,11 @@ Im Browser öffnen?</translation>
         <source>Import from a file or the clipboard.</source>
         <translation>Aus einer Datei oder der Zwischenablage importieren.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="259"/>
+        <source>Refreshing</source>
+        <translation>Wird aktualisiert</translation>
+    </message>
 </context>
 <context>
     <name>MainPage</name>

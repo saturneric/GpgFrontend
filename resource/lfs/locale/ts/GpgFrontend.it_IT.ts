@@ -20368,6 +20368,11 @@ Aprirlo nel browser?</translation>
         <source>Import from a file or the clipboard.</source>
         <translation>Importa da un file o dagli appunti.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="259"/>
+        <source>Refreshing</source>
+        <translation>Aggiornamento</translation>
+    </message>
 </context>
 <context>
     <name>MainPage</name>

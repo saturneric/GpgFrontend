@@ -18865,6 +18865,11 @@ Tarayıcınızda açılsın mı?</translation>
         <source>Import from a file or the clipboard.</source>
         <translation>Bir dosyadan veya panodan içe aktarın.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="259"/>
+        <source>Refreshing</source>
+        <translation>Yenileniyor</translation>
+    </message>
 </context>
 <context>
     <name>MainPage</name>

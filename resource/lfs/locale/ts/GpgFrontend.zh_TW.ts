@@ -20324,6 +20324,11 @@ Open it in your browser?</source>
         <source>Import from a file or the clipboard.</source>
         <translation>從檔案或剪貼簿匯入。</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="259"/>
+        <source>Refreshing</source>
+        <translation>正在重新整理</translation>
+    </message>
 </context>
 <context>
     <name>MainPage</name>

@@ -20323,6 +20323,11 @@ Open it in your browser?</source>
         <source>Import from a file or the clipboard.</source>
         <translation>从文件或剪贴板导入。</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="259"/>
+        <source>Refreshing</source>
+        <translation>正在刷新</translation>
+    </message>
 </context>
 <context>
     <name>MainPage</name>

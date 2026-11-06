@@ -447,6 +447,25 @@ Item {
             verify(!findByName(keys, "retryKeys").visible)
         }
 
+        // The refresh room: rows sit under it (the list's top margin), the
+        // progress in its middle, never over a row; closed, nothing shows.
+        function test_the_refresh_shows_in_the_room_it_opens() {
+            const list = findByName(keys, "keyList")
+            const busy = findByName(keys, "keysRefreshing")
+            list.refreshRoom = list.refreshRoomFull
+            compare(list.topMargin, list.refreshRoomFull)
+            fuzzyCompare(list.revealed, list.refreshRoomFull, 0.5)
+            verify(busy.active)
+            // In the room's middle, all of it inside the room.
+            fuzzyCompare(busy.y + busy.height / 2, list.refreshRoomFull / 2, 0.5)
+            verify(busy.y >= 0 && busy.y + busy.height <= list.refreshRoomFull)
+            verify(!findByName(keys, "keysPullHint").visible)
+            list.refreshRoom = 0
+            fuzzyCompare(list.revealed, 0, 0.5)
+            // Gone with the room: nothing left that keeps the window drawing.
+            verify(!busy.active)
+        }
+
         function test_a_search_with_no_match_says_what_was_searched() {
             keys.loading = false
             var search = findByName(keys, "keySearch")

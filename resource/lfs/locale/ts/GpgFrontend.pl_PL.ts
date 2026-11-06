@@ -19438,6 +19438,11 @@ Otworzyć go w przeglądarce?</translation>
         <source>Import from a file or the clipboard.</source>
         <translation>Importuj z pliku lub schowka.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeysPage.qml" line="259"/>
+        <source>Refreshing</source>
+        <translation>Odświeżanie</translation>
+    </message>
 </context>
 <context>
     <name>MainPage</name>

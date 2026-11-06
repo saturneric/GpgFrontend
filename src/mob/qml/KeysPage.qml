@@ -143,6 +143,45 @@ Page {
 
             // Pulled down far enough to refresh when let go.
             readonly property bool pulled: verticalOvershoot < -72
+            // The room above the first row while the keys are read again,
+            // the progress shown in it: opened by the pull (or by a refresh
+            // begun elsewhere while the list is at its top), closed when
+            // the reading is done. Held as the list's top margin, so the
+            // rows sit under it, never under the progress.
+            readonly property real refreshRoomFull: 64
+            property real refreshRoom: 0
+            topMargin: refreshRoom
+            // What is shown above the first row: the pull, then the room.
+            readonly property real revealed: Math.max(0, originY - contentY)
+            // (A key being made shows there too: it ends in a refresh.)
+            readonly property bool roomWanted: (KeyListController.refreshing
+                                                || page.creatingKey)
+                                               && filtered.count > 0
+            onRoomWantedChanged: {
+                if (roomWanted && refreshRoom >= refreshRoomFull) return
+                // A refresh begun elsewhere opens the room only for a list
+                // at its top; one scrolled away is left where it is.
+                if (roomWanted && !atYBeginning) return
+                roomAnimation.to = roomWanted ? refreshRoomFull : 0
+                roomAnimation.restart()
+            }
+            // The rows follow the room as it opens or closes, while the list
+            // is at its top and not in the finger's hands.
+            property real roomBefore: 0
+            onRefreshRoomChanged: {
+                const was = roomBefore
+                roomBefore = refreshRoom
+                if (dragging || flicking) return
+                if (contentY <= originY - was + 1) contentY = originY - refreshRoom
+            }
+
+            NumberAnimation {
+                id: roomAnimation
+                target: list
+                property: "refreshRoom"
+                duration: 220
+                easing.type: Easing.OutCubic
+            }
 
             objectName: "keyList"
             // Where in a long list one is; finding a key is the search's.
@@ -184,17 +223,52 @@ Page {
                 })
             }
 
-            onDragEnded: if (pulled && !KeyListController.refreshing)
-                             KeyListController.refresh()
+            // Let go of pulled far enough: the room is held open at once
+            // (the list comes back to it, not past it), and the keys are
+            // read again, once: a pull while they are read starts nothing.
+            onDragEnded: {
+                if (!pulled || KeyListController.refreshing) return
+                roomAnimation.stop()
+                roomBefore = refreshRoomFull
+                refreshRoom = refreshRoomFull
+                KeyListController.refresh()
+            }
 
-            // What a pull does, before it is let go.
+            // What a pull does, before it is let go: in the room the pull
+            // opens, in its middle.
             Label {
+                objectName: "keysPullHint"
+                parent: list
                 anchors.horizontalCenter: parent.horizontalCenter
-                y: Math.max(8, -list.verticalOvershoot / 2 - height / 2)
-                visible: list.verticalOvershoot < -16 && !KeyListController.refreshing
+                y: (list.revealed - height) / 2
+                // Only under the finger: not while the room closes again.
+                visible: list.dragging && list.refreshRoom === 0
+                         && list.revealed > height + 8 && !KeyListController.refreshing
                 text: list.pulled ? qsTr("Release to refresh")
                                   : qsTr("Pull to refresh")
                 color: Material.secondaryTextColor
+            }
+
+            // The keys being read again: in the room above the first row,
+            // in its middle, following it as it opens and closes. Made only
+            // while there is room for it: a BusyIndicator left in the scene
+            // kept the window drawing frame after frame with nothing moving.
+            Loader {
+                id: refreshProgress
+
+                objectName: "keysRefreshing"
+                parent: list
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: 40
+                height: 40
+                y: (list.revealed - height) / 2
+                active: list.revealed > 8
+                opacity: Math.min(1, list.revealed / list.refreshRoomFull)
+
+                sourceComponent: BusyIndicator {
+                    running: list.roomWanted
+                    Accessible.name: qsTr("Refreshing")
+                }
             }
 
             // Nothing to show: said as it is -- nothing matches, the
@@ -237,13 +311,16 @@ Page {
                 }
             }
 
+            // With no rows yet: in the middle of the empty list. (With rows,
+            // the progress is the refresh room's, above them.)
             BusyIndicator {
                 objectName: "keysLoading"
-                anchors.horizontalCenter: parent.horizontalCenter
-                y: filtered.count === 0 ? (parent.height - height) / 2 : 8
+                parent: list
+                anchors.centerIn: parent
                 // Never a second one beside the switching sheet's, nor
                 // just before it comes up.
-                running: (page.loading || KeyListController.refreshing || page.creatingKey)
+                running: filtered.count === 0
+                         && (page.loading || KeyListController.refreshing || page.creatingKey)
                          && !page.databaseSwitch.opened && !page.databaseSwitch.switching
             }
         }
