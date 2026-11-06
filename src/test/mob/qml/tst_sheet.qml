@@ -52,6 +52,55 @@ Item {
         ]
     }
 
+    // A form: fields and a button, as the passphrase or Add a user ID.
+    BottomSheet {
+        id: form
+        title: "Form"
+        TextField { objectName: "formField"; Layout.fillWidth: true; text: "a" }
+        TextField { Layout.fillWidth: true; text: "b" }
+        footer: [ Button { text: "OK" } ]
+    }
+
+    // One that must be answered: not pulled away.
+    BottomSheet {
+        id: kept
+        title: "Kept"
+        dragToClose: false
+        Label { text: "Answer me" }
+    }
+
+    // A list taller than half the window, shorter than all of it.
+    BottomSheet {
+        id: middling
+        title: "Middling"
+        expandable: true
+        listMode: true
+
+        ListView {
+            id: middlingRows
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.preferredHeight: contentHeight
+            clip: true
+            model: 13
+            delegate: ItemDelegate { width: ListView.view.width; text: "Row " + index }
+        }
+    }
+
+    // Short at first, more once open all the way (the status sheet).
+    BottomSheet {
+        id: revealing
+        title: "Revealing"
+        expandable: true
+        revealsMore: true
+        Label { text: "Short" }
+        Rectangle {
+            visible: revealing.expanded
+            Layout.fillWidth: true
+            Layout.preferredHeight: 900
+        }
+    }
+
     BottomSheet {
         id: over
         title: "Over"
@@ -101,7 +150,101 @@ Item {
 
         function cleanup() {
             over.close(); tall.close(); small.close()
-            tryVerify(() => !over.visible && !tall.visible && !small.visible)
+            form.close(); kept.close(); middling.close(); revealing.close()
+            tryVerify(() => !over.visible && !tall.visible && !small.visible
+                      && !form.visible && !kept.visible && !middling.visible
+                      && !revealing.visible)
+        }
+
+        // Pulls @p sheet's header by @p dy (down positive), in steps, and
+        // holds it there; returns where it was taken.
+        function pull(sheet, dy) {
+            const grab = sheet.contentItem.mapToItem(root, root.width / 2, 8)
+            mousePress(root, grab.x, grab.y)
+            for (let i = 1; i <= 10; ++i) mouseMove(root, grab.x, grab.y + dy * i / 10, 16)
+            return grab
+        }
+
+        function handleShown(sheet) {
+            const handle = findChild(sheet.contentItem, "sheetHandle")
+            return handle.children[0].visible
+        }
+
+        // Pulled down, a form moves down whole: its fields and its button
+        // keep their size and place in it, never squeezed out; let go short
+        // of closing, it goes back.
+        function test_a_form_pulled_down_moves_and_keeps_its_shape() {
+            form.open()
+            tryVerify(() => form.opened)
+            const height = form.height
+            const field = findChild(form.contentItem, "formField")
+            const fieldHeight = field.height
+            const grab = pull(form, height * 0.3)
+            compare(form.height, height)
+            verify(form.offset > height * 0.2, "moved " + form.offset)
+            compare(field.height, fieldHeight)
+            mouseRelease(root, grab.x, grab.y + height * 0.3)
+            wait(300)
+            verify(form.visible, "closed when let go short")
+            compare(form.offset, 0)
+            compare(form.height, height)
+        }
+
+        // A sheet that must be answered stays where it is, whatever the pull.
+        function test_a_sheet_that_must_be_answered_is_not_pulled_away() {
+            kept.open()
+            tryVerify(() => kept.opened)
+            const y = kept.y
+            const grab = pull(kept, kept.height * 0.9)
+            compare(kept.offset, 0)
+            compare(kept.y, y)
+            mouseRelease(root, grab.x, grab.y + kept.height * 0.9)
+            wait(300)
+            verify(kept.opened)
+        }
+
+        // A list taller than half the window but not than all of it: pulled
+        // to the top it stays as tall as its rows, never higher and back.
+        function test_a_list_pulled_up_does_not_snap_back() {
+            middling.open()
+            tryVerify(() => middling.opened)
+            verify(middling.canExpand, "natural " + middling.naturalHeight)
+            verify(middling.naturalHeight < middling.fullHeight)
+            const grab = pull(middling, -root.height)
+            verify(middling.height <= middling.naturalHeight + 0.5,
+                   middling.height + " over " + middling.naturalHeight)
+            mouseRelease(root, grab.x, grab.y - root.height)
+            wait(300)
+            fuzzyCompare(middling.height, middling.naturalHeight, 0.5)
+            verify(middling.expanded)
+        }
+
+        // A sheet short now but more once open (the status sheet) is
+        // pulled open; its handle says it can be.
+        function test_a_sheet_that_shows_more_is_pulled_open() {
+            revealing.open()
+            tryVerify(() => revealing.opened)
+            verify(!revealing.expanded)
+            verify(revealing.canExpand)
+            verify(handleShown(revealing))
+            const grab = pull(revealing, -200)
+            mouseRelease(root, grab.x, grab.y - 200)
+            tryVerify(() => revealing.expanded)
+            tryCompare(revealing, "height", revealing.fullHeight)
+        }
+
+        // The handle only where pulling does more than close: not on a
+        // short sheet, not on a busy one.
+        function test_the_handle_is_shown_only_where_it_acts() {
+            small.open()
+            tryVerify(() => small.opened)
+            verify(!handleShown(small))
+            tall.open()
+            tryVerify(() => tall.opened)
+            verify(handleShown(tall))
+            tall.interactive = false
+            verify(!handleShown(tall))
+            tall.interactive = true
         }
 
         // Little in it, little of the window: not a half-window sheet.

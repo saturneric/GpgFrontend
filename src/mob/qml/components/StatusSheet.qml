@@ -122,6 +122,8 @@ BottomSheet {
 
     objectName: "statusSheet"
     expandable: true
+    // Its cards and report show only once it is open all the way.
+    revealsMore: true
     // From one file back to its batch, before the sheet closes.
     stepBack: function() {
         if (!single || !fromBatch || log.batch(record.batchId || 0).length <= 1) return false

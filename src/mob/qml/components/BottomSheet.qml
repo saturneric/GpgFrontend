@@ -42,6 +42,13 @@ Popup {
     // Opens at about half the window, and grows when expanded.
     property bool expandable: false
     property bool expanded: false
+    // Expanded, it shows more than it does at first (the status sheet's
+    // cards and report): it can be pulled open however short it is now.
+    property bool revealsMore: false
+    // Whether pulling it down far enough lets it go. Not for a sheet that
+    // asks what must be answered on purpose (a passphrase): there, Back or
+    // its Cancel.
+    property bool dragToClose: true
     // The content is one list that fills the sheet and scrolls itself:
     // the sheet does not scroll it a second time.
     property bool listMode: false
@@ -100,7 +107,8 @@ Popup {
                                + footerRow.Layout.bottomMargin
                              : Theme.gapSmall)
         + footInset
-    readonly property bool canExpand: expandable && naturalHeight > halfHeight
+    readonly property bool canExpand: expandable
+        && (naturalHeight > halfHeight || (revealsMore && !expanded))
     // Where an expandable sheet was let go of, between its half and full
     // height: it stays there. 0 for none (half, or full when expanded).
     property real heldHeight: 0
@@ -108,9 +116,21 @@ Popup {
         !canExpand || expanded || Theme.keyboard > 0 ? fullHeight
         : heldHeight > 0 ? heldHeight : halfHeight)
 
-    // While the header is dragged: the height it is dragged to.
+    // While the header is dragged: the height the finger asks for. The
+    // sheet is never made shorter than where it rests (its content would
+    // be squeezed out of it): dragged lower, it moves down whole.
     property bool dragging: false
     property real dragHeight: 0
+    // The least it takes while dragged: where an expandable sheet rests at
+    // first, else where it rests now.
+    readonly property real dragFloor: canExpand && Theme.keyboard <= 0
+                                      ? Math.min(restingHeight, halfHeight)
+                                      : restingHeight
+    // The most: its content's height (no further, or it would only snap
+    // back), or the whole room for a sheet that shows more once expanded.
+    readonly property real dragTop: !canExpand ? restingHeight
+        : revealsMore && !expanded ? fullHeight
+        : Math.min(naturalHeight, fullHeight)
 
     // How far below its place it is while it comes and goes: animated, not
     // its y, which follows its height.
@@ -120,7 +140,8 @@ Popup {
     x: 0
     y: windowHeight - height + offset
     width: parent ? parent.width : 0
-    height: dragging ? dragHeight : restingHeight
+    height: dragging ? Math.max(dragFloor, Math.min(dragTop, dragHeight))
+                     : restingHeight
     padding: 0
     // Its surface runs to the window's sides; its content keeps clear of a
     // cutout or the navigation buttons there (landscape).
@@ -137,6 +158,7 @@ Popup {
         Qt.callLater(keepFocus)
     }
     onClosed: {
+        settleBack.stop()
         Theme.openSheets = Theme.openSheets.filter(o => o !== sheet)
         expanded = false
         heldHeight = 0
@@ -175,9 +197,21 @@ Popup {
         NumberAnimation { property: "offset"; from: sheet.height; to: 0
                           duration: 220; easing.type: Easing.OutCubic }
     }
+    // From wherever it is: a sheet let go of while dragged down goes on
+    // from there.
     exit: Transition {
-        NumberAnimation { property: "offset"; from: 0; to: sheet.height
+        NumberAnimation { property: "offset"; to: sheet.height
                           duration: 180; easing.type: Easing.InCubic }
+    }
+
+    // Back to its place after it was dragged down and let go.
+    NumberAnimation {
+        id: settleBack
+        target: sheet
+        property: "offset"
+        to: 0
+        duration: 180
+        easing.type: Easing.OutCubic
     }
 
     background: Rectangle {
@@ -221,12 +255,13 @@ Popup {
 
                 target: null
                 xAxis.enabled: false
-                enabled: sheet.interactive
+                enabled: sheet.interactive && (sheet.canExpand || sheet.dragToClose)
                 property real startHeight: 0
                 property real startY: 0
 
                 onActiveChanged: {
                     if (active) {
+                        settleBack.stop()
                         startHeight = sheet.height
                         startY = centroid.scenePosition.y
                         sheet.dragHeight = sheet.height
@@ -240,9 +275,12 @@ Popup {
                 // from it stayed near nothing and the sheet hardly followed.
                 onCentroidChanged: {
                     if (!active) return
-                    const top = sheet.canExpand ? sheet.fullHeight : sheet.restingHeight
                     const moved = centroid.scenePosition.y - startY
-                    sheet.dragHeight = Math.max(0, Math.min(top, startHeight - moved))
+                    const asked = startHeight - moved
+                    sheet.dragHeight = Math.max(0, Math.min(sheet.dragTop, asked))
+                    // Below its floor it moves down whole, if it may go.
+                    sheet.offset = sheet.dragToClose
+                                   ? Math.max(0, sheet.dragFloor - asked) : 0
                 }
             }
 
@@ -252,13 +290,17 @@ Popup {
                 width: parent.width
                 spacing: 0
 
-                // The platform's handle, saying the sheet can be pulled; on
-                // an expandable sheet a tap on it grows or shrinks it.
+                // The platform's handle, shown only where pulling it does
+                // more than closing: a sheet that grows. A tap on it grows or
+                // shrinks it. Its room stays either way, the title in the
+                // same place in every sheet.
                 Item {
+                    objectName: "sheetHandle"
                     Layout.fillWidth: true
                     implicitHeight: 16
 
                     Rectangle {
+                        visible: sheet.canExpand && sheet.interactive
                         anchors.horizontalCenter: parent.horizontalCenter
                         y: 6
                         width: 32
@@ -268,13 +310,14 @@ Popup {
                     }
 
                     TapHandler {
-                        enabled: sheet.canExpand
+                        enabled: sheet.canExpand && sheet.interactive
                         onTapped: {
                             sheet.heldHeight = 0
                             sheet.expanded = !sheet.expanded
                         }
                     }
 
+                    Accessible.ignored: !(sheet.canExpand && sheet.interactive)
                     Accessible.role: sheet.canExpand ? Accessible.Button
                                                      : Accessible.NoRole
                     Accessible.name: sheet.canExpand
@@ -455,31 +498,39 @@ Popup {
     }
 
     // Where the sheet goes when the header is let go: away when dragged low
-    // or flung down, else to the nearest of half and full (expandable), or
-    // back where it was.
+    // or flung down (and it may go), else back to its place; an expandable
+    // sheet stays where it was let go of, between its half and full height.
+    // Only a clear flick up opens it all the way, and only dragging it well
+    // below its place, or flicking it down from there, closes it: a finger
+    // lifting off often reports some speed downwards, which used to close a
+    // sheet just pulled up.
     // Let go of at dragHeight, moving at @p velocity (px/s, down positive).
-    // It stays where it was let go of; only a clear flick up opens it all
-    // the way, and only dragging it well below its place, or flicking it
-    // down from there, closes it: a finger lifting off often reports some
-    // speed downwards, which used to close a sheet just pulled up.
     function settle(velocity) {
         const h = dragHeight
+        const low = dragFloor
         dragging = false
-        const low = canExpand ? halfHeight : restingHeight
-        if (h < low * 0.5 || (velocity > 2500 && h < low * 0.9)) {
+        if (dragToClose && (h < low * 0.5 || (velocity > 2500 && h < low * 0.9))) {
             close()
             return
         }
+        if (offset > 0) settleBack.restart()
         if (!canExpand) return
+        // A sheet that shows more once expanded: pulled up clearly, it is.
+        if (revealsMore && !expanded) {
+            if (velocity < -2500 || h > restingHeight + 48) {
+                heldHeight = 0
+                expanded = true
+            }
+            return
+        }
         if (velocity < -2500) {
             heldHeight = 0
             expanded = true
             return
         }
-        // Near the top it is open all the way (a sheet that shows more
-        // when expanded, the status sheet, shows it); at or below its half
+        // Near the top it is open all the way; at or below its half
         // height it goes back there; between, it stays where it is.
-        if (h >= fullHeight - 48) {
+        if (h >= Math.min(naturalHeight, fullHeight) - 48) {
             heldHeight = 0
             expanded = true
             return

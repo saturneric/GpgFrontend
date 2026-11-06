@@ -41,6 +41,8 @@ BottomSheet {
     // Only the person cancels it: closing it to show a share would cancel
     // the operation that asks.
     keepOpen: true
+    // Turned down by Back or Cancel only, never by a pull that slipped.
+    dragToClose: false
     title: choosing ? qsTr("Choose a passphrase") : qsTr("Enter the passphrase")
 
     onAskingChanged: asking ? open() : close()
