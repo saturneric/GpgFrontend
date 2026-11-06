@@ -250,9 +250,10 @@ TEST(ModuleSetVerificationTest, EveryBundledModuleCarriesTheHostVersion) {
     GTEST_SKIP() << "this build produced no modules";
   }
 
-  // A bundled module.json leaves "version" out and takes the Host's, so a
-  // release bumps one number. A module that still states its own drifts.
-  const auto host_version = GetProjectVersion().mid(1);
+  // A bundled module.json leaves "version" out and takes the Host's numeric
+  // version (X.Y.Z), so a release bumps one number. A module that still
+  // states its own drifts.
+  const auto host_version = GetProjectVersionCore().mid(1);
   for (const auto& package : built) {
     const auto verdict =
         Module::VerifyModuleDescriptor(package.absoluteFilePath());
