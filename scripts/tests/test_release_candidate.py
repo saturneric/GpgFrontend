@@ -539,6 +539,17 @@ def upload_names(text):
         r"\s+name: (.+?)\s*$", text, re.M)
 
 
+def called_workflows(text):
+    """The text of every local reusable workflow `text` calls.
+
+    A deliverable a called workflow uploads (sign-apple.yml's dmg) belongs to
+    this run as much as one uploaded here.
+    """
+    paths = sorted(set(re.findall(r"^\s+uses: \./(\.github/workflows/\S+\.yml)\s*$",
+                                  text, re.M)))
+    return [(SCRIPTS.parent / p).read_text(encoding="utf-8") for p in paths]
+
+
 def normalize(expr):
     return re.sub(r"\$\{\{\s*(.*?)\s*\}\}", r"${{\1}}", expr)
 
@@ -549,6 +560,9 @@ class WorkflowTest(unittest.TestCase):
     def setUpClass(cls):
         cls.text = WORKFLOW.read_text(encoding="utf-8")
         cls.jobs = jobs(cls.text)
+        cls.called = called_workflows(cls.text)
+        # Everything a run of this workflow can upload.
+        cls.run_text = "\n".join([cls.text, *cls.called])
 
     def code(self, job):
         """A job's text without comments, so prose cannot satisfy a check."""
@@ -583,7 +597,7 @@ class WorkflowTest(unittest.TestCase):
                       self.code("provenance"))
 
     def test_candidate_uploaded_once_never_overwritten(self):
-        self.assertEqual(upload_names(self.text).count("release-candidate"), 1)
+        self.assertEqual(upload_names(self.run_text).count("release-candidate"), 1)
         self.assertNotRegex(self.code("provenance"), r"overwrite:\s*true")
         self.assertNotIn("upload-artifact", self.code("release"))
 
@@ -608,7 +622,7 @@ class WorkflowTest(unittest.TestCase):
                         release.index("gh release delete"))
 
     def test_every_deliverable_has_build_info_with_the_same_key(self):
-        names = [normalize(n) for n in upload_names(self.text)]
+        names = [normalize(n) for n in upload_names(self.run_text)]
         deliverables = {n[len("gpgfrontend-"):] for n in names
                         if n.startswith("gpgfrontend-")}
         infos = {n[len("buildinfo-"):] for n in names
@@ -619,14 +633,21 @@ class WorkflowTest(unittest.TestCase):
     def test_no_upload_collides_with_release_patterns(self):
         # provenance downloads gpgfrontend-* and buildinfo-*. Any other upload
         # in those namespaces would be pulled into the release.
-        for name in upload_names(self.text):
+        for name in upload_names(self.run_text):
             if name.startswith(("gpgfrontend-", "buildinfo-")):
                 self.assertIn("${{", name)
 
 
+    def test_signing_secrets_never_inherited(self):
+        # sign-apple.yml reads its secrets from its own environment. Handing
+        # it the caller's would put every repository secret within reach of
+        # the job that signs.
+        self.assertTrue(self.called)
+        self.assertNotRegex(self.text, r"(?m)^\s+secrets:\s*inherit")
+
     def test_build_info_names_are_whole(self):
         # The pairing above is only a check if it sees whole names.
-        for name in upload_names(self.text):
+        for name in upload_names(self.run_text):
             self.assertEqual(name.count("${{"), name.count("}}"), name)
 
 
