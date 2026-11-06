@@ -103,6 +103,18 @@ QtObject {
     // topmost, the one Back and typing are for (BottomSheet).
     property var openSheets: []
 
+    // Closes every open sheet but one at work (it may not be let go) or one
+    // that asks what only the person may answer (keepOpen: a passphrase);
+    // true when such a sheet stays.
+    function closeOpenSheets() {
+        let stays = false
+        for (const sheet of openSheets.slice()) {
+            if (sheet.interactive === false || sheet.keepOpen === true) stays = true
+            else sheet.close()
+        }
+        return stays
+    }
+
     // The window's height and pixel ratio, from the window, for the keyboard.
     property real windowHeight: 0
     property real pixelRatio: 1
@@ -184,6 +196,29 @@ QtObject {
         case "unchecked": return warning
         default: return danger
         }
+    }
+
+    // One signature's colour: its fact, and for one that holds, how the
+    // desktop grades it (a valid signature by a revoked or expired key is
+    // not an all-clear).
+    function signatureTone(sig) {
+        if ((sig.signature || "") !== "valid") return signatureColor(sig.signature)
+        switch (sig.verdict) {
+        case "good": return positive
+        case "warning": return warning
+        default: return danger
+        }
+    }
+
+    // Several signatures: the colour of the worst.
+    function signaturesTone(signatures) {
+        let tone = positive
+        for (const sig of signatures || []) {
+            const t = signatureTone(sig)
+            if (t === danger) return danger
+            if (t === warning) tone = warning
+        }
+        return tone
     }
 
     function reportColor(report, neutral) {

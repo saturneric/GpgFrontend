@@ -389,8 +389,8 @@ Page {
         if (file.operation === "verify" && file.phase === "done") {
             const signatures = file.result.signatures || []
             if (signatures.length === 0) return Theme.warning
-            // The fact the line says, in its colour.
-            return Theme.signatureColor(signatures[0].signature)
+            // Every signature, each by its fact and its grade.
+            return Theme.signaturesTone(signatures)
         }
         if (file.origin === "made" && file.savedName.length === 0) return Theme.warning
         return Material.secondaryTextColor

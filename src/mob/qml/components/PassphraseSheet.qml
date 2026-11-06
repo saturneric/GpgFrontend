@@ -26,6 +26,9 @@ BottomSheet {
     objectName: "passphraseSheet"
     // A tap beside it is not an answer: only Cancel, Back or pulling it away.
     closePolicy: Popup.NoAutoClose
+    // Only the person cancels it: closing it to show a share would cancel
+    // the operation that asks.
+    keepOpen: true
     title: choosing ? qsTr("Choose a passphrase") : qsTr("Enter the passphrase")
 
     onAskingChanged: asking ? open() : close()

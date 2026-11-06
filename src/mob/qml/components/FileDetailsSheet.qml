@@ -302,7 +302,10 @@ BottomSheet {
         Layout.rightMargin: -Theme.sheetPad
         leftPadding: Theme.sheetPad
         visible: sheet.lastOperation > 0
-        text: qsTranslate("StatusLine", "Show the result")
+        // Not a result while it runs, as the status line says it.
+        text: sheet.file.phase === "running" || sheet.file.phase === "queued"
+              ? qsTranslate("StatusLine", "Show progress")
+              : qsTranslate("StatusLine", "Show the result")
         icon.source: Theme.icon("info")
         onClicked: {
             const id = sheet.lastOperation

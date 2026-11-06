@@ -21,6 +21,9 @@ BottomSheet {
     // unless it is asked for alone (a file of the batch, opened from it).
     property int shownId: 0
     property bool single: false
+    // The file alone was opened from its batch's list, so Back goes back
+    // there; opened alone from elsewhere (its file), Back closes it.
+    property bool fromBatch: false
 
     readonly property var log: OperationQueue.log
     readonly property var items: {
@@ -62,6 +65,7 @@ BottomSheet {
     // Shows operation @p id; with @p alone, that one even of a batch.
     function show(id, alone) {
         single = alone === true
+        fromBatch = false
         shownId = id
         showReport.currentIndex = 0
         reportScroll.contentY = 0
@@ -120,11 +124,15 @@ BottomSheet {
     expandable: true
     // From one file back to its batch, before the sheet closes.
     stepBack: function() {
-        if (!single || log.batch(record.batchId || 0).length <= 1) return false
+        if (!single || !fromBatch || log.batch(record.batchId || 0).length <= 1) return false
         single = false
+        fromBatch = false
         return true
     }
-    onClosed: single = false
+    onClosed: {
+        single = false
+        fromBatch = false
+    }
     // How it ended, as a report says it ({status, severity, cancelled}), for the
     // header every finished operation has, text or files, one or a batch;
     // null while it runs. An operation the engine never reported on ended
@@ -500,6 +508,7 @@ BottomSheet {
             // when it can no longer be opened). Back goes to the batch.
             onClicked: {
                 sheet.single = true
+                sheet.fromBatch = true
                 sheet.shownId = modelData.operationId
             }
         }

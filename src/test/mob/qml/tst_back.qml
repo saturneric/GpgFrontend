@@ -28,6 +28,13 @@ Item {
         title: "A page's sheet"
     }
 
+    // One that asks what only the person may answer, as the passphrase does.
+    BottomSheet {
+        id: askingSheet
+        title: "Asking"
+        keepOpen: true
+    }
+
     TestCase {
         name: "Back"
         when: windowShown
@@ -99,6 +106,29 @@ Item {
             open[open.length - 1].back()
             tryVerify(() => !pageSheet.visible)
             verify(Theme.openSheets.indexOf(pageSheet) < 0)
+        }
+
+        // Closing every sheet for the application's own reasons (a share
+        // arriving, another key database) leaves one that asks the person,
+        // and one at work; a plain one goes.
+        function test_closing_all_leaves_a_question_open() {
+            pageSheet.open()
+            askingSheet.open()
+            tryVerify(() => pageSheet.opened && askingSheet.opened)
+            verify(Theme.closeOpenSheets())
+            tryVerify(() => !pageSheet.visible)
+            verify(askingSheet.opened)
+            askingSheet.close()
+            tryVerify(() => !askingSheet.visible)
+
+            pageSheet.open()
+            tryVerify(() => pageSheet.opened)
+            pageSheet.interactive = false
+            verify(Theme.closeOpenSheets())
+            verify(pageSheet.opened)
+            pageSheet.interactive = true
+            verify(!Theme.closeOpenSheets())
+            tryVerify(() => !pageSheet.visible)
         }
 
         // Escape, as a hardware keyboard sends it, is Back too.

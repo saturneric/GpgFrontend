@@ -100,6 +100,36 @@ Item {
             compare(Theme.signatureColor("invalid"), Theme.danger)
         }
 
+        // A signature that holds, by a key revoked or expired since, is
+        // coloured by its grade, not shown as an all-clear; several take
+        // the colour of the worst.
+        function test_a_valid_signature_by_a_revoked_key_is_not_green() {
+            compare(Theme.signatureTone({"signature": "valid", "verdict": "good"}), Theme.positive)
+            compare(Theme.signatureTone({"signature": "valid", "verdict": "bad"}), Theme.danger)
+            compare(Theme.signatureTone({"signature": "valid", "verdict": "warning"}), Theme.warning)
+            compare(Theme.signatureTone({"signature": "unchecked", "verdict": "bad"}), Theme.warning)
+            compare(Theme.signaturesTone([{"signature": "valid", "verdict": "good"},
+                                          {"signature": "valid", "verdict": "warning"}]),
+                    Theme.warning)
+            compare(Theme.signaturesTone([{"signature": "valid", "verdict": "good"},
+                                          {"signature": "invalid", "verdict": "bad"}]),
+                    Theme.danger)
+        }
+
+        // A file's result opened from the file (its details) is not one
+        // opened from its batch's list: Back closes it, never shows a
+        // batch the person did not come from.
+        function test_a_result_opened_alone_goes_back_to_nothing() {
+            sheet.show(1, true)
+            tryVerify(() => sheet.opened)
+            verify(sheet.single)
+            verify(!sheet.fromBatch)
+            verify(!sheet.stepBack())
+            sheet.close()
+            tryVerify(() => !sheet.visible)
+            verify(!sheet.single)
+        }
+
         // A cancel's stamp says it was cancelled.
         function test_a_cancel_is_called_one() {
             compare(Wording.reportWord({"cancelled": true}), "Cancelled")

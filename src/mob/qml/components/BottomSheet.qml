@@ -57,6 +57,10 @@ Popup {
     // with none, or when it did nothing, Back collapses an expanded sheet,
     // then closes it.
     property var stepBack: null
+    // Stays open when the application closes every sheet on its own (a
+    // share arriving, another key database): it asks something only the
+    // person may answer or turn down.
+    property bool keepOpen: false
     readonly property alias body: body
     // It comes up from the foot, as a Drawer did.
     readonly property int edge: Qt.BottomEdge

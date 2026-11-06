@@ -89,12 +89,7 @@ Page {
     // be let go; true when such a sheet stays.
     function closeSheets() {
         sheets.closeAll()
-        let stays = false
-        for (const sheet of Theme.openSheets.slice()) {
-            if (sheet.interactive === false) stays = true
-            else sheet.close()
-        }
-        return stays
+        return Theme.closeOpenSheets()
     }
 
     // Back to the first page of the Keys and the Settings tabs, but for a
@@ -210,9 +205,18 @@ Page {
     Component {
         id: keyDetail
         KeyDetailPage {
+            id: detailPage
+
+            // Its key was deleted while another page was opened over it:
+            // it goes as soon as it is the one shown again.
+            property bool gone: false
+
             onBack: StackView.view.pop()
+            StackView.onActivated: if (gone) Qt.callLater(() => detailPage.StackView.view.pop())
             onDeleted: {
-                StackView.view.pop()
+                // Only this page: one opened over it while it worked stays.
+                if (StackView.view.currentItem === detailPage) StackView.view.pop()
+                else gone = true
                 KeyListController.refresh()
                 // Said where the person now is: the page that would have said
                 // it is gone.
