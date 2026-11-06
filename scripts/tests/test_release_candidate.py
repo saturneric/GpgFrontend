@@ -570,8 +570,8 @@ class WorkflowTest(unittest.TestCase):
     def test_provenance_signs_after_every_platform_check(self):
         needs = re.search(r"^    needs: \[(.*)\]", self.jobs["provenance"], re.M)
         self.assertEqual({n.strip() for n in needs.group(1).split(",")},
-                         {"build", "sign-macos", "macos-smoke",
-                          "sign-android"})
+                         {"build-linux", "build-windows", "sign-macos",
+                          "macos-smoke", "sign-android"})
 
     def test_release_depends_only_on_the_candidate(self):
         self.assertRegex(self.jobs["release"], r"(?m)^    needs: \[provenance\]$")

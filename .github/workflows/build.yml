@@ -23,6 +23,20 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
+# Layout
+# ------
+#   setup           checks the pipeline itself, decides the build mode once
+#   build-linux     AppImage, x86_64 and aarch64, installed and portable
+#   build-windows   MSI (installed) and ZIP (portable)
+#   build-android   unsigned APK and AAB  -> sign-android -> play-upload
+#   build-macos     unsigned bundle       -> sign-macos   -> macos-smoke
+#   provenance      signs the release candidate after every platform check
+#   release         verifies it and publishes the nightly
+#
+# The work itself lives in scripts/ci/<platform>/, where each step's
+# rationale sits beside its code. A job here only says what runs, in which
+# order, with which inputs.
+#
 # macOS trust boundary
 # --------------------
 # The macOS pipeline is split in two on purpose. `build-macos` compiles and
@@ -86,9 +100,9 @@ on:
           - nightly
           - release
       # A Windows portable build with the hidden --screenshot mode compiled in,
-      # for rendering the user manual's images. Never a release: Setup Build
-      # Mode refuses it together with build_mode=release, and CMake refuses
-      # it together with a stable build.
+      # for rendering the user manual's images. Never a release: setup refuses
+      # it together with build_mode=release, and CMake refuses it together
+      # with a stable build.
       screenshot:
         description: "Build the screenshot-mode binary (Windows portable only)"
         required: false
@@ -101,9 +115,8 @@ on:
 # A screenshot build has a lane of its own beside its ref's: it is a tool for
 # the manual, not a newer nightly or release, so it neither cancels nor is
 # cancelled by one; a newer screenshot dispatch still supersedes an older one.
-# Cancelling a run mid-signing is safe: the sign-macos cleanup step is
-# `if: always()`, which still fires on cancellation, so the temporary keychain
-# and the Apple credentials are removed either way.
+# Cancelling a run mid-signing is safe: the signing cleanup steps are
+# `if: always()`, which still fires on cancellation.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}${{ inputs.screenshot && '-screenshot' || '' }}
   cancel-in-progress: true
@@ -113,39 +126,74 @@ permissions:
   contents: read
 
 env:
-  BUILD_TYPE: Release
   GNUPG_VERSION: "2.5.24"
 
 jobs:
-  build:
+  # Cheap checks of the pipeline itself, before any runner compiles anything:
+  # the failures they catch otherwise cost a full matrix. And the build mode,
+  # decided once here and handed to every build job as job outputs.
+  setup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      short_sha: ${{ steps.mode.outputs.short_sha }}
+      build_type: ${{ steps.mode.outputs.build_type }}
+      gpgfrontend_build_mode: ${{ steps.mode.outputs.gpgfrontend_build_mode }}
+      screenshot_cmake_flag: ${{ steps.mode.outputs.screenshot_cmake_flag }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          lfs: "false"
+
+      # Every `run:` block is its own process. A variable set in one step is
+      # gone by the next, and neither shell says so usefully: bash under
+      # `set -u` at least aborts, while PowerShell expands an undefined
+      # variable to the EMPTY STRING -- which once turned `--expect-count
+      # "$EXPECTED"` into a gate expecting nothing.
+      - name: Check Workflow Steps Define What They Read
+        run: python3 scripts/check_workflow_steps.py
+
+      # The release-candidate rules, and the workflow structure they rely on.
+      # Here so a pull request runs them: provenance and release only run on
+      # main, where a failure costs a nightly.
+      - name: Test Release Candidate Rules
+        run: python3 -m unittest discover -s scripts/tests
+
+      - name: Resolve Build Mode
+        id: mode
+        env:
+          BUILD_MODE_INPUT: ${{ github.event.inputs.build_mode }}
+          SCREENSHOT_INPUT: ${{ inputs.screenshot }}
+        run: |
+          set -euo pipefail
+          scripts/ci/build_mode.sh >> "$GITHUB_OUTPUT"
+
+  # One leg's failure does not cancel the others (fail-fast: false) in any
+  # build matrix: a cancelled leg hides whether it would have failed too. The
+  # release still needs every leg to succeed, which `needs:` in provenance
+  # enforces; there is no continue-on-error anywhere.
+  #
+  # Portable vs installed is a compile-time decision (GPGFRONTEND_BUILD_FLAVOR
+  # decides where the profile, and with it the user's keys, lives), so each
+  # flavour needs its own configure and build. They run as separate legs on
+  # purpose: the generated build headers land in the source tree, so two
+  # flavours cannot share one checkout.
+  #
+  # Every leg uploads exactly `gpgfrontend-<leg>` and `buildinfo-<leg>`, with
+  # the same <leg>. That exact name is how provenance pairs them, so a new leg
+  # needs nothing else from the release path. Build info is a separate
+  # artifact so the deliverable artifact stays flat.
+  build-linux:
+    needs: setup
+    # A screenshot build is one Windows portable leg and nothing else.
+    if: ${{ !inputs.screenshot }}
     strategy:
-      # One leg's failure cancelled the others, so the Windows legs never got
-      # past their build and their packaging steps went unrun for weeks. The
-      # release still needs every leg to succeed; this only lets each report.
       fail-fast: false
       matrix:
-        # macOS is built and signed by the separate build-macos / sign-macos
-        # jobs below, so that the Developer ID key never shares a runner with a
-        # compiler, a package manager or a third-party build action.
-        #
-        # A screenshot build is one Windows portable leg; every other run sees
-        # an unset input and gets the full lists unchanged.
-        os: ${{ fromJSON(inputs.screenshot && '["windows-2022"]' || '["ubuntu-22.04", "ubuntu-24.04-arm", "windows-2022"]') }}
-        # Portable vs installed is a compile-time decision
-        # (GPGFRONTEND_BUILD_FLAVOR decides where the profile, and with it the
-        # user's keys, lives), so each flavour needs its own configure + build.
-        # They run as separate matrix jobs on purpose: the generated build
-        # headers land in the source tree, so two flavours cannot share one
-        # checkout.
-        flavor: ${{ fromJSON(inputs.screenshot && '["portable"]' || '["installed", "portable"]') }}
+        os: ["ubuntu-22.04", "ubuntu-24.04-arm"]
+        flavor: ["installed", "portable"]
     runs-on: ${{ matrix.os }}
-    # No continue-on-error.
-    #
-    # It let a leg fail while the release still assembled, which meant `needs:`
-    # could not notice a missing platform, and completeness had to be proven
-    # afterwards by a second declaration of this very matrix. Job dependencies
-    # already express "all of these must succeed". A failing leg now blocks
-    # the release, which is what a release missing a platform should do.
     permissions:
       contents: read
     env:
@@ -155,165 +203,43 @@ jobs:
       # core, ui and test in full. Only timestamp and __DATE__-style checks
       # are relaxed; what is hashed into an object is unchanged.
       CCACHE_SLOPPINESS: pch_defines,time_macros,include_file_mtime,include_file_ctime
+      BUILD_TYPE: ${{ needs.setup.outputs.build_type }}
+      GPGFRONTEND_BUILD_MODE: ${{ needs.setup.outputs.gpgfrontend_build_mode }}
+      SHORT_SHA: ${{ needs.setup.outputs.short_sha }}
+      FLAVOR: ${{ matrix.flavor }}
+      # "installed" is the default flavour, so only "portable" is spelled out
+      # in artifact names.
+      FLAVOR_SUFFIX: ${{ matrix.flavor == 'portable' && '-portable' || '' }}
     steps:
-      - name: Set git to use LF line endings (Windows)
-        run: |
-          git config --global core.autocrlf false
-          git config --global core.eol lf
-        if: runner.os == 'Windows'
-
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           lfs: "false"
           submodules: recursive
 
-      - name: Setup Build Mode
-        shell: bash
-        env:
-          # Read through an env var rather than interpolated into the script:
-          # an expression expanded inside `run:` is textual substitution.
-          BUILD_MODE_INPUT: ${{ github.event.inputs.build_mode }}
-          SCREENSHOT_INPUT: ${{ inputs.screenshot }}
-        run: |
-          # A fixed slice of GITHUB_SHA, not `git rev-parse --short`: git's
-          # abbreviation length scales with object count, so it yields 7 here
-          # (actions/checkout is shallow by default) and 8 in a full clone.
-          # Pinning it keeps artifact names stable and identical across
-          # platforms.
-          echo "SHORT_SHA=${GITHUB_SHA:0:7}" >> $GITHUB_ENV
-
-          # The platform the artifacts are named after. Every download follows
-          # one pattern, GpgFrontend-<sha>-<platform>-<arch>[-portable].<ext>,
-          # with ARM spelled aarch64 (on Android, its ABI name arm64-v8a, the
-          # one phone users see). The runner label ("ubuntu-24.04-arm",
-          # "windows-2022") is the wrong thing to publish: the build host is
-          # not what the download runs on. macOS alone is named by its runner
-          # label (macos-15, macos-15-intel) and no architecture, since each
-          # disk image is built for that one macOS.
-          if [[ "${{ runner.os }}" == "Linux" ]]; then
-            echo "OS_IDENTIFIER=linux" >> $GITHUB_ENV
-          else
-            echo "OS_IDENTIFIER=windows" >> $GITHUB_ENV
-          fi
-
-          # Build flavour: "portable" keeps the profile beside the application,
-          # "installed" uses the OS user-data location. Compile-time only.
-          # "installed" is the default flavour, so only "portable" is spelled
-          # out in artifact names.
-          if [[ "${{ matrix.flavor }}" == "portable" ]]; then
-            echo "FLAVOR_SUFFIX=-portable" >> $GITHUB_ENV
-          else
-            echo "FLAVOR_SUFFIX=" >> $GITHUB_ENV
-          fi
-
-          # Single-branch (trunk + tags) model:
-          #   - a version tag (v*)  -> stable release build
-          #   - a push to main      -> nightly build
-          #   - a pull request      -> PR validation build
-          #   - workflow_dispatch   -> honour the chosen input
-          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
-            BUILD_MODE="${BUILD_MODE_INPUT}"
-            BUILD_TYPE_EFFECTIVE="Release"
-
-          elif [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
-            BUILD_MODE="pr"
-            BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
-
-          elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            BUILD_MODE="release"
-            BUILD_TYPE_EFFECTIVE="Release"
-
-          else
-            BUILD_MODE="nightly"
-            BUILD_TYPE_EFFECTIVE="Release"
-          fi
-
-          # Stable release builds drop the "Testing" suffix from the app name;
-          # nightly and PR builds are both "nightly" to CMake.
-          if [[ "${BUILD_MODE}" == "release" ]]; then
-            GPGFRONTEND_BUILD_MODE="release"
-          else
-            GPGFRONTEND_BUILD_MODE="nightly"
-          fi
-
-          echo "BUILD_MODE=${BUILD_MODE}" >> $GITHUB_ENV
-          echo "BUILD_TYPE=${BUILD_TYPE_EFFECTIVE}" >> $GITHUB_ENV
-          echo "GPGFRONTEND_BUILD_MODE=${GPGFRONTEND_BUILD_MODE}" >> $GITHUB_ENV
-          echo "BUILD_TYPE_LOWER=$(echo ${BUILD_TYPE_EFFECTIVE} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-
-          echo "SANDBOX_CMAKE_FLAG=" >> $GITHUB_ENV
-
-          # The screenshot mode only ever rides on a nightly-style build, and
-          # its artifact lives outside the gpgfrontend-*/buildinfo-* names the
-          # release collects (see "Upload Screenshot Build").
-          if [[ "${SCREENSHOT_INPUT}" == "true" ]]; then
-            if [[ "${BUILD_MODE}" == "release" ]]; then
-              echo "::error::the screenshot build cannot be a release build" >&2
-              exit 1
-            fi
-            # CMake refuses the screenshot mode without the tests: its own
-            # tests are compiled into gf_test. Nothing here runs them; the
-            # MSYS2 gtest DLL is collected by the runtime rescan like any
-            # other import, and the smoke launch fails if it is missing.
-            echo "SCREENSHOT_CMAKE_FLAG=-DGPGFRONTEND_BUILD_SCREENSHOT_MODE=ON -DGPGFRONTEND_BUILD_TESTS=ON" >> $GITHUB_ENV
-          else
-            echo "SCREENSHOT_CMAKE_FLAG=" >> $GITHUB_ENV
-          fi
-
-          echo "Build mode: ${BUILD_MODE}"
-          echo "Build type: ${BUILD_TYPE_EFFECTIVE}"
-          echo "Build flavor: ${{ matrix.flavor }}"
-          echo "Screenshot mode: ${SCREENSHOT_INPUT:-false}"
-
-      # Before anything is built, because it costs a second and the failure it
-      # catches costs a full matrix.
-      #
-      # Every `run:` block is its own process. A variable set in one step is
-      # gone by the next, and neither shell says so usefully: bash under
-      # `set -u` at least aborts, while PowerShell expands an undefined
-      # variable to the EMPTY STRING -- which turned `--expect-count
-      # "$EXPECTED"` into a gate expecting nothing, and made four correctly
-      # verified modules look like a broken Authenticode binding.
-      #
-      # Two steps had that fault, in two shells, from one edit. That is the
-      # shape of thing a check catches and a reader does not.
-      - name: Check Workflow Steps Define What They Read
-        run: python3 scripts/check_workflow_steps.py
-        if: runner.os == 'Linux'
-
-      # The release-candidate rules, and the workflow structure they rely on.
-      # Here so a pull request runs them: provenance and release only run on
-      # main, where a failure costs a nightly.
-      - name: Test Release Candidate Rules
-        run: python3 -m unittest discover -s scripts/tests
-        if: runner.os == 'Linux'
-
       # One compiler cache per runner, shared by both flavours: the portable
       # flag reaches a single translation unit (BuildInfoUtils.cpp), not the
       # PCH, so the two builds are otherwise object-for-object identical. The
-      # installed leg is the only writer and names the entry; the portable
-      # leg only reads it. Nothing is saved from pull requests, so a cache
-      # main restores can only have been written by a push to it. Compiler
-      # identity is ccache's own concern (compiler_check), not the key's.
+      # installed leg is the only writer; the portable leg only reads it.
+      # Nothing is saved from pull requests, so a cache main restores can only
+      # have been written by a push to it. The key keeps the `build-` prefix
+      # these legs had as one job, so the split costs no cold build.
       - name: ccache
         uses: hendrikmuhs/ccache-action@f09c25b45002a07be2955cbe52e8cee55643f89d # v1.2.24
         with:
-          key: ${{ github.job }}-${{ matrix.os }}-installed-${{ env.BUILD_TYPE }}
-          # A limit, not a size: see "Mark ccache Epoch". ccache caps each of
-          # its 16 subdirectories at 1/16 of this, and a compressed .gch runs
-          # past 100 MB -- at 1500M every PCH result was evicted as it was
-          # stored, so the PCH and all ~480 of its users missed on every run.
+          key: build-${{ matrix.os }}-installed-${{ env.BUILD_TYPE }}
+          # A limit, not a size: ccache caps each of its 16 subdirectories at
+          # 1/16 of this, and a compressed .gch runs past 100 MB -- at 1500M
+          # every PCH result was evicted as it was stored.
           max-size: 4G
           save: ${{ github.event_name == 'push' && matrix.flavor == 'installed' }}
 
-      # Everything this job compiles from here on touches the cache entries it
-      # uses, so "older than this mark" is exactly "not used by this build".
-      # The build step evicts those before the post step saves the cache.
+      # Everything compiled from here on touches the cache entries it uses, so
+      # "older than this mark" is exactly "not used by this build". The build
+      # script evicts those before the post step saves the cache.
       - name: Mark ccache Epoch
-        shell: bash
         run: echo "CCACHE_EPOCH=$(date +%s)" >> "$GITHUB_ENV"
 
-      - name: Install Dependence (Linux)
+      - name: Install Dependence
         run: |
           sudo apt-get update
           sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
@@ -322,18 +248,130 @@ jobs:
           sudo apt-get -y install gpgsm libxcb-xinerama0 libxcb-icccm4-dev libcups2-dev libdrm-dev libegl1-mesa-dev
           sudo apt-get -y install libfuse2 libgcrypt20-dev libnss3-dev libpci-dev libpulse-dev libudev-dev libxtst-dev
           sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libxcb-image0 gyp
-          sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libxcb-* libxkbcommon-x11-0
-          sudo apt-get -y install libwayland-cursor0 libwayland-egl1
+          sudo apt-get -y install libxcb-* libxkbcommon-x11-0 libwayland-cursor0 libwayland-egl1
           # libsecret is dlopen'd, never linked. Installed only so the AppImage
           # can carry a copy built against the same glib it bundles.
           sudo apt-get -y install libsecret-1-0
-        if: runner.os == 'Linux'
 
       - name: Install Qt6
         uses: ./.github/actions/install-qt6
-        if: runner.os == 'Linux'
 
-      - name: Set up MinGW (Windows)
+      - name: Install Rust
+        id: rust
+        # Pinned to a SHA, so the @stable ref name no longer selects the
+        # toolchain; say it explicitly instead.
+        uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable branch
+        with:
+          toolchain: stable
+
+      # Corrosion's target dir, restored whole. rust-cache is not used: cargo
+      # builds with --target <triple>, and rust-cache's cleaner took
+      # <target-dir>/<triple> for a profile directory and deleted release/
+      # inside it, so every leg compiled all ~196 crates from nothing while
+      # reporting an exact cache hit.
+      #
+      # The key is everything that decides the dependency artifacts: the
+      # runner, the exact rustc, the profile and Cargo.lock. Both flavours
+      # share it -- the crate never sees the portable flag -- and the
+      # installed leg alone saves it, right after a successful build.
+      - name: Restore Cargo Cache
+        id: cargo-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+            ${{ github.workspace }}/build/cargo
+          key: cargo-${{ matrix.os }}-${{ steps.rust.outputs.cachekey }}-${{ env.BUILD_TYPE }}-${{ hashFiles('rust/Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ matrix.os }}-${{ steps.rust.outputs.cachekey }}-${{ env.BUILD_TYPE }}-
+
+      - name: Build GpgFrontend
+        run: scripts/ci/linux/build.sh
+
+      - name: Save Cargo Cache
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+            ${{ github.workspace }}/build/cargo
+          key: ${{ steps.cargo-cache.outputs.cache-primary-key }}
+        if: >-
+          github.event_name == 'push' && matrix.flavor == 'installed' &&
+          steps.cargo-cache.outputs.cache-hit != 'true'
+
+      - name: Package The AppImage
+        run: scripts/ci/linux/package.sh
+
+      - name: Smoke Test The AppImage
+        run: scripts/ci/linux/smoke_appimage.sh
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: gpgfrontend-${{ matrix.os }}-${{ matrix.flavor }}
+          path: ${{ github.workspace }}/build/upload-artifact/GpgFrontend-*.AppImage*
+          if-no-files-found: error
+
+      - name: Upload Build Info
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: buildinfo-${{ matrix.os }}-${{ matrix.flavor }}
+          path: ${{ github.workspace }}/build/artifacts/build-info.json
+          if-no-files-found: error
+
+  build-windows:
+    needs: setup
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["windows-2022"]
+        # A screenshot build is this one portable leg; every other run gets
+        # both flavours.
+        flavor: ${{ fromJSON(inputs.screenshot && '["portable"]' || '["installed", "portable"]') }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    defaults:
+      run:
+        shell: msys2 {0}
+    env:
+      # See build-linux.
+      CCACHE_SLOPPINESS: pch_defines,time_macros,include_file_mtime,include_file_ctime
+      BUILD_TYPE: ${{ needs.setup.outputs.build_type }}
+      GPGFRONTEND_BUILD_MODE: ${{ needs.setup.outputs.gpgfrontend_build_mode }}
+      SHORT_SHA: ${{ needs.setup.outputs.short_sha }}
+      SCREENSHOT_CMAKE_FLAG: ${{ needs.setup.outputs.screenshot_cmake_flag }}
+      FLAVOR: ${{ matrix.flavor }}
+    steps:
+      # Before checkout, and before MSYS2 exists: plain bash.
+      - name: Set git to use LF line endings
+        shell: bash
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          lfs: "false"
+          submodules: recursive
+
+      # See build-linux: one cache per runner, written by the installed leg.
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@f09c25b45002a07be2955cbe52e8cee55643f89d # v1.2.24
+        with:
+          key: build-${{ matrix.os }}-installed-${{ env.BUILD_TYPE }}
+          max-size: 4G
+          save: ${{ github.event_name == 'push' && matrix.flavor == 'installed' }}
+
+      - name: Mark ccache Epoch
+        shell: bash
+        run: echo "CCACHE_EPOCH=$(date +%s)" >> "$GITHUB_ENV"
+
+      - name: Set up MinGW
         uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884 # v2.32.0
         id: msys2
         with:
@@ -362,38 +400,14 @@ jobs:
             mingw-w64-x86_64-rust
             mingw-w64-x86_64-libsodium
             mingw-w64-x86_64-openssl
-        if: runner.os == 'Windows'
-
-      - name: Install Rust
-        id: rust
-        # Pinned to a SHA, so the @stable ref name no longer selects the
-        # toolchain; say it explicitly instead.
-        uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable branch
-        with:
-          toolchain: stable
-        if: runner.os == 'Linux'
 
       # Windows builds with msys2's own rustc, which moves with the msys2
       # package set rather than with rustup.
-      - name: Rust Toolchain Key (Windows)
+      - name: Rust Toolchain Key
         id: rustwin
-        shell: msys2 {0}
-        run: |
-          KEY="$(rustc -vV | sha256sum | cut -c1-12)"
-          echo "cachekey=$KEY" >> "$GITHUB_OUTPUT"
-        if: runner.os == 'Windows'
+        run: echo "cachekey=$(rustc -vV | sha256sum | cut -c1-12)" >> "$GITHUB_OUTPUT"
 
-      # Corrosion's target dir, restored whole. rust-cache is not used: cargo
-      # builds with --target <triple>, and rust-cache's cleaner took
-      # <target-dir>/<triple> for a profile directory and deleted release/
-      # inside it, so every leg compiled all ~196 crates from nothing while
-      # reporting an exact cache hit.
-      #
-      # The key is everything that decides the dependency artifacts: the
-      # runner, the exact rustc, the profile and Cargo.lock. The workspace
-      # crate inside is simply rebuilt by cargo when its sources change. Both
-      # flavours share it -- the crate never sees the portable flag -- and
-      # the installed leg alone saves it, after a successful build.
+      # See build-linux.
       - name: Restore Cargo Cache
         id: cargo-cache
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -402,397 +416,12 @@ jobs:
             ~/.cargo/registry/index
             ~/.cargo/registry/cache
             ~/.cargo/git/db
-            ${{github.workspace}}/build/cargo
-          key: cargo-${{ matrix.os }}-${{ steps.rust.outputs.cachekey }}${{ steps.rustwin.outputs.cachekey }}-${{ env.BUILD_TYPE }}-${{ hashFiles('rust/Cargo.lock') }}
+            ${{ github.workspace }}/build/cargo
+          key: cargo-${{ matrix.os }}-${{ steps.rustwin.outputs.cachekey }}-${{ env.BUILD_TYPE }}-${{ hashFiles('rust/Cargo.lock') }}
           restore-keys: |
-            cargo-${{ matrix.os }}-${{ steps.rust.outputs.cachekey }}${{ steps.rustwin.outputs.cachekey }}-${{ env.BUILD_TYPE }}-
+            cargo-${{ matrix.os }}-${{ steps.rustwin.outputs.cachekey }}-${{ env.BUILD_TYPE }}-
 
-      - name: Build GpgME (Windows)
-        shell: msys2 {0}
-        run: |
-          cd $(cygpath -u "${{github.workspace}}")
-          cd third_party/gpgme
-          export CC="ccache gcc"
-          export CXX="ccache g++"
-          export CFLAGS="${CFLAGS} -Wno-int-conversion -Wno-incompatible-pointer-types"
-          ./autogen.sh
-          mkdir -p build && cd build
-          ../configure --enable-maintainer-mode \
-          --enable-static \
-          --disable-shared \
-          --enable-silent-rules \
-          --disable-dependency-tracking \
-          --enable-languages=cl \
-          --disable-gpgconf-test \
-          --disable-gpg-test \
-          --disable-gpgsm-test \
-          --disable-g13-test \
-          --enable-w32-glib
-          make -j$(nproc)
-          make install
-          ccache -s -v
-        if: runner.os == 'Windows'
-
-      - name: Cache googletest (Linux)
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ${{github.workspace}}/third_party/googletest
-          key: gtest-${{ matrix.os }}-v1.15.2
-        if: runner.os == 'Linux'
-
-      - name: Build googletest (Linux)
-        run: |
-          if [ ! -f "${{github.workspace}}/third_party/googletest/build/build.ninja" ]; then
-            rm -rf ${{github.workspace}}/third_party/googletest
-            git clone --depth 1 --branch v1.15.2 https://github.com/google/googletest.git ${{github.workspace}}/third_party/googletest
-            cd ${{github.workspace}}/third_party/googletest
-            mkdir build && cd build
-            cmake -G Ninja -DBUILD_SHARED_LIBS=ON \
-              -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-              -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-              ..
-            ninja
-          else
-            echo "Reusing cached googletest build"
-          fi
-          cd ${{github.workspace}}/third_party/googletest/build
-          sudo ninja install
-        if: runner.os == 'Linux'
-
-      - name: Build GpgFrontend (Linux)
-        run: |
-          export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH
-          # Native binding is REQUIRED here and OFF by default, which is the
-          # one place the two legitimately differ. An AppImage has no
-          # map-time code-integrity enforcement of its own -- nothing like
-          # Apple's signature checked by dyld -- so the exact-ELF binding is
-          # the only thing that would notice a stale, corrupt or simply wrong
-          # native inside the image. --require-binding below proves this
-          # setting was not lost, because an unbound tree verifies perfectly
-          # well without it.
-          #
-          # No GPGFRONTEND_BUILD_APP_IMAGE: release packaging no longer
-          # redirects where the build puts things. The AppDir is produced by
-          # `cmake --install` below, which is the same tree a distribution
-          # gets, so CI stops assembling something nobody else can reproduce.
-          #
-          # LIBDIR is pinned because a /usr prefix on Debian/Ubuntu makes
-          # GNUInstallDirs pick the multiarch lib/<triplet>, which put the
-          # modules under usr/lib/aarch64-linux-gnu/ -- where neither the
-          # deployment below nor the AppImage runtime ($APPDIR/usr/lib/
-          # gpgfrontend/modules) looks for them.
-          cmake -B ${{github.workspace}}/build -G Ninja \
-            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
-            -DCMAKE_INSTALL_PREFIX=/usr \
-            -DCMAKE_INSTALL_LIBDIR=lib \
-            -DGPGFRONTEND_BUILD_MODE=${{env.GPGFRONTEND_BUILD_MODE}} \
-            -DGPGFRONTEND_BUILD_FLAVOR=${{matrix.flavor}} \
-            -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON \
-            -DGPGFRONTEND_INTEGRATED_MODULE_NATIVE_BINDING=REQUIRED \
-            -DGPGFRONTEND_INTEGRATED_MODULE_BINDING_ALGORITHM=FILE_SHA256
-          cmake --build ${{ github.workspace }}/build \
-            --config ${{ env.BUILD_TYPE }} \
-            --parallel \
-            --verbose
-          ccache -s -v 2>/dev/null || ccache -s
-          # Keep only what this build used, so the saved cache stays the
-          # working set instead of growing toward max-size run after run.
-          ccache --evict-older-than "$(( $(date +%s) - CCACHE_EPOCH + 60 ))s"
-          ccache -s
-        if: runner.os == 'Linux'
-
-      # The AppDir is an ordinary install tree.
-      #
-      # It used to be produced by redirecting every output directory at
-      # configure time, which made the CI layout one no developer or packager
-      # could reproduce and put the host build tools inside the image. Now the
-      # job installs, exactly as a distribution would, and gets the modules,
-      # the desktop entry, the metainfo, the MIME package and the icons
-      # because install() already ships all of them.
-      #
-      # `cmake --install` verifies the module tree it writes, so this step also
-      # proves the descriptors are good BEFORE deployment starts rewriting the
-      # natives they bind.
-      - name: Assemble The AppDir (Linux)
-        run: |
-          set -euo pipefail
-          APP_DIR="${{github.workspace}}/build/artifacts/AppDir"
-          rm -rf "$APP_DIR"
-
-          cmake --install ${{github.workspace}}/build --prefix "$APP_DIR/usr"
-          # The icon and .DirIcon AppImage wants at the root of the image, and
-          # which a normal install correctly does not place.
-          cmake --install ${{github.workspace}}/build --component appimage \
-            --prefix "$APP_DIR"
-        if: runner.os == 'Linux'
-
-      # Deployment, and the repair deployment makes necessary.
-      #
-      # linuxdeployqt REPLACES a file's RUNPATH with its own hop to usr/lib.
-      # That is right for reaching Qt and wrong for reaching the private
-      # helpers beside a module entry, which need $ORIGIN itself. The two were
-      # separate steps; they are one operation on one tree, and splitting them
-      # only made it possible to run the second without the first.
-      - name: Deploy Qt Dependencies (Linux)
-        run: |
-          set -euo pipefail
-
-          QT_PLUGIN_DIR=$(qmake -query QT_INSTALL_PLUGINS)
-          echo "Found Qt plugin dir: $QT_PLUGIN_DIR"
-
-          # remove all non-sqlite drivers to reduce the size of the final AppImage
-          cd "$QT_PLUGIN_DIR/sqldrivers"
-          find . -type f ! -name '*sqlite*' -delete
-          ls -l
-
-          cd ${{github.workspace}}
-          mkdir -p ${{github.workspace}}/build/upload-artifact
-          cd ${{github.workspace}}/build/upload-artifact
-
-          ARCH=$(uname -m)
-          if [[ "$ARCH" == "x86_64" ]]; then
-            wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
-            mv linuxdeployqt-continuous-x86_64.AppImage linuxdeployqt-continuous.AppImage
-            EXTRA_ARGS=""
-          elif [[ "$ARCH" == "aarch64" ]]; then
-            wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-aarch64.AppImage
-            mv linuxdeployqt-continuous-aarch64.AppImage linuxdeployqt-continuous.AppImage
-            mkdir -p ${{github.workspace}}/build/artifacts/AppDir/usr/share/doc/libc6/
-            touch ${{github.workspace}}/build/artifacts/AppDir/usr/share/doc/libc6/copyright
-            EXTRA_ARGS="-unsupported-allow-new-glibc"
-          fi
-          echo "ARCH=$ARCH" >> "$GITHUB_ENV"
-
-          APP_DIR="${{github.workspace}}/build/artifacts/AppDir"
-
-          # The AppImage bundles libglib/libgobject/libgio and its AppRun puts
-          # them ahead of the host's copies, so a host libsecret built against a
-          # newer glib cannot resolve its own symbols and the system keychain
-          # simply disappears -- see linuxdeployqt issue 544. Carrying our own
-          # copy is what makes the dependency closure self-consistent. It has to
-          # be staged before linuxdeployqt runs: a file dropped in afterwards
-          # gets neither an rpath nor its own dependencies deployed.
-          LIBSECRET_SRC="/usr/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)/libsecret-1.so.0"
-          test -f "$LIBSECRET_SRC"
-          cp -L "$LIBSECRET_SRC" "$APP_DIR/usr/lib/libsecret-1.so.0"
-
-          # Anything the app needs out of /usr/local, staged the same way and
-          # for the same reason: linuxdeployqt patches what is in the AppDir
-          # when it runs, and a file dropped in afterwards gets neither an
-          # rpath nor its own dependencies deployed.
-          #
-          # This was googletest, back when every build linked gf_test: CI
-          # builds googletest as a SHARED library into /usr/local/lib, which is
-          # a directory that exists on this runner and on nobody's desktop. The
-          # AppImage started, looked for libgtest.so.1.15.2, and died before
-          # main(). Release builds now leave GPGFRONTEND_BUILD_TESTS off, so it
-          # only matters for a build configured with the tests.
-          #
-          # Resolved rather than named: /usr/local is where a hand-built
-          # dependency lands, and the next one should not need this comment
-          # rewritten.
-          APP_BIN="$(find "$APP_DIR/usr/bin" -maxdepth 1 -type f -perm -u+x \
-                       | head -1)"
-          test -n "$APP_BIN" || { echo "no application binary in the AppDir" >&2; exit 1; }
-
-          staged=0
-          while IFS= read -r lib; do
-            [ -n "$lib" ] || continue
-            cp -L "$lib" "$APP_DIR/usr/lib/$(basename "$lib")"
-            echo "staged $(basename "$lib") from /usr/local"
-            staged=$((staged + 1))
-          done < <(LD_LIBRARY_PATH="$APP_DIR/usr/lib:/usr/local/lib:/usr/local/lib64" \
-                     ldd "$APP_BIN" \
-                     | awk '$3 ~ /^\/usr\/local\// { print $3 }' | sort -u)
-          echo "$staged library/libraries staged from /usr/local"
-
-          # Every module native, named individually. `-executable-dir=` took a
-          # single flat directory, which the namespace layout no longer has:
-          # each module owns usr/lib/gpgfrontend/modules/<key>/native/.
-          MODULE_ROOT="$APP_DIR/usr/lib/gpgfrontend/modules"
-          test -d "$MODULE_ROOT" || {
-            echo "no module tree at $MODULE_ROOT; installed module trees:" >&2
-            find "$APP_DIR" -type d -path '*/gpgfrontend/modules' >&2 || true
-            exit 1
-          }
-          EXECUTABLES=()
-          while read -r native; do
-            EXECUTABLES+=("-executable=$native")
-          done < <(find "$MODULE_ROOT" -type f -name '*.so' | sort)
-          test "${#EXECUTABLES[@]}" -gt 0 \
-            || { echo "no module natives under $MODULE_ROOT" >&2; exit 1; }
-          echo "deploying ${#EXECUTABLES[@]} module native(s)"
-
-          chmod u+x linuxdeployqt-continuous.AppImage
-          export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH
-          # Deliberately no -appimage: the image is built at the end, after the
-          # descriptors have been regenerated against the deployed natives.
-          #
-          # -appimage also switched on bundling of every non-Qt library, as a
-          # side effect. Dropping it alone shipped an image carrying Qt and
-          # nothing else -- no libsodium, libarchive, glib, xcb -- that died
-          # before main() on any desktop without them. -bundle-non-qt-libs is
-          # that side effect on its own, and has to stay while -appimage is
-          # absent.
-          ./linuxdeployqt-continuous.AppImage \
-            "$APP_DIR/usr/share/applications"/*.desktop \
-            $EXTRA_ARGS \
-            -bundle-non-qt-libs \
-            -no-translations \
-            -extra-plugins=iconengines,platforms,sqldrivers/libqsqlite.so \
-            -executable=$APP_DIR/usr/lib/libsecret-1.so.0 \
-            "${EXECUTABLES[@]}"
-
-          # Without the rpath patch the staged copy cannot find its own
-          # dependencies, which is the bug this whole step exists to fix, so it
-          # fails the build rather than shipping a silent regression.
-          echo "--- deployed credential-store closure ---"
-          ls -l "$APP_DIR/usr/lib" | grep -E 'secret|glib|gobject|gio|gcrypt' || true
-          readelf -d "$APP_DIR/usr/lib/libsecret-1.so.0" | grep -E 'RUNPATH|RPATH|SONAME|NEEDED' || true
-          readelf -d "$APP_DIR/usr/lib/libsecret-1.so.0" | grep -q 'ORIGIN' \
-            || { echo "libsecret was not rpath-patched by linuxdeployqt"; exit 1; }
-
-          # Put $ORIGIN back on every module native. Unconditional and
-          # idempotent rather than conditional on what linuxdeployqt did: a
-          # repair that only runs when someone predicted the need is a repair
-          # that stops running, and the audit below is the gate either way.
-          sudo apt-get install -y --no-install-recommends patchelf
-          while read -r native; do
-            current="$(patchelf --print-rpath "$native" || true)"
-            case ":$current:" in
-              *':$ORIGIN:'*) want="$current" ;;
-              '::') want='$ORIGIN:$ORIGIN/../../../..' ;;
-              *) want="\$ORIGIN:$current" ;;
-            esac
-            patchelf --set-rpath "$want" "$native"
-            echo "$(basename "$native"): $want"
-          done < <(find "$MODULE_ROOT" -type f -name '*.so' | sort)
-
-          # Every library anything in the AppDir needs must be in the AppDir,
-          # or be one the AppImage deliberately takes from the host (the
-          # excludelist linuxdeployqt itself honours). The smoke test cannot
-          # see this: this runner has all of them installed, so a missing one
-          # resolves against the host there and nowhere else.
-          wget -nv -O "$RUNNER_TEMP/excludelist" \
-            https://raw.githubusercontent.com/AppImage/pkg2appimage/master/excludelist
-          sed 's/#.*//' "$RUNNER_TEMP/excludelist" | awk 'NF { print $1 }' \
-            | sort -u > "$RUNNER_TEMP/excluded.txt"
-          test -s "$RUNNER_TEMP/excluded.txt" \
-            || { echo "the AppImage excludelist came back empty" >&2; exit 1; }
-          find "$APP_DIR" -name '*.so*' -printf '%f\n' | sort -u > "$RUNNER_TEMP/bundled.txt"
-          while IFS= read -r elf; do
-            readelf -h "$elf" >/dev/null 2>&1 || continue
-            readelf -d "$elf" | sed -n 's/.*(NEEDED).*\[\(.*\)\]/\1/p'
-          done < <(find "$APP_DIR" -type f \( -name '*.so*' -o -perm -u+x \)) \
-            | sort -u > "$RUNNER_TEMP/needed.txt"
-          # The dynamic loader is always the host's and can never be bundled.
-          # The excludelist only names the x86 ones, so aarch64's
-          # ld-linux-aarch64.so.1 is matched by pattern rather than listed.
-          unbundled="$(comm -23 "$RUNNER_TEMP/needed.txt" "$RUNNER_TEMP/bundled.txt" \
-                         | comm -23 - "$RUNNER_TEMP/excluded.txt" \
-                         | grep -v -E '^ld-linux' || true)"
-          if [ -n "$unbundled" ]; then
-            echo "needed by the AppDir but neither bundled nor excluded:" >&2
-            echo "$unbundled" >&2
-            exit 1
-          fi
-          echo "dependency closure complete: $(wc -l < "$RUNNER_TEMP/needed.txt") NEEDED entries"
-        if: runner.os == 'Linux'
-
-      # The natives were just rewritten, so the descriptors that bind them
-      # are stale by construction. This re-describes them and then proves the
-      # result, in one step, because it is one operation on one tree.
-      #
-      # NOT by deleting the descriptors and re-running the build, which is the
-      # obvious thing and is wrong here: the natives are build outputs, so a
-      # `cmake --build` at this point sees that linuxdeployqt and patchelf
-      # changed them underneath it and RELINKS them, discarding the rpath work
-      # of the step above. `reseal` does not involve the build graph at all.
-      #
-      # The audit is the third part and has to come last: it asks the packager
-      # which native each module's SIGNED descriptor binds, so it needs
-      # descriptors that verify. It is kept -- unlike the other intermediate
-      # gates -- because it proves something the smoke test structurally
-      # cannot: that no dependency resolves through a path that exists on this
-      # runner and not on a user's machine.
-      - name: Refresh And Verify Module Descriptors (Linux)
-        run: |
-          set -euo pipefail
-          INFO="${{github.workspace}}/build/artifacts/build-info.json"
-          MODULE_ROOT="${{github.workspace}}/build/artifacts/AppDir/usr/lib/gpgfrontend/modules"
-
-          # Everything this step needs to know, from the build system that
-          # decided it. The count, the tool path and the layout used to be
-          # re-derived here by hand, in eleven, eight and seventeen places
-          # respectively across these workflows.
-          PACKAGER="$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['module_packager'])" "$INFO")"
-          EXPECTED="$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['module_count'])" "$INFO")"
-
-          "$PACKAGER" reseal \
-            --namespace-root "$MODULE_ROOT" \
-            --signing-seed ${{github.workspace}}/build/.module-build-key/module-build.seed \
-            --expect-count "$EXPECTED"
-
-          # NOTHING may touch a module native after this point.
-          # --require-binding, because this leg MUST ship bound artifacts and
-          # the build default is the weaker one. Without it a configure line
-          # that lost -DGPGFRONTEND_INTEGRATED_MODULE_NATIVE_BINDING=REQUIRED
-          # would verify green and release an unbound AppImage.
-          ${{github.workspace}}/scripts/audit_module_natives.sh \
-            --namespace-root "$MODULE_ROOT" \
-            --packager "$PACKAGER" \
-            --qt-relative ../../../.. \
-            --expect-count "$EXPECTED" \
-            --require-binding \
-            --assert-no-native-outside ${{github.workspace}}/build/artifacts/AppDir
-        if: runner.os == 'Linux'
-
-      - name: Build AppImage (Linux)
-        run: |
-          set -euo pipefail
-          cd ${{github.workspace}}/build/upload-artifact
-
-          if [[ "$ARCH" == "x86_64" ]]; then
-            wget -c -nv https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
-            mv appimagetool-x86_64.AppImage appimagetool.AppImage
-          else
-            wget -c -nv https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-aarch64.AppImage
-            mv appimagetool-aarch64.AppImage appimagetool.AppImage
-          fi
-          chmod u+x appimagetool.AppImage
-
-          # appimagetool only looks for the legacy <desktop-id>.appdata.xml
-          # name, so the installed metainfo is renamed rather than copied: the
-          # image carries one component, identical to what distributions get.
-          METAINFO_DIR=${{github.workspace}}/build/artifacts/AppDir/usr/share/metainfo
-          mv "$METAINFO_DIR/com.bktus.gpgfrontend.metainfo.xml" \
-            "$METAINFO_DIR/com.bktus.gpgfrontend.appdata.xml"
-
-          # A failed `appstreamcli validate-tree` aborts appimagetool. Ubuntu
-          # 22.04 has no appstreamcli, and its packaged 0.15 rejects URL types
-          # newer than itself (vcs-browser) that 1.x accepts, so there the
-          # check is skipped; the 24.04 runners validate the same file.
-          APPSTREAM_ARGS=()
-          if ! appstreamcli --version 2>/dev/null \
-              | grep -Eq 'version: ([1-9][0-9]*)\.'; then
-            echo "appstreamcli >= 1.0 not available, skipping AppStream validation"
-            APPSTREAM_ARGS=(--no-appstream)
-          fi
-
-          # Same naming scheme as every other platform. linuxdeployqt's own
-          # -appimage named the image after the .desktop entry, so both
-          # flavours came out as Gpg_Frontend-<arch>.AppImage and collided once
-          # the release job merged every runner's artifacts into one directory.
-          OUTPUT="GpgFrontend-${{env.SHORT_SHA}}-${{env.OS_IDENTIFIER}}-${ARCH}${{env.FLAVOR_SUFFIX}}.AppImage"
-          ARCH="$ARCH" ./appimagetool.AppImage "${APPSTREAM_ARGS[@]}" \
-            ${{github.workspace}}/build/artifacts/AppDir "$OUTPUT"
-
-          rm -f linuxdeployqt-continuous.AppImage appimagetool.AppImage
-          ls -l
-        if: runner.os == 'Linux'
-
-      - name: Build GpgFrontend (Windows)
-        shell: msys2 {0}
+      - name: Build GpgME And GpgFrontend
         env:
           # ccache takes MinGW's `c++.exe` for an unknown compiler and then
           # applies clang's PCH rule: refuse a cached .gch whose headers have
@@ -800,28 +429,8 @@ jobs:
           # every PCH and its ~480 users missed on every run. It is gcc.
           CCACHE_COMPILERTYPE: gcc
         run: |
-          cd $(cygpath -u "${{github.workspace}}")
-          cmake -G "Ninja" -S . -B build \
-            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
-            -DGPGFRONTEND_BUILD_MODE=${{env.GPGFRONTEND_BUILD_MODE}} \
-            -DGPGFRONTEND_BUILD_FLAVOR=${{matrix.flavor}} \
-            -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON \
-            -DGPGFRONTEND_INTEGRATED_MODULE_NATIVE_BINDING=REQUIRED \
-            -DGPGFRONTEND_INTEGRATED_MODULE_BINDING_ALGORITHM=PE_AUTHENTICODE_SHA256 \
-            ${{ env.SCREENSHOT_CMAKE_FLAG }}
-          cmake --build build \
-            --config ${{ env.BUILD_TYPE }} \
-            --parallel \
-            --verbose
-          ccache -s -v
-          # Keep only what this build used, so the saved cache stays the
-          # working set instead of growing toward max-size run after run.
-          ccache --evict-older-than "$(( $(date +%s) - CCACHE_EPOCH + 60 ))s"
-          ccache -s
-        if: runner.os == 'Windows'
+          "$(cygpath -u "$GITHUB_WORKSPACE")/scripts/ci/windows/build.sh"
 
-      # After the compile, before anything else can fail the job: the target
-      # dir is complete here on both runners, and nothing later touches it.
       - name: Save Cargo Cache
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -829,468 +438,77 @@ jobs:
             ~/.cargo/registry/index
             ~/.cargo/registry/cache
             ~/.cargo/git/db
-            ${{github.workspace}}/build/cargo
+            ${{ github.workspace }}/build/cargo
           key: ${{ steps.cargo-cache.outputs.cache-primary-key }}
         if: >-
           github.event_name == 'push' && matrix.flavor == 'installed' &&
           steps.cargo-cache.outputs.cache-hit != 'true'
 
-      - name: Download GnuPG Binary Release (Windows)
-        shell: msys2 {0}
+      - name: Download GnuPG Binary Release
         run: |
-          export URL="https://ftp.bktus.com/GnuPG/${{env.GNUPG_VERSION}}"
-          export KEY_URL="https://bktus.com/pgp/saturneric-code-signing.asc"
-          export KEY_FPR="12F7E8858CF15BEC9975FF3C5CA3DA246843FD03"
-          export KEY_FILE="saturneric-code-signing.asc"
-          export FILE="gnupg.zip"
-          export CHECKSUM_FILE="SHA256SUMS.txt"
-          export SIGNATURE_FILE="gnupg.zip.sig"
-          export GNUPGHOME=$(mktemp -d)
+          "$(cygpath -u "$GITHUB_WORKSPACE")/scripts/ci/windows/fetch_gnupg.sh"
 
-          cd $(cygpath -u "${{github.workspace}}")
-
-          mkdir -p build/downloads
-
-          curl -fL --retry 3 -o build/downloads/$FILE $URL/$FILE
-          curl -fL --retry 3 -o build/downloads/$CHECKSUM_FILE $URL/$CHECKSUM_FILE
-          curl -fL --retry 3 -o build/downloads/$KEY_FILE $KEY_URL
-          curl -fL --retry 3 -o build/downloads/$SIGNATURE_FILE $URL/$SIGNATURE_FILE
-
-          gpg --import build/downloads/$KEY_FILE
-
-          # Trust is pinned to this exact fingerprint, not to whatever the
-          # downloaded key file happens to contain.
-          if ! KEY_INFO=$(gpg --batch --with-colons --list-keys "$KEY_FPR"); then
-            echo "Imported key does not match fingerprint $KEY_FPR!" >&2
-            exit 1
-          fi
-
-          EXPIRES=$(echo "$KEY_INFO" | awk -F: '/^pub:/ {print $7; exit}')
-          if [ -n "$EXPIRES" ]; then
-            echo "Signing key expires: $(date -u -d "@$EXPIRES")"
-            if [ "$EXPIRES" -le "$(date +%s)" ]; then
-              echo "Signing key has expired!" >&2
-              exit 1
-            fi
-          else
-            echo "Signing key has no expiration date"
-          fi
-
-          # VALIDSIG carries the primary key fingerprint as its last field, so
-          # this also rejects a valid signature from any other imported key.
-          if ! gpg --status-fd 1 --verify build/downloads/$SIGNATURE_FILE \
-              build/downloads/$FILE | grep "VALIDSIG" | grep -q "$KEY_FPR"; then
-            echo "GnuPG signature verification failed!" >&2
-            exit 1
-          fi
-
-          CHECKSUM=$(grep "$FILE\$" build/downloads/$CHECKSUM_FILE | awk '{print $1}')
-          ACTUAL_CHECKSUM=$(sha256sum build/downloads/$FILE | awk '{print $1}')
-          echo "Expected Checksum: $CHECKSUM"
-          echo "Actual Checksum: $ACTUAL_CHECKSUM"
-          if [ "$CHECKSUM" != "$ACTUAL_CHECKSUM" ]; then
-            echo "Checksum verification failed!" >&2
-            exit 1
-          fi
-
-          mkdir -p build/artifacts/gnupg
-
-          # Extraction has to be byte-exact. A text-mode extractor rewrites every
-          # LF as CRLF, which shifts each PE image away from the offset its
-          # e_lfanew field points at: the staged binaries then carry no readable
-          # Authenticode signature and Windows refuses to load them, while the
-          # archive-level OpenPGP and SHA256 checks above still pass because the
-          # downloaded zip is intact. bsdtar has no text mode at all.
-          if command -v bsdtar >/dev/null 2>&1; then
-            bsdtar -xf build/downloads/$FILE -C build/artifacts/gnupg
-          else
-            unzip -o build/downloads/$FILE -d build/artifacts/gnupg/
-          fi
-
-          # Gate the staged payload rather than trusting the extractor: every
-          # image must still start with MZ and hold the PE signature exactly
-          # where e_lfanew points.
-          BROKEN=0
-          COUNT=0
-          while IFS= read -r pe; do
-            COUNT=$((COUNT + 1))
-            MZ=$(dd if="$pe" bs=1 count=2 2>/dev/null | od -An -tx1 | tr -d ' \n')
-            OFF=$(od -An -tu4 -j 60 -N 4 "$pe" | tr -d ' ')
-            SIG=$(dd if="$pe" bs=1 skip="$OFF" count=4 2>/dev/null | od -An -tx1 | tr -d ' \n')
-            if [ "$MZ" != "4d5a" ] || [ "$SIG" != "50450000" ]; then
-              echo "corrupt PE image: $pe (mz=$MZ e_lfanew=$OFF sig=$SIG)" >&2
-              BROKEN=$((BROKEN + 1))
-            fi
-          done < <(find build/artifacts/gnupg -type f \( -name '*.exe' -o -name '*.dll' \))
-
-          if [ "$BROKEN" -ne 0 ]; then
-            echo "$BROKEN of $COUNT staged GnuPG images are not loadable PE files!" >&2
-            type -a bsdtar unzip >&2 || true
-            env | grep -iE '^(UNZIP|UNZIPOPT|ZIPOPT|MSYS|CYGWIN)=' >&2 || true
-            exit 1
-          fi
-          echo "verified $COUNT staged GnuPG PE images"
-
-          ls -l build/artifacts/gnupg/
-        if: runner.os == 'Windows'
-
-      # Payload staging is flavour-independent: the portable ZIP and the MSI are
-      # both built from this same tree, only from a differently configured build.
-      - name: Stage Payload (Windows)
-        shell: msys2 {0}
+      - name: Package The Payload
         run: |
-          cd $(cygpath -u "${{github.workspace}}")
-          cp PrivacyPolicy.md build/artifacts/
-          cp README.md build/artifacts/
-          cp SECURITY.md build/artifacts/
-          cp TRANSLATORS build/artifacts/
-          cp COPYING build/artifacts/
-          cp gpgfrontend.ico build/artifacts/bin/
-          rm -rf build/artifacts/bin/*.a
-          # No `mv build/artifacts/bin/modules build/artifacts/modules` any
-          # more: CMake writes each module straight into its own namespace at
-          # build/artifacts/modules/<key>/{module.gfmodule,native/}, which is
-          # exactly where the Host looks (<appdir>/../modules). Moving a
-          # directory into place after the fact was the step that made the old
-          # layout's ordering load-bearing.
-          rm -rf build/artifacts/modules/*/native/*.a
-          rm -rf build/artifacts/modules/*/native/*.dll.a
+          "$(cygpath -u "$GITHUB_WORKSPACE")/scripts/ci/windows/package.sh"
 
-          cd build
-          # The libraries CMake registered, read from the list it writes --
-          # not a `libgf_*.dll` glob. The glob kept the "a new library cannot
-          # be forgotten" property and added a sharp edge: it matches by name,
-          # so a test fixture called libgf_mod_test_sentinel.dll was handed to
-          # windeployqt6, which correctly reported that it is not a Qt
-          # executable and stopped the build.
-          #
-          # Relative paths throughout the Windows steps: ${{github.workspace}}
-          # is D:\a\..., and unquoted in bash its backslashes vanish. Read into
-          # a variable first, because a failure inside `< <(...)` is swallowed
-          # and left windeployqt never run on the libraries at all.
-          # The key database opens QSQLITE and nothing else. windeployqt
-          # would otherwise copy every SQL driver Qt has, and the Firebird,
-          # MySQL and PostgreSQL ones import client libraries (fbclient,
-          # libmariadb, libpq) that are not installed: dead files that could
-          # never load, and that the runtime deployment rightly refuses.
-          UNUSED_QT_PLUGINS="qsqlibase,qsqlmysql,qsqlpsql"
-          LIBS="$(../scripts/build_info.sh . deployable_libraries)"
-          test -n "$LIBS" || { echo "no deployable libraries registered" >&2; exit 1; }
-          while IFS= read -r lib; do
-            [ -n "$lib" ] || continue
-            test -f "./artifacts/bin/$lib" || {
-              echo "registered library $lib is not in artifacts/bin" >&2
-              exit 1
-            }
-            windeployqt6 --no-translations --force --exclude-plugins "$UNUSED_QT_PLUGINS" "./artifacts/bin/$lib"
-          done <<< "$LIBS"
-          windeployqt6 --no-translations --force --exclude-plugins "$UNUSED_QT_PLUGINS" ./artifacts/bin/GpgFrontend.exe
-          # A module may need Qt modules the app itself never links (Qt6Xml,
-          # Qt6Network, ...), so each one still has to be scanned. But --dir
-          # sends what it needs into bin/, which is the first directory the
-          # loader searches, instead of duplicating the whole Qt runtime next
-          # to every module.
-          for module in $(find ./artifacts/modules -type f -name '*.dll' | sort); do
-            windeployqt6 --no-translations --force --exclude-plugins "$UNUSED_QT_PLUGINS" --dir ./artifacts/bin "$module"
-          done
-          # windeployqt brings Qt's plugins (platforms/, tls/, imageformats/
-          # ...) but not the MSYS2 DLLs those plugins import. The build's own
-          # deployment ran before they existed, so scan again now, plugins
-          # included. This target always runs; it is the packaging rescan, not
-          # the incremental one, and a DLL it cannot resolve fails the job.
-          cmake --build . --target gf_deploy_runtime_rescan || exit 1
-          mkdir -p upload-artifact
-        if: runner.os == 'Windows'
-
-      # windeployqt has just run. It reads the module DLLs and writes only
-      # into bin/, so the descriptors still describe what is there -- and this
-      # proves that rather than assuming it.
-      #
-      # One call: the audit first verifies the descriptors strictly, then asks
-      # the packager which native each signed descriptor binds and audits it.
-      - name: Verify Module Descriptors (Windows)
-        shell: msys2 {0}
+      - name: Package Portable Archive
+        if: matrix.flavor == 'portable'
         run: |
-          set -euo pipefail
-          cd $(cygpath -u "${{github.workspace}}")
-          MODULE_ROOT="build/artifacts/modules"
-          PACKAGER="$(./scripts/build_info.sh build module_packager)"
-          EXPECTED="$(./scripts/build_info.sh build module_count)"
-          # --require-binding: see the AppImage leg. Windows must ship bound
-          # artifacts, and an unbound tree verifies fine without this flag.
-          ./scripts/audit_module_natives.sh \
-            --namespace-root "$MODULE_ROOT" \
-            --packager "$PACKAGER" \
-            --expect-count "$EXPECTED" \
-            --require-binding \
-            --assert-no-native-outside build/artifacts
-        if: runner.os == 'Windows'
+          cd "$(cygpath -u "$GITHUB_WORKSPACE")/build/artifacts"
+          zip -r "../upload-artifact/GpgFrontend-${SHORT_SHA}-windows-x86_64-portable.zip" *
 
-      - name: Smoke Test The AppImage (Linux)
-        run: |
-          set -euo pipefail
-          EXPECTED="$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build module_count)"
-
-          cd "$RUNNER_TEMP"
-          IMAGE="$(find ${{github.workspace}}/build/upload-artifact \
-                     -name '*.AppImage' | head -1)"
-          test -n "$IMAGE" || { echo "no AppImage was built" >&2; exit 1; }
-
-          rm -rf squashfs-root
-          "$IMAGE" --appimage-extract >/dev/null
-
-          # A profile that has never existed, and nothing of the runner's
-          # touched. XDG_* as well as HOME: the defaults derive from HOME, but
-          # only if nothing else is already exported.
-          export HOME="$RUNNER_TEMP/smoke-home"
-          export XDG_DATA_HOME="$HOME/.local/share"
-          export XDG_CONFIG_HOME="$HOME/.config"
-          export XDG_CACHE_HOME="$HOME/.cache"
-          mkdir -p "$XDG_DATA_HOME" "$XDG_CONFIG_HOME" "$XDG_CACHE_HOME"
-
-          # Offscreen only if it is actually deployed. linuxdeployqt is asked
-          # for `-extra-plugins=platforms`, which brings all of them including
-          # this one -- but asking unconditionally for a plugin that is not
-          # there aborts before main() with "no Qt platform plugin could be
-          # initialized", which reads like a broken build and is not one. That
-          # is exactly how the macOS leg failed.
-          if find ./squashfs-root -name 'libqoffscreen.so' | grep -q .; then
-            export QT_QPA_PLATFORM=offscreen
-          else
-            echo "no offscreen plugin deployed; using the default platform"
-          fi
-
-          STATUS="$RUNNER_TEMP/module-status.json"
-          rc=0
-          ./squashfs-root/AppRun --module-status "$STATUS" \
-            >"$RUNNER_TEMP/smoke-stdout.log" 2>&1 || rc=$?
-
-          if [ ! -f "$STATUS" ]; then
-            echo "the AppImage produced no status report (exit $rc)" >&2
-            echo "--- stdout (a missing shared library appears here) ---" >&2
-            cat "$RUNNER_TEMP/smoke-stdout.log" >&2 || true
-            exit 1
-          fi
-
-          cat "$STATUS"
-          ${{github.workspace}}/scripts/check_module_status.py "$STATUS" "$EXPECTED"
-
-          test "$rc" -eq 0 || { echo "the app exited $rc" >&2; exit 1; }
-        if: runner.os == 'Linux'
-      - name: Remove Build-Only Files From The Payload (Windows)
-        shell: msys2 {0}
-        run: |
-          set -euo pipefail
-          cd $(cygpath -u "${{github.workspace}}")
-          TOOL_DIR="$(./scripts/build_info.sh build host_tool_dir)"
-          rm -f "$TOOL_DIR/gf_module_packager.exe" "$TOOL_DIR/gf_module_keygen.exe" \
-                "$TOOL_DIR/gf_module_externalize.exe"
-
-          # Test fixtures went during payload staging, before the module-set
-          # assertion could trip over them. The check below is what proves it.
-
-          # Stated as a check rather than assumed: this is the last chance to
-          # notice, and a stray build tool in a signed installer is the kind of
-          # thing found by a user rather than by us.
-          STRAY="$(find build/artifacts \( -name 'gf_module_packager*' \
-                     -o -name 'gf_module_keygen*' \
-                     -o -name 'gf_module_externalize*' \
-                     -o -name '*test_sentinel*' \) -print)"
-          if [ -n "$STRAY" ]; then
-            echo "these are not deliverables and are still in the payload:" >&2
-            printf '%s\n' "$STRAY" >&2
-            exit 1
-          fi
-        if: runner.os == 'Windows'
-
-      - name: Package Portable Archive (Windows)
-        shell: msys2 {0}
-        run: |
-          cd $(cygpath -u "${{github.workspace}}")/build/artifacts
-          zip -r ../upload-artifact/GpgFrontend-${{env.SHORT_SHA}}-${{env.OS_IDENTIFIER}}-x86_64-portable.zip *
-        if: runner.os == 'Windows' && matrix.flavor == 'portable'
-
-      - name: Build MSI Installer (Windows)
+      - name: Build MSI Installer
+        if: matrix.flavor == 'installed'
         shell: pwsh
         run: |
-          # The version the build actually used, asked of the build. Scraping it
-          # out of CMakeLists.txt with a regular expression worked until the
-          # day someone reformatted that line.
-          $info = Get-Content "${{github.workspace}}/build/artifacts/build-info.json" -Raw | ConvertFrom-Json
-          $version = $info.project_version
-          Write-Host "Project version: $version"
+          ./scripts/ci/windows/build_msi.ps1 -OutputName "GpgFrontend-$env:SHORT_SHA-windows-x86_64.msi"
 
-          # Toolset and extension versions must match: an unpinned extension resolves
-          # to the latest major (7.x), which a WiX 5 host cannot load (wixext5 vs wixext7).
-          $wixVersion = '5.0.2'
-          dotnet tool install --global wix --version $wixVersion
-          wix extension add -g WixToolset.UI.wixext/$wixVersion
-          wix extension add -g WixToolset.Util.wixext/$wixVersion
-
-          New-Item -ItemType Directory -Force -Path "${{github.workspace}}/build/upload-artifact" | Out-Null
-
-          # -arch x64 is mandatory: the package is MsiPackageType=x64.
-          # PayloadDir / ProductVersion / IconSource / BrandingDir override the wxs
-          # defaults for this runner (its defaults assume a build run from resource/wix).
-          wix build -arch x64 `
-            -ext WixToolset.UI.wixext/$wixVersion `
-            -ext WixToolset.Util.wixext/$wixVersion `
-            -d PayloadDir="${{github.workspace}}/build/artifacts" `
-            -d ProductVersion="$version" `
-            -d IconSource="${{github.workspace}}/gpgfrontend.ico" `
-            -d BrandingDir="${{github.workspace}}/resource/wix" `
-            -o "${{github.workspace}}/build/upload-artifact/GpgFrontend-${{env.SHORT_SHA}}-${{env.OS_IDENTIFIER}}-x86_64.msi" `
-            resource/wix/Package.wxs
-
-          # wix drops a .wixpdb next to the .msi; it is build metadata, not a deliverable.
-          Remove-Item -Force -ErrorAction SilentlyContinue `
-            "${{github.workspace}}/build/upload-artifact/*.wixpdb"
-        # An MSI installs into Program Files and keeps its data in the user
-        # profile, so it is only ever built from the installed flavour.
-        if: runner.os == 'Windows' && matrix.flavor == 'installed'
-      - name: Smoke Test The Portable Archive (Windows)
-        shell: msys2 {0}
+      - name: Smoke Test The Portable Archive
+        if: matrix.flavor == 'portable'
         run: |
-          set -euo pipefail
-          cd $(cygpath -u "${{github.workspace}}")
-
-          ZIP="$(find build/upload-artifact -name '*-portable.zip' | head -1)"
-          test -n "$ZIP" || { echo "no portable archive was built" >&2; exit 1; }
-
-          SMOKE="$(cygpath -u "$RUNNER_TEMP")/smoke"
-          rm -rf "$SMOKE"
-          mkdir -p "$SMOKE"
-          unzip -q "$ZIP" -d "$SMOKE"
-          test -f "$SMOKE/bin/GpgFrontend.exe"
-
-          # A CI runner has no desktop to draw on, and windeployqt deploys only
-          # the `windows` platform plugin. The offscreen one is copied into the
-          # EXTRACTED tree, never into the shipped payload: it is needed to run
-          # the test and would be dead weight in a user's download. It cannot
-          # affect module loading either way.
-          OFFSCREEN=/mingw64/share/qt6/plugins/platforms/qoffscreen.dll
-          if [ -f "$OFFSCREEN" ]; then
-            cp "$OFFSCREEN" "$SMOKE/bin/platforms/"
-            export QT_QPA_PLATFORM=offscreen
-          else
-            echo "::warning::no offscreen plugin; trying the default platform"
-          fi
-
-          # A profile that has never existed. Portable builds keep the profile
-          # beside the executable, so most of this lands under $SMOKE anyway --
-          # the rest is set so that nothing reaches the runner's own profile.
-          export USERPROFILE="$(cygpath -w "$SMOKE/home")"
-          export LOCALAPPDATA="$(cygpath -w "$SMOKE/home/AppData/Local")"
-          export APPDATA="$(cygpath -w "$SMOKE/home/AppData/Roaming")"
-          mkdir -p "$SMOKE/home/AppData/Local" "$SMOKE/home/AppData/Roaming"
-
-          # How many modules this build produced, from the list CMake writes
-          # at configure time. Never a literal: a hardcoded count means adding
-          # a fifth module breaks every gate at once, and the obvious repair
-          # is to bump the number in each, which is how a gate stops checking.
-          EXPECTED="$(./scripts/build_info.sh build module_count)"
-          STATUS="$SMOKE/module-status.json"
-
-          # Only Windows' own directories on PATH for the launch. With the
-          # msys2 shell's PATH, a DLL the payload forgot is quietly found in
-          # /mingw64/bin and the launch proves nothing about the archive.
-          #
-          # What this launch covers: startup (the executable and the gf_*
-          # libraries load, so their whole import closure is in the archive)
-          # and module loading (every module DLL is mapped, so its import
-          # closure is too). What it does not: anything loaded later by name,
-          # and no TLS connection is made.
-          WINDOWS_PATH="$(cygpath -S):$(cygpath -W)"
-          cd "$SMOKE/bin"
-          rc=0
-          PATH="$WINDOWS_PATH" ./GpgFrontend.exe --module-status "$(cygpath -w "$STATUS")" \
-            >"$SMOKE/stdout.log" 2>&1 || rc=$?
-
-          if [ ! -f "$STATUS" ]; then
-            echo "the portable build produced no status report (exit $rc)" >&2
-            echo "--- stdout (a missing DLL announces itself here) ---" >&2
-            cat "$SMOKE/stdout.log" >&2 || true
-            exit 1
-          fi
-
-          cat "$STATUS"
-          python "$(cygpath -u "${{github.workspace}}")/scripts/check_module_status.py" \
-            "$STATUS" "$EXPECTED"
-
-          test "$rc" -eq 0 || { echo "the app exited $rc" >&2; exit 1; }
-
-          # Which TLS backend Qt gets, checked by file, not by a handshake.
-          # Schannel is the system's own and needs nothing from the archive.
-          # Qt's OpenSSL backend would load libssl and libcrypto by name,
-          # which no launch above can see, and the build deliberately does not
-          # deploy them for it. So it must not arrive here unnoticed, e.g. if
-          # windeployqt stops skipping it.
-          test -f tls/qschannelbackend.dll \
-            || { echo "the Schannel TLS backend is missing" >&2; exit 1; }
-          if [ -e tls/qopensslbackend.dll ]; then
-            echo "tls/qopensslbackend.dll shipped, but nothing deploys the" \
-                 "libssl/libcrypto it loads by name" >&2
-            exit 1
-          fi
-        if: runner.os == 'Windows' && matrix.flavor == 'portable'
+          "$(cygpath -u "$GITHUB_WORKSPACE")/scripts/ci/windows/smoke_portable.sh"
 
       # Nothing is checked here: a hosted runner is not the environment the
       # manual's images are rendered in, so the screenshot mode is exercised
       # on the reference workstation only. The build records just the commit
       # the pipeline compares against.
-      - name: Record Screenshot Build Info (Windows)
-        shell: msys2 {0}
+      - name: Record Screenshot Build Info
+        if: matrix.flavor == 'portable' && inputs.screenshot
         run: |
           set -euo pipefail
-          cd "$(cygpath -u "${{github.workspace}}")"
+          cd "$(cygpath -u "$GITHUB_WORKSPACE")"
           printf '{\n  "schema": 1,\n  "commit": "%s"\n}\n' "${GITHUB_SHA}" \
             >build/upload-artifact/BUILD-INFO.json
           cat build/upload-artifact/BUILD-INFO.json
-        if: runner.os == 'Windows' && matrix.flavor == 'portable' && inputs.screenshot
-      - name: Upload Artifact (Linux)
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: gpgfrontend-${{matrix.os}}-${{matrix.flavor}}
-          path: ${{github.workspace}}/build/upload-artifact/GpgFrontend-*.AppImage*
-          if-no-files-found: error
-        if: runner.os == 'Linux'
 
-      - name: Upload Artifact (Windows)
+      - name: Upload Artifact
+        if: ${{ !inputs.screenshot }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: gpgfrontend-${{matrix.os}}-${{matrix.flavor}}
-          path: ${{github.workspace}}/build/upload-artifact/*
+          name: gpgfrontend-${{ matrix.os }}-${{ matrix.flavor }}
+          path: ${{ github.workspace }}/build/upload-artifact/*
           if-no-files-found: error
-        if: runner.os == 'Windows' && !inputs.screenshot
 
       # A screenshot build is a tool for the manual, not a deliverable: named
       # outside the release's patterns, kept two weeks, and with its
       # BUILD-INFO.json (the commit) inside.
       - name: Upload Screenshot Build
+        if: inputs.screenshot
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: screenshot-${{matrix.os}}-${{matrix.flavor}}
-          path: ${{github.workspace}}/build/upload-artifact/*
+          name: screenshot-${{ matrix.os }}-${{ matrix.flavor }}
+          path: ${{ github.workspace }}/build/upload-artifact/*
           if-no-files-found: error
           retention-days: 14
-        if: runner.os == 'Windows' && inputs.screenshot
 
-      # A separate artifact, as build-macos does, and for a reason of its own
-      # here: the deliverable artifact must stay flat. Listing build-info.json
-      # as a second path rooted the Linux artifact at their common parent, so
-      # the AppImage arrived as upload-artifact/GpgFrontend-... inside a
-      # directory.
-      #
-      # Every leg uploads exactly `gpgfrontend-<leg>` and `buildinfo-<leg>`,
-      # with the same <leg>. That exact name is how provenance pairs them, so
-      # a new leg needs nothing else from the release path.
       - name: Upload Build Info
+        if: ${{ !inputs.screenshot }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: buildinfo-${{matrix.os}}-${{matrix.flavor}}
-          path: ${{github.workspace}}/build/artifacts/build-info.json
+          name: buildinfo-${{ matrix.os }}-${{ matrix.flavor }}
+          path: ${{ github.workspace }}/build/artifacts/build-info.json
           if-no-files-found: error
-        if: ${{ !inputs.screenshot }}
 
   # The Android application, cross-built with the toolchain it is released
   # with: Qt 6.10.3 for Android (the oldest open-source Qt whose Android
@@ -2888,7 +2106,7 @@ jobs:
   # hold both the ability to mint an identity token and the ability to rewrite
   # the repository.
   provenance:
-    needs: [build, sign-macos, macos-smoke, sign-android]
+    needs: [build-linux, build-windows, sign-macos, macos-smoke, sign-android]
     runs-on: ubuntu-latest
     # No status function, so success() is implied: every job in `needs` must
     # have succeeded, not merely finished.
