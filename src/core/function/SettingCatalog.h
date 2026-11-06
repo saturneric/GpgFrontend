@@ -498,9 +498,9 @@ inline constexpr StateSetting kToolboxColumnsFilter{
     .key = "keys/toolbox_columns_filter", .group = kLAYOUT};
 inline constexpr StateSetting kCustomCategoryOrder{
     .key = "keys/custom_category_order", .group = kLAYOUT};
-/// The phone's last operation that needed keys, to do again in one tap:
-/// remembered, never set by hand. JSON {op: "encrypt" | "symmetric" | "sign",
-/// recipients: [fingerprint], signs: bool, signer: fingerprint, digest}.
+/// Retired: the phone's last operation that needed keys, once offered as
+/// "Again". Kept only so the phone removes what an earlier version stored
+/// (the fingerprints it was done with); nothing reads it.
 inline constexpr StateSetting kLastOperation{.key = "mobile/last_operation",
                                              .group = kLAYOUT};
 

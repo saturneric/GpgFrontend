@@ -418,86 +418,18 @@ TEST(WorkSelectionTest, ARememberedSignerNeverTurnsSigningOn) {
   EXPECT_EQ(next.PreferredSigner(), Fpr("AAAA0001"));
 }
 
-// The quick path: the last operation and its keys, kept between sessions,
-// done again with the same keys; forgotten once the keys are not the same.
-TEST(WorkSelectionTest, TheLastOperationIsKeptUntilTheKeysChange) {
-  SignerReset reset;
-  Fixture f;
+// What an earlier version kept to offer "Again" (the last operation's
+// fingerprints) is removed once the keys are ready; nothing reads it.
+TEST(WorkSelectionTest, AnOldLastOperationIsRemoved) {
+  const auto key = QLatin1StringView(SettingItems::kLastOperation.key);
   {
-    WorkSelection selection(&f.roles);
-    selection.SetKeysReady();
-    selection.forgetLast();
-    EXPECT_TRUE(selection.LastOperation().isEmpty());
-    selection.addRecipient(Fpr("CCCC0003"));
-    selection.SetSigningEnabled(true);
-    selection.setPreferredSigner(Fpr("AAAA0001"));
-    selection.rememberOperation("encrypt");
-
-    const auto last = selection.LastOperation();
-    EXPECT_EQ(last.value("op").toString(), "encrypt");
-    EXPECT_EQ(last.value("recipientCount").toInt(), 1);
-    EXPECT_TRUE(last.value("signs").toBool());
-    EXPECT_EQ(last.value("signerKey").toMap().value("name").toString(),
-              "alice");
-
-    // Chosen again after the keys were reset.
-    selection.reset();
-    EXPECT_EQ(selection.restoreLast(), "encrypt");
-    EXPECT_EQ(selection.Recipients(), QStringList{Fpr("CCCC0003")});
-    EXPECT_TRUE(selection.SigningEnabled());
-    EXPECT_FALSE(selection.PassphraseMode());
-    EXPECT_TRUE(selection.EncryptBlock().isEmpty());
+    auto settings = GetSettings();
+    settings.setValue(key, QStringLiteral("{\"op\":\"encrypt\"}"));
   }
-
-  // The next session finds it, with the same keys.
-  {
-    WorkSelection next(&f.roles);
-    next.SetKeysReady();
-    EXPECT_EQ(next.LastOperation().value("op").toString(), "encrypt");
-    // Read again, unchanged: kept.
-    next.KeysRefreshed();
-    EXPECT_FALSE(next.LastOperation().isEmpty());
-  }
-
-  // A key database that holds other keys (one imported, deleted, edited, or
-  // another database): forgotten, here and in the settings.
-  {
-    GpgKeyTableModel other{0,
-                           {Key("Carol", "carol@example.org", "CCCC0003"),
-                            Key("alice", "alice@example.org", "AAAA0001",
-                                [](FakeKey& k) { k.secret = true; })}};
-    KeyRoleModel roles;
-    roles.setSourceModel(&other);
-    WorkSelection changed(&roles);
-    changed.SetKeysReady();
-    EXPECT_TRUE(changed.LastOperation().isEmpty());
-    EXPECT_TRUE(changed.restoreLast().isEmpty());
-  }
-  WorkSelection after(&f.roles);
-  after.SetKeysReady();
-  EXPECT_TRUE(after.LastOperation().isEmpty());
-}
-
-TEST(WorkSelectionTest, APassphraseOrASignatureIsKeptToo) {
-  SignerReset reset;
   Fixture f;
   WorkSelection selection(&f.roles);
   selection.SetKeysReady();
-  selection.SetPassphraseMode(true);
-  selection.rememberOperation("symmetric");
-  selection.SetPassphraseMode(false);
-  EXPECT_EQ(selection.restoreLast(), "symmetric");
-  EXPECT_TRUE(selection.PassphraseMode());
-
-  selection.setPreferredSigner(Fpr("AAAA0001"));
-  selection.rememberOperation("sign");
-  selection.setPreferredSigner({});
-  // Recipients chosen since are not what signing is about: they stay.
-  selection.addRecipient(Fpr("CCCC0003"));
-  EXPECT_EQ(selection.restoreLast(), "sign");
-  EXPECT_EQ(selection.PreferredSigner(), Fpr("AAAA0001"));
-  EXPECT_EQ(selection.Recipients(), QStringList{Fpr("CCCC0003")});
-  selection.forgetLast();
+  EXPECT_FALSE(GetSettings().contains(key));
 }
 
 // Each key database has a choice of its own: switching away puts it away,

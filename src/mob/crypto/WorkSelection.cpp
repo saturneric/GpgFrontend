@@ -28,10 +28,7 @@
 
 #include "crypto/WorkSelection.h"
 
-#include <QCryptographicHash>
 #include <QJSEngine>
-#include <QJsonDocument>
-#include <QJsonObject>
 #include <algorithm>
 
 #include "core/function/GlobalSettingStation.h"
@@ -257,145 +254,13 @@ void WorkSelection::SetKeysReady() {
   database_id_ = database_ ? database_() : QString();
   auto settings = GetSettings();
   preferred_signer_ = SettingItems::kPreferredSigner.Read(settings);
-  last_ =
-      QJsonDocument::fromJson(
-          settings.value(QLatin1StringView(SettingItems::kLastOperation.key))
-              .toByteArray())
-          .object()
-          .toVariantMap();
-  KeysRefreshed();
+  // What an earlier version kept to offer "Again": the fingerprints of the
+  // last operation, which nothing reads any more.
+  settings.remove(QLatin1StringView(SettingItems::kLastOperation.key));
   emit SignalChanged();
 }
 
-void WorkSelection::KeysRefreshed() {
-  follow_database();
-  if (!ready_ || last_.isEmpty()) return;
-  // Made with other keys than there are now: what it would do is not what
-  // was done, so it is not offered again.
-  if (last_.value(QStringLiteral("digest")).toString() != KeysDigest()) {
-    forgetLast();
-  }
-}
-
-auto WorkSelection::KeysDigest() const -> QString {
-  QStringList rows;
-  if (keys_ != nullptr) {
-    rows.reserve(keys_->rowCount());
-    for (int row = 0; row < keys_->rowCount(); ++row) {
-      const auto at = keys_->index(row, 0);
-      if (!at.data(KeyRoleModel::kIsKeyRole).toBool()) {
-        // A key group: who it is, and who is in it.
-        auto members = at.data(KeyRoleModel::kMembersRole).toStringList();
-        members.sort();
-        rows << at.data(KeyRoleModel::kFingerprintRole).toString() +
-                    QStringLiteral("|group|") + members.join(QLatin1Char(','));
-        continue;
-      }
-      rows << QStringList{at.data(KeyRoleModel::kFingerprintRole)
-                              .toString()
-                              .toUpper(),
-                          // Usable or not, not the status: a key that comes to
-                          // expire soon is still the same choice.
-                          at.data(KeyRoleModel::kUsableRole).toString(),
-                          at.data(KeyRoleModel::kHasSecretRole).toString(),
-                          at.data(KeyRoleModel::kCanEncryptRole).toString(),
-                          at.data(KeyRoleModel::kCanSignRole).toString(),
-                          at.data(KeyRoleModel::kExpiresRole)
-                              .toDateTime()
-                              .toString(Qt::ISODate)}
-                  .join(QLatin1Char('|'));
-    }
-  }
-  // In an order of its own: the list's may be sorted any way.
-  rows.sort();
-  QCryptographicHash hash(QCryptographicHash::Sha256);
-  hash.addData(
-      LookupChannelHandle(UsableDefaultChannelHandle()).database_id.toUtf8());
-  for (const auto& row : rows) {
-    hash.addData(QByteArrayView("\n"));
-    hash.addData(row.toUtf8());
-  }
-  return QString::fromLatin1(hash.result().toHex());
-}
-
-auto WorkSelection::LastOperation() const -> QVariantMap {
-  if (!ready_ || last_.isEmpty()) return {};
-  const auto op = last_.value(QStringLiteral("op")).toString();
-  const auto fprs = last_.value(QStringLiteral("recipients")).toStringList();
-  QVariantList shown;
-  for (const auto& fpr : fprs.mid(0, 2)) shown << recipient_key(fpr);
-  const auto signer = last_.value(QStringLiteral("signer")).toString();
-  QVariantMap signer_key;
-  if (!signer.isEmpty()) {
-    signer_key = lookup(signer);
-    if (signer_key.isEmpty()) {
-      signer_key.insert(QStringLiteral("fingerprint"), signer);
-    }
-  }
-  return {
-      {QStringLiteral("op"), op},
-      {QStringLiteral("recipientCount"), fprs.size()},
-      {QStringLiteral("recipientKeys"), shown},
-      {QStringLiteral("signs"), last_.value(QStringLiteral("signs")).toBool()},
-      {QStringLiteral("signerKey"), signer_key},
-  };
-}
-
-void WorkSelection::rememberOperation(const QString& op) {
-  if (!ready_) return;
-  const bool encrypt = op == QStringLiteral("encrypt");
-  const bool signs =
-      (encrypt && signing_enabled_) || op == QStringLiteral("sign");
-  last_ = {
-      {QStringLiteral("op"), op},
-      {QStringLiteral("recipients"), encrypt ? recipients_ : QStringList{}},
-      {QStringLiteral("signs"), encrypt && signing_enabled_},
-      {QStringLiteral("signer"), signs ? preferred_signer_ : QString()},
-      {QStringLiteral("digest"), KeysDigest()},
-  };
-  auto settings = GetSettings();
-  settings.setValue(
-      QLatin1StringView(SettingItems::kLastOperation.key),
-      QString::fromUtf8(QJsonDocument(QJsonObject::fromVariantMap(last_))
-                            .toJson(QJsonDocument::Compact)));
-  emit SignalChanged();
-}
-
-auto WorkSelection::restoreLast() -> QString {
-  if (!ready_ || last_.isEmpty()) return {};
-  const auto op = last_.value(QStringLiteral("op")).toString();
-  // Only an encryption names recipients: signing or a passphrase leaves the
-  // ones chosen meanwhile as they are.
-  if (op == QStringLiteral("encrypt")) {
-    recipients_.clear();
-    recipient_set_.clear();
-    for (const auto& fpr :
-         last_.value(QStringLiteral("recipients")).toStringList()) {
-      recipients_ << fpr;
-      recipient_set_.insert(fpr.toUpper());
-    }
-  }
-  passphrase_mode_ = op == QStringLiteral("symmetric");
-  signing_enabled_ = last_.value(QStringLiteral("signs")).toBool();
-  const auto signer = last_.value(QStringLiteral("signer")).toString();
-  if (!signer.isEmpty() && signer != preferred_signer_) {
-    preferred_signer_ = signer;
-    auto settings = GetSettings();
-    SettingItems::kPreferredSigner.Write(settings, signer);
-  }
-  emit SignalChanged();
-  return op;
-}
-
-void WorkSelection::forgetLast() {
-  if (last_.isEmpty()) return;
-  last_.clear();
-  if (ready_) {
-    auto settings = GetSettings();
-    settings.remove(QLatin1StringView(SettingItems::kLastOperation.key));
-  }
-  emit SignalChanged();
-}
+void WorkSelection::KeysRefreshed() { follow_database(); }
 
 void WorkSelection::addRecipient(const QString& fingerprint) {
   if (fingerprint.isEmpty() || isRecipient(fingerprint)) return;

@@ -113,7 +113,6 @@ Page {
 
     // @p op on @p ids, as the Text page runs one on its text.
     function request(op, ids) { flow.request(op, ids) }
-    function repeatLast(ids) { flow.repeatLast(ids) }
 
     // Starts @p op on @p ids: false when it could not.
     function start(op, ids) {
@@ -994,13 +993,10 @@ Page {
                                      : ""
         reasonFor: op => page.reasonFor(op)
         symmetric: prefs.extraOperations.includes("symmetric")
-        againText: page.selecting && page.allowed("encrypt", page.selectedEntries)
-                   ? Wording.lastOperation(WorkSelection.lastOperation) : ""
         onRequested: function(op) {
             if (op === "verify") verifier.begin(files.selectedIds()[0])
             else page.request(op, files.selectedIds())
         }
-        onAgainRequested: page.repeatLast(files.selectedIds())
     }
 
     // A file that moved, picked again for a retry.

@@ -181,7 +181,6 @@ Page {
 
     // @p op on the text, as the Files page runs one on files.
     function request(op) { flow.request(op, target()) }
-    function repeatLast() { flow.repeatLast(target()) }
 
     OperationFlow {
         id: flow
@@ -545,10 +544,7 @@ Page {
 
         unavailable: page.unavailable
         symmetric: prefs.extraOperations.includes("symmetric")
-        againText: page.unavailable.length === 0
-                   ? Wording.lastOperation(WorkSelection.lastOperation) : ""
         onRequested: op => page.request(op)
-        onAgainRequested: page.repeatLast()
     }
 
     Snackbar {

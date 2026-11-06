@@ -9,8 +9,9 @@ import GpgFrontend.Mobile
 
 // The PGP operations of a page, opened from its operation button: Encrypt,
 // Decrypt, Sign, Verify, Encrypt & Sign, Decrypt & Verify (and Encrypt with
-// a passphrase once turned on in Settings), and first, when there is one,
-// the last operation again with its keys.
+// a passphrase once turned on in Settings). Each asks for its keys anew in
+// the key toolbox, which shows those chosen before: nothing is repeated
+// without being confirmed.
 //
 // What cannot be done is said, never left to a silent tap: when nothing can
 // be done yet (no text, no files chosen) a line at the top says what is
@@ -25,11 +26,8 @@ FitMenu {
     property var reasonFor: function(op) { return "" }
     // Offer Encrypt with a passphrase.
     property bool symmetric: false
-    // The last operation, said in a line ("Encrypt to Alice"); empty for none.
-    property string againText: ""
 
     signal requested(string op)
-    signal againRequested()
 
     readonly property var operations: ["encrypt", "decrypt", "sign", "verify",
                                        "encrypt_sign", "decrypt_verify"]
@@ -79,48 +77,11 @@ FitMenu {
         }
     }
 
-    MenuItem {
-        id: again
-
-        objectName: "operationAgain"
-        height: menu.againText.length > 0 && menu.unavailable.length === 0
-                ? implicitHeight : 0
-        visible: height > 0
-        text: qsTr("Again: %1").arg(menu.againText)
-        icon.source: Theme.icon("redo")
-        onTriggered: menu.againRequested()
-
-        // Its words wrap, as the operations' below do: what is repeated can
-        // be long (a recipient's name), and the style's own row elides it.
-        contentItem: RowLayout {
-            spacing: 16
-
-            Icon {
-                Layout.alignment: Qt.AlignVCenter
-                symbol: "redo"
-                color: again.Material.foreground
-            }
-
-            Label {
-                Layout.fillWidth: true
-                text: again.text
-                wrapMode: Text.Wrap
-                font: again.font
-            }
-        }
-    }
-
-    MenuSeparator {
-        height: menu.againText.length > 0 && menu.unavailable.length === 0
-                ? implicitHeight : 0
-        visible: height > 0
-    }
-
-    // Made as the list of operations changes, after the three items above
-    // (Qt's way of filling a menu from a model).
+    // Made as the list of operations changes, after the item above (Qt's way
+    // of filling a menu from a model).
     Instantiator {
         model: menu.operations
-        onObjectAdded: (index, object) => menu.insertItem(index + 3, object)
+        onObjectAdded: (index, object) => menu.insertItem(index + 1, object)
         onObjectRemoved: (index, object) => menu.removeItem(object)
 
         delegate: MenuItem {

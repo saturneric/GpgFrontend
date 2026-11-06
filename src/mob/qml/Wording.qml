@@ -16,15 +16,6 @@ QtObject {
                || (key.fingerprint || "").slice(-16)
     }
 
-    // "Alice", "Alice, Bob", "Alice, Bob +2".
-    // Up to two of @p keys by name, and how many more of @p total there are.
-    function names(keys, total) {
-        const shown = keys.slice(0, 2).map(k => keyName(k))
-        const more = (total === undefined ? keys.length : total) - shown.length
-        return more > 0 ? qsTr("%1 +%2").arg(shown.join(", ")).arg(more)
-                        : shown.join(", ")
-    }
-
     // The word under the desktop's stamp, for the same report.
     function reportWord(report) {
         if (report.cancelled === true) return qsTr("Cancelled")
@@ -33,20 +24,6 @@ QtObject {
         case "warn": return qsTr("Warning")
         default: return qsTr("Error")
         }
-    }
-
-    // The quick path's line: the last operation and its keys, done again in
-    // one tap ("Encrypt to Alice, Bob +1 · signed as Me"); empty for none.
-    function lastOperation(last) {
-        if (!last || !last.op) return ""
-        if (last.op === "symmetric") return qsTr("Encrypt with a passphrase")
-        if (last.op === "sign")
-            return qsTr("Sign as %1").arg(keyName(last.signerKey))
-        const to = qsTr("Encrypt to %1").arg(names(last.recipientKeys,
-                                                   last.recipientCount))
-        return last.signs ? qsTr("%1 · signed as %2").arg(to)
-                                                     .arg(keyName(last.signerKey))
-                          : to
     }
 
     // A key in a list: its name, else its address, else its key ID.

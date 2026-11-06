@@ -6,7 +6,8 @@ import GpgFrontend.Mobile
 // How a page's Encrypt, Decrypt, Sign and Verify are carried out, the same on
 // the Text page and the Files page: encrypting and signing first ask with
 // which keys, in the key toolbox, which then runs the operation on what it
-// was asked for; the quick path repeats the last operation with its keys.
+// was asked for. The toolbox shows the keys chosen before; nothing runs
+// until it is confirmed there.
 // The page says how an operation starts and whether what it was asked for is
 // still there.
 QtObject {
@@ -70,25 +71,7 @@ QtObject {
         })
     }
 
-    // The quick path: the last operation, with its keys, on @p targets at
-    // once; what has become of a key since is asked for as on the standard
-    // path.
-    function repeatLast(targets) {
-        const op = WorkSelection.restoreLast()
-        if (op.length === 0) return
-        if (op === "symmetric") {
-            request("symmetric", targets)
-            return
-        }
-        const block = op === "sign" ? WorkSelection.signBlock : WorkSelection.encryptBlock
-        if (block.length === 0) run(op, targets)
-        // An encryption is asked for again as it was: signed or not.
-        else request(op === "encrypt" && WorkSelection.signingEnabled ? "encrypt_sign" : op,
-                     targets)
-    }
-
-    // Start @p op, and keep what was done with keys to be done again in one
-    // tap. An encryption to keys first asks what the desktop asks
+    // Start @p op. An encryption to keys first asks what the desktop asks
     // (WorkSelection.encryptQuestions), one question after the other.
     function run(op, targets) {
         if (op === "encrypt" && flow.ask)
@@ -106,11 +89,6 @@ QtObject {
     }
 
     function go(op, targets) {
-        if (!flow.start(op, targets)) return
-        if (op === "encrypt")
-            WorkSelection.rememberOperation(WorkSelection.passphraseMode ? "symmetric"
-                                                                         : "encrypt")
-        else if (op === "sign")
-            WorkSelection.rememberOperation("sign")
+        flow.start(op, targets)
     }
 }

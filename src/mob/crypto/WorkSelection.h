@@ -118,12 +118,6 @@ class WorkSelection : public QObject {
   /// every tick.
   Q_PROPERTY(QVariantList shownRecipientKeys READ ShownRecipientKeys NOTIFY
                  SignalChanged)
-  /// The last operation that needed keys, to do again in one tap (the quick
-  /// path): {op: "encrypt" | "symmetric" | "sign", recipientCount,
-  /// recipientKeys (the first few), signs, signerKey}; empty when there is
-  /// none, or when the keys have changed since (any import, deletion, edit
-  /// or switch of key database makes it stale).
-  Q_PROPERTY(QVariantMap lastOperation READ LastOperation NOTIFY SignalChanged)
   /// The key category the recipients were last chosen in; "" for all keys.
   Q_PROPERTY(QString recipientCategory READ RecipientCategory WRITE
                  SetRecipientCategory NOTIFY SignalChanged)
@@ -175,30 +169,12 @@ class WorkSelection : public QObject {
   [[nodiscard]] auto DroppedCount() const -> int;
 
   /// The keys can be read now (a profile is open and its keys listed):
-  /// the preferred signer and the last operation are read from the
-  /// settings, the keys looked up.
+  /// the preferred signer is read from the settings, the keys looked up.
   void SetKeysReady();
 
-  /// The key list was read again: a last operation remembered with other
-  /// keys than there are now is forgotten, and a key database switched to
-  /// takes up its own choice.
+  /// The key list was read again: a key database switched to takes up its
+  /// own choice.
   void KeysRefreshed();
-
-  [[nodiscard]] auto LastOperation() const -> QVariantMap;
-
-  /// What the key list holds now, as a digest: its database, and each key
-  /// and what it can do. A last operation is kept with the digest it was
-  /// made with.
-  [[nodiscard]] auto KeysDigest() const -> QString;
-
-  /// Remember the operation @p op ("encrypt", "symmetric" or "sign") with
-  /// the keys chosen now, as the quick path. Kept in the settings.
-  Q_INVOKABLE void rememberOperation(const QString& op);
-  /// Choose the keys of the last operation again; its op, or empty when
-  /// there is none. The caller then runs it, or asks for what is missing.
-  Q_INVOKABLE QString restoreLast();
-  /// Forget the last operation (any change to the keys does it).
-  void forgetLast();
 
   Q_INVOKABLE void addRecipient(const QString& fingerprint);
   Q_INVOKABLE void removeRecipient(const QString& fingerprint);
@@ -241,8 +217,6 @@ class WorkSelection : public QObject {
   QString recipient_category_;
   QString signer_category_;
   int dropped_ = 0;
-  /// The last operation as stored: op, recipients, signs, signer, digest.
-  QVariantMap last_;
   QStringList recipients_;           ///< in the order chosen
   QSet<QString> recipient_set_;      ///< the same, upper-cased, to look up
   int revision_ = 0;

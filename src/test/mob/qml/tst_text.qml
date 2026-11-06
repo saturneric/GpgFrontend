@@ -29,6 +29,7 @@ Item {
         property bool replacesText: false
         property var held: ({})
         property var started: []
+        property var recipients: []
         property int clears: 0
 
         function begin(op, text) {
@@ -37,7 +38,10 @@ Item {
             busy = true
             return true
         }
-        function encrypt(t, r, s, sym) { return begin("encrypt", t) }
+        function encrypt(t, r, s, sym) {
+            recipients = r
+            return begin("encrypt", t)
+        }
         function decrypt(t, v) { return begin(v ? "decrypt_verify" : "decrypt", t) }
         function sign(t, s) { return begin("sign", t) }
         function verify(t) { return begin("verify", t) }
@@ -78,7 +82,7 @@ Item {
 
         function reset() {
             busy = false; output = ""; sensitive = false; replacesText = false
-            held = {}; started = []; clears = 0
+            held = {}; started = []; recipients = []; clears = 0
         }
     }
 
@@ -158,9 +162,6 @@ Item {
         function test_the_operation_menu_fits_its_names() {
             type("hello")
             const menu = text.operationMenu
-            // A row longer than the style's 200 dp menu, as German names are.
-            const again = menu.againText
-            menu.againText = "Encrypt to Alice and Bob Example"
             menu.openAbove(findByName(text, "operationButton"))
             tryVerify(() => menu.opened)
             let rows = 0
@@ -183,10 +184,20 @@ Item {
             }
             verify(rows >= 6)
             verify(menu.width <= text.width)
-            verify(menu.width > 200)
+            verify(menu.width >= 200)
+            // The operations only, in their order: nothing done again
+            // without its keys being confirmed.
+            compare(findByName(menu.contentItem, "operationAgain"), null)
+            const names = []
+            for (let i = 0; i < menu.count; ++i) {
+                const item = menu.itemAt(i)
+                if (item && item.height > 0 && item.objectName.startsWith("operation_"))
+                    names.push(item.objectName.slice(10))
+            }
+            compare(names.slice(0, 6), ["encrypt", "decrypt", "sign", "verify",
+                                        "encrypt_sign", "decrypt_verify"])
             menu.close()
             tryVerify(() => !menu.visible)
-            menu.againText = again
         }
 
         function test_one_editor_and_no_status_badges() {
@@ -359,6 +370,29 @@ Item {
             compare(noticeStandIn.said, "")
         }
 
+        // Choosing an operation again takes up the keys chosen before in the
+        // toolbox and runs nothing until they are confirmed there; what runs
+        // is given exactly those keys.
+        function test_an_operation_chosen_again_waits_for_its_keys() {
+            const flow = createTemporaryObject(flowComponent, null)
+            const alice = "A".repeat(40)
+            WorkSelection.reset()
+            WorkSelection.addRecipient(alice)
+            flow.request("encrypt", "first")
+            toolboxStandIn.pending.run()
+            compare(flow.ran.length, 1)
+
+            toolboxStandIn.pending = null
+            flow.request("encrypt", "second")
+            verify(toolboxStandIn.pending !== null)
+            compare(flow.ran.length, 1)
+            compare(WorkSelection.recipients, [alice])
+            toolboxStandIn.pending.run()
+            compare(flow.ran.length, 2)
+            compare(flow.ran[1][1], "second")
+            WorkSelection.reset()
+        }
+
         function test_a_refused_recheck_is_said() {
             const flow = createTemporaryObject(flowComponent, null, {
                 "recheck": function(t) { return {"ok": false, "message": "gone"} }
@@ -400,29 +434,6 @@ Item {
                     "Encrypt && Sign")
         }
 
-        function test_the_last_operation_is_said_in_a_line() {
-            compare(Wording.lastOperation({}), "")
-            compare(Wording.lastOperation({"op": "symmetric"}),
-                    "Encrypt with a passphrase")
-            compare(Wording.lastOperation({"op": "sign",
-                                           "signerKey": {"name": "Me"}}),
-                    "Sign as Me")
-            compare(Wording.lastOperation({"op": "encrypt", "recipientCount": 3,
-                                           "recipientKeys": [{"name": "Alice"},
-                                                             {"name": "Bob"}],
-                                           "signs": true,
-                                           "signerKey": {"name": "Me"}}),
-                    "Encrypt to Alice, Bob +1 · signed as Me")
-        }
-
-        function test_keys_are_summed_up_shortly() {
-            compare(Wording.names([{"name": "Alice"}]), "Alice")
-            compare(Wording.names([{"name": "Alice"}, {"email": "b@x"},
-                                   {"keyId": "C"}]), "Alice, b@x +1")
-            // Named from the few shown, counted from all of them.
-            compare(Wording.names([{"name": "Alice"}, {"name": "Bob"}], 500),
-                    "Alice, Bob +498")
-        }
     }
 
     TestCase {
