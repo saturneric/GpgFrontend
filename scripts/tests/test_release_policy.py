@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
 # Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""release/policy.toml and the SECURITY.md it renders.
+"""release/policy.toml, the SECURITY.md it renders, the CI order check and
+scripts/release/cut.sh.
 
 Run: python3 -m unittest discover -s scripts/tests
 """
 
 import copy
 import datetime as dt
+import json
+import os
+import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -17,8 +22,12 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 RELEASE = ROOT / "scripts" / "release"
 sys.path.insert(0, str(RELEASE))
 
+import check_order  # noqa: E402
 import policy  # noqa: E402
 import semver  # noqa: E402
+
+GIT = shutil.which("git")
+CMAKE = shutil.which("cmake")
 
 POLICY = {
     "schema": 1,
@@ -180,6 +189,163 @@ class ToolingIsProductAgnosticTest(unittest.TestCase):
                 self.assertNotIn(slug, path.read_text(encoding="utf-8"),
                                  f"{path} names the product; read "
                                  "release/product.json instead")
+
+
+class CheckOrderTest(unittest.TestCase):
+    TAGS = [semver.parse(v) for v in ("2.1.13", "2.2.4", "2.2.5", "2.3.0-beta.1")]
+
+    def test_main_newer_than_everything(self):
+        self.assertEqual(check_order.check("2.3.0-beta.1.dev.4+gabc", "main",
+                                           self.TAGS, "2.3"), [])
+
+    def test_main_behind_a_release(self):
+        tags = self.TAGS + [semver.parse("2.3.0")]
+        problems = check_order.check("2.3.0-beta.1.dev.9", "main", tags, "2.3")
+        self.assertTrue(any("base tag" in p for p in problems))
+
+    def test_main_in_the_wrong_series(self):
+        problems = check_order.check("2.4.0-alpha.1", "main", self.TAGS, "2.3")
+        self.assertTrue(any("policy" in p for p in problems))
+
+    def test_release_branch(self):
+        self.assertEqual(check_order.check("2.2.6-alpha.1", "release/2.2",
+                                           self.TAGS, "2.3"), [])
+        self.assertTrue(check_order.check("2.4.0-alpha.1", "release/2.2",
+                                          self.TAGS, "2.3"))
+        # Exactly on the newest tag: that release itself.
+        self.assertEqual(check_order.check("2.2.5", "release/2.2",
+                                           self.TAGS, "2.3"), [])
+        self.assertTrue(check_order.check("2.2.4-alpha.3+gabc", "release/2.2",
+                                          self.TAGS, "2.3"))
+
+    def test_release_tags_need_notes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            self.assertTrue(check_order.check_tag("v2.3.0", repo))
+            (repo / "release" / "notes").mkdir(parents=True)
+            (repo / "release" / "notes" / "2.3.0.md").write_text("  \n")
+            self.assertTrue(check_order.check_tag("v2.3.0", repo))
+            (repo / "release" / "notes" / "2.3.0.md").write_text("## 2.3.0\n")
+            self.assertEqual(check_order.check_tag("v2.3.0", repo), [])
+            # A base tag is no release and needs none.
+            self.assertEqual(check_order.check_tag("v2.4.0-alpha.0", repo), [])
+
+    def test_other_refs_are_not_checked(self):
+        self.assertEqual(check_order.check("1.0.0", "feature/x", self.TAGS,
+                                           "2.3"), [])
+
+
+def clean_env():
+    env = {k: v for k, v in os.environ.items()
+           if not k.startswith("GITHUB_") and k != "CI"}
+    env.update({"GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@example.org",
+                "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@example.org",
+                "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1"})
+    return env
+
+
+@unittest.skipUnless(GIT and CMAKE, "needs git and cmake")
+class CutTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp(prefix="gfcut-"))
+        self.repo = self.tmp / "repo"
+        (self.repo / "release").mkdir(parents=True)
+        shutil.copy(ROOT / "release" / "product.json", self.repo / "release")
+        self.write_policy(POLICY)
+        (self.repo / "SECURITY.md").write_text(
+            "# Security\n<!-- policy:versions:begin -->\n"
+            "<!-- policy:versions:end -->\n<!-- policy:keys:begin -->\n"
+            "<!-- policy:keys:end -->\n")
+        self.git("init", "-q", "-b", "main")
+        self.git("add", ".")
+        self.git("commit", "-q", "-m", "init")
+        self.git("tag", "v2.2.4")
+        self.git("commit", "-q", "--allow-empty", "-m", "work")
+        self.git("tag", "v2.3.0")
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def git(self, *args):
+        return subprocess.run(["git", *args], cwd=self.repo, env=clean_env(),
+                              check=True, capture_output=True,
+                              text=True).stdout.strip()
+
+    def write_policy(self, p):
+        lines = ["schema = 1", "", "[signing]",
+                 f'legacy_unsigned_before = "{p["signing"]["legacy_unsigned_before"]}"']
+        for key, entry in p["series"].items():
+            lines += ["", f'[series."{key}"]']
+            for k, v in entry.items():
+                if k == "platforms":
+                    continue
+                lines.append(f'{k} = "{v}"')
+            if "platforms" in entry:
+                lines += ["", f'[series."{key}".platforms]']
+                for k, v in entry["platforms"].items():
+                    lines.append(f"{k} = {json.dumps(v)}")
+        (self.repo / "release" / "policy.toml").write_text("\n".join(lines) + "\n")
+
+    def cut(self, *args):
+        return subprocess.run(["bash", str(RELEASE / "cut.sh"), *args],
+                              cwd=self.repo, env=clean_env(),
+                              capture_output=True, text=True)
+
+    def flipped(self):
+        p = copy.deepcopy(POLICY)
+        p["series"]["2.4"] = {"status": "mainline", "branch": "main",
+                              "platforms": {"windows": "10.0.17763"}}
+        p["series"]["2.3"] = {"status": "stable", "branch": "release/2.3",
+                              "platforms": {"windows": "10.0.17763"}}
+        p["series"]["2.2"] = {"status": "legacy", "branch": "release/2.2",
+                              "eol": "2027-06-30", "successor": "2.3"}
+        return p
+
+    def test_refuses_without_the_policy_flip(self):
+        out = self.cut("2.3", "--no-sign")
+        self.assertNotEqual(out.returncode, 0)
+        self.assertIn("edit release/policy.toml", out.stderr)
+
+    def test_cut_moves_main_on(self):
+        self.write_policy(self.flipped())
+        out = self.cut("2.3", "--no-sign")
+        self.assertEqual(out.returncode, 0, out.stderr)
+
+        self.assertEqual(self.git("rev-parse", "release/2.3"),
+                         self.git("rev-parse", "v2.3.0^{commit}"))
+        self.assertEqual(self.git("describe", "--tags", "--exact-match", "main"),
+                         "v2.4.0-alpha.0")
+        # The branch cannot reach the base tag.
+        self.assertEqual(
+            self.git("tag", "--merged", "release/2.3", "--list", "v2.4*"), "")
+        self.assertIn("2.4.x", (self.repo / "SECURITY.md").read_text())
+        self.assertIn("git push origin release/2.3 main v2.4.0-alpha.0",
+                      out.stdout)
+
+        for ref, want in (("main", "2.4"), ("release/2.3", "2.3")):
+            self.git("checkout", "-q", ref)
+            version = check_order.derived_version(self.repo, ref)
+            self.assertEqual(semver.parse(version).series, want, version)
+            problems = check_order.check(
+                version, ref, check_order.release_tags(self.repo),
+                policy.mainline(policy.load_policy(
+                    self.repo / "release" / "policy.toml")))
+            self.assertEqual(problems, [], ref)
+
+    def test_refuses_twice(self):
+        self.write_policy(self.flipped())
+        self.assertEqual(self.cut("2.3", "--no-sign").returncode, 0)
+        self.write_policy(self.flipped())
+        out = self.cut("2.3", "--no-sign")
+        self.assertNotEqual(out.returncode, 0)
+        self.assertIn("already exists", out.stderr)
+
+    def test_refuses_other_changes(self):
+        self.write_policy(self.flipped())
+        (self.repo / "release" / "product.json").write_text("{}\n")
+        out = self.cut("2.3", "--no-sign")
+        self.assertNotEqual(out.returncode, 0)
+        self.assertIn("commit or stash", out.stderr)
 
 
 if __name__ == "__main__":
