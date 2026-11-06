@@ -1483,7 +1483,7 @@ jobs:
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "build-tools;36.0.0"
 
       - name: Download Unsigned Packages
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: unsigned-android-${{ matrix.arch }}
           path: ${{ runner.temp }}/unsigned
@@ -2120,7 +2120,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Download Unsigned Bundle
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: unsigned-macos-app-${{ matrix.os }}
           path: ${{ runner.temp }}/unsigned
@@ -2702,13 +2702,13 @@ jobs:
           lfs: "false"
 
       - name: Download Build Info
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: buildinfo-${{ matrix.os }}-installed
           path: buildinfo/
 
       - name: Download Signed Artifact
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: gpgfrontend-${{ matrix.os }}-installed
           path: signed/
@@ -2891,13 +2891,13 @@ jobs:
       # file is known and two legs shipping the same file name is an error
       # instead of a silent overwrite.
       - name: Download Artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           path: in/
           pattern: gpgfrontend-*
 
       - name: Download Build Info
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           path: in/
           pattern: buildinfo-*
@@ -2954,7 +2954,7 @@ jobs:
           lfs: "false"
 
       - name: Download Release Candidate
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: release-candidate
           path: candidate/
@@ -3075,7 +3075,7 @@ jobs:
           sparse-checkout: scripts/android
 
       - name: Download Unsigned Bundle
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: unsigned-android-arm64-v8a
           path: ${{ runner.temp }}/unsigned

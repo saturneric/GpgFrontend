@@ -507,7 +507,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Download Unsigned Bundle
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: unsigned-mas-app-${{ matrix.os }}
           path: ${{ runner.temp }}/unsigned
