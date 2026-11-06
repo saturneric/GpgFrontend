@@ -18,7 +18,9 @@ import GpgFrontend.Mobile
 BottomSheet {
     id: sheet
 
-    property KeyDatabasesController databases
+    // The KeyDatabasesController (or, in a test, anything with its
+    // databases list).
+    property var databases: null
     // What runs a switch once one is chosen (KeyDatabaseSwitchSheet), placed
     // beside this sheet by the page: declared inside it, a closed sheet, it
     // would have no window to come up in.
@@ -27,7 +29,7 @@ BottomSheet {
     property bool naming: false
     // The core is busy with the databases (opening one at startup): nothing
     // to choose until it is done.
-    readonly property bool busy: databases !== null && databases.busy
+    readonly property bool busy: !!databases && databases.busy === true
 
     function begin() {
         // A switch still running is shown, not a second one begun.
@@ -92,12 +94,23 @@ BottomSheet {
             model: sheet.databases ? sheet.databases.databases : []
 
             RadioDelegate {
+                id: row
+
                 required property var modelData
+                // One this app cannot open (another engine's, a desktop's
+                // GnuPG keyring): listed, so the profile's keyrings are all
+                // seen, but not to be chosen; its line says why.
+                readonly property bool usable: modelData.available !== false
+                readonly property string detail: usable
+                    ? (modelData.backend || "")
+                    : qsTranslate("FilesPage", "%1 · %2").arg(modelData.backend || "").arg(modelData.reason || "")
+
                 objectName: "keyDatabase_" + modelData.name
                 Layout.fillWidth: true
                 leftPadding: Theme.sheetPad
                 rightPadding: Theme.sheetPad - 8
                 text: modelData.name
+                Accessible.description: detail
                 // The one in use, until another has worked: checkable, so
                 // TalkBack says which, but a tap that ticks the row gives it
                 // back its binding at once; the switch is asked for.
@@ -105,8 +118,40 @@ BottomSheet {
                 autoExclusive: false
                 checked: modelData.current
                 onToggled: checked = Qt.binding(() => modelData.current)
-                enabled: !sheet.busy
+                enabled: !sheet.busy && usable
                 onClicked: sheet.choose(modelData.id, modelData.name, modelData.current)
+
+                contentItem: RowLayout {
+                    spacing: 12
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        Layout.preferredWidth: 0
+                        spacing: 2
+
+                        Label {
+                            Layout.fillWidth: true
+                            text: row.text
+                            wrapMode: Text.Wrap
+                            font.pixelSize: Theme.bodySize
+                        }
+
+                        Label {
+                            objectName: "keyDatabaseDetail"
+                            Layout.fillWidth: true
+                            visible: text.length > 0
+                            text: row.detail
+                            wrapMode: Text.Wrap
+                            font.pixelSize: Theme.secondarySize
+                            color: Material.secondaryTextColor
+                        }
+                    }
+
+                    // The radio button's room, as the style's own label keeps it.
+                    Item {
+                        Layout.preferredWidth: row.indicator.width + row.spacing
+                    }
+                }
             }
         }
     }

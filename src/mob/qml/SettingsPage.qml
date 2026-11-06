@@ -44,9 +44,10 @@ Page {
         id: settings
     }
 
-    KeyDatabasesController {
-        id: keyDatabases
-    }
+    // The key databases: the application's one controller (MainPage), so
+    // a switch begun on one page is seen as under way on the other; its own
+    // where the page stands alone.
+    property KeyDatabasesController keyDatabases: KeyDatabasesController {}
 
     ProfilesController {
         id: phoneProfiles

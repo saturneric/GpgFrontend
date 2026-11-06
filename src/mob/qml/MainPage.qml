@@ -92,6 +92,12 @@ Page {
         return Theme.closeOpenSheets()
     }
 
+    // One for the application: a switch begun from Keys or from Settings is
+    // seen under way on both.
+    KeyDatabasesController {
+        id: sharedDatabases
+    }
+
     // Back to the first page of the Keys and the Settings tabs, but for a
     // page at work (it ends what it does first).
     function popToRoot(view) {
@@ -136,6 +142,7 @@ Page {
                 id: keysPage
 
                 creatingKey: generateSheet.quickRunning
+                keyDatabases: sharedDatabases
                 onKeyChosen: function(key) {
                     stack.push(keyDetail, {"key": key})
                 }
@@ -154,6 +161,7 @@ Page {
             id: settingsStack
 
             initialItem: SettingsPage {
+                keyDatabases: sharedDatabases
                 onAboutRequested: settingsStack.push(about)
                 onBuildInfoRequested: settingsStack.push(buildInfo)
                 onEngineInfoRequested: settingsStack.push(engineInfo)

@@ -225,6 +225,33 @@ Item {
             tryVerify(() => !progress.visible)
         }
 
+        // A key database this app cannot open is listed with its type and
+        // why, not to be chosen; one that opened says its type.
+        function test_a_database_of_another_engine_is_shown_disabled() {
+            const choose = keys.databaseSheet
+            const fake = {"databases": [
+                {"id": "a", "name": "Phone", "backend": "rPGP", "available": true,
+                 "reason": "", "current": true},
+                {"id": "b", "name": "Desktop", "backend": "GnuPG", "available": false,
+                 "reason": "Uses GnuPG, which this app does not have.", "current": false}],
+                "busy": false}
+            const before = choose.databases
+            choose.databases = fake
+            choose.open()
+            tryVerify(() => choose.opened)
+            const phone = findByName(choose.contentItem, "keyDatabase_Phone")
+            const desktop = findByName(choose.contentItem, "keyDatabase_Desktop")
+            verify(phone.enabled)
+            verify(!desktop.enabled)
+            compare(phone.detail, "rPGP")
+            verify(desktop.detail.indexOf("GnuPG") === 0)
+            verify(desktop.detail.indexOf("does not have") > 0)
+            compare(desktop.Accessible.description, desktop.detail)
+            choose.close()
+            tryVerify(() => !choose.visible)
+            choose.databases = before
+        }
+
         // A management page: the title is always Keys, and nothing on it
         // chooses keys for an operation.
         function test_the_keys_page_chooses_nothing_for_an_operation() {

@@ -60,9 +60,10 @@ Page {
 
     Component.onCompleted: categoryStore.SignalChanged.connect(page.categoriesChanged)
 
-    KeyDatabasesController {
-        id: keyDatabases
-    }
+    // The key databases: the application's one controller (MainPage), so
+    // a switch begun on one page is seen as under way on the other; its own
+    // where the page stands alone.
+    property KeyDatabasesController keyDatabases: KeyDatabasesController {}
 
     // A long press on a key: the categories it is in.
     KeyCategoriesSheet {

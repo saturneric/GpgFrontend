@@ -26,6 +26,7 @@
  *
  */
 #include <QDir>
+#include <QTemporaryDir>
 
 #include "MobileTest.h"
 #include "core/function/GlobalSettingStation.h"
@@ -141,6 +142,53 @@ TEST_F(KeyDatabasesTest, ListsTheDatabaseInUse) {
     EXPECT_EQ(map.value("name").toString(), current_name);
   }
   EXPECT_EQ(current, 1);
+}
+
+// A profile from a desktop may hold a GnuPG keyring: listed with its type,
+// so it is clear the profile has it, never to be switched to here.
+TEST_F(KeyDatabasesTest, AnotherEnginesDatabaseIsShownNotChosen) {
+  const QString id = "mobile-test-gnupg-db";
+  QTemporaryDir folder;
+  {
+    SettingsObject so(QString::fromLatin1(kKeyDatabaseListObject));
+    KeyDatabaseListSO list(so);
+    KeyDatabaseItemSO item;
+    item.id = id;
+    item.name = "Desktop GnuPG";
+    item.path = folder.path();
+    item.channel = 7;
+    item.backend_type = "gnupg";
+    item.kind = KeyDatabaseKind::kEXTERNAL;
+    list.key_databases.append(item);
+    so.Store(list.ToJson());
+  }
+  ApplyKeyDatabaseRuntime();
+
+  QVariantMap entry;
+  QVariantMap in_use;
+  RunOnMainThread([&]() {
+    const auto list = dbs_->Databases();
+    entry = FindDatabase(list, "Desktop GnuPG");
+    for (const auto& d : list) {
+      if (d.toMap().value("current").toBool()) in_use = d.toMap();
+    }
+  });
+  ASSERT_FALSE(entry.isEmpty());
+  EXPECT_FALSE(entry.value("available").toBool());
+  EXPECT_EQ(entry.value("backend").toString(), "GnuPG");
+  EXPECT_TRUE(entry.value("reason").toString().contains("GnuPG"))
+      << entry.value("reason").toString().toStdString();
+  EXPECT_FALSE(entry.value("current").toBool());
+  // The one in use says which engine it is.
+  EXPECT_TRUE(in_use.value("available").toBool());
+  EXPECT_EQ(in_use.value("backend").toString(), "rPGP");
+
+  const auto refused = Act([&](auto* dbs) { dbs->switchTo(id); });
+  EXPECT_FALSE(refused.succeeded);
+  EXPECT_FALSE(refused.error.isEmpty());
+  EXPECT_EQ(CurrentDatabaseId(), original_);
+
+  Forget(id, {});
 }
 
 TEST_F(KeyDatabasesTest, NamesItRefuses) {

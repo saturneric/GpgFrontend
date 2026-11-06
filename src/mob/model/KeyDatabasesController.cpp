@@ -30,6 +30,8 @@
 
 #include <QDir>
 #include <QPointer>
+#include <QSet>
+#include <algorithm>
 #include <optional>
 #include <utility>
 
@@ -69,16 +71,66 @@ KeyDatabasesController::KeyDatabasesController(QObject* parent)
           &KeyDatabasesController::SignalChanged);
 }
 
+namespace {
+
+/// The engine a database is for, as the desktop's table names it: one that
+/// names none is GnuPG's (the desktop's own default), unless it opened
+/// here, where only rPGP opens anything.
+auto BackendName(const QString& backend_type, bool opened) -> QString {
+  const auto token = backend_type.trimmed().toLower();
+  if (token == QStringLiteral("rpgp")) {
+    return ConvertOpenPGPEngine2String(OpenPGPEngine::kRPGP);
+  }
+  if (token == QStringLiteral("gnupg")) {
+    return ConvertOpenPGPEngine2String(OpenPGPEngine::kGNUPG);
+  }
+  const auto gnupg = GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG);
+  return ConvertOpenPGPEngine2String(opened && !gnupg ? OpenPGPEngine::kRPGP
+                                                      : OpenPGPEngine::kGNUPG);
+}
+
+}  // namespace
+
 auto KeyDatabasesController::Databases() const -> QVariantList {
   if (!ProfileSession::Loaded()) return {};
   const auto current = CurrentId();
   QVariantList list;
+  QSet<QString> opened;
   for (const auto& info : GetGpgKeyDatabaseInfos()) {
+    opened.insert(info.id);
     list.append(QVariantMap{
         {QStringLiteral("id"), info.id},
         {QStringLiteral("name"), KeyDatabaseDisplayName(info.id, info.name)},
         {QStringLiteral("path"), info.path},
+        {QStringLiteral("backend"), BackendName(info.backend_type, true)},
+        {QStringLiteral("available"), true},
+        {QStringLiteral("reason"), QString()},
         {QStringLiteral("current"), info.id == current},
+    });
+  }
+  // The profile's others are shown too, so it is clear what it holds, but
+  // not to be chosen: one of an engine this app does not have (a desktop's
+  // GnuPG keyring), or one that did not open.
+  for (const auto& info : GetAllKeyDatabaseInfoBySettings()) {
+    if (opened.contains(info.id)) continue;
+    const auto missing = MissingKeyDatabaseEngine(
+        info.backend_type.isEmpty() ? QStringLiteral("gnupg")
+                                    : info.backend_type,
+        GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG),
+        GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP));
+    list.append(QVariantMap{
+        {QStringLiteral("id"), info.id},
+        {QStringLiteral("name"), KeyDatabaseDisplayName(info.id, info.name)},
+        {QStringLiteral("path"), info.path},
+        {QStringLiteral("backend"), BackendName(info.backend_type, false)},
+        {QStringLiteral("available"), false},
+        {QStringLiteral("reason"),
+         missing.isEmpty()
+             ? tr("It could not be opened.")
+             : tr("Uses %1, which this app does not have. It is kept as it "
+                  "is for the desktop.")
+                   .arg(missing)},
+        {QStringLiteral("current"), false},
     });
   }
   return list;
@@ -118,6 +170,19 @@ void KeyDatabasesController::switchTo(const QString& id) {
     // choice to the fallback.
     if (!model.Contains(id)) {
       emit SignalSwitched(false, tr("This key database is gone."));
+      return;
+    }
+    // Only one that opened: another engine's would be left unopened and
+    // the fallback taken instead.
+    const auto listed = Databases();
+    const auto usable =
+        std::any_of(listed.begin(), listed.end(), [&id](const QVariant& d) {
+          const auto map = d.toMap();
+          return map.value(QStringLiteral("id")).toString() == id &&
+                 map.value(QStringLiteral("available")).toBool();
+        });
+    if (!usable) {
+      emit SignalSwitched(false, tr("This key database cannot be used here."));
       return;
     }
     model.choice_id = id;
