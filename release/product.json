@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "slug": "gpgfrontend",
+  "repository": "saturneric/GpgFrontend",
+  "workflow": ".github/workflows/build.yml",
+  "bases": {
+    "update": ["https://update.bktus.com/", "https://ftp.bktus.com/update/"],
+    "builds": ["https://builds.bktus.com/", "https://ftp.bktus.com/builds/"]
+  },
+  "notes_link_hosts": ["bktus.com", "*.bktus.com", "github.com/saturneric/GpgFrontend"],
+  "artifact_kinds": ["appimage", "msi", "msix", "zip", "dmg", "app-zip", "apk", "aab"],
+  "signing": {
+    "index_keys": [],
+    "artifact_key": "",
+    "maintainer_fingerprints": [],
+    "authenticode_subject": ""
+  }
+}

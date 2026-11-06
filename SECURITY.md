@@ -9,12 +9,34 @@ limited time to dedicate to this project. I sincerely apologize for any
 inconvenience this may cause. The situation may improve in the future. Hence,
 it's recommended to always use the latest version of the application.
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.x.x   | :x:                |
-| 2.x.x   | :x:                |
-| 2.1.x   | :white_check_mark: |
-| 2.2.x   | :white_check_mark: |
+The table below is generated from `release/policy.toml`; edit that file and
+run `scripts/release/policy.py render-security`, never the table itself.
+
+<!-- policy:versions:begin -->
+| Version | Status | Supported | Until |
+| ------- | ------ | --------- | ----- |
+| 2.3.x | In development: nightly and beta builds | :white_check_mark: |  |
+| 2.2.x | Current release: bug and security fixes | :white_check_mark: |  |
+| 2.1.x | Security fixes only (the last series that builds with Qt5); move to 2.2.x | :white_check_mark: | 2027-12-31 |
+| 2.0.x | End of life; move to 2.2.x | :x: |  |
+| 1.x.x | End of life; move to 2.2.x | :x: |  |
+<!-- policy:versions:end -->
+
+## Verifying Downloads
+
+Which key signs which releases (generated from `release/policy.toml` and
+`release/product.json`):
+
+<!-- policy:keys:begin -->
+Releases from 2.2.5 on carry a detached signature for every file:
+
+| Releases | Signed with | Verify with |
+| -------- | ----------- | ----------- |
+| Stable (vX.Y.Z) | OpenPGP, detached `.asc` per file | not yet published |
+| Beta, rc and nightly | minisign, `.minisig` per file | not yet published |
+
+Check a stable download with `gpg --verify FILE.asc FILE`, a beta or nightly one with `minisign -Vm FILE -P <key>`. Windows installers of stable releases are also Authenticode-signed.
+<!-- policy:keys:end -->
 
 ## Platform & Library Support
 
