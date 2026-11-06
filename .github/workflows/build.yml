@@ -1113,11 +1113,12 @@ jobs:
   # never served.
   #
   # Off until the maintainer sets the repository variable R2_STAGING_ENABLED
-  # to "true" and gives the `r2-staging` environment:
-  #   secrets R2_STAGING_ACCESS_KEY_ID, R2_STAGING_SECRET_ACCESS_KEY (an R2
-  #           token with Object Read & Write on the staging bucket only);
-  #   variables R2_ENDPOINT (https://<account>.r2.cloudflarestorage.com) and
-  #           R2_STAGING_BUCKET.
+  # to "true" (a variable, not a secret: a job's `if:` cannot read secrets)
+  # and gives the `r2-staging` environment the secrets
+  #   R2_STAGING_ACCESS_KEY_ID, R2_STAGING_SECRET_ACCESS_KEY  an R2 token with
+  #                                 Object Read & Write on the staging bucket only
+  #   R2_ENDPOINT                   https://<account>.r2.cloudflarestorage.com
+  #   R2_STAGING_BUCKET             the staging bucket's name
   stage:
     needs: [setup, provenance]
     if: >-
@@ -1150,17 +1151,21 @@ jobs:
       # derived them from git; the signing host derives them again.
       - name: Upload To Staging
         env:
+          RCLONE_CONFIG: /dev/null
           RCLONE_CONFIG_STAGING_TYPE: s3
           RCLONE_CONFIG_STAGING_PROVIDER: Cloudflare
-          RCLONE_CONFIG_STAGING_ENDPOINT: ${{ vars.R2_ENDPOINT }}
+          RCLONE_CONFIG_STAGING_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
           RCLONE_CONFIG_STAGING_ACCESS_KEY_ID: ${{ secrets.R2_STAGING_ACCESS_KEY_ID }}
           RCLONE_CONFIG_STAGING_SECRET_ACCESS_KEY: ${{ secrets.R2_STAGING_SECRET_ACCESS_KEY }}
           RCLONE_CONFIG_STAGING_NO_CHECK_BUCKET: "true"
-          STAGING_BUCKET: ${{ vars.R2_STAGING_BUCKET }}
+          STAGING_BUCKET: ${{ secrets.R2_STAGING_BUCKET }}
           VERSION: ${{ needs.setup.outputs.version }}
           ARTIFACT_VERSION: ${{ needs.setup.outputs.artifact_version }}
         run: |
           set -euo pipefail
+          # Without an endpoint rclone talks to AWS S3, and its 403 hides why.
+          : "${RCLONE_CONFIG_STAGING_ENDPOINT:?the r2-staging environment has no R2_ENDPOINT secret}"
+          : "${STAGING_BUCKET:?the r2-staging environment has no R2_STAGING_BUCKET secret}"
           python3 scripts/release/gfrelease stage \
             --candidate candidate \
             --staging "staging:${STAGING_BUCKET}" \
