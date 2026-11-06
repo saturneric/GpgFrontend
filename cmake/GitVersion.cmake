@@ -28,6 +28,10 @@
 #   cmake -P cmake/GitVersion.cmake                  # JSON on stdout
 #   cmake -DGF_FIELD=version -P cmake/GitVersion.cmake  # one bare field
 #
+# GPGFRONTEND_VERSION_REV=<commit> asks about that commit instead of the work
+# tree, and the repository may then be bare: how the release tooling learns,
+# from git and not from what a build claims, which version a commit is.
+#
 # Rules (SemVer 2.0.0):
 #   on a tag vX.Y.Z[-beta.N|-rc.N]       -> the tag without "v"
 #   N commits after vX.Y.Z-alpha.0       -> X.Y.Z-alpha.N+g<sha12>
@@ -269,10 +273,24 @@ function(gf_git_version source_dir)
   set(_describe "")
   set(_commit "")
   set(_tag "")
-  if(GIT_EXECUTABLE AND EXISTS "${source_dir}/.git")
+  # The work tree (and whether it is dirty), or one given commit of a
+  # repository that may be bare.
+  set(_rev "")
+  set(_dirty_arg "--dirty=-dirty")
+  set(_head "HEAD")
+  set(_has_git FALSE)
+  if(DEFINED GPGFRONTEND_VERSION_REV AND NOT GPGFRONTEND_VERSION_REV STREQUAL "")
+    set(_rev "${GPGFRONTEND_VERSION_REV}")
+    set(_dirty_arg "")
+    set(_head "${_rev}^{commit}")
+    set(_has_git TRUE)
+  elseif(EXISTS "${source_dir}/.git")
+    set(_has_git TRUE)
+  endif()
+  if(GIT_EXECUTABLE AND _has_git)
     execute_process(
       COMMAND "${GIT_EXECUTABLE}" describe --tags --long --abbrev=12
-              --dirty=-dirty "--match=v[0-9]*.[0-9]*.[0-9]*"
+              ${_dirty_arg} "--match=v[0-9]*.[0-9]*.[0-9]*" ${_rev}
       WORKING_DIRECTORY "${source_dir}"
       OUTPUT_VARIABLE _describe
       OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -282,7 +300,7 @@ function(gf_git_version source_dir)
       set(_describe "")
     endif()
     execute_process(
-      COMMAND "${GIT_EXECUTABLE}" rev-parse HEAD
+      COMMAND "${GIT_EXECUTABLE}" rev-parse --verify -q "${_head}"
       WORKING_DIRECTORY "${source_dir}"
       OUTPUT_VARIABLE _commit
       OUTPUT_STRIP_TRAILING_WHITESPACE

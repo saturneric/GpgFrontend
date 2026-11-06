@@ -289,6 +289,24 @@ class GitVersionTest(unittest.TestCase):
         self.assertEqual(v["version"], "0.0.0-unknown")
         self.assertEqual(v["source"], "unknown")
 
+    def test_a_given_commit_of_a_bare_mirror(self):
+        self.commit()
+        self.git("tag", "v2.2.4")
+        self.commit(2)
+        old = self.git("rev-parse", "HEAD")
+        self.commit(3)  # the mirror has moved on; the commit asked about has not
+        bare = self.tmp / "mirror.git"
+        subprocess.run([GIT, "clone", "-q", "--mirror", str(self.repo), str(bare)],
+                       env=clean_env(), check=True)
+        v = self.derive(src=bare, defines=[f"-DGPGFRONTEND_VERSION_REV={old}",
+                                          "-DGPGFRONTEND_VERSION_REF=main"])
+        self.assertEqual(v["version"], f"2.3.0-alpha.2+g{old[:12]}")
+        self.assertEqual(v["commit"], old)
+        # The work tree's dirt never reaches a version asked of a commit.
+        (self.repo / "f").write_text("dirty")
+        v = self.derive(defines=[f"-DGPGFRONTEND_VERSION_REV={old}"])
+        self.assertNotIn("dirty", v["version"])
+
     def test_override_wins(self):
         self.commit()
         self.git("tag", "v2.2.4")
