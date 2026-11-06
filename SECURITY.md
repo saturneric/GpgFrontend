@@ -33,7 +33,7 @@ Releases from 2.2.5 on carry a detached signature for every file:
 | Releases | Signed with | Verify with |
 | -------- | ----------- | ----------- |
 | Stable (vX.Y.Z) | OpenPGP, detached `.asc` per file | not yet published |
-| Beta, rc and nightly | minisign, `.minisig` per file | not yet published |
+| Beta, rc and nightly | minisign, `.minisig` per file | `RWSxNasy+OIaiWWGzwNYu223e0UNDwrsb+4S/ttGO8knO/URmtMtDpse` |
 
 Check a stable download with `gpg --verify FILE.asc FILE`, a beta or nightly one with `minisign -Vm FILE -P <key>`. Windows installers of stable releases are also Authenticode-signed.
 <!-- policy:keys:end -->
