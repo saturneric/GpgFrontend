@@ -1,0 +1,100 @@
+# Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
+"""A place files live: an R2 bucket prefix in production, a directory in a
+rehearsal. Both through rclone, so a rehearsal runs exactly the production
+code path.
+
+A root is any rclone path: "r2:bktus-builds/<slug>", "/srv/rehearsal/builds".
+For R2 the remote comes from rclone's environment configuration
+(RCLONE_CONFIG_<NAME>_TYPE=s3 and so on), never from a file in the repo.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import subprocess
+import tempfile
+from pathlib import Path
+
+from common import ReleaseError, check_relpath, run, sha256_file
+
+
+class Store:
+    def __init__(self, root: str, rclone: str = "rclone"):
+        if not root:
+            raise ReleaseError("a store root is required")
+        self.root = root.rstrip("/")
+        self.rclone = rclone
+
+    def _at(self, path: str = "") -> str:
+        return f"{self.root}/{check_relpath(path)}" if path else self.root
+
+    def __str__(self) -> str:
+        return self.root
+
+    def files(self, prefix: str = "", include: str | None = None) -> list[str]:
+        """Every file under prefix, recursively, relative to it."""
+        cmd = [self.rclone, "lsf", "--recursive", "--files-only", self._at(prefix)]
+        if include:
+            cmd[2:2] = ["--include", include]
+        out = run(cmd, check=False)
+        if out.returncode != 0:
+            if "directory not found" in out.stderr or "not found" in out.stderr:
+                return []
+            raise ReleaseError(f"listing {self._at(prefix)}: {out.stderr.strip()}")
+        return sorted(line for line in out.stdout.splitlines() if line)
+
+    def exists(self, path: str) -> bool:
+        out = run([self.rclone, "lsjson", "--files-only", self._at(path)],
+                  check=False)
+        return out.returncode == 0 and json.loads(out.stdout or "[]") != []
+
+    def read(self, path: str) -> bytes:
+        out = run([self.rclone, "cat", self._at(path)], text=False)
+        return out.stdout
+
+    def download(self, prefix: str, local: Path) -> None:
+        run([self.rclone, "copy", self._at(prefix), str(local)])
+
+    def sha256(self, path: str) -> str:
+        """Of the stored bytes themselves, streamed: no backend's own hash
+        (an S3 ETag is not one for a multipart upload) is trusted for it."""
+        h = hashlib.sha256()
+        with subprocess.Popen([self.rclone, "cat", self._at(path)],
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.DEVNULL) as proc:
+            for chunk in iter(lambda: proc.stdout.read(1 << 20), b""):
+                h.update(chunk)
+        if proc.returncode != 0:
+            raise ReleaseError(f"reading {self._at(path)} failed")
+        return h.hexdigest()
+
+    def put_file(self, local: Path, path: str, immutable: bool = True) -> None:
+        """Immutable by default: an existing object with other bytes is an
+        error, the same bytes are skipped. What makes a rerun safe and a
+        replaced artifact impossible.
+
+        Checked here rather than left to `rclone --immutable`, which
+        `copyto` ignores (it overwrote a different file in testing). Runs on
+        one store are serialized (the host's lock; staging paths are per
+        version), so the check and the upload cannot interleave with
+        another writer of the same path."""
+        if immutable and self.exists(path):
+            if self.sha256(path) != sha256_file(local):
+                raise ReleaseError(f"{self._at(path)} exists with other bytes; "
+                                   "a published object is never replaced")
+            return
+        run([self.rclone, "copyto", str(local), self._at(path)])
+
+    def put_bytes(self, data: bytes, path: str, immutable: bool = True) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            local = Path(tmp) / "object"
+            local.write_bytes(data)
+            self.put_file(local, path, immutable)
+
+    def copy_tree(self, prefix: str, other: "Store") -> None:
+        """Mirrors a whole prefix; `copy` (unlike `copyto`) does honour
+        --immutable, so an object the mirror holds with other bytes fails."""
+        run([self.rclone, "copy", "--immutable", self._at(prefix),
+             other._at(prefix)])

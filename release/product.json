@@ -7,8 +7,79 @@
     "update": ["https://update.bktus.com/", "https://ftp.bktus.com/update/"],
     "builds": ["https://builds.bktus.com/", "https://ftp.bktus.com/builds/"]
   },
-  "notes_link_hosts": ["bktus.com", "*.bktus.com", "github.com/saturneric/GpgFrontend"],
-  "artifact_kinds": ["appimage", "msi", "msix", "zip", "dmg", "app-zip", "apk", "aab"],
+  "notes_link_hosts": [
+    "bktus.com",
+    "*.bktus.com",
+    "github.com/saturneric/GpgFrontend"
+  ],
+  "artifact_kinds": [
+    "appimage",
+    "msi",
+    "msix",
+    "zip",
+    "dmg",
+    "app-zip",
+    "apk",
+    "aab"
+  ],
+  "artifact_prefix": "GpgFrontend-",
+  "artifacts": [
+    {
+      "match": "^linux-(?P<arch>x86_64|aarch64)\\.AppImage$",
+      "os": "linux",
+      "arch": "{arch}",
+      "kind": "appimage",
+      "flavor": "installed"
+    },
+    {
+      "match": "^linux-(?P<arch>x86_64|aarch64)-portable\\.AppImage$",
+      "os": "linux",
+      "arch": "{arch}",
+      "kind": "appimage",
+      "flavor": "portable"
+    },
+    {
+      "match": "^windows-x86_64\\.msi$",
+      "os": "windows",
+      "arch": "x86_64",
+      "kind": "msi",
+      "flavor": "installed"
+    },
+    {
+      "match": "^windows-x86_64-portable\\.zip$",
+      "os": "windows",
+      "arch": "x86_64",
+      "kind": "zip",
+      "flavor": "portable"
+    },
+    {
+      "match": "^android-(?P<arch>arm64-v8a|x86_64)\\.apk$",
+      "os": "android",
+      "arch": "{arch}",
+      "kind": "apk",
+      "flavor": "installed"
+    },
+    {
+      "match": "^macos-(?P<major>\\d+)-intel\\.dmg$",
+      "os": "macos",
+      "arch": "x86_64",
+      "kind": "dmg",
+      "flavor": "installed",
+      "min_os": {
+        "macos": "{major}.0"
+      }
+    },
+    {
+      "match": "^macos-(?P<major>\\d+)\\.dmg$",
+      "os": "macos",
+      "arch": "arm64",
+      "kind": "dmg",
+      "flavor": "installed",
+      "min_os": {
+        "macos": "{major}.0"
+      }
+    }
+  ],
   "signing": {
     "index_keys": [],
     "artifact_key": "",
