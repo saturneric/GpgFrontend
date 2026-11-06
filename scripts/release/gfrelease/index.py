@@ -20,12 +20,17 @@ import json
 import tempfile
 from pathlib import Path
 
+import authenticode
 import minisig
-from common import (DESCRIPTOR, INDEX, SCHEMA, Product, ReleaseError,
+import openpgp
+from common import (ASC, BUNDLE, DESCRIPTOR, INDEX, SCHEMA, SUMS, Product,
+                    ReleaseError, run,
                     canonical_json, check_relpath, iso, parse_iso, semver,
                     sha256_bytes, utcnow)
 from store import Store
 from verify import parse_sums
+
+import release_candidate as rc  # noqa: E402  (scripts/, on the path via common)
 
 LIFETIME = dt.timedelta(days=14)
 RESIGN_BEFORE = dt.timedelta(days=7)
@@ -66,9 +71,133 @@ def admit_nightly(product: Product, builds: Store, path: str, raw: bytes,
     return d
 
 
-def build(product: Product, builds: Store, artifact_pub: str) -> dict:
+def release_notes(git_dir: Path, version: str) -> bytes | None:
+    """A release's notes as reviewed: main's copy (where a typo is fixed after
+    the release) or, without one, the tagged tree's."""
+    for ref in ("refs/heads/main", f"v{version}"):
+        out = run(["git", "-C", git_dir, "show",
+                   f"{ref}:release/notes/{version}.md"], check=False, text=False)
+        if out.returncode == 0 and out.stdout.strip():
+            return out.stdout
+    return None
+
+
+def admit_stable(product: Product, builds: Store, path: str, raw: bytes, *,
+                 git_dir: Path, state_dir: Path, cosign: str, tmp: Path,
+                 authenticode_ca: str | None = None) -> tuple[dict, dict]:
+    """A stable release is listed only with everything the offline stage
+    promises (scripts/release/gfrelease/stable.py), checked again here.
+
+    Returns the descriptor and its index entry. What was checked is recorded
+    under the state directory, keyed by the descriptor's and the notes'
+    hashes: a release is checked again only when either changes, not on every
+    round (checking an installer means downloading it).
+    """
+    d = json.loads(raw)
+    version = d.get("version", "")
+    prefix = f"releases/{version}"
+    if d.get("schema") != SCHEMA or d.get("product") != product.slug or \
+            d.get("kind") != "stable" or path != f"{prefix}/{DESCRIPTOR}":
+        raise ReleaseError(f"{path}: not a {product.slug} stable release")
+    v = semver.parse(version)
+    if v.prerelease or v.build:
+        raise ReleaseError(f"{path}: {version} is not a final release")
+    tag = f"v{version}"
+    if d.get("ref") != f"refs/tags/{tag}":
+        raise ReleaseError(f"{path}: not built from {tag}")
+    signing = d.get("signing", {})
+    if signing.get("scheme") != "openpgp" or \
+            signing.get("fingerprint", "").upper() not in product.maintainers:
+        raise ReleaseError(f"{path}: not signed with a pinned maintainer key")
+    for p in [d["sums"], d["sums_sig"], d["build"]["sums"],
+              d["build"]["bundle"]] + [a[k] for a in d["artifacts"]
+                                       for k in ("path", "sig")]:
+        if not check_relpath(p).startswith(prefix + "/"):
+            raise ReleaseError(f"{path}: {p} is outside its own release")
+
+    notes = release_notes(git_dir, version)
+    if notes is None:
+        raise ReleaseError(f"{tag}: no release notes to publish with it")
+    notes_sha = sha256_bytes(notes)
+    notes_path = f"notes/{version}/{notes_sha}.md"
+    entry = {"descriptor": path, "sha256": sha256_bytes(raw),
+             "notes": notes_path, "notes_sha256": notes_sha,
+             "notes_sig": notes_path + ASC}
+
+    record = state_dir / "admitted" / f"{version}.json"
+    if record.exists() and json.loads(record.read_text()) == entry:
+        return d, entry
+
+    work = tmp / version
+    work.mkdir(parents=True, exist_ok=True)
+    with openpgp.Keyring(product.keyring_path, product.maintainers) as ring:
+        # The tag: a maintainer's, and the commit that was built.
+        ring.verify_tag(git_dir, tag)
+        tagged = run(["git", "-C", git_dir, "rev-parse",
+                      f"{tag}^{{commit}}"]).stdout.strip()
+        if tagged != d["commit"]:
+            raise ReleaseError(f"{path}: {tag} is {tagged}, not {d['commit']}")
+
+        # The final manifest, signed by a maintainer, and exactly the
+        # descriptor's hashes.
+        for name, rel in ((SUMS, d["sums"]), (SUMS + ASC, d["sums_sig"])):
+            (work / name).write_bytes(builds.read(rel))
+        ring.verify(work / SUMS, work / (SUMS + ASC))
+        if parse_sums((work / SUMS).read_bytes()) != \
+                {a["name"]: a["sha256"] for a in d["artifacts"]}:
+            raise ReleaseError(f"{path}: artifacts differ from the signed "
+                               "manifest")
+
+        # The notes, signed by a maintainer.
+        if not builds.exists(notes_path) or not builds.exists(notes_path + ASC):
+            raise ReleaseError(
+                f"{tag}: the notes main has for it are not signed and uploaded "
+                f"yet (gfrelease stable {version} --notes-only)")
+        (work / "notes.md").write_bytes(builds.read(notes_path))
+        (work / "notes.md.asc").write_bytes(builds.read(notes_path + ASC))
+        if sha256_bytes((work / "notes.md").read_bytes()) != notes_sha:
+            raise ReleaseError(f"{notes_path}: not the reviewed notes")
+        ring.verify(work / "notes.md", work / "notes.md.asc")
+
+    # What CI built, as Sigstore says: every file's build hash.
+    build = work / "build"
+    build.mkdir(exist_ok=True)
+    (build / SUMS).write_bytes(builds.read(d["build"]["sums"]))
+    (build / BUNDLE).write_bytes(builds.read(d["build"]["bundle"]))
+    try:
+        rc.cosign_verify(build, product.identity(d["ref"]), d["commit"], cosign)
+        built = rc.parse_manifest((build / SUMS).read_bytes())
+    except rc.CandidateError as e:
+        raise ReleaseError(f"{path}: {e}") from e
+    for a in d["artifacts"]:
+        if built.get(a["name"]) != a["build_sha256"]:
+            raise ReleaseError(f"{a['name']}: not what CI built")
+        if a["transform"] == "none":
+            if a["sha256"] != a["build_sha256"]:
+                raise ReleaseError(f"{a['name']}: changed without a transform")
+        elif a["transform"] == "authenticode":
+            local = work / a["name"]
+            local.write_bytes(builds.read(a["path"]))
+            if sha256_bytes(local.read_bytes()) != a["sha256"]:
+                raise ReleaseError(f"{a['name']}: not the published bytes")
+            authenticode.verify(local, product.authenticode_subject,
+                                authenticode_ca)
+            local.unlink()
+        else:
+            raise ReleaseError(f"{a['name']}: unknown transform "
+                               f"{a['transform']!r}")
+
+    record.parent.mkdir(parents=True, exist_ok=True)
+    record.write_text(json.dumps(entry, sort_keys=True))
+    return d, entry
+
+
+def build(product: Product, builds: Store, artifact_pub: str, *,
+          git_dir: Path | None = None, state_dir: Path | None = None,
+          cosign: str = "cosign", authenticode_ca: str | None = None) -> dict:
     """The index's content, without serial and times."""
     nightly = None
+    releases: dict[str, dict] = {}
     with tempfile.TemporaryDirectory(prefix="gfr-index-") as tmp:
         for rel in builds.files("nightly", include=f"*/{DESCRIPTOR}"):
             path = f"nightly/{rel}"
@@ -83,6 +212,17 @@ def build(product: Product, builds: Store, artifact_pub: str) -> dict:
                 nightly = {"version": d["version"], "descriptor": path,
                            "sha256": sha256_bytes(raw)}
 
+        for rel in builds.files("releases", include=f"*/{DESCRIPTOR}"):
+            path = f"releases/{rel}"
+            if git_dir is None or state_dir is None:
+                raise ReleaseError("stable releases need --git-dir and "
+                                   "--state-dir to be admitted")
+            d, entry = admit_stable(product, builds, path, builds.read(path),
+                                    git_dir=git_dir, state_dir=state_dir,
+                                    cosign=cosign, tmp=Path(tmp),
+                                    authenticode_ca=authenticode_ca)
+            releases[d["version"]] = entry
+
     series = {}
     for key, entry in product.policy["series"].items():
         series[key] = {k: entry.get(k) for k in ("status", "eol", "successor")}
@@ -91,14 +231,28 @@ def build(product: Product, builds: Store, artifact_pub: str) -> dict:
         if series[key]["eol"] is not None:
             series[key]["eol"] = str(series[key]["eol"])
 
+    # Each series' newest release; the stable channel is the newest release
+    # of the series users are meant to be on (stable, or mainline once its .0
+    # shipped and before the policy moved on). Betas join with their own path.
+    withdrawn = {w["version"] for w in product.policy.get("withdrawn", [])}
+    for version in sorted(releases, key=semver.parse):
+        if version in withdrawn:
+            continue
+        key = semver.parse(version).series
+        if key in series:
+            series[key]["latest"] = version
+    current = [s["latest"] for s in series.values()
+               if s["status"] in ("stable", "mainline") and s["latest"]]
+    stable = max(current, key=semver.parse) if current else None
+
     return {
         "schema": SCHEMA, "product": product.slug,
         "series": series,
-        "channels": {"stable": None, "beta": None,
+        "channels": {"stable": stable, "beta": stable,
                      "nightly": nightly["version"] if nightly else None},
         "withdrawn": [{"version": w["version"], "reason": w["reason"]}
                       for w in product.policy.get("withdrawn", [])],
-        "releases": {},
+        "releases": releases,
         "nightly": nightly,
     }
 
@@ -116,8 +270,12 @@ def read_serial(state_dir: Path) -> int:
 
 def publish(product: Product, builds: Store, update: Store, *,
             index_key: Path, artifact_pub: str, state_dir: Path,
-            force: bool = False, mirrors: list[Store] = ()) -> dict | None:
-    content = build(product, builds, artifact_pub)
+            force: bool = False, mirrors: list[Store] = (),
+            git_dir: Path | None = None, cosign: str = "cosign",
+            authenticode_ca: str | None = None) -> dict | None:
+    content = build(product, builds, artifact_pub, git_dir=git_dir,
+                    state_dir=state_dir, cosign=cosign,
+                    authenticode_ca=authenticode_ca)
     previous = published(update)
     now = utcnow()
     if previous is not None and not force:

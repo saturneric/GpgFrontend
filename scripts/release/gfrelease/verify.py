@@ -15,6 +15,7 @@ from release/product.json, tried in order, as a client would.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import ssl
 import tempfile
@@ -23,6 +24,7 @@ import urllib.request
 from pathlib import Path
 
 import minisig
+import openpgp
 from common import (INDEX, SCHEMA, Product, ReleaseError, check_relpath,
                     parse_iso, sha256_bytes, sha256_file, utcnow)
 from store import Store
@@ -91,7 +93,12 @@ def parse_sums(data: bytes) -> dict[str, str]:
 
 def verify(product: Product, update, builds, *, index_keys: list[str],
            artifact_key: str, deep: bool = False) -> dict:
-    with tempfile.TemporaryDirectory(prefix="gfr-verify-") as tmp_name:
+    """Beta and nightly files are minisigned with the artifact key; stable
+    ones carry a maintainer's OpenPGP signature, checked against the keys
+    beside release/product.json (maintainers.asc) with the fingerprints it
+    pins."""
+    with tempfile.TemporaryDirectory(prefix="gfr-verify-") as tmp_name, \
+            contextlib.ExitStack() as stack:
         tmp = Path(tmp_name)
         data, comment = _signed(update, INDEX, index_keys, tmp)
         index = json.loads(data)
@@ -99,6 +106,20 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
         report = {"product": product.slug, "serial": index["serial"],
                   "expires": index["expires"], "channels": index["channels"],
                   "checked": []}
+
+        ring = None
+
+        def keyring():
+            nonlocal ring
+            if ring is None:
+                ring = stack.enter_context(openpgp.Keyring(
+                    product.keyring_path, product.maintainers))
+            return ring
+
+        def fetch(rel: str, name: str) -> Path:
+            local = tmp / name
+            local.write_bytes(builds.read(check_relpath(rel)))
+            return local
 
         entries = []
         if index.get("nightly"):
@@ -112,26 +133,40 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
             descriptor = json.loads(raw)
             if descriptor.get("product") != product.slug:
                 raise ReleaseError(f"{entry['descriptor']}: another product's")
-            if descriptor["signing"]["scheme"] != "minisign":
-                raise ReleaseError(f"{entry['descriptor']}: signed with "
-                                   f"{descriptor['signing']['scheme']}, which "
-                                   "this check does not cover yet")
-            sums_data, _ = _signed(builds, check_relpath(descriptor["sums"]),
-                                   [artifact_key], tmp)
+            scheme = descriptor["signing"]["scheme"]
+            if scheme == "minisign":
+                sums_data, _ = _signed(builds, check_relpath(descriptor["sums"]),
+                                       [artifact_key], tmp)
+            elif scheme == "openpgp":
+                sums = fetch(descriptor["sums"], "SHA256SUMS.txt")
+                keyring().verify(sums, fetch(descriptor["sums_sig"],
+                                             "SHA256SUMS.txt.asc"))
+                sums_data = sums.read_bytes()
+                if "notes" in entry:
+                    notes = fetch(entry["notes"], "notes.md")
+                    if sha256_file(notes) != entry["notes_sha256"]:
+                        raise ReleaseError(f"{entry['notes']}: not the index's "
+                                           "notes")
+                    keyring().verify(notes, fetch(entry["notes_sig"],
+                                                  "notes.md.asc"))
+            else:
+                raise ReleaseError(f"{entry['descriptor']}: unknown signing "
+                                   f"scheme {scheme!r}")
             sums = parse_sums(sums_data)
             for artifact in descriptor["artifacts"]:
                 if sums.get(artifact["name"]) != artifact["sha256"]:
                     raise ReleaseError(f"{artifact['name']}: the descriptor's "
                                        "sha256 is not the signed manifest's")
                 if deep:
-                    local = tmp / artifact["name"]
-                    local.write_bytes(builds.read(check_relpath(artifact["path"])))
+                    local = fetch(artifact["path"], artifact["name"])
                     if sha256_file(local) != artifact["sha256"]:
                         raise ReleaseError(f"{artifact['name']}: the download "
                                            "does not match its sha256")
-                    sig = tmp / (artifact["name"] + ".minisig")
-                    sig.write_bytes(builds.read(check_relpath(artifact["sig"])))
-                    minisig.verify([artifact_key], local, sig)
+                    sig = fetch(artifact["sig"], artifact["name"] + ".sig")
+                    if scheme == "minisign":
+                        minisig.verify([artifact_key], local, sig)
+                    else:
+                        keyring().verify(local, sig)
                     local.unlink()
             report["checked"].append({"version": descriptor["version"],
                                       "kind": descriptor["kind"],
