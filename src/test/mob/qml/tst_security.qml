@@ -188,6 +188,61 @@ Item {
             tryVerify(() => !passphraseSheet.visible)
         }
 
+        // Two operations ask at once: turning the first down by Back leaves
+        // the second asked, the sheet comes back up for it.
+        function test_a_second_request_is_not_left_unseen() {
+            openPassphrase()
+            const second = TestSupport.askPassphrase()
+            keyClick(Qt.Key_Back)
+            answered(() => TestSupport.passphraseAnswer(second - 1), "cancelled")
+            compare(TestSupport.passphraseAnswer(second), "waiting")
+            tryVerify(() => passphraseSheet.opened, 3000, "up again for the second")
+            mouseClick(findByName(passphraseSheet.contentItem, "passphraseCancel"))
+            answered(() => TestSupport.passphraseAnswer(second), "cancelled")
+            tryVerify(() => !passphraseSheet.visible)
+        }
+
+        // OK tapped twice answers once: the second request waiting behind is
+        // not answered with nothing.
+        function test_ok_twice_answers_once() {
+            const field = openPassphrase()
+            const second = TestSupport.askPassphrase()
+            tryVerify(() => focused(field), 2000)
+            typeText("first")
+            const ok = findByName(passphraseSheet.contentItem, "passphraseOk")
+            ok.clicked()
+            ok.clicked()
+            answered(() => TestSupport.passphraseAnswer(second - 1), "answered:first")
+            wait(100)
+            compare(TestSupport.passphraseAnswer(second), "waiting")
+            verify(passphraseSheet.opened)
+            // Nothing typed: no answer from the keyboard either.
+            keyClick(Qt.Key_Return)
+            wait(100)
+            compare(TestSupport.passphraseAnswer(second), "waiting")
+            keyClick(Qt.Key_Back)
+            answered(() => TestSupport.passphraseAnswer(second), "cancelled")
+            tryVerify(() => !passphraseSheet.visible)
+        }
+
+        // A new passphrase, typed twice: the keyboard's action goes on to the
+        // second field, and from there answers.
+        function test_enter_goes_on_then_answers() {
+            TestSupport.askPassphrase(true)
+            tryVerify(() => passphraseSheet.opened, 3000)
+            const field = findByName(passphraseSheet.contentItem, "passphraseField")
+            const repeat = findByName(passphraseSheet.contentItem, "passphraseRepeat")
+            tryVerify(() => focused(field), 2000)
+            typeText("long enough passphrase")
+            keyClick(Qt.Key_Return)
+            tryVerify(() => focused(repeat), 2000, "on to the second field")
+            compare(TestSupport.passphraseAnswer(), "waiting")
+            typeText("long enough passphrase")
+            keyClick(Qt.Key_Return)
+            answered(() => TestSupport.passphraseAnswer(), "answered:long enough passphrase")
+            tryVerify(() => !passphraseSheet.visible)
+        }
+
         function test_cancel_turns_the_passphrase_down() {
             openPassphrase()
             mouseClick(findByName(passphraseSheet.contentItem, "passphraseCancel"))

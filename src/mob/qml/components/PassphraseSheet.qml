@@ -18,9 +18,21 @@ BottomSheet {
     // for symmetric decryption, to keep it out of the passphrase cache.
     readonly property bool choosing: request.confirm === true
 
+    // Answered once: a second tap on OK while the sheet goes (or before the
+    // next request is shown) would answer the next request with nothing.
+    property bool answered: false
+
     function clear() {
         passphrase.text = ""
         repeat.text = ""
+    }
+
+    function submit() {
+        if (answered || !asking || !ok.enabled) return
+        answered = true
+        const text = passphrase.text
+        clear()
+        PassphraseBroker.submit(text)
     }
 
     objectName: "passphraseSheet"
@@ -32,12 +44,28 @@ BottomSheet {
     title: choosing ? qsTr("Choose a passphrase") : qsTr("Enter the passphrase")
 
     onAskingChanged: asking ? open() : close()
+    // A request after another: answer it afresh. One still waiting when
+    // the sheet was closed on the last (Back cancels only that one) brings
+    // the sheet back up for it.
+    // (Signals named Signal... have no on-handler, not even in Connections:
+    // connected below.)
+    function currentChanged() {
+        answered = false
+        if (asking && !visible) Qt.callLater(reopen)
+    }
+    function reopen() {
+        if (asking && !visible) open()
+    }
     Component.onCompleted: {
         PassphraseBroker.SignalWipeInput.connect(sheet.clear)
+        PassphraseBroker.SignalCurrentChanged.connect(sheet.currentChanged)
         if (asking) open()
     }
     // The broker outlives the sheet: let go of it with the sheet.
-    Component.onDestruction: PassphraseBroker.SignalWipeInput.disconnect(sheet.clear)
+    Component.onDestruction: {
+        PassphraseBroker.SignalWipeInput.disconnect(sheet.clear)
+        PassphraseBroker.SignalCurrentChanged.disconnect(sheet.currentChanged)
+    }
 
     onAboutToShow: clear()
     // Ready to type into, keyboard up.
@@ -45,7 +73,7 @@ BottomSheet {
     // Closed while still asked: the person turned it down.
     onClosed: {
         clear()
-        if (asking) PassphraseBroker.cancel()
+        if (asking && !answered) PassphraseBroker.cancel()
     }
 
     Label {
@@ -78,14 +106,23 @@ BottomSheet {
         objectName: "passphraseField"
         Layout.fillWidth: true
         placeholderText: qsTr("Passphrase")
-        onAccepted: if (ok.enabled) ok.clicked()
+        // Typed twice: on to the second field; else the keyboard's action
+        // answers, as OK does.
+        EnterKey.type: sheet.choosing ? Qt.EnterKeyNext : Qt.EnterKeyDone
+        onAccepted: {
+            if (sheet.choosing) repeat.forceActiveFocus()
+            else if (text.length > 0) sheet.submit()
+        }
     }
 
     SecretField {
         id: repeat
+        objectName: "passphraseRepeat"
         Layout.fillWidth: true
         visible: sheet.choosing
         placeholderText: qsTr("Repeat the passphrase")
+        EnterKey.type: Qt.EnterKeyDone
+        onAccepted: sheet.submit()
     }
 
     footer: [
@@ -96,7 +133,9 @@ BottomSheet {
             objectName: "passphraseCancel"
             text: qsTr("Cancel")
             flat: true
+            enabled: !sheet.answered
             onClicked: {
+                sheet.answered = true
                 sheet.clear()
                 PassphraseBroker.cancel()
             }
@@ -107,13 +146,12 @@ BottomSheet {
             text: qsTr("OK")
             highlighted: true
             // The desktop's rule: only a new passphrase is checked.
-            enabled: PassphraseBroker.entryProblem(passphrase.text, repeat.text,
-                                                   sheet.choosing).length === 0
-            onClicked: {
-                const text = passphrase.text
-                sheet.clear()
-                PassphraseBroker.submit(text)
-            }
+            // Nothing typed is no answer (and a second tap, the fields
+            // cleared, never answers the next request with nothing).
+            enabled: !sheet.answered && passphrase.text.length > 0
+                     && PassphraseBroker.entryProblem(passphrase.text, repeat.text,
+                                                      sheet.choosing).length === 0
+            onClicked: sheet.submit()
         }
     ]
 }

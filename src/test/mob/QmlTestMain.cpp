@@ -101,19 +101,28 @@ class TestSupport : public QObject {
     return pin_answer_;
   }
 
-  /// Ask for a passphrase as the core does when an operation needs one.
-  Q_INVOKABLE void askPassphrase() {
-    passphrase_ = QSharedPointer<GpgFrontend::GpgPassphraseContext>::create();
-    passphrase_->SetPassphraseInfo(QStringLiteral("Test key"));
+  /// Ask for a passphrase as the core does when an operation needs one; a
+  /// new one (typed twice) with @p confirm. Asked again before the last is
+  /// answered, both wait, in order. Returns which ask this is.
+  Q_INVOKABLE int askPassphrase(bool confirm = false) {
+    auto context = QSharedPointer<GpgFrontend::GpgPassphraseContext>::create();
+    context->SetPassphraseInfo(QStringLiteral("Test key"));
+    context->SetShouldConfirm(confirm);
+    passphrases_.append(context);
     emit GpgFrontend::CoreSignalStation::GetInstance()
-        -> SignalNeedUserInputPassphrase(passphrase_);
+        -> SignalNeedUserInputPassphrase(context);
+    return static_cast<int>(passphrases_.size()) - 1;
   }
 
-  /// What came of it: "waiting", "cancelled", or "answered:<passphrase>".
-  Q_INVOKABLE [[nodiscard]] QString passphraseAnswer() const {
-    if (passphrase_ == nullptr) return {};
-    if (passphrase_->IsCancelled()) return QStringLiteral("cancelled");
-    const auto typed = passphrase_->GetPassphrase();
+  /// What came of ask @p index (the last when -1): "waiting", "cancelled",
+  /// or "answered:<passphrase>".
+  Q_INVOKABLE [[nodiscard]] QString passphraseAnswer(int index = -1) const {
+    if (passphrases_.isEmpty()) return {};
+    if (index < 0) index = static_cast<int>(passphrases_.size()) - 1;
+    if (index >= passphrases_.size()) return {};
+    const auto& context = passphrases_.at(index);
+    if (context->IsCancelled()) return QStringLiteral("cancelled");
+    const auto typed = context->GetPassphrase();
     if (typed.Empty()) return QStringLiteral("waiting");
     return QStringLiteral("answered:") + typed.ConvertToQByteArray();
   }
@@ -123,7 +132,7 @@ class TestSupport : public QObject {
   mutable std::mutex mutex_;
   std::thread asker_;
   QVariant pin_answer_;
-  QSharedPointer<GpgFrontend::GpgPassphraseContext> passphrase_;
+  QList<QSharedPointer<GpgFrontend::GpgPassphraseContext>> passphrases_;
 
   // Ask @p kind from a thread of its own, as the profile loader does.
   void Ask(GpgFrontend::Mobile::InteractionBridge::Kind kind,
