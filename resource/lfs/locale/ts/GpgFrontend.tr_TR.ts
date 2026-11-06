@@ -18699,6 +18699,16 @@ Tarayıcınızda açılsın mı?</translation>
         <source>Next</source>
         <translation>İleri</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="191"/>
+        <source>No keys chosen yet</source>
+        <translation>Henüz anahtar seçilmedi</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="190"/>
+        <source>No signing key chosen yet</source>
+        <translation>Henüz imzalama anahtarı seçilmedi</translation>
+    </message>
 </context>
 <context>
     <name>KeysPage</name>

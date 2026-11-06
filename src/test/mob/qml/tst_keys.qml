@@ -365,12 +365,13 @@ Item {
             mouseClick(fixed)
             compare(picker.pickedCount, 0)
             verify(free.height >= 48)
-            // The mark at the end, in the room the face leaves it.
-            const mark = free.indicator.x
-            const room = free.contentItem.x + free.contentItem.width
-                         - free.indicator.width - free.spacing
-            verify(mark >= room - 0.5, "mark at " + mark + ", the face's words to " + room)
-            verify(mark + free.indicator.width <= free.width - free.rightPadding + 0.5)
+            // The mark at the end, after the key's words, inside the row.
+            const mark = findByName(free, "keyChoiceMark")
+            const at = mark.mapToItem(free, 0, 0).x
+            const words = findByName(free, "keyTitle")
+            verify(at >= words.mapToItem(free, words.width, 0).x - 0.5,
+                   "mark at " + at + " over the words")
+            verify(at + mark.width <= free.width + 0.5)
             compare(free.Accessible.name, "Bob")
             picker.close()
             tryVerify(() => !picker.visible)

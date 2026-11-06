@@ -17029,6 +17029,16 @@ Open it in your browser?</source>
         <source>Next</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="191"/>
+        <source>No keys chosen yet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="190"/>
+        <source>No signing key chosen yet</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>KeysPage</name>

@@ -154,20 +154,6 @@ BottomSheet {
         withGroups: !sheet.signing
     }
 
-    // What the action waiting for keys needs, said once.
-    Label {
-        objectName: "toolboxConcern"
-        Layout.fillWidth: true
-        // Only what this step is about: the recipients first, then the signer.
-        readonly property string concern: sheet.signing ? sheet.blocking
-            : (sheet.recipientsReady ? "" : sheet.blocking)
-        visible: concern.length > 0 && sheet.infoKey === null
-        wrapMode: Text.Wrap
-        color: Theme.warning
-        font.pixelSize: Theme.secondarySize
-        text: Wording.block(concern)
-    }
-
     // Finding a key: by what it says, and by its category.
     KeyFinder {
         id: finder
@@ -181,80 +167,43 @@ BottomSheet {
         onCategoryChosen: id => sheet.category = id
     }
 
-    // What is chosen, in one line; tapped, the chosen keys to take one out.
-    ItemDelegate {
+    // What is chosen, in one row that is always there and always as tall
+    // (none, one or many chosen, the list under it never moves), with what
+    // still holds the action up under it: the recipients first, then the
+    // signer. Tapped, the chosen recipients, to take one out.
+    KeyChoiceSummary {
         id: summary
 
         objectName: "selectedSummary"
-        Layout.fillWidth: true
-        Layout.leftMargin: -Theme.sheetPad
-        Layout.rightMargin: -Theme.sheetPad
-        leftPadding: Theme.sheetPad
-        rightPadding: 8
-        topPadding: 4
-        bottomPadding: 4
-        visible: !sheet.signing && sheet.infoKey === null
-                 && WorkSelection.recipientCount > 0
-        text: Wording.selectedCount(WorkSelection.recipientCount)
+        visible: sheet.infoKey === null
+        // Only what this step is about.
+        readonly property string concern: sheet.signing ? sheet.blocking
+            : (sheet.recipientsReady ? "" : sheet.blocking)
+        // A chosen key that cannot be used, saying how many.
+        readonly property int issues: sheet.signing ? 0 : WorkSelection.recipientIssueCount
+        readonly property int count: WorkSelection.recipientCount
+
+        enabled: !sheet.signing && count > 0
+        text: sheet.signing
+              ? (WorkSelection.preferredSigner.length > 0
+                 ? qsTr("Signing as %1").arg(Wording.keyName(WorkSelection.signerKey))
+                 : qsTr("No signing key chosen yet"))
+              : count > 0 ? Wording.selectedCount(count) : qsTr("No keys chosen yet")
+        detail: issues > 0 ? qsTr("%n of them cannot be used. Tap to see why.", "", issues)
+              : concern.length > 0 ? Wording.block(concern) : ""
+        detailColor: issues > 0 ? Theme.danger : Theme.warning
+        symbol: issues > 0 ? "warning"
+              : (sheet.signing ? WorkSelection.preferredSigner.length > 0 : count > 0)
+                ? "check_circle" : ""
+        symbolColor: issues > 0 ? Theme.danger : Material.accentColor
         onClicked: selected.open()
-        Accessible.description: issues > 0 ? qsTr("Some cannot be used") : ""
 
-        // Ordinary state in ordinary words; a warning only when a chosen
-        // key cannot be used, saying how many.
-        readonly property int issues: WorkSelection.recipientIssueCount
-
-        contentItem: RowLayout {
-            spacing: 8
-
-            Icon {
-                visible: summary.issues > 0
-                symbol: "warning"
-                color: Theme.danger
-                sourceSize: Qt.size(20, 20)
-            }
-
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: 0
-
-                Label {
-                    Layout.fillWidth: true
-                    text: summary.text
-                    elide: Text.ElideRight
-                    font.pixelSize: Theme.secondarySize
-                    font.weight: Font.Medium
-                }
-
-                Label {
-                    objectName: "selectedProblem"
-                    Layout.fillWidth: true
-                    visible: summary.issues > 0
-                    text: qsTr("%n of them cannot be used. Tap to see why.", "",
-                               summary.issues)
-                    wrapMode: Text.Wrap
-                    font.pixelSize: Theme.labelSize
-                    color: Theme.danger
-                }
-            }
-
-            Icon {
-                symbol: "expand_more"
-                color: Material.secondaryTextColor
-                sourceSize: Qt.size(20, 20)
-            }
+        Icon {
+            visible: summary.enabled
+            symbol: "expand_more"
+            color: Material.secondaryTextColor
+            sourceSize: Qt.size(20, 20)
         }
-    }
-
-    // The signer, while it is the step: the one chosen, in one line.
-    Label {
-        objectName: "signerSummary"
-        Layout.fillWidth: true
-        visible: sheet.signing && sheet.infoKey === null
-                 && WorkSelection.preferredSigner.length > 0
-        text: qsTr("Signing as %1").arg(Wording.keyName(WorkSelection.signerKey))
-        elide: Text.ElideRight
-        font.pixelSize: Theme.secondarySize
-        color: Material.secondaryTextColor
     }
 
     // The keys: a list of its own that fills the sheet and makes only the
@@ -281,23 +230,15 @@ BottomSheet {
         // Where in a long list one is; finding a key is the search's.
         ScrollIndicator.vertical: ScrollIndicator {}
 
-        delegate: ItemDelegate {
+        delegate: KeyChoiceRow {
             id: choice
 
-            required property string name
-            required property string email
-            required property string keyId
             required property string fingerprint
-            required property string secretState
-            required property string capabilities
             required property bool hasSecret
             required property bool canEncrypt
             required property bool canSign
-            required property bool usable
             required property string status
             required property string statusText
-            required property bool isKey
-            required property var members
             required property string encryptNote
             required property string signNote
             required property var model
@@ -305,45 +246,34 @@ BottomSheet {
             // A key that cannot be used stays listed, saying why; so does a
             // key group with nobody in it. The reasons are the desktop's.
             readonly property string reason: sheet.signing ? signNote : encryptNote
-            readonly property bool chosen: sheet.signing
+
+            chosen: sheet.signing
                 ? WorkSelection.preferredSigner.toUpperCase() === fingerprint.toUpperCase()
                 : WorkSelection.revision >= 0
                   && WorkSelection.isRecipient(fingerprint)
-
-            width: ListView.view.width
-            leftPadding: Theme.sheetPad
-            rightPadding: 4
-            topPadding: 6
-            bottomPadding: 6
+            isKey: model.isKey
+            usable: model.usable
+            members: model.members
+            exclusive: sheet.signing
+            note: reason
+            problem: reason.length > 0
             // One that cannot be used is not chosen; one chosen before it
             // could no longer be is let go of here, not only in the summary.
             enabled: reason.length === 0 || chosen
-            // Checkable, so TalkBack says whether it is chosen; what is
-            // chosen is WorkSelection's, and a tap gives the row back its
-            // binding at once.
-            checkable: true
-            checked: chosen
-            onToggled: checked = Qt.binding(() => chosen)
-            Accessible.role: sheet.signing ? Accessible.RadioButton
-                                           : Accessible.CheckBox
-            Accessible.checkable: true
-            Accessible.checked: chosen
-            Accessible.name: Wording.keyTitle(name, email, keyId)
             Accessible.description: [email, keyId, reason,
                                      isKey ? qsTr("Long-press for the key's details") : ""]
                                     .filter(t => t.length > 0).join(", ")
 
-            function toggle() {
+            onChooseRequested: {
                 if (sheet.signing) WorkSelection.setPreferredSigner(fingerprint)
                 else WorkSelection.toggleRecipient(fingerprint)
             }
 
-            // The whole row chooses; a long press shows the key in full,
-            // once the finger is lifted: shown at once, the list went while
-            // the row was still pressed, and the row stayed pressed.
+            // A long press shows the key in full, once the finger is
+            // lifted: shown at once, the list went while the row was still
+            // pressed, and the row stayed pressed.
             property bool held: false
 
-            onClicked: toggle()
             onPressAndHold: held = isKey
             onCanceled: held = false
             onReleased: {
@@ -363,41 +293,6 @@ BottomSheet {
                     "expires": model.expires, "algorithm": model.algorithm,
                     "comment": model.comment, "revoked": model.revoked,
                     "expired": model.expired
-                }
-            }
-
-            contentItem: KeyChoiceFace {
-                idBelow: true
-                opacity: choice.enabled ? 1 : 0.6
-                name: choice.name
-                email: choice.email
-                keyId: choice.keyId
-                isKey: choice.isKey
-                usable: choice.usable
-                members: choice.members
-                secretState: choice.secretState
-                capabilities: choice.capabilities
-                note: choice.reason
-                problem: choice.reason.length > 0
-
-                // One mark at the end, showing the choice; a tap on it is a
-                // tap on the row (never a second toggle).
-                CheckBox {
-                    visible: !sheet.signing
-                    checkable: false
-                    checked: choice.chosen
-                    focusPolicy: Qt.NoFocus
-                    onClicked: choice.toggle()
-                    Accessible.ignored: true
-                }
-
-                RadioButton {
-                    visible: sheet.signing
-                    checkable: false
-                    checked: choice.chosen
-                    focusPolicy: Qt.NoFocus
-                    onClicked: choice.toggle()
-                    Accessible.ignored: true
                 }
             }
         }

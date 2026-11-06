@@ -19272,6 +19272,16 @@ Otworzyć go w przeglądarce?</translation>
         <source>Next</source>
         <translation>Dalej</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="191"/>
+        <source>No keys chosen yet</source>
+        <translation>Nie wybrano jeszcze kluczy</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="190"/>
+        <source>No signing key chosen yet</source>
+        <translation>Nie wybrano jeszcze klucza do podpisywania</translation>
+    </message>
 </context>
 <context>
     <name>KeysPage</name>

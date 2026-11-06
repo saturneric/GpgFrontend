@@ -20158,6 +20158,16 @@ Open it in your browser?</source>
         <source>Next</source>
         <translation>下一步</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="191"/>
+        <source>No keys chosen yet</source>
+        <translation>尚未選擇金鑰</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="190"/>
+        <source>No signing key chosen yet</source>
+        <translation>尚未選擇簽署金鑰</translation>
+    </message>
 </context>
 <context>
     <name>KeysPage</name>

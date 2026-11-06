@@ -83,29 +83,19 @@ BottomSheet {
         onCategoryChosen: id => sheet.category = id
     }
 
-    // What is ticked, in one line, and a way to start again.
-    RowLayout {
+    // What is ticked, in one row that is always there and always as tall,
+    // as the key toolbox says it, and a way to start again.
+    KeyChoiceSummary {
         objectName: "keyPickerSummary"
-        Layout.fillWidth: true
-        visible: sheet.pickedCount > 0
-        spacing: 8
-
-        Icon {
-            symbol: "check_circle"
-            color: Material.accentColor
-            sourceSize: Qt.size(20, 20)
-        }
-
-        Label {
-            Layout.fillWidth: true
-            text: Wording.selectedCount(sheet.pickedCount)
-            elide: Text.ElideRight
-            font.pixelSize: Theme.secondarySize
-            font.weight: Font.Medium
-        }
+        enabled: false
+        text: sheet.pickedCount > 0 ? Wording.selectedCount(sheet.pickedCount)
+                                    : qsTranslate("KeyToolbox", "No keys chosen yet")
+        symbol: sheet.pickedCount > 0 ? "check_circle" : ""
 
         ActionButton {
+            objectName: "keyPickerClear"
             kind: "text"
+            enabled: sheet.pickedCount > 0
             text: qsTr("Clear")
             onClicked: sheet.picked = {}
         }
@@ -137,62 +127,33 @@ BottomSheet {
         model: filtered
         ScrollIndicator.vertical: ScrollIndicator {}
 
-        // The style's checking row, its mark at the end. What is chosen is
-        // the sheet's (picked): the row shows it, a tap asks the sheet.
-        delegate: CheckDelegate {
-            id: choice
-
-            required property string name
-            required property string email
-            required property string keyId
-            required property string secretState
-            required property string capabilities
-
+        // The same row as the key toolbox's. What is chosen is the
+        // sheet's (picked): the row shows it, a tap asks the sheet.
+        delegate: KeyChoiceRow {
             readonly property bool fixed: sheet.alreadySet[keyId] === true
 
             objectName: "keyPick_" + keyId
-            width: ListView.view.width
-            leftPadding: Theme.sheetPad
             enabled: !fixed
-            // A real check box, as TalkBack needs one to say "checked": a
-            // tap ticks it, and the sheet takes the tick. The binding below
-            // stays (Qt 6.10, tst_selection), so the row never shows more
-            // or less than the sheet holds.
-            checked: fixed || sheet.picked[keyId] === true
-            onToggled: sheet.toggle(keyId)
-            // Read out, and what puts the style's mark at the end (without
-            // words it centres it); the face below shows them.
-            text: Wording.keyTitle(name, email, keyId)
-            Accessible.name: text
-            // What the face shows under the name, which is not read out on
-            // its own.
-            Accessible.description: [email, keyId, fixed ? qsTr("Already in") : ""]
+            chosen: fixed || sheet.picked[keyId] === true
+            note: fixed ? qsTr("Already in") : ""
+            Accessible.description: [email, keyId, note]
                                     .filter(t => t.length > 0).join(", ")
-
-            contentItem: KeyChoiceFace {
-                idBelow: true
-                name: choice.name
-                email: choice.email
-                keyId: choice.keyId
-                secretState: choice.secretState
-                capabilities: choice.capabilities
-                note: choice.fixed ? qsTr("Already in") : ""
-
-                // The mark's room, as the style's own label keeps it.
-                Item {
-                    Layout.preferredWidth: choice.indicator.width + choice.spacing
-                }
-            }
+            onChooseRequested: sheet.toggle(keyId)
         }
-    }
 
-    Label {
-        Layout.fillWidth: true
-        visible: filtered.count === 0
-        horizontalAlignment: Text.AlignHCenter
-        wrapMode: Text.Wrap
-        color: Material.secondaryTextColor
-        text: qsTr("No key matches.")
+        // Over the list, as the toolbox says it: nothing moves when it
+        // shows.
+        Label {
+            objectName: "keyPickerEmpty"
+            anchors.fill: parent
+            anchors.margins: Theme.gap
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            wrapMode: Text.Wrap
+            visible: filtered.count === 0
+            color: Material.secondaryTextColor
+            text: qsTr("No key matches.")
+        }
     }
 
     footer: [

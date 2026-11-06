@@ -170,6 +170,8 @@ qt_add_qml_module(gf_mob_lib
     qml/components/ProblemLabel.qml
     qml/components/KeyPartFacts.qml
     qml/components/KeyChoiceFace.qml
+    qml/components/KeyChoiceRow.qml
+    qml/components/KeyChoiceSummary.qml
     qml/components/KeyFinder.qml
     qml/components/ResultCard.qml
     qml/components/KeyCategoriesSheet.qml

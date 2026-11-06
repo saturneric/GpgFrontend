@@ -20213,6 +20213,16 @@ Open it in your browser?</source>
         <source>Next</source>
         <translation>Siguiente</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="191"/>
+        <source>No keys chosen yet</source>
+        <translation>Aún no se ha elegido ninguna clave</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="190"/>
+        <source>No signing key chosen yet</source>
+        <translation>Aún no se ha elegido una clave de firma</translation>
+    </message>
 </context>
 <context>
     <name>KeysPage</name>

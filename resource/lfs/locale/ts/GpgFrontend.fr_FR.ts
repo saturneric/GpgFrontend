@@ -20193,6 +20193,16 @@ L&apos;ouvrir dans votre navigateur ?</translation>
         <source>Next</source>
         <translation>Suivant</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="191"/>
+        <source>No keys chosen yet</source>
+        <translation>Aucune clé choisie pour l’instant</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/KeyToolbox.qml" line="190"/>
+        <source>No signing key chosen yet</source>
+        <translation>Aucune clé de signature choisie pour l’instant</translation>
+    </message>
 </context>
 <context>
     <name>KeysPage</name>

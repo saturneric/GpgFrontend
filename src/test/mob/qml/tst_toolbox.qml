@@ -138,16 +138,24 @@ Item {
             tryVerify(() => box.opened)
             const root = box.contentItem
             const summary = findByName(root, "selectedSummary")
-            verify(!summary.visible)
-            WorkSelection.addRecipient("A".repeat(40))
-            WorkSelection.addRecipient("B".repeat(40))
+            // There before anything is chosen, and as tall after: the list
+            // under it never moves as keys are ticked.
             verify(summary.visible)
+            verify(!summary.enabled)
+            const height = summary.height
+            const listTop = findByName(root, "toolboxKeys").y
+            WorkSelection.addRecipient("A".repeat(40))
+            compare(summary.text, Wording.selectedCount(1))
+            WorkSelection.addRecipient("B".repeat(40))
+            verify(summary.visible && summary.enabled)
             compare(summary.text, Wording.selectedCount(2))
             verify(summary.text.indexOf("2") >= 0)
+            compare(summary.height, height)
+            compare(findByName(root, "toolboxKeys").y, listTop)
             // Ordinary words: a warning only when a chosen key cannot be
             // used, and nothing here says these cannot.
             compare(WorkSelection.recipientIssueCount, 0)
-            verify(!findByName(root, "selectedProblem").visible)
+            verify(findByName(root, "summaryDetail").text.indexOf("cannot be used") < 0)
 
             box.category = "has_private_key"
             findByName(root, "toolboxSearch").text = "nobody"
