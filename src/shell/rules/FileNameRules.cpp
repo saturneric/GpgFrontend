@@ -97,6 +97,11 @@ auto IsOpenPGPSignatureFile(const QFileInfo& info) -> bool {
   return info.suffix().toLower() == u"sig"_s;
 }
 
+auto IsOpenPGPArchiveFile(const QFileInfo& info) -> bool {
+  return IsOpenPGPMessageFile(info) &&
+         QFileInfo(info.completeBaseName()).suffix().toLower() == u"tar"_s;
+}
+
 auto SetExtensionOfOutputFile(const QString& path, GpgOperation opera,
                               bool ascii) -> QString {
   const QFileInfo file_info(path);

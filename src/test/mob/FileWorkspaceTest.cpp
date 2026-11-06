@@ -927,6 +927,51 @@ TEST_F(FileWorkspaceTest, WhatAFileIsComesFromItsNameAndItsBytes) {
   EXPECT_EQ(Entry(signature).value("content").toString(), "signature");
 }
 
+// What the details say a file is: what its bytes said, or what its name
+// suggests, never more. An archive or a message is never vouched for by a
+// name.
+TEST_F(FileWorkspaceTest, AFilesTypeSaysHowItIsKnown) {
+  const auto type = [this](int id) {
+    QVariantMap map;
+    Do([&](auto* f) { map = f->typeOf(id); });
+    return std::make_pair(map.value("kind").toString(),
+                          map.value("verified").toBool());
+  };
+  using Kind = std::pair<QString, bool>;
+  // Armored text: its header says it, whatever it is called.
+  EXPECT_EQ(type(Add("-----BEGIN PGP MESSAGE-----\n\nhQ==\n", "letter.txt")),
+            Kind("message", true));
+  // Named as OpenPGP data, and not: said so, not a type by its name.
+  EXPECT_EQ(type(Add("only text", "named.gpg")), Kind("not_openpgp", false));
+  // A picture called .gpg is not taken for OpenPGP data either.
+  EXPECT_EQ(type(Add(QByteArray("\x89PNG\r\n\x1a\n", 8), "photo.gpg")).second,
+            false);
+  // An archive by its name, and only by its name.
+  EXPECT_EQ(type(Add("not even OpenPGP", "photos.tar.gpg")),
+            Kind("archive", false));
+  EXPECT_EQ(type(Add("plain", "photos.tar")), Kind("tar", false));
+  // Anything else: its type by its name, never verified.
+  const auto pdf = Add("%PDF-1.7", "paper.pdf");
+  QVariantMap map;
+  Do([&](auto* f) { map = f->typeOf(pdf); });
+  EXPECT_FALSE(map.value("verified").toBool());
+  EXPECT_FALSE(map.value("mime").toString().isEmpty());
+
+  // Made here: confirmed by what was made, an archive still only by name.
+  const auto source = Add("binary out", "data.txt");
+  Do([&](auto* f) { f->encrypt({source}, {fred_}); });
+  Finish();
+  const auto encrypted = OutputOf(source);
+  ASSERT_GE(encrypted, 0) << Errors(source);
+  EXPECT_EQ(type(encrypted), Kind("message", true));
+  Do([&](auto* f) { f->sign({source}, fred_); });
+  Finish();
+  int signature = -1;
+  Do([&](auto* f) { signature = f->signatureOf(source); });
+  ASSERT_GE(signature, 0) << Errors(source);
+  EXPECT_EQ(type(signature), Kind("signature", true));
+}
+
 TEST_F(FileWorkspaceTest, ASharedFileIsCopiedInAndIsTheApplicationsOwn) {
   // More than one piece of the copy, so it reports how far it is.
   const QByteArray content(3 * 1024 * 1024 + 17, 'x');

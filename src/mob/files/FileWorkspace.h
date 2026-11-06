@@ -303,6 +303,15 @@ class FileWorkspace : public QAbstractListModel {
   /// The file @p id's roles, by name; empty when there is none.
   [[nodiscard]] Q_INVOKABLE QVariantMap entry(int id) const;
 
+  /// What the file @p id is, and how that is known: {kind, verified, mime}.
+  /// kind is "message", "signature", "key" (OpenPGP data), "archive" (named
+  /// as an encrypted folder archive), "armored" (named .asc, not read as
+  /// armor), "not_openpgp" (named as OpenPGP data, which its bytes are not),
+  /// "tar" (named as a TAR archive) or "" (anything else, then mime is its
+  /// type by its name, empty when not known). verified is true only when
+  /// its bytes said so; a name is never taken for what a file holds.
+  [[nodiscard]] Q_INVOKABLE QVariantMap typeOf(int id) const;
+
   /// The id of the file in row @p row; -1 past the end.
   [[nodiscard]] Q_INVOKABLE int idAt(int row) const;
 
@@ -371,6 +380,10 @@ class FileWorkspace : public QAbstractListModel {
     QString saved_name;
     QString origin = QStringLiteral("added");
     QString content;
+    /// Its bytes said what it holds (else its name did).
+    bool content_confirmed = false;
+    /// Named as OpenPGP data, and its bytes say it is not.
+    bool content_refuted = false;
     double progress = -1;
   };
 

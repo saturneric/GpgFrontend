@@ -830,6 +830,11 @@
         <source>Remove from list</source>
         <translation>Rimuovi dall&apos;elenco</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="1"/>
+        <source>Type</source>
+        <translation>Tipo</translation>
+    </message>
 </context>
 <context>
     <name>FilesPage</name>
@@ -25659,6 +25664,61 @@ Annulla tali modifiche oppure scegli Annulla per scartare tutto ciò che hai mod
         <location filename="../../../../src/mob/qml/Wording.qml" line="195"/>
         <source>Signature not checked</source>
         <translation>Firma non controllata</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>OpenPGP message</source>
+        <translation>Messaggio OpenPGP</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>OpenPGP signature</source>
+        <translation>Firma OpenPGP</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>OpenPGP key</source>
+        <translation>Chiave OpenPGP</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>ASCII-armored OpenPGP data</source>
+        <translation>Dati OpenPGP con armatura ASCII</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>TAR archive</source>
+        <translation>Archivio TAR</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Folder</source>
+        <translation>Cartella</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Not OpenPGP data, whatever its name says</source>
+        <translation>Non sono dati OpenPGP, qualunque cosa dica il nome</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>OpenPGP message · an archive by its name</source>
+        <translation>Messaggio OpenPGP · un archivio secondo il nome</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Encrypted archive · by its name</source>
+        <translation>Archivio cifrato · secondo il nome</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>File</source>
+        <translation>File</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>%1 · by its name</source>
+        <translation>%1 · secondo il nome</translation>
     </message>
 </context>
 <context>

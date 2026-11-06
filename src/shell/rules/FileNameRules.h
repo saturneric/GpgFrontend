@@ -69,6 +69,17 @@ auto GF_SHELL_EXPORT IsOpenPGPRelatedFile(const QFileInfo& info) -> bool;
 auto GF_SHELL_EXPORT IsOpenPGPSignatureFile(const QFileInfo& info) -> bool;
 
 /**
+ * @brief Whether the entry is named as an encrypted folder archive, as
+ * encrypting a folder names one: .tar.gpg, .tar.pgp or .tar.asc.
+ *
+ * A name only: it says neither that the data is OpenPGP nor that what it
+ * decrypts to is a TAR archive.
+ *
+ * @param info entry to inspect
+ */
+auto GF_SHELL_EXPORT IsOpenPGPArchiveFile(const QFileInfo& info) -> bool;
+
+/**
  * @brief Return the output file path with an extension appropriate for the
  * given operation.
  *

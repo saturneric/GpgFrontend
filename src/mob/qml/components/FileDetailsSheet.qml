@@ -41,12 +41,16 @@ BottomSheet {
     // How the last operation on it went, in the status sheet.
     signal resultRequested(int operationId)
 
+    // What it is (FileWorkspace.typeOf).
+    property var type: ({})
+
     // The newest operation on it; 0 when none was run.
     property int lastOperation: 0
 
     function begin(id) {
         sheet.fileId = id
         sheet.file = workspace.entry(id)
+        sheet.type = workspace.typeOf(id)
         sheet.sha256 = ""
         sheet.hashError = ""
         sheet.hashExpanded = false
@@ -66,6 +70,7 @@ BottomSheet {
         }
         const resized = file.size !== sheet.file.size
         sheet.file = file
+        sheet.type = sheet.workspace.typeOf(sheet.fileId)
         sheet.lastOperation = OperationQueue.log.latestOnFile(sheet.fileId)
         // All here now, or changed since it was hashed: hashed again.
         if (!sheet.copying && (sheet.hashDue || resized)) {
@@ -109,7 +114,7 @@ BottomSheet {
     objectName: "fileDetails"
     title: qsTr("File")
 
-    // Name, size and hash, lines of one height: the hash's monospace line
+    // Name, type, size and hash, lines of one height: the hash's monospace line
     // is a little taller, and the other two take its height.
     InfoRow {
         objectName: "fileName"
@@ -117,6 +122,16 @@ BottomSheet {
         Layout.minimumHeight: hashRow.implicitHeight
         label: qsTr("Name")
         value: sheet.file.name || ""
+    }
+
+    // What it is: what its bytes said, else what its name suggests, and
+    // saying which.
+    InfoRow {
+        objectName: "fileType"
+        Layout.fillWidth: true
+        Layout.minimumHeight: hashRow.implicitHeight
+        label: qsTr("Type")
+        value: Wording.fileType(sheet.type)
     }
 
     InfoRow {

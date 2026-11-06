@@ -831,6 +831,11 @@
         <source>Remove from list</source>
         <translation>Удалить из списка</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="1"/>
+        <source>Type</source>
+        <translation>Тип</translation>
+    </message>
 </context>
 <context>
     <name>FilesPage</name>
@@ -25688,6 +25693,61 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <location filename="../../../../src/mob/qml/Wording.qml" line="195"/>
         <source>Signature not checked</source>
         <translation>Подпись не проверена</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>OpenPGP message</source>
+        <translation>Сообщение OpenPGP</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>OpenPGP signature</source>
+        <translation>Подпись OpenPGP</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>OpenPGP key</source>
+        <translation>Ключ OpenPGP</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>ASCII-armored OpenPGP data</source>
+        <translation>Данные OpenPGP в ASCII-броне</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>TAR archive</source>
+        <translation>Архив TAR</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Folder</source>
+        <translation>Папка</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Not OpenPGP data, whatever its name says</source>
+        <translation>Не данные OpenPGP, что бы ни говорило имя</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>OpenPGP message · an archive by its name</source>
+        <translation>Сообщение OpenPGP · архив, судя по имени</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Encrypted archive · by its name</source>
+        <translation>Зашифрованный архив · судя по имени</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>File</source>
+        <translation>Файл</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>%1 · by its name</source>
+        <translation>%1 · судя по имени</translation>
     </message>
 </context>
 <context>

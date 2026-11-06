@@ -50,6 +50,20 @@ TEST(FileTypeUtilsTest, ADetachedSignatureIsRelatedButNotAMessage) {
   EXPECT_FALSE(IsOpenPGPMessageFile(sig));
 }
 
+// A folder encrypted is named <folder>.tar.gpg: an archive by its name,
+// whatever else is in the name; a plain .tar or .gpg is not one.
+TEST(FileTypeUtilsTest, AnEncryptedArchiveIsKnownByItsName) {
+  for (const auto* n :
+       {"photos.tar.gpg", "Photos 2026.TAR.PGP", "a.b.tar.asc"}) {
+    EXPECT_TRUE(IsOpenPGPArchiveFile(QFileInfo(n))) << n;
+    EXPECT_TRUE(IsOpenPGPMessageFile(QFileInfo(n))) << n;
+  }
+  for (const auto* n :
+       {"photos.tar", "photos.gpg", "tar.gpg", "x.tar.sig", "x.tar.gz.gpg"}) {
+    EXPECT_FALSE(IsOpenPGPArchiveFile(QFileInfo(n))) << n;
+  }
+}
+
 TEST(FileTypeUtilsTest, PlainFilesMatchNothing) {
   for (const auto* n : {"a.txt", "a", "a.gpg.txt", "archive.tar"}) {
     EXPECT_FALSE(IsOpenPGPMessageFile(QFileInfo(n))) << n;

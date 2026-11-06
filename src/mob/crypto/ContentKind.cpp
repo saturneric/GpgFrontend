@@ -122,38 +122,50 @@ auto FileKindOfTag(int tag) -> QString {
 
 }  // namespace
 
-auto ClassifyFileHead(const QString& name, const QByteArray& head) -> QString {
+auto ClassifyFileHeadOf(const QString& name, const QByteArray& head)
+    -> FileKind {
   const auto by_name = ClassifyFileName(name);
-  if (head.isEmpty()) return by_name;
+  if (head.isEmpty()) return {by_name};
 
   // Armored: its header says what it is, whatever it is called.
   const auto text_kind =
       FileKindOfText(ClassifyText(QString::fromUtf8(head.left(4096))));
-  if (!text_kind.isEmpty()) return text_kind;
+  if (!text_kind.isEmpty()) return {text_kind, true};
 
   // Binary, and named as OpenPGP data: its first packet confirms it.
   if (by_name.isEmpty()) return {};
   const auto doc = QJsonDocument::fromJson(InspectOpenPGPData(GFBuffer(head)));
-  if (!doc.isObject()) return by_name;  // no inspector here: the name alone
+  if (!doc.isObject()) return {by_name};  // no inspector here: the name alone
+  const FileKind refuted{{}, false, true};
   const auto blocks = doc.object().value(QStringLiteral("blocks")).toArray();
-  if (blocks.isEmpty()) return {};
+  if (blocks.isEmpty()) return refuted;
   const auto packets =
       blocks.first().toObject().value(QStringLiteral("packets")).toArray();
-  if (packets.isEmpty()) return {};
+  if (packets.isEmpty()) return refuted;
   // A packet the inspector could not read refutes the name, unless it is
   // one of the bulk data packets that run past what was read.
   const auto first = packets.first().toObject();
   const auto tag = first.value(QStringLiteral("tag")).toInt();
   const auto bulk = tag == 8 || tag == 9 || tag == 11 || tag == 18 || tag == 20;
   const auto error = first.value(QStringLiteral("error"));
-  if (!bulk && !error.isNull() && !error.isUndefined()) return {};
-  return FileKindOfTag(tag);
+  if (!bulk && !error.isNull() && !error.isUndefined()) return refuted;
+  const auto kind = FileKindOfTag(tag);
+  if (kind.isEmpty()) return refuted;
+  return {kind, true};
+}
+
+auto ClassifyFileHead(const QString& name, const QByteArray& head) -> QString {
+  return ClassifyFileHeadOf(name, head).kind;
+}
+
+auto ClassifyFileOf(const QString& name, const QString& path) -> FileKind {
+  QFile file(path);
+  if (!file.open(QIODevice::ReadOnly)) return {ClassifyFileName(name)};
+  return ClassifyFileHeadOf(name, file.read(kHeadBytes));
 }
 
 auto ClassifyFile(const QString& name, const QString& path) -> QString {
-  QFile file(path);
-  if (!file.open(QIODevice::ReadOnly)) return ClassifyFileName(name);
-  return ClassifyFileHead(name, file.read(kHeadBytes));
+  return ClassifyFileOf(name, path).kind;
 }
 
 auto ContentKind::textKind(const QString& text) const -> QString {

@@ -829,6 +829,11 @@
         <source>Remove from list</source>
         <translation>從清單移除</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="1"/>
+        <source>Type</source>
+        <translation>類型</translation>
+    </message>
 </context>
 <context>
     <name>FilesPage</name>
@@ -25605,6 +25610,61 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <location filename="../../../../src/mob/qml/Wording.qml" line="195"/>
         <source>Signature not checked</source>
         <translation>簽章未檢查</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>OpenPGP message</source>
+        <translation>OpenPGP 訊息</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>OpenPGP signature</source>
+        <translation>OpenPGP 簽章</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>OpenPGP key</source>
+        <translation>OpenPGP 金鑰</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>ASCII-armored OpenPGP data</source>
+        <translation>ASCII 封裝的 OpenPGP 資料</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>TAR archive</source>
+        <translation>TAR 封存檔</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Folder</source>
+        <translation>資料夾</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Not OpenPGP data, whatever its name says</source>
+        <translation>不是 OpenPGP 資料，無論名稱為何</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>OpenPGP message · an archive by its name</source>
+        <translation>OpenPGP 訊息 · 依名稱為封存檔</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Encrypted archive · by its name</source>
+        <translation>加密封存檔 · 依名稱</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>File</source>
+        <translation>檔案</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>%1 · by its name</source>
+        <translation>%1 · 依名稱</translation>
     </message>
 </context>
 <context>

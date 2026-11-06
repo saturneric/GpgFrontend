@@ -77,6 +77,23 @@ auto ClassifyFileHead(const QString& name, const QByteArray& head) -> QString;
 /// URI), reading no more than its first bytes.
 auto ClassifyFile(const QString& name, const QString& path) -> QString;
 
+/// What a file holds, and how that is known.
+struct FileKind {
+  /// As ClassifyFileHead() says.
+  QString kind;
+  /// Its bytes said so (an armor header, a first packet), not its name.
+  bool confirmed = false;
+  /// Named as OpenPGP data, and its bytes say it is not.
+  bool refuted = false;
+};
+
+/// ClassifyFileHead(), saying whether the bytes or the name decided.
+auto ClassifyFileHeadOf(const QString& name, const QByteArray& head)
+    -> FileKind;
+
+/// ClassifyFile(), saying whether the bytes or the name decided.
+auto ClassifyFileOf(const QString& name, const QString& path) -> FileKind;
+
 /// ClassifyText() for QML.
 class ContentKind : public QObject {
   Q_OBJECT

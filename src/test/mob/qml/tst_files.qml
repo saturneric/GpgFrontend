@@ -20,6 +20,12 @@ Item {
         workspace: FileWorkspace
     }
 
+    // Reads the clipboard back: what a copy put there.
+    TextEdit {
+        id: clipboardReader
+        visible: false
+    }
+
     SignalSpy {
         id: verifyAsked
         target: verifier
@@ -426,12 +432,24 @@ Item {
             compare(shown.text, hash.slice(0, 8) + "…" + hash.slice(-8))
             files.fileDetails.hashExpanded = true
             compare(shown.text, hash)
-            // Name, size and hash: three lines of one height, the copy
+            // Name, type, size and hash: lines of one height, the copy
             // button still a full touch target.
             const content = files.fileDetails.contentItem
             const heightOf = n => findByName(content, n).height
             compare(heightOf("fileSha256"), heightOf("fileName"))
+            compare(heightOf("fileType"), heightOf("fileName"))
             compare(heightOf("fileSize"), heightOf("fileName"))
+            // Between the name and the size, and only what the name says.
+            verify(findByName(content, "fileType").y > findByName(content, "fileName").y)
+            verify(findByName(content, "fileType").y < findByName(content, "fileSize").y)
+            const typeText = findByName(findByName(content, "fileType"), "infoValue").text
+            verify(typeText.indexOf("by its name") > 0, typeText)
+            // Copied whole, from its short form.
+            files.fileDetails.hashExpanded = false
+            findByName(content, "copySha256").clicked()
+            clipboardReader.text = ""
+            clipboardReader.paste()
+            compare(clipboardReader.text, hash)
             compare(findByName(content, "fileSha256").parent.height, heightOf("fileName"))
             compare(findByName(content, "copySha256").height, Theme.touch)
             // Taking it off the list stays, apart from what is done with it.
@@ -446,6 +464,26 @@ Item {
             files.fileDetails.close()
             tryVerify(() => !files.fileDetails.visible)
             files.workspace.clear()
+        }
+
+        // What a file is, in words: what its bytes said, or what its name
+        // suggests and that only its name does; an archive or a message is
+        // never vouched for by a name.
+        function test_a_file_s_type_says_how_it_is_known() {
+            compare(Wording.fileType({"kind": "message", "verified": true}),
+                    "OpenPGP message")
+            compare(Wording.fileType({"kind": "message", "verified": false}),
+                    "OpenPGP message · by its name")
+            compare(Wording.fileType({"kind": "archive", "verified": false}),
+                    "Encrypted archive · by its name")
+            compare(Wording.fileType({"kind": "archive", "verified": true}),
+                    "OpenPGP message · an archive by its name")
+            compare(Wording.fileType({"kind": "", "verified": false,
+                                      "mime": "PDF document"}),
+                    "PDF document · by its name")
+            compare(Wording.fileType({"kind": "", "verified": false, "mime": ""}),
+                    "File")
+            verify(Wording.fileType({"kind": "not_openpgp"}).indexOf("Not OpenPGP") === 0)
         }
 
         // The desktop's rule for file operations, by what the names say.

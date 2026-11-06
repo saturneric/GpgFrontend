@@ -50,6 +50,7 @@
 #include "plat/common/PlatformShare.h"
 #include "shell/result_analyse/GpgOpResultInfo.h"
 #include "shell/result_analyse/GpgOperaOutcome.h"
+#include "shell/rules/FileNameRules.h"
 #include "shell/rules/FileOperationRules.h"
 #include "shell/rules/FileOutputRules.h"
 
@@ -94,8 +95,16 @@ struct FoundFile {
   QString name;
   bool available = false;
   qint64 size = 0;
-  QString content;
+  FileKind kind;
 };
+
+/// What @p entry holds, and how that is known.
+template <typename E>
+void SetContent(E& entry, const FileKind& kind) {
+  entry.content = kind.kind;
+  entry.content_confirmed = kind.confirmed;
+  entry.content_refuted = kind.refuted;
+}
 
 }  // namespace
 
@@ -250,7 +259,7 @@ auto FileWorkspace::addFiles(const QList<QUrl>& urls) -> QVariantList {
       ids << entry.id;
       if (!is_running(entry.id) && entry.state != QStringLiteral("queued")) {
         std::tie(entry.available, entry.size) = Probe(url);
-        entry.content = ClassifyFile(entry.name, LocalOrContent(url));
+        SetContent(entry, ClassifyFileOf(entry.name, LocalOrContent(url)));
         changed(entry.id, {kAvailableRole, kSizeRole, kContentRole});
       }
       continue;
@@ -266,7 +275,7 @@ auto FileWorkspace::addFiles(const QList<QUrl>& urls) -> QVariantList {
     entry->name = unique_name(DisplayName(url));
     std::tie(entry->available, entry->size) = Probe(url);
     // What it holds, by its name and its first bytes, as a file made here.
-    entry->content = ClassifyFile(entry->name, LocalOrContent(url));
+    SetContent(*entry, ClassifyFileOf(entry->name, LocalOrContent(url)));
     entry->added = QDateTime::currentDateTimeUtc();
     insert(std::move(entry));
   }
@@ -296,7 +305,7 @@ void FileWorkspace::addFolder(const QUrl& folder) {
           file.url = url;
           file.name = DisplayName(url);
           std::tie(file.available, file.size) = Probe(url);
-          file.content = ClassifyFile(file.name, LocalOrContent(url));
+          file.kind = ClassifyFileOf(file.name, LocalOrContent(url));
           found->files.append(file);
         }
         return 0;
@@ -323,7 +332,7 @@ void FileWorkspace::addFolder(const QUrl& folder) {
           entry->name = self->unique_name(file.name);
           entry->available = file.available;
           entry->size = file.size;
-          entry->content = file.content;
+          SetContent(*entry, file.kind);
           entry->added = QDateTime::currentDateTimeUtc();
           self->insert(std::move(entry));
           ++added;
@@ -346,7 +355,7 @@ auto FileWorkspace::receiveFiles(const QList<QUrl>& urls) -> QVariantList {
     entry->id = next_id_++;
     entry->origin = QStringLiteral("shared");
     entry->name = unique_name(DisplayName(url));
-    entry->content = ClassifyFileName(entry->name);
+    SetContent(*entry, FileKind{ClassifyFileName(entry->name)});
     entry->available = false;
     entry->progress = 0;
     entry->file = StagedFile(staging->NewPath(entry->name));
@@ -371,7 +380,7 @@ auto FileWorkspace::receiveFiles(const QList<QUrl>& urls) -> QVariantList {
           }
           entry->available = true;
           entry->size = QFileInfo(path).size();
-          entry->content = ClassifyFile(entry->name, path);
+          SetContent(*entry, ClassifyFileOf(entry->name, path));
           self->changed(
               id, {kAvailableRole, kProgressRole, kSizeRole, kContentRole});
         },
@@ -593,7 +602,7 @@ auto FileWorkspace::relink(int id, const QUrl& url) -> bool {
   entry->name.clear();
   entry->name = unique_name(DisplayName(url));
   std::tie(entry->available, entry->size) = Probe(url);
-  entry->content = ClassifyFile(entry->name, LocalOrContent(url));
+  SetContent(*entry, ClassifyFileOf(entry->name, LocalOrContent(url)));
   changed(id, {kNameRole, kAvailableRole, kSizeRole, kContentRole});
   return true;
 }
@@ -868,6 +877,39 @@ auto FileWorkspace::entry(int id) const -> QVariantMap {
     map.insert(QString::fromLatin1(it.value()), data(at, it.key()));
   }
   return map;
+}
+
+auto FileWorkspace::typeOf(int id) const -> QVariantMap {
+  const auto* entry = find(id);
+  if (entry == nullptr) return {};
+  const QFileInfo info(entry->name);
+  QString kind;
+  bool verified = false;
+  QString mime;
+  if (IsOpenPGPArchiveFile(info)) {
+    // What it decrypts to is told only once it is decrypted; its bytes can
+    // at most say it is OpenPGP data.
+    kind = QStringLiteral("archive");
+    verified =
+        entry->content_confirmed && entry->content == QStringLiteral("message");
+  } else if (!entry->content.isEmpty()) {
+    kind = entry->content;
+    verified = entry->content_confirmed;
+    if (!verified && info.suffix().toLower() == QStringLiteral("asc")) {
+      kind = QStringLiteral("armored");
+    }
+  } else if (entry->content_refuted) {
+    kind = QStringLiteral("not_openpgp");
+  } else if (info.suffix().toLower() == QStringLiteral("tar")) {
+    kind = QStringLiteral("tar");
+  } else {
+    const auto type = QMimeDatabase().mimeTypeForFile(
+        entry->name, QMimeDatabase::MatchExtension);
+    if (!type.isDefault()) mime = type.comment();
+  }
+  return {{QStringLiteral("kind"), kind},
+          {QStringLiteral("verified"), verified},
+          {QStringLiteral("mime"), mime}};
 }
 
 auto FileWorkspace::idAt(int row) const -> int {
@@ -1291,7 +1333,7 @@ void FileWorkspace::end(const QVariantMap& result, bool produces,
     output->origin = QStringLiteral("made");
     output->size = QFileInfo(job_output_.Path()).size();
     output->file = std::move(job_output_);
-    output->content = ClassifyFile(output->name, output->file.Path());
+    SetContent(*output, ClassifyFileOf(output->name, output->file.Path()));
     output->plaintext = job.op == Op::kDecrypt;
     output->source_id = job.id;
     output->operation = OpName(static_cast<int>(job.op));

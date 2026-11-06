@@ -16,6 +16,30 @@ QtObject {
                || (key.fingerprint || "").slice(-16)
     }
 
+    // What a file is (FileWorkspace.typeOf), and that only its name says so
+    // unless its bytes did: an archive or a message is never vouched for by
+    // a name.
+    function fileType(type) {
+        if (!type || type.kind === undefined) return ""
+        let name = ""
+        switch (type.kind) {
+        case "message": name = qsTr("OpenPGP message"); break
+        case "signature": name = qsTr("OpenPGP signature"); break
+        case "key": name = qsTr("OpenPGP key"); break
+        case "armored": name = qsTr("ASCII-armored OpenPGP data"); break
+        case "tar": name = qsTr("TAR archive"); break
+        case "folder": return qsTr("Folder")
+        case "not_openpgp": return qsTr("Not OpenPGP data, whatever its name says")
+        case "archive":
+            return type.verified ? qsTr("OpenPGP message · an archive by its name")
+                                 : qsTr("Encrypted archive · by its name")
+        default:
+            if ((type.mime || "").length === 0) return qsTr("File")
+            name = type.mime
+        }
+        return type.verified ? name : qsTr("%1 · by its name").arg(name)
+    }
+
     // The word under the desktop's stamp, for the same report.
     function reportWord(report) {
         if (report.cancelled === true) return qsTr("Cancelled")
