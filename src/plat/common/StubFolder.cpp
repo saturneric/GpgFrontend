@@ -29,6 +29,8 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QList>
+#include <QPair>
 
 #include "plat/common/PlatformFolder.h"
 
@@ -51,21 +53,66 @@ auto FolderDocumentNames(const QUrl& folder) -> std::optional<QStringList> {
   return dir.entryList(QDir::Files | QDir::Hidden | QDir::System);
 }
 
-auto FolderFiles(const QUrl& folder) -> std::optional<FolderContents> {
-  const QDir dir(DirectoryOf(folder));
-  if (DirectoryOf(folder).isEmpty() || !dir.exists()) return std::nullopt;
-  FolderContents contents;
-  for (const auto& info :
-       dir.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot |
-                             QDir::Hidden | QDir::System,
-                         QDir::Name)) {
-    if (info.isDir()) {
-      ++contents.folders;
-    } else {
-      contents.files.append(QUrl::fromLocalFile(info.absoluteFilePath()));
+auto FolderTreeOf(const QUrl& folder) -> std::optional<FolderTree> {
+  const auto root = DirectoryOf(folder);
+  const QDir dir(root);
+  if (root.isEmpty() || !dir.exists() || !dir.isReadable()) {
+    return std::nullopt;
+  }
+  FolderTree tree;
+  tree.name = QFileInfo(dir.absolutePath()).fileName();
+  // Breadth first, each folder by name: a folder before what is in it.
+  QList<QPair<QString, int>> pending{{QString(), 0}};
+  while (!pending.isEmpty()) {
+    const auto [under, depth] = pending.takeFirst();
+    const QDir here(under.isEmpty() ? root : dir.filePath(under));
+    if (!here.isReadable()) return std::nullopt;
+    for (const auto& info :
+         here.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot |
+                                QDir::Hidden | QDir::System | QDir::NoSymLinks,
+                            QDir::Name)) {
+      if (tree.nodes.size() >= kMaxFolderTreeNodes) {
+        tree.truncated = true;
+        return tree;
+      }
+      FolderNode node;
+      node.path = under.isEmpty() ? info.fileName()
+                                  : under + QLatin1Char('/') + info.fileName();
+      node.url = QUrl::fromLocalFile(info.absoluteFilePath());
+      node.folder = info.isDir();
+      node.size = node.folder ? 0 : info.size();
+      tree.nodes.append(node);
+      if (node.folder && depth + 1 < kMaxFolderTreeDepth) {
+        pending.append({node.path, depth + 1});
+      } else if (node.folder) {
+        tree.truncated = true;
+      }
     }
   }
-  return contents;
+  return tree;
+}
+
+auto CreateFolderChild(const QUrl& folder, const QString& name) -> QUrl {
+  const auto directory = DirectoryOf(folder);
+  if (directory.isEmpty() || name.isEmpty() ||
+      name.contains(QLatin1Char('/')) || name == QStringLiteral(".") ||
+      name == QStringLiteral("..")) {
+    return {};
+  }
+  auto path = QDir(directory).filePath(name);
+  for (int n = 1; QFileInfo::exists(path); ++n) {
+    path = QDir(directory).filePath(QStringLiteral("%1 (%2)").arg(name).arg(n));
+  }
+  if (!QDir().mkdir(path)) return {};
+  return QUrl::fromLocalFile(path);
+}
+
+auto DeleteFolderDocument(const QUrl& document) -> bool {
+  const auto path = DirectoryOf(document);
+  if (path.isEmpty()) return false;
+  const QFileInfo info(path);
+  if (info.isDir()) return QDir(path).removeRecursively();
+  return QFile::remove(path);
 }
 
 auto FindFolderDocument(const QUrl& folder, const QString& name) -> QUrl {

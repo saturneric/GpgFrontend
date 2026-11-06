@@ -836,6 +836,30 @@
         <source>Type</source>
         <translation>Typ</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="1"/>
+        <source>Contains</source>
+        <translation>Zawiera</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="1"/>
+        <source>%n file(s)</source>
+        <translation>
+            <numerusform>%n plik</numerusform>
+            <numerusform>%n pliki</numerusform>
+            <numerusform>%n plików</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="1"/>
+        <source>Encrypting it packs everything in it, as it is then, into one archive: %1.tar.gpg. The folder itself is not changed.</source>
+        <translation>Zaszyfrowanie pakuje całą zawartość, w jej ówczesnym stanie, do jednego archiwum: %1.tar.gpg. Sam folder pozostaje bez zmian.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="1"/>
+        <source>Extract to a folder…</source>
+        <translation>Wypakuj do folderu…</translation>
+    </message>
 </context>
 <context>
     <name>FilesPage</name>
@@ -1436,6 +1460,59 @@
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="722"/>
         <source>Every file directly in it, up to %1. Folders inside are not included.</source>
         <translation>Każdy plik bezpośrednio w nim, do %1. Foldery w środku nie są uwzględniane.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
+        <source>This folder holds too many files or folders to encrypt as one.</source>
+        <translation>Ten folder zawiera zbyt wiele plików lub folderów, aby zaszyfrować go w całości.</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
+        <source>%n file(s) extracted into “%1”.</source>
+        <translation>
+            <numerusform>Wypakowano %n plik do „%1”.</numerusform>
+            <numerusform>Wypakowano %n pliki do „%1”.</numerusform>
+            <numerusform>Wypakowano %n plików do „%1”.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
+        <source>Nothing was extracted. %1</source>
+        <translation>Nic nie zostało wypakowane. %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
+        <source>Extracting was stopped. Nothing was kept.</source>
+        <translation>Wypakowywanie przerwano. Nic nie zachowano.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
+        <source>Packing the folder… %1%</source>
+        <translation>Pakowanie folderu… %1%</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
+        <source>Extracting… %1%</source>
+        <translation>Wypakowywanie… %1%</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
+        <source>Folder · %n file(s) · %1</source>
+        <translation>
+            <numerusform>Folder · %n plik · %1</numerusform>
+            <numerusform>Folder · %n pliki · %1</numerusform>
+            <numerusform>Folder · %n plików · %1</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
+        <source>It cannot be extracted now. Try again once the current one is done.</source>
+        <translation>Nie można teraz wypakować. Spróbuj ponownie po zakończeniu bieżącego.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
+        <source>Added as one item, with everything in it. Encrypting it makes one .tar.gpg archive.</source>
+        <translation>Dodawany jako jeden element z całą zawartością. Zaszyfrowanie tworzy jedno archiwum .tar.gpg.</translation>
     </message>
 </context>
 <context>
@@ -2798,6 +2875,31 @@
         <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="995"/>
         <source>The signed file could not be read.</source>
         <translation>Nie można odczytać podpisanego pliku.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="1"/>
+        <source>The folder can no longer be read. Add it again.</source>
+        <translation>Nie można już odczytać folderu. Dodaj go ponownie.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="1"/>
+        <source>The folder is too large to encrypt here.</source>
+        <translation>Folder jest zbyt duży, aby zaszyfrować go tutaj.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="1"/>
+        <source>“%1” in the folder could not be read.</source>
+        <translation>Nie można odczytać „%1” w folderze.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="1"/>
+        <source>The folder could not be packed.</source>
+        <translation>Nie można spakować folderu.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="1"/>
+        <source>A folder can only be encrypted.</source>
+        <translation>Folder można tylko zaszyfrować.</translation>
     </message>
 </context>
 <context>
@@ -24605,6 +24707,39 @@ Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone 
         <location filename="../../../../src/mob/model/KeyActionsController.cpp" line="631"/>
         <source>The revocation could not be applied, so the key has not been revoked.</source>
         <translation>Nie udało się zastosować unieważnienia, więc klucz nie został unieważniony.</translation>
+    </message>
+</context>
+<context>
+    <name>FolderArchive</name>
+    <message>
+        <location filename="../../../../src/mob/files/FolderArchive.cpp" line="1"/>
+        <source>It is not an archive that can be read.</source>
+        <translation>To nie jest archiwum, które można odczytać.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/files/FolderArchive.cpp" line="1"/>
+        <source>The archive was refused: %1</source>
+        <translation>Archiwum zostało odrzucone: %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/files/FolderArchive.cpp" line="1"/>
+        <source>The archive holds a link, which is not extracted.</source>
+        <translation>Archiwum zawiera dowiązanie, które nie jest wypakowywane.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/files/FolderArchive.cpp" line="1"/>
+        <source>No folder could be made there.</source>
+        <translation>Nie można tam utworzyć folderu.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/files/FolderArchive.cpp" line="1"/>
+        <source>A folder could not be made there.</source>
+        <translation>Nie można tam utworzyć jednego z folderów.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/files/FolderArchive.cpp" line="1"/>
+        <source>A file could not be written there.</source>
+        <translation>Nie można tam zapisać pliku.</translation>
     </message>
 </context>
 </TS>

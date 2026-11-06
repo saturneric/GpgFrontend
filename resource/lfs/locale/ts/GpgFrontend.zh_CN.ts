@@ -834,6 +834,28 @@
         <source>Type</source>
         <translation>类型</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="1"/>
+        <source>Contains</source>
+        <translation>包含</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="1"/>
+        <source>%n file(s)</source>
+        <translation>
+            <numerusform>%n 个文件</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="1"/>
+        <source>Encrypting it packs everything in it, as it is then, into one archive: %1.tar.gpg. The folder itself is not changed.</source>
+        <translation>加密时会将其中所有内容按当时的状态打包为一个归档：%1.tar.gpg。文件夹本身不会改变。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="1"/>
+        <source>Extract to a folder…</source>
+        <translation>解压到文件夹…</translation>
+    </message>
 </context>
 <context>
     <name>FilesPage</name>
@@ -1418,6 +1440,55 @@
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="722"/>
         <source>Every file directly in it, up to %1. Folders inside are not included.</source>
         <translation>其中直接包含的每个文件，最多 %1 个。不包含其中的文件夹。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
+        <source>This folder holds too many files or folders to encrypt as one.</source>
+        <translation>此文件夹包含的文件或文件夹过多，无法整体加密。</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
+        <source>%n file(s) extracted into “%1”.</source>
+        <translation>
+            <numerusform>已将 %n 个文件解压到“%1”。</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
+        <source>Nothing was extracted. %1</source>
+        <translation>未解压任何内容。%1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
+        <source>Extracting was stopped. Nothing was kept.</source>
+        <translation>解压已停止，未保留任何内容。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
+        <source>Packing the folder… %1%</source>
+        <translation>正在打包文件夹… %1%</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
+        <source>Extracting… %1%</source>
+        <translation>正在解压… %1%</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
+        <source>Folder · %n file(s) · %1</source>
+        <translation>
+            <numerusform>文件夹 · %n 个文件 · %1</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
+        <source>It cannot be extracted now. Try again once the current one is done.</source>
+        <translation>现在无法解压。请在当前操作完成后重试。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
+        <source>Added as one item, with everything in it. Encrypting it makes one .tar.gpg archive.</source>
+        <translation>作为一个项目添加，包含其中所有内容。加密后生成一个 .tar.gpg 归档。</translation>
     </message>
 </context>
 <context>
@@ -2780,6 +2851,31 @@
         <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="995"/>
         <source>The signed file could not be read.</source>
         <translation>无法读取已签名的文件。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="1"/>
+        <source>The folder can no longer be read. Add it again.</source>
+        <translation>无法再读取该文件夹。请重新添加。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="1"/>
+        <source>The folder is too large to encrypt here.</source>
+        <translation>该文件夹太大，无法在此加密。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="1"/>
+        <source>“%1” in the folder could not be read.</source>
+        <translation>无法读取文件夹中的“%1”。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="1"/>
+        <source>The folder could not be packed.</source>
+        <translation>无法打包该文件夹。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/files/FileWorkspace.cpp" line="1"/>
+        <source>A folder can only be encrypted.</source>
+        <translation>文件夹只能加密。</translation>
     </message>
 </context>
 <context>
@@ -25677,6 +25773,39 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <location filename="../../../../src/mob/model/KeyActionsController.cpp" line="631"/>
         <source>The revocation could not be applied, so the key has not been revoked.</source>
         <translation>无法应用吊销，因此密钥未被吊销。</translation>
+    </message>
+</context>
+<context>
+    <name>FolderArchive</name>
+    <message>
+        <location filename="../../../../src/mob/files/FolderArchive.cpp" line="1"/>
+        <source>It is not an archive that can be read.</source>
+        <translation>这不是可读取的归档。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/files/FolderArchive.cpp" line="1"/>
+        <source>The archive was refused: %1</source>
+        <translation>归档被拒绝：%1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/files/FolderArchive.cpp" line="1"/>
+        <source>The archive holds a link, which is not extracted.</source>
+        <translation>归档包含链接，链接不会被解压。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/files/FolderArchive.cpp" line="1"/>
+        <source>No folder could be made there.</source>
+        <translation>无法在那里创建文件夹。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/files/FolderArchive.cpp" line="1"/>
+        <source>A folder could not be made there.</source>
+        <translation>无法在那里创建某个文件夹。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/files/FolderArchive.cpp" line="1"/>
+        <source>A file could not be written there.</source>
+        <translation>无法在那里写入文件。</translation>
     </message>
 </context>
 </TS>

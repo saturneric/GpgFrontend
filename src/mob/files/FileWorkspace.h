@@ -126,8 +126,17 @@ class FileWorkspace : public QAbstractListModel {
     /// What its name says it is, as the desktop tells (ClassifyFileName()):
     /// "message", "signature", or empty. Nothing is read.
     kContentRole,
-    /// How far it is copied in, 0 to 1, while it is; -1 otherwise.
+    /// How far it is copied in (or a folder packed, or an archive
+    /// extracted), 0 to 1, while it is; -1 otherwise.
     kProgressRole,
+    /// A folder the person added: one item, encrypted as one archive.
+    kFolderRole,
+    /// How many files a folder holds, all the way down; 0 for a file.
+    kFileCountRole,
+    /// What is being done to it apart from an operation: "copying" (in),
+    /// "packing" (a folder, before it is encrypted), "extracting" (an
+    /// archive, into a folder); empty otherwise.
+    kActivityRole,
   };
   Q_ENUM(Role)
 
@@ -160,16 +169,15 @@ class FileWorkspace : public QAbstractListModel {
   /// twice. The ids of all of them, in order, the ones already here too.
   Q_INVOKABLE QVariantList addFiles(const QList<QUrl>& urls);
 
-  /// The most files one folder adds.
-  static constexpr int kMaxFolderFiles = 500;
-
   /**
-   * @brief Add the files directly in @p folder (a picked folder: on Android
-   * a document tree), as added files: read where they are, not copied.
+   * @brief Add @p folder (a picked folder: on Android a document tree) as
+   * one item, read where it is, not copied.
    *
-   * Folders in it are not gone into, only counted. Listed and looked at
-   * away from the interface thread; folderAdded() says how it went. At most
-   * kMaxFolderFiles; a file already here is not added twice.
+   * Encrypting it packs it and all under it, as it is then, into one TAR
+   * archive, encrypted to "<name>.tar.gpg"; nothing else is done to a
+   * folder. Walked away from the interface thread to count what it holds;
+   * folderAdded() says how it went. A folder already here is not added
+   * twice.
    */
   Q_INVOKABLE void addFolder(const QUrl& folder);
 
@@ -194,6 +202,28 @@ class FileWorkspace : public QAbstractListModel {
   /// they are free to take one is the page's.
   [[nodiscard]] Q_INVOKABLE bool allows(const QString& op,
                                         const QStringList& names) const;
+
+  /// allows(), for files and folders: @p entries as entry() gives them
+  /// ({name, isFolder}). A folder is only ever encrypted.
+  [[nodiscard]] Q_INVOKABLE bool allowsEntries(
+      const QString& op, const QVariantList& entries) const;
+
+  /// Whether the file @p id starts as a TAR archive does (a folder
+  /// decrypted, say): its name is not taken for it. Extracting still checks
+  /// every entry.
+  [[nodiscard]] Q_INVOKABLE bool isArchive(int id) const;
+
+  /**
+   * @brief Extract the TAR archive @p id into a new folder in @p folder (a
+   * picked folder), named after the archive.
+   *
+   * Only when asked: an archive is never extracted by itself. Checked whole
+   * before anything is written there (no links, no paths that leave it, no
+   * name twice); a copy that fails part way is taken back. extracted() says
+   * how it went. False when it cannot start (not a file here, or another
+   * extraction is under way).
+   */
+  Q_INVOKABLE bool extract(int id, const QUrl& folder);
 
   /// What a file called @p name is for verifying, by the desktop's rule
   /// (Shell::MatchVerifyFile): {role: "combined", "signature" or "data",
@@ -307,7 +337,8 @@ class FileWorkspace : public QAbstractListModel {
   /// kind is "message", "signature", "key" (OpenPGP data), "archive" (named
   /// as an encrypted folder archive), "armored" (named .asc, not read as
   /// armor), "not_openpgp" (named as OpenPGP data, which its bytes are not),
-  /// "tar" (named as a TAR archive) or "" (anything else, then mime is its
+  /// "tar" (named as a TAR archive; verified when it starts as one) or ""
+  /// (anything else, then mime is its
   /// type by its name, empty when not known). verified is true only when
   /// its bytes said so; a name is never taken for what a file holds.
   [[nodiscard]] Q_INVOKABLE QVariantMap typeOf(int id) const;
@@ -354,10 +385,14 @@ class FileWorkspace : public QAbstractListModel {
   /// ("missing", "unreadable") and an empty hash. A plain name, so a QML
   /// Connections can take it.
   void hashReady(int id, const QString& sha256, const QString& error);
-  /// addFolder() is done: @p added files new to the list, @p folders not
-  /// gone into, @p left files over the limit not added; @p failed when the
-  /// folder could not be listed at all.
-  void folderAdded(int added, int folders, int left, bool failed);
+  /// addFolder() is done: @p id the folder's item; -1 and @p problem
+  /// "unreadable" (it could not be listed) or "too_large" (more files or
+  /// folders, or deeper, than one archive takes) when it was not added.
+  void folderAdded(int id, const QString& problem);
+  /// extract() of @p id is done: into @p folder (as named there), @p files
+  /// files; else @p reason says why nothing was, empty when it was stopped.
+  void extracted(int id, bool ok, const QString& folder, const QString& reason,
+                 int files);
 
  private:
   enum class Op { kEncrypt, kDecrypt, kSign, kVerify };
@@ -385,6 +420,11 @@ class FileWorkspace : public QAbstractListModel {
     /// Named as OpenPGP data, and its bytes say it is not.
     bool content_refuted = false;
     double progress = -1;
+    /// A folder (url a picked document tree): packed when it is encrypted.
+    bool folder = false;
+    int file_count = 0;
+    /// kActivityRole.
+    QString activity;
   };
 
   struct Job {
@@ -407,6 +447,16 @@ class FileWorkspace : public QAbstractListModel {
   StagedFile job_other_;
   StagedFile job_output_;
   QString job_output_name_;
+  /// Why the running job's input could not be staged, said as its failure;
+  /// stopped: it was cancelled.
+  QString stage_problem_;
+  bool stage_stopped_ = false;
+  /// Stops what runs apart from the engine: packing a folder, extracting an
+  /// archive. A new one for each, so a late stop never reaches the next.
+  std::shared_ptr<std::atomic_bool> stop_ =
+      std::make_shared<std::atomic_bool>(false);
+  /// The archive being extracted; -1 when none is.
+  int extracting_ = -1;
   QString sort_key_ = QStringLiteral("added");
   int next_id_ = 1;
   /// hash(): the one thread hashes run on, and the request that may report
@@ -432,6 +482,12 @@ class FileWorkspace : public QAbstractListModel {
   void dropped(int op_id);
   void stage(const Entry& entry, StagedFile& into,
              std::function<void(bool, const QString&)> done);
+  /// stage() of a folder: packed into one TAR archive in the staging area.
+  void pack(const Entry& entry, StagedFile& into,
+            std::function<void(bool, const QString&)> done);
+  /// How far work on another thread is, shown on the file @p id.
+  static auto progress_reporter(QPointer<FileWorkspace> self, int id)
+      -> std::function<void(qint64, qint64)>;
   struct Save {
     int id = 0;
     QUrl to;

@@ -26,6 +26,8 @@ BottomSheet {
     property bool hashExpanded: false
 
     readonly property bool isOutput: file.kind === "output"
+    // A folder added as one item: no hash, encrypted as one archive.
+    readonly property bool isFolder: file.isFolder === true
     readonly property bool temporary: file.origin === "made"
                                       && (file.savedName || "").length === 0
     readonly property bool hashing: sha256.length === 0 && hashError.length === 0
@@ -57,7 +59,7 @@ BottomSheet {
         copied.visible = false
         sheet.lastOperation = OperationQueue.log.latestOnFile(id)
         sheet.hashDue = sheet.copying
-        if (!sheet.hashDue) workspace.hash(id)
+        if (!sheet.hashDue && !sheet.isFolder) workspace.hash(id)
         open()
     }
 
@@ -71,6 +73,7 @@ BottomSheet {
         const resized = file.size !== sheet.file.size
         sheet.file = file
         sheet.type = sheet.workspace.typeOf(sheet.fileId)
+        if (sheet.isFolder) return
         sheet.lastOperation = OperationQueue.log.latestOnFile(sheet.fileId)
         // All here now, or changed since it was hashed: hashed again.
         if (!sheet.copying && (sheet.hashDue || resized)) {
@@ -112,7 +115,7 @@ BottomSheet {
     onClosed: if (workspace) workspace.cancelHash()
 
     objectName: "fileDetails"
-    title: qsTr("File")
+    title: isFolder ? qsTranslate("Wording", "Folder") : qsTr("File")
 
     // Name, type, size and hash, lines of one height: the hash's monospace line
     // is a little taller, and the other two take its height.
@@ -142,10 +145,21 @@ BottomSheet {
         value: Theme.fileSize(sheet.file.size || 0)
     }
 
+    // How much a folder holds, all the way down.
+    InfoRow {
+        objectName: "folderFiles"
+        Layout.fillWidth: true
+        Layout.minimumHeight: hashRow.implicitHeight
+        visible: sheet.isFolder
+        label: qsTr("Contains")
+        value: qsTr("%n file(s)", "", sheet.file.fileCount || 0)
+    }
+
     // The hash: worked out, then shown by its two ends (a tap shows it
-    // whole), a tap from the clipboard, whole.
+    // whole), a tap from the clipboard, whole. A folder has none.
     RowLayout {
         Layout.fillWidth: true
+        visible: !sheet.isFolder
         spacing: 4
 
         InfoRow {
@@ -221,6 +235,18 @@ BottomSheet {
         font.pixelSize: Theme.secondarySize
         text: qsTr("This file can no longer be opened. It may have been "
                    + "moved or deleted, or access to it has ended.")
+    }
+
+    Label {
+        objectName: "folderNote"
+        Layout.fillWidth: true
+        visible: sheet.isFolder
+        wrapMode: Text.Wrap
+        color: Material.secondaryTextColor
+        font.pixelSize: Theme.secondarySize
+        text: qsTr("Encrypting it packs everything in it, as it is then, into "
+                   + "one archive: %1.tar.gpg. The folder itself is not changed.")
+              .arg(sheet.file.name || "")
     }
 
     Label {

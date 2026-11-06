@@ -41,8 +41,9 @@ Page {
 
     Connections {
         target: files
-        function onFolderAdded(added, folders, left, failed) {
-            page.folderAdded(added, folders, left, failed)
+        function onFolderAdded(id, problem) { page.folderAdded(id, problem) }
+        function onExtracted(id, ok, folder, reason, count) {
+            page.extracted(ok, folder, reason, count)
         }
         function onDataChanged() { ++page.filesRevision }
         function onRowsInserted() { ++page.filesRevision }
@@ -58,6 +59,7 @@ Page {
     readonly property alias operationMenu: operationMenu
     readonly property alias fileDetails: details
     readonly property alias addChoice: addSheet
+    readonly property alias rowActions: rowMenu
 
     // One step back, as Android's Back asks: out of the search (its text
     // first), then out of choosing files.
@@ -94,7 +96,8 @@ Page {
         if (!entries.every(usable)) return false
         // Verify takes one file here: the verify sheet pairs it.
         if (op === "verify" && entries.length !== 1) return false
-        return files.allows(op, entries.map(e => e.name || ""))
+        return files.allowsEntries(op, entries.map(e => ({"name": e.name || "",
+                                                          "isFolder": e.isFolder === true})))
     }
 
     // Why nothing could be started on @p ids, as it is: a file that can no
@@ -172,17 +175,35 @@ Page {
         else addSheet.open()
     }
 
-    // What a folder added: said once, with what it left out.
-    function folderAdded(added, folders, left, failed) {
-        if (failed) {
+    // A folder added as one item, or why it was not.
+    function folderAdded(id, problem) {
+        if (problem === "unreadable")
             notice.show(qsTr("This folder could not be read."))
+        else if (problem === "too_large")
+            notice.show(qsTr("This folder holds too many files or folders to "
+                             + "encrypt as one."))
+        else if (id >= 0)
+            page.showFile(id)
+    }
+
+    // An archive extracted into a folder, or why nothing was.
+    function extracted(ok, folder, reason, count) {
+        if (ok)
+            notice.show(qsTr("%n file(s) extracted into “%1”.", "", count).arg(folder))
+        else if (reason.length > 0)
+            notice.show(qsTr("Nothing was extracted. %1").arg(reason))
+        else
+            notice.show(qsTr("Extracting was stopped. Nothing was kept."))
+    }
+
+    // Extract the archive @p id into a folder the person picks.
+    function extract(id) {
+        if (page.prompting) {
+            notice.show(page.pickerBlocked)
             return
         }
-        let said = added > 0 ? qsTr("%n file(s) added.", "", added)
-                             : qsTr("No new files in this folder.")
-        if (folders > 0) said += " " + qsTr("%n folder(s) in it not included.", "", folders)
-        if (left > 0) said += " " + qsTr("%n more file(s) not added.", "", left)
-        notice.show(said)
+        extractDialog.archiveId = id
+        extractDialog.open()
     }
 
     function encrypt(ids) { request("encrypt", ids) }
@@ -376,8 +397,14 @@ Page {
     // it is and, for a file made here, whether it is saved yet. Nothing on
     // where it came from: the name says what it is.
     function detailOf(file) {
-        if (file.progress >= 0)
-            return qsTr("Copying in… %1%").arg(Math.round(file.progress * 100))
+        if (file.progress >= 0) {
+            const percent = Math.round(file.progress * 100)
+            if (file.activity === "packing")
+                return qsTr("Packing the folder… %1%").arg(percent)
+            if (file.activity === "extracting")
+                return qsTr("Extracting… %1%").arg(percent)
+            return qsTr("Copying in… %1%").arg(percent)
+        }
         if (!file.available) return qsTr("Can no longer be opened")
         switch (file.phase) {
         case "queued": return qsTr("Waiting…")
@@ -387,6 +414,8 @@ Page {
             return page.failureText(file)
         }
         const size = Theme.fileSize(file.size)
+        if (file.isFolder)
+            return qsTr("Folder · %n file(s) · %1", "", file.fileCount).arg(size)
         if (file.operation === "verify" && file.phase === "done") {
             const signatures = file.result.signatures || []
             return signatures.length > 0
@@ -426,6 +455,7 @@ Page {
     // A file's icon, by what it holds (its name, confirmed by its first
     // bytes), whether it was added or made here.
     function symbolOf(file) {
+        if (file.isFolder) return "folder"
         switch (file.content) {
         case "message": return "lock"
         case "signature": return "signature"
@@ -676,10 +706,23 @@ Page {
         onAccepted: files.addFiles(selectedFiles)
     }
 
-    // A folder whose files are added.
+    // A folder, added as one item.
     FolderDialog {
         id: addFolderDialog
         onAccepted: files.addFolder(selectedFolder)
+    }
+
+    // Where an archive is extracted: a new folder in the one picked.
+    FolderDialog {
+        id: extractDialog
+
+        property int archiveId: -1
+
+        onAccepted: {
+            if (!files.extract(archiveId, selectedFolder))
+                notice.show(qsTr("It cannot be extracted now. Try again once "
+                                 + "the current one is done."))
+        }
     }
 
     // Files one by one, or all of a folder's.
@@ -713,8 +756,8 @@ Page {
             symbol: "folder"
             symbolColor: Material.accentColor
             text: qsTr("A folder")
-            detail: qsTr("Every file directly in it, up to %1. Folders inside are "
-                         + "not included.").arg(500)
+            detail: qsTr("Added as one item, with everything in it. Encrypting "
+                         + "it makes one .tar.gpg archive.")
             onClicked: {
                 addSheet.close()
                 if (page.prompting) notice.show(page.pickerBlocked)
@@ -853,6 +896,9 @@ Page {
                     required property string savedName
                     required property string content
                     required property real progress
+                    required property bool isFolder
+                    required property int fileCount
+                    required property string activity
 
                     readonly property bool working: phase === "running" || progress >= 0
 
@@ -1023,12 +1069,24 @@ Page {
         property int target: -1
         readonly property var file: target >= 0 ? files.entry(target) : ({})
         readonly property bool isOutput: file.kind === "output"
+        // A TAR archive (a folder decrypted, say), offered to extract;
+        // never extracted by itself.
+        property bool isArchive: false
 
         // Opened again for each row: what it knows is read afresh.
         onAboutToShow: {
             const t = target
             target = -1
             target = t
+            isArchive = files.isArchive(t) && (file.activity || "").length === 0
+        }
+
+        MenuItem {
+            objectName: "rowExtract"
+            text: qsTranslate("FileDetailsSheet", "Extract to a folder…")
+            height: rowMenu.isArchive ? implicitHeight : 0
+            visible: rowMenu.isArchive
+            onTriggered: page.extract(rowMenu.target)
         }
 
         MenuItem {

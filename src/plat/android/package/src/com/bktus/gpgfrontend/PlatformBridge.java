@@ -23,6 +23,7 @@ import androidx.core.content.FileProvider;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -280,10 +281,22 @@ public final class PlatformBridge {
 
     // ---- A folder the person picked (ACTION_OPEN_DOCUMENT_TREE)
 
+    /**
+     * The folder as a document: the picked tree's own folder, or a folder
+     * in it already given as a document of the tree. The tree's document id
+     * of a document in it is the tree's, not the document's own.
+     */
+    private static String documentIdOf(Uri uri) {
+        String path = uri.getPath();
+        if (path != null && path.contains("/document/")) {
+            return DocumentsContract.getDocumentId(uri);
+        }
+        return DocumentsContract.getTreeDocumentId(uri);
+    }
+
     private static Uri folderOf(String tree) {
         Uri uri = Uri.parse(tree);
-        return DocumentsContract.buildDocumentUriUsingTree(
-                uri, DocumentsContract.getTreeDocumentId(uri));
+        return DocumentsContract.buildDocumentUriUsingTree(uri, documentIdOf(uri));
     }
 
     /** One row of a folder listing; true to stop there. */
@@ -299,7 +312,7 @@ public final class PlatformBridge {
         try {
             Uri uri = Uri.parse(tree);
             Uri children = DocumentsContract.buildChildDocumentsUriUsingTree(
-                    uri, DocumentsContract.getTreeDocumentId(uri));
+                    uri, documentIdOf(uri));
             try (Cursor cursor = context.getContentResolver().query(
                     children,
                     new String[] {DocumentsContract.Document.COLUMN_DOCUMENT_ID,
@@ -328,22 +341,102 @@ public final class PlatformBridge {
     }
 
     /**
-     * The documents directly in the folder, each as "f:" and its URI for a
-     * file, or "d:" and its URI for a folder (not gone into); null when it
-     * cannot be listed.
+     * The folder and everything under it, breadth first, a folder before
+     * what is in it: its display name first, then four strings for each
+     * document under it -- "d" or "f", its path under the folder (its names
+     * joined by "/", a "/" in a name made "_"), its URI, its size. At most
+     * maxNodes documents and maxDepth folders deep; a last "!" says the walk
+     * stopped there. Null when it cannot be listed (access lost, gone).
      */
-    public static String[] childDocuments(Context context, String tree) {
-        List<String> found = new ArrayList<>();
-        Uri root = Uri.parse(tree);
-        boolean listed = eachChild(context, tree, cursor -> {
-            String uri = DocumentsContract.buildDocumentUriUsingTree(
-                    root, cursor.getString(0)).toString();
-            boolean folder = DocumentsContract.Document.MIME_TYPE_DIR.equals(
-                    cursor.getString(2));
-            found.add((folder ? "d:" : "f:") + uri);
+    public static String[] treeDocuments(Context context, String tree,
+                                         int maxNodes, int maxDepth) {
+        try {
+            Uri root = Uri.parse(tree);
+            List<String> found = new ArrayList<>();
+            found.add(displayNameOf(context, folderOf(tree)));
+            ArrayDeque<String[]> pending = new ArrayDeque<>();
+            // {document id, path under the folder, depth}
+            pending.add(new String[] {documentIdOf(root), "", "0"});
+            int nodes = 0;
+            boolean truncated = false;
+            while (!pending.isEmpty() && !truncated) {
+                String[] at = pending.poll();
+                int depth = Integer.parseInt(at[2]);
+                Uri children = DocumentsContract.buildChildDocumentsUriUsingTree(
+                        root, at[0]);
+                try (Cursor cursor = context.getContentResolver().query(
+                        children,
+                        new String[] {DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+                                      DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+                                      DocumentsContract.Document.COLUMN_MIME_TYPE,
+                                      DocumentsContract.Document.COLUMN_SIZE},
+                        null, null, DocumentsContract.Document.COLUMN_DISPLAY_NAME)) {
+                    if (cursor == null) return null;
+                    while (cursor.moveToNext()) {
+                        if (nodes >= maxNodes) {
+                            truncated = true;
+                            break;
+                        }
+                        String id = cursor.getString(0);
+                        String name = cursor.getString(1);
+                        if (name == null || name.isEmpty()) name = "_";
+                        name = name.replace('/', '_');
+                        String path = at[1].isEmpty() ? name : at[1] + "/" + name;
+                        boolean folder = DocumentsContract.Document.MIME_TYPE_DIR
+                                .equals(cursor.getString(2));
+                        long size = cursor.isNull(3) ? 0 : cursor.getLong(3);
+                        found.add(folder ? "d" : "f");
+                        found.add(path);
+                        found.add(DocumentsContract.buildDocumentUriUsingTree(
+                                root, id).toString());
+                        found.add(Long.toString(folder ? 0 : size));
+                        ++nodes;
+                        if (folder && depth + 1 < maxDepth) {
+                            pending.add(new String[] {id, path,
+                                                      Integer.toString(depth + 1)});
+                        } else if (folder) {
+                            truncated = true;
+                        }
+                    }
+                }
+            }
+            if (truncated) found.add("!");
+            return found.toArray(new String[0]);
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    private static String displayNameOf(Context context, Uri document) {
+        try (Cursor cursor = context.getContentResolver().query(
+                document,
+                new String[] {DocumentsContract.Document.COLUMN_DISPLAY_NAME},
+                null, null, null)) {
+            if (cursor != null && cursor.moveToFirst() && !cursor.isNull(0)) {
+                return cursor.getString(0);
+            }
+        } catch (RuntimeException e) {
+            // Named by its path below.
+        }
+        String id = documentIdOf(document);
+        int cut = Math.max(id.lastIndexOf('/'), id.lastIndexOf(':'));
+        return cut >= 0 ? id.substring(cut + 1) : id;
+    }
+
+    /** A new folder in the folder; the provider numbers a name that is taken. */
+    public static String createFolder(Context context, String tree, String name) {
+        return createChild(context, tree, DocumentsContract.Document.MIME_TYPE_DIR,
+                           name);
+    }
+
+    /** Delete a document (a folder with all in it) made in a picked folder. */
+    public static boolean deleteDocument(Context context, String document) {
+        try {
+            return DocumentsContract.deleteDocument(context.getContentResolver(),
+                                                    Uri.parse(document));
+        } catch (FileNotFoundException | RuntimeException e) {
             return false;
-        });
-        return listed ? found.toArray(new String[0]) : null;
+        }
     }
 
     /** The document named name in the folder; null when there is none. */

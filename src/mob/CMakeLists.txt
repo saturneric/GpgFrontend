@@ -68,6 +68,7 @@ qt_add_library(gf_mob_lib STATIC
   files/FileOperations.cpp
   files/FileFilterModel.cpp
   files/FileWorkspace.cpp
+  files/FolderArchive.cpp
   files/ShareInbox.cpp
   ${GF_PLATFORM_APP_SOURCES}
   ${GF_PLATFORM_MOBILE_SOURCES})

@@ -76,18 +76,14 @@ Item {
             sheet.close()
             tryVerify(() => !sheet.visible)
 
-            // Counted as the language counts (English: one file, files).
+            // A folder that was not added says why.
             TestSupport.useLanguage("en_US")
-            files.folderAdded(3, 2, 0, false)
-            compare(files.notice.text, "3 files added. 2 folders in it not included.")
-            files.folderAdded(0, 0, 0, false)
-            compare(files.notice.text, "No new files in this folder.")
-            files.folderAdded(500, 0, 12, false)
-            compare(files.notice.text, "500 files added. 12 more files not added.")
-            files.folderAdded(1, 1, 0, false)
-            compare(files.notice.text, "1 file added. 1 folder in it not included.")
-            files.folderAdded(0, 0, 0, true)
+            files.folderAdded(-1, "unreadable")
             compare(files.notice.text, "This folder could not be read.")
+            files.folderAdded(-1, "too_large")
+            verify(files.notice.text.indexOf("too many") > 0)
+            // One item, with everything in it: said where it is picked.
+            verify(findByName(sheet.contentItem, "addPickFolder").detail.indexOf(".tar.gpg") > 0)
         }
 
         // Nothing started says why, as it is: a file that cannot be
@@ -484,6 +480,43 @@ Item {
             compare(Wording.fileType({"kind": "", "verified": false, "mime": ""}),
                     "File")
             verify(Wording.fileType({"kind": "not_openpgp"}).indexOf("Not OpenPGP") === 0)
+        }
+
+        // A folder is one item in the list: its own icon, how many files it
+        // holds, only encrypting offered; its details have no hash and say
+        // what encrypting it makes.
+        function test_a_folder_is_one_item() {
+            const ws = files.workspace
+            ws.clear()
+            ws.addFolder(Qt.resolvedUrl("data"))
+            tryVerify(() => ws.count === 1, 5000)
+            const entry = ws.entry(ws.idAt(0))
+            verify(entry.isFolder)
+            compare(entry.name, "data")
+            verify(entry.fileCount > 0)
+            compare(files.symbolOf(entry), "folder")
+            // As the list shows it.
+            const shownRow = findByName(files, "file_data")
+            verify(shownRow, "the folder's row")
+            compare(shownRow.symbol, "folder")
+            verify(shownRow.detail.indexOf("Folder") === 0, shownRow.detail)
+            verify(files.detailOf(entry).indexOf("Folder") === 0)
+            verify(files.allowed("encrypt", [entry]))
+            verify(files.allowed("symmetric", [entry]))
+            verify(!files.allowed("sign", [entry]))
+            verify(!files.allowed("decrypt", [entry]))
+
+            files.fileDetails.begin(entry.fileId)
+            tryVerify(() => files.fileDetails.opened)
+            const content = files.fileDetails.contentItem
+            verify(!findByName(content, "fileSha256").parent.visible)
+            verify(findByName(content, "folderFiles").visible)
+            verify(findByName(content, "folderNote").visible)
+            compare(findByName(content, "detailsExtract"), null)
+            compare(findByName(findByName(content, "fileType"), "infoValue").text, "Folder")
+            files.fileDetails.close()
+            tryVerify(() => !files.fileDetails.visible)
+            ws.clear()
         }
 
         // The desktop's rule for file operations, by what the names say.

@@ -221,23 +221,52 @@ auto FolderDocumentNames(const QUrl& folder) -> std::optional<QStringList> {
   return Strings(names);
 }
 
-auto FolderFiles(const QUrl& folder) -> std::optional<FolderContents> {
+auto FolderTreeOf(const QUrl& folder) -> std::optional<FolderTree> {
   const auto found = QJniObject::callStaticObjectMethod(
-      kBridge, "childDocuments",
-      "(Landroid/content/Context;Ljava/lang/String;)[Ljava/lang/String;",
+      kBridge, "treeDocuments",
+      "(Landroid/content/Context;Ljava/lang/String;II)[Ljava/lang/String;",
       Activity().object(),
       QJniObject::fromString(folder.toString(QUrl::FullyEncoded))
-          .object<jstring>());
+          .object<jstring>(),
+      static_cast<jint>(kMaxFolderTreeNodes),
+      static_cast<jint>(kMaxFolderTreeDepth));
   if (!found.isValid()) return std::nullopt;
-  FolderContents contents;
-  for (const auto& entry : Strings(found)) {
-    if (entry.startsWith(QStringLiteral("d:"))) {
-      ++contents.folders;
-    } else if (entry.startsWith(QStringLiteral("f:"))) {
-      contents.files.append(QUrl(entry.mid(2)));
-    }
+  const auto items = Strings(found);
+  if (items.isEmpty()) return std::nullopt;
+  FolderTree tree;
+  tree.name = items.first();
+  qsizetype at = 1;
+  for (; at + 3 < items.size(); at += 4) {
+    FolderNode node;
+    node.folder = items.at(at) == QStringLiteral("d");
+    node.path = items.at(at + 1);
+    node.url = QUrl(items.at(at + 2));
+    node.size = items.at(at + 3).toLongLong();
+    tree.nodes.append(node);
   }
-  return contents;
+  tree.truncated = at < items.size() && items.at(at) == QStringLiteral("!");
+  return tree;
+}
+
+auto CreateFolderChild(const QUrl& folder, const QString& name) -> QUrl {
+  const auto uri = QJniObject::callStaticObjectMethod(
+      kBridge, "createFolder",
+      "(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)"
+      "Ljava/lang/String;",
+      Activity().object(),
+      QJniObject::fromString(folder.toString(QUrl::FullyEncoded))
+          .object<jstring>(),
+      QJniObject::fromString(name).object<jstring>());
+  return uri.isValid() ? QUrl(uri.toString()) : QUrl();
+}
+
+auto DeleteFolderDocument(const QUrl& document) -> bool {
+  return QJniObject::callStaticMethod<jboolean>(
+             kBridge, "deleteDocument",
+             "(Landroid/content/Context;Ljava/lang/String;)Z",
+             Activity().object(),
+             QJniObject::fromString(document.toString(QUrl::FullyEncoded))
+                 .object<jstring>()) != JNI_FALSE;
 }
 
 auto FindFolderDocument(const QUrl& folder, const QString& name) -> QUrl {

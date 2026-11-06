@@ -35,6 +35,7 @@ add_executable(gf_mob_tests
   TranslationsTest.cpp
   FileStoreTest.cpp
   FileWorkspaceTest.cpp
+  FolderArchiveTest.cpp
   InteropTest.cpp
   InteractionBridgeTest.cpp
   KeyActionsTest.cpp

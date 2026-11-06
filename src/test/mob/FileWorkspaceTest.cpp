@@ -30,6 +30,9 @@
 #include <QDir>
 #include <QDirIterator>
 #include <QFileInfo>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QMap>
 #include <QSignalSpy>
 #include <QStandardPaths>
 #include <QTemporaryDir>
@@ -496,43 +499,199 @@ TEST_F(FileWorkspaceTest, ADocumentThatGoesAwayIsUnavailable) {
   EXPECT_EQ(State(source), "idle");
 }
 
-// A folder adds the files directly in it, read where they are: its own
-// folders are counted, not gone into; a file already here is not added
-// twice; a folder that cannot be listed says so.
-TEST_F(FileWorkspaceTest, AFolderAddsItsOwnFilesOnly) {
-  QTemporaryDir folder;
-  WriteFile(folder.filePath("one.txt"), "one");
-  WriteFile(folder.filePath("two.txt.asc"), "two");
-  ASSERT_TRUE(QDir(folder.path()).mkpath("inner"));
-  WriteFile(folder.filePath("inner/deep.txt"), "deep");
-  // Picked alone first: not listed again from the folder.
-  Do([&](auto* f) {
-    f->addFiles({QUrl::fromLocalFile(folder.filePath("one.txt"))});
-  });
-  ASSERT_EQ(Count(), 1);
+namespace {
+
+/// Every file under @p root, by its path under it, and its SHA-256; and every
+/// folder, by its path, with an empty digest.
+auto TreeOf(const QString& root) -> QMap<QString, QByteArray> {
+  QMap<QString, QByteArray> tree;
+  QDirIterator walk(root,
+                    QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden,
+                    QDirIterator::Subdirectories);
+  while (walk.hasNext()) {
+    const auto info = walk.nextFileInfo();
+    const auto path = QDir(root).relativeFilePath(info.absoluteFilePath());
+    if (info.isDir()) {
+      tree.insert(path, {});
+      continue;
+    }
+    QFile file(info.absoluteFilePath());
+    file.open(QIODevice::ReadOnly);
+    tree.insert(path, QCryptographicHash::hash(file.readAll(),
+                                               QCryptographicHash::Sha256));
+  }
+  return tree;
+}
+
+}  // namespace
+
+// A folder is one item: everything in it counted, a folder already here not
+// added twice, one that cannot be listed said so. It is only ever encrypted.
+TEST_F(FileWorkspaceTest, AFolderIsOneItem) {
+  QTemporaryDir parent;
+  const auto root = parent.filePath("Holiday");
+  ASSERT_TRUE(QDir().mkpath(root + "/photos/raw"));
+  ASSERT_TRUE(QDir().mkpath(root + "/empty"));
+  WriteFile(root + "/notes.txt", "one");
+  WriteFile(root + "/photos/a.jpg", "two!");
+  WriteFile(root + "/photos/raw/b.dng", "three");
 
   QVariantList outcome;
-  RunOnMainThread([this, &outcome]() {
-    QObject::connect(files_, &FileWorkspace::folderAdded, files_,
-                     [&outcome](int added, int folders, int left, bool failed) {
-                       outcome = {added, folders, left, failed};
-                     });
-    files_->addFolder(QUrl::fromLocalFile(QDir(dir_.path()).filePath("x")));
-  });
-  ASSERT_TRUE(WaitFor(
-      [&outcome]() {
-        bool done = false;
-        RunOnMainThread([&]() { done = !outcome.isEmpty(); });
-        return done;
-      },
-      10000));
-  // Not there: said so, nothing added.
-  EXPECT_TRUE(outcome.at(3).toBool());
+  const auto add = [&](const QUrl& folder) {
+    RunOnMainThread([&]() {
+      outcome.clear();
+      QObject::connect(
+          files_, &FileWorkspace::folderAdded, files_,
+          [&outcome](int id, const QString& problem) {
+            outcome = {id, problem};
+          },
+          Qt::SingleShotConnection);
+      files_->addFolder(folder);
+    });
+    EXPECT_TRUE(WaitFor(
+        [&outcome]() {
+          bool done = false;
+          RunOnMainThread([&]() { done = !outcome.isEmpty(); });
+          return done;
+        },
+        10000));
+  };
+
+  add(QUrl::fromLocalFile(parent.filePath("missing")));
+  EXPECT_EQ(outcome.value(0).toInt(), -1);
+  EXPECT_EQ(outcome.value(1).toString(), "unreadable");
+  EXPECT_EQ(Count(), 0);
+
+  add(QUrl::fromLocalFile(root));
+  const auto id = outcome.value(0).toInt();
+  ASSERT_GE(id, 0);
+  EXPECT_EQ(outcome.value(1).toString(), "");
+  EXPECT_EQ(Count(), 1);
+  const auto entry = Entry(id);
+  EXPECT_EQ(entry.value("name").toString(), "Holiday");
+  EXPECT_TRUE(entry.value("isFolder").toBool());
+  EXPECT_EQ(entry.value("fileCount").toInt(), 3);
+  EXPECT_EQ(entry.value("size").toLongLong(), 3 + 4 + 5);
+
+  // Picked again: the same item.
+  add(QUrl::fromLocalFile(root));
+  EXPECT_EQ(outcome.value(0).toInt(), id);
   EXPECT_EQ(Count(), 1);
 
+  QVariantMap type;
+  bool encrypt = false;
+  bool sign = false;
+  bool decrypt = false;
+  Do([&](auto* f) {
+    type = f->typeOf(id);
+    const QVariantList entries{f->entry(id)};
+    encrypt = f->allowsEntries("encrypt", entries) &&
+              f->allowsEntries("symmetric", entries);
+    sign = f->allowsEntries("sign", entries);
+    decrypt = f->allowsEntries("decrypt", entries) ||
+              f->allowsEntries("verify", entries);
+  });
+  EXPECT_EQ(type.value("kind").toString(), "folder");
+  EXPECT_TRUE(encrypt);
+  EXPECT_FALSE(sign);
+  EXPECT_FALSE(decrypt);
+}
+
+// A folder encrypted is one .tar.gpg of all in it, nested and empty folders
+// too; decrypted, it is a TAR archive, which goes back into a folder only
+// when asked, the same tree, file for file.
+TEST_F(FileWorkspaceTest, AFolderEncryptsToOneArchiveThatExtractsBack) {
+  QTemporaryDir parent;
+  const auto root = parent.filePath("Project");
+  ASSERT_TRUE(QDir().mkpath(root + "/src/deep/er"));
+  ASSERT_TRUE(QDir().mkpath(root + "/empty/also empty"));
+  WriteFile(root + "/README", "read me");
+  WriteFile(root + "/src/main.c", "int main() {}");
+  WriteFile(root + "/src/deep/er/Ünïcode name.txt", "unicode");
+  QByteArray large(8 * 1024 * 1024, Qt::Uninitialized);
+  for (qsizetype i = 0; i < large.size(); ++i) {
+    large[i] = static_cast<char>((i * 7919) % 251);
+  }
+  WriteFile(root + "/src/large.bin", large);
+
+  int folder = -1;
+  RunOnMainThread([&]() {
+    QObject::connect(
+        files_, &FileWorkspace::folderAdded, files_,
+        [&folder](int id, const QString&) { folder = id; },
+        Qt::SingleShotConnection);
+    files_->addFolder(QUrl::fromLocalFile(root));
+  });
+  ASSERT_TRUE(WaitFor(
+      [&folder]() {
+        int id = -1;
+        RunOnMainThread([&]() { id = folder; });
+        return id >= 0;
+      },
+      10000));
+
+  Do([&](auto* f) { f->encrypt({folder}, {fred_}); });
+  Finish();
+  const auto encrypted = OutputOf(folder);
+  ASSERT_GE(encrypted, 0) << Errors(folder);
+  EXPECT_EQ(Entry(encrypted).value("name").toString(), "Project.tar.gpg");
+  EXPECT_EQ(State(folder), "done");
+  // Nothing of the packing is left behind but the encrypted archive.
+  for (const auto& staged : StagedFiles()) {
+    EXPECT_FALSE(staged.endsWith(".tar")) << staged.toStdString();
+  }
+  QVariantMap type;
+  Do([&](auto* f) { type = f->typeOf(encrypted); });
+  EXPECT_EQ(type.value("kind").toString(), "archive");
+  EXPECT_TRUE(type.value("verified").toBool());
+
+  Do([&](auto* f) { f->decrypt({encrypted}); });
+  Finish();
+  const auto decrypted = OutputOf(encrypted);
+  ASSERT_GE(decrypted, 0) << Errors(encrypted);
+  EXPECT_EQ(Entry(decrypted).value("name").toString(), "Project.tar");
+  bool archive = false;
+  Do([&](auto* f) { archive = f->isArchive(decrypted); });
+  EXPECT_TRUE(archive);
+  Do([&](auto* f) { type = f->typeOf(decrypted); });
+  EXPECT_EQ(type.value("kind").toString(), "tar");
+  EXPECT_TRUE(type.value("verified").toBool());
+
+  QTemporaryDir destination;
+  QVariantList outcome;
+  bool started = false;
+  RunOnMainThread([&]() {
+    QObject::connect(
+        files_, &FileWorkspace::extracted, files_,
+        [&outcome](int, bool ok, const QString& name, const QString& reason,
+                   int count) { outcome = {ok, name, reason, count}; },
+        Qt::SingleShotConnection);
+    started =
+        files_->extract(decrypted, QUrl::fromLocalFile(destination.path()));
+  });
+  ASSERT_TRUE(started);
+  ASSERT_TRUE(WaitFor(
+      [&outcome]() {
+        bool done = false;
+        RunOnMainThread([&]() { done = !outcome.isEmpty(); });
+        return done;
+      },
+      30000));
+  ASSERT_TRUE(outcome.value(0).toBool())
+      << outcome.value(2).toString().toStdString();
+  EXPECT_EQ(outcome.value(1).toString(), "Project");
+  EXPECT_EQ(outcome.value(3).toInt(), 4);
+  EXPECT_EQ(TreeOf(destination.filePath("Project")), TreeOf(root));
+
+  // Extracted again: into a folder of its own, never over the first.
   RunOnMainThread([&]() {
     outcome.clear();
-    files_->addFolder(QUrl::fromLocalFile(folder.path()));
+    QObject::connect(
+        files_, &FileWorkspace::extracted, files_,
+        [&outcome](int, bool ok, const QString& name, const QString& reason,
+                   int count) { outcome = {ok, name, reason, count}; },
+        Qt::SingleShotConnection);
+    files_->extract(decrypted, QUrl::fromLocalFile(destination.path()));
   });
   ASSERT_TRUE(WaitFor(
       [&outcome]() {
@@ -540,24 +699,52 @@ TEST_F(FileWorkspaceTest, AFolderAddsItsOwnFilesOnly) {
         RunOnMainThread([&]() { done = !outcome.isEmpty(); });
         return done;
       },
-      10000));
-  EXPECT_EQ(outcome.at(0).toInt(), 1);  // two.txt.asc; one.txt was here
-  EXPECT_EQ(outcome.at(1).toInt(), 1);  // inner, not gone into
-  EXPECT_EQ(outcome.at(2).toInt(), 0);
-  EXPECT_FALSE(outcome.at(3).toBool());
-  EXPECT_EQ(Count(), 2);
-  QStringList names;
+      30000));
+  EXPECT_TRUE(outcome.value(0).toBool());
+  EXPECT_EQ(outcome.value(1).toString(), "Project (1)");
+}
+
+// A file in the folder that cannot be read fails the whole archive, saying
+// which: it is never left out without a word, and nothing is made.
+TEST_F(FileWorkspaceTest, AFolderWithAFileThatCannotBeReadIsNotEncrypted) {
+  QTemporaryDir parent;
+  const auto root = parent.filePath("Locked");
+  ASSERT_TRUE(QDir().mkpath(root + "/inner"));
+  WriteFile(root + "/fine.txt", "fine");
+  WriteFile(root + "/inner/secret.txt", "secret");
+  QFile::setPermissions(root + "/inner/secret.txt", QFileDevice::Permissions());
+  if (QFile(root + "/inner/secret.txt").open(QIODevice::ReadOnly)) {
+    GTEST_SKIP() << "running as a user who reads anything";
+  }
+  int folder = -1;
   RunOnMainThread([&]() {
-    for (int row = 0; row < files_->rowCount(); ++row) {
-      names << files_->data(files_->index(row), FileWorkspace::kNameRole)
-                   .toString();
-      EXPECT_TRUE(
-          files_->data(files_->index(row), FileWorkspace::kAvailableRole)
-              .toBool());
-    }
+    QObject::connect(
+        files_, &FileWorkspace::folderAdded, files_,
+        [&folder](int id, const QString&) { folder = id; },
+        Qt::SingleShotConnection);
+    files_->addFolder(QUrl::fromLocalFile(root));
   });
-  names.sort();
-  EXPECT_EQ(names, (QStringList{"one.txt", "two.txt.asc"}));
+  ASSERT_TRUE(WaitFor(
+      [&folder]() {
+        int id = -1;
+        RunOnMainThread([&]() { id = folder; });
+        return id >= 0;
+      },
+      10000));
+  Do([&](auto* f) { f->encrypt({folder}, {fred_}); });
+  Finish();
+  EXPECT_EQ(State(folder), "failed");
+  EXPECT_LT(OutputOf(folder), 0);
+  // Said in the result, by its path in the folder.
+  const auto said = QJsonDocument(QJsonObject::fromVariantMap(
+                                      Entry(folder).value("result").toMap()))
+                        .toJson();
+  EXPECT_TRUE(said.contains("inner/secret.txt")) << said.toStdString();
+  for (const auto& staged : StagedFiles()) {
+    EXPECT_FALSE(staged.endsWith(".tar")) << staged.toStdString();
+  }
+  QFile::setPermissions(root + "/inner/secret.txt",
+                        QFileDevice::ReadOwner | QFileDevice::WriteOwner);
 }
 
 TEST_F(FileWorkspaceTest, SortedByNameSizeOrWhenAdded) {
