@@ -618,8 +618,17 @@ Item {
             const ask = detail.backupQuestion
             tryVerify(() => ask.opened)
             verify(ask.message.indexOf("passphrase") >= 0)
-            ask.close()
-            tryVerify(() => !ask.visible)
+            // Then what it is and the file it goes to, before the place is
+            // chosen: saved, never shared or copied.
+            ask.accept()
+            const sheet = detail.backupSheet
+            tryVerify(() => sheet.opened)
+            verify(findByName(sheet.contentItem, "backupSaveFile").visible)
+            compare(findByName(sheet.contentItem, "shareKeyFile"), null)
+            compare(findByName(sheet.contentItem, "copyKeyText"), null)
+            compare(findByName(sheet.contentItem, "backupSaveFile").detail, sheet.fileName)
+            sheet.close()
+            tryVerify(() => !ask.visible && !sheet.visible)
             detail.details = {}
             detail.visible = false
         }

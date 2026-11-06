@@ -34,6 +34,7 @@ Page {
     readonly property alias backupQuestion: confirmBackup
     readonly property alias revokeQuestion: confirmRevokeKey
     readonly property alias revokeReasons: revokeSheet
+    readonly property alias backupSheet: backupActions
 
     // The head of the page: the key as read now, once it is (after a change
     // too), else as the list gave it.
@@ -793,11 +794,62 @@ Page {
         message: qsTr("Anyone with this file and its passphrase can read "
                       + "your messages and sign as you. Keep it somewhere "
                       + "safe, never with the passphrase.")
-        acceptText: qsTr("Choose where")
+        acceptText: qsTr("Continue")
         acceptObjectName: "confirmBackupRun"
         onAccepted: {
-            backupDialog.currentFile = actions.secretKeyFileName(page.key.fingerprint)
-            backupDialog.open()
+            backupActions.fileName = actions.secretKeyFileName(page.key.fingerprint)
+            backupActions.open()
+        }
+    }
+
+    // What the backup is, and the file it goes to, before the place is
+    // chosen; laid out as the public key's sheet. Saved only: never shared
+    // or copied as text.
+    BottomSheet {
+        id: backupActions
+
+        property string fileName: ""
+
+        objectName: "backupActions"
+        title: qsTr("Secret key")
+        inset: 0
+
+        Label {
+            objectName: "backupKey"
+            Layout.fillWidth: true
+            Layout.leftMargin: Theme.sheetPad
+            Layout.rightMargin: Theme.sheetPad
+            wrapMode: Text.Wrap
+            font.weight: Font.DemiBold
+            text: qsTranslate("FilesPage", "%1 · %2").arg(page.details.name || page.key.name || "")
+                                 .arg((page.details.keyId || page.key.keyId || "").slice(-8))
+        }
+
+        Label {
+            Layout.fillWidth: true
+            Layout.leftMargin: Theme.sheetPad
+            Layout.rightMargin: Theme.sheetPad
+            wrapMode: Text.Wrap
+            color: Material.secondaryTextColor
+            text: qsTr("The whole key, public and secret parts, still protected "
+                       + "by its passphrase.")
+        }
+
+        ListRow {
+            objectName: "backupSaveFile"
+            Layout.fillWidth: true
+            Layout.bottomMargin: Theme.gapSmall
+            leftPadding: Theme.sheetPad
+            symbol: "save"
+            symbolColor: Material.accentColor
+            text: qsTr("Save as file")
+            detail: backupActions.fileName
+            singleLineTitle: true
+            onClicked: {
+                backupDialog.currentFile = backupActions.fileName
+                backupActions.close()
+                backupDialog.open()
+            }
         }
     }
 
