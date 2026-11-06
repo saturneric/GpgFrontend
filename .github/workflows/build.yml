@@ -139,6 +139,14 @@ jobs:
       - name: Check Workflow Steps Define What They Read
         run: python3 scripts/check_workflow_steps.py
 
+      # What the update chain's tests drive for real (scripts/tests/
+      # test_gfrelease.py): without them those tests skip themselves.
+      - name: Install Release Tools
+        run: |
+          set -euo pipefail
+          sudo apt-get update -q
+          sudo apt-get install -y -q minisign rclone
+
       # The release-candidate rules, and the workflow structure they rely on.
       # Here so a pull request runs them: provenance and release only run on
       # main, where a failure costs a nightly.
@@ -1095,6 +1103,72 @@ jobs:
           name: release-candidate
           path: candidate/*
           if-no-files-found: error
+
+  # Hands main's nightly to the update channel: the release candidate exactly
+  # as provenance signed it goes to the private staging bucket, and nothing
+  # else. The signing host promotes it from there (scripts/release/gfrelease
+  # promote): it verifies the Sigstore bundle against this workflow, ref and
+  # commit, asks git which version the commit is, and only then signs and
+  # publishes. This job can write staging and nothing else, and staging is
+  # never served.
+  #
+  # Off until the maintainer sets the repository variable R2_STAGING_ENABLED
+  # to "true" and gives the `r2-staging` environment:
+  #   secrets R2_STAGING_ACCESS_KEY_ID, R2_STAGING_SECRET_ACCESS_KEY (an R2
+  #           token with Object Read & Write on the staging bucket only);
+  #   variables R2_ENDPOINT (https://<account>.r2.cloudflarestorage.com) and
+  #           R2_STAGING_BUCKET.
+  stage:
+    needs: [setup, provenance]
+    if: >-
+      github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+      vars.R2_STAGING_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    environment: r2-staging
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          lfs: "false"
+          persist-credentials: false
+
+      - name: Download Release Candidate
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: release-candidate
+          path: candidate/
+
+      - name: Install rclone
+        run: |
+          set -euo pipefail
+          sudo apt-get update -q
+          sudo apt-get install -y -q rclone
+
+      # rclone takes the remote from its environment; nothing is written to a
+      # config file. The version and its file-safe name are setup's, which
+      # derived them from git; the signing host derives them again.
+      - name: Upload To Staging
+        env:
+          RCLONE_CONFIG_STAGING_TYPE: s3
+          RCLONE_CONFIG_STAGING_PROVIDER: Cloudflare
+          RCLONE_CONFIG_STAGING_ENDPOINT: ${{ vars.R2_ENDPOINT }}
+          RCLONE_CONFIG_STAGING_ACCESS_KEY_ID: ${{ secrets.R2_STAGING_ACCESS_KEY_ID }}
+          RCLONE_CONFIG_STAGING_SECRET_ACCESS_KEY: ${{ secrets.R2_STAGING_SECRET_ACCESS_KEY }}
+          RCLONE_CONFIG_STAGING_NO_CHECK_BUCKET: "true"
+          STAGING_BUCKET: ${{ vars.R2_STAGING_BUCKET }}
+          VERSION: ${{ needs.setup.outputs.version }}
+          ARTIFACT_VERSION: ${{ needs.setup.outputs.artifact_version }}
+        run: |
+          set -euo pipefail
+          python3 scripts/release/gfrelease stage \
+            --candidate candidate \
+            --staging "staging:${STAGING_BUCKET}" \
+            --ref "$GITHUB_REF" \
+            --commit "$GITHUB_SHA" \
+            --version "$VERSION" \
+            --filesafe "$ARTIFACT_VERSION" \
+            --built-at "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
   # Verify-only publication. This job builds nothing, hashes nothing new and
   # signs nothing: it downloads the release candidate, proves it is exactly
