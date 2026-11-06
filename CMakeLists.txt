@@ -144,6 +144,48 @@ if(GPGFRONTEND_BUILD_FLAVOR STREQUAL "sandbox" AND NOT XCODE_BUILD)
     "GPGFRONTEND_BUILD_FLAVOR=sandbox requires the Xcode generator")
 endif()
 
+# How this build reaches its users, which decides what the update check may
+# offer it: the file to download, and later whether it may update itself. Each
+# packaging leg names its own; a store, a distribution or Flatpak updates the
+# application itself, and a build from a checkout ("source") is only ever
+# shown a notice. The flavor fixes some of them, and refuses the rest.
+set(_gf_install_kinds appimage appimage-portable msi msix portable-zip dmg mas
+  flatpak distro android source)
+if(GPGFRONTEND_BUILD_FLAVOR STREQUAL "sandbox")
+  set(_gf_install_kind_default mas)
+elseif(GPGFRONTEND_BUILD_FLAVOR STREQUAL "flatpak")
+  set(_gf_install_kind_default flatpak)
+elseif(GPGFRONTEND_BUILD_FLAVOR STREQUAL "android")
+  set(_gf_install_kind_default android)
+elseif(GPGFRONTEND_BUILD_APP_FOR_PACKAGE)
+  set(_gf_install_kind_default distro)
+else()
+  set(_gf_install_kind_default source)
+endif()
+set(GPGFRONTEND_INSTALL_KIND "${_gf_install_kind_default}"
+  CACHE STRING "How the build is packaged: ${_gf_install_kinds}")
+set_property(CACHE GPGFRONTEND_INSTALL_KIND PROPERTY STRINGS ${_gf_install_kinds})
+if(NOT GPGFRONTEND_INSTALL_KIND IN_LIST _gf_install_kinds)
+  message(FATAL_ERROR "Unknown GPGFRONTEND_INSTALL_KIND "
+    "\"${GPGFRONTEND_INSTALL_KIND}\"; expected one of: ${_gf_install_kinds}")
+endif()
+set(_gf_install_kind_flavor
+  "mas=sandbox" "flatpak=flatpak" "android=android"
+  "appimage-portable=portable" "portable-zip=portable"
+  "appimage=installed" "msi=installed" "msix=installed" "dmg=installed"
+  "distro=installed")
+foreach(_gf_pair IN LISTS _gf_install_kind_flavor)
+  string(REPLACE "=" ";" _gf_pair "${_gf_pair}")
+  list(GET _gf_pair 0 _gf_kind)
+  list(GET _gf_pair 1 _gf_flavor)
+  if(GPGFRONTEND_INSTALL_KIND STREQUAL _gf_kind AND
+     NOT GPGFRONTEND_BUILD_FLAVOR STREQUAL _gf_flavor)
+    message(FATAL_ERROR "GPGFRONTEND_INSTALL_KIND=${_gf_kind} needs "
+      "GPGFRONTEND_BUILD_FLAVOR=${_gf_flavor}, not ${GPGFRONTEND_BUILD_FLAVOR}")
+  endif()
+endforeach()
+message(STATUS "GpgFrontend Install Kind: ${GPGFRONTEND_INSTALL_KIND}")
+
 # check options
 option(GPGFRONTEND_LINK_GPGME_INTO_CORE "Statically link GpgME into the core library" OFF)
 
@@ -947,6 +989,7 @@ file(GENERATE
   \"build_number\": ${GF_VERSION_BUILD_NUMBER},
   \"commit\": \"${GF_VERSION_COMMIT}\",
   \"identity\": \"$<IF:${GPGFRONTEND_BUILD_STABLE_INT},stable,testing>\",
+  \"install_kind\": \"${GPGFRONTEND_INSTALL_KIND}\",
   \"build_id\": \"${GPGFRONTEND_BUILD_ID}\",
   \"host_os\": \"${_gf_build_os}\",
   \"host_tool_dir\": \"${GPGFRONTEND_HOST_TOOL_DIR}\",

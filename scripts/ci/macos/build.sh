@@ -59,6 +59,9 @@ CMAKE_ARGS=(
   -DCMAKE_OSX_DEPLOYMENT_TARGET="$DEPLOY_TARGET"
   -DGPGFRONTEND_BUILD_MODE="$GPGFRONTEND_BUILD_MODE"
   -DGPGFRONTEND_BUILD_FLAVOR="$FLAVOR"
+  # What the update check offers it: the Developer ID disk image, or the
+  # App Store's own update.
+  -DGPGFRONTEND_INSTALL_KIND="$([ "$FLAVOR" = sandbox ] && echo mas || echo dmg)"
 )
 
 # DEVELOPMENT_TEAM and PROVISIONING_PROFILE_SPECIFIER are cleared as well as

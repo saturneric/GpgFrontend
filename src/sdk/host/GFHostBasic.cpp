@@ -150,6 +150,15 @@ auto GFProjectGitCommitHash() -> const char* {
 
 auto GFIsFlatpakENV() -> int { return GpgFrontend::IsFlatpakENV() ? 1 : 0; }
 
+auto GFAppInstallKindImpl() -> const char* {
+  static const QByteArray kKind = GpgFrontend::GetInstallKind().toUtf8();
+  return kKind.constData();
+}
+
+auto GFAppIsNightlyIdentityImpl() -> int {
+  return GpgFrontend::IsStableBuild() ? 0 : 1;
+}
+
 auto GFSecAllocateMemory(uint32_t size) -> void* {
   return GpgFrontend::SMASecMalloc(size);
 }

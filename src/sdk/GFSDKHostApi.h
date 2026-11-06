@@ -194,6 +194,10 @@ typedef struct GFHostAppApi {
   char* (*active_locale)(GFHostContextRef ctx); /**< owned; mem_free NORMAL */
   int (*is_flatpak)(GFHostContextRef ctx);
   int (*key_protection_level)(GFHostContextRef ctx);
+  /* Appended; a module built against the shorter table never reads them, and
+   * one reading them checks struct_size first (GF_SDK_GROUP_HAS). */
+  const char* (*install_kind)(GFHostContextRef ctx); /**< borrowed, static */
+  int (*is_nightly_identity)(GFHostContextRef ctx);
 } GFHostAppApi;
 
 /**

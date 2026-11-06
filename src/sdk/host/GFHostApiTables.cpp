@@ -231,11 +231,22 @@ auto AppKeyProtectionLevel(GFHostContextRef ctx) -> int {
   return GFAppKeyProtectionLevel();
 }
 
+auto AppInstallKind(GFHostContextRef ctx) -> const char* {
+  GATE(ctx, 0, "app.install_kind", nullptr);
+  return GFAppInstallKindImpl();
+}
+
+auto AppIsNightlyIdentity(GFHostContextRef ctx) -> int {
+  GATE(ctx, 0, "app.is_nightly_identity", -1);
+  return GFAppIsNightlyIdentityImpl();
+}
+
 const GFHostAppApi kAppApi = {
     sizeof(GFHostAppApi), &AppVersion,
     &AppGitCommitHash,    &AppQtEnvVersion,
     &AppUserAgent,        &AppActiveLocale,
     &AppIsFlatpak,        &AppKeyProtectionLevel,
+    &AppInstallKind,      &AppIsNightlyIdentity,
 };
 
 /* --- event --------------------------------------------------------------- */

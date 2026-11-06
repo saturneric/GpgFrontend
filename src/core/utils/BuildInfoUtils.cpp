@@ -117,6 +117,8 @@ auto IsStableBuild() -> bool { return APP_BUILD_STABLE != 0; }
 
 auto IsPortableBuild() -> bool { return APP_BUILD_PORTABLE != 0; }
 
+auto GetInstallKind() -> QString { return QStringLiteral(APP_INSTALL_KIND); }
+
 auto GetAppProfileSchemaVersion() -> int { return APP_PROFILE_SCHEMA_VERSION; }
 
 auto GetAppProfileMinReaderSchema() -> int {

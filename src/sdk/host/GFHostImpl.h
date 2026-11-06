@@ -105,6 +105,8 @@ auto GFQtEnvVersion() -> const char*;
 auto GFHttpRequestUserAgent() -> const char*;
 auto GFAppActiveLocale() -> char*;
 auto GFIsFlatpakENV() -> int;
+auto GFAppInstallKindImpl() -> const char*;
+auto GFAppIsNightlyIdentityImpl() -> int;
 auto GFAppKeyProtectionLevel() -> int;
 auto GFAppRegisterTranslatorReader(const char* id, GFTranslatorDataReader r)
     -> int;

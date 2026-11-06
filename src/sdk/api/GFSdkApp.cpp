@@ -69,6 +69,20 @@ auto GFAppIsFlatpak(GFSDKContext* ctx) -> int {
   return g->is_flatpak(hctx);
 }
 
+auto GFAppInstallKind(GFSDKContext* ctx) -> const char* {
+  GF_SDK_REQUIRE(ctx, app, "GFAppInstallKind", "");
+  // Appended to the table: an older host's simply ends before it.
+  if (!GF_SDK_GROUP_HAS(g, install_kind)) return "";
+  const char* kind = g->install_kind(hctx);
+  return kind != nullptr ? kind : "";
+}
+
+auto GFAppIsNightlyIdentity(GFSDKContext* ctx) -> int {
+  GF_SDK_REQUIRE(ctx, app, "GFAppIsNightlyIdentity", -1);
+  if (!GF_SDK_GROUP_HAS(g, is_nightly_identity)) return -1;
+  return g->is_nightly_identity(hctx);
+}
+
 auto GFAppKeyProtectionLevel(GFSDKContext* ctx) -> int {
   GF_SDK_REQUIRE(ctx, app, "GFAppKeyProtectionLevel", -1);
   return g->key_protection_level(hctx);

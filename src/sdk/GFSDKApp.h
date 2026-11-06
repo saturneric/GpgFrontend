@@ -68,6 +68,26 @@ char* GFAppLocale(GFSDKContext* ctx);
 int GFAppIsFlatpak(GFSDKContext* ctx);
 
 /**
+ * @brief How this build reaches its users: "appimage", "appimage-portable",
+ * "msi", "msix", "portable-zip", "dmg", "mas", "flatpak", "distro",
+ * "android" or "source". Borrowed, static.
+ *
+ * What an update check may offer depends on it: which file to download, and
+ * whether the application may replace itself at all. Empty from a host too
+ * old to say.
+ */
+const char* GFAppInstallKind(GFSDKContext* ctx);
+
+/**
+ * @brief Whether this is the nightly application ("GpgFrontend Testing"):
+ * its own identity and data, following the nightly channel only.
+ *
+ * @return 1 nightly, 0 a release (stable, beta or rc), -1 a host too old to
+ *         say
+ */
+int GFAppIsNightlyIdentity(GFSDKContext* ctx);
+
+/**
  * @brief How the application secure key itself is protected.
  *
  * Everything in the durable cache is encrypted under that key, so this is the
