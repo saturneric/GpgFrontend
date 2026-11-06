@@ -124,16 +124,8 @@ BottomSheet {
         }
     }
 
-    footer: [
-        Item {
-            Layout.fillWidth: true
-        },
-        Button {
-            text: qsTr("Done")
-            flat: true
-            onClicked: sheet.close()
-        }
-    ]
+    // No Close of its own: Back, a tap beside it or pulling it down put it
+    // away, as every sheet does.
 
     CategorySheet {
         id: editor

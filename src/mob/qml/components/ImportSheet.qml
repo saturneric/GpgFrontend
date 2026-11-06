@@ -23,8 +23,6 @@ BottomSheet {
 
     objectName: "importSheet"
     title: qsTr("Import keys")
-    closePolicy: importer.busy ? Popup.NoAutoClose
-                               : Popup.CloseOnEscape | Popup.CloseOnPressOutside
     interactive: !importer.busy
 
     function finished(imported) {
@@ -115,15 +113,6 @@ BottomSheet {
         visible: running
     }
 
-    footer: [
-        Item {
-            Layout.fillWidth: true
-        },
-        Button {
-            text: qsTr("Close")
-            flat: true
-            enabled: !importer.busy
-            onClicked: sheet.close()
-        }
-    ]
+    // No Close of its own: Back, a tap beside it or pulling it down put it
+    // away, as every sheet does.
 }

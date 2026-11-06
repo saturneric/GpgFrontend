@@ -521,12 +521,6 @@ BottomSheet {
         Item {
             Layout.fillWidth: true
         },
-        ActionButton {
-            objectName: "toolboxDone"
-            visible: sheet.pending === null
-            text: qsTr("Done")
-            onClicked: sheet.close()
-        },
         // Encrypt & Sign: the recipients first, then on to the signer.
         ActionButton {
             objectName: "toolboxNext"

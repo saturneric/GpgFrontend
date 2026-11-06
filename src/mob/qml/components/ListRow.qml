@@ -43,8 +43,18 @@ ItemDelegate {
     readonly property bool valueBeside: valueText.length === 0
         || valueMetrics.advanceWidth <= availableWidth * 0.4
 
+    // At the end: a control (a switch, a menu button) brings its own inset,
+    // so the row keeps little room; words or marks (a chip, a chevron) keep
+    // the row's own margin, aligned down the list. Counted by what shows: a
+    // row whose chips are all hidden keeps its margin.
+    readonly property bool trailingControl: {
+        for (const child of trailingRow.visibleChildren) {
+            if (typeof child.clicked === "function") return true
+        }
+        return false
+    }
     leftPadding: leadingRow.children.length > 0 ? 4 : Theme.gap
-    rightPadding: trailingRow.children.length > 0 ? 4 : Theme.gap
+    rightPadding: trailingControl ? 4 : Theme.gap
     topPadding: 8
     bottomPadding: 8
     implicitHeight: Math.max(detail.length > 0 ? Theme.rowHeightTwoLine
@@ -145,9 +155,12 @@ ItemDelegate {
             color: Material.secondaryTextColor
         }
 
+        // (Visible by its children's number, never by their visibility:
+        // hidden, it would hide them, and never show again.)
         RowLayout {
             id: trailingRow
-            spacing: 0
+            objectName: "listRowTrailing"
+            spacing: Theme.gapSmall
             visible: children.length > 0
         }
     }

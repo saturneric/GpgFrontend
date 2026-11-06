@@ -879,12 +879,13 @@ Item {
             generated.key = {"name": "New", "fingerprint": "AB".repeat(20),
                              "secretState": "full"}
             generated.open()
-            const done = findByName(generated.contentItem, "generatedDone")
+            const open = findByName(generated.contentItem, "generatedOpen")
             verify(!generated.opened)
-            verify(!done.enabled)
+            verify(!open.enabled)
             tryVerify(() => generated.opened)
-            verify(done.enabled)
-            done.clicked()
+            verify(open.enabled)
+            // Nothing but its own action: put away as every sheet is.
+            generated.back()
             tryVerify(() => !generated.visible)
         }
 

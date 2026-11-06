@@ -19,9 +19,8 @@ Item {
     // (GenerateSheet reads the key generation profiles, which need a loaded
     // profile, and cannot come up here.)
     readonly property var sheets: [
-        "AddUidSheet", "DetachedVerifySheet", "FileDetailsSheet",
-        "GeneratedKeySheet", "ImportSheet", "KeyGroupSheet",
-        "KeyDatabaseSwitchSheet", "ProfileSheet"
+        "AddUidSheet", "DetachedVerifySheet", "GeneratedKeySheet",
+        "KeyGroupSheet", "ProfileSheet"
     ]
 
     // The profile's PIN, asked for after a few wrong ones.
@@ -40,6 +39,28 @@ Item {
 
     PinSheet {
         id: pin
+    }
+
+    // A user ID's row: its chips at the end, one of them hidden, as a
+    // primary user ID that is not revoked has them.
+    Column {
+        width: root.width
+
+        ListRow {
+            id: chipRow
+            width: parent.width
+            text: "A rather long user ID name that wraps on a narrow phone"
+            detail: "someone@example.org"
+            Chip { id: primaryChip; text: "Primary" }
+            Chip { id: revokedChip; text: "Revoked"; visible: false }
+        }
+
+        ListRow {
+            id: switchRow
+            width: parent.width
+            text: "With a control"
+            Switch {}
+        }
     }
 
     // Forcing a held profile open, or resetting its key.
@@ -93,6 +114,22 @@ Item {
 
         TextMetrics {
             id: metrics
+        }
+
+        // A badge at a row's end keeps the row's margin, as the words at
+        // its start do; two do not touch. A control brings its own inset.
+        function test_a_rows_badges_keep_its_margin() {
+            compare(chipRow.rightPadding, Theme.gap)
+            const end = primaryChip.mapToItem(chipRow, primaryChip.width, 0).x
+            fuzzyCompare(end, chipRow.width - Theme.gap, 0.5)
+            revokedChip.visible = true
+            const gap = () => revokedChip.mapToItem(chipRow, 0, 0).x
+                              - primaryChip.mapToItem(chipRow, primaryChip.width, 0).x
+            tryVerify(() => gap() >= Theme.gapSmall - 0.5, 1000, "chips " + gap() + " apart")
+            fuzzyCompare(revokedChip.mapToItem(chipRow, revokedChip.width, 0).x,
+                         chipRow.width - Theme.gap, 0.5)
+            revokedChip.visible = false
+            compare(switchRow.rightPadding, 4)
         }
 
         function cleanup() {

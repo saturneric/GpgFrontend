@@ -282,6 +282,11 @@ Page {
                 detail: qsTr("Open another, start a new one, or keep a backup.")
                 valueText: phoneProfiles.currentName
                 onClicked: page.profileManagerRequested()
+
+                Icon {
+                    symbol: "chevron_right"
+                    color: Material.secondaryTextColor
+                }
             }
 
             SectionHeader {
@@ -295,6 +300,11 @@ Page {
                 text: qsTr("GpgFrontend")
                 valueText: Qt.application.version
                 onClicked: page.aboutRequested()
+
+                Icon {
+                    symbol: "chevron_right"
+                    color: Material.secondaryTextColor
+                }
             }
 
             ListRow {
@@ -303,6 +313,11 @@ Page {
                 text: qsTr("Build information")
                 detail: qsTr("What this build is made of, and when.")
                 onClicked: page.buildInfoRequested()
+
+                Icon {
+                    symbol: "chevron_right"
+                    color: Material.secondaryTextColor
+                }
             }
 
             ListRow {
@@ -311,6 +326,11 @@ Page {
                 text: qsTr("rPGP engine")
                 detail: qsTr("The OpenPGP engine that does the work here.")
                 onClicked: page.engineInfoRequested()
+
+                Icon {
+                    symbol: "chevron_right"
+                    color: Material.secondaryTextColor
+                }
             }
 
             ListRow {
@@ -320,6 +340,11 @@ Page {
                 text: qsTr("Translators")
                 detail: qsTr("Who brought GpgFrontend to your language.")
                 onClicked: page.translatorsRequested()
+
+                Icon {
+                    symbol: "chevron_right"
+                    color: Material.secondaryTextColor
+                }
             }
         }
     }

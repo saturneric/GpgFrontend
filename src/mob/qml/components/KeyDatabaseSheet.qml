@@ -188,11 +188,14 @@ BottomSheet {
         Item {
             Layout.fillWidth: true
         },
+        // Back to the list from naming one; the list itself is put away as
+        // every sheet is.
         ActionButton {
             kind: "text"
-            text: sheet.naming ? qsTr("Cancel") : qsTr("Close")
+            visible: sheet.naming
+            text: qsTr("Cancel")
             enabled: !sheet.busy
-            onClicked: sheet.naming ? sheet.stepBack() : sheet.close()
+            onClicked: sheet.stepBack()
         },
         ActionButton {
             objectName: "keyDatabaseCreate"

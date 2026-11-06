@@ -665,15 +665,6 @@ BottomSheet {
         }
     }
 
-    footer: [
-        Item {
-            Layout.fillWidth: true
-        },
-        Button {
-            objectName: "statusClose"
-            text: qsTr("Close")
-            flat: true
-            onClicked: sheet.close()
-        }
-    ]
+    // No Close of its own: Back, a tap beside it or pulling it down put it
+    // away, as every sheet does.
 }

@@ -320,6 +320,12 @@ Page {
                         text: modelData.revoked === true ? qsTr("Revoked") : qsTr("Invalid")
                         tone: Theme.danger
                     }
+
+                    // Opens what can be done with it, as a key's row does.
+                    Icon {
+                        symbol: "chevron_right"
+                        color: Material.secondaryTextColor
+                    }
                 }
             }
 

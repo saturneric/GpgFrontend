@@ -154,16 +154,6 @@ BottomSheet {
         text: sheet.problem
     }
 
-    footer: [
-        Item {
-            Layout.fillWidth: true
-        },
-        ActionButton {
-            objectName: "keyDatabaseSwitchClose"
-            visible: !sheet.switching
-            kind: "text"
-            text: qsTr("Close")
-            onClicked: sheet.close()
-        }
-    ]
+    // No Close of its own: Back, a tap beside it or pulling it down put it
+    // away, as every sheet does.
 }

@@ -62,9 +62,12 @@ BottomSheet {
     // creation sheet's Create was, and a quick second tap on Create (a key
     // without a passphrase is made in a moment) closed it unseen.
     footer: [
+        Item {
+            Layout.fillWidth: true
+        },
         ActionButton {
             objectName: "generatedOpen"
-            kind: "text"
+            kind: "primary"
             enabled: sheet.opened
             text: qsTr("Open the key")
             onClicked: {
@@ -72,16 +75,6 @@ BottomSheet {
                 sheet.close()
                 sheet.openRequested(k)
             }
-        },
-        Item {
-            Layout.fillWidth: true
-        },
-        ActionButton {
-            objectName: "generatedDone"
-            kind: "primary"
-            enabled: sheet.opened
-            text: qsTr("Done")
-            onClicked: sheet.close()
         }
     ]
 }
