@@ -122,6 +122,8 @@ jobs:
         with:
           lfs: "false"
           submodules: recursive
+          # The version comes from git describe: full history and tags.
+          fetch-depth: 0
 
       - name: Setup Build Mode
         shell: bash
