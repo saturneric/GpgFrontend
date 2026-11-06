@@ -89,11 +89,15 @@ jobs:
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
+    outputs:
+      artifact_version: ${{ steps.mode.outputs.artifact_version }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           lfs: "false"
           submodules: recursive
+          # The version comes from git describe: full history and tags.
+          fetch-depth: 0
 
       - name: Check Entitlements
         run: scripts/check_entitlements.sh
@@ -167,3 +171,15 @@ jobs:
     with:
       target: app-store
       runners: '["macos-15"]'
+      artifact_version: ${{ needs.build-mas.outputs.artifact_version }}
+    # Named one by one, never inherited: this target's credentials only. A
+    # secret set in the `mas-signing` environment wins over the same name
+    # passed here, so either place works.
+    secrets:
+      MAS_APPLICATION_CERT: ${{ secrets.MAS_APPLICATION_CERT }}
+      MAS_APPLICATION_CERT_PWD: ${{ secrets.MAS_APPLICATION_CERT_PWD }}
+      MAS_APPLICATION_CODE_SIGN_IDENTITY: ${{ secrets.MAS_APPLICATION_CODE_SIGN_IDENTITY }}
+      MAS_INSTALLER_CERT: ${{ secrets.MAS_INSTALLER_CERT }}
+      MAS_INSTALLER_CERT_PWD: ${{ secrets.MAS_INSTALLER_CERT_PWD }}
+      MAS_INSTALLER_CODE_SIGN_IDENTITY: ${{ secrets.MAS_INSTALLER_CODE_SIGN_IDENTITY }}
+      MAS_PROVISIONING_PROFILE_DATA: ${{ secrets.MAS_PROVISIONING_PROFILE_DATA }}
