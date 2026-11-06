@@ -32,6 +32,8 @@ Page {
     // The warning before a backup of the secret key (a pop-up, not in the
     // item tree).
     readonly property alias backupQuestion: confirmBackup
+    readonly property alias revokeQuestion: confirmRevokeKey
+    readonly property alias revokeReasons: revokeSheet
 
     // The head of the page: the key as read now, once it is (after a change
     // too), else as the list gave it.
@@ -74,6 +76,17 @@ Page {
             return
         case "export_secret":
             notice.show(qsTr("Secret key saved."))
+            return
+        case "save_revocation":
+            notice.show(qsTr("Revocation certificate saved."))
+            return
+        case "revoke_key":
+            reload()
+            KeyListController.refresh()
+            // Others learn of it from the key: offered at once.
+            notice.show(qsTr("Key revoked. Share it so others learn of it."),
+                        qsTranslate("FilesPage", "Share"),
+                        () => actions.exportPublic(page.key.fingerprint))
             return
         }
         // A change to the key: shown at once, and in the list.
@@ -487,6 +500,19 @@ Page {
                                                    "fingerprint": page.details.fingerprint})
                 }
 
+                // A certificate kept apart, to end the key's use should it be
+                // lost or its passphrase forgotten.
+                ListRow {
+                    objectName: "saveRevocation"
+                    Layout.fillWidth: true
+                    visible: page.can.saveRevocation === true
+                    enabled: !actions.busy
+                    symbol: "save"
+                    text: qsTranslate("RevokeSubkeySheet", "Save a revocation certificate")
+                    detail: qsTr("To revoke the key later, even without it.")
+                    onClicked: revokeSheet.beginForKey(page.details, true)
+                }
+
                 ListRow {
                     objectName: "changePassphrase"
                     Layout.fillWidth: true
@@ -503,6 +529,21 @@ Page {
             MenuSeparator {
                 Layout.fillWidth: true
                 Layout.topMargin: 8
+            }
+
+            // Ends the key's use for everyone who gets the key afterwards;
+            // unlike Delete, it is said to others.
+            ItemDelegate {
+                objectName: "revokeKey"
+                Layout.fillWidth: true
+                leftPadding: Theme.gap + 4
+                visible: page.can.revokeKey === true
+                text: qsTr("Revoke key")
+                enabled: !actions.busy
+                icon.source: Theme.icon("warning")
+                icon.color: Theme.danger
+                Material.foreground: Theme.danger
+                onClicked: revokeSheet.beginForKey(page.details, false)
             }
 
             ItemDelegate {
@@ -654,7 +695,16 @@ Page {
     RevokeSubkeySheet {
         id: revokeSheet
         onAccepted: function(item, reason, text) {
-            if (revokeSheet.forUid)
+            if (revokeSheet.saving) {
+                revocationDialog.reason = reason
+                revocationDialog.text = text
+                revocationDialog.currentFile = actions.revocationFileName(page.details.fingerprint)
+                revocationDialog.open()
+            } else if (revokeSheet.forKey) {
+                confirmRevokeKey.reason = reason
+                confirmRevokeKey.text = text
+                confirmRevokeKey.open()
+            } else if (revokeSheet.forUid)
                 actions.revokeUid(page.details.fingerprint, item.uid, reason, text)
             else
                 actions.revokeSubkey(page.details.fingerprint, item.fingerprint, reason, text)
@@ -705,6 +755,33 @@ Page {
                    + "This cannot be undone.")
         acceptText: qsTr("Delete")
         onAccepted: actions.deleteSubkey(page.details.fingerprint, subkey.fingerprint)
+    }
+
+    // Last word before the key is revoked: it cannot be taken back.
+    MessageAlert {
+        id: confirmRevokeKey
+
+        property int reason: 3
+        property string text: ""
+
+        objectName: "confirmRevokeKey"
+        title: qsTr("Revoke this key?")
+        message: qsTr("You are asked for its passphrase, then the key is revoked "
+                      + "here at once. This cannot be undone.")
+        acceptText: qsTranslate("RevokeSubkeySheet", "Revoke")
+        acceptObjectName: "confirmRevokeKeyRun"
+        onAccepted: actions.revokeKey(page.details.fingerprint, reason, text)
+    }
+
+    FileDialog {
+        id: revocationDialog
+
+        property int reason: 3
+        property string text: ""
+
+        fileMode: FileDialog.SaveFile
+        onAccepted: actions.saveRevocation(page.details.fingerprint, selectedFile,
+                                           reason, text)
     }
 
     // Before the secret key leaves the app: what such a file is.

@@ -624,6 +624,45 @@ Item {
             detail.visible = false
         }
 
+        // One's own key is revoked, after its reason and a last word that
+        // it cannot be undone, or a certificate saved for later; another's,
+        // or a revoked one, offers neither.
+        function test_an_own_key_is_revoked_after_a_last_word() {
+            const revoke = findByName(detail, "revokeKey")
+            const save = findByName(detail, "saveRevocation")
+            verify(revoke !== null && save !== null)
+            detail.visible = true
+            detail.details = {"fingerprint": "AB".repeat(20), "can": {}}
+            verify(!revoke.visible)
+            verify(!save.visible)
+            detail.details = {"fingerprint": "AB".repeat(20),
+                              "can": {"revokeKey": true, "saveRevocation": true}}
+            verify(revoke.visible)
+            verify(save.visible)
+
+            revoke.clicked()
+            const sheet = detail.revokeReasons
+            tryVerify(() => sheet.opened)
+            compare(sheet.title, "Revoke this key")
+            verify(findByName(sheet.contentItem, "revokeReason_3").checked)
+            findByName(sheet.contentItem, "revokeReason_1").clicked()
+            findByName(sheet.contentItem, "revokeRun").clicked()
+            const ask = detail.revokeQuestion
+            tryVerify(() => ask.opened)
+            compare(ask.reason, 1)
+            ask.close()
+            tryVerify(() => !ask.visible && !sheet.visible)
+
+            save.clicked()
+            tryVerify(() => sheet.opened)
+            compare(sheet.title, "Save a revocation certificate")
+            compare(findByName(sheet.contentItem, "revokeRun").text, "Choose where")
+            sheet.close()
+            tryVerify(() => !sheet.visible)
+            detail.details = {}
+            detail.visible = false
+        }
+
         function test_dates_read_one_way() {
             compare(Theme.date(new Date(2026, 10, 3)), "2026-11-03")
             compare(Theme.date(new Date(NaN)), "")

@@ -12,9 +12,12 @@ BottomSheet {
     id: sheet
 
     // What is revoked: a subkey, or a user ID ({uid, ...}) when
-    // `forUid` is set.
+    // `forUid` is set, or the whole key when `forKey` is; `saving` for a
+    // certificate kept to revoke the key with later.
     property var subkey: ({})
     property bool forUid: false
+    property bool forKey: false
+    property bool saving: false
     // OpenPGP's reason code, not a row: a user ID has its own two.
     property int reason: 3
 
@@ -23,6 +26,8 @@ BottomSheet {
     function begin(subkey) {
         sheet.subkey = subkey
         forUid = false
+        forKey = false
+        saving = false
         reason = 3
         why.clear()
         open()
@@ -31,14 +36,31 @@ BottomSheet {
     function beginForUid(uid) {
         sheet.subkey = uid
         forUid = true
+        forKey = false
+        saving = false
         // "No longer valid", as the desktop starts.
         reason = 4
         why.clear()
         open()
     }
 
+    // The whole key, now (@p save false) or by a certificate saved for
+    // later (@p save true).
+    function beginForKey(key, save) {
+        sheet.subkey = key
+        forUid = false
+        forKey = true
+        saving = save === true
+        // "No longer used", as for a subkey.
+        reason = 3
+        why.clear()
+        open()
+    }
+
     objectName: "revokeSubkeySheet"
-    title: forUid ? qsTr("Revoke user ID")
+    title: saving ? qsTr("Save a revocation certificate")
+         : forKey ? qsTr("Revoke this key")
+         : forUid ? qsTr("Revoke user ID")
                   : qsTr("Revoke subkey %1").arg((subkey.keyId || "").slice(-8))
 
     Label {
@@ -52,8 +74,17 @@ BottomSheet {
     Label {
         Layout.fillWidth: true
         wrapMode: Text.Wrap
-        color: Theme.danger
-        text: sheet.forUid
+        color: sheet.saving ? Material.secondaryTextColor : Theme.danger
+        text: sheet.saving
+              ? qsTr("Keep it apart from the key. If the key is lost or its "
+                     + "passphrase forgotten, importing it elsewhere still ends "
+                     + "the key's use. Anyone who has it can do that, so keep it "
+                     + "safe. The reason is written into it now.")
+              : sheet.forKey
+              ? qsTr("A revoked key can no longer be used to encrypt to you or "
+                     + "to sign, and this cannot be undone. Unlike deleting, it "
+                     + "tells others: share the key afterwards, so they learn of it.")
+              : sheet.forUid
               ? qsTr("A revoked user ID no longer stands for the key. Share "
                      + "the key afterwards, so others learn of it.")
               : qsTr("A revoked subkey can never be used again. Share the key "
@@ -108,9 +139,9 @@ BottomSheet {
         },
         Button {
             objectName: "revokeRun"
-            text: qsTr("Revoke")
+            text: sheet.saving ? qsTranslate("KeyDetailPage", "Choose where") : qsTr("Revoke")
             highlighted: true
-            Material.accent: Theme.danger
+            Material.accent: sheet.saving ? sheet.Material.accent : Theme.danger
             onClicked: {
                 sheet.close()
                 sheet.accepted(sheet.subkey, sheet.reason, why.text)

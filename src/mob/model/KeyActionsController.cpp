@@ -28,8 +28,10 @@
 
 #include "model/KeyActionsController.h"
 
+#include <QCoreApplication>
 #include <QFile>
 #include <QPointer>
+#include <QTemporaryDir>
 #include <algorithm>
 
 #include "core/function/openpgp/ChannelHandle.h"
@@ -40,6 +42,7 @@
 #include "core/function/openpgp/UserIdOperation.h"
 #include "core/function/openpgp/helper/OpSupport.h"
 #include "core/function/openpgp/support/KeyGenerationOpSupport.h"
+#include "core/function/openpgp/support/KeyImportExportOpSupport.h"
 #include "core/function/openpgp/support/KeyManagementOpSupport.h"
 #include "core/function/openpgp/support/UserIdOperaOpSupport.h"
 #include "core/model/DataObject.h"
@@ -48,6 +51,7 @@
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/GpgUtils.h"
+#include "core/utils/IOUtils.h"
 #include "core/utils/MemoryUtils.h"
 #include "files/StagingArea.h"
 #include "model/ChangeRelay.h"
@@ -122,6 +126,34 @@ auto Settled(int channel, const GFError& err) -> QVariantMap {
   if (!err.Ok()) return Failure(err);
   Reread(channel);
   return {};
+}
+
+/// A revocation certificate for @p key, made by the engine (which asks for
+/// the passphrase): the engine writes only files, so into a directory of
+/// its own, read back, and the directory removed. Empty when none was made
+/// (turned down, a wrong passphrase, no secret primary key).
+auto MakeRevocation(int channel, const GpgKeyPtr& key, int reason,
+                    const QString& text) -> GFBuffer {
+  QTemporaryDir dir;
+  if (!dir.isValid()) return {};
+  const auto path = dir.filePath(QStringLiteral("key.rev"));
+  if (!KeyManagementOperation::GetInstance(channel).GenerateRevokeCert(
+          key, path, std::clamp(reason, 0, 3), text)) {
+    return {};
+  }
+  auto [read, buffer] = ReadFileGFBuffer(path);
+  return read ? buffer : GFBuffer();
+}
+
+/// No certificate came of it: the engine does not say why (the passphrase
+/// turned down or wrong), so neither is guessed.
+auto NoRevocation() -> QVariantMap {
+  return {{QStringLiteral("error"),
+           QCoreApplication::translate(
+               "GpgFrontend::Mobile::KeyActionsController",
+               "The revocation certificate could not be made. Was the "
+               "passphrase entered?")},
+          {QStringLiteral("reason"), QStringLiteral("failed")}};
 }
 
 /// The first thing wrong with a user ID, the name before the email before
@@ -438,6 +470,11 @@ auto KeyActionsController::describe(const QString& fingerprint) const
        own && IsOpSupported<DeleteSubKeyOpTag>(channel)},
       {QStringLiteral("changePassphrase"),
        own && IsOpSupported<ModifyKeyPassphraseOpTag>(channel)},
+      {QStringLiteral("revokeKey"),
+       own && IsOpSupported<GenerateRevCertOpTag>(channel) &&
+           IsOpSupported<ImportRevCertOpTag>(channel)},
+      {QStringLiteral("saveRevocation"),
+       own && IsOpSupported<GenerateRevCertOpTag>(channel)},
       {QStringLiteral("addUid"), own && IsOpSupported<AddUserIdOpTag>(channel)},
       {QStringLiteral("setPrimaryUid"),
        own && IsOpSupported<SetPrimaryUserIdOpTag>(channel)},
@@ -567,6 +604,77 @@ void KeyActionsController::revokeSubkey(const QString& fingerprint,
             key, index, std::clamp(reason, 0, 3), text);
     return Settled(channel, err);
   });
+}
+
+void KeyActionsController::revokeKey(const QString& fingerprint, int reason,
+                                     const QString& text) {
+  run(QStringLiteral("revoke_key"), [=]() -> QVariantMap {
+    const auto channel = UsableDefaultChannelHandle();
+    const auto key = FindGpgKey(channel, fingerprint);
+    if (key == nullptr || !key->IsPrivateKey() || !key->IsHasMasterKey()) {
+      return Failure(GFError::Application(GFErrorCode::kNO_SECRET_KEY));
+    }
+    // Once is enough: a second certificate changes nothing.
+    if (key->IsRevoked()) {
+      return Failure(GFError::Application(GFErrorCode::kKEY_REVOKED));
+    }
+    const auto certificate = MakeRevocation(channel, key, reason, text);
+    if (certificate.Empty()) return NoRevocation();
+    const auto info =
+        KeyImportExportOperation::GetInstance(channel).ImportRevCert(
+            certificate);
+    // Applied, as the desktop checks it: the key took the revocation.
+    if (info == nullptr ||
+        (info->new_revocations == 0 && info->imported == 0)) {
+      return {{QStringLiteral("error"),
+               QCoreApplication::translate(
+                   "GpgFrontend::Mobile::KeyActionsController",
+                   "The revocation could not be applied, so the key has not "
+                   "been revoked.")},
+              {QStringLiteral("reason"), QStringLiteral("failed")}};
+    }
+    Reread(channel);
+    return {};
+  });
+}
+
+void KeyActionsController::saveRevocation(const QString& fingerprint,
+                                          const QUrl& url, int reason,
+                                          const QString& text) {
+  // A picked place is a content:// URI on Android, which QFile opens as is.
+  const auto path = LocalOrContent(url);
+  run(QStringLiteral("save_revocation"), [=]() -> QVariantMap {
+    const auto channel = UsableDefaultChannelHandle();
+    const auto key = FindGpgKey(channel, fingerprint);
+    if (key == nullptr || !key->IsPrivateKey() || !key->IsHasMasterKey()) {
+      return Failure(GFError::Application(GFErrorCode::kNO_SECRET_KEY));
+    }
+    const auto certificate = MakeRevocation(channel, key, reason, text);
+    if (certificate.Empty()) return NoRevocation();
+    QFile file(path);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate) ||
+        file.write(certificate.Data(),
+                   static_cast<qint64>(certificate.Size())) !=
+            static_cast<qint64>(certificate.Size()) ||
+        !file.flush()) {
+      file.close();
+      return Failure(GFError::Application(GFErrorCode::kIO));
+    }
+    file.close();
+    return {};
+  });
+}
+
+auto KeyActionsController::revocationFileName(const QString& fingerprint) const
+    -> QString {
+  const auto key = FindKey(UsableDefaultChannelHandle(), fingerprint);
+  if (key == nullptr) return {};
+  // The public key's name, as an export names it, ending in .rev.
+  auto name = Shell::ExportKeyFileName(
+      key->Name(), key->Email(), key->ID(),
+      Shell::KeyExportOptionsFor(Shell::KeyExportKind::kPublic).type);
+  if (name.endsWith(QStringLiteral(".asc"))) name.chop(4);
+  return name + QStringLiteral(".rev");
 }
 
 void KeyActionsController::deleteSubkey(const QString& fingerprint,

@@ -170,6 +170,30 @@ class KeyActionsController : public QObject {
                                  const QString& subkey,
                                  const QString& validity);
 
+  /**
+   * @brief Revoke the key @p fingerprint itself, for @p reason (0 none, 1
+   * compromised, 2 superseded, 3 no longer used) and @p text: a revocation
+   * certificate is made (the passphrase is asked) and applied to the key
+   * here. Action "revoke_key"; it fails for a key already revoked or
+   * without its secret primary key. Others learn of it from the key shared
+   * afterwards.
+   */
+  Q_INVOKABLE void revokeKey(const QString& fingerprint, int reason,
+                             const QString& text);
+
+  /**
+   * @brief Save a revocation certificate for @p fingerprint to @p url, to
+   * revoke the key with later (if it is lost, or its passphrase); the key
+   * itself is not changed. Action "save_revocation".
+   */
+  Q_INVOKABLE void saveRevocation(const QString& fingerprint, const QUrl& url,
+                                  int reason, const QString& text);
+
+  /// The file name a revocation certificate of @p fingerprint is offered
+  /// under: the public key's name, ending in .rev.
+  Q_INVOKABLE [[nodiscard]] QString revocationFileName(
+      const QString& fingerprint) const;
+
   /// Revoke the subkey @p subkey of @p fingerprint for @p reason (0 none, 1
   /// compromised, 2 superseded, 3 no longer used). Action "revoke_subkey".
   Q_INVOKABLE void revokeSubkey(const QString& fingerprint,

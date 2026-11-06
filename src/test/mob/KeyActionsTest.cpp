@@ -37,6 +37,7 @@
 #include "MobileCryptoTest.h"
 #include "core/function/rpgp/PasswordFetcher.h"
 #include "core/utils/GpgUtils.h"
+#include "core/utils/IOUtils.h"
 #include "core/utils/RustUtils.h"
 #include "crypto/KeySelection.h"
 #include "crypto/OutputActions.h"
@@ -419,6 +420,68 @@ TEST_F(KeyActionsTest, TheSecretKeyIsBackedUpToAFile) {
   });
   EXPECT_FALSE(refused.succeeded);
   EXPECT_FALSE(QFileInfo::exists(dir.filePath("none.asc")));
+}
+
+// A certificate kept for later leaves the key as it is; revoking the key
+// applies one at once, and a revoked key is changed no more: it is shared,
+// backed up or deleted, as the desktop hides the rest.
+TEST_F(KeyActionsTest, AKeyIsRevokedAndThenOnlySharedOrDeleted) {
+  const auto made = Act([](auto* a) {
+    a->generate("Rev Oked", "rev.oked@mobile.example.invalid", 0, false);
+  });
+  ASSERT_TRUE(made.succeeded);
+  const auto fpr = made.detail.value("fingerprint").toString();
+  const auto describe = [&]() {
+    QVariantMap key;
+    RunOnMainThread([&]() { key = actions_->describe(fpr); });
+    return key;
+  };
+
+  QString name;
+  RunOnMainThread([&]() { name = actions_->revocationFileName(fpr); });
+  EXPECT_TRUE(name.startsWith("Rev_Oked")) << name.toStdString();
+  EXPECT_TRUE(name.endsWith(".rev")) << name.toStdString();
+
+  QTemporaryDir dir;
+  const auto path = dir.filePath(name);
+  const auto saved = Act([&](auto* a) {
+    a->saveRevocation(fpr, QUrl::fromLocalFile(path), 1, "kept for later");
+  });
+  ASSERT_TRUE(saved.succeeded)
+      << saved.detail.value("error").toString().toStdString();
+  auto [read, certificate] = ReadFileGFBuffer(path);
+  ASSERT_TRUE(read);
+  // It names this key, and the key is not revoked by it.
+  const auto target = RevocationCertificateTarget(certificate);
+  ASSERT_FALSE(target.isEmpty());
+  EXPECT_TRUE(fpr.toUpper().endsWith(target.toUpper())) << target.toStdString();
+  EXPECT_FALSE(describe().value("revoked").toBool());
+  EXPECT_TRUE(describe().value("can").toMap().value("addSubkey").toBool());
+  EXPECT_TRUE(describe().value("can").toMap().value("revokeKey").toBool());
+
+  const auto revoked =
+      Act([&](auto* a) { a->revokeKey(fpr, 3, "no longer used"); });
+  ASSERT_TRUE(revoked.succeeded)
+      << revoked.detail.value("error").toString().toStdString();
+  EXPECT_EQ(revoked.action, "revoke_key");
+  const auto key = describe();
+  EXPECT_TRUE(key.value("revoked").toBool());
+  EXPECT_EQ(key.value("status").toString(), "revoked");
+  const auto can = key.value("can").toMap();
+  for (const auto* edit :
+       {"addSubkey", "setExpiration", "revokeSubkey", "deleteSubkey",
+        "changePassphrase", "addUid", "setPrimaryUid", "revokeUid", "deleteUid",
+        "revokeKey", "saveRevocation"}) {
+    EXPECT_FALSE(can.value(edit).toBool()) << edit;
+  }
+
+  // Once is enough.
+  const auto again = Act([&](auto* a) { a->revokeKey(fpr, 0, {}); });
+  EXPECT_FALSE(again.succeeded);
+
+  // Still shared and deleted.
+  EXPECT_TRUE(Act([&fpr](auto* a) { a->exportPublic(fpr); }).succeeded);
+  EXPECT_TRUE(Act([&fpr](auto* a) { a->remove(fpr); }).succeeded);
 }
 
 TEST_F(KeyActionsTest, AKeyIsDescribedAsTheDesktopDescribesIt) {
