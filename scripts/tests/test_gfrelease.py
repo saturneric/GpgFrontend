@@ -31,6 +31,7 @@ sys.path.insert(0, str(ROOT / "scripts" / "tests"))
 import common  # noqa: E402
 import index as index_mod  # noqa: E402
 import minisig  # noqa: E402
+import openpgp  # noqa: E402
 import promote as promote_mod  # noqa: E402
 import stage as stage_mod  # noqa: E402
 import verify as verify_mod  # noqa: E402
@@ -319,3 +320,283 @@ class ChainTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+# --------------------------------------------------------------- stable
+
+import authenticode  # noqa: E402
+import stable as stable_mod  # noqa: E402
+
+STABLE_TOOLS = TOOLS and all(shutil.which(t) for t in
+                             ("gpg", "gpgconf", "osslsigncode", "wixl",
+                              "openssl"))
+WXS = """<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*" Name="Test" Language="1033" Version="2.3.0" Manufacturer="T"
+           UpgradeCode="12345678-1234-1234-1234-123456789012">
+    <Package InstallerVersion="200" Compressed="yes"/>
+    <Media Id="1" Cabinet="t.cab" EmbedCab="yes"/>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder"><Directory Id="D" Name="T">
+        <Component Id="C" Guid="12345678-1234-1234-1234-123456789013">
+          <File Id="F" Source="payload.txt"/></Component>
+      </Directory></Directory></Directory>
+    <Feature Id="M" Level="1"><ComponentRef Id="C"/></Feature>
+  </Product>
+</Wix>
+"""
+SUBJECT = "/CN=GpgFrontend Test Signing/O=Rehearsal/C=DE"
+
+
+@unittest.skipUnless(STABLE_TOOLS, "needs gpg, osslsigncode, wixl and openssl")
+class StableTest(unittest.TestCase):
+    """The offline stage and the host's admission of what it made."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp(prefix="gfr-stable-"))
+        self.gnupg = self.tmp / "gnupg"
+        self.gnupg.mkdir(mode=0o700)
+        self.fpr = self.new_key("Test Maintainer <maintainer@example.org>")
+        self.product = self.write_product(self.tmp / "product", [self.fpr])
+
+        self.staging = Store(str(self.tmp / "staging"))
+        self.builds = Store(str(self.tmp / "builds" / self.product.slug))
+        self.update = Store(str(self.tmp / "update" / self.product.slug))
+        self.state = self.tmp / "state"
+        keys = self.tmp / "keys"
+        keys.mkdir()
+        self.art_key, self.art_pub = keypair(keys, "artifact")
+        self.idx_key, self.idx_pub = keypair(keys, "index")
+        self.cosign = self.tmp / "cosign"
+        self.cosign.write_text(FAKE_COSIGN.format(python=sys.executable))
+        self.cosign.chmod(self.cosign.stat().st_mode | stat.S_IEXEC)
+
+        self.cert, self.cert_key = self.tmp / "cert.pem", self.tmp / "key.pem"
+        subprocess.run(["openssl", "req", "-x509", "-newkey", "rsa:2048",
+                        "-nodes", "-days", "2", "-subj",
+                        "/CN=GpgFrontend Test Signing/O=Rehearsal/C=DE",
+                        "-keyout", self.cert_key, "-out", self.cert],
+                       check=True, capture_output=True)
+
+        self.repo = self.tmp / "repo"
+        self.repo.mkdir()
+        self.git("init", "-q", "-b", "main")
+        self.git("commit", "-q", "--allow-empty", "-m", "start")
+        self.git("tag", "v2.2.4")
+        (self.repo / "release" / "notes").mkdir(parents=True)
+        (self.repo / "release" / "notes" / "2.3.0.md").write_text(
+            "## 2.3.0\n\n- Everything, signed.\n")
+        self.git("add", "release")
+        self.git("commit", "-q", "-m", "release notes")
+
+    def tearDown(self):
+        subprocess.run(["gpgconf", "--homedir", self.gnupg, "--kill", "all"],
+                       capture_output=True)
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    # --- fixtures ------------------------------------------------------
+
+    def gpg(self, *args):
+        return subprocess.run(["gpg", "--homedir", self.gnupg, "--batch",
+                               *args], check=True, capture_output=True,
+                              text=True).stdout
+
+    def new_key(self, uid):
+        self.gpg("--passphrase", "", "--quick-gen-key", uid, "ed25519",
+                 "sign", "never")
+        listing = self.gpg("--with-colons", "--list-keys", uid)
+        return [l.split(":")[9] for l in listing.splitlines()
+                if l.startswith("fpr:")][0]
+
+    def write_product(self, directory, fingerprints):
+        directory.mkdir(parents=True, exist_ok=True)
+        data = json.loads((common.ROOT / "release" / "product.json").read_text())
+        data["signing"]["maintainer_fingerprints"] = fingerprints
+        data["signing"]["authenticode_subject"] = SUBJECT
+        (directory / "product.json").write_text(json.dumps(data))
+        shutil.copy(common.ROOT / "release" / "policy.toml", directory)
+        (directory / "maintainers.asc").write_text(
+            self.gpg("--armor", "--export", *fingerprints))
+        return common.Product(directory / "product.json",
+                              directory / "policy.toml")
+
+    def git(self, *args):
+        env = git_env()
+        env["GNUPGHOME"] = str(self.gnupg)
+        return subprocess.run(["git", "-c", f"user.signingkey={self.fpr}",
+                               *args], cwd=self.repo, env=env, check=True,
+                              capture_output=True, text=True).stdout.strip()
+
+    def tag(self, version="2.3.0", signed=True):
+        self.git("tag", "-s" if signed else "-a", f"v{version}", "-m",
+                 f"GpgFrontend {version}")
+
+    def build(self, version="2.3.0"):
+        """CI's tag build of v<version>, staged."""
+        commit = self.git("rev-parse", "HEAD")
+        cand = self.tmp / f"cand-{version}"
+        cand.mkdir()
+        (self.tmp / "payload.txt").write_text("payload\n")
+        (self.tmp / "t.wxs").write_text(WXS)
+        subprocess.run(["wixl", "-o", cand / f"GpgFrontend-{version}-windows-x86_64.msi",
+                        self.tmp / "t.wxs"], cwd=self.tmp, check=True,
+                       capture_output=True)
+        for leg in ("linux-x86_64.AppImage", "macos-15.dmg"):
+            (cand / f"GpgFrontend-{version}-{leg}").write_bytes(
+                leg.encode() * 200)
+        names = sorted(p.name for p in cand.iterdir())
+        (cand / common.SUMS).write_text("".join(
+            f"{common.sha256_file(cand / n)}  {n}\n" for n in names))
+        ref = f"refs/tags/v{version}"
+        subprocess.run([self.cosign, "sign-blob", "--bundle",
+                        cand / common.BUNDLE, "--identity",
+                        self.product.identity(ref), "--issuer", ISSUER,
+                        "--sha", commit, cand / common.SUMS], check=True)
+        stage_mod.stage(self.product, cand, self.staging, ref=ref,
+                        commit=commit, version=version, filesafe=version,
+                        built_at="2026-11-07T08:00:00Z")
+
+    def stage(self, version="2.3.0", **kw):
+        args = dict(staging=self.staging, builds=self.builds,
+                    git_dir=self.repo, cosign=str(self.cosign),
+                    gnupghome=str(self.gnupg),
+                    signer=authenticode.Signer(str(self.cert),
+                                               str(self.cert_key)),
+                    authenticode_ca=str(self.cert))
+        args.update(kw)
+        return stable_mod.Stage(self.product, version, self.tmp / "work",
+                                **args)
+
+    def index(self):
+        return index_mod.publish(
+            self.product, self.builds, self.update, index_key=self.idx_key,
+            artifact_pub=self.art_pub, state_dir=self.state, force=True,
+            git_dir=self.repo, cosign=str(self.cosign),
+            authenticode_ca=str(self.cert))
+
+    def check(self, deep=True):
+        return verify_mod.verify(self.product, self.update, self.builds,
+                                 index_keys=[self.idx_pub],
+                                 artifact_key=self.art_pub, deep=deep)
+
+    def assert_refused(self, fn, pattern):
+        with self.assertRaisesRegex(common.ReleaseError, pattern):
+            fn()
+
+    # --- the stable path -----------------------------------------------
+
+    def test_a_stable_release_goes_from_tag_to_a_verified_index(self):
+        self.tag()
+        self.build()
+        d = self.stage().run()
+
+        msi = next(a for a in d["artifacts"] if a["kind"] == "msi")
+        self.assertEqual(msi["transform"], "authenticode")
+        self.assertNotEqual(msi["sha256"], msi["build_sha256"])
+        for a in d["artifacts"]:
+            if a["kind"] != "msi":
+                self.assertEqual(a["sha256"], a["build_sha256"])
+            self.assertTrue(a["sig"].endswith(".asc"))
+        self.assertEqual(d["signing"], {"scheme": "openpgp",
+                                        "fingerprint": self.fpr})
+
+        index = self.index()
+        self.assertEqual(index["channels"]["stable"], "2.3.0")
+        self.assertEqual(index["series"]["2.3"]["latest"], "2.3.0")
+        entry = index["releases"]["2.3.0"]
+        self.assertTrue(entry["notes"].startswith("notes/2.3.0/"))
+        report = self.check()
+        self.assertIn({"version": "2.3.0", "kind": "stable", "artifacts": 3},
+                      report["checked"])
+
+    def test_an_interrupted_stage_resumes(self):
+        self.tag()
+        self.build()
+        broken = self.stage(key="0" * 40)  # no such key: pgp fails
+        self.assert_refused(broken.run, "failed")
+        done = json.loads((self.tmp / "work" / "2.3.0" / "state.json")
+                          .read_text())["done"]
+        self.assertEqual(done, ["fetch", "verify", "authenticode"])
+        self.assertIsNotNone(self.stage().run())  # picks up at pgp
+
+    def test_a_typo_fix_in_main_reaches_the_index(self):
+        self.tag()
+        self.build()
+        self.stage().run()
+        first = self.index()["releases"]["2.3.0"]["notes_sha256"]
+
+        (self.repo / "release" / "notes" / "2.3.0.md").write_text(
+            "## 2.3.0\n\n- Everything, signed. Fixed.\n")
+        self.git("commit", "-qam", "notes: typo")
+        # Not signed yet: the host refuses rather than publish unsigned notes.
+        self.assert_refused(self.index, "notes")
+        # Signed and uploaded by the maintainer, it is published.
+        sha = self.stage().publish_notes()
+        entry = self.index()["releases"]["2.3.0"]
+        self.assertEqual(entry["notes_sha256"], sha)
+        self.assertNotEqual(sha, first)
+        self.check(deep=False)
+
+    # --- refusals ------------------------------------------------------
+
+    def test_an_unsigned_tag_is_never_signed_for(self):
+        self.tag(signed=False)
+        self.build()
+        self.assert_refused(self.stage().run, "not signed by a maintainer")
+
+    def test_a_tag_signed_by_someone_else_is_refused(self):
+        other = self.new_key("Someone Else <else@example.org>")
+        self.git("-c", f"user.signingkey={other}", "tag", "-s", "v2.3.0",
+                 "-m", "not the maintainer")
+        self.build()
+        self.assert_refused(self.stage().run, "not .*maintainer")
+
+    def test_a_certificate_with_another_subject_is_refused(self):
+        self.tag()
+        self.build()
+        key, cert = self.tmp / "k2.pem", self.tmp / "c2.pem"
+        subprocess.run(["openssl", "req", "-x509", "-newkey", "rsa:2048",
+                        "-nodes", "-days", "2", "-subj", "/CN=Not Us",
+                        "-keyout", key, "-out", cert], check=True,
+                       capture_output=True)
+        stage = self.stage(signer=authenticode.Signer(str(cert), str(key)),
+                           authenticode_ca=str(cert))
+        self.assert_refused(stage.run, "not '/CN=GpgFrontend Test Signing")
+
+    def test_a_beta_never_goes_through_the_offline_stage(self):
+        self.assert_refused(lambda: self.stage("2.3.0-rc.1"), "final releases")
+
+    def test_the_host_refuses_a_manifest_not_signed_by_a_maintainer(self):
+        self.tag()
+        self.build()
+        d = self.stage().run()
+        sums = self.tmp / "builds" / self.product.slug / d["sums"]
+        sums.write_text(sums.read_text().replace("0", "1", 1))
+        self.assert_refused(self.index, "does not verify")
+
+    def test_the_host_refuses_an_installer_signed_by_another_certificate(self):
+        self.tag()
+        self.build()
+        d = self.stage().run()
+        msi = next(a for a in d["artifacts"] if a["kind"] == "msi")
+        target = self.tmp / "builds" / self.product.slug / msi["path"]
+        key, cert = self.tmp / "k3.pem", self.tmp / "c3.pem"
+        subprocess.run(["openssl", "req", "-x509", "-newkey", "rsa:2048",
+                        "-nodes", "-days", "2", "-subj", "/CN=Not Us",
+                        "-keyout", key, "-out", cert], check=True,
+                       capture_output=True)
+        resigned = self.tmp / "resigned.msi"
+        authenticode.Signer(str(cert), str(key)).sign(
+            self.tmp / "work" / "2.3.0" / "build" / msi["name"], resigned)
+        target.write_bytes(resigned.read_bytes())
+        self.assert_refused(self.index, "not the published bytes|not '/CN")
+
+    def test_the_host_needs_the_notes(self):
+        self.tag()
+        self.build()
+        self.stage().run()
+        # Notes gone from both main and the tag's view: nothing to publish.
+        self.git("rm", "-q", "release/notes/2.3.0.md")
+        self.git("commit", "-qm", "drop notes")
+        self.git("tag", "-d", "v2.3.0")
+        self.assert_refused(self.index, "tag v2.3.0|notes")
