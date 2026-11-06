@@ -106,10 +106,9 @@ env:
 
 
 jobs:
-  # Compiles and deploys the sandboxed bundle. Holds no secrets: the App Store
-  # certificates must never share a runner with brew, cargo build scripts,
-  # recursive submodules or third-party build actions. The bundle leaves here
-  # unsigned and is signed by sign-mas below.
+  # Compiles and deploys the sandboxed bundle with the same scripts as
+  # build.yml's build-macos. Holds no secrets; the bundle leaves here
+  # unsigned.
   build-mas:
     strategy:
       matrix:
@@ -123,50 +122,14 @@ jobs:
           lfs: "false"
           submodules: recursive
 
-      - name: Setup Build Mode
-        shell: bash
+      - name: Check Entitlements Are In Sync
+        run: scripts/check_entitlements_sync.sh
+
+      - name: Resolve Build Mode
+        id: mode
         env:
-          # Read through an env var rather than interpolated into the script:
-          # an expression expanded inside `run:` is textual substitution.
           BUILD_MODE_INPUT: ${{ github.event.inputs.build_mode }}
-        run: |
-          # Same model as the main Build workflow:
-          #   - a version tag (v*)  -> stable release build
-          #   - a push to main      -> nightly build
-          #   - workflow_dispatch   -> honour the chosen input, so a submittable
-          #                            release package can be produced without
-          #                            re-tagging
-          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
-            BUILD_MODE="${BUILD_MODE_INPUT}"
-            BUILD_TYPE_EFFECTIVE="Release"
-
-          elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            BUILD_MODE="release"
-            BUILD_TYPE_EFFECTIVE="Release"
-
-          else
-            BUILD_MODE="nightly"
-            BUILD_TYPE_EFFECTIVE="Release"
-          fi
-
-          # Stable release builds drop the "Testing" suffix from the app name;
-          # nightly and PR builds are both "nightly" to CMake.
-          # The bundle identifier is fixed either way, so both modes still match
-          # the App Store provisioning profile.
-          if [[ "${BUILD_MODE}" == "release" ]]; then
-            GPGFRONTEND_BUILD_MODE="release"
-          else
-            GPGFRONTEND_BUILD_MODE="nightly"
-          fi
-
-          {
-            echo "BUILD_MODE=${BUILD_MODE}"
-            echo "BUILD_TYPE=${BUILD_TYPE_EFFECTIVE}"
-            echo "GPGFRONTEND_BUILD_MODE=${GPGFRONTEND_BUILD_MODE}"
-          } >> "$GITHUB_ENV"
-
-          echo "Build mode: ${BUILD_MODE}"
-          echo "Build type: ${BUILD_TYPE_EFFECTIVE}"
+        run: scripts/ci/build_mode.sh >> "$GITHUB_OUTPUT"
 
       - name: ccache
         uses: hendrikmuhs/ccache-action@5ebbd400eff9e74630f759d94ddd7b6c26299639 # v1.2.20
@@ -177,12 +140,9 @@ jobs:
         uses: ./.github/actions/install-qt6
 
       - name: Install Dependence
-        run: |
-          brew install --formula automake texinfo libarchive googletest libsodium
+        run: brew install --formula automake texinfo libarchive googletest libsodium
 
       - name: Install Rust
-        # Pinned to a SHA, so the @stable ref name no longer selects the
-        # toolchain; say it explicitly instead.
         uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable branch
         with:
           toolchain: stable
@@ -195,228 +155,20 @@ jobs:
           shared-key: rust-mas-${{ runner.os }}-${{ matrix.os }}-${{ env.BUILD_TYPE }}
           cache-on-failure: true
 
-      # Before anything is built: the committed Sandbox.entitlements and the
-      # verbatim copy sign-mas carries must agree. The copy exists so a
-      # compromised build job cannot choose its own entitlements and have them
-      # verified against its own choice, and until now nothing checked the two
-      # had not drifted -- for a pair that decides this app's keychain access
-      # group and its application identifier.
-      - name: Check Entitlements Are In Sync
-        run: scripts/check_entitlements_sync.sh
-
       - name: Build GpgFrontend
-        run: |
-          MACOS_MAJOR=$(sw_vers -productVersion | cut -d. -f1)
-          MACOS_MINOR=$(sw_vers -productVersion | cut -d. -f2)
-
-          if [[ "$MACOS_MAJOR" == "13" ]]; then
-            DEPLOY_TARGET="13.0"
-          elif [[ "$MACOS_MAJOR" == "14" ]]; then
-            DEPLOY_TARGET="14.0"
-          elif [[ "$MACOS_MAJOR" == "15" ]]; then
-            DEPLOY_TARGET="15.0"
-          elif [[ "$MACOS_MAJOR" == "26" ]]; then
-            DEPLOY_TARGET="26.0"
-          else
-            DEPLOY_TARGET="${MACOS_MAJOR}.${MACOS_MINOR}"
-          fi
-
-          echo "Set MacOS Deployment Target: $DEPLOY_TARGET"
-
-          # No signing identity, team id or provisioning profile is passed:
-          # this job has none, by design. The bundle is signed in sign-mas.
-          cmake -B ${{github.workspace}}/build -G Xcode \
-            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
-            -DCMAKE_OSX_DEPLOYMENT_TARGET="${DEPLOY_TARGET}" \
-            -DGPGFRONTEND_BUILD_MODE=${{env.GPGFRONTEND_BUILD_MODE}} \
-            -DGPGFRONTEND_BUILD_FLAVOR=sandbox
-
-          # DEVELOPMENT_TEAM and PROVISIONING_PROFILE_SPECIFIER are cleared as
-          # well as the identity: src/CMakeLists.txt bakes a profile specifier
-          # into the project, and Xcode would otherwise try to resolve a profile
-          # this job has no business holding.
-          cd ${{github.workspace}}/build/
-          xcodebuild -project ${{github.workspace}}/build/GpgFrontend.xcodeproj \
-            -scheme GpgFrontend \
-            -configuration "${{env.BUILD_TYPE}}" \
-            -archivePath ${{github.workspace}}/build/GpgFrontend.xcarchive \
-            archive \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            DEVELOPMENT_TEAM="" \
-            PROVISIONING_PROFILE_SPECIFIER=""
-
-          # Skip -exportArchive, as this workflow always has: the app is copied
-          # straight out of the archive so macdeployqt can deploy into it.
-          mkdir -p ${{github.workspace}}/build/package
-          cp -R ${{github.workspace}}/build/GpgFrontend.xcarchive/Products/Applications/GpgFrontend.app \
-            ${{github.workspace}}/build/package/
-      # The same install tree the Developer ID leg uses, for the same reason:
-      # `xcodebuild archive` leaves symlinks into DerivedData where CMake asked
-      # for the module natives; the step turns them into real files, then
-      # `cmake --install` writes the tree and verifies what it wrote.
-      - name: Install The Module Tree (macOS)
-        run: |
-          set -euo pipefail
-          STAGING="${{github.workspace}}/build/staging"
-          rm -rf "$STAGING"
-
-          # `xcodebuild archive` leaves each module native as a RELATIVE
-          # symlink into DerivedData, and install(TARGETS) copies a symlink as
-          # a symlink -- two directories deeper, where it resolves to nothing,
-          # and verify-module-set rightly refuses it. Replace each link with
-          # the file it names first.
-          while IFS= read -r link; do
-            cp -L "$link" "$link.real"
-            mv -f "$link.real" "$link"
-            echo "materialized $link"
-          done < <(find ${{github.workspace}}/build/artifacts/modules -type l)
-
-          # --config: under Xcode an install without it picks "Release",
-          # whatever was built. --component runtime: the one Xcode-only rule
-          # outside it installs the app bundle to /Applications, and the app
-          # is taken from the archive instead; the module-set verification
-          # is in runtime and still runs.
-          cmake --install ${{github.workspace}}/build \
-            --config "${{env.BUILD_TYPE}}" --component runtime \
-            --prefix "$STAGING"
-          test -d "$STAGING/lib/gpgfrontend/modules"
-
-      - name: Bundle Module Dependencies (macOS)
-        run: |
-          set -euo pipefail
-          ${{github.workspace}}/scripts/bundle_macos_module_deps.sh \
-            --namespace-root ${{github.workspace}}/build/staging/lib/gpgfrontend/modules
-
-      # A namespace is split across two directories here and nowhere else,
-      # because Apple wants data under Resources and executable code under
-      # Frameworks. ModuleNativeRootFor() is the single place that knows the two
-      # belong together.
-      #
-      # No install_name_tool: the rpaths a module needs are set at link time.
-      # Nothing re-signs either -- sign-mas's Pass 1 signs every loose Mach-O
-      # under Contents, these included, with the app's own identity, which is
-      # what Library Validation wants and what the App Store requires.
-      - name: Place Modules In The Bundle (macOS)
-        run: |
-          set -euo pipefail
-          APP="${{github.workspace}}/build/package/GpgFrontend.app"
-          MODULE_ROOT="${{github.workspace}}/build/staging/lib/gpgfrontend/modules"
-          DESC_ROOT="$APP/Contents/Resources/modules"
-          NATIVE_ROOT="$APP/Contents/Frameworks/GpgFrontendModules"
-          # How many modules this build produced, from the list CMake writes at
-          # configure time. Never a literal, and derived in every step that
-          # needs it: a step's shell variables do not reach the next one.
-          EXPECTED="$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build module_count)"
-
-          test -d "$APP"
-          rm -rf "$DESC_ROOT" "$NATIVE_ROOT"
-          mkdir -p "$DESC_ROOT" "$NATIVE_ROOT"
-
-          placed=0
-          for ns in "$MODULE_ROOT"/*/; do
-            key="$(basename "$ns")"
-            [ -f "$ns/module.gfmodule" ] || continue
-
-            mkdir -p "$DESC_ROOT/$key" "$NATIVE_ROOT/$key"
-            cp "$ns/module.gfmodule" "$DESC_ROOT/$key/"
-            cp "$ns"native/*.dylib "$NATIVE_ROOT/$key/"
-
-            echo "  placed $key ($(ls -1 "$NATIVE_ROOT/$key" | wc -l | tr -d ' ') native file(s))"
-            placed=$((placed + 1))
-          done
-
-          # The gate that would have caught this workflow shipping nothing.
-          test "$placed" -eq "$EXPECTED" || {
-            echo "placed $placed namespaces, expected $EXPECTED" >&2
-            exit 1
-          }
-
-          STRAY="$(find "$APP/Contents" -name 'libgf_mod_*' \
-                     ! -path "$NATIVE_ROOT/*" -print)"
-          if [ -n "$STRAY" ]; then
-            echo "module libraries outside any namespace in the bundle:" >&2
-            printf '%s\n' "$STRAY" >&2
-            exit 1
-          fi
-
-          echo "--- what ships ---"
-          find "$DESC_ROOT" "$NATIVE_ROOT" -type f | sed "s#^$APP/##" | sort
-
-      - name: Deploy Qt
-        run: |
-          set -euo pipefail
-          APP="${{github.workspace}}/build/package/GpgFrontend.app"
-
-          # Every module native, named individually.
-          #
-          # macdeployqt deploys the Qt frameworks the APP links, and a module
-          # may need frameworks the app never does -- QtConcurrent and QtXml,
-          # here. Without this they are placed, pass every descriptor check, and
-          # then fail to load on a user's machine with "Library not loaded:
-          # @rpath/QtConcurrent.framework". Which is exactly what happened to
-          # the Developer ID build.
-          #
-          # The modules have to be INSIDE the bundle first, because macdeployqt
-          # computes bundle-relative paths, which is why placement is above.
-          EXECUTABLES=()
-          while IFS= read -r native; do
-            EXECUTABLES+=("-executable=$native")
-          done < <(find "$APP/Contents/Frameworks/GpgFrontendModules" \
-                     -type f -name '*.dylib' | sort)
-          test "${#EXECUTABLES[@]}" -gt 0
-          echo "deploying for ${#EXECUTABLES[@]} module native(s)"
-
-          # -appstore-compliant drops the plugins that use API the App Store
-          # rejects. No -codesign=: sign-mas signs every code object explicitly,
-          # inside out.
-          macdeployqt "$APP" \
-            -verbose=2 \
-            -appstore-compliant \
-            -always-overwrite \
-            "${EXECUTABLES[@]}"
+        env:
+          GPGFRONTEND_BUILD_MODE: ${{ steps.mode.outputs.gpgfrontend_build_mode }}
+        run: scripts/ci/macos/build.sh --flavor sandbox
 
       # The same four checks the Developer ID bundle gets, from the same
-      # script: dependencies resolve inside the bundle, descriptors still
-      # verify after deployment rewrote load commands, the deployment audit
-      # passes, and every entry a descriptor names is in the bundle -- checked
-      # on the copy that ships, not the staging copy it came from.
-      #
-      # This leg no longer has an unanswerable question in it. It used to: the
-      # descriptor bound a __GPGFRONTEND section, and whether App Store
-      # processing preserved that section through re-signing and thinning was
-      # something no runner could establish, because the artifact that matters
-      # is the one Apple produces. That mechanism is gone. A macOS descriptor
-      # authenticates module metadata and build identity; Apple authenticates
-      # the executable code and enforces it at load time, which it does for
-      # every other Mach-O in the bundle already.
-      - name: Verify The Bundle's Modules (macOS)
-        run: |
-          set -euo pipefail
-          # How many modules this build produced, from the list CMake writes at
-          # configure time. Never a literal, and derived in every step that
-          # needs it: a step's shell variables do not reach the next one.
-          EXPECTED="$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build module_count)"
+      # script. A macOS descriptor authenticates module metadata and build
+      # identity; Apple authenticates the executable code and enforces it at
+      # load time, as it does for every other Mach-O in the bundle.
+      - name: Assemble The Bundle
+        run: scripts/ci/macos/assemble_bundle.sh --app-store
 
-          ${{github.workspace}}/scripts/verify_macos_bundle_modules.sh \
-            --app ${{github.workspace}}/build/package/GpgFrontend.app \
-            --namespace-root ${{github.workspace}}/build/staging/lib/gpgfrontend/modules \
-            --packager "$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build module_packager)" \
-            --expect-count "$EXPECTED"
       - name: Stage Unsigned Payload
-        run: |
-          set -euo pipefail
-          mkdir -p ${{github.workspace}}/build/unsigned
-          # ditto, not zip: it is the only archiver that round-trips a bundle's
-          # symlinks and permission bits through actions/upload-artifact intact.
-          #
-          # The app and nothing else. sign-mas is forbidden to take
-          # configuration, environment or signing policy from this artifact, so
-          # none is sent -- no build-info file, no entitlements, no profile.
-          ditto -c -k --keepParent \
-            ${{github.workspace}}/build/package/GpgFrontend.app \
-            ${{github.workspace}}/build/unsigned/GpgFrontend.app.zip
+        run: scripts/ci/macos/stage_unsigned.sh
 
       - name: Upload Unsigned Artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -424,7 +176,8 @@ jobs:
           # NOT "gpgfrontend-*": that is the pattern release jobs download, and
           # an unsigned bundle must never reach a release.
           name: unsigned-mas-app-${{ matrix.os }}
-          path: ${{github.workspace}}/build/unsigned/GpgFrontend.app.zip
+          path: ${{ github.workspace }}/build/unsigned/GpgFrontend.app.zip
+          if-no-files-found: error
           retention-days: 5
 
   # Holds the App Store signing material and nothing else. No checkout, no
