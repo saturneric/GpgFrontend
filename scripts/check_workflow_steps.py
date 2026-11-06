@@ -138,8 +138,15 @@ def parse_steps(lines):
             step["shell"] = shell_match.group(1)
             continue
 
-        if re.match(r"^\s*run:\s*\|", line):
+        if re.match(r"^\s*run:\s*[|>]", line):
             step["in_run"] = True
+            continue
+
+        # A one-line `run: scripts/ci/x.sh "$ARG"` reads variables as much as
+        # a block does.
+        inline = re.match(r"^\s*run:\s*(\S.*)$", line)
+        if inline and not step["in_run"]:
+            step["body"].append(inline.group(1))
             continue
 
         if step["in_run"]:
