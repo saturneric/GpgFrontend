@@ -6,6 +6,7 @@
   python3 scripts/release/gfrelease promote                               (host)
   python3 scripts/release/gfrelease index [--force]                       (host)
   python3 scripts/release/gfrelease run                 promote, then index (host)
+  python3 scripts/release/gfrelease stable 2.3.0   the offline stable stage (you)
   python3 scripts/release/gfrelease resign              a new serial and expiry
   python3 scripts/release/gfrelease verify [--http] [--deep]           (anyone)
 
@@ -28,7 +29,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import index as index_mod  # noqa: E402
 import minisig  # noqa: E402
+import authenticode  # noqa: E402
 import promote as promote_mod  # noqa: E402
+import stable as stable_mod  # noqa: E402
 import stage as stage_mod  # noqa: E402
 import verify as verify_mod  # noqa: E402
 from common import Product, ReleaseError, default_product, locked  # noqa: E402
@@ -76,6 +79,28 @@ def main(argv=None) -> int:
                     ("filesafe", "file-safe version"), ("built_at", "UTC time")):
         opt(s, name, h)
 
+    st = sub.add_parser("stable", help="sign and publish a stable release "
+                        "(the maintainer's machine)")
+    st.add_argument("version", help="X.Y.Z, its tag vX.Y.Z already pushed")
+    opt(st, "work", "where the stage keeps its files and progress")
+    opt(st, "staging", "the staging store (read)")
+    opt(st, "builds", "the final artifact store (write)")
+    opt(st, "git_dir", "a clone with the release's signed tag")
+    opt(st, "cosign", "the cosign binary")
+    opt(st, "key", "your signing key's fingerprint (default: the first "
+        "pinned maintainer)")
+    opt(st, "gnupghome", "the GnuPG home holding that key (default: yours)")
+    opt(st, "authenticode_cert", "certificate file, or PKCS#11 URI")
+    opt(st, "authenticode_key", "key file, or PKCS#11 URI")
+    opt(st, "pkcs11_module", "the token's PKCS#11 module")
+    opt(st, "timestamp_url", "RFC 3161 time-stamping service")
+    opt(st, "authenticode_ca", "CA file for checking the signature (a "
+        "rehearsal's own CA)")
+    st.add_argument("--redo", choices=stable_mod.STEPS,
+                    help="run this step, and every one after it, again")
+    st.add_argument("--notes-only", action="store_true",
+                    help="after the release: sign and upload main's notes")
+
     host = []
     for name in ("promote", "index", "run", "resign"):
         p = sub.add_parser(name)
@@ -91,6 +116,7 @@ def main(argv=None) -> int:
         opt(p, "index_pub", "its public key (file or base64)")
         opt(p, "state_dir", "where the serial and the lock live")
         opt(p, "cosign", "the cosign binary")
+        opt(p, "authenticode_ca", "CA file for Authenticode (a rehearsal's)")
         p.add_argument("--fetch", action="store_true", default=env("fetch") == "1",
                        help="git fetch the mirror first")
         p.add_argument("--force", action="store_true",
@@ -121,6 +147,30 @@ def main(argv=None) -> int:
                 ref=args.ref, commit=args.commit, version=args.version,
                 filesafe=args.filesafe, built_at=args.built_at)
             print(f"staged {prefix}")
+            return 0
+
+        if args.command == "stable":
+            need(args, "work")
+            signer = None
+            if args.authenticode_cert and args.authenticode_key:
+                signer = authenticode.Signer(
+                    args.authenticode_cert, args.authenticode_key,
+                    args.pkcs11_module or "", args.timestamp_url or "")
+            stage = stable_mod.Stage(
+                product, args.version, Path(args.work),
+                staging=Store(args.staging, rclone) if args.staging else None,
+                builds=Store(args.builds, rclone) if args.builds else None,
+                git_dir=Path(args.git_dir) if args.git_dir else None,
+                cosign=args.cosign or "cosign", key=args.key,
+                gnupghome=args.gnupghome, signer=signer,
+                authenticode_ca=args.authenticode_ca)
+            if args.notes_only:
+                print(f"{args.version}: notes {stage.publish_notes()} "
+                      "uploaded; the host publishes them on its next round")
+                return 0
+            descriptor = stage.run(args.redo)
+            print(f"{args.version}: published to {descriptor['sums'].rsplit('/', 1)[0]}"
+                  if descriptor else f"{args.version}: done")
             return 0
 
         if args.command == "verify":
@@ -159,7 +209,10 @@ def main(argv=None) -> int:
                 index = index_mod.publish(
                     product, builds, update, index_key=Path(args.index_key),
                     artifact_pub=artifact_pub, state_dir=state,
-                    force=args.force or args.command == "resign", mirrors=mirrors)
+                    force=args.force or args.command == "resign", mirrors=mirrors,
+                    git_dir=Path(args.git_dir) if args.git_dir else None,
+                    cosign=args.cosign or "cosign",
+                    authenticode_ca=args.authenticode_ca)
                 if index is None:
                     print("index unchanged")
                 else:
@@ -167,7 +220,8 @@ def main(argv=None) -> int:
                     verify_mod.verify(product, update, builds,
                                       index_keys=[pub(args.index_pub)],
                                       artifact_key=artifact_pub)
-                    print(f"published serial {index['serial']}, nightly "
+                    print(f"published serial {index['serial']}, stable "
+                          f"{index['channels']['stable']}, nightly "
                           f"{index['channels']['nightly']}, expires "
                           f"{index['expires']}")
         return 0
