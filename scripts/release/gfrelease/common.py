@@ -26,6 +26,7 @@ import semver  # noqa: E402
 
 SCHEMA = 1
 DESCRIPTOR = "release.json"
+ASC = ".asc"
 STAGED = "staged.json"
 SUMS = "SHA256SUMS.txt"
 BUNDLE = "SHA256SUMS.txt.sigstore.json"
@@ -108,6 +109,14 @@ class Product:
         self.slug = self.data["slug"]
         self.repository = self.data["repository"]
         self.workflow = self.data["workflow"]
+        signing = self.data.get("signing", {})
+        # Who may sign a stable release: their public keys sit beside the
+        # product file (release/maintainers.asc), their primary fingerprints
+        # are pinned in it.
+        self.maintainers = [f.upper() for f in
+                            signing.get("maintainer_fingerprints", [])]
+        self.keyring_path = Path(product_path).with_name("maintainers.asc")
+        self.authenticode_subject = signing.get("authenticode_subject", "")
 
     def identity(self, ref: str) -> str:
         """The Sigstore identity of this product's build workflow at a ref."""
