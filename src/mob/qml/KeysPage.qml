@@ -334,7 +334,7 @@ Page {
             leftPadding: Theme.sheetPad
             symbol: "note_add"
             symbolColor: Material.accentColor
-            text: qsTr("Import a key")
+            text: qsTranslate("ImportSheet", "Import keys")
             detail: qsTr("Import from a file or the clipboard.")
             onClicked: {
                 addSheet.close()

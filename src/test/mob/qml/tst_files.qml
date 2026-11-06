@@ -84,6 +84,15 @@ Item {
             compare(files.notice.text, "This folder could not be read.")
         }
 
+        // Nothing started says why, as it is: a file that cannot be
+        // opened is not "already waiting".
+        function test_a_refusal_says_why() {
+            const gone = files.workspace.addFiles([Qt.resolvedUrl("no_such_file.txt")])
+            compare(files.refusal(gone), "“no_such_file.txt” can no longer be opened. Pick it again.")
+            compare(files.refusal([987654]), "This file was removed from the list.")
+            files.workspace.remove(gone)
+        }
+
         function test_choosing_files_is_a_mode_back_leaves() {
             const path = Qt.resolvedUrl("tst_files.qml")
             files.workspace.addFiles([path])

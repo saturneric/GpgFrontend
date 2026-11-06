@@ -67,7 +67,7 @@ ColumnLayout {
     InfoRow {
         objectName: "keyCan"
         Layout.fillWidth: true
-        label: qsTr("Can")
+        label: qsTranslate("KeyPartFacts", "Usage")
         value: Wording.capabilityWords(facts.key.capabilities)
     }
 

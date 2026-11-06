@@ -113,7 +113,7 @@ BottomSheet {
         objectName: "profileConfirm"
         Layout.fillWidth: true
         visible: sheet.mode === "export"
-        placeholderText: qsTr("Passphrase again")
+        placeholderText: qsTranslate("PassphraseSheet", "Repeat the passphrase")
         onTextEdited: problem.text = ""
         onAccepted: sheet.submit()
     }

@@ -97,6 +97,20 @@ Page {
         return files.allows(op, entries.map(e => e.name || ""))
     }
 
+    // Why nothing could be started on @p ids, as it is: a file that can no
+    // longer be opened, one still being copied in, or one at work already.
+    function refusal(ids) {
+        for (const id of ids) {
+            const e = files.entry(id)
+            if (e.fileId === undefined)
+                return qsTr("This file was removed from the list.")
+            if (e.progress >= 0) return qsTr("“%1” is still being copied in.").arg(e.name)
+            if (e.available !== true)
+                return qsTr("“%1” can no longer be opened. Pick it again.").arg(e.name)
+        }
+        return qsTr("It is already waiting or running.")
+    }
+
     // @p op on @p ids, as the Text page runs one on its text.
     function request(op, ids) { flow.request(op, ids) }
     function repeatLast(ids) { flow.repeatLast(ids) }
@@ -124,7 +138,7 @@ Page {
         // Nothing queued (each is waiting or running already): said, and
         // the choice kept, never an earlier operation shown as this one.
         if (!started) {
-            notice.show(qsTr("It is already waiting or running."))
+            notice.show(page.refusal(ids))
             return false
         }
         files.clearSelection()
@@ -178,7 +192,8 @@ Page {
 
     function verify(signatureId, originalId) {
         if (!files.verify(signatureId, originalId)) {
-            notice.show(qsTr("It is already waiting or running."))
+            notice.show(page.refusal(originalId > 0 ? [signatureId, originalId]
+                                                    : [signatureId]))
             return
         }
         // Started: the choosing is over, as for every operation.
@@ -336,7 +351,7 @@ Page {
                    && e.phase !== "queued" && !(e.progress >= 0)
         })
         if (removable.length === 0) {
-            notice.show(qsTr("It is already waiting or running."))
+            notice.show(page.refusal(ids))
             return
         }
         if (!confirmed && removable.some(id => {
@@ -547,7 +562,7 @@ Page {
                 }
                 MenuSeparator {}
                 MenuItem {
-                    text: qsTr("Stop waiting operations")
+                    text: qsTranslate("StatusSheet", "Stop waiting files")
                     enabled: files.busy
                     onTriggered: files.cancelQueued()
                 }

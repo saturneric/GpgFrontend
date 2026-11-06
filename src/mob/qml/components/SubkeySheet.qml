@@ -108,7 +108,7 @@ BottomSheet {
         // The primary key's is the key's own, changed from the key's page.
         visible: sheet.can.setExpiration === true && !sheet.primary
                  && sheet.subkey.revoked !== true
-        symbol: "settings"
+        symbol: "schedule"
         text: qsTr("Change expiration")
         onClicked: sheet.expirationRequested(sheet.subkey)
     }

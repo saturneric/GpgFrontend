@@ -92,7 +92,7 @@ BottomSheet {
         spacing: 2
 
         Label {
-            text: qsTr("Used for")
+            text: qsTranslate("KeyPartFacts", "Usage")
             color: Material.secondaryTextColor
             font.pixelSize: Theme.labelSize
         }
@@ -104,11 +104,11 @@ BottomSheet {
 
             Repeater {
                 model: [
-                    {"id": "encrypt", "text": qsTr("Encryption"),
+                    {"id": "encrypt", "text": qsTranslate("Wording", "Encrypt"),
                      "detail": qsTr("Others encrypt to it; you decrypt with it.")},
-                    {"id": "sign", "text": qsTr("Signing"),
+                    {"id": "sign", "text": qsTranslate("Wording", "Sign"),
                      "detail": qsTr("You sign messages and files with it.")},
-                    {"id": "authenticate", "text": qsTr("Authentication"),
+                    {"id": "authenticate", "text": qsTranslate("Wording", "Authenticate"),
                      "detail": qsTr("You log in with it, over SSH for one.")}
                 ]
 

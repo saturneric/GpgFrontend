@@ -335,7 +335,7 @@ Page {
                 visible: page.can.addUid === true
                 enabled: !actions.busy
                 flat: true
-                text: qsTr("Add user ID")
+                text: qsTranslate("AddUidSheet", "Add a user ID")
                 icon.source: Theme.icon("add")
                 onClicked: addUidSheet.begin()
             }
@@ -401,7 +401,7 @@ Page {
                 visible: page.can.addSubkey === true
                 enabled: !actions.busy
                 flat: true
-                text: qsTr("Add subkey")
+                text: qsTranslate("AddSubkeySheet", "Add a subkey")
                 icon.source: Theme.icon("add")
                 onClicked: addSubkeySheet.begin()
             }
@@ -500,7 +500,7 @@ Page {
                     Layout.fillWidth: true
                     visible: page.can.setExpiration === true
                     enabled: !actions.busy
-                    symbol: "settings"
+                    symbol: "schedule"
                     text: qsTr("Change expiration")
                     detail: qsTr("Of the primary key, and so of the whole key.")
                     onClicked: page.askExpiration({"primary": true,
@@ -525,8 +525,8 @@ Page {
                     Layout.fillWidth: true
                     visible: page.can.changePassphrase === true
                     enabled: !actions.busy
-                    symbol: "visibility_off"
-                    text: qsTr("Change passphrase")
+                    symbol: "key"
+                    text: qsTr("Change the key's passphrase")
                     detail: qsTr("You are asked for the current one, then the new one.")
                     onClicked: actions.changePassphrase(page.key.fingerprint)
                 }
