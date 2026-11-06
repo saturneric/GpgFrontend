@@ -142,12 +142,13 @@ jobs:
         run: python3 scripts/check_workflow_steps.py
 
       # What the update chain's tests drive for real (scripts/tests/
-      # test_gfrelease.py): without them those tests skip themselves.
+      # test_gfrelease.py, stable releases included: Authenticode on a real
+      # MSI): without them those tests skip themselves.
       - name: Install Release Tools
         run: |
           set -euo pipefail
           sudo apt-get update -q
-          sudo apt-get install -y -q minisign rclone
+          sudo apt-get install -y -q minisign osslsigncode rclone wixl
 
       # The release-candidate rules, and the workflow structure they rely on.
       # Here so a pull request runs them: provenance and release only run on
@@ -1047,7 +1048,11 @@ jobs:
     runs-on: ubuntu-latest
     # No status function, so success() is implied: every job in `needs` must
     # have succeeded, not merely finished.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # main (a nightly) and version tags (a release, signed offline after it
+    # is staged): the signature names the ref, and the signers pin it.
+    if: >-
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
     permissions:
       # The identity token Fulcio exchanges for a certificate. Nothing else.
       id-token: write
@@ -1104,13 +1109,14 @@ jobs:
           path: candidate/*
           if-no-files-found: error
 
-  # Hands main's nightly to the update channel: the release candidate exactly
-  # as provenance signed it goes to the private staging bucket, and nothing
-  # else. The signing host promotes it from there (scripts/release/gfrelease
-  # promote): it verifies the Sigstore bundle against this workflow, ref and
-  # commit, asks git which version the commit is, and only then signs and
-  # publishes. This job can write staging and nothing else, and staging is
-  # never served.
+  # Hands a build to its signers: the release candidate exactly as provenance
+  # signed it goes to the private staging bucket, and nothing else. main's
+  # nightly is promoted from there by the signing host (scripts/release/
+  # gfrelease promote); a version tag waits for the maintainer's offline
+  # stage (gfrelease stable), which signs it with their OpenPGP key and the
+  # Windows installers with their certificate. Both verify the Sigstore
+  # bundle against this workflow, ref and commit first. This job can write
+  # staging and nothing else, and staging is never served.
   #
   # Off until the maintainer sets the repository variable R2_STAGING_ENABLED
   # to "true" (a variable, not a secret: a job's `if:` cannot read secrets)
@@ -1122,7 +1128,8 @@ jobs:
   stage:
     needs: [setup, provenance]
     if: >-
-      github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) &&
       vars.R2_STAGING_ENABLED == 'true'
     runs-on: ubuntu-24.04
     permissions:
