@@ -761,12 +761,30 @@ jobs:
           fi
           chmod u+x appimagetool.AppImage
 
+          # appimagetool only looks for the legacy <desktop-id>.appdata.xml
+          # name, so the installed metainfo is renamed rather than copied: the
+          # image carries one component, identical to what distributions get.
+          METAINFO_DIR=${{github.workspace}}/build/artifacts/AppDir/usr/share/metainfo
+          mv "$METAINFO_DIR/com.bktus.gpgfrontend.metainfo.xml" \
+            "$METAINFO_DIR/com.bktus.gpgfrontend.appdata.xml"
+
+          # A failed `appstreamcli validate-tree` aborts appimagetool. Ubuntu
+          # 22.04 has no appstreamcli, and its packaged 0.15 rejects URL types
+          # newer than itself (vcs-browser) that 1.x accepts, so there the
+          # check is skipped; the 24.04 runners validate the same file.
+          APPSTREAM_ARGS=()
+          if ! appstreamcli --version 2>/dev/null \
+              | grep -Eq 'version: ([1-9][0-9]*)\.'; then
+            echo "appstreamcli >= 1.0 not available, skipping AppStream validation"
+            APPSTREAM_ARGS=(--no-appstream)
+          fi
+
           # Same naming scheme as every other platform. linuxdeployqt's own
           # -appimage named the image after the .desktop entry, so both
           # flavours came out as Gpg_Frontend-<arch>.AppImage and collided once
           # the release job merged every runner's artifacts into one directory.
           OUTPUT="GpgFrontend-${{env.SHORT_SHA}}-${{env.OS_IDENTIFIER}}-${ARCH}${{env.FLAVOR_SUFFIX}}.AppImage"
-          ARCH="$ARCH" ./appimagetool.AppImage \
+          ARCH="$ARCH" ./appimagetool.AppImage "${APPSTREAM_ARGS[@]}" \
             ${{github.workspace}}/build/artifacts/AppDir "$OUTPUT"
 
           rm -f linuxdeployqt-continuous.AppImage appimagetool.AppImage
