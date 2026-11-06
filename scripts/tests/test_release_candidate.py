@@ -645,6 +645,26 @@ class WorkflowTest(unittest.TestCase):
         self.assertTrue(self.called)
         self.assertNotRegex(self.text, r"(?m)^\s+secrets:\s*inherit")
 
+    def test_signing_callers_pass_only_their_target_secrets(self):
+        # A reusable workflow sees no repository secret it is not handed, so
+        # each caller names its target's credentials, and only those.
+        prefix = {"developer-id": ("DEVELOP", "ASC_"), "app-store": ("MAS_",)}
+        seen = set()
+        for path in (WORKFLOW, WORKFLOW.with_name("mas-sandbox.yml")):
+            for name, job in jobs(path.read_text(encoding="utf-8")).items():
+                if "uses: ./.github/workflows/sign-apple.yml" not in job:
+                    continue
+                target = re.search(r"(?m)^\s+target: (\S+)$", job).group(1)
+                block = re.search(r"(?m)^    secrets:\n((?:      .*\n)+)", job)
+                with self.subTest(job=name):
+                    self.assertTrue(block)
+                    passed = re.findall(r"(?m)^      (\w+):", block.group(1))
+                    self.assertTrue(passed)
+                    for secret in passed:
+                        self.assertTrue(secret.startswith(prefix[target]), secret)
+                seen.add(target)
+        self.assertEqual(seen, set(prefix))
+
     def test_build_info_names_are_whole(self):
         # The pairing above is only a check if it sees whole names.
         for name in upload_names(self.run_text):

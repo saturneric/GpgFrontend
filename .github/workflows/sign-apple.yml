@@ -40,9 +40,11 @@
 # still present a malicious payload that this job faithfully signs. Isolating
 # the key is the goal here; attestation is a separate problem.
 #
-# Secrets come from the target's GitHub environment, never from the caller.
-# Nothing is inherited, so a Developer ID run cannot read an App Store secret
-# or the other way round.
+# Secrets come from the target's GitHub environment, or from the caller, which
+# names only this target's secrets (a reusable workflow sees no repository
+# secret it is not handed). Nothing is inherited, so a Developer ID run cannot
+# read an App Store secret or the other way round. Where both are set, the
+# environment's value wins.
 #
 #   developer-id  `macos-signing` environment:
 #     DEVELOP_ID_CERT / _PWD           base64 Developer ID .p12, its password
@@ -83,8 +85,8 @@ on:
       artifact_version:
         type: string
         required: true
-    # Declared so the names are known; never passed by a caller. The job's
-    # environment supplies them.
+    # Each caller passes only its own target's names; the job's environment
+    # overrides any of them it also sets.
     secrets:
       DEVELOP_ID_CERT: { required: false }
       DEVELOP_ID_CERT_PWD: { required: false }

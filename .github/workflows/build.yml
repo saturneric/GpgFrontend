@@ -945,6 +945,16 @@ jobs:
       target: developer-id
       runners: ${{ needs.setup.outputs.macos_runners }}
       artifact_version: ${{ needs.setup.outputs.artifact_version }}
+    # Named one by one, never inherited: this target's credentials only. A
+    # secret set in the `macos-signing` environment wins over the same name
+    # passed here, so either place works.
+    secrets:
+      DEVELOP_ID_CERT: ${{ secrets.DEVELOP_ID_CERT }}
+      DEVELOP_ID_CERT_PWD: ${{ secrets.DEVELOP_ID_CERT_PWD }}
+      DEVELOPER_ID_CODE_SIGN_IDENTITY: ${{ secrets.DEVELOPER_ID_CODE_SIGN_IDENTITY }}
+      ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
 
   # Does the thing we ship actually work. Deliberately the dmg from sign-macos
   # -- signed, notarized, stapled -- and not the bundle build-macos produced,

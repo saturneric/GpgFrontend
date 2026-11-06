@@ -66,7 +66,8 @@ if [ "${#missing[@]}" -gt 0 ]; then
   echo "The '$environment' environment is missing:" >&2
   printf '  - %s\n' "${missing[@]}" >&2
   echo >&2
-  echo "Set them under Settings > Environments > $environment." >&2
+  echo "Set them under Settings > Environments > $environment, or as" >&2
+  echo "repository secrets; the calling workflow passes them by name." >&2
   printf '%s\n' "${help[@]}" >&2
   exit 1
 fi
