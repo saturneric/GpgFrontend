@@ -140,8 +140,15 @@ Popup {
     x: 0
     y: windowHeight - height + offset
     width: parent ? parent.width : 0
+    // Let go of: from the height it had then on its way to where it rests,
+    // the whole way one animation (releaseStep, 0 to 1), so nothing it
+    // changes on the way (held, expanded, content shown) is a jump.
+    property bool releasing: false
+    property real releaseFrom: 0
+    property real releaseStep: 0
     height: dragging ? Math.max(dragFloor, Math.min(dragTop, dragHeight))
-                     : restingHeight
+          : releasing ? releaseFrom + (restingHeight - releaseFrom) * releaseStep
+          : restingHeight
     padding: 0
     // Its surface runs to the window's sides; its content keeps clear of a
     // cutout or the navigation buttons there (landscape).
@@ -159,6 +166,8 @@ Popup {
     }
     onClosed: {
         settleBack.stop()
+        release.stop()
+        releasing = false
         Theme.openSheets = Theme.openSheets.filter(o => o !== sheet)
         expanded = false
         heldHeight = 0
@@ -189,7 +198,7 @@ Popup {
     }
 
     Behavior on height {
-        enabled: !sheet.dragging && sheet.opened
+        enabled: !sheet.dragging && !sheet.releasing && sheet.opened
         NumberAnimation { duration: 180; easing.type: Easing.OutCubic }
     }
 
@@ -202,6 +211,18 @@ Popup {
     exit: Transition {
         NumberAnimation { property: "offset"; to: sheet.height
                           duration: 180; easing.type: Easing.InCubic }
+    }
+
+    // From where it was let go of to where it rests.
+    NumberAnimation {
+        id: release
+        target: sheet
+        property: "releaseStep"
+        from: 0
+        to: 1
+        duration: 200
+        easing.type: Easing.OutCubic
+        onFinished: sheet.releasing = false
     }
 
     // Back to its place after it was dragged down and let go.
@@ -262,6 +283,8 @@ Popup {
                 onActiveChanged: {
                     if (active) {
                         settleBack.stop()
+                        release.stop()
+                        sheet.releasing = false
                         startHeight = sheet.height
                         startY = centroid.scenePosition.y
                         sheet.dragHeight = sheet.height
@@ -508,12 +531,25 @@ Popup {
     function settle(velocity) {
         const h = dragHeight
         const low = dragFloor
+        // Held at the height it has now: where it goes is decided while it
+        // still follows the finger, then it gets there in one movement.
+        releaseFrom = height
+        releaseStep = 0
+        releasing = true
         dragging = false
         if (dragToClose && (h < low * 0.5 || (velocity > 2500 && h < low * 0.9))) {
+            // It goes as it is, its height kept until it has.
             close()
             return
         }
+        aim(h, velocity)
         if (offset > 0) settleBack.restart()
+        release.restart()
+    }
+
+    // Where a sheet let go of at height @p h, moving at @p velocity, rests:
+    // its expanded state and held height.
+    function aim(h, velocity) {
         if (!canExpand) return
         // A sheet that shows more once expanded: pulled up clearly, it is.
         if (revealsMore && !expanded) {

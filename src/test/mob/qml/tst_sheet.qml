@@ -190,6 +190,47 @@ Item {
             compare(form.height, height)
         }
 
+        // Let go of, a sheet goes on from the height it had under the
+        // finger to where it rests, in one movement: never first back to
+        // where it rested before, then on.
+        function test_letting_go_never_jumps() {
+            tall.open()
+            tryVerify(() => tall.opened)
+            tryCompare(tall, "height", tall.halfHeight)
+            // Pulled a little up, short of where it would be held open: it
+            // goes back to its half height from there.
+            const grab = tall.contentItem.mapToItem(root, root.width / 2, 8)
+            mousePress(root, grab.x, grab.y)
+            for (let i = 1; i <= 10; ++i) mouseMove(root, grab.x, grab.y - 120 * i / 10, 16)
+            const held = tall.height
+            verify(held > tall.halfHeight + 60, "pulled to " + held)
+            mouseRelease(root, grab.x, grab.y - 120)
+            const heights = [tall.height]
+            for (let i = 0; i < 20; ++i) {
+                wait(16)
+                heights.push(tall.height)
+            }
+            // From where it was let go of, never from elsewhere first.
+            verify(Math.abs(heights[0] - held) < 1, heights[0] + " after " + held)
+            // And only one way: down to where it stays, or held there.
+            for (let i = 1; i < heights.length; ++i)
+                verify(heights[i] <= heights[i - 1] + 0.5, "back up at step " + i + ": " + heights)
+            const rest = tall.height
+            verify(rest >= tall.halfHeight - 0.5)
+
+            // Pulled most of the way: it opens all the way, again from the
+            // finger's height.
+            const grab2 = tall.contentItem.mapToItem(root, root.width / 2, 8)
+            mousePress(root, grab2.x, grab2.y)
+            const up = tall.fullHeight - tall.height - 20
+            for (let i = 1; i <= 10; ++i) mouseMove(root, grab2.x, grab2.y - up * i / 10, 16)
+            const pulled = tall.height
+            mouseRelease(root, grab2.x, grab2.y - up)
+            verify(Math.abs(tall.height - pulled) < 1, tall.height + " after " + pulled)
+            tryCompare(tall, "height", tall.fullHeight)
+            verify(tall.expanded)
+        }
+
         // A sheet that must be answered stays where it is, whatever the pull.
         function test_a_sheet_that_must_be_answered_is_not_pulled_away() {
             kept.open()
