@@ -293,6 +293,38 @@ Item {
             compare(text.editor.text, "keep me")
         }
 
+        // The operation button floats over the part of the editor in sight:
+        // never part of what scrolls, at the same foot as on the other pages,
+        // and the last line scrolls clear of it.
+        function test_the_operation_button_floats_over_the_text() {
+            const flick = findByName(text, "textScroller")
+            const viewport = findByName(text, "editorViewport")
+            const button = findByName(text, "operationButton")
+            compare(button.parent, viewport)
+            for (let up = button; up; up = up.parent)
+                verify(up !== flick.contentItem, "the button scrolls with the text")
+            // The viewport is the view: it ends where the view ends (above
+            // the keyboard when it is up).
+            fuzzyCompare(viewport.mapToItem(null, 0, viewport.height).y,
+                         flick.mapToItem(null, 0, flick.height).y, 0.5)
+            fuzzyCompare(button.y + button.height,
+                         viewport.height - Theme.fabMargin, 0.5)
+
+            let many = ""
+            for (let i = 0; i < 200; ++i) many += "line " + i + "\n"
+            type(many)
+            tryVerify(() => flick.interactive)
+            const at = button.mapToItem(null, 0, 0).y
+            flick.contentY = flick.contentHeight / 2
+            compare(button.mapToItem(null, 0, 0).y, at)
+            // At the end, the last line is above the button.
+            flick.contentY = flick.contentHeight - flick.height
+            const last = text.editor.positionToRectangle(text.editor.length)
+            const lastBottom = text.editor.mapToItem(null, 0, last.y + last.height).y
+            verify(lastBottom <= button.mapToItem(null, 0, 0).y + 0.5,
+                   "last line ends at " + lastBottom)
+        }
+
         function test_short_text_stays_put() {
             const flick = findByName(text, "textScroller")
             type("short")

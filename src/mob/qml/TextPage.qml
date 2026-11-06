@@ -416,9 +416,9 @@ Page {
 
                 objectName: "textScroller"
                 anchors.fill: parent
-                // The window does not move for the keyboard (adjustNothing):
-                // the view ends where the keyboard begins, so the line typed
-                // on is kept in sight above it.
+                // The window does not move for the keyboard: the view ends
+                // where the keyboard begins, so the line typed on is kept in
+                // sight above it.
                 anchors.bottomMargin: page.keyboardCover
                 clip: true
                 boundsBehavior: Flickable.StopAtBounds
@@ -433,7 +433,7 @@ Page {
                     leftPadding: gutter.width + (gutter.visible ? 12 : Theme.gap)
                     rightPadding: Theme.gap
                     topPadding: 12
-                    // The last line clears the operation button.
+                    // The last line scrolls clear of the operation button.
                     bottomPadding: Theme.fabBand
                     // Armor is one long run of letters; prose wraps at words.
                     wrapMode: page.armored ? TextEdit.WrapAnywhere : TextEdit.Wrap
@@ -522,13 +522,24 @@ Page {
                              + "encrypts, decrypts, signs or verifies it.")
             }
 
-            Fab {
-                id: operationButton
+            // What floats over the text: as large as the part of the editor
+            // in sight, never part of what scrolls. The operation button
+            // stays at its foot while the text moves under it, and rises
+            // with the keyboard instead of being left under it.
+            Item {
+                id: viewport
 
-                objectName: "operationButton"
-                text: qsTr("PGP operations")
-                icon.source: Theme.icon("lock")
-                onClicked: operationMenu.openAbove(operationButton)
+                objectName: "editorViewport"
+                anchors.fill: flick
+
+                Fab {
+                    id: operationButton
+
+                    objectName: "operationButton"
+                    text: qsTr("PGP operations")
+                    icon.source: Theme.icon("lock")
+                    onClicked: operationMenu.openAbove(operationButton)
+                }
             }
         }
 
@@ -550,7 +561,7 @@ Page {
     Snackbar {
         id: notice
         objectName: "textNotice"
-        bottomOffset: Theme.fabBand
+        bottomOffset: Theme.fabBand + page.keyboardCover
         // A result offered and not taken is let go once the offer is gone
         // (a taken one has already been).
         onClosed: Qt.callLater(function() {
