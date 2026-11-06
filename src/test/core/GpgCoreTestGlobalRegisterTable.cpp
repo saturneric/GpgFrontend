@@ -280,11 +280,12 @@ TEST_F(GFCoreTest, GRTPublishesTheSupportedEngines) {
     }
   }
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP)) {
-    // The engine ships with the app and reports the app's version.
+    // The engine ships with the app and reports the app's numeric version
+    // (X.Y.Z): it is compared as one, so it never carries the prerelease.
     EXPECT_EQ(Module::RetrieveRTValueTypedOrDefault(
                   Module::kGRTCoreNamespace,
                   Module::GRTEngineKey("rpgp", "version"), QString{}),
-              GetProjectVersion().mid(1));
+              GetProjectVersionCore().mid(1));
   }
 }
 

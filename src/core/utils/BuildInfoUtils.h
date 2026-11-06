@@ -43,10 +43,19 @@ auto GF_CORE_EXPORT GetProjectName() -> QString;
 auto GF_CORE_EXPORT GetProjectOrganization() -> QString;
 
 /**
- * @brief Return the release version string (e.g. "2.1.3").
+ * @brief Return the full version, derived from git tags: "v" plus a SemVer,
+ * e.g. "v2.3.0", "v2.4.0-rc.1" or "v2.4.0-alpha.12+g0123456789ab".
  * @return version string
  */
 auto GF_CORE_EXPORT GetProjectVersion() -> QString;
+
+/**
+ * @brief Return only the version's numeric core, e.g. "v2.4.0" for every one
+ * of the examples above. What a numeric comparison takes: a dev build of 2.4.0
+ * stands for the 2.4.0 it leads to, and the prerelease suffix is not a number.
+ * @return version string
+ */
+auto GF_CORE_EXPORT GetProjectVersionCore() -> QString;
 
 /**
  * @brief Return the build-specific version string (may include commit info).

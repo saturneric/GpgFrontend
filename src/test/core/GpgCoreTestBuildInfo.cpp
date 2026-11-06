@@ -49,4 +49,25 @@ TEST(BuildInfoTest, TheCopiedTextIsTheListedFacts) {
   }
 }
 
+// The version shown everywhere is the full SemVer cmake/GitVersion.cmake
+// derived from git; the core is its numeric X.Y.Z, which every numeric
+// comparison (module min_host_version, the engine version) takes.
+TEST(BuildInfoTest, TheVersionIsSemVerAroundItsCore) {
+  const auto full = GetProjectVersion();
+  const auto core = GetProjectVersionCore();
+
+  static const QRegularExpression kCore(uR"(^v\d+\.\d+\.\d+$)"_s);
+  static const QRegularExpression kFull(
+      uR"(^v\d+\.\d+\.\d+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?)"
+      uR"((\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$)"_s);
+  EXPECT_TRUE(kCore.match(core).hasMatch()) << core.toStdString();
+  EXPECT_TRUE(kFull.match(full).hasMatch()) << full.toStdString();
+
+  // The full version is the core plus, at most, a prerelease and build.
+  ASSERT_TRUE(full.startsWith(core)) << full.toStdString();
+  const auto rest = full.mid(core.size());
+  EXPECT_TRUE(rest.isEmpty() || rest.startsWith(u'-') || rest.startsWith(u'+'))
+      << full.toStdString();
+}
+
 }  // namespace GpgFrontend::Test

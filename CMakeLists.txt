@@ -31,9 +31,16 @@ if(CMAKE_GENERATOR STREQUAL "Xcode")
   set(XCODE_BUILD 1)
 endif()
 
+# The version comes from git tags and nowhere else; see cmake/GitVersion.cmake.
+# GF_VERSION is the full SemVer (2.3.0-alpha.12+gabc...), GF_VERSION_CORE the
+# X.Y.Z that project() and every numeric consumer takes.
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/GitVersion.cmake)
+gf_git_version("${CMAKE_CURRENT_SOURCE_DIR}")
+message(STATUS "GpgFrontend Version ${GF_VERSION} (from ${GF_VERSION_SOURCE}, build number ${GF_VERSION_BUILD_NUMBER})")
+
 # define project
 project(GpgFrontend
-  VERSION 2.2.4
+  VERSION ${GF_VERSION_CORE}
   DESCRIPTION "A modern, cross-platform OpenPGP tool with a unique dual-engine core."
   HOMEPAGE_URL "https://gpgfrontend.bktus.com"
   LANGUAGES CXX C)
@@ -327,19 +334,13 @@ endif()
 
 string(TOLOWER "${APP_NAME}" APP_NAME_LOWER)
 
-# Get Git Information
-set(GIT_COMMIT_HASH "")
+# Get Git Information. The commit is the one the version was derived from, so
+# a source archive (no .git) still names it through the VERSION file.
+set(GIT_COMMIT_HASH "${GF_VERSION_COMMIT}")
 set(GIT_BRANCH_NAME "")
 find_package(Git QUIET)
 
 if(GIT_FOUND)
-  execute_process(
-    COMMAND ${GIT_EXECUTABLE} log -1 --pretty=format:%H
-    OUTPUT_VARIABLE GIT_COMMIT_HASH
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    ERROR_QUIET
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  )
   execute_process(
     COMMAND ${GIT_EXECUTABLE} symbolic-ref --short -q HEAD
     OUTPUT_VARIABLE GIT_BRANCH_NAME
@@ -530,12 +531,15 @@ endif()
 
 set(GPGFRONTEND_APP_DISPLAY_NAME "${GPGFRONTEND_APP_BASE_DISPLAY_NAME}")
 
-# Non-stable builds (nightly / local development / any untagged trunk build) are
+# Non-stable builds (nightly / local development / any untagged build) are
 # marked "Testing" so users can tell them apart from official releases. Stable
 # release builds set -DGPGFRONTEND_BUILD_MODE=release. This is decoupled from the
-# git branch name on purpose: with a single-branch (trunk + release tags) model,
-# `main` produces both nightlies and, via tags, releases, so the branch name can
-# no longer distinguish the two. A screenshot build shows the name users see:
+# git branch name on purpose: in the trunk model, `main` (the next minor) and
+# every release/X.Y branch (fixes for one series) produce nightlies, and a
+# vX.Y.Z[-beta.N|-rc.N] tag on either produces a release, so the branch name
+# cannot distinguish the two. Betas and release candidates are release builds:
+# they share the stable identity and profile, and only nightlies have their
+# own. A screenshot build shows the name users see:
 # the manual's images are of the release, and only the display name changes,
 # never the profile name below.
 if(GPGFRONTEND_BUILD_MODE STREQUAL "release")
@@ -936,7 +940,12 @@ string(REPLACE ";" ",\n" gf_module_json "${gf_module_entries}")
 file(GENERATE
   OUTPUT "${CMAKE_BINARY_DIR}/artifacts/build-info.json"
   CONTENT "{
-  \"project_version\": \"${PROJECT_VERSION}\",
+  \"project_version\": \"${GF_VERSION}\",
+  \"version_core\": \"${GF_VERSION_CORE}\",
+  \"version_filesafe\": \"${GF_VERSION_FILESAFE}\",
+  \"version_series\": \"${GF_VERSION_SERIES}\",
+  \"build_number\": ${GF_VERSION_BUILD_NUMBER},
+  \"commit\": \"${GF_VERSION_COMMIT}\",
   \"build_id\": \"${GPGFRONTEND_BUILD_ID}\",
   \"host_os\": \"${_gf_build_os}\",
   \"host_tool_dir\": \"${GPGFRONTEND_HOST_TOOL_DIR}\",

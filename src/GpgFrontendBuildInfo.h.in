@@ -36,6 +36,12 @@
 #define VERSION_PATCH "@CMAKE_PROJECT_VERSION_PATCH@"
 
 /**
+ * Full Version (SemVer, derived from git tags by cmake/GitVersion.cmake),
+ * e.g. "2.3.0", "2.4.0-rc.1" or "2.4.0-alpha.12+g0123456789ab"
+ */
+#define VERSION_FULL "@GF_VERSION@"
+
+/**
  * Code Version (According to Git)
  */
 #define GIT_BRANCH_NAME "@GIT_BRANCH_NAME@"

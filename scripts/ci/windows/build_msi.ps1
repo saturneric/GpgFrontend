@@ -32,8 +32,10 @@ $root = (Resolve-Path "$PSScriptRoot/../../..").Path
 # CMakeLists.txt with a regular expression worked until the day someone
 # reformatted that line.
 $info = Get-Content "$root/build/artifacts/build-info.json" -Raw | ConvertFrom-Json
-$version = $info.project_version
-Write-Host "Project version: $version"
+# An MSI ProductVersion is numeric (a.b.c), so it takes the version's X.Y.Z;
+# the full SemVer, prerelease and all, is in the file name.
+$version = $info.version_core
+Write-Host "Project version: $($info.project_version) (MSI ProductVersion $version)"
 
 # Toolset and extension versions must match: an unpinned extension resolves to
 # the latest major (7.x), which a WiX 5 host cannot load (wixext5 vs wixext7).

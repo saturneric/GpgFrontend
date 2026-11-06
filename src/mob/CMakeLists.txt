@@ -239,12 +239,11 @@ if(ANDROID)
   configure_file(${CMAKE_SOURCE_DIR}/resource/lfs/icons/gpgfrontend_logo.png
     ${_gf_android_package}/res/drawable-nodpi/gf_splash_logo.png COPYONLY)
 
-  # Android installs an update only over a higher versionCode, so every build
-  # gets the configure time, as the macOS bundle version does. That one's
-  # %Y%m%d%H%M is too large for a versionCode (at most 2100000000), so this
-  # is year, day of year, hour and minute: fixed width, so it still grows
-  # with time, and it fits until 2099.
-  string(TIMESTAMP _gf_android_version_code "%y%j%H%M" UTC)
+  # Android installs an update only over a higher versionCode. It is the build
+  # number cmake/GitVersion.cmake derives from the version, so it orders as
+  # SemVer does and is the same for every build of one commit. It starts above
+  # the configure-time codes (%y%j%H%M) earlier packages were uploaded with.
+  set(_gf_android_version_code "${GF_VERSION_BUILD_NUMBER}")
   message(STATUS "GpgFrontend Android Version Code ${_gf_android_version_code}")
 
   # The application id GpgFrontend uses everywhere else (appstream, Flathub).
@@ -262,7 +261,7 @@ if(ANDROID)
     QT_ANDROID_APP_NAME "GpgFrontend"
     QT_ANDROID_MIN_SDK_VERSION ${_gf_android_min_sdk}
     QT_ANDROID_TARGET_SDK_VERSION ${_gf_android_target_sdk}
-    QT_ANDROID_VERSION_NAME "${PROJECT_VERSION}"
+    QT_ANDROID_VERSION_NAME "${GF_VERSION}"
     QT_ANDROID_VERSION_CODE ${_gf_android_version_code}
     # res/mipmap-anydpi-v26: the desktop's logo as an adaptive icon.
     QT_ANDROID_APP_ICON "@mipmap/ic_launcher"

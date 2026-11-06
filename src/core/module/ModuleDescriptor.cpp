@@ -288,7 +288,11 @@ auto ConcludeVerification(ModuleOrigin origin, const QByteArray& manifest_bytes,
     return not_admitted(ModuleDescriptorStatus::kINCOMPATIBLE_ABI, *why);
   }
 
-  if (GFCompareSoftwareVersion(m.min_host_version, GetProjectVersion()) > 0) {
+  // Against the numeric core: GFCompareSoftwareVersion reads each dotted part
+  // as a number, which a SemVer prerelease ("0-dev", "12+g...") is not, and a
+  // dev build of X.Y.Z already carries every X.Y.Z interface.
+  if (GFCompareSoftwareVersion(m.min_host_version, GetProjectVersionCore()) >
+      0) {
     return not_admitted(
         ModuleDescriptorStatus::kINCOMPATIBLE_ABI,
         QString("it needs GpgFrontend %1 or newer, and this is %2")

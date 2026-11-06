@@ -1,0 +1,3 @@
+# git archive writes the release this tree was cut from into VERSION, so a
+# source archive without .git still knows its version (cmake/GitVersion.cmake).
+VERSION export-subst

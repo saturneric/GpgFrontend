@@ -146,7 +146,10 @@ if(XCODE_BUILD)
   add_executable(${APP_NAME} MACOSX_BUNDLE ${GPGFRONTEND_MACOS_ICON} ${APP_SOURCE} ${RESOURCE_FILES})
 
   # set bundle properties
-  string(TIMESTAMP MACOSX_APP_BUILD_NUMBER "%Y%m%d%H%M" UTC)
+  # The same build number the Android package gets, derived from the version
+  # (cmake/GitVersion.cmake): it orders as SemVer does, so App Store Connect
+  # and a later Sparkle feed see every newer build as greater.
+  set(MACOSX_APP_BUILD_NUMBER "${GF_VERSION_BUILD_NUMBER}")
   set(MACOSX_APP_BUNDLE_ID "com.bktus.gpgfrontend")
 
   if(APPLE_SANDBOX)
@@ -185,7 +188,7 @@ if(XCODE_BUILD)
     MACOSX_BUNDLE_BUNDLE_NAME ${GPGFRONTEND_APP_DISPLAY_NAME}
     MACOSX_BUNDLE_DISPLAY_NAME ${GPGFRONTEND_APP_DISPLAY_NAME}
     MACOSX_BUNDLE_LONG_VERSION_STRING ${BUILD_VERSION}
-    MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
+    MACOSX_BUNDLE_SHORT_VERSION_STRING ${GF_VERSION_CORE}
     MACOSX_BUNDLE_BUNDLE_VERSION ${MACOSX_APP_BUILD_NUMBER}
     MACOSX_BUNDLE_COPYRIGHT "GPL-3.0"
     MACOSX_BUNDLE_INFO_STRING "An OpenPGP Crypto Tool"

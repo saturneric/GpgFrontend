@@ -49,6 +49,10 @@ auto GetProjectName() -> QString { return {PROJECT_NAME}; }
 auto GetProjectOrganization() -> QString { return {PROJECT_ORGANIZATION}; }
 
 auto GetProjectVersion() -> QString {
+  return QStringLiteral("v") + QStringLiteral(VERSION_FULL);
+}
+
+auto GetProjectVersionCore() -> QString {
   return (QStringList{} << "v" << VERSION_MAJOR << "." << VERSION_MINOR << "."
                         << VERSION_PATCH)
       .join("");
