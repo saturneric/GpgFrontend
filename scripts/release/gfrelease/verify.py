@@ -43,8 +43,12 @@ class HttpSource:
         errors = []
         for base in self.bases:
             url = f"{base}{self.slug}/{check_relpath(path)}"
+            # Its own name: Cloudflare's bot filter answers urllib's default
+            # User-Agent with 403, which would read as a broken mirror.
+            request = urllib.request.Request(
+                url, headers={"User-Agent": "gfrelease-verify/1"})
             try:
-                with urllib.request.urlopen(url, timeout=60,
+                with urllib.request.urlopen(request, timeout=60,
                                             context=self.context) as r:
                     return r.read()
             except (urllib.error.URLError, OSError) as e:
