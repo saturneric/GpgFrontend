@@ -36,6 +36,8 @@ BottomSheet {
     }
 
     objectName: "subkeySheet"
+    // Not let go while the key is being changed.
+    interactive: !busy
     title: primary ? qsTr("Primary key")
                    : qsTr("Subkey %1").arg((subkey.keyId || "").slice(-8))
 
@@ -103,7 +105,9 @@ BottomSheet {
     SheetAction {
         id: expiry
         objectName: "subkeyExpiration"
-        visible: sheet.can.setExpiration === true && sheet.subkey.revoked !== true
+        // The primary key's is the key's own, changed from the key's page.
+        visible: sheet.can.setExpiration === true && !sheet.primary
+                 && sheet.subkey.revoked !== true
         symbol: "settings"
         text: qsTr("Change expiration")
         onClicked: sheet.expirationRequested(sheet.subkey)

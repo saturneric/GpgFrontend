@@ -422,8 +422,11 @@ auto KeyActionsController::describe(const QString& fingerprint) const
     });
   }
 
-  // What changes the key needs its secret primary key, as on the desktop.
-  const auto own = key->IsPrivateKey() && key->IsHasMasterKey();
+  // What changes the key needs its secret primary key, as on the desktop;
+  // a revoked key is changed no more (the desktop hides those tabs): it is
+  // shared, backed up or deleted.
+  const auto own =
+      key->IsPrivateKey() && key->IsHasMasterKey() && !key->IsRevoked();
   const auto can = QVariantMap{
       {QStringLiteral("addSubkey"),
        own && IsOpSupported<GenerateSubKeyTag>(channel)},
@@ -434,7 +437,7 @@ auto KeyActionsController::describe(const QString& fingerprint) const
       {QStringLiteral("deleteSubkey"),
        own && IsOpSupported<DeleteSubKeyOpTag>(channel)},
       {QStringLiteral("changePassphrase"),
-       key->IsPrivateKey() && IsOpSupported<ModifyKeyPassphraseOpTag>(channel)},
+       own && IsOpSupported<ModifyKeyPassphraseOpTag>(channel)},
       {QStringLiteral("addUid"), own && IsOpSupported<AddUserIdOpTag>(channel)},
       {QStringLiteral("setPrimaryUid"),
        own && IsOpSupported<SetPrimaryUserIdOpTag>(channel)},

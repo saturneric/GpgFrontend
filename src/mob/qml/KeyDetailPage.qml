@@ -93,10 +93,10 @@ Page {
         notice.show(said[action] || "")
     }
 
-    // What of the key's secret is here (KeyRoleModel's secretState): the
-    // list's word, else the key's own, read as the list reads it.
-    readonly property string secretState: (key.secretState || "").length > 0
-        ? key.secretState : (details.secretState || "")
+    // What of the key's secret is here (KeyRoleModel's secretState):
+    // the key as just read, else what the list said when the page opened.
+    readonly property string secretState: (details.secretState || "").length > 0
+        ? details.secretState : (key.secretState || "")
 
     function shared(outcome) {
         notice.showShared(outcome,
@@ -361,8 +361,11 @@ Page {
                                                   modelData.card === true)
                         font.family: Theme.mono
                         font.pixelSize: Theme.labelSize
-                        color: modelData.secret === true ? Material.accentColor
-                                                         : Material.secondaryTextColor
+                        // Coloured as the mark at the top is: the primary
+                        // key's by the key's whole secret state.
+                        color: (modelData.primary === true ? page.secretState !== "none"
+                                                           : modelData.secret === true)
+                               ? Material.accentColor : Material.secondaryTextColor
                     }
 
                     Icon {

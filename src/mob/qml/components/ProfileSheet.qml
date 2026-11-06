@@ -66,6 +66,7 @@ BottomSheet {
     }
 
     objectName: "profileSheet"
+    interactive: !busy
     title: mode === "create" ? qsTr("New profile")
          : mode === "export" ? qsTr("Export this profile")
          : qsTr("Open the profile file")

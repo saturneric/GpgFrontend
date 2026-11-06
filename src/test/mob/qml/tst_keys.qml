@@ -770,12 +770,19 @@ Item {
             verify(!findByName(subkeySheet.contentItem, "subkeyState").visible)
             subkeySheet.close()
 
-            // The primary key is the whole key's: not revoked or deleted here.
+            // The primary key is the whole key's: not revoked, deleted or
+            // given a new date here (the key's page has its expiration).
             subkeySheet.begin(subkey(true, false), all)
             compare(subkeySheet.title, "Primary key")
             verify(!findByName(subkeySheet.contentItem, "subkeyRevoke").visible)
             verify(!findByName(subkeySheet.contentItem, "subkeyDelete").visible)
+            verify(!findByName(subkeySheet.contentItem, "subkeyExpiration").visible)
             subkeySheet.close()
+
+            // While the key is being changed it is not let go.
+            subkeySheet.busy = true
+            verify(!subkeySheet.interactive)
+            subkeySheet.busy = false
 
             // Revoked, it is not revoked again nor given a new date.
             subkeySheet.begin(subkey(false, true), all)

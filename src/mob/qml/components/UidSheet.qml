@@ -32,6 +32,7 @@ BottomSheet {
     }
 
     objectName: "uidSheet"
+    interactive: !busy
     title: uid.name || uid.email || qsTr("User ID")
 
     component SheetAction: ListRow {
