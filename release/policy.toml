@@ -1,0 +1,64 @@
+# Release-line policy: which series exist, what state each is in, and which
+# versions are withdrawn. The one place this is decided; SECURITY.md's table,
+# the signed update index and the CI order check are all read from here.
+# Check with: python3 scripts/release/policy.py check
+#
+# status:
+#   mainline  the series under development on main; no final X.Y.0 yet
+#             (betas and rcs are tagged on main). At most one.
+#   stable    the newest series that has a final release; fixes go to
+#             release/X.Y. Exactly one once anything has been released.
+#   legacy    an older series that still gets security fixes until `eol`.
+#   eol       no fixes. Its users are pointed at `successor`.
+#
+# When X.Y.0 ships: X.Y becomes stable, the old stable becomes legacy (with an
+# eol date), and X.(Y+1) is added as mainline, in the same PR that cuts
+# release/X.Y (scripts/release/cut.sh).
+#
+# platforms: the oldest system a series' builds run on. Required for the
+# series users can be sent to (mainline and stable): an update or a successor
+# is only offered to a system that meets it. Keys: windows (NT version),
+# macos, linux_glibc, android_api.
+
+schema = 1
+
+[signing]
+# Releases older than this predate per-artifact signatures and were published
+# by hand; the update index admits them without one. Every release from this
+# version on must carry the signatures its kind requires.
+legacy_unsigned_before = "2.2.5"
+
+[series."2.3"]
+status = "mainline"
+branch = "main"
+
+[series."2.3".platforms]
+windows = "10.0.17763"
+macos = "15.0"
+linux_glibc = "2.35"
+android_api = 28
+
+[series."2.2"]
+status = "stable"
+branch = "release/2.2"
+
+[series."2.2".platforms]
+windows = "10.0.17763"
+macos = "15.0"
+linux_glibc = "2.35"
+android_api = 28
+
+[series."2.1"]
+status = "legacy"
+branch = "release/2.1"
+eol = "2027-12-31"
+successor = "2.2"
+note = "the last series that builds with Qt5"
+
+[series."2.0"]
+status = "eol"
+successor = "2.2"
+
+[series."1"]
+status = "eol"
+successor = "2.2"
