@@ -88,6 +88,19 @@ const char* GFAppInstallKind(GFSDKContext* ctx);
 int GFAppIsNightlyIdentity(GFSDKContext* ctx);
 
 /**
+ * @brief Restart the application on the same profile, as a settings change
+ * that needs one does. For a module with the "ui" capability, from something
+ * the user asked for (an update just installed); the user may still be asked
+ * first, and may refuse (a temporary profile cannot survive a restart).
+ *
+ * Inside an AppImage the new process is the .AppImage file, so one replaced
+ * on disk comes back as the new version.
+ *
+ * @return 0 the restart was requested, -1 refused or a host too old to do it
+ */
+int GFAppRestart(GFSDKContext* ctx);
+
+/**
  * @brief How the application secure key itself is protected.
  *
  * Everything in the durable cache is encrypted under that key, so this is the

@@ -27,6 +27,7 @@
  */
 
 #include "GFHostImpl.h"
+#include "core/GFConstants.h"
 #include "core/function/CacheManager.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SecureMemoryAllocator.h"
@@ -39,6 +40,7 @@
 #include "private/GFHostEnter.h"
 #include "private/GFSDKPrivate.h"
 #include "ui/UIModuleManager.h"
+#include "ui/UISignalStation.h"
 
 namespace gf_host {
 
@@ -157,6 +159,18 @@ auto GFAppInstallKindImpl() -> const char* {
 
 auto GFAppIsNightlyIdentityImpl() -> int {
   return GpgFrontend::IsStableBuild() ? 0 : 1;
+}
+
+auto GFAppRestartImpl() -> int {
+  // A deep restart: a new process on the same profile, after every question
+  // a restart asks (a temporary profile, a package session) has its answer.
+  // Inside an AppImage the new process is the .AppImage file itself, so an
+  // image replaced on disk starts as the new version.
+  QMetaObject::invokeMethod(QCoreApplication::instance(), [] {
+    emit GpgFrontend::UI::UISignalStation::GetInstance()
+        -> SignalRestartApplication(GpgFrontend::kDeepRestartCode);
+  });
+  return 0;
 }
 
 auto GFSecAllocateMemory(uint32_t size) -> void* {

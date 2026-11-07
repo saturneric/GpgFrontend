@@ -83,6 +83,12 @@ auto GFAppIsNightlyIdentity(GFSDKContext* ctx) -> int {
   return g->is_nightly_identity(hctx);
 }
 
+auto GFAppRestart(GFSDKContext* ctx) -> int {
+  GF_SDK_REQUIRE(ctx, app, "GFAppRestart", -1);
+  if (!GF_SDK_GROUP_HAS(g, restart)) return -1;
+  return g->restart(hctx);
+}
+
 auto GFAppKeyProtectionLevel(GFSDKContext* ctx) -> int {
   GF_SDK_REQUIRE(ctx, app, "GFAppKeyProtectionLevel", -1);
   return g->key_protection_level(hctx);
