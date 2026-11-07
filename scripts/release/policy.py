@@ -178,6 +178,17 @@ def check_product(product: dict) -> None:
         if not FINGERPRINT.match(fpr):
             errors.append(f"signing.maintainer_fingerprints: {fpr} is not an "
                           "upper-case v4/v6 fingerprint")
+    # A key or certificate replaced: what it signed still verifies, nothing new
+    # is signed with it. The current one is never also retired.
+    for field, current in (("artifact_keys_retired", "artifact_key"),
+                           ("authenticode_subjects_retired",
+                            "authenticode_subject")):
+        retired = signing.get(field, [])
+        if not isinstance(retired, list) or \
+                not all(isinstance(v, str) and v for v in retired):
+            errors.append(f"signing.{field} must be a list of strings")
+        elif signing.get(current) and signing[current] in retired:
+            errors.append(f"signing.{field} lists the current {current}")
     if len(signing.get("index_keys", [])) > 2:
         errors.append("signing.index_keys holds the current and the next key, "
                       "no more")

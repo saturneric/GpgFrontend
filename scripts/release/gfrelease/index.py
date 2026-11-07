@@ -50,8 +50,13 @@ def admit_nightly(product: Product, builds: Store, path: str, raw: bytes,
         raise ReleaseError(f"{path}: not a {product.slug} descriptor")
     if d.get("kind") != "nightly" or not d.get("ref", "").startswith("refs/heads/"):
         raise ReleaseError(f"{path}: not a nightly")
-    if d["signing"] != {"scheme": "minisign",
-                        "key_id": minisig.key_id(artifact_pub)}:
+    # Signed with the current artifact key, or one it replaced: a rotation
+    # does not unlist the nightlies published before it.
+    keys = {minisig.key_id(k): k for k in product.artifact_keys(artifact_pub)}
+    signing = d.get("signing", {})
+    key = keys.get(signing.get("key_id")) \
+        if signing.get("scheme") == "minisign" and len(signing) == 2 else None
+    if key is None:
         raise ReleaseError(f"{path}: not signed with the artifact key")
     if prefix != f"nightly/{str(semver.parse(d['version'])).replace('+', '-')}":
         raise ReleaseError(f"{path}: published under another version's name")
@@ -63,7 +68,7 @@ def admit_nightly(product: Product, builds: Store, path: str, raw: bytes,
     sums, sig = tmp / "SHA256SUMS.txt", tmp / "SHA256SUMS.txt.minisig"
     sums.write_bytes(builds.read(d["sums"]))
     sig.write_bytes(builds.read(d["sums_sig"]))
-    minisig.verify([artifact_pub], sums, sig)
+    minisig.verify([key], sums, sig)
     listed = parse_sums(sums.read_bytes())
     if listed != {a["name"]: a["sha256"] for a in d["artifacts"]}:
         raise ReleaseError(f"{path}: artifacts differ from the signed manifest")
@@ -182,7 +187,9 @@ def admit_stable(product: Product, builds: Store, path: str, raw: bytes, *,
             local.write_bytes(builds.read(a["path"]))
             if sha256_bytes(local.read_bytes()) != a["sha256"]:
                 raise ReleaseError(f"{a['name']}: not the published bytes")
-            authenticode.verify(local, product.authenticode_subject,
+            # The current certificate, or one it replaced: a release stays
+            # admitted however often it is checked again.
+            authenticode.verify(local, product.authenticode_subjects,
                                 authenticode_ca)
             local.unlink()
         else:
