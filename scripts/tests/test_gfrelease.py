@@ -846,6 +846,64 @@ class ImportTest(unittest.TestCase):
         self.git("tag", "-f", "v2.2.4")
         self.assert_refused(self.index, r"v2\.2\.4 is [0-9a-f]+, not")
 
+    def notes_on_main(self, version, text):
+        notes = self.repo / "release" / "notes"
+        notes.mkdir(parents=True, exist_ok=True)
+        (notes / f"{version}.md").write_text(text)
+        self.git("add", "release")
+        self.git("commit", "-q", "-m", f"notes for {version}")
+
+    def sign_notes(self, version):
+        return stable_mod.Stage(self.product, version, self.tmp / "work",
+                                builds=self.builds, git_dir=self.repo,
+                                gnupghome=str(self.gnupg)).publish_notes()
+
+    def test_notes_are_listed_once_a_maintainer_signed_them(self):
+        self.publish_on_github("2.2.4", self.LEGS)
+        self.run_import("2.2.4")
+        self.notes_on_main("2.2.4", "Fixes.\n")
+
+        # On main but not signed yet: listed without them, and said so.
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            index = self.index()
+        self.assertNotIn("notes", index["releases"]["2.2.4"])
+        self.assertIn("2.2.4: listed without notes", err.getvalue())
+
+        digest = self.sign_notes("2.2.4")
+        # The files were checked once; only the notes are checked now.
+        stored = (self.tmp / "builds" / self.product.slug / "releases" /
+                  "2.2.4" / "GpgFrontend-2.2.4-macos-15.dmg")
+        original = stored.read_bytes()
+        stored.write_bytes(b"replaced")
+        entry = self.index()["releases"]["2.2.4"]
+        stored.write_bytes(original)
+        self.assertEqual(entry["notes"], f"notes/2.2.4/{digest}.md")
+        self.assertEqual(entry["notes_sig"], f"notes/2.2.4/{digest}.md.sig")
+        self.check()
+
+        # A fix on main waits for its own signature; nothing is replaced.
+        self.notes_on_main("2.2.4", "Fixes, spelled right.\n")
+        with contextlib.redirect_stderr(io.StringIO()):
+            self.assertNotIn("notes", self.index()["releases"]["2.2.4"])
+        self.assertNotEqual(self.sign_notes("2.2.4"), digest)
+        self.assertNotEqual(self.index()["releases"]["2.2.4"]["notes"],
+                            f"notes/2.2.4/{digest}.md")
+
+    def test_notes_signed_by_someone_else_are_refused(self):
+        self.publish_on_github("2.2.4", self.LEGS)
+        self.run_import("2.2.4")
+        self.notes_on_main("2.2.4", "Fixes.\n")
+        other = self.new_key("Someone Else <else@example.org>")
+        digest = common.sha256_bytes(b"Fixes.\n")
+        local = self.tmp / "notes.md"
+        local.write_bytes(b"Fixes.\n")
+        openpgp.sign(local, other, str(self.gnupg))
+        self.builds.put_file(local, f"notes/2.2.4/{digest}.md")
+        self.builds.put_file(self.tmp / "notes.md.sig",
+                             f"notes/2.2.4/{digest}.md.sig")
+        self.assert_refused(self.index, "signature does not verify|not a pinned")
+
     def test_the_host_admits_once(self):
         self.publish_on_github("2.2.4", self.LEGS)
         self.run_import("2.2.4")
