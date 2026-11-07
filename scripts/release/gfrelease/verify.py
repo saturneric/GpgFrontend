@@ -134,7 +134,16 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
             if descriptor.get("product") != product.slug:
                 raise ReleaseError(f"{entry['descriptor']}: another product's")
             scheme = descriptor["signing"]["scheme"]
-            if scheme == "minisign":
+            if descriptor.get("kind") == "imported":
+                # From before signed manifests: each file carries its own
+                # maintainer signature, checked with --deep.
+                if scheme != "openpgp":
+                    raise ReleaseError(f"{entry['descriptor']}: an imported "
+                                       "release is OpenPGP-signed")
+                sums_data = "".join(
+                    f"{a['sha256']}  {a['name']}\n"
+                    for a in descriptor["artifacts"]).encode()
+            elif scheme == "minisign":
                 sums_data, _ = _signed(builds, check_relpath(descriptor["sums"]),
                                        [artifact_key], tmp)
             elif scheme == "openpgp":

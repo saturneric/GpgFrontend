@@ -21,10 +21,11 @@ import tempfile
 from pathlib import Path
 
 import authenticode
+import imported
 import minisig
 import openpgp
 from common import (ASC, BUNDLE, DESCRIPTOR, INDEX, SCHEMA, SUMS, Product,
-                    ReleaseError, run,
+                    ReleaseError, git_version, run,
                     canonical_json, check_relpath, iso, parse_iso, semver,
                     sha256_bytes, utcnow)
 from store import Store
@@ -192,6 +193,79 @@ def admit_stable(product: Product, builds: Store, path: str, raw: bytes, *,
     return d, entry
 
 
+def admit_imported(product: Product, builds: Store, path: str, raw: bytes, *,
+                   git_dir: Path, state_dir: Path,
+                   tmp: Path) -> tuple[dict, dict]:
+    """A release from before this pipeline (gfrelease import): listed when
+    every file verifies against its own maintainer signature, made when it
+    was released, and its tag is the commit git calls that version.
+
+    There is no signed manifest to check instead, so every file is
+    downloaded and checked, once: the result is recorded under the state
+    directory by the descriptor's hash, like a stable release's.
+    """
+    d = json.loads(raw)
+    version = d.get("version", "")
+    prefix = f"releases/{version}"
+    if d.get("schema") != SCHEMA or d.get("product") != product.slug or \
+            d.get("kind") != imported.KIND or \
+            path != f"{prefix}/{DESCRIPTOR}":
+        raise ReleaseError(f"{path}: not a {product.slug} imported release")
+    v = semver.parse(version)
+    if v.prerelease or v.build:
+        raise ReleaseError(f"{path}: {version} is not a final release")
+    floor = semver.parse(product.policy["signing"]["legacy_unsigned_before"])
+    if v < floor:
+        raise ReleaseError(f"{path}: {version} is older than {floor}")
+    tag = f"v{version}"
+    if d.get("ref") != f"refs/tags/{tag}":
+        raise ReleaseError(f"{path}: not the release tagged {tag}")
+    if d.get("signing", {}).get("scheme") != "openpgp" or \
+            d["signing"].get("fingerprint", "").upper() not in product.maintainers:
+        raise ReleaseError(f"{path}: not signed with a pinned maintainer key")
+    if not d.get("artifacts"):
+        raise ReleaseError(f"{path}: lists no files")
+    for a in d["artifacts"]:
+        for k in ("path", "sig"):
+            if not check_relpath(a[k]).startswith(prefix + "/"):
+                raise ReleaseError(f"{path}: {a[k]} is outside its own release")
+        if product.classify(a["name"], version) != \
+                {k: a[k] for k in ("os", "arch", "kind", "flavor", "min_os")
+                 if k in a}:
+            raise ReleaseError(f"{a['name']}: not what the artifact rules "
+                               "call it")
+
+    entry = {"descriptor": path, "sha256": sha256_bytes(raw)}
+    record = state_dir / "admitted" / f"{version}.json"
+    if record.exists() and json.loads(record.read_text()) == entry:
+        return d, entry
+
+    tagged = run(["git", "-C", git_dir, "rev-parse", f"{tag}^{{commit}}"],
+                 check=False).stdout.strip()
+    if tagged != d.get("commit"):
+        raise ReleaseError(f"{path}: {tag} is {tagged or 'missing'}, not "
+                           f"{d.get('commit')}")
+    if git_version(git_dir, tagged, f"refs/tags/{tag}") != version:
+        raise ReleaseError(f"{path}: git does not call {tagged} {version}")
+
+    work = tmp / version
+    work.mkdir(parents=True, exist_ok=True)
+    with openpgp.Keyring(product.keyring_path, product.maintainers) as ring:
+        for a in d["artifacts"]:
+            local, asc = work / a["name"], work / (a["name"] + ASC)
+            local.write_bytes(builds.read(a["path"]))
+            asc.write_bytes(builds.read(a["sig"]))
+            if sha256_bytes(local.read_bytes()) != a["sha256"]:
+                raise ReleaseError(f"{a['name']}: not the descriptor's bytes")
+            ring.verify(local, asc)
+            local.unlink()
+            asc.unlink()
+
+    record.parent.mkdir(parents=True, exist_ok=True)
+    record.write_text(json.dumps(entry, sort_keys=True))
+    return d, entry
+
+
 def build(product: Product, builds: Store, artifact_pub: str, *,
           git_dir: Path | None = None, state_dir: Path | None = None,
           cosign: str = "cosign", authenticode_ca: str | None = None) -> dict:
@@ -217,10 +291,16 @@ def build(product: Product, builds: Store, artifact_pub: str, *,
             if git_dir is None or state_dir is None:
                 raise ReleaseError("stable releases need --git-dir and "
                                    "--state-dir to be admitted")
-            d, entry = admit_stable(product, builds, path, builds.read(path),
-                                    git_dir=git_dir, state_dir=state_dir,
-                                    cosign=cosign, tmp=Path(tmp),
-                                    authenticode_ca=authenticode_ca)
+            raw = builds.read(path)
+            if json.loads(raw).get("kind") == imported.KIND:
+                d, entry = admit_imported(product, builds, path, raw,
+                                          git_dir=git_dir, state_dir=state_dir,
+                                          tmp=Path(tmp))
+            else:
+                d, entry = admit_stable(product, builds, path, raw,
+                                        git_dir=git_dir, state_dir=state_dir,
+                                        cosign=cosign, tmp=Path(tmp),
+                                        authenticode_ca=authenticode_ca)
             releases[d["version"]] = entry
 
     series = {}
