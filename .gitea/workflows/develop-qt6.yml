@@ -371,6 +371,19 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
+      # MobileScaleTest makes its thousand keys with sq, and fails without
+      # it; the same sq the build job caches.
+      - name: Restore sq
+        id: cache-sq
+        uses: actions/cache/restore@v3
+        with:
+          path: ~/.cargo/bin/sq
+          key: ${{ runner.os }}-sequoia-sq-1.3.1
+
+      - name: Install sq 1.x
+        if: steps.cache-sq.outputs.cache-hit != 'true'
+        run: cargo install sequoia-sq --version 1.3.1 --locked
+
       - name: Build The Core Without GnuPG
         run: |
           cmake -B ${{github.workspace}}/build-android -G Ninja \
