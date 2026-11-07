@@ -159,6 +159,11 @@ class DocumentWidget : public NativeWidgetBase {
   virtual auto CloseDecided(bool /*save*/) -> std::optional<bool> {
     return std::nullopt;
   }
+  /// The application is quitting and keeps unsaved tabs for the next start:
+  /// bring what Save() returns up to date now, without writing a file or
+  /// asking. true: done, the tab is cached and not asked about; false (the
+  /// default): the user is asked as for any close.
+  virtual auto PrepareRecovery() -> bool { return false; }
 
  protected:
   /// An edit happened; the tab now has unsaved changes.

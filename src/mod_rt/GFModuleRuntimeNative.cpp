@@ -237,6 +237,10 @@ auto DocCloseDecided(void*, uint64_t i, int save) -> int {
   if (!may.has_value()) return -1;
   return *may ? 0 : 1;
 }
+auto DocPrepareRecovery(void*, uint64_t i) -> int {
+  auto* d = As<DocumentWidget>(i);
+  return d != nullptr && d->PrepareRecovery() ? 0 : 1;
+}
 
 const GFDocumentWidgetOps kDocumentOps = {
     sizeof(GFDocumentWidgetOps),
@@ -261,6 +265,7 @@ const GFDocumentWidgetOps kDocumentOps = {
     &DocCryptoOpTip,
     &DocSaveAllowed,
     &DocCloseDecided,
+    &DocPrepareRecovery,
 };
 
 // --- settings

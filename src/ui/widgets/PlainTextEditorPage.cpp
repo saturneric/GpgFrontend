@@ -847,6 +847,21 @@ auto PlainTextEditorPage::ModuleTakesCloseDecision() const -> bool {
   return e.has_value() && static_cast<bool>(e->document.close_decided);
 }
 
+auto PlainTextEditorPage::ModulePrepareRecovery() -> bool {
+  const auto e = module_document();
+  if (!e.has_value() || !e->document.prepare_recovery) return false;
+  if (!e->document.prepare_recovery(native_instance_)) return false;
+  // What the view now hands over goes into the page, which is what the
+  // recovery cache reads.
+  FlushPrimaryView();
+  return true;
+}
+
+auto PlainTextEditorPage::ModuleKeepsRecovery() const -> bool {
+  const auto e = module_document();
+  return e.has_value() && static_cast<bool>(e->document.prepare_recovery);
+}
+
 auto PlainTextEditorPage::ModuleSaveAllowed() const -> bool {
   const auto e = module_document();
   return !e.has_value() || !e->document.save_allowed ||

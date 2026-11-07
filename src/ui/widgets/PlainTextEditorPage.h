@@ -238,6 +238,12 @@ class GF_UI_EXPORT PlainTextEditorPage : public QWidget {
   auto ModuleCloseDecided(bool save) -> std::optional<bool>;
   /// Whether ModuleCloseDecided() would be taken at all.
   [[nodiscard]] auto ModuleTakesCloseDecision() const -> bool;
+  /// Quitting, with unsaved tabs kept for the next start: the view brings
+  /// its recovery copy up to date and the page takes it in. true: the tab is
+  /// cached and need not be asked about; false: ask as for any close.
+  auto ModulePrepareRecovery() -> bool;
+  /// Whether ModulePrepareRecovery() would be taken at all.
+  [[nodiscard]] auto ModuleKeepsRecovery() const -> bool;
 
   /**
    * @brief A name the mounted view suggests for saving this tab, if any.

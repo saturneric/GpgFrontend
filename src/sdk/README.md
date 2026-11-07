@@ -449,7 +449,7 @@ Three typed protocols, and no generic request or query:
 
 | class                    | the Host calls                                                                                                                                                     | the widget may ask                                  |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------- |
-| `gf::ui::DocumentWidget` | `Load`, `Save`, `IsDirty`, `CryptoOperations`, `ApplyVerification`, `AppendText`, `AttachPublicKey`, `ApplyFont`, `PrepareSave`, `SourceLockReason`, `WipeContent`; with `persistence = "module"`: `OpenPath`, `SaveRequested`, `CloseRequested`, `FindRequested`, `EncryptRequested`, `DecryptRequested`, `CryptoOperationTip`, `SaveAllowed`, `CloseDecided` | modified, show source, run a crypto op, ops changed, saved |
+| `gf::ui::DocumentWidget` | `Load`, `Save`, `IsDirty`, `CryptoOperations`, `ApplyVerification`, `AppendText`, `AttachPublicKey`, `ApplyFont`, `PrepareSave`, `SourceLockReason`, `WipeContent`; with `persistence = "module"`: `OpenPath`, `SaveRequested`, `CloseRequested`, `FindRequested`, `EncryptRequested`, `DecryptRequested`, `CryptoOperationTip`, `SaveAllowed`, `CloseDecided`, `PrepareRecovery` | modified, show source, run a crypto op, ops changed, saved |
 | `gf::ui::SettingsWidget` | `LoadSettings`, `ApplySettings`                                                                                                                                    | restart needed                                      |
 | `gf::ui::DialogWidget`   | `Opened`, `CloseRequested`                                                                                                                                         | close                                               |
 
@@ -463,7 +463,10 @@ the module reads and writes: the Host never reads it (it hands the view the
 path, `OpenPath`), never runs its own crypto on it, and passes Save, Save As,
 closing, Find and Encrypt to the view. Unsaved work is recovered like any
 other tab's: the Host caches what `Save` returns and hands it back to `Load`
-after a crash. Its `extensions` may be compound (`"textpack.gpg"`), matched
+after a crash. When the application quits with Restore text editor pages
+on, `PrepareRecovery` brings that copy up to date and the tab is cached
+instead of asked about; a view that answers false is asked as on any close.
+Its `extensions` may be compound (`"textpack.gpg"`), matched
 against the end of the file name, longest first. `m_notes` is the example.
 
 A document view never receives the Host's editor. The raw source is the

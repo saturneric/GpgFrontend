@@ -285,6 +285,15 @@ void AdaptDocument(NativeWidgetEntry& e, const GFDocumentWidgetOps ops,
       return may;
     };
   }
+  if (ops.prepare_recovery != nullptr) {
+    d.prepare_recovery = [=](quint64 i) {
+      // A module that cannot be entered any more cannot hand anything over:
+      // the user is asked, as for any close.
+      bool ready = false;
+      EnterModule(m, [&] { ready = ops.prepare_recovery(user, i) == 0; });
+      return ready;
+    };
+  }
   if (ops.source_policy != nullptr) {
     d.source_lock = [=](quint64 i) -> std::optional<QString> {
       std::optional<QString> reason;

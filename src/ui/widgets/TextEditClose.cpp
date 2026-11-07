@@ -56,6 +56,7 @@ struct CloseTarget {
   bool save = false;   ///< the answer to it
   bool ready = false;  ///< may be removed
   bool kept = false;   ///< stays open
+  bool cached = false;  ///< left to the recovery cache, neither saved nor not
 };
 
 auto TextPageOf(const CloseTarget& t) -> PlainTextEditorPage* {
@@ -98,14 +99,15 @@ auto TextEdit::CloseTabs(const QList<quint64>& ids) -> TabCloseOutcome {
 
 auto TextEdit::MaybeSaveAnyTab() -> bool {
   // Quitting: the same questions, but the tabs stay until the window goes.
-  // With restore enabled, unsaved plain text goes to the recovery cache
-  // instead of being asked about; a module's document is always asked.
-  const bool cache_plain =
+  // With restore enabled, unsaved work goes to the recovery cache instead of
+  // being asked about: plain text always, a module's document when its view
+  // can bring its recovery copy up to date.
+  const bool cache_unsaved =
       SettingItems::kRestoreTextEditorPage.Read(GetSettings());
-  const auto outcome = run_close(tab_widget_->TabIds(), false, cache_plain);
+  const auto outcome = run_close(tab_widget_->TabIds(), false, cache_unsaved);
   if (outcome.cancelled || !outcome.kept.isEmpty()) return false;
 
-  if (cache_plain) {
+  if (cache_unsaved) {
     FLOG_D("restore_text_editor_page is true, caching messages and exiting");
     tab_widget_->SlotCacheTextEditors();
   }
@@ -113,7 +115,7 @@ auto TextEdit::MaybeSaveAnyTab() -> bool {
 }
 
 auto TextEdit::run_close(const QList<quint64>& ids, bool teardown,
-                         bool cache_plain) -> TabCloseOutcome {
+                         bool cache_unsaved) -> TabCloseOutcome {
   TabCloseOutcome outcome;
 
   // 1. Collect, before anything can change: the targets, and where the user
@@ -160,8 +162,25 @@ auto TextEdit::run_close(const QList<quint64>& ids, bool teardown,
                                                 : CloseKind::kMODULE_ASKS;
     }
 
-    t.asked = t.modified && (t.kind == CloseKind::kMODULE_DECIDES ||
-                             (t.kind == CloseKind::kPLAIN && !cache_plain));
+    t.cached = t.modified && cache_unsaved &&
+               (t.kind == CloseKind::kPLAIN || page->ModuleKeepsRecovery());
+  }
+
+  // 2b. A module's document kept for the next start: its view brings the
+  //     recovery copy up to date now. It only takes a snapshot, so a later
+  //     Cancel loses nothing. One that cannot is asked about as usual.
+  for (auto& t : targets) {
+    if (!t.cached || t.kind == CloseKind::kPLAIN || !alive(t)) continue;
+    t.cached = TextPageOf(t)->ModulePrepareRecovery();
+  }
+  targets.removeIf([&](const CloseTarget& t) { return !alive(t); });
+
+  for (auto& t : targets) {
+    auto* page = TextPageOf(t);
+    if (page == nullptr) continue;
+    t.asked =
+        t.modified && !t.cached &&
+        (t.kind == CloseKind::kMODULE_DECIDES || t.kind == CloseKind::kPLAIN);
     if (t.asked) {
       unsaved.append(
           {t.id, TextEditTabWidget::TabTitleOf(page), page->GetFilePath()});
@@ -197,6 +216,10 @@ auto TextEdit::run_close(const QList<quint64>& ids, bool teardown,
   //    and nothing has been written yet.
   for (auto& t : targets) {
     if (t.kind != CloseKind::kMODULE_ASKS || !alive(t)) continue;
+    if (t.cached) {
+      t.ready = true;
+      continue;
+    }
     if (!TextPageOf(t)->ModuleCloseRequested()) {
       outcome.cancelled = true;
       return outcome;
@@ -236,7 +259,7 @@ auto TextEdit::run_close(const QList<quint64>& ids, bool teardown,
     auto* page = TextPageOf(t);
 
     bool may = true;
-    if (t.kind == CloseKind::kMODULE_DECIDES) {
+    if (t.kind == CloseKind::kMODULE_DECIDES && !t.cached) {
       if (t.modified) {
         const auto decided = page->ModuleCloseDecided(false);
         may = decided.has_value() ? *decided : page->ModuleCloseRequested();

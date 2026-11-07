@@ -595,10 +595,11 @@ class GF_UI_EXPORT TextEdit : public QWidget {
   /**
    * @brief The close path: assess, ask, save, then (with @p teardown) remove.
    *
-   * @param cache_plain unsaved plain-text tabs go to the recovery cache rather
-   *        than being asked about (quitting with restore enabled)
+   * @param cache_unsaved unsaved tabs go to the recovery cache rather than
+   *        being asked about (quitting with restore enabled): plain text
+   *        always, a module's document when its view can hand it over
    */
-  auto run_close(const QList<quint64>& ids, bool teardown, bool cache_plain)
+  auto run_close(const QList<quint64>& ids, bool teardown, bool cache_unsaved)
       -> TabCloseOutcome;
 
   /// Show the tabs, or the empty view when there are none.

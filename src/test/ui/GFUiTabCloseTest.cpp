@@ -37,7 +37,11 @@
 #include <QTemporaryDir>
 
 #include "GpgFrontendTest.h"
+#include "core/function/CacheManager.h"
+#include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "host/SdkTestContext.h"
+#include "sdk/GFSDKBuffer.h"
 #include "sdk/GFSDKUI.h"
 #include "ui/function/TabManagement.h"
 #include "ui/widgets/EditorEmptyView.h"
@@ -113,8 +117,15 @@ struct ViewLog {
   int wiped = 0;
   /// close_decided(save): 0 closes; 1 keeps (the save left changes unsaved).
   int save_result = 0;
+  /// prepare_recovery: 0 hands its recovery copy over; 1 cannot (the default,
+  /// so a quit asks as it always did).
+  int recovery_result = 1;
+  int prepared = 0;
+  bool dirty = false;
 };
 ViewLog g_view;
+GFSDKContext* g_view_ctx = nullptr;
+constexpr auto kRecoveryCopy = "note recovery record";
 
 auto ViewCreate(void*, uint64_t, GFBufferView) -> void* {
   return new QWidget();
@@ -133,6 +144,19 @@ auto ViewCloseDecided(void*, uint64_t, int save) -> int {
   return 0;
 }
 void ViewWipe(void*, uint64_t) { ++g_view.wiped; }
+auto ViewPrepareRecovery(void*, uint64_t) -> int {
+  ++g_view.prepared;
+  if (g_view.recovery_result == 0) g_view.dirty = true;
+  return g_view.recovery_result;
+}
+auto ViewIsDirty(void*, uint64_t) -> int { return g_view.dirty ? 1 : 0; }
+auto ViewSave(void*, uint64_t) -> GFBufferRef {
+  if (!g_view.dirty) return nullptr;
+  g_view.dirty = false;
+  const QByteArray b(kRecoveryCopy);
+  return GFBufferNewFromBytes(g_view_ctx, b.constData(),
+                              static_cast<size_t>(b.size()));
+}
 
 auto ViewOps() -> GFDocumentWidgetOps {
   GFDocumentWidgetOps ops{};
@@ -141,6 +165,9 @@ auto ViewOps() -> GFDocumentWidgetOps {
   ops.wipe_content = &ViewWipe;
   ops.close_requested = &ViewCloseRequested;
   ops.close_decided = &ViewCloseDecided;
+  ops.save = &ViewSave;
+  ops.is_dirty = &ViewIsDirty;
+  ops.prepare_recovery = &ViewPrepareRecovery;
   return ops;
 }
 
@@ -153,6 +180,7 @@ class TabCloseTest : public ::testing::Test {
     answers_ = std::make_shared<Answers>();
     owner_ = std::make_unique<SdkTestContext>(
         kOwner, GF_HOST_CAP_UI | GF_HOST_CAP_UI_CUSTOM);
+    g_view_ctx = (*owner_)();
     static const auto kOps = ViewOps();
     GFNativeWidgetSpec spec{};
     spec.struct_size = sizeof(spec);
@@ -171,12 +199,24 @@ class TabCloseTest : public ::testing::Test {
   }
 
   void TearDown() override {
-    OnGui([this] { delete edit_; });
+    OnGui([this] {
+      // Nothing a quit cached here may come back in the profile's next start.
+      Tabs()->clear();
+      Tabs()->SlotRefreshRecoveryCache();
+      delete edit_;
+    });
+    SetRestore(SettingItems::kRestoreTextEditorPage.Default());
     GFNativeWidgetUnregister((*owner_)(), "note");
     owner_.reset();
   }
 
   auto Tabs() -> UI::TextEditTabWidget* { return edit_->TabWidget(); }
+
+  /// Restore text editor pages; written when the settings object goes.
+  static void SetRestore(bool on) {
+    auto settings = GetSettings();
+    SettingItems::kRestoreTextEditorPage.Write(settings, on);
+  }
 
   /// A plain-text tab holding @p text, modified unless @p clean.
   auto Plain(const QString& title, const QString& text, bool clean = false,
@@ -415,6 +455,57 @@ TEST_F(TabCloseTest, QuittingWithAModifiedNoteAndCancelKeepsEverything) {
     EXPECT_EQ(TextOf(a), u"alpha"_s);
   });
   EXPECT_EQ(g_view.decided_save + g_view.decided_discard, 0);
+}
+
+TEST_F(TabCloseTest, QuittingKeepsANoteInTheRecoveryCacheWithoutAsking) {
+  SetRestore(true);
+  g_view.recovery_result = 0;
+  OnGui([&] {
+    const auto n = Note(u"n.textpack"_s);
+
+    EXPECT_TRUE(edit_->MaybeSaveAnyTab());
+    EXPECT_EQ(answers_->asked_one + answers_->asked_many, 0);
+    // What the view handed over is what the cache holds for the tab.
+    EXPECT_EQ(TextOf(n), QString::fromLatin1(kRecoveryCopy));
+
+    const auto cache =
+        CacheManager::GetInstance().LoadDurableCache(u"editor_pages_cache"_s);
+    const auto pages = cache.object().value(u"pages"_s).toArray();
+    ASSERT_EQ(pages.size(), 1);
+    EXPECT_EQ(pages.at(0).toObject().value(u"title"_s).toString(),
+              u"n.textpack"_s);
+  });
+  EXPECT_EQ(g_view.prepared, 1);
+  EXPECT_EQ(g_view.decided_save + g_view.decided_discard, 0)
+      << "neither saved nor discarded: kept";
+  EXPECT_EQ(g_view.requested, 0);
+}
+
+TEST_F(TabCloseTest, QuittingAsksAboutANoteThatCannotHandItsCopyOver) {
+  SetRestore(true);
+  OnGui([&] {
+    Note(u"n.textpack"_s);
+    answers_->one = UI::SaveChoice::kDISCARD;
+
+    EXPECT_TRUE(edit_->MaybeSaveAnyTab());
+    EXPECT_EQ(answers_->asked_one, 1);
+  });
+  EXPECT_EQ(g_view.prepared, 1);
+  EXPECT_EQ(g_view.decided_discard, 1);
+}
+
+TEST_F(TabCloseTest, QuittingWithRestoreOffAsksAboutANote) {
+  SetRestore(false);
+  g_view.recovery_result = 0;
+  OnGui([&] {
+    Note(u"n.textpack"_s);
+    answers_->one = UI::SaveChoice::kDISCARD;
+
+    EXPECT_TRUE(edit_->MaybeSaveAnyTab());
+    EXPECT_EQ(answers_->asked_one, 1);
+  });
+  EXPECT_EQ(g_view.prepared, 0);
+  EXPECT_EQ(g_view.decided_discard, 1);
 }
 
 TEST_F(TabCloseTest, ACtrlTabSessionStepsOverATabClosedDuringIt) {

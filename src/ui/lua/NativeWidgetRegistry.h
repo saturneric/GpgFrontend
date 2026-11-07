@@ -76,6 +76,9 @@ struct GF_UI_EXPORT NativeDocumentOps {
   /// The user's save (true) or discard choice, carried out without asking.
   /// true: it may close now; nullopt: not supported, ask close_requested.
   std::function<std::optional<bool>(quint64, bool save)> close_decided;
+  /// Quitting with Restore text editor pages on: bring what save gives up to
+  /// date. true: done, the tab is cached instead of asked about.
+  std::function<bool(quint64)> prepare_recovery;
 };
 
 struct GF_UI_EXPORT NativeSettingsOps {

@@ -454,6 +454,12 @@ typedef struct GFDocumentWidgetOps {
    *  changes unsaved). Negative: not supported; the Host asks
    *  close_requested instead. Absent: the same. */
   int (*close_decided)(void* user, uint64_t instance, int save);
+  /** The application is quitting and the user keeps unsaved tabs for the
+   *  next start (Restore text editor pages). Bring what save() hands over up
+   *  to date now, waiting for the view if it must, without writing a file or
+   *  asking. 0: done, the Host caches it and lets the tab go without a
+   *  question; non-zero: the Host asks as for any close. Absent: the same. */
+  int (*prepare_recovery)(void* user, uint64_t instance);
 } GFDocumentWidgetOps;
 
 /** Where a document view's own crypto operation put its output. */
