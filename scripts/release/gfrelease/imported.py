@@ -9,13 +9,13 @@ an imported release rests on, and nothing is signed again:
 
   1. every file of GitHub release v<version> that the product's artifact
      rules know, with its `.sig` (files no rule knows are left out, and said);
-  2. each signature checked against the pinned maintainer keys, then written
-     as `.asc`: the same packets, armored;
+  2. each signature checked against the pinned maintainer keys, and kept
+     exactly as it is;
   3. the tag resolved in a clone, and git asked which version it is;
   4. everything uploaded to releases/<version>/, the descriptor last.
 
 The signing host admits an imported release by checking every file against
-its `.asc` itself (index.admit_imported), once. Nothing here needs a secret
+its `.sig` itself (index.admit_imported), once. Nothing here needs a secret
 key: it runs wherever the token for the artifact store is. Releases before
 policy `signing.legacy_unsigned_before` were signed with keys no longer
 pinned and are not imported.
@@ -154,9 +154,6 @@ class Import:
                 local = self._fetch(name, info["asset"])
                 sig = self._fetch(name + ".sig", info["sig_asset"])
                 signers.add(ring.verify(local, sig))
-                asc = self.dir / (name + ".asc")
-                asc.write_bytes(openpgp.armor_signature(sig.read_bytes()))
-                ring.verify(local, asc)
                 info["sha256"] = sha256_file(local)
                 info["size"] = local.stat().st_size
         if len(signers) != 1:
@@ -169,12 +166,12 @@ class Import:
             info = files[name]
             if self.builds is not None:
                 self.builds.put_file(self.dir / name, f"{p}/{name}")
-                self.builds.put_file(self.dir / (name + ".asc"),
-                                     f"{p}/{name}.asc")
+                self.builds.put_file(self.dir / (name + ".sig"),
+                                     f"{p}/{name}.sig")
             artifacts.append({
                 k: info[k] for k in ("os", "arch", "kind", "flavor", "min_os",
                                      "sha256", "size") if k in info} | {
-                "name": name, "path": f"{p}/{name}", "sig": f"{p}/{name}.asc"})
+                "name": name, "path": f"{p}/{name}", "sig": f"{p}/{name}.sig"})
 
         released = release.get("published_at") or ""
         descriptor = {

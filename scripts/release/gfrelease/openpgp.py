@@ -3,17 +3,16 @@
 """OpenPGP for stable releases, by gpg itself.
 
 Signing happens on the maintainer's machine with their own key (a signing
-subkey is fine): detached, ASCII-armored `.asc` files. Verifying happens
-anywhere, against nothing but the maintainers' public keys: a throwaway
-keyring is made from release/maintainers.asc for each check, and a signature
-counts only when gpg calls it valid (VALIDSIG) and the key it chains to has a
-primary fingerprint the product pins. Trust settings, the caller's own
-keyring and an agent play no part.
+subkey is fine): detached, binary `.sig` files, the form every release has
+carried. Verifying happens anywhere, against nothing but the maintainers'
+public keys: a throwaway keyring is made from release/maintainers.asc for
+each check, and a signature counts only when gpg calls it valid (VALIDSIG)
+and the key it chains to has a primary fingerprint the product pins. Trust
+settings, the caller's own keyring and an agent play no part.
 """
 
 from __future__ import annotations
 
-import base64
 import os
 import tempfile
 from pathlib import Path
@@ -22,38 +21,14 @@ from common import ReleaseError, run
 
 
 def sign(file: Path, fingerprint: str, gnupghome: str | None = None) -> Path:
-    """`file.asc` beside @p file, made with the key @p fingerprint names."""
-    asc = file.with_name(file.name + ".asc")
-    cmd = ["gpg", "--batch", "--yes", "--armor", "--detach-sign",
-           "--local-user", f"{fingerprint}!", "--output", asc, file]
+    """`file.sig` beside @p file, made with the key @p fingerprint names."""
+    sig = file.with_name(file.name + ".sig")
+    cmd = ["gpg", "--batch", "--yes", "--detach-sign",
+           "--local-user", f"{fingerprint}!", "--output", sig, file]
     if gnupghome:
         cmd[1:1] = ["--homedir", gnupghome]
     run(cmd)
-    return asc
-
-
-def _crc24(data: bytes) -> int:
-    crc = 0xB704CE
-    for byte in data:
-        crc ^= byte << 16
-        for _ in range(8):
-            crc <<= 1
-            if crc & 0x1000000:
-                crc ^= 0x1864CFB
-    return crc & 0xFFFFFF
-
-
-def armor_signature(binary: bytes) -> bytes:
-    """A binary detached signature (`.sig`) as the same signature armored
-    (`.asc`, RFC 4880 section 6): nothing is signed again, the packets stay
-    byte for byte what the maintainer made."""
-    if not binary or not binary[0] & 0x80:
-        raise ReleaseError("not a binary OpenPGP signature")
-    body = base64.b64encode(binary).decode("ascii")
-    lines = [body[i:i + 64] for i in range(0, len(body), 64)]
-    crc = base64.b64encode(_crc24(binary).to_bytes(3, "big")).decode("ascii")
-    return ("-----BEGIN PGP SIGNATURE-----\n\n" + "\n".join(lines)
-            + f"\n={crc}\n-----END PGP SIGNATURE-----\n").encode("ascii")
+    return sig
 
 
 def _validsig_primary(status: str) -> str | None:

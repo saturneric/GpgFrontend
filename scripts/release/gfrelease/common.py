@@ -26,7 +26,7 @@ import semver  # noqa: E402
 
 SCHEMA = 1
 DESCRIPTOR = "release.json"
-ASC = ".asc"
+SIG = ".sig"        # an OpenPGP detached signature, binary
 STAGED = "staged.json"
 SUMS = "SHA256SUMS.txt"
 BUNDLE = "SHA256SUMS.txt.sigstore.json"
