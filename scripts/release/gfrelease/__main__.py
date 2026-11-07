@@ -7,6 +7,7 @@
   python3 scripts/release/gfrelease index [--force]                       (host)
   python3 scripts/release/gfrelease run                 promote, then index (host)
   python3 scripts/release/gfrelease stable 2.3.0   the offline stable stage (you)
+  python3 scripts/release/gfrelease import 2.2.4   a release from GitHub Releases
   python3 scripts/release/gfrelease resign              a new serial and expiry
   python3 scripts/release/gfrelease verify [--http] [--deep]           (anyone)
 
@@ -27,6 +28,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import imported as imported_mod  # noqa: E402
 import index as index_mod  # noqa: E402
 import minisig  # noqa: E402
 import authenticode  # noqa: E402
@@ -122,6 +124,15 @@ def main(argv=None) -> int:
         p.add_argument("--force", action="store_true",
                        help="publish even if nothing changed")
 
+    im = sub.add_parser("import", help="bring a release made before this "
+                        "pipeline over from GitHub Releases")
+    im.add_argument("versions", nargs="+", metavar="version",
+                    help="X.Y.Z, each a published GitHub release")
+    opt(im, "work", "where the downloads are kept")
+    opt(im, "builds", "the final artifact store (write); without it, only "
+        "download and check")
+    opt(im, "git_dir", "a clone with the release tags")
+
     v = sub.add_parser("verify", help="check a published index")
     opt(v, "update", "the index store (default: the HTTPS bases)")
     opt(v, "builds", "the artifact store (default: the HTTPS bases)")
@@ -171,6 +182,22 @@ def main(argv=None) -> int:
             descriptor = stage.run(args.redo)
             print(f"{args.version}: published to {descriptor['sums'].rsplit('/', 1)[0]}"
                   if descriptor else f"{args.version}: done")
+            return 0
+
+        if args.command == "import":
+            need(args, "work", "git_dir")
+            builds = Store(args.builds, rclone) if args.builds else None
+            for version in args.versions:
+                job = imported_mod.Import(product, version, Path(args.work),
+                                          builds=builds,
+                                          git_dir=Path(args.git_dir))
+                d = job.run()
+                print(f"{version}: {len(d['artifacts'])} files, signed by "
+                      f"{d['signing']['fingerprint']}"
+                      + (f", uploaded to releases/{version}/" if builds
+                         else " (checked only, nothing uploaded)"))
+                for skipped in job.skipped:
+                    print(f"  left out: {skipped}")
             return 0
 
         if args.command == "verify":

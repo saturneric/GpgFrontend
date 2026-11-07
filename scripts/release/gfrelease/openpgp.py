@@ -13,6 +13,7 @@ keyring and an agent play no part.
 
 from __future__ import annotations
 
+import base64
 import os
 import tempfile
 from pathlib import Path
@@ -29,6 +30,30 @@ def sign(file: Path, fingerprint: str, gnupghome: str | None = None) -> Path:
         cmd[1:1] = ["--homedir", gnupghome]
     run(cmd)
     return asc
+
+
+def _crc24(data: bytes) -> int:
+    crc = 0xB704CE
+    for byte in data:
+        crc ^= byte << 16
+        for _ in range(8):
+            crc <<= 1
+            if crc & 0x1000000:
+                crc ^= 0x1864CFB
+    return crc & 0xFFFFFF
+
+
+def armor_signature(binary: bytes) -> bytes:
+    """A binary detached signature (`.sig`) as the same signature armored
+    (`.asc`, RFC 4880 section 6): nothing is signed again, the packets stay
+    byte for byte what the maintainer made."""
+    if not binary or not binary[0] & 0x80:
+        raise ReleaseError("not a binary OpenPGP signature")
+    body = base64.b64encode(binary).decode("ascii")
+    lines = [body[i:i + 64] for i in range(0, len(body), 64)]
+    crc = base64.b64encode(_crc24(binary).to_bytes(3, "big")).decode("ascii")
+    return ("-----BEGIN PGP SIGNATURE-----\n\n" + "\n".join(lines)
+            + f"\n={crc}\n-----END PGP SIGNATURE-----\n").encode("ascii")
 
 
 def _validsig_primary(status: str) -> str | None:
