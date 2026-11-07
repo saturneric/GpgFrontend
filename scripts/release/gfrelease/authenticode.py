@@ -71,6 +71,28 @@ def _split_unescaped(s: str, sep: str) -> list[str]:
             for p in re.split(r"(?<!\\)" + re.escape(sep), s)]
 
 
+# A backslash escape in a subject value: osslsigncode's "\xC3", RFC 2253's
+# "\C3" (both one byte of the UTF-8 encoding), or an escaped character.
+_ESCAPE = re.compile(r"\\(?:x([0-9A-Fa-f]{2})|([0-9A-Fa-f]{2})|(.))", re.S)
+
+
+def _unescape(value: str) -> str:
+    """@p value with its escapes decoded, so "W\\xC3\\xBC", "W\\C3\\BC" and
+    "Wü" are one value."""
+    out = bytearray()
+    pos = 0
+    for m in _ESCAPE.finditer(value):
+        out += value[pos:m.start()].encode("utf-8")
+        hexpair = m.group(1) or m.group(2)
+        out += bytes.fromhex(hexpair) if hexpair else m.group(3).encode("utf-8")
+        pos = m.end()
+    out += value[pos:].encode("utf-8")
+    try:
+        return out.decode("utf-8")
+    except UnicodeDecodeError:
+        raise ReleaseError(f"certificate subject value {value!r} is not UTF-8")
+
+
 def _subject_rdns(subject: str) -> list[tuple[str, str]]:
     """@p subject as (attribute, value) pairs in certificate order, from
     either the "/CN=a/O=b" or the RFC 2253 "O=b,CN=a" form."""
@@ -84,7 +106,7 @@ def _subject_rdns(subject: str) -> list[tuple[str, str]]:
         attr, eq, value = part.strip().partition("=")
         if not eq or not attr.strip():
             raise ReleaseError(f"unreadable certificate subject {subject!r}")
-        rdns.append((attr.strip().upper(), value.strip()))
+        rdns.append((attr.strip().upper(), _unescape(value.strip())))
     return rdns
 
 
