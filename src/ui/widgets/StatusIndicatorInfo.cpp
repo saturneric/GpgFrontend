@@ -185,4 +185,29 @@ auto DescribeDeploymentIndicator(bool portable_mode, bool self_contained)
   return info;
 }
 
+auto DescribeAttentionIndicator(const QStringList& texts)
+    -> StatusIndicatorInfo {
+  StatusIndicatorInfo info;
+  if (texts.isEmpty()) return info;
+  info.badge = true;
+
+  if (texts.size() == 1) {
+    info.value = texts.front();
+    info.tooltip = JoinTooltip(
+        {texts.front()},
+        QCoreApplication::translate("GpgFrontend::UI::StatusIndicatorInfo",
+                                    "Click to see more."));
+    return info;
+  }
+
+  const auto count = static_cast<int>(texts.size());
+  info.value =
+      QCoreApplication::translate("GpgFrontend::UI::StatusIndicatorInfo",
+                                  "%n item(s) need attention", nullptr, count);
+  info.tooltip = JoinTooltip(
+      texts, QCoreApplication::translate("GpgFrontend::UI::StatusIndicatorInfo",
+                                         "Click to choose one."));
+  return info;
+}
+
 }  // namespace GpgFrontend::UI

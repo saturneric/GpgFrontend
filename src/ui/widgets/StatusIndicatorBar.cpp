@@ -65,6 +65,10 @@ void StatusIndicatorSegment::render_info() {
   const auto dim = MutedTextColor(palette());
 
   QString text;
+  if (info_.badge) {
+    text += QString(R"(<span style="color:%1;">&#x25CF;</span>&nbsp;)")
+                .arg(QColor::fromRgb(kAttentionBadgeRgb).name(QColor::HexRgb));
+  }
   if (!info_.caption.isEmpty()) {
     text += QString(R"(<span style="color:%1;">%2</span>&nbsp;)")
                 .arg(dim.name(QColor::HexRgb), info_.caption.toHtmlEscaped());
@@ -110,16 +114,20 @@ void StatusIndicatorSegment::mouseReleaseEvent(QMouseEvent* e) {
 
 StatusIndicatorBar::StatusIndicatorBar(QWidget* parent)
     : QWidget(parent),
+      attention_segment_(new StatusIndicatorSegment(this)),
       profile_segment_(new StatusIndicatorSegment(this)),
       engine_segment_(new StatusIndicatorSegment(this)),
       deployment_segment_(new StatusIndicatorSegment(this)) {
   auto* layout = new QHBoxLayout(this);
   layout->setContentsMargins(0, 0, 0, 0);
   layout->setSpacing(kSegmentSpacing);
+  layout->addWidget(attention_segment_);
   layout->addWidget(profile_segment_);
   layout->addWidget(engine_segment_);
   layout->addWidget(deployment_segment_);
 
+  connect(attention_segment_, &StatusIndicatorSegment::SignalClicked, this,
+          &StatusIndicatorBar::SignalAttentionClicked);
   connect(profile_segment_, &StatusIndicatorSegment::SignalClicked, this,
           &StatusIndicatorBar::SignalProfileClicked);
   connect(engine_segment_, &StatusIndicatorSegment::SignalClicked, this,
@@ -138,6 +146,14 @@ void StatusIndicatorBar::SetEngine(const StatusIndicatorInfo& info) {
 
 void StatusIndicatorBar::SetDeployment(const StatusIndicatorInfo& info) {
   deployment_segment_->SetInfo(info);
+}
+
+void StatusIndicatorBar::SetAttention(const StatusIndicatorInfo& info) {
+  attention_segment_->SetInfo(info);
+}
+
+auto StatusIndicatorBar::AttentionSegment() const -> QWidget* {
+  return attention_segment_;
 }
 
 }  // namespace GpgFrontend::UI

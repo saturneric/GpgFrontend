@@ -42,6 +42,7 @@
 #include "ui/lua/LuaApi.h"
 #include "ui/lua/LuaHost.h"
 #include "ui/lua/LuaModuleRuntime.h"
+#include "ui/lua/LuaPlacements.h"
 #include "ui/lua/NativeWidgetRegistry.h"
 
 /**
@@ -577,6 +578,45 @@ ui.action { id = "faked", anchor = ui.anchor("main.menu.help"),
       CommandRegistry::Instance().Describe("com.example.luat.echo");
   ASSERT_TRUE(echo.has_value());
   EXPECT_TRUE(UI::CommandAttention(*echo).isEmpty());
+}
+
+TEST_F(LuaApiTest, AttentionOnListsWhatAsksPerCommand) {
+  // Through LuaHost, as the main window's status strip asks it.
+  const QString module = "com.example.luaattn";
+  QString error;
+  ASSERT_TRUE(UI::Lua::LuaHost::Instance().Load(module, GF_HOST_CAP_UI,
+                                                QByteArray(R"lua(
+local beacon = commands.get("com.example.luat.beacon")
+local echo = commands.get("com.example.luat.echo")
+ui.action { id = "a", anchor = ui.anchor("main.menu.help"), command = beacon }
+ui.action { id = "b", anchor = ui.anchor("main.menu.advanced"),
+            command = beacon }
+ui.action { id = "e", anchor = ui.anchor("main.menu.help"), command = echo }
+)lua"),
+                                                "attn", &error))
+      << error.toStdString();
+  const auto teardown = qScopeGuard(
+      [&module]() { UI::Lua::LuaHost::Instance().Teardown(module); });
+  const QStringList anchors{"main.menu.help", "main.menu.advanced"};
+
+  g_beacon = false;
+  EXPECT_TRUE(UI::Lua::LuaPlacements::AttentionOn(anchors, {}).isEmpty());
+
+  g_beacon = true;
+  const auto items = UI::Lua::LuaPlacements::AttentionOn(anchors, {});
+  g_beacon = false;
+  // Placed twice, asked for once: the strip counts commands, not entries.
+  ASSERT_EQ(items.size(), 1);
+  EXPECT_EQ(items.front().command, "com.example.luat.beacon");
+  EXPECT_EQ(items.front().action_id, module + ".a");
+  EXPECT_EQ(items.front().text, "The beacon is lit");
+  EXPECT_FALSE(items.front().runtime.isNull());
+
+  // An anchor the strip does not watch is not its business.
+  g_beacon = true;
+  EXPECT_TRUE(UI::Lua::LuaPlacements::AttentionOn({"main.menu.operations"}, {})
+                  .isEmpty());
+  g_beacon = false;
 }
 
 TEST_F(LuaApiTest, OnlyACommandsOwnerSaysItsStateChanged) {

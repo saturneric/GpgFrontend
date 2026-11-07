@@ -782,6 +782,14 @@ void MainWindow::create_status_bar() {
 
   statusBar()->addPermanentWidget(status_indicator_bar_);
 
+  // What a module's menu entry badges (an update waiting, say), where it is
+  // seen without opening the menu. The anchors attached in create_menus().
+  Lua::LuaPlacements::AttachAttention(
+      {"main.menu.help", "main.menu.advanced", "main.menu.operations",
+       "main.menu.import_key", "main.menu.file.workspace"},
+      status_indicator_bar_,
+      [this]() { return Lua::LuaPlacements::EditorContext(edit_); });
+
   statusBar()->showMessage(tr("Ready"), 2000);
 }
 

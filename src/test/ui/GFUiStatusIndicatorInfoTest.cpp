@@ -36,6 +36,7 @@ namespace GpgFrontend::Test {
 
 namespace {
 
+using UI::DescribeAttentionIndicator;
 using UI::DescribeDeploymentIndicator;
 using UI::DescribeEngineIndicator;
 using UI::DescribeProfileIndicator;
@@ -236,6 +237,33 @@ TEST(StatusIndicatorInfoTest, NothingIsClaimedAboutAKeyThatIsNotInMemory) {
 
   EXPECT_TRUE(info.tooltip.contains("an ordinary folder on this disk"));
   EXPECT_FALSE(info.tooltip.contains("held in memory"));
+}
+
+TEST(StatusIndicatorInfoTest, NothingAskingForAttentionHidesTheSegment) {
+  const auto info = DescribeAttentionIndicator({});
+
+  // An empty value is what hides a segment.
+  EXPECT_TRUE(info.value.isEmpty());
+  EXPECT_FALSE(info.badge);
+}
+
+TEST(StatusIndicatorInfoTest, OneThingAskingForAttentionSaysWhat) {
+  const auto info =
+      DescribeAttentionIndicator({"A newer version is available"});
+
+  EXPECT_EQ(info.value, "A newer version is available");
+  EXPECT_TRUE(info.badge);
+  EXPECT_TRUE(info.caption.isEmpty());
+  EXPECT_TRUE(info.tooltip.startsWith("A newer version is available"));
+}
+
+TEST(StatusIndicatorInfoTest, SeveralThingsAskingForAttentionAreCounted) {
+  const auto info = DescribeAttentionIndicator({"First", "Second"});
+
+  EXPECT_TRUE(info.badge);
+  EXPECT_TRUE(info.value.contains("2"));
+  EXPECT_TRUE(info.tooltip.contains("First"));
+  EXPECT_TRUE(info.tooltip.contains("Second"));
 }
 
 }  // namespace GpgFrontend::Test

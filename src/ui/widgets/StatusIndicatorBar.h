@@ -145,6 +145,21 @@ class StatusIndicatorBar : public QWidget {
    */
   void SetDeployment(const StatusIndicatorInfo& info);
 
+  /**
+   * @brief Set what asks for attention, shown first and hidden when nothing
+   * does.
+   *
+   * @param info as DescribeAttentionIndicator() gives it
+   */
+  void SetAttention(const StatusIndicatorInfo& info);
+
+  /**
+   * @brief The attention segment, for anchoring a menu under it.
+   *
+   * @return the segment widget
+   */
+  [[nodiscard]] auto AttentionSegment() const -> QWidget*;
+
  signals:
   /**
    * @brief The profile segment was clicked.
@@ -161,7 +176,13 @@ class StatusIndicatorBar : public QWidget {
    */
   void SignalDeploymentClicked();
 
+  /**
+   * @brief The attention segment was clicked.
+   */
+  void SignalAttentionClicked();
+
  private:
+  StatusIndicatorSegment* attention_segment_;   ///< an update waiting, say
   StatusIndicatorSegment* profile_segment_;     ///< which profile is in front
   StatusIndicatorSegment* engine_segment_;      ///< which backend does the work
   StatusIndicatorSegment* deployment_segment_;  ///< portable or installed

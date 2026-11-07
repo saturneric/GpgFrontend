@@ -39,10 +39,13 @@
 #include <algorithm>
 
 #include "core/utils/RustUtils.h"
+#include "ui/UISignalStation.h"
 #include "ui/command/CommandRegistry.h"
 #include "ui/lua/LuaHost.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/PlainTextEditorPage.h"
+#include "ui/widgets/StatusIndicatorBar.h"
+#include "ui/widgets/StatusIndicatorInfo.h"
 #include "ui/widgets/TextEdit.h"
 #include "ui/widgets/TextEditTabWidget.h"
 
@@ -108,7 +111,7 @@ auto WithBadge(const QIcon& base) -> QIcon {
     painter.setRenderHint(QPainter::Antialiasing);
     if (!base.isNull()) base.paint(&painter, pixmap.rect());
     painter.setPen(Qt::NoPen);
-    painter.setBrush(QColor(0xE5, 0x39, 0x35));
+    painter.setBrush(QColor::fromRgb(kAttentionBadgeRgb));
     if (base.isNull()) {
       // Alone, the dot sits where an icon would: centred, not in a corner.
       const qreal d = size * 0.4;
@@ -221,6 +224,19 @@ class MenuBinder : public QObject {
         &LuaHost::Instance(), &LuaHost::SignalChanged, this,
         [this]() { Rebuild(); }, Qt::QueuedConnection);
     connect(menu_, &QMenu::aboutToShow, this, [this]() { RefreshAll(); });
+    // Badges shown on an entry before its menu was ever opened: a menu bar
+    // item says nothing, but its entry is current when the menu opens on a
+    // platform that does not deliver aboutToShow.
+    connect(UISignalStation::GetInstance(),
+            &UISignalStation::SignalCommandStateChanged, this,
+            [this](const QString& id) {
+              for (const auto& p : placed_) {
+                if (p.info.command == id) {
+                  RefreshAll();
+                  return;
+                }
+              }
+            });
     Rebuild();
   }
 
@@ -301,12 +317,102 @@ class MenuBinder : public QObject {
   QPointer<QAction> separator_;
 };
 
+/// Keeps a status strip's attention segment current for some anchors.
+class AttentionBinder : public QObject {
+ public:
+  AttentionBinder(QStringList anchors, StatusIndicatorBar* bar, ContextFn ctx)
+      : QObject(bar),
+        anchors_(std::move(anchors)),
+        bar_(bar),
+        ctx_(std::move(ctx)) {
+    connect(UISignalStation::GetInstance(),
+            &UISignalStation::SignalCommandStateChanged, this,
+            [this](const QString& /*id*/) { Refresh(); });
+    connect(
+        &LuaHost::Instance(), &LuaHost::SignalChanged, this,
+        [this]() { Refresh(); }, Qt::QueuedConnection);
+    connect(bar_, &StatusIndicatorBar::SignalAttentionClicked, this,
+            [this]() { Open(); });
+    if (auto* window = bar_->window(); window != bar_) {
+      window->installEventFilter(this);
+    }
+    Refresh();
+  }
+
+ protected:
+  auto eventFilter(QObject* watched, QEvent* event) -> bool override {
+    if (event->type() == QEvent::WindowActivate) Refresh();
+    return QObject::eventFilter(watched, event);
+  }
+
+ private:
+  void Refresh() {
+    items_ = LuaPlacements::AttentionOn(anchors_, ctx_());
+    QStringList texts;
+    for (const auto& item : items_) texts.append(item.text);
+    bar_->SetAttention(DescribeAttentionIndicator(texts));
+  }
+
+  void Open() {
+    Refresh();  // asked afresh: the click may come long after the badge
+    if (items_.size() == 1) {
+      Run(items_.front());
+      return;
+    }
+    if (items_.isEmpty()) return;
+
+    auto* menu = new QMenu(bar_);
+    menu->setAttribute(Qt::WA_DeleteOnClose);
+    for (const auto& item : items_) {
+      auto* action = menu->addAction(Title(item.command));
+      action->setToolTip(item.text);
+      connect(action, &QAction::triggered, this, [this, item]() { Run(item); });
+    }
+    auto* anchor = bar_->AttentionSegment();
+    const auto below = anchor->mapToGlobal(QPoint(0, 0));
+    menu->popup(QPoint(below.x(), below.y() - menu->sizeHint().height()));
+  }
+
+  void Run(const AttentionItem& item) {
+    if (item.runtime.isNull()) return;  // its module is gone: nothing to run
+    item.runtime->Trigger(item.action_id, ctx_());
+  }
+
+  QStringList anchors_;
+  StatusIndicatorBar* bar_;
+  ContextFn ctx_;
+  QList<AttentionItem> items_;
+};
+
 }  // namespace
 
 void LuaPlacements::AttachMenu(const QString& anchor, QMenu* menu,
                                ContextFn ctx) {
   if (menu == nullptr) return;
   new MenuBinder(anchor, menu, std::move(ctx));
+}
+
+auto LuaPlacements::AttentionOn(const QStringList& anchors,
+                                const UiContext& ctx) -> QList<AttentionItem> {
+  QList<AttentionItem> items;
+  QSet<QString> seen;
+  for (const auto& anchor : anchors) {
+    for (const auto& p : LuaHost::Instance().ActionsOn(anchor)) {
+      if (p.runtime.isNull() || seen.contains(p.info.command)) continue;
+      if (!p.runtime->Evaluate(p.info.id, ctx).attention) continue;
+      seen.insert(p.info.command);
+      auto text = AttentionText(p.info.command);
+      if (text.isEmpty()) text = Title(p.info.command);
+      items.append({p.runtime, p.info.id, p.info.command, text});
+    }
+  }
+  return items;
+}
+
+void LuaPlacements::AttachAttention(const QStringList& anchors,
+                                    StatusIndicatorBar* bar, ContextFn ctx) {
+  if (bar == nullptr) return;
+  new AttentionBinder(anchors, bar, std::move(ctx));
 }
 
 void LuaPlacements::PopulateMenu(const QString& anchor, QMenu* menu,

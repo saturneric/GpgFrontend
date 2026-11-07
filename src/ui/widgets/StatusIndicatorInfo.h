@@ -43,7 +43,12 @@ struct StatusIndicatorInfo {
   QString caption;  ///< dimmed prefix, empty when the value speaks for itself
   QString value;    ///< the thing the user reads at a glance
   QString tooltip;  ///< the detail behind it, ending in what a click opens
+  bool badge = false;  ///< led by the Host's attention dot
 };
+
+/// The Host's one attention colour: the dot on a badged menu entry and in
+/// the status strip.
+inline constexpr QRgb kAttentionBadgeRgb = 0xFFE53935;
 
 /**
  * @brief Describe the profile this window is working in.
@@ -103,6 +108,20 @@ auto GF_UI_EXPORT DescribeEngineIndicator(OpenPGPEngine engine,
  */
 auto GF_UI_EXPORT DescribeDeploymentIndicator(bool portable_mode,
                                               bool self_contained)
+    -> StatusIndicatorInfo;
+
+/**
+ * @brief Describe what asks for the user's attention: the attention texts of
+ * the commands placed in the window whose state carries
+ * GF_CMD_STATE_ATTENTION ("A newer version is available").
+ *
+ * Nothing, and the segment is hidden; one, and it says that one; several,
+ * and it counts them, naming each in the tooltip. Always badged.
+ *
+ * @param texts one per command, empty ones already replaced by its title
+ * @return caption, value and tooltip for the attention segment
+ */
+auto GF_UI_EXPORT DescribeAttentionIndicator(const QStringList& texts)
     -> StatusIndicatorInfo;
 
 }  // namespace GpgFrontend::UI

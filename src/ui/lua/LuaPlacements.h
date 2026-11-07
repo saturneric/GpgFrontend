@@ -40,10 +40,19 @@ namespace GpgFrontend::UI {
 class TextEdit;
 class PlainTextEditorPage;
 class KeyList;
+class StatusIndicatorBar;
 
 namespace Lua {
 
 using ContextFn = std::function<UiContext()>;
+
+/// A placed action whose command asks for attention right now.
+struct AttentionItem {
+  QPointer<LuaModuleRuntime> runtime;
+  QString action_id;
+  QString command;
+  QString text;  ///< the command's attention text, else its title
+};
 
 /**
  * @file LuaPlacements.h
@@ -73,6 +82,25 @@ class GF_UI_EXPORT LuaPlacements {
   /// Buttons in @p layout: one per command category, a menu for several.
   static void BuildButtons(const QString& anchor, QBoxLayout* layout,
                            ContextFn ctx);
+
+  /**
+   * @brief The actions on @p anchors whose commands report
+   *        GF_CMD_STATE_ATTENTION in @p ctx, one per command, in anchor order.
+   */
+  static auto AttentionOn(const QStringList& anchors, const UiContext& ctx)
+      -> QList<AttentionItem>;
+
+  /**
+   * @brief Keep @p bar's attention segment current for @p anchors.
+   *
+   * Without it a badge is only seen by opening the menu that holds it. Asks
+   * again when a command says its state changed, when registrations change,
+   * and when the window is activated (a state that changes with the clock
+   * has nobody to say so). A click runs the one command asking, or offers
+   * a menu of them.
+   */
+  static void AttachAttention(const QStringList& anchors,
+                              StatusIndicatorBar* bar, ContextFn ctx);
 
   /// The context the main window's anchors see: the current document.
   static auto EditorContext(TextEdit* edit) -> UiContext;
