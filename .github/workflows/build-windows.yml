@@ -1,0 +1,245 @@
+# Copyright (C) 2021-2026 Saturneric <eric@bktus.com>
+#
+# This file is part of GpgFrontend.
+#
+# GpgFrontend is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# GpgFrontend is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GpgFrontend. If not, see <https://www.gnu.org/licenses/>.
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# The Windows installer and portable archive, called by build.yml's
+# build-windows job. It holds no secrets. A screenshot build is its one
+# portable leg, uploaded outside the names the release collects.
+
+name: Build Windows
+
+on:
+  workflow_call:
+    inputs:
+      # The CMake build type.
+      build_type:
+        type: string
+        required: true
+      # GPGFRONTEND_BUILD_MODE: release or nightly.
+      gpgfrontend_build_mode:
+        type: string
+        required: true
+      # The file-safe version the artifacts are named after.
+      artifact_version:
+        type: string
+        required: true
+      # The CMake flag that turns the screenshot mode on, or empty.
+      screenshot_cmake_flag:
+        type: string
+        required: false
+        default: ""
+      # A screenshot build: the portable leg alone, for the manual's images.
+      screenshot:
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+env:
+  GNUPG_VERSION: "2.5.24"
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["windows-2022"]
+        # A screenshot build is this one portable leg; every other run gets
+        # both flavours.
+        flavor: ${{ fromJSON(inputs.screenshot && '["portable"]' || '["installed", "portable"]') }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    defaults:
+      run:
+        shell: msys2 {0}
+    env:
+      # See build-linux.yml.
+      CCACHE_SLOPPINESS: pch_defines,time_macros,include_file_mtime,include_file_ctime
+      BUILD_TYPE: ${{ inputs.build_type }}
+      GPGFRONTEND_BUILD_MODE: ${{ inputs.gpgfrontend_build_mode }}
+      ARTIFACT_VERSION: ${{ inputs.artifact_version }}
+      SCREENSHOT_CMAKE_FLAG: ${{ inputs.screenshot_cmake_flag }}
+      FLAVOR: ${{ matrix.flavor }}
+    steps:
+      # Before checkout, and before MSYS2 exists: plain bash.
+      - name: Set git to use LF line endings
+        shell: bash
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          lfs: "false"
+          submodules: recursive
+          # The version comes from git describe: full history and tags.
+          fetch-depth: 0
+
+      # See build-linux: one cache per runner, written by the installed leg.
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@f09c25b45002a07be2955cbe52e8cee55643f89d # v1.2.24
+        with:
+          key: build-${{ matrix.os }}-installed-${{ env.BUILD_TYPE }}
+          max-size: 4G
+          save: ${{ github.event_name == 'push' && matrix.flavor == 'installed' }}
+
+      - name: Mark ccache Epoch
+        shell: bash
+        run: echo "CCACHE_EPOCH=$(date +%s)" >> "$GITHUB_ENV"
+
+      - name: Set up MinGW
+        uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884 # v2.32.0
+        id: msys2
+        with:
+          update: false
+          release: false
+          cache: true
+          install: >-
+            git
+            zip
+            unzip
+            msys2-devel
+            base-devel
+            msys2-runtime-devel
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-make
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-qt6-base
+            mingw-w64-x86_64-qt6-tools
+            mingw-w64-x86_64-ninja
+            mingw-w64-x86_64-libarchive
+            mingw-w64-x86_64-gtest
+            mingw-w64-x86_64-autotools
+            mingw-w64-x86_64-texinfo
+            mingw-w64-x86_64-libassuan
+            mingw-w64-x86_64-ccache
+            mingw-w64-x86_64-rust
+            mingw-w64-x86_64-libsodium
+            mingw-w64-x86_64-openssl
+
+      # Windows builds with msys2's own rustc, which moves with the msys2
+      # package set rather than with rustup.
+      - name: Rust Toolchain Key
+        id: rustwin
+        run: echo "cachekey=$(rustc -vV | sha256sum | cut -c1-12)" >> "$GITHUB_OUTPUT"
+
+      # See build-linux.yml.
+      - name: Restore Cargo Cache
+        id: cargo-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+            ${{ github.workspace }}/build/cargo
+          key: cargo-${{ matrix.os }}-${{ steps.rustwin.outputs.cachekey }}-${{ env.BUILD_TYPE }}-${{ hashFiles('rust/Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ matrix.os }}-${{ steps.rustwin.outputs.cachekey }}-${{ env.BUILD_TYPE }}-
+
+      - name: Build GpgME And GpgFrontend
+        env:
+          # ccache takes MinGW's `c++.exe` for an unknown compiler and then
+          # applies clang's PCH rule: refuse a cached .gch whose headers have
+          # a new mtime. CMake rewrites cmake_pch.hxx at every configure, so
+          # every PCH and its ~480 users missed on every run. It is gcc.
+          CCACHE_COMPILERTYPE: gcc
+        run: |
+          "$(cygpath -u "$GITHUB_WORKSPACE")/scripts/ci/windows/build.sh"
+
+      - name: Save Cargo Cache
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+            ${{ github.workspace }}/build/cargo
+          key: ${{ steps.cargo-cache.outputs.cache-primary-key }}
+        if: >-
+          github.event_name == 'push' && matrix.flavor == 'installed' &&
+          steps.cargo-cache.outputs.cache-hit != 'true'
+
+      - name: Download GnuPG Binary Release
+        run: |
+          "$(cygpath -u "$GITHUB_WORKSPACE")/scripts/ci/windows/fetch_gnupg.sh"
+
+      - name: Package The Payload
+        run: |
+          "$(cygpath -u "$GITHUB_WORKSPACE")/scripts/ci/windows/package.sh"
+
+      - name: Package Portable Archive
+        if: matrix.flavor == 'portable'
+        run: |
+          cd "$(cygpath -u "$GITHUB_WORKSPACE")/build/artifacts"
+          zip -r "../upload-artifact/GpgFrontend-${ARTIFACT_VERSION}-windows-x86_64-portable.zip" *
+
+      - name: Build MSI Installer
+        if: matrix.flavor == 'installed'
+        shell: pwsh
+        run: |
+          ./scripts/ci/windows/build_msi.ps1 -OutputName "GpgFrontend-$env:ARTIFACT_VERSION-windows-x86_64.msi"
+
+      - name: Smoke Test The Portable Archive
+        if: matrix.flavor == 'portable'
+        run: |
+          "$(cygpath -u "$GITHUB_WORKSPACE")/scripts/ci/windows/smoke_portable.sh"
+
+      # Nothing is checked here: a hosted runner is not the environment the
+      # manual's images are rendered in, so the screenshot mode is exercised
+      # on the reference workstation only. The build records just the commit
+      # the pipeline compares against.
+      - name: Record Screenshot Build Info
+        if: matrix.flavor == 'portable' && inputs.screenshot
+        run: |
+          set -euo pipefail
+          cd "$(cygpath -u "$GITHUB_WORKSPACE")"
+          printf '{\n  "schema": 1,\n  "commit": "%s"\n}\n' "${GITHUB_SHA}" \
+            >build/upload-artifact/BUILD-INFO.json
+          cat build/upload-artifact/BUILD-INFO.json
+
+      - name: Upload Artifact
+        if: ${{ !inputs.screenshot }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: gpgfrontend-${{ matrix.os }}-${{ matrix.flavor }}
+          path: ${{ github.workspace }}/build/upload-artifact/*
+          if-no-files-found: error
+
+      # A screenshot build is a tool for the manual, not a deliverable: named
+      # outside the release's patterns, kept two weeks, and with its
+      # BUILD-INFO.json (the commit) inside.
+      - name: Upload Screenshot Build
+        if: inputs.screenshot
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: screenshot-${{ matrix.os }}-${{ matrix.flavor }}
+          path: ${{ github.workspace }}/build/upload-artifact/*
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload Build Info
+        if: ${{ !inputs.screenshot }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: buildinfo-${{ matrix.os }}-${{ matrix.flavor }}
+          path: ${{ github.workspace }}/build/artifacts/build-info.json
+          if-no-files-found: error

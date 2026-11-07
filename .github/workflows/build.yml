@@ -106,9 +106,6 @@ concurrency:
 permissions:
   contents: read
 
-env:
-  GNUPG_VERSION: "2.5.24"
-
 jobs:
   # Cheap checks of the pipeline itself, before any runner compiles anything:
   # the failures they catch otherwise cost a full matrix. And the build mode,
@@ -203,331 +200,26 @@ jobs:
     needs: setup
     # A screenshot build is one Windows portable leg and nothing else.
     if: ${{ !inputs.screenshot }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: ["ubuntu-22.04", "ubuntu-24.04-arm"]
-        flavor: ["installed", "portable"]
-    runs-on: ${{ matrix.os }}
     permissions:
       contents: read
-    env:
-      # Lets ccache cache every translation unit that force-includes the CMake
-      # PCH, and the .gch itself. Without these they were all "uncacheable"
-      # -- 493 of 824 compiler calls on Linux -- so even a warm cache rebuilt
-      # core, ui and test in full. Only timestamp and __DATE__-style checks
-      # are relaxed; what is hashed into an object is unchanged.
-      CCACHE_SLOPPINESS: pch_defines,time_macros,include_file_mtime,include_file_ctime
-      BUILD_TYPE: ${{ needs.setup.outputs.build_type }}
-      GPGFRONTEND_BUILD_MODE: ${{ needs.setup.outputs.gpgfrontend_build_mode }}
-      ARTIFACT_VERSION: ${{ needs.setup.outputs.artifact_version }}
-      FLAVOR: ${{ matrix.flavor }}
-      # "installed" is the default flavour, so only "portable" is spelled out
-      # in artifact names.
-      FLAVOR_SUFFIX: ${{ matrix.flavor == 'portable' && '-portable' || '' }}
-    steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
-        with:
-          lfs: "false"
-          submodules: recursive
-          # The version comes from git describe: full history and tags.
-          fetch-depth: 0
-
-      # One compiler cache per runner, shared by both flavours: the portable
-      # flag reaches a single translation unit (BuildInfoUtils.cpp), not the
-      # PCH, so the two builds are otherwise object-for-object identical. The
-      # installed leg is the only writer; the portable leg only reads it.
-      # Nothing is saved from pull requests, so a cache main restores can only
-      # have been written by a push to it. The key keeps the `build-` prefix
-      # these legs had as one job, so the split costs no cold build.
-      - name: ccache
-        uses: hendrikmuhs/ccache-action@f09c25b45002a07be2955cbe52e8cee55643f89d # v1.2.24
-        with:
-          key: build-${{ matrix.os }}-installed-${{ env.BUILD_TYPE }}
-          # A limit, not a size: ccache caps each of its 16 subdirectories at
-          # 1/16 of this, and a compressed .gch runs past 100 MB -- at 1500M
-          # every PCH result was evicted as it was stored.
-          max-size: 4G
-          save: ${{ github.event_name == 'push' && matrix.flavor == 'installed' }}
-
-      # Everything compiled from here on touches the cache entries it uses, so
-      # "older than this mark" is exactly "not used by this build". The build
-      # script evicts those before the post step saves the cache.
-      - name: Mark ccache Epoch
-        run: echo "CCACHE_EPOCH=$(date +%s)" >> "$GITHUB_ENV"
-
-      - name: Install Dependence
-        run: |
-          sudo apt-get update
-          sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
-          sudo apt-get -y install gcc g++ ninja-build
-          sudo apt-get -y install libarchive-dev libssl-dev libsodium-dev
-          sudo apt-get -y install gpgsm libxcb-xinerama0 libxcb-icccm4-dev libcups2-dev libdrm-dev libegl1-mesa-dev
-          sudo apt-get -y install libfuse2 libgcrypt20-dev libnss3-dev libpci-dev libpulse-dev libudev-dev libxtst-dev
-          sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libxcb-image0 gyp
-          sudo apt-get -y install libxcb-* libxkbcommon-x11-0 libwayland-cursor0 libwayland-egl1
-          # libsecret is dlopen'd, never linked. Installed only so the AppImage
-          # can carry a copy built against the same glib it bundles.
-          sudo apt-get -y install libsecret-1-0
-
-      - name: Install Qt6
-        uses: ./.github/actions/install-qt6
-
-      - name: Install Rust
-        id: rust
-        # Pinned to a SHA, so the @stable ref name no longer selects the
-        # toolchain; say it explicitly instead.
-        uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable branch
-        with:
-          toolchain: stable
-
-      # Corrosion's target dir, restored whole. rust-cache is not used: cargo
-      # builds with --target <triple>, and rust-cache's cleaner took
-      # <target-dir>/<triple> for a profile directory and deleted release/
-      # inside it, so every leg compiled all ~196 crates from nothing while
-      # reporting an exact cache hit.
-      #
-      # The key is everything that decides the dependency artifacts: the
-      # runner, the exact rustc, the profile and Cargo.lock. Both flavours
-      # share it -- the crate never sees the portable flag -- and the
-      # installed leg alone saves it, right after a successful build.
-      - name: Restore Cargo Cache
-        id: cargo-cache
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: |
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-            ${{ github.workspace }}/build/cargo
-          key: cargo-${{ matrix.os }}-${{ steps.rust.outputs.cachekey }}-${{ env.BUILD_TYPE }}-${{ hashFiles('rust/Cargo.lock') }}
-          restore-keys: |
-            cargo-${{ matrix.os }}-${{ steps.rust.outputs.cachekey }}-${{ env.BUILD_TYPE }}-
-
-      - name: Build GpgFrontend
-        run: scripts/ci/linux/build.sh
-
-      - name: Save Cargo Cache
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: |
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-            ${{ github.workspace }}/build/cargo
-          key: ${{ steps.cargo-cache.outputs.cache-primary-key }}
-        if: >-
-          github.event_name == 'push' && matrix.flavor == 'installed' &&
-          steps.cargo-cache.outputs.cache-hit != 'true'
-
-      - name: Package The AppImage
-        run: scripts/ci/linux/package.sh
-
-      - name: Smoke Test The AppImage
-        run: scripts/ci/linux/smoke_appimage.sh
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: gpgfrontend-${{ matrix.os }}-${{ matrix.flavor }}
-          path: ${{ github.workspace }}/build/upload-artifact/GpgFrontend-*.AppImage*
-          if-no-files-found: error
-
-      - name: Upload Build Info
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: buildinfo-${{ matrix.os }}-${{ matrix.flavor }}
-          path: ${{ github.workspace }}/build/artifacts/build-info.json
-          if-no-files-found: error
+    uses: ./.github/workflows/build-linux.yml
+    with:
+      build_type: ${{ needs.setup.outputs.build_type }}
+      gpgfrontend_build_mode: ${{ needs.setup.outputs.gpgfrontend_build_mode }}
+      artifact_version: ${{ needs.setup.outputs.artifact_version }}
 
   build-windows:
     needs: setup
-    strategy:
-      fail-fast: false
-      matrix:
-        os: ["windows-2022"]
-        # A screenshot build is this one portable leg; every other run gets
-        # both flavours.
-        flavor: ${{ fromJSON(inputs.screenshot && '["portable"]' || '["installed", "portable"]') }}
-    runs-on: ${{ matrix.os }}
     permissions:
       contents: read
-    defaults:
-      run:
-        shell: msys2 {0}
-    env:
-      # See build-linux.
-      CCACHE_SLOPPINESS: pch_defines,time_macros,include_file_mtime,include_file_ctime
-      BUILD_TYPE: ${{ needs.setup.outputs.build_type }}
-      GPGFRONTEND_BUILD_MODE: ${{ needs.setup.outputs.gpgfrontend_build_mode }}
-      ARTIFACT_VERSION: ${{ needs.setup.outputs.artifact_version }}
-      SCREENSHOT_CMAKE_FLAG: ${{ needs.setup.outputs.screenshot_cmake_flag }}
-      FLAVOR: ${{ matrix.flavor }}
-    steps:
-      # Before checkout, and before MSYS2 exists: plain bash.
-      - name: Set git to use LF line endings
-        shell: bash
-        run: |
-          git config --global core.autocrlf false
-          git config --global core.eol lf
-
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
-        with:
-          lfs: "false"
-          submodules: recursive
-          # The version comes from git describe: full history and tags.
-          fetch-depth: 0
-
-      # See build-linux: one cache per runner, written by the installed leg.
-      - name: ccache
-        uses: hendrikmuhs/ccache-action@f09c25b45002a07be2955cbe52e8cee55643f89d # v1.2.24
-        with:
-          key: build-${{ matrix.os }}-installed-${{ env.BUILD_TYPE }}
-          max-size: 4G
-          save: ${{ github.event_name == 'push' && matrix.flavor == 'installed' }}
-
-      - name: Mark ccache Epoch
-        shell: bash
-        run: echo "CCACHE_EPOCH=$(date +%s)" >> "$GITHUB_ENV"
-
-      - name: Set up MinGW
-        uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884 # v2.32.0
-        id: msys2
-        with:
-          update: false
-          release: false
-          cache: true
-          install: >-
-            git
-            zip
-            unzip
-            msys2-devel
-            base-devel
-            msys2-runtime-devel
-            mingw-w64-x86_64-gcc
-            mingw-w64-x86_64-make
-            mingw-w64-x86_64-cmake
-            mingw-w64-x86_64-qt6-base
-            mingw-w64-x86_64-qt6-tools
-            mingw-w64-x86_64-ninja
-            mingw-w64-x86_64-libarchive
-            mingw-w64-x86_64-gtest
-            mingw-w64-x86_64-autotools
-            mingw-w64-x86_64-texinfo
-            mingw-w64-x86_64-libassuan
-            mingw-w64-x86_64-ccache
-            mingw-w64-x86_64-rust
-            mingw-w64-x86_64-libsodium
-            mingw-w64-x86_64-openssl
-
-      # Windows builds with msys2's own rustc, which moves with the msys2
-      # package set rather than with rustup.
-      - name: Rust Toolchain Key
-        id: rustwin
-        run: echo "cachekey=$(rustc -vV | sha256sum | cut -c1-12)" >> "$GITHUB_OUTPUT"
-
-      # See build-linux.
-      - name: Restore Cargo Cache
-        id: cargo-cache
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: |
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-            ${{ github.workspace }}/build/cargo
-          key: cargo-${{ matrix.os }}-${{ steps.rustwin.outputs.cachekey }}-${{ env.BUILD_TYPE }}-${{ hashFiles('rust/Cargo.lock') }}
-          restore-keys: |
-            cargo-${{ matrix.os }}-${{ steps.rustwin.outputs.cachekey }}-${{ env.BUILD_TYPE }}-
-
-      - name: Build GpgME And GpgFrontend
-        env:
-          # ccache takes MinGW's `c++.exe` for an unknown compiler and then
-          # applies clang's PCH rule: refuse a cached .gch whose headers have
-          # a new mtime. CMake rewrites cmake_pch.hxx at every configure, so
-          # every PCH and its ~480 users missed on every run. It is gcc.
-          CCACHE_COMPILERTYPE: gcc
-        run: |
-          "$(cygpath -u "$GITHUB_WORKSPACE")/scripts/ci/windows/build.sh"
-
-      - name: Save Cargo Cache
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: |
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-            ${{ github.workspace }}/build/cargo
-          key: ${{ steps.cargo-cache.outputs.cache-primary-key }}
-        if: >-
-          github.event_name == 'push' && matrix.flavor == 'installed' &&
-          steps.cargo-cache.outputs.cache-hit != 'true'
-
-      - name: Download GnuPG Binary Release
-        run: |
-          "$(cygpath -u "$GITHUB_WORKSPACE")/scripts/ci/windows/fetch_gnupg.sh"
-
-      - name: Package The Payload
-        run: |
-          "$(cygpath -u "$GITHUB_WORKSPACE")/scripts/ci/windows/package.sh"
-
-      - name: Package Portable Archive
-        if: matrix.flavor == 'portable'
-        run: |
-          cd "$(cygpath -u "$GITHUB_WORKSPACE")/build/artifacts"
-          zip -r "../upload-artifact/GpgFrontend-${ARTIFACT_VERSION}-windows-x86_64-portable.zip" *
-
-      - name: Build MSI Installer
-        if: matrix.flavor == 'installed'
-        shell: pwsh
-        run: |
-          ./scripts/ci/windows/build_msi.ps1 -OutputName "GpgFrontend-$env:ARTIFACT_VERSION-windows-x86_64.msi"
-
-      - name: Smoke Test The Portable Archive
-        if: matrix.flavor == 'portable'
-        run: |
-          "$(cygpath -u "$GITHUB_WORKSPACE")/scripts/ci/windows/smoke_portable.sh"
-
-      # Nothing is checked here: a hosted runner is not the environment the
-      # manual's images are rendered in, so the screenshot mode is exercised
-      # on the reference workstation only. The build records just the commit
-      # the pipeline compares against.
-      - name: Record Screenshot Build Info
-        if: matrix.flavor == 'portable' && inputs.screenshot
-        run: |
-          set -euo pipefail
-          cd "$(cygpath -u "$GITHUB_WORKSPACE")"
-          printf '{\n  "schema": 1,\n  "commit": "%s"\n}\n' "${GITHUB_SHA}" \
-            >build/upload-artifact/BUILD-INFO.json
-          cat build/upload-artifact/BUILD-INFO.json
-
-      - name: Upload Artifact
-        if: ${{ !inputs.screenshot }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: gpgfrontend-${{ matrix.os }}-${{ matrix.flavor }}
-          path: ${{ github.workspace }}/build/upload-artifact/*
-          if-no-files-found: error
-
-      # A screenshot build is a tool for the manual, not a deliverable: named
-      # outside the release's patterns, kept two weeks, and with its
-      # BUILD-INFO.json (the commit) inside.
-      - name: Upload Screenshot Build
-        if: inputs.screenshot
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: screenshot-${{ matrix.os }}-${{ matrix.flavor }}
-          path: ${{ github.workspace }}/build/upload-artifact/*
-          if-no-files-found: error
-          retention-days: 14
-
-      - name: Upload Build Info
-        if: ${{ !inputs.screenshot }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: buildinfo-${{ matrix.os }}-${{ matrix.flavor }}
-          path: ${{ github.workspace }}/build/artifacts/build-info.json
-          if-no-files-found: error
+    uses: ./.github/workflows/build-windows.yml
+    with:
+      build_type: ${{ needs.setup.outputs.build_type }}
+      gpgfrontend_build_mode: ${{ needs.setup.outputs.gpgfrontend_build_mode }}
+      artifact_version: ${{ needs.setup.outputs.artifact_version }}
+      screenshot_cmake_flag: ${{ needs.setup.outputs.screenshot_cmake_flag }}
+      # A boolean even on a push, where the dispatch input is unset.
+      screenshot: ${{ inputs.screenshot == true }}
 
   # The Android application, cross-built with the toolchain it is released
   # with: Qt 6.10.3 for Android (the oldest open-source Qt whose Android
@@ -828,112 +520,13 @@ jobs:
     # Nothing of macOS in a screenshot build; sign-macos and macos-smoke
     # depend on this job and are skipped with it.
     if: ${{ !inputs.screenshot }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: ${{ fromJSON(needs.setup.outputs.macos_runners) }}
-    runs-on: ${{ matrix.os }}
     permissions:
       contents: read
-    env:
-      # build-linux's PCH flags, plus what Xcode adds to every compile line:
-      # an index-store path, a VFS stat cache and module flags.
-      CCACHE_SLOPPINESS: pch_defines,time_macros,include_file_mtime,include_file_ctime,clang_index_store,ivfsoverlay,modules
-      BUILD_TYPE: ${{ needs.setup.outputs.build_type }}
-      GPGFRONTEND_BUILD_MODE: ${{ needs.setup.outputs.gpgfrontend_build_mode }}
-    steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
-        with:
-          lfs: "false"
-          submodules: recursive
-          # The version comes from git describe: full history and tags.
-          fetch-depth: 0
-
-      # Before anything is built: cheap, and it fails before a build is spent
-      # rather than after one is signed.
-      - name: Check Entitlements
-        run: scripts/check_entitlements.sh
-
-      # Saved only from pushes, so no pull request can seed an object file
-      # into what a signed bundle is built from.
-      - name: ccache
-        uses: hendrikmuhs/ccache-action@f09c25b45002a07be2955cbe52e8cee55643f89d # v1.2.24
-        with:
-          key: ${{ github.job }}-${{ matrix.os }}-${{ env.BUILD_TYPE }}
-          # See build-linux: large enough per subdirectory for a PCH.
-          max-size: 4G
-          save: ${{ github.event_name == 'push' }}
-
-      # See build-linux.
-      - name: Mark ccache Epoch
-        run: echo "CCACHE_EPOCH=$(date +%s)" >> "$GITHUB_ENV"
-
-      - name: Install Qt6
-        uses: ./.github/actions/install-qt6
-
-      - name: Install Dependence
-        run: brew install --formula automake texinfo libarchive googletest libsodium openssl@3
-
-      - name: Install Rust
-        id: rust
-        uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable branch
-        with:
-          toolchain: stable
-
-      # See build-linux for why this is not rust-cache. Under a multi-config
-      # generator Corrosion puts the target dir one level down, in
-      # <build>/<config>/cargo, which is why the path and key differ.
-      - name: Restore Cargo Cache
-        id: cargo-cache
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: |
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-            ${{ github.workspace }}/build/${{ env.BUILD_TYPE }}/cargo
-          key: cargo-xcode-${{ matrix.os }}-${{ steps.rust.outputs.cachekey }}-${{ env.BUILD_TYPE }}-${{ hashFiles('rust/Cargo.lock') }}
-          restore-keys: |
-            cargo-xcode-${{ matrix.os }}-${{ steps.rust.outputs.cachekey }}-${{ env.BUILD_TYPE }}-
-
-      - name: Build GpgFrontend
-        run: scripts/ci/macos/build.sh --flavor installed
-
-      - name: Save Cargo Cache
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: |
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-            ${{ github.workspace }}/build/${{ env.BUILD_TYPE }}/cargo
-          key: ${{ steps.cargo-cache.outputs.cache-primary-key }}
-        if: github.event_name == 'push' && steps.cargo-cache.outputs.cache-hit != 'true'
-
-      - name: Assemble The Bundle
-        run: scripts/ci/macos/assemble_bundle.sh
-
-      - name: Stage Unsigned Payload
-        run: scripts/ci/macos/stage_unsigned.sh --dmg-dressing
-
-      - name: Upload Unsigned Artifact
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          # NOT "gpgfrontend-*": that is the pattern provenance downloads, and
-          # an unsigned bundle must never reach a release.
-          name: unsigned-macos-app-${{ matrix.os }}
-          path: ${{ github.workspace }}/build/unsigned/*
-          if-no-files-found: error
-
-      # Separate and tiny, so it reaches macos-smoke and provenance without
-      # passing through sign-macos, which never takes configuration from a
-      # build artifact.
-      - name: Upload Build Info
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: buildinfo-${{ matrix.os }}-installed
-          path: ${{ github.workspace }}/build/artifacts/build-info.json
-          if-no-files-found: error
+    uses: ./.github/workflows/build-macos.yml
+    with:
+      build_type: ${{ needs.setup.outputs.build_type }}
+      gpgfrontend_build_mode: ${{ needs.setup.outputs.gpgfrontend_build_mode }}
+      runners: ${{ needs.setup.outputs.macos_runners }}
 
   # The Developer ID signature, notarization and disk image. The job itself,
   # its trust boundary and the `macos-signing` environment are documented in
