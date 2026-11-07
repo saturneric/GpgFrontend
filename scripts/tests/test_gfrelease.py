@@ -359,8 +359,23 @@ class AuthenticodeSubjectTest(unittest.TestCase):
         self.assertEqual(self.rdns(r"CN=A\, B,O=X"), [("O", "X"),
                                                      ("CN", "A, B")])
 
+    def test_both_byte_escapes_and_plain_utf8_are_one_value(self):
+        # What osslsigncode prints, what openssl -nameopt RFC2253 and
+        # Windows show, and the same subject typed plainly.
+        printed = (r"/C=DE/ST=Baden-W\xC3\xBCrttemberg/L=Karlsruhe"
+                   "/O=Open Source Developer/CN=Open Source Developer Yu Hu")
+        rfc2253 = (r"CN=Open Source Developer Yu Hu,O=Open Source Developer,"
+                   r"L=Karlsruhe,ST=Baden-W\C3\BCrttemberg,C=DE")
+        plain = ("CN=Open Source Developer Yu Hu,O=Open Source Developer,"
+                 "L=Karlsruhe,ST=Baden-Württemberg,C=DE")
+        want = self.rdns(plain)
+        self.assertIn(("ST", "Baden-Württemberg"), want)
+        self.assertEqual(self.rdns(printed), want)
+        self.assertEqual(self.rdns(rfc2253), want)
+        self.assertNotEqual(self.rdns(rfc2253.replace("BC", "B6")), want)
+
     def test_an_unreadable_subject_is_refused(self):
-        for bad in ("", "/", "nonsense", "/CN=a/=b"):
+        for bad in ("", "/", "nonsense", "/CN=a/=b", r"/CN=a\xFF"):
             with self.assertRaises(common.ReleaseError):
                 self.rdns(bad)
 
