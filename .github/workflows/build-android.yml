@@ -1,0 +1,172 @@
+# Copyright (C) 2021-2026 Saturneric <eric@bktus.com>
+#
+# This file is part of GpgFrontend.
+#
+# GpgFrontend is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# GpgFrontend is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GpgFrontend. If not, see <https://www.gnu.org/licenses/>.
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# The Android application, one leg per ABI, called by build.yml's
+# build-android job. It holds no secrets: the APK and the app bundle leave
+# here unsigned and are signed by sign-android; it uploads exactly
+# gpgfrontend-<leg> and buildinfo-<leg> per leg, as provenance expects.
+
+name: Build Android
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    # Named by the ABI alone: by default every matrix value is listed.
+    name: build (${{ matrix.arch }})
+    strategy:
+      # One ABI failing does not cancel the other, as in build-macos.
+      fail-fast: false
+      matrix:
+        include:
+          # One APK and one AAB per ABI: ARM for phones, x86_64 for
+          # emulators and Chromebooks. `arch` names the files, and on Android
+          # that is the ABI's own name, as phones and app stores show it.
+          - arch: arm64-v8a
+            abi: arm64-v8a
+            qt_arch: android_arm64_v8a
+            rust_target: aarch64-linux-android
+          - arch: x86_64
+            abi: x86_64
+            qt_arch: android_x86_64
+            rust_target: x86_64-linux-android
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    env:
+      GF_ANDROID_QT: "6.10.3"
+      GF_ANDROID_NDK: "27.2.12479018"
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          lfs: "false"
+          submodules: recursive
+          # The version comes from git describe: full history and tags.
+          fetch-depth: 0
+
+      - name: Install Android Toolchain
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ninja-build autoconf automake libtool
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            "ndk;${GF_ANDROID_NDK}" "platforms;android-36" "build-tools;36.0.0"
+
+      # The action the desktop jobs use (.github/actions/install-qt6), called
+      # directly because Android stays on its own Qt version. Qt for Android is
+      # published under the all_os host since Qt 6.7; aqt then also installs
+      # the Linux desktop Qt a cross build needs (QT_HOST_PATH), which the
+      # action always asks for.
+      - name: Install Qt6 For Android
+        uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
+        with:
+          version: ${{ env.GF_ANDROID_QT }}
+          host: all_os
+          target: android
+          arch: ${{ matrix.qt_arch }}
+          dir: ${{ runner.temp }}
+          cache: "true"
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable branch
+        with:
+          toolchain: stable
+          targets: ${{ matrix.rust_target }}
+
+      - name: Build The APK And AAB
+        env:
+          QT_ARCH: ${{ matrix.qt_arch }}
+        run: |
+          set -euo pipefail
+          export JAVA_HOME="$JAVA_HOME_17_X64" PATH="$JAVA_HOME_17_X64/bin:$PATH"
+          ndk="$ANDROID_HOME/ndk/$GF_ANDROID_NDK"
+          qt="$RUNNER_TEMP/Qt/$GF_ANDROID_QT"
+          "$qt/$QT_ARCH/bin/qt-cmake" -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DGPGFRONTEND_BUILD_FLAVOR=android \
+            -DANDROID_SDK_ROOT="$ANDROID_HOME" -DANDROID_NDK_ROOT="$ndk" \
+            -DQT_HOST_PATH="$qt/gcc_64"
+          cmake --build build --parallel
+          cmake --build build --target apk
+          cmake --build build --target aab
+
+      - name: Check The Libraries
+        run: |
+          set -euo pipefail
+          bin="$ANDROID_HOME/ndk/$GF_ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin"
+          NM="$bin/llvm-nm" READELF="$bin/llvm-readelf" \
+            scripts/check_no_gpgme.sh build
+
+      # What signing cannot change, checked here where the build tree and the
+      # scripts are: the package, its API level, and every native library 16
+      # KB aligned (apksigner signs without moving entries).
+      - name: Check The APK
+        run: |
+          set -euo pipefail
+          bt="$ANDROID_HOME/build-tools/36.0.0"
+          apk="build/artifacts/GpgFrontend-${{ matrix.abi }}-unsigned.apk"
+          "$bt/aapt2" dump badging "$apk" | grep -E "^package|targetSdkVersion"
+          READELF="$ANDROID_HOME/ndk/$GF_ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf" \
+            ZIPALIGN="$bt/zipalign" \
+            scripts/android/check-elf-alignment.sh "$apk"
+          mkdir -p build/unsigned
+          cp "$apk" build/unsigned/unsigned.apk
+
+      # A bundle is not installed as it is: Play (or bundletool) cuts APKs
+      # from it, and aligns them then. What it must hold is its manifest and
+      # this ABI's libraries, and no signature yet.
+      - name: Check The AAB
+        env:
+          ABI: ${{ matrix.abi }}
+        run: |
+          set -euo pipefail
+          aab="build/artifacts/GpgFrontend-${ABI}-unsigned.aab"
+          entries="$(unzip -Z1 "$aab")"
+          grep -qx "base/manifest/AndroidManifest.xml" <<< "$entries"
+          grep -q "^base/lib/${ABI}/.*\.so$" <<< "$entries"
+          if grep -q "^META-INF/" <<< "$entries"; then
+            echo "::error::$aab is already signed" >&2
+            exit 1
+          fi
+          cp "$aab" build/unsigned/unsigned.aab
+
+      - name: Upload Unsigned Artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          # NOT "gpgfrontend-*": that is the pattern provenance downloads,
+          # and an unsigned package must never reach a release.
+          name: unsigned-android-${{ matrix.arch }}
+          path: |
+            build/unsigned/unsigned.apk
+            build/unsigned/unsigned.aab
+          if-no-files-found: error
+
+      # Separate, as build-macos does: it reaches provenance without passing
+      # through sign-android, which takes nothing but the APK from here.
+      - name: Upload Build Info
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: buildinfo-android-${{ matrix.arch }}
+          path: build/artifacts/build-info.json
+          if-no-files-found: error
