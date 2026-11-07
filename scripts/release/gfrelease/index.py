@@ -24,7 +24,7 @@ import authenticode
 import imported
 import minisig
 import openpgp
-from common import (ASC, BUNDLE, DESCRIPTOR, INDEX, SCHEMA, SUMS, Product,
+from common import (BUNDLE, DESCRIPTOR, INDEX, SCHEMA, SIG, SUMS, Product,
                     ReleaseError, git_version, run,
                     canonical_json, check_relpath, iso, parse_iso, semver,
                     sha256_bytes, utcnow)
@@ -123,7 +123,7 @@ def admit_stable(product: Product, builds: Store, path: str, raw: bytes, *,
     notes_path = f"notes/{version}/{notes_sha}.md"
     entry = {"descriptor": path, "sha256": sha256_bytes(raw),
              "notes": notes_path, "notes_sha256": notes_sha,
-             "notes_sig": notes_path + ASC}
+             "notes_sig": notes_path + SIG}
 
     record = state_dir / "admitted" / f"{version}.json"
     if record.exists() and json.loads(record.read_text()) == entry:
@@ -141,24 +141,24 @@ def admit_stable(product: Product, builds: Store, path: str, raw: bytes, *,
 
         # The final manifest, signed by a maintainer, and exactly the
         # descriptor's hashes.
-        for name, rel in ((SUMS, d["sums"]), (SUMS + ASC, d["sums_sig"])):
+        for name, rel in ((SUMS, d["sums"]), (SUMS + SIG, d["sums_sig"])):
             (work / name).write_bytes(builds.read(rel))
-        ring.verify(work / SUMS, work / (SUMS + ASC))
+        ring.verify(work / SUMS, work / (SUMS + SIG))
         if parse_sums((work / SUMS).read_bytes()) != \
                 {a["name"]: a["sha256"] for a in d["artifacts"]}:
             raise ReleaseError(f"{path}: artifacts differ from the signed "
                                "manifest")
 
         # The notes, signed by a maintainer.
-        if not builds.exists(notes_path) or not builds.exists(notes_path + ASC):
+        if not builds.exists(notes_path) or not builds.exists(notes_path + SIG):
             raise ReleaseError(
                 f"{tag}: the notes main has for it are not signed and uploaded "
                 f"yet (gfrelease stable {version} --notes-only)")
         (work / "notes.md").write_bytes(builds.read(notes_path))
-        (work / "notes.md.asc").write_bytes(builds.read(notes_path + ASC))
+        (work / "notes.md.sig").write_bytes(builds.read(notes_path + SIG))
         if sha256_bytes((work / "notes.md").read_bytes()) != notes_sha:
             raise ReleaseError(f"{notes_path}: not the reviewed notes")
-        ring.verify(work / "notes.md", work / "notes.md.asc")
+        ring.verify(work / "notes.md", work / "notes.md.sig")
 
     # What CI built, as Sigstore says: every file's build hash.
     build = work / "build"
@@ -252,14 +252,14 @@ def admit_imported(product: Product, builds: Store, path: str, raw: bytes, *,
     work.mkdir(parents=True, exist_ok=True)
     with openpgp.Keyring(product.keyring_path, product.maintainers) as ring:
         for a in d["artifacts"]:
-            local, asc = work / a["name"], work / (a["name"] + ASC)
+            local, sig = work / a["name"], work / (a["name"] + SIG)
             local.write_bytes(builds.read(a["path"]))
-            asc.write_bytes(builds.read(a["sig"]))
+            sig.write_bytes(builds.read(a["sig"]))
             if sha256_bytes(local.read_bytes()) != a["sha256"]:
                 raise ReleaseError(f"{a['name']}: not the descriptor's bytes")
-            ring.verify(local, asc)
+            ring.verify(local, sig)
             local.unlink()
-            asc.unlink()
+            sig.unlink()
 
     record.parent.mkdir(parents=True, exist_ok=True)
     record.write_text(json.dumps(entry, sort_keys=True))
