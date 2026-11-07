@@ -54,7 +54,15 @@ TEST(SdkAppTest, TheBuildSaysHowItShipsAndWhichApplicationItIs) {
   EXPECT_EQ(GFAppIsNightlyIdentity(context.get()), IsStableBuild() ? 0 : 1);
 }
 
-// The two slots were appended to the app table: a host built before them
+// Ending the session is for a module with an interface, from a button the
+// user pressed: one without the capability is refused, and nothing restarts.
+TEST(SdkAppTest, OnlyAModuleWithAnInterfaceMayRestart) {
+  SdkTestContext context("com.example.apptest.restart", 0);
+  ASSERT_TRUE(context.live());
+  EXPECT_EQ(GFAppRestart(context.get()), -1);
+}
+
+// The slots were appended to the app table: a host built before them
 // ends its table earlier, and the module side must say "unknown" rather than
 // read past its end.
 TEST(SdkAppTest, AnOlderHostIsUnknownNotMisread) {
@@ -70,6 +78,7 @@ TEST(SdkAppTest, AnOlderHostIsUnknownNotMisread) {
 
   EXPECT_STREQ(GFAppInstallKind(&ctx), "");
   EXPECT_EQ(GFAppIsNightlyIdentity(&ctx), -1);
+  EXPECT_EQ(GFAppRestart(&ctx), -1);
   // What the older table has still answers.
   EXPECT_EQ(QString::fromUtf8(GFAppVersion(&ctx)), GetProjectVersion());
 }

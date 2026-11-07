@@ -198,6 +198,7 @@ typedef struct GFHostAppApi {
    * one reading them checks struct_size first (GF_SDK_GROUP_HAS). */
   const char* (*install_kind)(GFHostContextRef ctx); /**< borrowed, static */
   int (*is_nightly_identity)(GFHostContextRef ctx);
+  int (*restart)(GFHostContextRef ctx); /**< needs GF_HOST_CAP_UI */
 } GFHostAppApi;
 
 /**

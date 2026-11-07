@@ -107,6 +107,7 @@ auto GFAppActiveLocale() -> char*;
 auto GFIsFlatpakENV() -> int;
 auto GFAppInstallKindImpl() -> const char*;
 auto GFAppIsNightlyIdentityImpl() -> int;
+auto GFAppRestartImpl() -> int;
 auto GFAppKeyProtectionLevel() -> int;
 auto GFAppRegisterTranslatorReader(const char* id, GFTranslatorDataReader r)
     -> int;

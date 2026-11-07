@@ -241,12 +241,20 @@ auto AppIsNightlyIdentity(GFHostContextRef ctx) -> int {
   return GFAppIsNightlyIdentityImpl();
 }
 
+auto AppRestart(GFHostContextRef ctx) -> int {
+  // Ending the session is something the user sees: a module with an interface
+  // may ask for it, from a button the user pressed, and nothing else may.
+  GATE(ctx, GF_HOST_CAP_UI, "app.restart", -1);
+  return GFAppRestartImpl();
+}
+
 const GFHostAppApi kAppApi = {
     sizeof(GFHostAppApi), &AppVersion,
     &AppGitCommitHash,    &AppQtEnvVersion,
     &AppUserAgent,        &AppActiveLocale,
     &AppIsFlatpak,        &AppKeyProtectionLevel,
     &AppInstallKind,      &AppIsNightlyIdentity,
+    &AppRestart,
 };
 
 /* --- event --------------------------------------------------------------- */
