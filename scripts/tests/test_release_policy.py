@@ -151,6 +151,20 @@ class PolicyCheckTest(unittest.TestCase):
         with self.assertRaises(policy.PolicyError):
             policy.check_product(product)
 
+    def test_the_current_key_or_certificate_is_never_retired(self):
+        for field, current in (("artifact_keys_retired", "artifact_key"),
+                               ("authenticode_subjects_retired",
+                                "authenticode_subject")):
+            product = policy.load_product()
+            product["signing"][field] = [product["signing"][current]]
+            with self.assertRaisesRegex(policy.PolicyError, "current"):
+                policy.check_product(product)
+            product["signing"][field] = "not a list"
+            with self.assertRaisesRegex(policy.PolicyError, "list"):
+                policy.check_product(product)
+            product["signing"][field] = ["something replaced"]
+            policy.check_product(product)
+
 
 class SecurityRenderTest(unittest.TestCase):
     def test_repository_security_md_is_current(self):

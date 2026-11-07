@@ -117,6 +117,21 @@ class Product:
                             signing.get("maintainer_fingerprints", [])]
         self.keyring_path = Path(product_path).with_name("maintainers.asc")
         self.authenticode_subject = signing.get("authenticode_subject", "")
+        # Replaced keys and certificates: accepted on what they signed before,
+        # never used to sign anything new. The host and the offline stage sign
+        # only with the current ones.
+        self.retired_artifact_keys = list(signing.get("artifact_keys_retired",
+                                                      []))
+        self.authenticode_subjects = [s for s in [self.authenticode_subject]
+                                      + list(signing.get(
+                                          "authenticode_subjects_retired", []))
+                                      if s]
+
+    def artifact_keys(self, current: str) -> list[str]:
+        """The artifact keys a published file may carry: @p current (the one
+        the host signs with) and the retired ones."""
+        return [current] + [k for k in self.retired_artifact_keys
+                            if k != current]
 
     def identity(self, ref: str) -> str:
         """The Sigstore identity of this product's build workflow at a ref."""
