@@ -266,6 +266,9 @@ Item {
             TestSupport.useLanguage(data.language)
             Theme.fontScale = data.scale
             const dialog = data.question === "pin" ? pin : confirm
+            // Put back as it was after: assigning undefined does not, and
+            // every later row would run with the large text.
+            const size = dialog.font.pixelSize
             if (data.scale > 1) dialog.font.pixelSize = Theme.secondarySize
             if (data.question === "pin") TestSupport.askPin(false, 3)
             else TestSupport.askConfirmation(data.question === "forceUnlock")
@@ -273,17 +276,22 @@ Item {
             wait(50)
             const problems = []
             let seen = 0
+            // The dialog stops at the window's edge; its buttons inside it.
+            const bottom = dialog.contentItem.mapToItem(root, 0, dialog.contentItem.height).y
             for (const item of descendants(dialog.contentItem, [])) {
                 if (!item.visible || !isWordButton(item)) continue
                 ++seen
-                const why = cut(item, dialog)
+                let why = cut(item, dialog)
+                const end = item.mapToItem(root, 0, item.height).y
+                if (why.length === 0 && end > bottom + 0.5)
+                    why = "below the dialog (" + Math.round(end) + " > " + Math.round(bottom) + ")"
                 if (why.length > 0) problems.push("\"" + item.text + "\" " + why)
             }
             const safe = descendants(dialog.contentItem, []).find(
                 i => i.objectName === (data.question === "pin" ? "pinQuit" : "safeChoice"))
             mouseClick(safe)
             tryVerify(() => !dialog.visible)
-            dialog.font.pixelSize = undefined
+            dialog.font.pixelSize = size
             compare(seen, data.question === "pin" ? 3 : 2)
             compare(problems.join("; "), "")
         }

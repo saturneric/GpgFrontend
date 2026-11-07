@@ -24,20 +24,38 @@ Alert {
         anchors.fill: parent
         spacing: 12
 
-        Label {
+        // The words scroll when the window has no room for all of them
+        // (large German text on a small phone): the dialog stops at the
+        // window's edge, and the choices below stay inside it.
+        Flickable {
+            id: words
+
             Layout.fillWidth: true
-            wrapMode: Text.Wrap
-            color: Material.secondaryTextColor
-            text: sheet.forceUnlock
-                  ? qsTr("Another process (%1, process %2 on %3) has this profile open. "
-                         + "Forcing it open while that process runs can damage "
-                         + "your data.")
-                    .arg(sheet.request.application || qsTr("unknown"))
-                    .arg(sheet.request.pid)
-                    .arg(sheet.request.host || qsTr("this device"))
-                  : qsTr("The key that encrypts this profile cannot be unlocked. "
-                         + "Resetting it makes everything it protected "
-                         + "permanently unreadable.")
+            Layout.fillHeight: true
+            Layout.preferredHeight: body.implicitHeight
+            contentHeight: body.implicitHeight
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
+            interactive: contentHeight > height
+            ScrollIndicator.vertical: ScrollIndicator {}
+
+            Label {
+                id: body
+
+                width: words.width
+                wrapMode: Text.Wrap
+                color: Material.secondaryTextColor
+                text: sheet.forceUnlock
+                      ? qsTr("Another process (%1, process %2 on %3) has this profile open. "
+                             + "Forcing it open while that process runs can damage "
+                             + "your data.")
+                        .arg(sheet.request.application || qsTr("unknown"))
+                        .arg(sheet.request.pid)
+                        .arg(sheet.request.host || qsTr("this device"))
+                      : qsTr("The key that encrypts this profile cannot be unlocked. "
+                             + "Resetting it makes everything it protected "
+                             + "permanently unreadable.")
+            }
         }
 
         // At the right, side by side while they fit, one under the other
