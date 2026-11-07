@@ -151,16 +151,17 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
                 keyring().verify(sums, fetch(descriptor["sums_sig"],
                                              "SHA256SUMS.txt.sig"))
                 sums_data = sums.read_bytes()
-                if "notes" in entry:
-                    notes = fetch(entry["notes"], "notes.md")
-                    if sha256_file(notes) != entry["notes_sha256"]:
-                        raise ReleaseError(f"{entry['notes']}: not the index's "
-                                           "notes")
-                    keyring().verify(notes, fetch(entry["notes_sig"],
-                                                  "notes.md.sig"))
             else:
                 raise ReleaseError(f"{entry['descriptor']}: unknown signing "
                                    f"scheme {scheme!r}")
+            # A stable or imported release's notes: a maintainer's signature.
+            if scheme == "openpgp" and "notes" in entry:
+                notes = fetch(entry["notes"], "notes.md")
+                if sha256_file(notes) != entry["notes_sha256"]:
+                    raise ReleaseError(f"{entry['notes']}: not the index's "
+                                       "notes")
+                keyring().verify(notes, fetch(entry["notes_sig"],
+                                              "notes.md.sig"))
             sums = parse_sums(sums_data)
             for artifact in descriptor["artifacts"]:
                 if sums.get(artifact["name"]) != artifact["sha256"]:

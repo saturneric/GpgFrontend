@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import sys
 import tempfile
 from pathlib import Path
 
@@ -237,9 +238,19 @@ def admit_imported(product: Product, builds: Store, path: str, raw: bytes, *,
 
     entry = {"descriptor": path, "sha256": sha256_bytes(raw)}
     record = state_dir / "admitted" / f"{version}.json"
-    if record.exists() and json.loads(record.read_text()) == entry:
-        return d, entry
+    if not (record.exists() and json.loads(record.read_text()) == entry):
+        _check_imported_files(product, builds, d, path, git_dir=git_dir,
+                              tmp=tmp)
+        record.parent.mkdir(parents=True, exist_ok=True)
+        record.write_text(json.dumps(entry, sort_keys=True))
+    return d, entry | _imported_notes(product, builds, version,
+                                      git_dir=git_dir, state_dir=state_dir,
+                                      tmp=tmp)
 
+
+def _check_imported_files(product: Product, builds: Store, d: dict, path: str,
+                          *, git_dir: Path, tmp: Path) -> None:
+    version, tag = d["version"], f"v{d['version']}"
     tagged = run(["git", "-C", git_dir, "rev-parse", f"{tag}^{{commit}}"],
                  check=False).stdout.strip()
     if tagged != d.get("commit"):
@@ -261,9 +272,40 @@ def admit_imported(product: Product, builds: Store, path: str, raw: bytes, *,
             local.unlink()
             sig.unlink()
 
+
+def _imported_notes(product: Product, builds: Store, version: str, *,
+                    git_dir: Path, state_dir: Path, tmp: Path) -> dict:
+    """The index fields for an imported release's notes: main's
+    release/notes/<version>.md, once a maintainer has signed and uploaded it
+    (gfrelease stable <version> --notes-only). Until then the release is
+    listed without notes, which clients show as a link, and the host says so.
+    Checked again only when main's notes change."""
+    notes = release_notes(git_dir, version)
+    if notes is None:
+        return {}
+    digest = sha256_bytes(notes)
+    notes_path = f"notes/{version}/{digest}.md"
+    fields = {"notes": notes_path, "notes_sha256": digest,
+              "notes_sig": notes_path + SIG}
+    record = state_dir / "admitted" / f"{version}.notes"
+    if record.exists() and record.read_text() == digest:
+        return fields
+    if not builds.exists(notes_path) or not builds.exists(notes_path + SIG):
+        print(f"{version}: listed without notes; main's are not signed and "
+              f"uploaded yet (gfrelease stable {version} --notes-only)",
+              file=sys.stderr)
+        return {}
+    work = tmp / f"{version}-notes"
+    work.mkdir(parents=True, exist_ok=True)
+    (work / "notes.md").write_bytes(builds.read(notes_path))
+    (work / "notes.md.sig").write_bytes(builds.read(notes_path + SIG))
+    if sha256_bytes((work / "notes.md").read_bytes()) != digest:
+        raise ReleaseError(f"{notes_path}: not main's notes")
+    with openpgp.Keyring(product.keyring_path, product.maintainers) as ring:
+        ring.verify(work / "notes.md", work / "notes.md.sig")
     record.parent.mkdir(parents=True, exist_ok=True)
-    record.write_text(json.dumps(entry, sort_keys=True))
-    return d, entry
+    record.write_text(digest)
+    return fields
 
 
 def build(product: Product, builds: Store, artifact_pub: str, *,
