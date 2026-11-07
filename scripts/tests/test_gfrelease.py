@@ -185,6 +185,41 @@ class ChainTest(unittest.TestCase):
         self.assertEqual(second["channels"]["nightly"], newer)
         self.assertEqual(second["serial"], first["serial"] + 1)
 
+    def with_retired_artifact_keys(self, retired):
+        """This product as release/product.json has it, with @p retired."""
+        d = self.tmp / "rotated"
+        d.mkdir(exist_ok=True)
+        data = json.loads((common.ROOT / "release" / "product.json").read_text())
+        data["signing"]["artifact_keys_retired"] = retired
+        (d / "product.json").write_text(json.dumps(data))
+        shutil.copy(common.ROOT / "release" / "policy.toml", d)
+        return common.Product(d / "product.json", d / "policy.toml")
+
+    def test_a_rotated_artifact_key_keeps_earlier_nightlies(self):
+        self.build()
+        self.promote()
+        self.index()
+        old = self.art_pub
+        self.art_key, self.art_pub = keypair(self.tmp / "keys", "artifact-new")
+
+        # The host signs with the new key. Unless the old one is retired, what
+        # it signed is no longer admitted, and no index is published at all.
+        self.assert_refused(lambda: self.index(force=True),
+                            "not signed with the artifact key")
+
+        self.product = self.with_retired_artifact_keys([old])
+        self.commit()
+        _, newer = self.build()
+        self.promote()
+        index = self.index(force=True)
+        self.assertEqual(index["channels"]["nightly"], newer)
+        listed = {json.loads(self.builds.read(p))["signing"]["key_id"]
+                  for p in ("nightly/" + r for r in
+                            self.builds.files("nightly", include="*/release.json"))}
+        self.assertEqual(listed, {minisig.key_id(old),
+                                  minisig.key_id(self.art_pub)})
+        self.check()
+
     def test_resign_pushes_expiry_with_a_new_serial(self):
         self.commit()
         self.build()
@@ -536,6 +571,29 @@ class StableTest(unittest.TestCase):
             fn()
 
     # --- the stable path -----------------------------------------------
+
+    def test_a_replaced_certificate_keeps_earlier_releases(self):
+        self.tag()
+        self.build()
+        self.stage().run()
+        self.index()
+
+        def pin(subject, retired):
+            path = self.tmp / "product" / "product.json"
+            data = json.loads(path.read_text())
+            data["signing"]["authenticode_subject"] = subject
+            data["signing"]["authenticode_subjects_retired"] = retired
+            path.write_text(json.dumps(data))
+            self.product = common.Product(path, path.with_name("policy.toml"))
+
+        # A new certificate under another name, and a host that checks every
+        # release again (a lost state, a new machine).
+        shutil.rmtree(self.state / "admitted")
+        pin("/CN=GpgFrontend New Signing/O=Rehearsal/C=DE", [])
+        self.assert_refused(self.index, "signed by")
+        pin("/CN=GpgFrontend New Signing/O=Rehearsal/C=DE", [SUBJECT])
+        self.assertEqual(self.index()["releases"]["2.3.0"]["descriptor"],
+                         "releases/2.3.0/release.json")
 
     def test_a_stable_release_goes_from_tag_to_a_verified_index(self):
         self.tag()

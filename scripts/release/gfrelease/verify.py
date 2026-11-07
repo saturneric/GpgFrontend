@@ -101,6 +101,8 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
             contextlib.ExitStack() as stack:
         tmp = Path(tmp_name)
         data, comment = _signed(update, INDEX, index_keys, tmp)
+        # The current artifact key, or one it replaced.
+        artifact_keys = product.artifact_keys(artifact_key)
         index = json.loads(data)
         check_index(product, index, comment)
         report = {"product": product.slug, "serial": index["serial"],
@@ -145,7 +147,7 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
                     for a in descriptor["artifacts"]).encode()
             elif scheme == "minisign":
                 sums_data, _ = _signed(builds, check_relpath(descriptor["sums"]),
-                                       [artifact_key], tmp)
+                                       artifact_keys, tmp)
             elif scheme == "openpgp":
                 sums = fetch(descriptor["sums"], "SHA256SUMS.txt")
                 keyring().verify(sums, fetch(descriptor["sums_sig"],
@@ -174,7 +176,7 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
                                            "does not match its sha256")
                     sig = fetch(artifact["sig"], artifact["name"] + ".sig")
                     if scheme == "minisign":
-                        minisig.verify([artifact_key], local, sig)
+                        minisig.verify(artifact_keys, local, sig)
                     else:
                         keyring().verify(local, sig)
                     local.unlink()

@@ -110,9 +110,16 @@ def _subject_rdns(subject: str) -> list[tuple[str, str]]:
     return rdns
 
 
-def verify(file: Path, subject: str, cafile: str | None = None) -> None:
-    if not subject:
+def verify(file: Path, subject: str | list[str],
+           cafile: str | None = None) -> None:
+    """@p file is validly signed by a certificate with @p subject, or one of
+    them: the current certificate, and those it replaced, for what they
+    signed before."""
+    subjects = [subject] if isinstance(subject, str) else list(subject)
+    subjects = [s for s in subjects if s]
+    if not subjects:
         raise ReleaseError("no Authenticode subject is pinned")
     got = signer_subject(file, cafile)
-    if _subject_rdns(got) != _subject_rdns(subject):
-        raise ReleaseError(f"{file.name}: signed by {got!r}, not {subject!r}")
+    if not any(_subject_rdns(got) == _subject_rdns(s) for s in subjects):
+        pinned = subjects[0] if len(subjects) == 1 else subjects
+        raise ReleaseError(f"{file.name}: signed by {got!r}, not {pinned!r}")

@@ -114,7 +114,9 @@
   "signing": {
     "index_keys": ["RWRH9qrcd60tH7et1JqW864oJ5irkSI8iYwVa0n38k/mqJoA8IDS8Q9a"],
     "artifact_key": "RWSxNasy+OIaiWWGzwNYu223e0UNDwrsb+4S/ttGO8knO/URmtMtDpse",
+    "artifact_keys_retired": [],
     "maintainer_fingerprints": ["12F7E8858CF15BEC9975FF3C5CA3DA246843FD03"],
-    "authenticode_subject": "CN=Open Source Developer Yu Hu,O=Open Source Developer,L=Karlsruhe,ST=Baden-Württemberg,C=DE"
+    "authenticode_subject": "CN=Open Source Developer Yu Hu,O=Open Source Developer,L=Karlsruhe,ST=Baden-Württemberg,C=DE",
+    "authenticode_subjects_retired": []
   }
 }
