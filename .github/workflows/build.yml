@@ -235,6 +235,9 @@ jobs:
   build-android:
     # Named by the ABI alone: by default every matrix value is listed.
     name: build-android (${{ matrix.arch }})
+    # Behind setup like every build: its pipeline checks fail before any
+    # runner compiles anything.
+    needs: setup
     if: ${{ !inputs.screenshot }}
     strategy:
       # One ABI failing does not cancel the other, as in build-macos.
