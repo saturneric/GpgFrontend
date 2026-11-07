@@ -107,6 +107,15 @@ int GFCommandList(GFSDKContext* ctx, const char* prefix, GFStringListRef* out);
 /** A command's state for this caller, as GF_CMD_STATE_* bits. */
 int GFCommandQueryState(GFSDKContext* ctx, const char* id, uint32_t* out_bits);
 
+/**
+ * Ask the Host to ask State() again for the entries placed for @p id, which
+ * otherwise ask only when they are about to be shown: so a badge raised by
+ * GF_CMD_STATE_ATTENTION shows (and clears) without the user opening a menu.
+ * Only for the caller's own commands. Any thread. GF_CMD_E_UNAVAILABLE from a
+ * Host too old to listen, which is harmless.
+ */
+int GFCommandStateChanged(GFSDKContext* ctx, const char* id);
+
 #ifdef __cplusplus
 }
 #endif

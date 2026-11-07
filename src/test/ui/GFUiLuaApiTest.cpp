@@ -36,6 +36,7 @@
 
 #include "GpgFrontendTest.h"
 #include "sdk/GFSDKHostApi.h"
+#include "ui/UISignalStation.h"
 #include "ui/command/CommandRegistry.h"
 #include "ui/lua/LuaAnchors.h"
 #include "ui/lua/LuaApi.h"
@@ -576,6 +577,32 @@ ui.action { id = "faked", anchor = ui.anchor("main.menu.help"),
       CommandRegistry::Instance().Describe("com.example.luat.echo");
   ASSERT_TRUE(echo.has_value());
   EXPECT_TRUE(UI::CommandAttention(*echo).isEmpty());
+}
+
+TEST_F(LuaApiTest, OnlyACommandsOwnerSaysItsStateChanged) {
+  auto& registry = CommandRegistry::Instance();
+  EXPECT_EQ(registry.NotifyStateChanged("com.example.luat.nonesuch", kProvider),
+            GF_CMD_E_UNKNOWN);
+  EXPECT_EQ(registry.NotifyStateChanged("com.example.luat.beacon",
+                                        "com.example.other"),
+            GF_CMD_E_DENIED);
+  // The Host owns none of a module's commands either.
+  EXPECT_EQ(registry.NotifyStateChanged("com.example.luat.beacon", QString()),
+            GF_CMD_E_DENIED);
+
+  std::atomic<int> heard{0};
+  QObject receiver;
+  QObject::connect(
+      UI::UISignalStation::GetInstance(),
+      &UI::UISignalStation::SignalCommandStateChanged, &receiver,
+      [&heard](const QString& id) {
+        if (id == "com.example.luat.beacon") heard.fetch_add(1);
+      },
+      Qt::DirectConnection);
+  EXPECT_EQ(registry.NotifyStateChanged("com.example.luat.beacon", kProvider),
+            GF_CMD_OK);
+  // Emitted on the GUI thread, which may not be this one.
+  EXPECT_TRUE(Pump([&heard]() { return heard.load() == 1; }));
 }
 
 TEST_F(LuaApiTest, UpdateIsPure) {

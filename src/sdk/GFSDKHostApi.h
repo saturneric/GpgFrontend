@@ -527,6 +527,8 @@ typedef struct GFHostCommandApi {
   int (*describe)(GFHostContextRef ctx, const char* id, GFBufferRef* out);
   int (*list)(GFHostContextRef ctx, const char* prefix, GFStringListRef* out);
   int (*query_state)(GFHostContextRef ctx, const char* id, uint32_t* out_bits);
+  /* appended: absent from older hosts, check with GF_SDK_GROUP_HAS */
+  int (*state_changed)(GFHostContextRef ctx, const char* id);
 } GFHostCommandApi;
 
 /**

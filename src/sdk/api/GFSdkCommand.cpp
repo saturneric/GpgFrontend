@@ -117,3 +117,9 @@ auto GFCommandQueryState(GFSDKContext* ctx, const char* id,
   GF_SDK_REQUIRE(ctx, command, "GFCommandQueryState", GF_CMD_E_UNAVAILABLE);
   return g->query_state(hctx, id, out_bits);
 }
+
+auto GFCommandStateChanged(GFSDKContext* ctx, const char* id) -> int {
+  GF_SDK_REQUIRE(ctx, command, "GFCommandStateChanged", GF_CMD_E_UNAVAILABLE);
+  if (!GF_SDK_GROUP_HAS(g, state_changed)) return GF_CMD_E_UNAVAILABLE;
+  return g->state_changed(hctx, id);
+}

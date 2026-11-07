@@ -396,11 +396,23 @@ auto CmdList(GFHostContextRef, const char*, GFStringListRef*) -> int {
 auto CmdQueryState(GFHostContextRef, const char*, uint32_t*) -> int {
   return GF_CMD_E_UNKNOWN;
 }
+auto CmdStateChanged(GFHostContextRef, const char* id) -> int {
+  Rec().commands_state_changed.append(QString::fromUtf8(id));
+  return GF_CMD_OK;
+}
 
 const GFHostCommandApi kCommand = {
-    sizeof(GFHostCommandApi), &CmdRegister, &CmdUnregister, &CmdInvoke,
-    &CmdComplete,             &CmdCancel,   &CmdIsCancelled, &CmdDescribe,
-    &CmdList,                 &CmdQueryState,
+    sizeof(GFHostCommandApi),
+    &CmdRegister,
+    &CmdUnregister,
+    &CmdInvoke,
+    &CmdComplete,
+    &CmdCancel,
+    &CmdIsCancelled,
+    &CmdDescribe,
+    &CmdList,
+    &CmdQueryState,
+    &CmdStateChanged,
 };
 
 }  // namespace
