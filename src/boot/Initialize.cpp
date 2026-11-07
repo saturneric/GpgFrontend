@@ -52,6 +52,7 @@
 #include "core/profile/ProfileSession.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/BuildInfoUtils.h"
+#include "core/utils/CommonUtils.h"
 #include "plat/common/PlatformSecretStore.h"
 
 // boot
@@ -402,7 +403,8 @@ void ShutdownGlobalBasicEnv(const BootCxtWPtr &p_ctx,
       ctx->rtn == GpgFrontend::kCrashCode) {
     QStringList args = qApp->arguments();
     if (!args.isEmpty()) {
-      g_relaunch_program = args.takeFirst();
+      // The .AppImage file inside an AppImage, not its temporary mount.
+      g_relaunch_program = RelaunchProgram(args.takeFirst());
       // The successor inherits this process's argv, profile selection
       // included, so a deep restart always comes back on the same profile.
       g_relaunch_args = args;

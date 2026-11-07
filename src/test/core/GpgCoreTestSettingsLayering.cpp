@@ -788,6 +788,35 @@ TEST(PortableDataPathTest, AnUnresolvableAppImagePathIsNotFollowed) {
   }
 }
 
+TEST(PortableDataPathTest, AnAppImageRestartsFromTheImageNotItsMount) {
+  // argv[0] inside an AppImage is its temporary mount, gone with the process
+  // that restarts; the file is what comes back, and what an update replaced.
+  QTemporaryDir stick;
+  ASSERT_TRUE(stick.isValid());
+  const auto image = stick.path() + "/GpgFrontend.AppImage";
+  QFile file(image);
+  ASSERT_TRUE(file.open(QIODevice::WriteOnly));
+  file.close();
+  const auto mount = QStringLiteral("/tmp/.mount_GpgFroXyZ/AppRun");
+
+  const auto previous = qgetenv("APPIMAGE");
+  qunsetenv("APPIMAGE");
+  EXPECT_EQ(RelaunchProgram(mount), mount);
+
+  qputenv("APPIMAGE", image.toLocal8Bit());
+  EXPECT_EQ(RelaunchProgram(mount), QFileInfo(image).absoluteFilePath());
+
+  // Nothing there: the image cannot be what restarts.
+  qputenv("APPIMAGE", "/nonexistent/GpgFrontend.AppImage");
+  EXPECT_EQ(RelaunchProgram(mount), mount);
+
+  if (previous.isEmpty()) {
+    qunsetenv("APPIMAGE");
+  } else {
+    qputenv("APPIMAGE", previous);
+  }
+}
+
 #endif
 
 // -------------------------------------------------------------- id handling
