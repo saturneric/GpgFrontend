@@ -652,3 +652,216 @@ class StableTest(unittest.TestCase):
         self.git("commit", "-qm", "drop notes")
         self.git("tag", "-d", "v2.3.0")
         self.assert_refused(self.index, "tag v2.3.0|notes")
+
+
+import imported as imported_mod  # noqa: E402
+
+IMPORT_TOOLS = TOOLS and all(shutil.which(t) for t in ("gpg", "gpgconf"))
+
+
+class FakeGitHub:
+    """GitHub Releases, from a directory per tag: every file in it is an
+    asset; `drafts` and `missing` shape the answers."""
+
+    def __init__(self, root: Path):
+        self.root = root
+
+    def release(self, tag):
+        d = self.root / tag
+        if not d.is_dir():
+            raise common.ReleaseError(f"GitHub release {tag}: 404")
+        return {"tag_name": tag, "draft": False,
+                "published_at": "2026-10-28T12:00:00Z",
+                "assets": [{"name": p.name, "size": p.stat().st_size,
+                            "browser_download_url": str(p)}
+                           for p in sorted(d.iterdir())]}
+
+    def download(self, url, dst):
+        shutil.copy(url, dst)
+
+    def page(self, tag):
+        return f"https://github.example/releases/tag/{tag}"
+
+
+@unittest.skipUnless(IMPORT_TOOLS, "needs gpg, minisign, rclone, git and cmake")
+class ImportTest(unittest.TestCase):
+    """Releases from before the pipeline: brought over on their original
+    signatures, admitted by the host only when every file still verifies."""
+
+    gpg = StableTest.gpg
+    new_key = StableTest.new_key
+    write_product = StableTest.write_product
+    git = StableTest.git
+    assert_refused = StableTest.assert_refused
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp(prefix="gfr-import-"))
+        self.gnupg = self.tmp / "gnupg"
+        self.gnupg.mkdir(mode=0o700)
+        self.fpr = self.new_key("Test Maintainer <maintainer@example.org>")
+        self.product = self.write_product(self.tmp / "product", [self.fpr])
+        self.builds = Store(str(self.tmp / "builds" / self.product.slug))
+        self.update = Store(str(self.tmp / "update" / self.product.slug))
+        self.state = self.tmp / "state"
+        keys = self.tmp / "keys"
+        keys.mkdir()
+        self.art_key, self.art_pub = keypair(keys, "artifact")
+        self.idx_key, self.idx_pub = keypair(keys, "index")
+        self.github = FakeGitHub(self.tmp / "github")
+
+        self.repo = self.tmp / "repo"
+        self.repo.mkdir()
+        self.git("init", "-q", "-b", "main")
+        self.git("commit", "-q", "--allow-empty", "-m", "2.1.13")
+        self.git("tag", "v2.1.13")
+        self.git("commit", "-q", "--allow-empty", "-m", "2.2.4")
+        self.git("tag", "v2.2.4")
+
+    def tearDown(self):
+        subprocess.run(["gpgconf", "--homedir", self.gnupg, "--kill", "all"],
+                       capture_output=True)
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def publish_on_github(self, version, legs, *, signer=None, unsigned=()):
+        """A hand-made release: each file with a binary detached `.sig`."""
+        d = self.tmp / "github" / f"v{version}"
+        d.mkdir(parents=True)
+        for leg in legs:
+            f = d / f"GpgFrontend-{version}-{leg}"
+            f.write_bytes(f"{version} {leg}\n".encode() * 100)
+            if leg not in unsigned:
+                self.gpg("--local-user", f"{signer or self.fpr}!",
+                         "--detach-sign", "--output", f"{f}.sig", f)
+        return d
+
+    def run_import(self, version, builds=True):
+        job = imported_mod.Import(self.product, version, self.tmp / "work",
+                                  builds=self.builds if builds else None,
+                                  git_dir=self.repo, source=self.github)
+        return job, job.run()
+
+    def index(self):
+        return index_mod.publish(
+            self.product, self.builds, self.update, index_key=self.idx_key,
+            artifact_pub=self.art_pub, state_dir=self.state, force=True,
+            git_dir=self.repo)
+
+    def check(self):
+        return verify_mod.verify(self.product, self.update, self.builds,
+                                 index_keys=[self.idx_pub],
+                                 artifact_key=self.art_pub, deep=True)
+
+    LEGS = ("linux-x86_64.AppImage", "windows-x86_64.msi",
+            "windows-x86_64.msix", "macos-15.dmg")
+
+    def test_old_releases_reach_a_verified_index(self):
+        self.publish_on_github("2.2.4", self.LEGS)
+        self.publish_on_github("2.1.13", ("qt5-linux-x86_64.AppImage",
+                                          "macos-13.dmg",
+                                          "windows-x86_64.wixpdb"))
+        _, d = self.run_import("2.2.4")
+        job, old = self.run_import("2.1.13")
+
+        self.assertEqual(d["kind"], "imported")
+        self.assertEqual(d["signing"], {"scheme": "openpgp",
+                                        "fingerprint": self.fpr})
+        self.assertEqual(d["commit"], self.git("rev-parse", "v2.2.4"))
+        self.assertEqual(d["released_at"], "2026-10-28T12:00:00Z")
+        self.assertEqual(len(d["artifacts"]), 4)
+        self.assertEqual(job.skipped,
+                         ["GpgFrontend-2.1.13-windows-x86_64.wixpdb "
+                          "(no artifact rule)"])
+        kinds = {(a["name"].split("2.1.13-")[1]): (a["arch"], a["flavor"])
+                 for a in old["artifacts"]}
+        self.assertEqual(kinds, {"qt5-linux-x86_64.AppImage":
+                                 ("x86_64", "qt5"),
+                                 "macos-13.dmg": ("x86_64", "installed")})
+        # The published signature is the original one, armored.
+        name = "GpgFrontend-2.2.4-macos-15.dmg"
+        asc = self.builds.read(f"releases/2.2.4/{name}.asc")
+        original = (self.tmp / "github" / "v2.2.4" / f"{name}.sig").read_bytes()
+        self.assertEqual(asc, openpgp.armor_signature(original))
+
+        index = self.index()
+        self.assertEqual(index["channels"]["stable"], "2.2.4")
+        self.assertEqual(index["series"]["2.2"]["latest"], "2.2.4")
+        self.assertEqual(index["series"]["2.1"]["latest"], "2.1.13")
+        self.assertNotIn("notes", index["releases"]["2.2.4"])
+        report = self.check()
+        self.assertEqual(sorted((c["version"], c["kind"], c["artifacts"])
+                                for c in report["checked"]),
+                         [("2.1.13", "imported", 2), ("2.2.4", "imported", 4)])
+
+    def test_a_rerun_changes_nothing(self):
+        self.publish_on_github("2.2.4", self.LEGS)
+        _, first = self.run_import("2.2.4")
+        _, again = self.run_import("2.2.4")
+        self.assertEqual(first, again)
+
+    def test_check_only_uploads_nothing(self):
+        self.publish_on_github("2.2.4", self.LEGS)
+        self.run_import("2.2.4", builds=False)
+        self.assertEqual(self.builds.files(""), [])
+
+    def test_what_the_signatures_do_not_cover_is_refused(self):
+        d = self.publish_on_github("2.2.4", self.LEGS)
+        (d / "GpgFrontend-2.2.4-macos-15.dmg").write_bytes(b"swapped")
+        self.assert_refused(lambda: self.run_import("2.2.4"),
+                            "macos-15.dmg: the signature does not verify")
+        self.assertEqual(self.builds.files(""), [])
+
+    def test_another_key_is_refused(self):
+        other = self.new_key("Someone Else <else@example.org>")
+        self.publish_on_github("2.2.4", self.LEGS, signer=other)
+        # Not in maintainers.asc at all, so gpg cannot even check it.
+        self.assert_refused(lambda: self.run_import("2.2.4"),
+                            "signature does not verify|not a pinned")
+
+    def test_an_unsigned_file_is_left_out(self):
+        self.publish_on_github("2.2.4", self.LEGS,
+                               unsigned=("windows-x86_64.msix",))
+        job, d = self.run_import("2.2.4")
+        self.assertEqual(len(d["artifacts"]), 3)
+        self.assertEqual(job.skipped, ["GpgFrontend-2.2.4-windows-x86_64.msix "
+                                       "(no signature)"])
+
+    def test_releases_before_the_floor_and_prereleases_are_not_imported(self):
+        self.assert_refused(lambda: self.run_import("2.1.4"), "older than 2.1.5")
+        self.assert_refused(lambda: self.run_import("2.2.0-beta.1"),
+                            "only final releases")
+
+    def test_the_host_checks_every_file_again(self):
+        self.publish_on_github("2.2.4", self.LEGS)
+        self.run_import("2.2.4")
+        # A file replaced behind the importer's back.
+        stored = (self.tmp / "builds" / self.product.slug / "releases" /
+                  "2.2.4" / "GpgFrontend-2.2.4-macos-15.dmg")
+        stored.write_bytes(b"replaced")
+        self.assert_refused(self.index, "not the descriptor's bytes")
+
+    def test_the_host_refuses_a_moved_tag(self):
+        self.publish_on_github("2.2.4", self.LEGS)
+        self.run_import("2.2.4")
+        self.git("commit", "-q", "--allow-empty", "-m", "later")
+        self.git("tag", "-f", "v2.2.4")
+        self.assert_refused(self.index, r"v2\.2\.4 is [0-9a-f]+, not")
+
+    def test_the_host_admits_once(self):
+        self.publish_on_github("2.2.4", self.LEGS)
+        self.run_import("2.2.4")
+        self.index()
+        # Admitted and recorded: the next round does not download again.
+        stored = (self.tmp / "builds" / self.product.slug / "releases" /
+                  "2.2.4" / "GpgFrontend-2.2.4-macos-15.dmg")
+        stored.write_bytes(b"replaced")
+        self.index()
+
+
+class ArmorTest(unittest.TestCase):
+    def test_crc24_of_the_rfc_example(self):
+        # RFC 4880's CRC-24 of no data is its initial value.
+        self.assertEqual(openpgp._crc24(b""), 0xB704CE)
+
+    def test_only_binary_signatures_are_armored(self):
+        with self.assertRaises(common.ReleaseError):
+            openpgp.armor_signature(b"-----BEGIN PGP SIGNATURE-----")
