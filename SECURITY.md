@@ -28,11 +28,11 @@ Which key signs which releases (generated from `release/policy.toml` and
 `release/product.json`):
 
 <!-- policy:keys:begin -->
-Releases from 2.2.5 on carry a detached signature for every file:
+Releases from 2.1.5 on carry a detached signature for every file:
 
 | Releases | Signed with | Verify with |
 | -------- | ----------- | ----------- |
-| Stable (vX.Y.Z) | OpenPGP, detached `.asc` per file | not yet published |
+| Stable (vX.Y.Z) | OpenPGP, detached `.asc` per file | `12F7E8858CF15BEC9975FF3C5CA3DA246843FD03` |
 | Beta, rc and nightly | minisign, `.minisig` per file | `RWSxNasy+OIaiWWGzwNYu223e0UNDwrsb+4S/ttGO8knO/URmtMtDpse` |
 
 Check a stable download with `gpg --verify FILE.asc FILE`, a beta or nightly one with `minisign -Vm FILE -P <key>`. Windows installers of stable releases are also Authenticode-signed.

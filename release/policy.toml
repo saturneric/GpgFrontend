@@ -23,10 +23,12 @@
 schema = 1
 
 [signing]
-# Releases older than this predate per-artifact signatures and were published
-# by hand; the update index admits them without one. Every release from this
-# version on must carry the signatures its kind requires.
-legacy_unsigned_before = "2.2.5"
+# The first release whose files are signed with a key pinned in
+# release/product.json. Older ones were signed with keys no longer pinned and
+# stay on GitHub only; from this version on, releases made before the update
+# index are brought into it with `gfrelease import`, on their original
+# signatures. Every release must carry the signatures its kind requires.
+legacy_unsigned_before = "2.1.5"
 
 [series."2.3"]
 status = "mainline"

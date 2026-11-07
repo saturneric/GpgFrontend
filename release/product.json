@@ -25,7 +25,7 @@
   "artifact_prefix": "GpgFrontend-",
   "artifacts": [
     {
-      "match": "^linux-(?P<arch>x86_64|aarch64)\\.AppImage$",
+      "match": "^(?:qt6-)?linux-(?P<arch>x86_64|aarch64)\\.AppImage$",
       "os": "linux",
       "arch": "{arch}",
       "kind": "appimage",
@@ -39,18 +39,39 @@
       "flavor": "portable"
     },
     {
-      "match": "^windows-x86_64\\.msi$",
+      "match": "^qt5-linux-x86_64\\.AppImage$",
+      "os": "linux",
+      "arch": "x86_64",
+      "kind": "appimage",
+      "flavor": "qt5"
+    },
+    {
+      "match": "^(?:qt6-)?windows-x86_64(?:-setup)?\\.msi$",
       "os": "windows",
       "arch": "x86_64",
       "kind": "msi",
       "flavor": "installed"
     },
     {
-      "match": "^windows-x86_64-portable\\.zip$",
+      "match": "^windows-x86_64\\.msix$",
+      "os": "windows",
+      "arch": "x86_64",
+      "kind": "msix",
+      "flavor": "installed"
+    },
+    {
+      "match": "^(?:qt6-)?windows-x86_64-portable\\.zip$",
       "os": "windows",
       "arch": "x86_64",
       "kind": "zip",
       "flavor": "portable"
+    },
+    {
+      "match": "^qt5-windows-x86_64-portable\\.zip$",
+      "os": "windows",
+      "arch": "x86_64",
+      "kind": "zip",
+      "flavor": "qt5"
     },
     {
       "match": "^android-(?P<arch>arm64-v8a|x86_64)\\.apk$",
@@ -61,6 +82,16 @@
     },
     {
       "match": "^macos-(?P<major>\\d+)-intel\\.dmg$",
+      "os": "macos",
+      "arch": "x86_64",
+      "kind": "dmg",
+      "flavor": "installed",
+      "min_os": {
+        "macos": "{major}.0"
+      }
+    },
+    {
+      "match": "^macos-(?P<major>1[0-3])\\.dmg$",
       "os": "macos",
       "arch": "x86_64",
       "kind": "dmg",
@@ -83,7 +114,7 @@
   "signing": {
     "index_keys": ["RWRH9qrcd60tH7et1JqW864oJ5irkSI8iYwVa0n38k/mqJoA8IDS8Q9a"],
     "artifact_key": "RWSxNasy+OIaiWWGzwNYu223e0UNDwrsb+4S/ttGO8knO/URmtMtDpse",
-    "maintainer_fingerprints": [],
-    "authenticode_subject": ""
+    "maintainer_fingerprints": ["12F7E8858CF15BEC9975FF3C5CA3DA246843FD03"],
+    "authenticode_subject": "CN=Open Source Developer Yu Hu,O=Open Source Developer,L=Karlsruhe,ST=Baden-Württemberg,C=DE"
   }
 }
