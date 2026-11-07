@@ -91,7 +91,10 @@ auto Launch(const QStringList& args) -> ProfileLaunchResult {
   // On macOS a bundled application is launched through the workspace, not by
   // running the executable: that is what gives the new instance its own Dock
   // entry and activation, and it is already how the deep restart comes back.
-  if (!RelaunchApplication(QCoreApplication::applicationFilePath(), args)) {
+  // Inside an AppImage the .AppImage file: the mount this window runs from
+  // goes away when it closes, and the new window with it.
+  if (!RelaunchApplication(
+          RelaunchProgram(QCoreApplication::applicationFilePath()), args)) {
     result.status = ProfileLaunchStatus::kFAILED;
     result.detail = QObject::tr("The new window could not be started.");
   }

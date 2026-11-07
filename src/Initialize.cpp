@@ -47,6 +47,7 @@
 #include "core/module/ModuleManager.h"
 #include "core/profile/ProfileSession.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "core/utils/CommonUtils.h"
 #include "platform/common/PlatformRelaunch.h"
 #include "ui/GpgFrontendUIInit.h"
 
@@ -350,7 +351,8 @@ void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
       ctx->rtn == GpgFrontend::kCrashCode) {
     QStringList args = qApp->arguments();
     if (!args.isEmpty()) {
-      g_relaunch_program = args.takeFirst();
+      // The .AppImage file inside an AppImage, not its temporary mount.
+      g_relaunch_program = RelaunchProgram(args.takeFirst());
       // The successor inherits this process's argv, profile selection
       // included, so a deep restart always comes back on the same profile.
       g_relaunch_args = args;
