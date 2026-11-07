@@ -327,6 +327,43 @@ if __name__ == "__main__":
 import authenticode  # noqa: E402
 import stable as stable_mod  # noqa: E402
 
+
+class AuthenticodeSubjectTest(unittest.TestCase):
+    """osslsigncode versions print the signer differently; the pin matches
+    either form, and nothing else."""
+
+    PIN = "/CN=GpgFrontend Test Signing/O=Rehearsal/C=DE"
+
+    def rdns(self, s):
+        return authenticode._subject_rdns(s)
+
+    def test_both_forms_of_one_subject_match(self):
+        want = self.rdns(self.PIN)
+        self.assertEqual(want, [("CN", "GpgFrontend Test Signing"),
+                                ("O", "Rehearsal"), ("C", "DE")])
+        self.assertEqual(self.rdns(
+            "C=DE,O=Rehearsal,CN=GpgFrontend Test Signing"), want)
+        self.assertEqual(self.rdns(
+            "C=DE, O=Rehearsal, CN=GpgFrontend Test Signing"), want)
+
+    def test_another_subject_or_order_does_not(self):
+        want = self.rdns(self.PIN)
+        self.assertNotEqual(self.rdns(
+            "C=DE,O=Rehearsal,CN=Someone Else"), want)
+        self.assertNotEqual(self.rdns(
+            "CN=GpgFrontend Test Signing,O=Rehearsal,C=DE"), want)
+        self.assertNotEqual(self.rdns(
+            "/CN=GpgFrontend Test Signing/O=Rehearsal"), want)
+
+    def test_escaped_separators_stay_in_the_value(self):
+        self.assertEqual(self.rdns(r"CN=A\, B,O=X"), [("O", "X"),
+                                                     ("CN", "A, B")])
+
+    def test_an_unreadable_subject_is_refused(self):
+        for bad in ("", "/", "nonsense", "/CN=a/=b"):
+            with self.assertRaises(common.ReleaseError):
+                self.rdns(bad)
+
 STABLE_TOOLS = TOOLS and all(shutil.which(t) for t in
                              ("gpg", "gpgconf", "osslsigncode", "wixl",
                               "openssl"))

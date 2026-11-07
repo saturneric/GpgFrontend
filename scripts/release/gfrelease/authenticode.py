@@ -5,9 +5,11 @@
 Signing happens on the maintainer's machine, with the certificate's key on a
 hardware token (PKCS#11) or, for a rehearsal, in a file. Verifying checks the
 signature and its chain, and that the signer is exactly the subject the
-product pins (release/product.json, `signing.authenticode_subject`, in
-osslsigncode's "/CN=.../O=.../C=..." form): a valid signature by any other
-certificate is not ours.
+product pins (release/product.json, `signing.authenticode_subject`): a valid
+signature by any other certificate is not ours. osslsigncode prints the
+subject as "/CN=.../O=.../C=..." or, in other versions, as RFC 2253
+"C=...,O=...,CN=..." (last RDN first); the pin may be written either way,
+and the two are compared RDN by RDN, in certificate order.
 """
 
 from __future__ import annotations
@@ -64,9 +66,31 @@ def signer_subject(file: Path, cafile: str | None = None) -> str:
     return m.group(1).strip()
 
 
+def _split_unescaped(s: str, sep: str) -> list[str]:
+    return [p.replace("\\" + sep, sep)
+            for p in re.split(r"(?<!\\)" + re.escape(sep), s)]
+
+
+def _subject_rdns(subject: str) -> list[tuple[str, str]]:
+    """@p subject as (attribute, value) pairs in certificate order, from
+    either the "/CN=a/O=b" or the RFC 2253 "O=b,CN=a" form."""
+    s = subject.strip()
+    if s.startswith("/"):
+        parts = _split_unescaped(s[1:], "/")
+    else:
+        parts = list(reversed(_split_unescaped(s, ",")))
+    rdns = []
+    for part in parts:
+        attr, eq, value = part.strip().partition("=")
+        if not eq or not attr.strip():
+            raise ReleaseError(f"unreadable certificate subject {subject!r}")
+        rdns.append((attr.strip().upper(), value.strip()))
+    return rdns
+
+
 def verify(file: Path, subject: str, cafile: str | None = None) -> None:
     if not subject:
         raise ReleaseError("no Authenticode subject is pinned")
     got = signer_subject(file, cafile)
-    if got != subject:
+    if _subject_rdns(got) != _subject_rdns(subject):
         raise ReleaseError(f"{file.name}: signed by {got!r}, not {subject!r}")
