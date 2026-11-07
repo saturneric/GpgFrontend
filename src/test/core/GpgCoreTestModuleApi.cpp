@@ -197,6 +197,9 @@ TEST(ModuleApiTest, ThePrefixLayoutIsFrozen) {
   EXPECT_EQ(offsetof(GFHostStorageApi, struct_size), 0U);
   EXPECT_EQ(offsetof(GFHostProcessApi, struct_size), 0U);
   EXPECT_EQ(offsetof(GFHostCommandApi, struct_size), 0U);
+  // Members appended to a group follow the ones it first shipped with.
+  EXPECT_EQ(offsetof(GFHostCommandApi, state_changed),
+            offsetof(GFHostCommandApi, query_state) + sizeof(void*));
 
   // Appended groups come strictly after everything an older module reads.
   EXPECT_EQ(offsetof(GFHostApi, command),

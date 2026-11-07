@@ -194,6 +194,18 @@ class GF_UI_EXPORT CommandRegistry {
   [[nodiscard]] auto State(const QString& id, const CommandCaller& caller,
                            const gf::cmd::CommandContext& context) -> uint32_t;
 
+  /**
+   * @brief Tell whatever shows @p id's state to ask State() again.
+   *
+   * Only the command's owner may (@p module, empty for the Host): nobody
+   * else knows when its answer changed. Any thread; the signal,
+   * UISignalStation::SignalCommandStateChanged, goes out on the GUI thread.
+   *
+   * @return GF_CMD_OK, GF_CMD_E_UNKNOWN, or GF_CMD_E_DENIED for a command
+   *         @p module does not own
+   */
+  auto NotifyStateChanged(const QString& id, const QString& module) -> int;
+
   /// Outstanding calls @p module made, or is providing. For diagnostics.
   [[nodiscard]] auto PendingCallsOf(const QString& module) -> int;
 

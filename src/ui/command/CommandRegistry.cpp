@@ -37,6 +37,7 @@
 #include "core/module/ModuleManager.h"
 #include "core/module/ModuleNamespace.h"
 #include "sdk/GFSDKHostCommands.hpp"
+#include "ui/UISignalStation.h"
 
 namespace GpgFrontend::UI {
 
@@ -488,6 +489,17 @@ auto CommandRegistry::State(const QString& id, const CommandCaller& caller,
   ctx.caller_caps = caller.caps;
   ctx.source = caller.source;
   return p->state(ctx);
+}
+
+auto CommandRegistry::NotifyStateChanged(const QString& id,
+                                         const QString& module) -> int {
+  const auto p = Lookup(id);
+  if (p == nullptr) return GF_CMD_E_UNKNOWN;
+  if (p->owner != module) return GF_CMD_E_DENIED;
+  OnGui([id]() {
+    emit UISignalStation::GetInstance() -> SignalCommandStateChanged(id);
+  });
+  return GF_CMD_OK;
 }
 
 auto CommandRegistry::PendingCallsOf(const QString& module) -> int {

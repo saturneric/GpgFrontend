@@ -654,6 +654,17 @@ TEST_F(ModuleRuntimeTest, AWrapperWhoseGroupWasWithheldRefusesTheCall) {
       << "and the entry point that wanted it: " << joined.toStdString();
 }
 
+TEST_F(ModuleRuntimeTest, AStateChangeReachesTheHost) {
+  Activate();
+
+  // What lets a badge show without its menu being opened first.
+  EXPECT_EQ(GFCommandStateChanged(gf::runtime::SdkContext(),
+                                  "com.example.module.thing"),
+            GF_CMD_OK);
+  EXPECT_EQ(Rec().commands_state_changed,
+            QStringList{"com.example.module.thing"});
+}
+
 TEST_F(ModuleRuntimeTest, ADenialIsReportedEveryTimeBecauseTheSdkIsStateless) {
   Activate();
 

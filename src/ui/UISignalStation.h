@@ -40,7 +40,7 @@ namespace GpgFrontend::UI {
  * @brief
  *
  */
-class UISignalStation : public QObject {
+class GF_UI_EXPORT UISignalStation : public QObject {
   Q_OBJECT
   static std::unique_ptr<UISignalStation> instance;
 
@@ -178,6 +178,14 @@ class UISignalStation : public QObject {
    * that missed the change keeps serving stale metrics until it is reopened.
    */
   void SignalAppearanceSettingsChanged();
+
+  /**
+   * @brief Command @p id may answer State() differently now: whatever shows
+   * its state (a menu entry's badge, the status strip) asks again.
+   *
+   * Always emitted on the GUI thread, by CommandRegistry::NotifyStateChanged.
+   */
+  void SignalCommandStateChanged(const QString& id);
 
  private:
   UISignalStation();

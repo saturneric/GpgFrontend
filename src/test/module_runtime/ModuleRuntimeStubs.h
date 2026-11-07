@@ -59,6 +59,7 @@ struct Recorder {
   /// both halves of the command path.
   QStringList commands_registered;
   QStringList commands_invoked;
+  QStringList commands_state_changed;
   int completions = 0;
 
   void Reset();

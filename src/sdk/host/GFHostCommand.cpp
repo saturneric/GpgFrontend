@@ -338,6 +338,13 @@ auto QueryState(GFHostContextRef ctx, const char* id, uint32_t* out_bits)
   return GF_CMD_OK;
 }
 
+auto StateChanged(GFHostContextRef ctx, const char* id) -> int {
+  GATE(ctx, 0, "command.state_changed", GF_CMD_E_DENIED);
+  if (id == nullptr) return GF_CMD_E_BAD_ARGS;
+  return Registry().NotifyStateChanged(QString::fromUtf8(id),
+                                       gf_sdk_internal::ContextModuleId(ctx));
+}
+
 }  // namespace
 
 namespace gf_sdk_internal {
@@ -346,7 +353,7 @@ const GFHostCommandApi kCommandApi = {
     sizeof(GFHostCommandApi), &RegisterCommand, &UnregisterCommand,
     &Invoke,                  &Complete,        &Cancel,
     &IsCancelled,             &Describe,        &List,
-    &QueryState,
+    &QueryState,              &StateChanged,
 };
 
 }  // namespace gf_sdk_internal
