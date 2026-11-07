@@ -149,7 +149,7 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
             elif scheme == "openpgp":
                 sums = fetch(descriptor["sums"], "SHA256SUMS.txt")
                 keyring().verify(sums, fetch(descriptor["sums_sig"],
-                                             "SHA256SUMS.txt.asc"))
+                                             "SHA256SUMS.txt.sig"))
                 sums_data = sums.read_bytes()
                 if "notes" in entry:
                     notes = fetch(entry["notes"], "notes.md")
@@ -157,7 +157,7 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
                         raise ReleaseError(f"{entry['notes']}: not the index's "
                                            "notes")
                     keyring().verify(notes, fetch(entry["notes_sig"],
-                                                  "notes.md.asc"))
+                                                  "notes.md.sig"))
             else:
                 raise ReleaseError(f"{entry['descriptor']}: unknown signing "
                                    f"scheme {scheme!r}")

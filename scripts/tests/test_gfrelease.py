@@ -548,7 +548,7 @@ class StableTest(unittest.TestCase):
         for a in d["artifacts"]:
             if a["kind"] != "msi":
                 self.assertEqual(a["sha256"], a["build_sha256"])
-            self.assertTrue(a["sig"].endswith(".asc"))
+            self.assertTrue(a["sig"].endswith(".sig"))
         self.assertEqual(d["signing"], {"scheme": "openpgp",
                                         "fingerprint": self.fpr})
 
@@ -776,11 +776,11 @@ class ImportTest(unittest.TestCase):
         self.assertEqual(kinds, {"qt5-linux-x86_64.AppImage":
                                  ("x86_64", "qt5"),
                                  "macos-13.dmg": ("x86_64", "installed")})
-        # The published signature is the original one, armored.
+        # The published signature is the original one, byte for byte.
         name = "GpgFrontend-2.2.4-macos-15.dmg"
-        asc = self.builds.read(f"releases/2.2.4/{name}.asc")
         original = (self.tmp / "github" / "v2.2.4" / f"{name}.sig").read_bytes()
-        self.assertEqual(asc, openpgp.armor_signature(original))
+        self.assertEqual(self.builds.read(f"releases/2.2.4/{name}.sig"),
+                         original)
 
         index = self.index()
         self.assertEqual(index["channels"]["stable"], "2.2.4")
@@ -856,12 +856,3 @@ class ImportTest(unittest.TestCase):
         stored.write_bytes(b"replaced")
         self.index()
 
-
-class ArmorTest(unittest.TestCase):
-    def test_crc24_of_the_rfc_example(self):
-        # RFC 4880's CRC-24 of no data is its initial value.
-        self.assertEqual(openpgp._crc24(b""), 0xB704CE)
-
-    def test_only_binary_signatures_are_armored(self):
-        with self.assertRaises(common.ReleaseError):
-            openpgp.armor_signature(b"-----BEGIN PGP SIGNATURE-----")

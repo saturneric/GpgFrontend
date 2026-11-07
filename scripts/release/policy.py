@@ -238,14 +238,14 @@ def render_keys(policy: dict, product: dict) -> str:
              "file:", "",
              "| Releases | Signed with | Verify with |",
              "| -------- | ----------- | ----------- |"]
-    lines.append("| Stable (vX.Y.Z) | OpenPGP, detached `.asc` per file | "
+    lines.append("| Stable (vX.Y.Z) | OpenPGP, detached `.sig` per file | "
                  + (", ".join(f"`{f}`" for f in fprs) if fprs
                     else "not yet published") + " |")
     lines.append("| Beta, rc and nightly | minisign, `.minisig` per file | "
                  + (f"`{artifact}`" if artifact else "not yet published")
                  + " |")
     lines.append("")
-    lines.append("Check a stable download with `gpg --verify FILE.asc FILE`, "
+    lines.append("Check a stable download with `gpg --verify FILE.sig FILE`, "
                  "a beta or nightly one with `minisign -Vm FILE -P <key>`. "
                  "Windows installers of stable releases are also "
                  "Authenticode-signed.")

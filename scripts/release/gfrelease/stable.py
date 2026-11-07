@@ -12,8 +12,8 @@ only through this, run by hand:
                key and points at that commit, and git calls it that version
   authenticode the Windows installers, with the certificate on its token;
                the time stamp is the one network call               (TSA)
-  pgp          a detached .asc for every final file, a final SHA256SUMS.txt
-               and its .asc, and the release notes the tag carries, signed
+  pgp          a detached .sig for every final file, a final SHA256SUMS.txt
+               and its .sig, and the release notes the tag carries, signed
   upload       everything to releases/<version>/ and notes/, the descriptor
                last                                                 (network)
 
@@ -115,8 +115,8 @@ class Stage:
         openpgp.sign(local, self.key, self.gnupghome)
         with openpgp.Keyring(self.product.keyring_path,
                              self.product.maintainers) as ring:
-            ring.verify(local, local.with_name(local.name + ".asc"))
-        for suffix in ("", ".asc"):
+            ring.verify(local, local.with_name(local.name + ".sig"))
+        for suffix in ("", ".sig"):
             self.builds.put_file(local.with_name(local.name + suffix),
                                  f"notes/{self.version}/{digest}.md{suffix}")
         return digest
@@ -214,7 +214,7 @@ class Stage:
     def _pgp(self) -> None:
         self._need("key", "git_dir")
         files = self.state["build"]["files"]
-        for stale in self.final_dir.glob("*.asc"):
+        for stale in self.final_dir.glob("*.sig"):
             stale.unlink()
         for name in sorted(files):
             openpgp.sign(self.final_dir / name, self.key, self.gnupghome)
@@ -245,9 +245,9 @@ class Stage:
                              self.product.maintainers) as ring:
             for name in [*sorted(files), SUMS]:
                 ring.verify(self.final_dir / name,
-                            self.final_dir / f"{name}.asc")
+                            self.final_dir / f"{name}.sig")
             ring.verify(notes_dir / f"{digest}.md",
-                        notes_dir / f"{digest}.md.asc")
+                        notes_dir / f"{digest}.md.sig")
 
     def _upload(self) -> None:
         self._need("builds")
@@ -256,22 +256,22 @@ class Stage:
         for name in sorted(files):
             info = files[name]
             self.builds.put_file(self.final_dir / name, f"{p}/{name}")
-            self.builds.put_file(self.final_dir / f"{name}.asc",
-                                 f"{p}/{name}.asc")
+            self.builds.put_file(self.final_dir / f"{name}.sig",
+                                 f"{p}/{name}.sig")
             artifacts.append({
                 k: info[k] for k in ("os", "arch", "kind", "flavor", "min_os",
                                      "sha256", "build_sha256", "transform")
                 if k in info} | {
                 "name": name, "size": (self.final_dir / name).stat().st_size,
-                "path": f"{p}/{name}", "sig": f"{p}/{name}.asc"})
+                "path": f"{p}/{name}", "sig": f"{p}/{name}.sig"})
         self.builds.put_file(self.final_dir / SUMS, f"{p}/{SUMS}")
-        self.builds.put_file(self.final_dir / f"{SUMS}.asc", f"{p}/{SUMS}.asc")
+        self.builds.put_file(self.final_dir / f"{SUMS}.sig", f"{p}/{SUMS}.sig")
         build = self.dir / "build"
         self.builds.put_file(build / SUMS, f"{p}/build/{SUMS}")
         self.builds.put_file(build / BUNDLE, f"{p}/build/{BUNDLE}")
 
         digest = self.state["notes_sha256"]
-        for suffix in ("", ".asc"):
+        for suffix in ("", ".sig"):
             self.builds.put_file(self.dir / "notes" / f"{digest}.md{suffix}",
                                  f"notes/{self.version}/{digest}.md{suffix}")
 
@@ -285,7 +285,7 @@ class Stage:
             "build": {"sums": f"{p}/build/{SUMS}",
                       "bundle": f"{p}/build/{BUNDLE}",
                       "identity": b["identity"]},
-            "sums": f"{p}/{SUMS}", "sums_sig": f"{p}/{SUMS}.asc",
+            "sums": f"{p}/{SUMS}", "sums_sig": f"{p}/{SUMS}.sig",
             "artifacts": artifacts,
         }
         # Last: a descriptor only ever names objects that are already there.
