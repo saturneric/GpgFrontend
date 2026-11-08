@@ -69,6 +69,13 @@ class Stage:
         self.git_dir, self.cosign = git_dir, cosign
         self.key = (key or (product.maintainers[0] if product.maintainers
                             else "")).upper()
+        # The descriptor names this key, and the host admits only a pinned
+        # primary fingerprint: a subkey's, or a retired key's, would sign
+        # everything here and then never be listed.
+        if self.key and self.key not in product.maintainers:
+            raise ReleaseError(f"--key {self.key} is not a current pinned "
+                               "maintainer's primary fingerprint "
+                               "(release/product.json)")
         self.gnupghome = gnupghome
         self.signer = signer
         self.authenticode_ca = authenticode_ca
@@ -133,7 +140,7 @@ class Stage:
         self._need("key", "git_dir", "builds")
         local, digest = self._sign_notes(ref)
         with openpgp.Keyring(self.product.keyring_path,
-                             self.product.maintainers) as ring:
+                             self.product.trusted_maintainers) as ring:
             ring.verify(local, local.with_name(local.name + ".sig"))
         for suffix in ("", ".sig"):
             self.builds.put_file(local.with_name(local.name + suffix),
@@ -192,7 +199,7 @@ class Stage:
                                "than the signed manifest")
 
         with openpgp.Keyring(self.product.keyring_path,
-                             self.product.maintainers) as ring:
+                             self.product.trusted_maintainers) as ring:
             ring.verify_tag(self.git_dir, self.tag)
         tagged = tagged_commit(self.git_dir, self.tag, expect=staged["commit"],
                                version=self.version)
@@ -246,7 +253,7 @@ class Stage:
         # Everything signed is checked against the pinned keys before it
         # leaves this machine.
         with openpgp.Keyring(self.product.keyring_path,
-                             self.product.maintainers) as ring:
+                             self.product.trusted_maintainers) as ring:
             for name in [*sorted(files), SUMS]:
                 ring.verify(self.final_dir / name,
                             self.final_dir / f"{name}.sig")

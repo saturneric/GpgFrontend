@@ -167,6 +167,18 @@ class PolicyCheckTest(unittest.TestCase):
             product["signing"][field] = ["something replaced"]
             policy.check_product(product)
 
+    def test_a_current_maintainer_is_never_retired(self):
+        product = policy.load_product()
+        current = product["signing"]["maintainer_fingerprints"][0]
+        product["signing"]["maintainer_fingerprints_retired"] = [current]
+        with self.assertRaisesRegex(policy.PolicyError, "lists a current"):
+            policy.check_product(product)
+        product["signing"]["maintainer_fingerprints_retired"] = ["abc"]
+        with self.assertRaisesRegex(policy.PolicyError, "upper-case"):
+            policy.check_product(product)
+        product["signing"]["maintainer_fingerprints_retired"] = ["A" * 40]
+        policy.check_product(product)
+
 
 class SecurityRenderTest(unittest.TestCase):
     def test_repository_security_md_is_current(self):

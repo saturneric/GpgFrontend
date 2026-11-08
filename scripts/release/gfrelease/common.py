@@ -164,6 +164,13 @@ class Product:
         # are pinned in it.
         self.maintainers = [f.upper() for f in
                             signing.get("maintainer_fingerprints", [])]
+        # A maintainer key replaced: what it signed still verifies (the
+        # releases it made stay listed), it is never used to sign again.
+        self.retired_maintainers = [
+            f.upper() for f in signing.get("maintainer_fingerprints_retired",
+                                           [])]
+        self.trusted_maintainers = self.maintainers + [
+            f for f in self.retired_maintainers if f not in self.maintainers]
         self.keyring_path = Path(product_path).with_name("maintainers.asc")
         self.authenticode_subject = signing.get("authenticode_subject", "")
         # Replaced keys and certificates: accepted on what they signed before,

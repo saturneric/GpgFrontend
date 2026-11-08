@@ -121,7 +121,7 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
             nonlocal ring
             if ring is None:
                 ring = stack.enter_context(openpgp.Keyring(
-                    product.keyring_path, product.maintainers))
+                    product.keyring_path, product.trusted_maintainers))
             return ring
 
         def fetch(rel: str, name: str) -> Path:
