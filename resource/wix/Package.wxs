@@ -101,8 +101,8 @@
            row 2: v > ProductVersion, Attributes 2 (detect-only) -> AI_NEWERPRODUCTFOUND
          MsiCustActComponent AI_DOWNGRADE: Type 19 (error) when a newer product is found.
          AllowSameVersionUpgrades departs from the AIP deliberately: ProductVersion is only the
-         version's X.Y.Z (MSI compares no more), so every nightly of a series, and a beta and
-         the release it leads to, carry the same one with a fresh ProductCode. Without it each is a
+         version's X.Y.Z (MSI compares no more), so every nightly of a series carries the
+         same one with a fresh ProductCode. Without it each is a
          *separate* product that installs over the previous one's files instead of replacing
          it, stacking entries in Add/Remove Programs and leaving two products owning the
          same paths under AppData. With it, RemoveExistingProducts clears the old install

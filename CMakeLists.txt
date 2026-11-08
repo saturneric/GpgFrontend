@@ -578,10 +578,9 @@ set(GPGFRONTEND_APP_DISPLAY_NAME "${GPGFRONTEND_APP_BASE_DISPLAY_NAME}")
 # release builds set -DGPGFRONTEND_BUILD_MODE=release. This is decoupled from the
 # git branch name on purpose: in the trunk model, `main` (the next minor) and
 # every release/X.Y branch (fixes for one series) produce nightlies, and a
-# vX.Y.Z[-beta.N|-rc.N] tag on either produces a release, so the branch name
-# cannot distinguish the two. Betas and release candidates are release builds:
-# they share the stable identity and profile, and only nightlies have their
-# own. A screenshot build shows the name users see:
+# vX.Y.Z tag on either produces a release, so the branch name cannot
+# distinguish the two. Only nightlies have their own identity and profile.
+# A screenshot build shows the name users see:
 # the manual's images are of the release, and only the display name changes,
 # never the profile name below.
 if(GPGFRONTEND_BUILD_MODE STREQUAL "release")

@@ -5,7 +5,7 @@
 #
 # status:
 #   mainline  the series under development on main; no final X.Y.0 yet
-#             (betas and rcs are tagged on main). At most one.
+#             (its builds are nightlies). At most one.
 #   stable    the newest series that has a final release; fixes go to
 #             release/X.Y. Exactly one once anything has been released.
 #   legacy    an older series that still gets security fixes until `eol`.

@@ -211,7 +211,7 @@ def _label(key: str) -> str:
 
 def render_versions(policy: dict) -> str:
     describe = {
-        "mainline": "In development: nightly and beta builds",
+        "mainline": "In development: nightly builds",
         "stable": "Current release: bug and security fixes",
         "legacy": "Security fixes only",
         "eol": "End of life",
@@ -252,12 +252,12 @@ def render_keys(policy: dict, product: dict) -> str:
     lines.append("| Stable (vX.Y.Z) | OpenPGP, detached `.sig` per file | "
                  + (", ".join(f"`{f}`" for f in fprs) if fprs
                     else "not yet published") + " |")
-    lines.append("| Beta, rc and nightly | minisign, `.minisig` per file | "
+    lines.append("| Nightly | minisign, `.minisig` per file | "
                  + (f"`{artifact}`" if artifact else "not yet published")
                  + " |")
     lines.append("")
     lines.append("Check a stable download with `gpg --verify FILE.sig FILE`, "
-                 "a beta or nightly one with `minisign -Vm FILE -P <key>`. "
+                 "a nightly one with `minisign -Vm FILE -P <key>`. "
                  "Windows installers of stable releases are also "
                  "Authenticode-signed.")
     return "\n".join(lines)

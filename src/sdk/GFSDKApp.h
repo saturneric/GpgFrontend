@@ -82,8 +82,7 @@ const char* GFAppInstallKind(GFSDKContext* ctx);
  * @brief Whether this is the nightly application ("GpgFrontend Testing"):
  * its own identity and data, following the nightly channel only.
  *
- * @return 1 nightly, 0 a release (stable, beta or rc), -1 a host too old to
- *         say
+ * @return 1 nightly, 0 a stable release, -1 a host too old to say
  */
 int GFAppIsNightlyIdentity(GFSDKContext* ctx);
 

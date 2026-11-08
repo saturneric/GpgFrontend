@@ -17,8 +17,7 @@ Then every file and the manifest are minisigned with the product's artifact
 key, everything is copied to nightly/<version>/ (immutable: a rerun skips
 what is there, a different object is an error), the descriptor is written
 last, and the commit marker after it. Release tags are never promoted here:
-stable releases pass through the offline signing stage, betas through their
-own path.
+a stable release passes through the offline signing stage.
 """
 
 from __future__ import annotations

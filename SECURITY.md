@@ -15,7 +15,7 @@ run `scripts/release/policy.py render-security`, never the table itself.
 <!-- policy:versions:begin -->
 | Version | Status | Supported | Until |
 | ------- | ------ | --------- | ----- |
-| 2.3.x | In development: nightly and beta builds | :white_check_mark: |  |
+| 2.3.x | In development: nightly builds | :white_check_mark: |  |
 | 2.2.x | Current release: bug and security fixes | :white_check_mark: |  |
 | 2.1.x | Security fixes only (the last series that builds with Qt5); move to 2.2.x | :white_check_mark: | 2027-12-31 |
 | 2.0.x | End of life; move to 2.2.x | :x: |  |
@@ -33,9 +33,9 @@ Releases from 2.1.5 on carry a detached signature for every file:
 | Releases | Signed with | Verify with |
 | -------- | ----------- | ----------- |
 | Stable (vX.Y.Z) | OpenPGP, detached `.sig` per file | `12F7E8858CF15BEC9975FF3C5CA3DA246843FD03` |
-| Beta, rc and nightly | minisign, `.minisig` per file | `RWSxNasy+OIaiWWGzwNYu223e0UNDwrsb+4S/ttGO8knO/URmtMtDpse` |
+| Nightly | minisign, `.minisig` per file | `RWSxNasy+OIaiWWGzwNYu223e0UNDwrsb+4S/ttGO8knO/URmtMtDpse` |
 
-Check a stable download with `gpg --verify FILE.sig FILE`, a beta or nightly one with `minisign -Vm FILE -P <key>`. Windows installers of stable releases are also Authenticode-signed.
+Check a stable download with `gpg --verify FILE.sig FILE`, a nightly one with `minisign -Vm FILE -P <key>`. Windows installers of stable releases are also Authenticode-signed.
 <!-- policy:keys:end -->
 
 ## Platform & Library Support

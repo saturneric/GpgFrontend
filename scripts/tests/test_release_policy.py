@@ -80,9 +80,11 @@ class SemverTest(unittest.TestCase):
                         semver.parse("2.4.0-beta.1"))
 
     def test_release_tag_shapes(self):
-        for tag in ("v2.3.0", "v2.3.0-beta.1", "v2.3.0-rc.12"):
+        # Two lines, nightly and stable: only a final vX.Y.Z is a release.
+        for tag in ("v2.3.0", "v10.20.30"):
             self.assertTrue(semver.RELEASE_TAG.match(tag), tag)
-        for tag in ("v2.4.0-alpha.0", "nightly", "v2.3", "2.3.0"):
+        for tag in ("v2.3.0-beta.1", "v2.3.0-rc.12", "v2.4.0-alpha.0",
+                    "nightly", "v2.3", "2.3.0", "v2.3.0+meta"):
             self.assertFalse(semver.RELEASE_TAG.match(tag), tag)
         self.assertTrue(semver.BASE_TAG.match("v2.4.0-alpha.0"))
 
@@ -241,8 +243,10 @@ class CheckOrderTest(unittest.TestCase):
             self.assertTrue(check_order.check_tag("v2.3.0", repo))
             (repo / "release" / "notes" / "2.3.0.md").write_text("## 2.3.0\n")
             self.assertEqual(check_order.check_tag("v2.3.0", repo), [])
-            # A base tag is no release and needs none.
+            # A base tag is no release and needs none; nor is a prerelease.
             self.assertEqual(check_order.check_tag("v2.4.0-alpha.0", repo), [])
+            self.assertEqual(check_order.check_tag("v2.4.0-beta.1", repo), [])
+            self.assertEqual(check_order.check_tag("v2.4.0-rc.1", repo), [])
 
     def test_other_refs_are_not_checked(self):
         self.assertEqual(check_order.check("1.0.0", "feature/x", self.TAGS,

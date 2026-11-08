@@ -5,7 +5,7 @@
 # Draft the release notes for a version, from the Conventional Commits since
 # the release before it:
 #
-#   scripts/release/notes.sh 2.3.0 [--force]
+#   scripts/release/notes.sh X.Y.Z [--force]
 #
 # Writes release/notes/<version>.md. Edit that file and land it in a PR
 # before tagging: the tagged tree must carry it (scripts/release/check_order.py
@@ -15,8 +15,8 @@ set -euo pipefail
 
 version="${1:-}"
 force="${2:-}"
-[[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-(beta|rc)\.[0-9]+)?$ ]] || {
-  echo "usage: $0 X.Y.Z[-beta.N|-rc.N] [--force]" >&2
+[[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+  echo "usage: $0 X.Y.Z [--force]" >&2
   exit 2
 }
 command -v git-cliff >/dev/null || {
@@ -33,8 +33,7 @@ if [ -e "$out" ] && [ "$force" != "--force" ]; then
 fi
 
 # The newest release reachable from HEAD that is older than this one: on a
-# release branch that is the previous fix, on main the previous release main
-# saw (a final, or the last beta of this very version).
+# release branch the previous fix, on main the previous release main saw.
 previous="$(python3 - "$top" "$version" <<PY
 import subprocess, sys
 sys.path.insert(0, "${here}")
