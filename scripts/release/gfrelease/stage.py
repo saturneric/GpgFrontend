@@ -58,8 +58,12 @@ def stage(product: Product, candidate: Path, staging: Store, *, ref: str,
             raise ReleaseError(f"{prefix} already holds {existing['commit']}, "
                                f"not {commit}")
         return prefix
+    # No staged.json yet: whatever is under the prefix is an earlier attempt
+    # that never completed (nothing reads a candidate without staged.json),
+    # and is replaced; staged.json, written last, is what makes it one.
     for name in sorted(manifest) + [SUMS, BUNDLE]:
-        staging.put_file(candidate / name, f"{prefix}/{name}")
+        staging.put_file(candidate / name, f"{prefix}/{name}",
+                         immutable=False)
     staged = {"schema": SCHEMA, "product": product.slug, "ref": ref,
               "commit": commit, "version": version, "filesafe": filesafe,
               "built_at": built_at, "files": sorted(manifest)}
@@ -75,6 +79,13 @@ def read_staged(data: bytes) -> dict:
             raise ReleaseError(f"staged.json lacks {key}")
     if staged["schema"] != SCHEMA:
         raise ReleaseError(f"staged.json schema {staged['schema']} is unknown")
+    # It comes from the untrusted staging bucket: every field promote reads
+    # has the type it reads it as.
+    for key in ("product", "ref", "version", "filesafe", "built_at"):
+        if not isinstance(staged[key], str):
+            raise ReleaseError(f"staged.json: {key} is not a string")
+    if not staged["ref"].startswith("refs/"):
+        raise ReleaseError(f"staged.json: not a ref: {staged['ref']!r}")
     parse_version(staged["version"], STAGED)
     if not isinstance(staged["commit"], str) or \
             not re.fullmatch(r"[0-9a-f]{40}", staged["commit"]):

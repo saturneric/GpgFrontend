@@ -141,6 +141,11 @@ def run(cmd, **kw) -> subprocess.CompletedProcess:
     kw.setdefault("check", True)
     kw.setdefault("capture_output", True)
     kw.setdefault("text", True)
+    if kw["text"]:
+        # What a tool prints can carry bytes from untrusted input (a user ID
+        # in a forged signature, a file name): never a UnicodeDecodeError.
+        kw.setdefault("encoding", "utf-8")
+        kw.setdefault("errors", "replace")
     try:
         return subprocess.run([str(c) for c in cmd], **kw)
     except subprocess.CalledProcessError as e:
@@ -176,6 +181,10 @@ class Product:
             f for f in self.retired_maintainers if f not in self.maintainers]
         self.keyring_path = Path(product_path).with_name("maintainers.asc")
         self.authenticode_subject = signing.get("authenticode_subject", "")
+        # A signature without an RFC 3161 time stamp stops verifying when the
+        # certificate expires; required unless the product says otherwise.
+        self.authenticode_timestamp_required = \
+            signing.get("authenticode_timestamp", "required") == "required"
         # Replaced keys and certificates: accepted on what they signed before,
         # never used to sign anything new. The host and the offline stage sign
         # only with the current ones.
@@ -261,6 +270,19 @@ def tagged_commit(git_dir: Path, tag: str, expect: str | None = None,
             git_version(git_dir, commit, f"refs/tags/{tag}") != version:
         raise ReleaseError(f"git does not call {commit} {version}")
     return commit
+
+
+def tag_time(git_dir: Path, tag: str) -> int:
+    """When @p tag was made (Unix seconds): an annotated tag's tagger date,
+    or for a lightweight one its commit's committer date. A maintainer's
+    signature on a release's file is never older than the release's tag."""
+    out = run(["git", "-C", git_dir, "for-each-ref",
+               "--format=%(taggerdate:unix) %(committerdate:unix) "
+               "%(*committerdate:unix)", f"refs/tags/{tag}"],
+              check=False).stdout.split()
+    if not out or not out[0].isdigit():
+        raise ReleaseError(f"{git_dir} has no tag {tag} with a date")
+    return int(out[0])
 
 
 def notes_at(git_dir: Path, ref: str, version: str) -> bytes | None:

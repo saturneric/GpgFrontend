@@ -9,7 +9,7 @@
   python3 scripts/release/gfrelease stable 2.3.0   the offline stable stage (you)
   python3 scripts/release/gfrelease import 2.2.4   a release from GitHub Releases
   python3 scripts/release/gfrelease resign              a new serial and expiry
-  python3 scripts/release/gfrelease verify [--http] [--deep]           (anyone)
+  python3 scripts/release/gfrelease verify [--deep]    over HTTPS (anyone)
 
 The product (slug, repository, workflow, mirror bases, public keys) comes from
 release/product.json, the series and withdrawals from release/policy.toml.
@@ -288,6 +288,11 @@ def main(argv=None) -> int:
                 except promote_mod.PromoteIncomplete as e:
                     done = e.done
                     failures.append(str(e))
+                except ReleaseError as e:
+                    # Whatever stopped promotion, the index is still built
+                    # (and kept from expiring) from what is already there.
+                    done = []
+                    failures.append(f"promote: {e}")
                 for d in done:
                     print(f"promoted {d['version']} ({len(d['artifacts'])} files)")
             if args.command in ("index", "run", "resign"):
@@ -304,7 +309,8 @@ def main(argv=None) -> int:
                         mirrors=mirrors,
                         git_dir=Path(args.git_dir) if args.git_dir else None,
                         cosign=args.cosign or "cosign",
-                        authenticode_ca=args.authenticode_ca)
+                        authenticode_ca=args.authenticode_ca,
+                        index_pub=signing["index_keys"])
                 except index_mod.IndexIncomplete as e:
                     index = e.index
                     failures.append(str(e))
@@ -325,7 +331,8 @@ def main(argv=None) -> int:
     except ReleaseError as e:
         print(f"gfrelease: {e}", file=sys.stderr)
         return 1
-    except (KeyError, TypeError, ValueError) as e:
+    except (KeyError, TypeError, ValueError, AttributeError, IndexError,
+            UnicodeError) as e:
         # A safety net: input that slipped past the checks is reported, not
         # dumped as a traceback.
         print(f"gfrelease: malformed input ({type(e).__name__}: {e})",
