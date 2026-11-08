@@ -5,8 +5,9 @@
   "workflow": ".github/workflows/build.yml",
   "bases": {
     "update": ["https://update.bktus.com/", "https://ftp.bktus.com/update/"],
-    "builds": ["https://builds.bktus.com/", "https://ftp.bktus.com/builds/"]
+    "builds": ["https://builds.bktus.com/"]
   },
+  "nightly_retention_days": 30,
   "notes_link_hosts": [
     "bktus.com",
     "*.bktus.com",

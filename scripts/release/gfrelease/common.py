@@ -130,8 +130,11 @@ def iso(t: dt.datetime) -> str:
 
 
 def parse_iso(text: str) -> dt.datetime:
-    return dt.datetime.strptime(text, "%Y-%m-%dT%H:%M:%SZ").replace(
-        tzinfo=dt.timezone.utc)
+    try:
+        return dt.datetime.strptime(text, "%Y-%m-%dT%H:%M:%SZ").replace(
+            tzinfo=dt.timezone.utc)
+    except (TypeError, ValueError) as e:
+        raise ReleaseError(f"not a UTC time: {text!r}") from e
 
 
 def run(cmd, **kw) -> subprocess.CompletedProcess:

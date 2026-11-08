@@ -450,6 +450,22 @@ class ChainTest(unittest.TestCase):
             n += 1
         self.assertGreater(n, 5)
 
+    def test_a_nightly_about_to_expire_is_never_named(self):
+        self.commit()
+        _, version = self.build()
+        self.promote()
+        self.assertEqual(self.index()["channels"]["nightly"], version)
+        # 23 days on (30-day retention, 7-day margin), no newer main build:
+        # the bucket will delete it soon, so the index stops naming it.
+        os.environ["GFR_NOW"] = "2099-01-01T00:00:00Z"
+        self.addCleanup(os.environ.pop, "GFR_NOW", None)
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            index = self.index(force=True)
+        self.assertIsNone(index["channels"]["nightly"])
+        self.assertIsNone(index["nightly"])
+        self.assertIn("no main nightly promoted since", err.getvalue())
+
     def test_a_rerun_workflow_stages_again(self):
         commit = self.commit()
         prefix, version = self.build()
@@ -1095,6 +1111,43 @@ class StableTest(unittest.TestCase):
                 self.assertEqual(self.tree(), clean)
             n += 1
         self.assertGreater(n, 5)
+
+    def test_a_client_over_https_sees_the_countersigned_release(self):
+        import functools
+        import http.server
+        import ssl
+        import threading
+        self.tag()
+        self.build()
+        self.stage().run()
+        self.index()
+        ca, key = self.tmp / "ca.pem", self.tmp / "ca.key"
+        subprocess.run(["openssl", "req", "-x509", "-newkey", "ec",
+                        "-pkeyopt", "ec_paramgen_curve:P-256", "-nodes",
+                        "-days", "1", "-subj", "/CN=localhost",
+                        "-addext", "subjectAltName=DNS:localhost",
+                        "-keyout", key, "-out", ca], check=True,
+                       capture_output=True)
+        handler = functools.partial(http.server.SimpleHTTPRequestHandler,
+                                    directory=str(self.tmp))
+        handler.log_message = lambda *a: None
+        server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        context.load_cert_chain(ca, key)
+        server.socket = context.wrap_socket(server.socket, server_side=True)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        self.addCleanup(server.server_close)
+        self.addCleanup(server.shutdown)
+        base = f"https://localhost:{server.server_address[1]}"
+        update = verify_mod.HttpSource([f"{base}/update/"],
+                                       self.product.slug, str(ca))
+        builds = verify_mod.HttpSource([f"{base}/builds/"],
+                                       self.product.slug, str(ca))
+        report = verify_mod.verify(self.product, update, builds,
+                                   index_keys=[self.idx_pub],
+                                   artifact_key=self.art_pub, deep=True)
+        self.assertEqual([c["version"] for c in report["checked"]], ["2.3.0"])
+        self.assertEqual(report["channels"]["stable"], "2.3.0")
 
     # --- trust inputs --------------------------------------------------
 

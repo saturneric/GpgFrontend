@@ -17,7 +17,8 @@
 # would, deep: every artifact downloaded and its signature checked.
 #
 # With --serve the mirror stays up (Ctrl-C ends it), and <dir>/client.env
-# holds what a rehearsal client needs: the bases, the index key and the CA.
+# holds what a rehearsal client needs: the bases, the index key and the CA,
+# and the CMake options that build such a client (GF_REHEARSAL_CMAKE).
 # Needs minisign, rclone, openssl, cmake and git.
 set -euo pipefail
 
@@ -141,6 +142,9 @@ GF_REHEARSAL_BUILDS_BASE=$base/builds/
 GF_REHEARSAL_INDEX_KEY=$(grep -v '^untrusted' "$dir/keys/index.pub")
 GF_REHEARSAL_CA=$dir/ca.pem
 GF_REHEARSAL_NIGHTLY=$version
+# A client of this mirror: configure a build tree with these (and never
+# distribute it), then Help > Check for Updates.
+GF_REHEARSAL_CMAKE="-DGF_RELEASE_UPDATE_BASES_OVERRIDE=$base/update/ -DGF_RELEASE_BUILDS_BASES_OVERRIDE=$base/builds/ -DGF_RELEASE_INDEX_KEYS_OVERRIDE=$(grep -v '^untrusted' "$dir/keys/index.pub") -DGF_RELEASE_CA_OVERRIDE=$dir/ca.pem"
 EOF
 echo "rehearsal: nightly $version published and verified at $base"
 if [ "$serve" = "--serve" ]; then

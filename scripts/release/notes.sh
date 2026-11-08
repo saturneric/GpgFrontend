@@ -13,12 +13,20 @@
 # Needs git-cliff (https://git-cliff.org); configured by cliff.toml.
 set -euo pipefail
 
-version="${1:-}"
-force="${2:-}"
-[[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+usage() {
   echo "usage: $0 X.Y.Z [--force]" >&2
   exit 2
 }
+version=""
+force=""
+for arg in "$@"; do
+  case "$arg" in
+    --force) force="--force" ;;
+    -*) usage ;;
+    *) [ -z "$version" ] || usage; version="$arg" ;;
+  esac
+done
+[[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || usage
 command -v git-cliff >/dev/null || {
   echo "notes: git-cliff is not installed (cargo install git-cliff)" >&2
   exit 1
@@ -34,9 +42,9 @@ fi
 
 # The newest release reachable from HEAD that is older than this one: on a
 # release branch the previous fix, on main the previous release main saw.
-previous="$(python3 - "$top" "$version" <<PY
+previous="$(python3 - "$top" "$version" "$here" <<'PY'
 import subprocess, sys
-sys.path.insert(0, "${here}")
+sys.path.insert(0, sys.argv[3])
 import semver
 top, version = sys.argv[1], semver.parse(sys.argv[2])
 tags = subprocess.run(["git", "tag", "--merged", "HEAD", "--list", "v*"],
