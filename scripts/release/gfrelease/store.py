@@ -27,6 +27,12 @@ from common import ReleaseError, check_relpath, run, sha256_file
 _NOT_FOUND = (3, 4)
 
 
+class StoreUnavailable(ReleaseError):
+    """The store could not be asked (a network failure, a 403, an outage):
+    nothing about the object is known. Unlike an object that is not there,
+    which is an answer."""
+
+
 class Store:
     def __init__(self, root: str, rclone: str = "rclone"):
         if not root:
@@ -48,7 +54,8 @@ class Store:
         if out.returncode in _NOT_FOUND:
             return []
         if out.returncode != 0:
-            raise ReleaseError(f"listing {self._at(prefix)}: {out.stderr.strip()}")
+            raise StoreUnavailable(f"listing {self._at(prefix)}: "
+                                   f"{out.stderr.strip()}")
         return sorted(line for line in out.stdout.splitlines() if line)
 
     def exists(self, path: str) -> bool:
@@ -57,12 +64,24 @@ class Store:
         if out.returncode in _NOT_FOUND:
             return False
         if out.returncode != 0:
-            raise ReleaseError(f"looking up {self._at(path)}: {out.stderr.strip()}")
+            raise StoreUnavailable(f"looking up {self._at(path)}: "
+                                   f"{out.stderr.strip()}")
         return json.loads(out.stdout or "[]") != []
 
+    def _get(self, cmd: list, what: str):
+        """An rclone read: not found is an answer (a ReleaseError), any
+        other failure is StoreUnavailable."""
+        out = run(cmd, check=False, text=False)
+        if out.returncode == 0:
+            return out
+        detail = out.stderr.decode("utf-8", "replace").strip()
+        if out.returncode in _NOT_FOUND:
+            raise ReleaseError(f"{what}: not found ({detail})")
+        raise StoreUnavailable(f"reading {what}: {detail}")
+
     def read(self, path: str) -> bytes:
-        out = run([self.rclone, "cat", self._at(path)], text=False)
-        return out.stdout
+        return self._get([self.rclone, "cat", self._at(path)],
+                         self._at(path)).stdout
 
     def download(self, prefix: str, local: Path) -> None:
         run([self.rclone, "copy", self._at(prefix), str(local)])
@@ -70,7 +89,8 @@ class Store:
     def fetch_to(self, path: str, local: Path) -> Path:
         """One object, streamed to @p local: an installer is never held in
         memory whole."""
-        run([self.rclone, "copyto", self._at(path), str(local)])
+        self._get([self.rclone, "copyto", self._at(path), str(local)],
+                  self._at(path))
         if not Path(local).is_file():
             raise ReleaseError(f"{self._at(path)}: nothing was read")
         return Path(local)
@@ -88,7 +108,8 @@ class Store:
             if proc.returncode != 0:
                 err.seek(0)
                 detail = err.read().decode("utf-8", "replace").strip()
-                raise ReleaseError(f"reading {self._at(path)} failed: {detail}")
+                raise StoreUnavailable(f"reading {self._at(path)} failed: "
+                                       f"{detail}")
         return h.hexdigest()
 
     def put_file(self, local: Path, path: str, immutable: bool = True) -> None:
@@ -106,7 +127,11 @@ class Store:
                 raise ReleaseError(f"{self._at(path)} exists with other bytes; "
                                    "a published object is never replaced")
             return
-        run([self.rclone, "copyto", str(local), self._at(path)])
+        out = run([self.rclone, "copyto", str(local), self._at(path)],
+                  check=False)
+        if out.returncode != 0:
+            raise StoreUnavailable(f"writing {self._at(path)}: "
+                                   f"{out.stderr.strip()}")
 
     def put_bytes(self, data: bytes, path: str, immutable: bool = True) -> None:
         with tempfile.TemporaryDirectory() as tmp:

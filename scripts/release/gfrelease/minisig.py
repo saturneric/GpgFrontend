@@ -44,10 +44,17 @@ def sign(secret_key: Path, file: Path, trusted_comment: str) -> Path:
 
 
 def trusted_comment(sig: bytes) -> str:
-    lines = sig.decode("utf-8").splitlines()
-    if len(lines) < 4 or not lines[2].startswith("trusted comment: "):
+    """The trusted comment (line 3). The untrusted one (line 1) is anyone's
+    to write and is never decoded."""
+    lines = sig.split(b"\n")
+    prefix = b"trusted comment: "
+    if len(lines) < 4 or not lines[2].startswith(prefix):
         raise ReleaseError("not a minisign signature")
-    return lines[2][len("trusted comment: "):]
+    try:
+        return lines[2][len(prefix):].rstrip(b"\r").decode("utf-8")
+    except UnicodeDecodeError as e:
+        raise ReleaseError("a minisign trusted comment that is not UTF-8") \
+            from e
 
 
 def verify(public_keys: list[str], file: Path, sig: Path) -> str:
