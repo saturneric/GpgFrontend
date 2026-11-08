@@ -586,8 +586,20 @@ class WorkflowTest(unittest.TestCase):
     def test_provenance_signs_after_every_platform_check(self):
         needs = re.search(r"^    needs: \[(.*)\]", self.jobs["provenance"], re.M)
         self.assertEqual({n.strip() for n in needs.group(1).split(",")},
-                         {"build-linux", "build-windows", "sign-macos",
-                          "macos-smoke", "sign-android"})
+                         {"setup", "build-linux", "build-windows",
+                          "sign-macos", "macos-smoke", "sign-android"})
+
+    def test_publishing_jobs_gate_on_the_one_classification(self):
+        # scripts/ci/build_mode.sh decides once which refs publish (two
+        # lines: main and release/X.Y nightlies, vX.Y.Z releases). A job that
+        # matched refs itself could sign a base tag or a prerelease tag.
+        for name in ("sign-android", "sign-macos", "macos-smoke",
+                     "provenance", "stage", "play-upload"):
+            job = self.jobs[name]
+            with self.subTest(job=name):
+                self.assertRegex(job, r"needs\.setup\.outputs\.publish")
+                gate = re.search(r"(?ms)^    if: (.*?)\n    \w", job).group(1)
+                self.assertNotIn("github.ref", gate)
 
     def test_stage_hands_over_only_the_signed_candidate(self):
         stage = self.code("stage")
