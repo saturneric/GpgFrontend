@@ -86,8 +86,8 @@ def check_index(product: Product, index: dict, comment: str) -> None:
 
 def verify(product: Product, update, builds, *, index_keys: list[str],
            artifact_key: str, deep: bool = False) -> dict:
-    """Beta and nightly files are minisigned with the artifact key; stable
-    ones carry a maintainer's OpenPGP signature, checked against the keys
+    """Nightly files are minisigned with the artifact key; stable ones carry
+    a maintainer's OpenPGP signature, checked against the keys
     beside release/product.json (maintainers.asc) with the fingerprints it
     pins."""
     with tempfile.TemporaryDirectory(prefix="gfr-verify-") as tmp_name, \

@@ -155,7 +155,7 @@ class ChainTest(unittest.TestCase):
 
         index = self.index()
         self.assertEqual(index["serial"], 1)
-        self.assertEqual(index["channels"], {"stable": None, "beta": None,
+        self.assertEqual(index["channels"], {"stable": None,
                                              "nightly": version})
         self.assertEqual(index["series"]["2.1"]["eol"], "2027-12-31")
 
@@ -730,7 +730,7 @@ class StableTest(unittest.TestCase):
                            authenticode_ca=str(cert))
         self.assert_refused(stage.run, "not '/CN=GpgFrontend Test Signing")
 
-    def test_a_beta_never_goes_through_the_offline_stage(self):
+    def test_a_prerelease_never_goes_through_the_offline_stage(self):
         self.assert_refused(lambda: self.stage("2.3.0-rc.1"), "final releases")
 
     def test_the_host_refuses_a_manifest_not_signed_by_a_maintainer(self):

@@ -34,6 +34,8 @@
 #
 # Rules (SemVer 2.0.0):
 #   on a tag vX.Y.Z[-beta.N|-rc.N]       -> the tag without "v"
+#     (a release is only ever vX.Y.Z; beta and rc tags are read so that the
+#     historical v2.2.0-beta.1 and the commits around it keep their versions)
 #   N commits after vX.Y.Z-alpha.0       -> X.Y.Z-alpha.N+g<sha12>
 #   N commits after vX.Y.Z-rc.K          -> X.Y.Z-rc.K.dev.N+g<sha12>
 #   N commits after vX.Y.Z, release/X.Y  -> X.Y.(Z+1)-alpha.N+g<sha12>

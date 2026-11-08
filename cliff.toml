@@ -29,7 +29,7 @@ split_commits = false
 protect_breaking_commits = true
 # Only real releases bound a range: never base tags (vX.Y.0-alpha.0) nor the
 # moving `nightly`.
-tag_pattern = "^v[0-9]+\\.[0-9]+\\.[0-9]+(-(beta|rc)\\.[0-9]+)?$"
+tag_pattern = "^v[0-9]+\\.[0-9]+\\.[0-9]+$"
 sort_commits = "oldest"
 commit_parsers = [
   { message = "^feat", group = "<!-- 0 -->New" },

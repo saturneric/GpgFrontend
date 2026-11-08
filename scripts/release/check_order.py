@@ -13,11 +13,12 @@ offer an older build as an update, or never offer a newer one:
                policy was not moved on with it.
   release/X.Y  in series X.Y, and newer than every X.Y tag.
 
-  vX.Y.Z[-beta.N|-rc.N] (a release tag build): the tagged tree carries
-               release/notes/X.Y.Z[-...].md, the reviewed notes that are
-               published with it (scripts/release/notes.sh drafts them).
+  vX.Y.Z (a release tag build): the tagged tree carries
+               release/notes/X.Y.Z.md, the reviewed notes that are published
+               with it (scripts/release/notes.sh drafts them).
 
-Any other ref (a pull request, a base tag) has nothing to check.
+Any other ref (a pull request, a base tag, any other tag) has nothing to
+check.
 
   check_order.py [--ref REF] [--version VERSION] [--repo DIR]
 

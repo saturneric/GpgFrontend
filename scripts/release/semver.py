@@ -20,9 +20,11 @@ _RE = re.compile(
     r"(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*))?"
     r"(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$")
 
-# What a release tag may look like. Anything else (vX.Y.Z-alpha.0 base tags,
-# the moving `nightly`) is not a release.
-RELEASE_TAG = re.compile(r"^v(\d+)\.(\d+)\.(\d+)(?:-(beta|rc)\.(\d+))?$")
+# What a release tag may look like: a final vX.Y.Z, nothing else. There are
+# two lines, nightly and stable; a prerelease tag (the historical
+# v2.2.0-beta.1, a vX.Y.0-alpha.0 base tag, the moving `nightly`) is not a
+# release, and nothing publishes one.
+RELEASE_TAG = re.compile(r"^v(\d+)\.(\d+)\.(\d+)$")
 BASE_TAG = re.compile(r"^v(\d+)\.(\d+)\.0-alpha\.0$")
 
 
