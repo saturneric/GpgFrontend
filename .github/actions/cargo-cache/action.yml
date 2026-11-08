@@ -1,0 +1,67 @@
+# Copyright (C) 2021-2026 Saturneric <eric@bktus.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# Corrosion's target dir and cargo's own caches, restored before a build and
+# saved after it. One action for both, so the two can never cache different
+# paths: the restore would then miss in silence on every run.
+#
+# rust-cache is not used: cargo builds with --target <triple>, and its cleaner
+# took <target-dir>/<triple> for a profile directory and deleted release/
+# inside it, so every leg compiled all ~196 crates from nothing while
+# reporting an exact cache hit.
+#
+# The key is everything that decides the dependency artifacts: the runner,
+# the exact rustc, the profile (all in `key`) and Cargo.lock (added here).
+name: Cargo Cache
+description: Restore or save the Rust dependency caches of a build.
+
+inputs:
+  mode:
+    description: "restore or save"
+    required: true
+  key:
+    description: "the key without Cargo.lock's hash (restore)"
+    required: false
+    default: ""
+  primary-key:
+    description: "the key the restore reported (save)"
+    required: false
+    default: ""
+  target-dir:
+    description: "Corrosion's target dir, relative to the workspace"
+    required: false
+    default: "build/cargo"
+
+outputs:
+  primary-key:
+    description: "the exact key looked up, to save under"
+    value: ${{ steps.restore.outputs.cache-primary-key }}
+  cache-hit:
+    description: "'true' on an exact hit"
+    value: ${{ steps.restore.outputs.cache-hit }}
+
+runs:
+  using: composite
+  steps:
+    - id: restore
+      if: inputs.mode == 'restore'
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: |
+          ~/.cargo/registry/index
+          ~/.cargo/registry/cache
+          ~/.cargo/git/db
+          ${{ github.workspace }}/${{ inputs.target-dir }}
+        key: ${{ inputs.key }}-${{ hashFiles('rust/Cargo.lock') }}
+        restore-keys: |
+          ${{ inputs.key }}-
+
+    - if: inputs.mode == 'save'
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: |
+          ~/.cargo/registry/index
+          ~/.cargo/registry/cache
+          ~/.cargo/git/db
+          ${{ github.workspace }}/${{ inputs.target-dir }}
+        key: ${{ inputs.primary-key }}

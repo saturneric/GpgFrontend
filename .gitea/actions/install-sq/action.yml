@@ -1,0 +1,40 @@
+# Copyright (C) 2021-2026 Saturneric <eric@bktus.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# sq 1.x, which the Rust interop tests and MobileScaleTest drive, and which
+# fail rather than skip without it. The apt sq on Ubuntu 24.04 is the 0.x
+# CLI; the tests use the 1.x syntax (--batch, --cert-store=none, --for-file).
+# The version is named here only.
+#
+# Restore and save are split so the binary is cached as soon as it is built:
+# actions/cache only saves at the end of a fully green job, so a failing test
+# later on would otherwise force a rebuild every run. Every job that had to
+# build it saves it, so no job builds it twice.
+name: Install sq
+description: Install the sq 1.x the tests use, from the cache when it can.
+
+runs:
+  using: composite
+  steps:
+    - name: Restore sq
+      id: cache-sq
+      uses: actions/cache/restore@v3
+      with:
+        path: ~/.cargo/bin/sq
+        key: ${{ runner.os }}-sequoia-sq-1.3.1
+
+    - name: Install sq 1.3.1
+      if: steps.cache-sq.outputs.cache-hit != 'true'
+      shell: bash
+      run: cargo install sequoia-sq --version 1.3.1 --locked
+
+    - name: Save sq
+      if: steps.cache-sq.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v3
+      with:
+        path: ~/.cargo/bin/sq
+        key: ${{ steps.cache-sq.outputs.cache-primary-key }}
+
+    - name: Check sq
+      shell: bash
+      run: sq version

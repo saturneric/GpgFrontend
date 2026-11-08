@@ -146,18 +146,28 @@ jobs:
 
       # What the update chain's tests drive for real (scripts/tests/
       # test_gfrelease.py, stable releases included: Authenticode on a real
-      # MSI): without them those tests skip themselves.
+      # MSI), listed once in scripts/release/tools.txt.
       - name: Install Release Tools
         run: |
           set -euo pipefail
           sudo apt-get update -q
-          sudo apt-get install -y -q minisign osslsigncode rclone wixl
+          grep -v '^#' scripts/release/tools.txt | awk 'NF { print $2 }' |
+            sort -u | xargs sudo apt-get install -y -q
 
-      # The release-candidate rules, and the workflow structure they rely on.
-      # Here so a pull request runs them: provenance and release only run on
-      # main, where a failure costs a nightly.
+      # The release-candidate rules, the update chain end to end and the
+      # workflow structure they rely on. Here so a pull request runs them:
+      # provenance and staging only run where a failure costs a release.
+      # GF_REQUIRE_RELEASE_TOOLS: a chain test skipped here is a chain
+      # untested, so a missing tool fails the run.
       - name: Test Release Candidate Rules
+        env:
+          GF_REQUIRE_RELEASE_TOOLS: "1"
         run: python3 -m unittest discover -s scripts/tests
+
+      # The nightly chain once more, as the signing host runs it: through
+      # the gfrelease command line, to a local HTTPS mirror, verified deep.
+      - name: Rehearse The Update Chain
+        run: scripts/release/rehearse.sh "$RUNNER_TEMP/rehearsal"
 
       # release/policy.toml is the one statement of which series exist and in
       # what state; SECURITY.md's table is generated from it.
@@ -517,8 +527,7 @@ jobs:
         with:
           lfs: "false"
 
-      - name: Test Release Candidate Rules
-        run: python3 -m unittest discover -s scripts/tests
+      # The release-candidate rules ran in setup, on this same commit.
 
       # Not merged: one directory per artifact, so the leg that produced each
       # file is known and two legs shipping the same file name is an error

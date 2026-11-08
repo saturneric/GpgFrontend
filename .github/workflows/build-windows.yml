@@ -144,16 +144,10 @@ jobs:
       # See build-linux.yml.
       - name: Restore Cargo Cache
         id: cargo-cache
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        uses: ./.github/actions/cargo-cache
         with:
-          path: |
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-            ${{ github.workspace }}/build/cargo
-          key: cargo-${{ matrix.os }}-${{ steps.rustwin.outputs.cachekey }}-${{ env.BUILD_TYPE }}-${{ hashFiles('rust/Cargo.lock') }}
-          restore-keys: |
-            cargo-${{ matrix.os }}-${{ steps.rustwin.outputs.cachekey }}-${{ env.BUILD_TYPE }}-
+          mode: restore
+          key: cargo-${{ matrix.os }}-${{ steps.rustwin.outputs.cachekey }}-${{ env.BUILD_TYPE }}
 
       - name: Build GpgME And GpgFrontend
         env:
@@ -166,14 +160,10 @@ jobs:
           "$(cygpath -u "$GITHUB_WORKSPACE")/scripts/ci/windows/build.sh"
 
       - name: Save Cargo Cache
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        uses: ./.github/actions/cargo-cache
         with:
-          path: |
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-            ${{ github.workspace }}/build/cargo
-          key: ${{ steps.cargo-cache.outputs.cache-primary-key }}
+          mode: save
+          primary-key: ${{ steps.cargo-cache.outputs.primary-key }}
         if: >-
           github.event_name == 'push' && matrix.flavor == 'installed' &&
           steps.cargo-cache.outputs.cache-hit != 'true'

@@ -21,6 +21,7 @@ Stores are rclone paths that already include the product root.
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import json
 import os
 import sys
@@ -37,7 +38,7 @@ import stable as stable_mod  # noqa: E402
 import stage as stage_mod  # noqa: E402
 import verify as verify_mod  # noqa: E402
 from common import (Product, ReleaseError, default_product, locked,  # noqa: E402
-                    run)
+                    parse_iso, run, utcnow)
 from store import Store  # noqa: E402
 
 
@@ -152,6 +153,8 @@ def main(argv=None) -> int:
     opt(v, "artifact_pub", "the artifact key (file or base64)")
     opt(v, "cafile", "CA bundle for the HTTPS bases")
     v.add_argument("--deep", action="store_true", help="download every artifact")
+    opt(v, "min_days_left", "fail when the index expires sooner than this "
+        "(a monitor's early warning that the signing host stopped)")
 
     args = ap.parse_args(argv)
     if args.product and not args.policy:
@@ -228,6 +231,12 @@ def main(argv=None) -> int:
             report = verify_mod.verify(product, update, builds, index_keys=keys,
                                        artifact_key=artifact, deep=args.deep)
             print(json.dumps(report, indent=2))
+            if args.min_days_left:
+                left = parse_iso(report["expires"]) - utcnow()
+                if left < dt.timedelta(days=float(args.min_days_left)):
+                    raise ReleaseError(
+                        f"the index expires at {report['expires']}, in "
+                        f"{left}: the signing host has not re-signed it")
             return 0
 
         need(args, "builds", "state_dir", "artifact_pub")

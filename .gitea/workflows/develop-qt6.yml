@@ -93,31 +93,8 @@ jobs:
       - name: Clippy
         run: cargo clippy --manifest-path rust/Cargo.toml --lib --locked
 
-      # Restore and save are split so the binary is cached as soon as it is
-      # built: actions/cache only saves at the end of a fully green job, so a
-      # failing test later on would otherwise force a rebuild every run.
-      - name: Restore sq
-        id: cache-sq
-        uses: actions/cache/restore@v3
-        with:
-          path: ~/.cargo/bin/sq
-          key: ${{ runner.os }}-sequoia-sq-1.3.1
-
-      - name: Install sq 1.x
-        # The apt sq on Ubuntu 24.04 is the 0.x CLI; the interop tests use the
-        # 1.x syntax (--batch, --cert-store=none, --for-file, ...).
-        if: steps.cache-sq.outputs.cache-hit != 'true'
-        run: cargo install sequoia-sq --version 1.3.1 --locked
-
-      - name: Save sq
-        if: steps.cache-sq.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v3
-        with:
-          path: ~/.cargo/bin/sq
-          key: ${{ steps.cache-sq.outputs.cache-primary-key }}
-
-      - name: Check sq
-        run: sq version
+      - name: Install sq
+        uses: ./.gitea/actions/install-sq
 
       - name: Cache Cargo
         uses: actions/cache@v3
@@ -295,17 +272,8 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      # The same sq the build job caches; see there.
-      - name: Restore sq
-        id: cache-sq
-        uses: actions/cache/restore@v3
-        with:
-          path: ~/.cargo/bin/sq
-          key: ${{ runner.os }}-sequoia-sq-1.3.1
-
-      - name: Install sq 1.x
-        if: steps.cache-sq.outputs.cache-hit != 'true'
-        run: cargo install sequoia-sq --version 1.3.1 --locked
+      - name: Install sq
+        uses: ./.gitea/actions/install-sq
 
       - name: Build googletest
         run: |
@@ -371,18 +339,9 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      # MobileScaleTest makes its thousand keys with sq, and fails without
-      # it; the same sq the build job caches.
-      - name: Restore sq
-        id: cache-sq
-        uses: actions/cache/restore@v3
-        with:
-          path: ~/.cargo/bin/sq
-          key: ${{ runner.os }}-sequoia-sq-1.3.1
-
-      - name: Install sq 1.x
-        if: steps.cache-sq.outputs.cache-hit != 'true'
-        run: cargo install sequoia-sq --version 1.3.1 --locked
+      # MobileScaleTest makes its thousand keys with sq, and fails without it.
+      - name: Install sq
+        uses: ./.gitea/actions/install-sq
 
       - name: Build The Core Without GnuPG
         run: |

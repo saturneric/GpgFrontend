@@ -102,29 +102,21 @@ jobs:
       # <build>/<config>/cargo, which is why the path and key differ.
       - name: Restore Cargo Cache
         id: cargo-cache
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        uses: ./.github/actions/cargo-cache
         with:
-          path: |
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-            ${{ github.workspace }}/build/${{ env.BUILD_TYPE }}/cargo
-          key: cargo-xcode-${{ matrix.os }}-${{ steps.rust.outputs.cachekey }}-${{ env.BUILD_TYPE }}-${{ hashFiles('rust/Cargo.lock') }}
-          restore-keys: |
-            cargo-xcode-${{ matrix.os }}-${{ steps.rust.outputs.cachekey }}-${{ env.BUILD_TYPE }}-
+          mode: restore
+          key: cargo-xcode-${{ matrix.os }}-${{ steps.rust.outputs.cachekey }}-${{ env.BUILD_TYPE }}
+          target-dir: build/${{ env.BUILD_TYPE }}/cargo
 
       - name: Build GpgFrontend
         run: scripts/ci/macos/build.sh --flavor installed
 
       - name: Save Cargo Cache
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        uses: ./.github/actions/cargo-cache
         with:
-          path: |
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-            ${{ github.workspace }}/build/${{ env.BUILD_TYPE }}/cargo
-          key: ${{ steps.cargo-cache.outputs.cache-primary-key }}
+          mode: save
+          primary-key: ${{ steps.cargo-cache.outputs.primary-key }}
+          target-dir: build/${{ env.BUILD_TYPE }}/cargo
         if: github.event_name == 'push' && steps.cargo-cache.outputs.cache-hit != 'true'
 
       - name: Assemble The Bundle

@@ -1,0 +1,44 @@
+# Copyright (C) 2021-2026 Saturneric <eric@bktus.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# The published update index, checked from outside every day, as a client
+# reads it: over the public HTTPS bases, against the keys release/product.json
+# pins. It fails when anything does not verify, and when the index is due to
+# expire within three days: an index is good for 14 days and the signing host
+# re-signs it after 7, so a near expiry means the host stopped, before any
+# client sees "Couldn't check for updates". It holds no secret and writes
+# nothing.
+
+name: Verify Update Index
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          lfs: "false"
+          persist-credentials: false
+          sparse-checkout: |
+            scripts
+            release
+            cmake
+
+      - name: Install minisign
+        run: |
+          set -euo pipefail
+          sudo apt-get update -q
+          sudo apt-get install -y -q minisign
+
+      - name: Verify The Published Index
+        run: python3 scripts/release/gfrelease verify --min-days-left 3
