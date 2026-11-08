@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import shutil
 import sys
 import tempfile
 from pathlib import Path
@@ -28,8 +29,8 @@ import openpgp
 from common import (BUNDLE, DESCRIPTOR, INDEX, SCHEMA, SIG, SUMS, Product,
                     ReleaseError, atomic_write, canonical_json, check_relpath,
                     iso, load_json, notes_at, parse_iso, parse_manifest,
-                    parse_version, sha256_bytes, sha256_file, tagged_commit,
-                    utcnow)
+                    parse_version, run, sha256_bytes, sha256_file,
+                    tagged_commit, utcnow)
 from store import Store
 
 import release_candidate as rc  # noqa: E402  (scripts/, on the path via common)
@@ -63,7 +64,8 @@ def _check_release_envelope(product: Product, d: dict, path: str,
         raise ReleaseError(f"{path}: not the release tagged v{version}")
     signing = d.get("signing", {})
     if signing.get("scheme") != "openpgp" or \
-            signing.get("fingerprint", "").upper() not in product.maintainers:
+            signing.get("fingerprint", "").upper() not in \
+            product.trusted_maintainers:
         raise ReleaseError(f"{path}: not signed with a pinned maintainer key")
     return version
 
@@ -78,12 +80,18 @@ def _require(d: dict, path: str, *fields: str) -> None:
             raise ReleaseError(f"{path}: an artifact entry is incomplete")
 
 
+class NotesNotUploaded(ReleaseError):
+    """The notes, or their signature, are not in the store yet: nothing is
+    wrong, a maintainer has not signed them yet. Unlike notes that are there
+    and do not verify, which refuse the release."""
+
+
 def _verified_notes(builds: Store, ring: openpgp.Keyring, notes_path: str,
                     digest: str, work: Path) -> None:
     """The notes at @p notes_path are exactly @p digest and carry a pinned
     maintainer's signature."""
     if not builds.exists(notes_path) or not builds.exists(notes_path + SIG):
-        raise ReleaseError(f"{notes_path}: not signed and uploaded")
+        raise NotesNotUploaded(f"{notes_path}: not signed and uploaded")
     work.mkdir(parents=True, exist_ok=True)
     notes, sig = work / "notes.md", work / "notes.md.sig"
     notes.write_bytes(builds.read(notes_path))
@@ -149,61 +157,126 @@ def _notes_fields(version: str, notes: bytes) -> dict:
             "notes_sig": notes_path + SIG}
 
 
+RECORD_SCHEMA = 2
+
+
+def _trust(product: Product, git_dir: Path, tag: str, kind: str) -> str:
+    """A digest of everything an admission rested on besides the
+    descriptor: the pinned keys (and the key file they come from), the
+    Authenticode subjects, and the commit the tag names. When any of them
+    changes, a release is checked again from nothing: a key taken out of the
+    product unlists what only it signed, a moved tag is caught."""
+    tagged = run(["git", "-C", git_dir, "rev-parse", "-q", "--verify",
+                  f"refs/tags/{tag}^{{commit}}"], check=False).stdout.strip()
+    facts = {"kind": kind, "maintainers": sorted(product.trusted_maintainers),
+             "keyring": sha256_file(product.keyring_path)
+             if Path(product.keyring_path).is_file() else "",
+             "tag": tagged}
+    if kind == "stable":
+        facts["authenticode"] = sorted(product.authenticode_subjects)
+    return sha256_bytes(canonical_json(facts))
+
+
+def _read_record(path: Path) -> dict | None:
+    """The admission record of a release, or None when there is none or it
+    is from another schema (then the release is checked again, once)."""
+    if not path.exists():
+        return None
+    record = load_json(path.read_text(), str(path))
+    return record if record.get("schema") == RECORD_SCHEMA else None
+
+
+def _admit_release(product: Product, builds: Store, path: str, raw: bytes,
+                   d: dict, *, kind: str, git_dir: Path, state_dir: Path,
+                   tmp: Path, check_release, notes_required: bool
+                   ) -> tuple[dict, dict]:
+    """What stable and imported admission share: the record, the notes.
+
+    The release itself is checked (@p check_release) only when the record
+    does not already vouch for this descriptor under the same trust inputs.
+    The notes are main's (or the tag's): new ones are listed once their
+    maintainer signature verifies; until they are uploaded the ones admitted
+    before stay. Notes that are uploaded but do not verify refuse the
+    release, as any bad signature does. A release without admitted notes is
+    refused when @p notes_required."""
+    version = d["version"]
+    tag = f"v{version}"
+    record_path = state_dir / "admitted" / f"{version}.json"
+    record = _read_record(record_path)
+    base = {"descriptor": path, "sha256": sha256_bytes(raw),
+            "trust": _trust(product, git_dir, tag, kind)}
+    if record is None or {k: record.get(k) for k in base} != base:
+        check_release()
+        record = None
+
+    previous_notes = record.get("notes") if record else None
+    notes = release_notes(git_dir, version)
+    wanted = _notes_fields(version, notes) if notes is not None else None
+    chosen = previous_notes
+    if wanted is not None and wanted != previous_notes:
+        try:
+            with openpgp.Keyring(product.keyring_path,
+                                 product.trusted_maintainers) as ring:
+                _verified_notes(builds, ring, wanted["notes"],
+                                wanted["notes_sha256"], tmp / version / "notes")
+            chosen = wanted
+        except NotesNotUploaded as e:
+            if notes_required and previous_notes is None:
+                raise ReleaseError(
+                    f"{tag}: the notes main has for it are not signed and "
+                    f"uploaded yet (gfrelease stable {version} --notes-only): "
+                    f"{e}") from e
+            print(f"{version}: listed "
+                  f"{'with its admitted notes' if previous_notes else 'without notes'}"
+                  f"; main's are not signed and uploaded yet (gfrelease "
+                  f"stable {version} --notes-only)", file=sys.stderr)
+    if notes_required and chosen is None:
+        raise ReleaseError(f"{tag}: no release notes to publish with it")
+
+    new_record = dict(base, schema=RECORD_SCHEMA, notes=chosen)
+    if new_record != record:
+        atomic_write(record_path, json.dumps(new_record, sort_keys=True))
+    entry = {"descriptor": path, "sha256": base["sha256"]}
+    return d, entry | (chosen or {})
+
+
 def admit_stable(product: Product, builds: Store, path: str, raw: bytes, *,
                  git_dir: Path, state_dir: Path, cosign: str, tmp: Path,
                  authenticode_ca: str | None = None) -> tuple[dict, dict]:
     """A stable release is listed only with everything the offline stage
-    promises (scripts/release/gfrelease/stable.py), checked again here.
+    promises (scripts/release/gfrelease/stable.py), checked again here: the
+    maintainer's signed tag and manifest, what CI built, the Authenticode
+    signatures, and signed notes.
 
     Returns the descriptor and its index entry. What was checked is recorded
-    under the state directory, keyed by the descriptor's and the notes'
-    hashes: a release is checked again only when either changes, not on every
-    round (checking an installer means downloading it).
+    under the state directory (_admit_release): checking an installer means
+    downloading it, so it is done again only when something it rested on
+    changes.
     """
     d = load_json(raw, path)
     version = _check_release_envelope(product, d, path, "stable")
     _require(d, path, "commit", "sums", "sums_sig", "build", "artifacts")
     _require(d["build"], path + " build", "sums", "bundle")
-    tag = f"v{version}"
-    prefix = f"releases/{version}"
     _check_contained(path, [d["sums"], d["sums_sig"], d["build"]["sums"],
                             d["build"]["bundle"]] +
                      [a[k] for a in d["artifacts"] for k in ("path", "sig")],
-                     prefix)
+                     f"releases/{version}")
+    return _admit_release(
+        product, builds, path, raw, d, kind="stable", git_dir=git_dir,
+        state_dir=state_dir, tmp=tmp, notes_required=True,
+        check_release=lambda: _check_stable(
+            product, builds, d, path, git_dir=git_dir, cosign=cosign,
+            tmp=tmp, authenticode_ca=authenticode_ca))
 
-    notes = release_notes(git_dir, version)
-    if notes is None:
-        raise ReleaseError(f"{tag}: no release notes to publish with it")
-    entry = {"descriptor": path, "sha256": sha256_bytes(raw)} | \
-        _notes_fields(version, notes)
 
-    record = state_dir / "admitted" / f"{version}.json"
-    previous = load_json(record.read_text(), str(record)) \
-        if record.exists() else None
-    if previous == entry:
-        return d, entry
-    if previous is not None and \
-            {k: previous.get(k) for k in ("descriptor", "sha256")} == \
-            {k: entry[k] for k in ("descriptor", "sha256")}:
-        # The release itself was admitted; only main's notes moved on. Until
-        # the new ones are signed and uploaded, the admitted ones stay listed
-        # rather than the whole release (or the index) going away.
-        try:
-            with openpgp.Keyring(product.keyring_path,
-                                 product.maintainers) as ring:
-                _verified_notes(builds, ring, entry["notes"],
-                                entry["notes_sha256"], tmp / version / "notes")
-        except ReleaseError as e:
-            print(f"{tag}: listed with its admitted notes; main's newer ones "
-                  f"are not signed and uploaded yet (gfrelease stable "
-                  f"{version} --notes-only): {e}", file=sys.stderr)
-            return d, previous
-        atomic_write(record, json.dumps(entry, sort_keys=True))
-        return d, entry
-
+def _check_stable(product: Product, builds: Store, d: dict, path: str, *,
+                  git_dir: Path, cosign: str, tmp: Path,
+                  authenticode_ca: str | None) -> None:
+    version, tag = d["version"], f"v{d['version']}"
     work = tmp / version
     work.mkdir(parents=True, exist_ok=True)
-    with openpgp.Keyring(product.keyring_path, product.maintainers) as ring:
+    with openpgp.Keyring(product.keyring_path,
+                         product.trusted_maintainers) as ring:
         # The tag: a maintainer's, and the commit that was built.
         ring.verify_tag(git_dir, tag)
         try:
@@ -213,28 +286,18 @@ def admit_stable(product: Product, builds: Store, path: str, raw: bytes, *,
 
         # The final manifest, signed by a maintainer, and exactly the
         # descriptor's hashes.
-        for name, rel in ((SUMS, d["sums"]), (SUMS + SIG, d["sums_sig"])):
-            (work / name).write_bytes(builds.read(rel))
-        ring.verify(work / SUMS, work / (SUMS + SIG))
-        if parse_manifest((work / SUMS).read_bytes(), d["sums"]) != \
+        sums = builds.fetch_to(d["sums"], work / SUMS)
+        ring.verify(sums, builds.fetch_to(d["sums_sig"], work / (SUMS + SIG)))
+        if parse_manifest(sums.read_bytes(), d["sums"]) != \
                 {a["name"]: a["sha256"] for a in d["artifacts"]}:
             raise ReleaseError(f"{path}: artifacts differ from the signed "
                                "manifest")
 
-        # The notes, signed by a maintainer.
-        try:
-            _verified_notes(builds, ring, entry["notes"],
-                            entry["notes_sha256"], work / "notes")
-        except ReleaseError as e:
-            raise ReleaseError(
-                f"{tag}: the notes main has for it are not signed and uploaded "
-                f"yet (gfrelease stable {version} --notes-only): {e}") from e
-
     # What CI built, as Sigstore says: every file's build hash.
     build = work / "build"
     build.mkdir(exist_ok=True)
-    (build / SUMS).write_bytes(builds.read(d["build"]["sums"]))
-    (build / BUNDLE).write_bytes(builds.read(d["build"]["bundle"]))
+    builds.fetch_to(d["build"]["sums"], build / SUMS)
+    builds.fetch_to(d["build"]["bundle"], build / BUNDLE)
     try:
         rc.cosign_verify(build, product.identity(d["ref"]), d["commit"], cosign)
         built = rc.parse_manifest((build / SUMS).read_bytes())
@@ -259,9 +322,6 @@ def admit_stable(product: Product, builds: Store, path: str, raw: bytes, *,
             raise ReleaseError(f"{a['name']}: unknown transform "
                                f"{a.get('transform')!r}")
 
-    atomic_write(record, json.dumps(entry, sort_keys=True))
-    return d, entry
-
 
 def admit_imported(product: Product, builds: Store, path: str, raw: bytes, *,
                    git_dir: Path, state_dir: Path,
@@ -271,8 +331,9 @@ def admit_imported(product: Product, builds: Store, path: str, raw: bytes, *,
     was released, and its tag is the commit git calls that version.
 
     There is no signed manifest to check instead, so every file is
-    downloaded and checked, once: the result is recorded under the state
-    directory by the descriptor's hash, like a stable release's.
+    downloaded and checked, once (_admit_release records it). Its notes are
+    optional: those releases predate reviewed notes, and are listed without
+    until a maintainer signs main's (gfrelease stable <v> --notes-only).
     """
     d = load_json(raw, path)
     version = _check_release_envelope(product, d, path, imported.KIND)
@@ -290,17 +351,11 @@ def admit_imported(product: Product, builds: Store, path: str, raw: bytes, *,
                  if k in a}:
             raise ReleaseError(f"{a['name']}: not what the artifact rules "
                                "call it")
-
-    entry = {"descriptor": path, "sha256": sha256_bytes(raw)}
-    record = state_dir / "admitted" / f"{version}.json"
-    if not (record.exists() and
-            load_json(record.read_text(), str(record)) == entry):
-        _check_imported_files(product, builds, d, path, git_dir=git_dir,
-                              tmp=tmp)
-        atomic_write(record, json.dumps(entry, sort_keys=True))
-    return d, entry | _imported_notes(product, builds, version,
-                                      git_dir=git_dir, state_dir=state_dir,
-                                      tmp=tmp)
+    return _admit_release(
+        product, builds, path, raw, d, kind=imported.KIND, git_dir=git_dir,
+        state_dir=state_dir, tmp=tmp, notes_required=False,
+        check_release=lambda: _check_imported_files(
+            product, builds, d, path, git_dir=git_dir, tmp=tmp))
 
 
 def _check_imported_files(product: Product, builds: Store, d: dict, path: str,
@@ -313,7 +368,8 @@ def _check_imported_files(product: Product, builds: Store, d: dict, path: str,
 
     work = tmp / version
     work.mkdir(parents=True, exist_ok=True)
-    with openpgp.Keyring(product.keyring_path, product.maintainers) as ring:
+    with openpgp.Keyring(product.keyring_path,
+                         product.trusted_maintainers) as ring:
         for a in d["artifacts"]:
             local = builds.fetch_to(a["path"], work / a["name"])
             sig = builds.fetch_to(a["sig"], work / (a["name"] + SIG))
@@ -322,33 +378,6 @@ def _check_imported_files(product: Product, builds: Store, d: dict, path: str,
             ring.verify(local, sig)
             local.unlink()
             sig.unlink()
-
-
-def _imported_notes(product: Product, builds: Store, version: str, *,
-                    git_dir: Path, state_dir: Path, tmp: Path) -> dict:
-    """The index fields for an imported release's notes: main's
-    release/notes/<version>.md, once a maintainer has signed and uploaded it
-    (gfrelease stable <version> --notes-only). Until then the release is
-    listed without notes, which clients show as a link, and the host says so.
-    Checked again only when main's notes change."""
-    notes = release_notes(git_dir, version)
-    if notes is None:
-        return {}
-    fields = _notes_fields(version, notes)
-    record = state_dir / "admitted" / f"{version}.notes"
-    if record.exists() and record.read_text() == fields["notes_sha256"]:
-        return fields
-    if not builds.exists(fields["notes"]) or \
-            not builds.exists(fields["notes_sig"]):
-        print(f"{version}: listed without notes; main's are not signed and "
-              f"uploaded yet (gfrelease stable {version} --notes-only)",
-              file=sys.stderr)
-        return {}
-    with openpgp.Keyring(product.keyring_path, product.maintainers) as ring:
-        _verified_notes(builds, ring, fields["notes"], fields["notes_sha256"],
-                        tmp / f"{version}-notes")
-    atomic_write(record, fields["notes_sha256"])
-    return fields
 
 
 class IndexIncomplete(ReleaseError):
@@ -468,6 +497,38 @@ def read_serial(state_dir: Path) -> int:
         return int(path.read_text())
     except ValueError as e:
         raise ReleaseError(f"{path}: not a serial") from e
+
+
+def dry_run(product: Product, builds: Store, update: Store, *,
+            artifact_pub: str, state_dir: Path, git_dir: Path | None = None,
+            cosign: str = "cosign", authenticode_ca: str | None = None
+            ) -> dict:
+    """Everything an index run decides, and nothing it writes: admission
+    runs against a copy of the state directory, nothing is signed, uploaded
+    or countersigned. Returns what would be listed, what was refused, and
+    how it differs from the published index."""
+    refused: list[str] = []
+    with tempfile.TemporaryDirectory(prefix="gfr-dry-") as tmp:
+        state = Path(tmp) / "state"
+        if Path(state_dir).is_dir():
+            shutil.copytree(state_dir, state)
+        content = build(product, builds, artifact_pub, git_dir=git_dir,
+                        state_dir=state, cosign=cosign,
+                        authenticode_ca=authenticode_ca, refused=refused)
+    previous = published(update) or {}
+    before = {k: v for k, v in previous.items() if k not in VOLATILE}
+    return {
+        "channels": content["channels"],
+        "releases": sorted(content["releases"], key=parse_version),
+        "nightly": (content["nightly"] or {}).get("version"),
+        "refused": refused,
+        "changes": sorted(k for k in set(before) | set(content)
+                          if before.get(k) != content.get(k)),
+        "added": sorted(set(content["releases"]) -
+                        set(before.get("releases", {}))),
+        "removed": sorted(set(before.get("releases", {})) -
+                          set(content["releases"])),
+    }
 
 
 def publish(product: Product, builds: Store, update: Store, *,

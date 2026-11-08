@@ -131,6 +131,9 @@ def main(argv=None) -> int:
         opt(p, "authenticode_ca", "CA file for Authenticode (a rehearsal's)")
         flag(p, "fetch", "git fetch the mirror first")
         flag(p, "force", "publish even if nothing changed")
+        if name == "index":
+            flag(p, "dry_run", "decide everything, write nothing: what "
+                 "would be listed and refused, against the published index")
 
     im = sub.add_parser("import", help="bring a release made before this "
                         "pipeline over from GitHub Releases")
@@ -229,7 +232,32 @@ def main(argv=None) -> int:
         need(args, "builds", "state_dir", "artifact_pub")
         builds = Store(args.builds, rclone)
         artifact_pub = pub(args.artifact_pub)
+        # What this host signs must be what clients pin, or everything it
+        # publishes is refused by every client while its own read-back,
+        # done with the same wrong key, passes.
+        if artifact_pub != signing["artifact_key"]:
+            raise ReleaseError("--artifact-pub is not signing.artifact_key in "
+                               "release/product.json")
+        if args.command in ("index", "run", "resign"):
+            need(args, "index_pub")
+            if pub(args.index_pub) not in signing["index_keys"]:
+                raise ReleaseError("--index-pub is not one of "
+                                   "signing.index_keys in release/product.json")
         state = Path(args.state_dir)
+        if getattr(args, "dry_run", False):
+            need(args, "update")
+            if args.fetch:
+                need(args, "git_dir")
+                run(["git", "-C", args.git_dir, "fetch", "--quiet", "--prune",
+                     "--tags", "origin"])
+            report = index_mod.dry_run(
+                product, builds, Store(args.update, rclone),
+                artifact_pub=artifact_pub, state_dir=state,
+                git_dir=Path(args.git_dir) if args.git_dir else None,
+                cosign=args.cosign or "cosign",
+                authenticode_ca=args.authenticode_ca)
+            print(json.dumps(report, indent=2))
+            return 1 if report["refused"] else 0
         failures: list[str] = []
         with locked(state):
             # Once, for every step: the version promote derives and the
@@ -273,7 +301,7 @@ def main(argv=None) -> int:
                 else:
                     # Read back what was published, as a client would see it.
                     verify_mod.verify(product, update, builds,
-                                      index_keys=[pub(args.index_pub)],
+                                      index_keys=signing["index_keys"],
                                       artifact_key=artifact_pub)
                     print(f"published serial {index['serial']}, stable "
                           f"{index['channels']['stable']}, nightly "

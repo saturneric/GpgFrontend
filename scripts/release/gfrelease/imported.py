@@ -143,7 +143,7 @@ class Import:
         # Every file against its original signature, before anything leaves.
         signers = set()
         with openpgp.Keyring(self.product.keyring_path,
-                             self.product.maintainers) as ring:
+                             self.product.trusted_maintainers) as ring:
             for name, info in files.items():
                 local = self._fetch(name, info["asset"])
                 sig = self._fetch(name + ".sig", info["sig_asset"])

@@ -174,10 +174,16 @@ def check_product(product: dict) -> None:
             if not base.startswith("https://") or not base.endswith("/"):
                 errors.append(f"bases.{role}: {base} must be https:// and end in /")
     signing = product.get("signing", {})
-    for fpr in signing.get("maintainer_fingerprints", []):
-        if not FINGERPRINT.match(fpr):
-            errors.append(f"signing.maintainer_fingerprints: {fpr} is not an "
-                          "upper-case v4/v6 fingerprint")
+    for field in ("maintainer_fingerprints", "maintainer_fingerprints_retired"):
+        for fpr in signing.get(field, []):
+            if not isinstance(fpr, str) or not FINGERPRINT.match(fpr):
+                errors.append(f"signing.{field}: {fpr} is not an upper-case "
+                              "v4/v6 fingerprint")
+    current = set(signing.get("maintainer_fingerprints", []))
+    for fpr in signing.get("maintainer_fingerprints_retired", []):
+        if fpr in current:
+            errors.append("signing.maintainer_fingerprints_retired lists a "
+                          f"current maintainer, {fpr}")
     # A key or certificate replaced: what it signed still verifies, nothing new
     # is signed with it. The current one is never also retired.
     for field, current in (("artifact_keys_retired", "artifact_key"),

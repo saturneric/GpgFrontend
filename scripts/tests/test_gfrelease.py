@@ -421,6 +421,40 @@ class ChainTest(unittest.TestCase):
                                     built_at="x"),
             "already holds")
 
+    def cli(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("gfr_cli",
+                                                      GFR / "__main__.py")
+        cli = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(cli)
+        return cli
+
+    def test_a_host_with_keys_clients_do_not_pin_refuses_to_run(self):
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            status = self.cli().main([
+                "index", "--builds", str(self.tmp / "b"),
+                "--update", str(self.tmp / "u"),
+                "--state-dir", str(self.state),
+                "--artifact-pub", self.art_pub,
+                "--index-key", str(self.idx_key), "--index-pub", self.idx_pub])
+        self.assertEqual(status, 1)
+        self.assertIn("not signing.artifact_key", err.getvalue())
+        self.assertFalse(self.state.exists())
+
+    def test_a_dry_run_writes_nothing(self):
+        self.commit()
+        _, version = self.build()
+        self.promote()
+        report = index_mod.dry_run(self.product, self.builds, self.update,
+                                   artifact_pub=self.art_pub,
+                                   state_dir=self.state)
+        self.assertEqual(report["nightly"], version)
+        self.assertEqual(report["refused"], [])
+        self.assertIn("nightly", report["changes"])
+        self.assertFalse(self.state.exists())
+        self.assertFalse(self.update.exists(common.INDEX))
+
     def test_the_cli_wants_both_stores_or_neither(self):
         import importlib.util
         spec = importlib.util.spec_from_file_location("gfr_cli",
@@ -513,6 +547,56 @@ class HelperTest(unittest.TestCase):
         self.assertEqual(common.tagged_commit(repo, "v9.9.8", expect=head), head)
         with self.assertRaisesRegex(common.ReleaseError, "not 0+"):
             common.tagged_commit(repo, "v9.9.8", expect="0" * 40)
+
+
+class OpenPgpStatusTest(unittest.TestCase):
+    """What the gate accepts from gpg's status lines, as gpg 2.4 writes
+    them for a good, an expired, a revoked and an unpinned signature."""
+
+    PINNED = "C2560D443EE7DEA358920754852C77E84E7E7DBC"
+    OTHER = "255A96F33D8EC3547D09B9E9FBE7B7AA7F0E8517"
+
+    def ring(self, expiry=None):
+        ring = openpgp.Keyring.__new__(openpgp.Keyring)
+        ring.pinned = {self.PINNED}
+        ring._key_expiry = lambda fpr: expiry
+        return ring
+
+    def status(self, judgement, fpr, created=1794134474):
+        return (f"[GNUPG:] NEWSIG x\n[GNUPG:] {judgement} 852C77E84E7E7DBC u\n"
+                f"[GNUPG:] VALIDSIG {fpr} 2026-11-08 {created} 0 4 0 22 10 00 "
+                f"{fpr}\n")
+
+    def test_good(self):
+        self.assertEqual(self.ring()._accept(self.status("GOODSIG", self.PINNED),
+                                             "f"), self.PINNED)
+
+    def test_revoked_is_refused(self):
+        with self.assertRaisesRegex(common.ReleaseError, "revoked"):
+            self.ring()._accept(self.status("REVKEYSIG", self.PINNED), "f")
+
+    def test_expired_counts_only_for_what_it_signed_in_time(self):
+        before = self.status("EXPKEYSIG", self.PINNED, created=100)
+        self.assertEqual(self.ring(expiry=200)._accept(before, "f"),
+                         self.PINNED)
+        after = self.status("EXPKEYSIG", self.PINNED, created=300)
+        with self.assertRaisesRegex(common.ReleaseError, "after its key"):
+            self.ring(expiry=200)._accept(after, "f")
+
+    def test_an_expired_signature_is_refused(self):
+        with self.assertRaisesRegex(common.ReleaseError, "EXPSIG"):
+            self.ring()._accept(self.status("EXPSIG", self.PINNED), "f")
+
+    def test_every_signature_is_looked_at(self):
+        both = self.status("GOODSIG", self.OTHER) + \
+            self.status("GOODSIG", self.PINNED)
+        self.assertEqual(self.ring()._accept(both, "f"), self.PINNED)
+
+    def test_none_valid(self):
+        with self.assertRaisesRegex(common.ReleaseError, "not a pinned"):
+            self.ring()._accept(self.status("GOODSIG", self.OTHER), "f")
+        with self.assertRaisesRegex(common.ReleaseError, "no valid signature"):
+            self.ring()._accept("[GNUPG:] NEWSIG\n[GNUPG:] BADSIG x u\n", "f")
 
 
 class AuthenticodeSubjectTest(unittest.TestCase):
@@ -647,15 +731,19 @@ class StableTest(unittest.TestCase):
         return [l.split(":")[9] for l in listing.splitlines()
                 if l.startswith("fpr:")][0]
 
-    def write_product(self, directory, fingerprints):
+    def write_product(self, directory, fingerprints, retired=(),
+                      exported=None):
         directory.mkdir(parents=True, exist_ok=True)
         data = json.loads((common.ROOT / "release" / "product.json").read_text())
         data["signing"]["maintainer_fingerprints"] = fingerprints
+        data["signing"]["maintainer_fingerprints_retired"] = list(retired)
         data["signing"]["authenticode_subject"] = SUBJECT
         (directory / "product.json").write_text(json.dumps(data))
         shutil.copy(common.ROOT / "release" / "policy.toml", directory)
-        (directory / "maintainers.asc").write_text(
-            self.gpg("--armor", "--export", *fingerprints))
+        (directory / "maintainers.asc").write_text(self.gpg(
+            "--armor", "--export",
+            *(exported if exported is not None
+              else [*fingerprints, *retired])))
         return common.Product(directory / "product.json",
                               directory / "policy.toml")
 
@@ -805,10 +893,83 @@ class StableTest(unittest.TestCase):
         shutil.copytree(work / "2.3.0", work / "2.3.1")
         self.assert_refused(lambda: self.stage("2.3.1"), "not 2.3.1")
 
+    # --- trust inputs --------------------------------------------------
+
+    def admitted(self):
+        self.tag()
+        self.build()
+        self.stage().run()
+        self.assertIn("2.3.0", self.index()["releases"])
+
+    def test_a_key_dropped_from_the_key_file_unlists_its_releases(self):
+        self.admitted()
+        other = self.new_key("Someone Else <else@example.org>")
+        # Still pinned by fingerprint, but no longer in maintainers.asc: the
+        # record no longer vouches, and the check from nothing fails.
+        self.product = self.write_product(self.tmp / "p2", [self.fpr],
+                                          exported=[other])
+        with self.assertRaises(index_mod.IndexIncomplete) as caught:
+            self.index()
+        self.assertNotIn("2.3.0", caught.exception.index["releases"])
+
+    def test_an_unpinned_key_unlists_its_releases(self):
+        self.admitted()
+        other = self.new_key("Someone Else <else@example.org>")
+        self.product = self.write_product(self.tmp / "p2", [other])
+        self.assert_refused(self.index, "not signed with a pinned maintainer")
+
+    def test_a_retired_key_keeps_its_releases(self):
+        self.admitted()
+        other = self.new_key("Next Maintainer <next@example.org>")
+        self.product = self.write_product(self.tmp / "p2", [other],
+                                          retired=[self.fpr])
+        self.assertIn("2.3.0", self.index()["releases"])
+        # Never to sign anything new, though.
+        self.assert_refused(lambda: self.stage(key=self.fpr),
+                            "not a current pinned")
+
+    def test_a_tag_moved_after_admission_is_caught(self):
+        self.admitted()
+        self.git("commit", "-q", "--allow-empty", "-m", "later")
+        self.git("tag", "-f", "-s", "v2.3.0", "-m", "moved")
+        self.assert_refused(self.index, r"v2\.3\.0 is [0-9a-f]+, not")
+
+    def test_a_revoked_key_unlists_its_releases(self):
+        self.admitted()
+        cert = self.gnupg / "openpgp-revocs.d" / f"{self.fpr}.rev"
+        revocation = self.tmp / "revoke.asc"
+        revocation.write_text(cert.read_text().replace(":-----BEGIN",
+                                                       "-----BEGIN"))
+        self.gpg("--import", str(revocation))
+        # The key file now carries the revocation: everything it signed is
+        # checked again, and gpg's REVKEYSIG is refused.
+        self.product = self.write_product(self.tmp / "p2", [self.fpr])
+        self.assert_refused(self.index, "revoked")
+
+    def test_only_a_pinned_primary_signs(self):
+        self.assert_refused(lambda: self.stage(key="0" * 40),
+                            "not a current pinned")
+
+    def test_notes_that_do_not_verify_refuse_the_release(self):
+        self.admitted()
+        (self.repo / "release" / "notes" / "2.3.0.md").write_text("Edited.\n")
+        self.git("commit", "-qam", "notes: edited")
+        other = self.new_key("Someone Else <else@example.org>")
+        digest = common.sha256_bytes(b"Edited.\n")
+        local = self.tmp / "notes.md"
+        local.write_bytes(b"Edited.\n")
+        openpgp.sign(local, other, str(self.gnupg))
+        self.builds.put_file(local, f"notes/2.3.0/{digest}.md")
+        self.builds.put_file(self.tmp / "notes.md.sig",
+                             f"notes/2.3.0/{digest}.md.sig")
+        self.assert_refused(self.index, "does not verify|not a pinned")
+
     def test_an_interrupted_stage_resumes(self):
         self.tag()
         self.build()
-        broken = self.stage(key="0" * 40)  # no such key: pgp fails
+        empty = self.tmp / "no-keys"
+        empty.mkdir(mode=0o700)
+        broken = self.stage(gnupghome=str(empty))  # no secret key: pgp fails
         self.assert_refused(broken.run, "failed")
         done = json.loads((self.tmp / "work" / "2.3.0" / "state.json")
                           .read_text())["done"]
@@ -1128,10 +1289,12 @@ class ImportTest(unittest.TestCase):
         self.assertEqual(entry["notes_sig"], f"notes/2.2.4/{digest}.md.sig")
         self.check()
 
-        # A fix on main waits for its own signature; nothing is replaced.
+        # A fix on main waits for its own signature; until then the signed
+        # notes stay listed, and nothing is replaced.
         self.notes_on_main("2.2.4", "Fixes, spelled right.\n")
         with contextlib.redirect_stderr(io.StringIO()):
-            self.assertNotIn("notes", self.index()["releases"]["2.2.4"])
+            self.assertEqual(self.index()["releases"]["2.2.4"]["notes"],
+                             f"notes/2.2.4/{digest}.md")
         self.assertNotEqual(self.sign_notes("2.2.4"), digest)
         self.assertNotEqual(self.index()["releases"]["2.2.4"]["notes"],
                             f"notes/2.2.4/{digest}.md")
