@@ -162,9 +162,14 @@ jobs:
     # Two independent gates on which refs may ever request the signing
     # material: this condition, and the deployment branch rule on the
     # environment.
+    # Only main and final release tags (vX.Y.Z): a base tag vX.Y.0-alpha.0
+    # or any prerelease tag never asks for the signing material, as in
+    # build.yml's publish gating.
     if: >-
       github.event_name != 'pull_request' &&
-      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+      (github.ref == 'refs/heads/main' ||
+       (startsWith(github.ref, 'refs/tags/v') &&
+        !contains(github.ref, '-') && !contains(github.ref, '+')))
     permissions:
       contents: read
     uses: ./.github/workflows/sign-apple.yml

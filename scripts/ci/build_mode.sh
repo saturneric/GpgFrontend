@@ -34,6 +34,7 @@
 #   - a release tag vX.Y.Z  -> release build                 publish: final
 #   - a push to main        -> nightly build                 publish: nightly-main
 #   - a push to release/X.Y -> nightly build of that series  publish: nightly-branch
+#                              (the beta channel of that series)
 #   - any other tag (a vX.Y.0-alpha.0 base tag, a stray prerelease tag)
 #                           -> nightly build, published nowhere
 #   - a pull request        -> PR validation build, published nowhere
@@ -82,6 +83,39 @@ fi
 publishes="false"
 [[ "$publish_kind" != "none" ]] && publishes="true"
 
+# Google Play takes only a versionCode above every one it has
+# (scripts/android/play_upload.py refuses anything else), and main's
+# nightlies go there too. So a release is uploaded only when its build number
+# is above main's current one: the .0 of the series main is building, never
+# a fix of an older series (v2.3.1 while main builds 2.4.0-alpha.N), which
+# would only fail there. The release's number follows from its tag (it is
+# HEAD's in CI); main's is asked of git, the way the build derives it
+# (GF_MAIN_BUILD_NUMBER: given instead, for the tests).
+release_number() {
+  [[ "$1" =~ ^refs/tags/v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]
+  echo $((1000000000 + BASH_REMATCH[1] * 100000000 +
+    BASH_REMATCH[2] * 1000000 + BASH_REMATCH[3] * 10000 + 9000))
+}
+play_upload="false"
+if [[ "$publish_kind" == "nightly-main" ]]; then
+  play_upload="true"
+elif [[ "$publish_kind" == "final" ]]; then
+  main_number="${GF_MAIN_BUILD_NUMBER:-}"
+  if [[ -z "$main_number" ]]; then
+    main_rev="$(git rev-parse -q --verify refs/remotes/origin/main || true)"
+    if [[ -n "$main_rev" ]]; then
+      main_number="$(cmake -DGF_FIELD=build_number \
+        -DGPGFRONTEND_VERSION_REV="$main_rev" -DGPGFRONTEND_VERSION_REF=main \
+        -P cmake/GitVersion.cmake)"
+    fi
+  fi
+  if [[ -z "$main_number" ]]; then
+    echo "::warning::origin/main is not in this checkout; not uploading to Play" >&2
+  elif (($(release_number "$GITHUB_REF") > main_number)); then
+    play_upload="true"
+  fi
+fi
+
 # Stable release builds drop the "Testing" suffix from the app name; nightly
 # and PR builds are both "nightly" to CMake. The bundle identifier is fixed
 # either way, so the App Store provisioning profile matches both.
@@ -127,6 +161,7 @@ echo "gpgfrontend_build_mode=$gpgfrontend_build_mode"
 echo "screenshot_cmake_flag=$screenshot_cmake_flag"
 echo "publish_kind=$publish_kind"
 echo "publishes=$publishes"
+echo "play_upload=$play_upload"
 
 {
   echo "Version: $version"

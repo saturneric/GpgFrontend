@@ -128,6 +128,10 @@ jobs:
       # base tag (vX.Y.0-alpha.0) or a stray prerelease tag publishes nothing.
       publish_kind: ${{ steps.mode.outputs.publish_kind }}
       publishes: ${{ steps.mode.outputs.publishes }}
+      # main's nightlies, and the finals whose build number is above main's:
+      # Play refuses any versionCode not above every one it holds
+      # (scripts/ci/build_mode.sh).
+      play_upload: ${{ steps.mode.outputs.play_upload }}
     steps:
       # The whole history and every tag: the version is derived from them
       # (cmake/GitVersion.cmake), and a shallow clone has neither.
@@ -278,8 +282,9 @@ jobs:
       contents: read
     # The keystore lives in this environment, not in repository secrets.
     # Maintainer: configure its deployment branch rule to allow only `main`,
-    # `release/*` and tags matching `v*`, as defence in depth behind the
-    # `if:` above.
+    # `release/[0-9]*.[0-9]*` and tags matching `v[0-9]*.[0-9]*.[0-9]*`, as
+    # defence in depth behind the `if:` above (a final tag never has a "-";
+    # the rule cannot say so, the `if:` does).
     environment: android-signing
     steps:
       # Runs before anything else, and only tests for emptiness; no value is
@@ -670,17 +675,20 @@ jobs:
   # pass --status draft until then.
   play-upload:
     needs: [setup, sign-android]
-    # main's nightlies and stable releases; never a release/X.Y build, which
-    # Play would take as newer than the next main build.
+    # main's nightlies and the stable releases above main's build number;
+    # never a release/X.Y build, which Play would take as newer than the next
+    # main build, nor a fix of an older series, whose versionCode Play
+    # refuses.
     if: >-
-      needs.setup.outputs.publish_kind == 'nightly-main' ||
-      needs.setup.outputs.publish_kind == 'final'
+      needs.setup.outputs.play_upload == 'true' &&
+      (needs.setup.outputs.publish_kind == 'nightly-main' ||
+       needs.setup.outputs.publish_kind == 'final')
     runs-on: ubuntu-24.04
     permissions:
       contents: read
     # The upload key and the service-account key live in this environment.
     # Maintainer: configure its deployment rule to allow only `main` and tags
-    # matching `v*`.
+    # matching `v[0-9]*.[0-9]*.[0-9]*`.
     environment: google-play
     steps:
       - name: Preflight Check Play Credentials

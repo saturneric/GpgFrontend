@@ -60,9 +60,10 @@
 #     MAS_PROVISIONING_PROFILE_DATA        base64 .provisionprofile
 #
 # Maintainer: configure the `macos-signing` environment's deployment branch
-# rule to allow only `main`, `release/*` and tags matching `v*`, and
-# `mas-signing`'s only `main` and `v*` tags, as defence in depth behind the
-# callers' `if:`.
+# rule to allow only `main`, `release/[0-9]*.[0-9]*` and tags matching
+# `v[0-9]*.[0-9]*.[0-9]*`, and `mas-signing`'s only `main` and those tags, as
+# defence in depth behind the callers' `if:` (which also refuse a prerelease
+# tag, "-" in it, that the rule's pattern cannot tell apart).
 
 name: Sign Apple Bundle
 

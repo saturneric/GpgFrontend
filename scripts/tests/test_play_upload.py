@@ -292,9 +292,12 @@ class WorkflowTest(unittest.TestCase):
         # setup's classification (scripts/ci/build_mode.sh): main's
         # nightlies and vX.Y.Z releases, never a release/X.Y build, a base
         # tag or a prerelease tag.
+        # And of the finals, only those above main's build number
+        # (play_upload): Play refuses any lower versionCode.
         self.assertEqual(self.condition(),
-                         "needs.setup.outputs.publish_kind == 'nightly-main' "
-                         "|| needs.setup.outputs.publish_kind == 'final'")
+                         "needs.setup.outputs.play_upload == 'true' && "
+                         "(needs.setup.outputs.publish_kind == 'nightly-main' "
+                         "|| needs.setup.outputs.publish_kind == 'final')")
 
     def test_every_ref_goes_to_the_testers_only(self):
         self.assertIn("--track internal", self.job)
