@@ -113,9 +113,3 @@ class Store:
             local = Path(tmp) / "object"
             local.write_bytes(data)
             self.put_file(local, path, immutable)
-
-    def copy_tree(self, prefix: str, other: "Store") -> None:
-        """Mirrors a whole prefix; `copy` (unlike `copyto`) does honour
-        --immutable, so an object the mirror holds with other bytes fails."""
-        run([self.rclone, "copy", "--immutable", self._at(prefix),
-             other._at(prefix)])

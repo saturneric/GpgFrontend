@@ -39,6 +39,9 @@ import release_candidate as rc  # noqa: E402  (scripts/, on the path via common)
 
 LIFETIME = dt.timedelta(days=14)
 RESIGN_BEFORE = dt.timedelta(days=7)
+# How long before the bucket's lifecycle rule deletes a nightly the index
+# stops naming it: a client must never be sent to a descriptor that is gone.
+NIGHTLY_MARGIN = dt.timedelta(days=7)
 VOLATILE = ("serial", "generated_at", "expires")
 
 
@@ -445,6 +448,9 @@ def build(product: Product, builds: Store, artifact_pub: str, *,
 
     nightly = None
     releases: dict[str, dict] = {}
+    retention = product.data.get("nightly_retention_days")
+    cutoff = utcnow() - dt.timedelta(days=retention) + NIGHTLY_MARGIN \
+        if retention else None
     with tempfile.TemporaryDirectory(prefix="gfr-index-") as tmp:
         for rel in builds.files("nightly", include=f"*/{DESCRIPTOR}"):
             path = f"nightly/{rel}"
@@ -458,6 +464,10 @@ def build(product: Product, builds: Store, artifact_pub: str, *,
             # Only main's nightlies make the channel; release/X.Y builds are
             # published for testers who fetch them by hand.
             if d["ref"] != "refs/heads/main":
+                continue
+            # Soon deleted by the bucket's lifecycle rule: never named.
+            if cutoff is not None and \
+                    parse_iso(d.get("promoted_at", "")) < cutoff:
                 continue
             if nightly is None or parse_version(d["version"]) > \
                     parse_version(nightly["version"]):
@@ -507,6 +517,10 @@ def build(product: Product, builds: Store, artifact_pub: str, *,
         key = parse_version(version).series
         if key in series:
             series[key]["latest"] = version
+    if cutoff is not None and nightly is None and \
+            builds.files("nightly", include=f"*/{DESCRIPTOR}"):
+        print(f"no main nightly promoted since {iso(cutoff)}: the nightly "
+              "channel names none until main is built again", file=sys.stderr)
     current = [s["latest"] for s in series.values()
                if s["status"] in ("stable", "mainline") and s["latest"]]
     stable = max(current, key=parse_version) if current else None
