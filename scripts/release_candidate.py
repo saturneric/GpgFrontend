@@ -222,7 +222,11 @@ def cosign_verify(directory, identity, sha, cosign):
         "--certificate-github-workflow-sha", sha,
         str(directory / MANIFEST),
     ]
-    if subprocess.run(cmd).returncode != 0:
+    try:
+        status = subprocess.run(cmd).returncode
+    except FileNotFoundError:
+        raise CandidateError(f"{cosign} is not installed")
+    if status != 0:
         raise CandidateError(f"{BUNDLE} does not verify {MANIFEST} "
                              f"as {identity} at {sha}")
 

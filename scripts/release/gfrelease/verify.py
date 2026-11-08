@@ -16,17 +16,18 @@ from release/product.json, tried in order, as a client would.
 from __future__ import annotations
 
 import contextlib
-import json
 import ssl
 import tempfile
 import urllib.error
 import urllib.request
 from pathlib import Path
 
+import imported
 import minisig
 import openpgp
-from common import (INDEX, SCHEMA, Product, ReleaseError, check_relpath,
-                    parse_iso, sha256_bytes, sha256_file, utcnow)
+from common import (INDEX, SCHEMA, SUMS, Product, ReleaseError, check_relpath,
+                    load_json, parse_iso, parse_manifest, sha256_bytes,
+                    sha256_file, utcnow)
 from store import Store
 
 
@@ -83,14 +84,6 @@ def check_index(product: Product, index: dict, comment: str) -> None:
         raise ReleaseError(f"the index expired at {index['expires']}")
 
 
-def parse_sums(data: bytes) -> dict[str, str]:
-    out = {}
-    for line in data.decode("ascii").splitlines():
-        digest, name = line.split("  ", 1)
-        out[name] = digest
-    return out
-
-
 def verify(product: Product, update, builds, *, index_keys: list[str],
            artifact_key: str, deep: bool = False) -> dict:
     """Beta and nightly files are minisigned with the artifact key; stable
@@ -103,7 +96,7 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
         data, comment = _signed(update, INDEX, index_keys, tmp)
         # The current artifact key, or one it replaced.
         artifact_keys = product.artifact_keys(artifact_key)
-        index = json.loads(data)
+        index = load_json(data, INDEX)
         check_index(product, index, comment)
         report = {"product": product.slug, "serial": index["serial"],
                   "expires": index["expires"], "channels": index["channels"],
@@ -132,27 +125,26 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
             if sha256_bytes(raw) != entry["sha256"]:
                 raise ReleaseError(f"{entry['descriptor']}: sha256 is not the "
                                    "index's")
-            descriptor = json.loads(raw)
+            descriptor = load_json(raw, entry["descriptor"])
             if descriptor.get("product") != product.slug:
                 raise ReleaseError(f"{entry['descriptor']}: another product's")
             scheme = descriptor["signing"]["scheme"]
-            if descriptor.get("kind") == "imported":
+            if descriptor.get("kind") == imported.KIND:
                 # From before signed manifests: each file carries its own
                 # maintainer signature, checked with --deep.
                 if scheme != "openpgp":
                     raise ReleaseError(f"{entry['descriptor']}: an imported "
                                        "release is OpenPGP-signed")
-                sums_data = "".join(
-                    f"{a['sha256']}  {a['name']}\n"
-                    for a in descriptor["artifacts"]).encode()
+                sums = {a["name"]: a["sha256"] for a in descriptor["artifacts"]}
             elif scheme == "minisign":
                 sums_data, _ = _signed(builds, check_relpath(descriptor["sums"]),
                                        artifact_keys, tmp)
+                sums = parse_manifest(sums_data, descriptor["sums"])
             elif scheme == "openpgp":
-                sums = fetch(descriptor["sums"], "SHA256SUMS.txt")
-                keyring().verify(sums, fetch(descriptor["sums_sig"],
-                                             "SHA256SUMS.txt.sig"))
-                sums_data = sums.read_bytes()
+                local = fetch(descriptor["sums"], SUMS)
+                keyring().verify(local, fetch(descriptor["sums_sig"],
+                                              SUMS + ".sig"))
+                sums = parse_manifest(local.read_bytes(), descriptor["sums"])
             else:
                 raise ReleaseError(f"{entry['descriptor']}: unknown signing "
                                    f"scheme {scheme!r}")
@@ -164,7 +156,6 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
                                        "notes")
                 keyring().verify(notes, fetch(entry["notes_sig"],
                                               "notes.md.sig"))
-            sums = parse_sums(sums_data)
             for artifact in descriptor["artifacts"]:
                 if sums.get(artifact["name"]) != artifact["sha256"]:
                     raise ReleaseError(f"{artifact['name']}: the descriptor's "

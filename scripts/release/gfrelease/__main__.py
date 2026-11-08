@@ -255,6 +255,12 @@ def main(argv=None) -> int:
     except ReleaseError as e:
         print(f"gfrelease: {e}", file=sys.stderr)
         return 1
+    except (KeyError, TypeError, ValueError) as e:
+        # A safety net: input that slipped past the checks is reported, not
+        # dumped as a traceback.
+        print(f"gfrelease: malformed input ({type(e).__name__}: {e})",
+              file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":

@@ -29,8 +29,8 @@ from pathlib import Path
 
 import minisig
 from common import (BUNDLE, DESCRIPTOR, SCHEMA, STAGED, SUMS, Product,
-                    ReleaseError, canonical_json, git_version, iso, run,
-                    semver, sha256_file, utcnow)
+                    ReleaseError, canonical_json, git_version, iso,
+                    parse_version, run, sha256_file, utcnow)
 from stage import read_staged
 from store import Store
 
@@ -50,8 +50,8 @@ def newest_per_ref(found: list[tuple[str, dict]]) -> list[tuple[str, dict]]:
     best: dict[str, tuple[str, dict]] = {}
     for prefix, staged in found:
         current = best.get(staged["ref"])
-        if current is None or semver.parse(staged["version"]) > \
-                semver.parse(current[1]["version"]):
+        if current is None or parse_version(staged["version"]) > \
+                parse_version(current[1]["version"]):
             best[staged["ref"]] = (prefix, staged)
     return [best[ref] for ref in sorted(best)]
 
@@ -118,7 +118,7 @@ def promote_one(product: Product, staging: Store, builds: Store,
 
         descriptor = {
             "schema": SCHEMA, "product": product.slug, "kind": "nightly",
-            "version": derived, "series": semver.parse(derived).series,
+            "version": derived, "series": parse_version(derived).series,
             "ref": ref, "commit": commit, "built_at": staged["built_at"],
             "promoted_at": iso(utcnow()),
             "signing": {"scheme": "minisign",

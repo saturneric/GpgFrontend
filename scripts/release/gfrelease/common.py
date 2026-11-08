@@ -21,7 +21,9 @@ ROOT = RELEASE_DIR.parent.parent
 sys.path.insert(0, str(RELEASE_DIR))
 sys.path.insert(0, str(ROOT / "scripts"))
 
+import gitversion  # noqa: E402
 import policy as policy_mod  # noqa: E402
+import release_candidate as rc  # noqa: E402
 import semver  # noqa: E402
 
 SCHEMA = 1
@@ -52,15 +54,58 @@ def check_relpath(path: str) -> str:
 
 
 def sha256_file(path: Path) -> str:
-    h = hashlib.sha256()
-    with open(path, "rb") as f:
-        for chunk in iter(lambda: f.read(1 << 20), b""):
-            h.update(chunk)
-    return h.hexdigest()
+    return rc.digest(Path(path))
 
 
 def sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
+
+
+def load_json(data: bytes | str, what: str) -> dict:
+    """A JSON object read from a store or the state directory; anything else
+    is a ReleaseError naming @p what, never a traceback."""
+    try:
+        value = json.loads(data)
+    except (ValueError, UnicodeDecodeError) as e:
+        raise ReleaseError(f"{what}: not JSON ({e})") from e
+    if not isinstance(value, dict):
+        raise ReleaseError(f"{what}: not a JSON object")
+    return value
+
+
+def parse_version(text, what: str = "") -> semver.Version:
+    """semver.parse, failing as a ReleaseError."""
+    try:
+        return semver.parse(text if isinstance(text, str) else "")
+    except ValueError as e:
+        raise ReleaseError(f"{what + ': ' if what else ''}{e}") from e
+
+
+def atomic_write(path: Path, data: bytes | str) -> None:
+    """Replaces @p path whole or not at all: a crash leaves the old file or
+    the new one, never a truncated one."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name + ".new")
+    with open(tmp, "wb") as f:
+        f.write(data.encode("utf-8") if isinstance(data, str) else data)
+        f.flush()
+        os.fsync(f.fileno())
+    tmp.replace(path)
+
+
+def parse_manifest(data: bytes, what: str) -> dict[str, str]:
+    """{name: sha256} of a SHA256SUMS.txt, read as strictly as the
+    candidate's own (release_candidate.parse_manifest)."""
+    try:
+        return rc.parse_manifest(data)
+    except rc.CandidateError as e:
+        raise ReleaseError(f"{what}: {e}") from e
+
+
+def render_manifest(hashes: dict[str, str]) -> bytes:
+    """The SHA256SUMS.txt bytes for {name: sha256}."""
+    return rc.render_manifest(hashes).encode("ascii")
 
 
 def canonical_json(value) -> bytes:
@@ -180,8 +225,35 @@ def locked(state_dir: Path):
 def git_version(git_dir: Path, commit: str, ref: str) -> str:
     """Which version a commit is, asked of git through the one derivation the
     build itself uses, never taken from what the build claims."""
-    out = run(["cmake", f"-DGF_SOURCE_DIR={git_dir}",
-               f"-DGPGFRONTEND_VERSION_REV={commit}",
-               f"-DGPGFRONTEND_VERSION_REF={ref}", "-DGF_FIELD=version",
-               "-P", ROOT / "cmake" / "GitVersion.cmake"])
-    return out.stdout.strip()
+    try:
+        return gitversion.derive(git_dir, ref=ref, rev=commit)
+    except subprocess.CalledProcessError as e:
+        raise ReleaseError(f"cmake failed: {(e.stderr or '').strip()}") from e
+    except FileNotFoundError as e:
+        raise ReleaseError("cmake is not installed") from e
+
+
+def tagged_commit(git_dir: Path, tag: str, expect: str | None = None,
+                  version: str | None = None) -> str:
+    """The commit @p tag names, checked: it is @p expect when given, and git
+    calls it @p version when given."""
+    commit = run(["git", "-C", git_dir, "rev-parse", "-q", "--verify",
+                  f"refs/tags/{tag}^{{commit}}"], check=False).stdout.strip()
+    if not commit:
+        raise ReleaseError(f"{git_dir} has no tag {tag}")
+    if expect is not None and commit != expect:
+        raise ReleaseError(f"{tag} is {commit}, not {expect}")
+    if version is not None and \
+            git_version(git_dir, commit, f"refs/tags/{tag}") != version:
+        raise ReleaseError(f"git does not call {commit} {version}")
+    return commit
+
+
+def notes_at(git_dir: Path, ref: str, version: str) -> bytes | None:
+    """release/notes/<version>.md as @p ref has it, or None when it has none
+    (or an empty one)."""
+    out = run(["git", "-C", git_dir, "show",
+               f"{ref}:release/notes/{version}.md"], check=False, text=False)
+    if out.returncode != 0 or not out.stdout.strip():
+        return None
+    return out.stdout

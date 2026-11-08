@@ -11,15 +11,13 @@ is ever served: a signer promotes it, or it expires.
 
 from __future__ import annotations
 
-import json
 import re
 from pathlib import Path
 
 from common import (BUNDLE, SCHEMA, STAGED, SUMS, Product, ReleaseError,
-                    canonical_json, semver)
+                    canonical_json, load_json, parse_manifest, parse_version,
+                    semver)
 from store import Store
-
-import release_candidate as rc  # noqa: E402  (scripts/, on the path via common)
 
 
 def staging_prefix(ref: str, filesafe: str) -> str:
@@ -37,15 +35,12 @@ def stage(product: Product, candidate: Path, staging: Store, *, ref: str,
           commit: str, version: str, filesafe: str, built_at: str) -> str:
     if not re.fullmatch(r"[0-9a-f]{40}", commit):
         raise ReleaseError(f"not a commit: {commit}")
-    if str(semver.parse(version)).replace("+", "-") != filesafe:
+    if parse_version(version).filesafe != filesafe:
         raise ReleaseError(f"{filesafe} is not the file-safe {version}")
 
     # The candidate as the provenance job left it: its own manifest, every
     # file listed, nothing else.
-    try:
-        manifest = rc.parse_manifest((candidate / SUMS).read_bytes())
-    except rc.CandidateError as e:
-        raise ReleaseError(f"{candidate}: {e}") from e
+    manifest = parse_manifest((candidate / SUMS).read_bytes(), str(candidate))
     present = {p.name for p in candidate.iterdir() if p.is_file()}
     if present != set(manifest) | {SUMS, BUNDLE}:
         raise ReleaseError(f"{candidate} is not a release candidate: "
@@ -64,7 +59,7 @@ def stage(product: Product, candidate: Path, staging: Store, *, ref: str,
 
 
 def read_staged(data: bytes) -> dict:
-    staged = json.loads(data)
+    staged = load_json(data, STAGED)
     for key in ("schema", "product", "ref", "commit", "version", "filesafe",
                 "built_at", "files"):
         if key not in staged:

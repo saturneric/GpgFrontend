@@ -363,6 +363,63 @@ import authenticode  # noqa: E402
 import stable as stable_mod  # noqa: E402
 
 
+class HelperTest(unittest.TestCase):
+    """The shared pieces every role leans on, without any tool."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp(prefix="gfr-helper-"))
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_filesafe_folds_build_metadata(self):
+        self.assertEqual(common.parse_version("2.3.0-alpha.4+gabc").filesafe,
+                         "2.3.0-alpha.4-gabc")
+        self.assertEqual(common.parse_version("2.2.4").filesafe, "2.2.4")
+
+    def test_bad_input_is_a_release_error_not_a_traceback(self):
+        for data in (b"{", b"[]", b"\xff"):
+            with self.assertRaises(common.ReleaseError):
+                common.load_json(data, "x")
+        for text in ("2.2", None, "v2.2.4.1"):
+            with self.assertRaises(common.ReleaseError):
+                common.parse_version(text)
+        with self.assertRaisesRegex(common.ReleaseError, "malformed line"):
+            common.parse_manifest(b"abc  name\n", "SHA256SUMS.txt")
+
+    def test_manifest_round_trips(self):
+        hashes = {"b": "1" * 64, "a": "2" * 64}
+        data = common.render_manifest(hashes)
+        self.assertEqual(data, f"{'2' * 64}  a\n{'1' * 64}  b\n".encode())
+        self.assertEqual(common.parse_manifest(data, "m"), hashes)
+
+    def test_atomic_write_leaves_no_partial_file(self):
+        target = self.tmp / "state" / "serial"
+        common.atomic_write(target, "1\n")
+        common.atomic_write(target, b"2\n")
+        self.assertEqual(target.read_text(), "2\n")
+        self.assertEqual(sorted(p.name for p in target.parent.iterdir()),
+                         ["serial"])
+
+    @unittest.skipUnless(shutil.which("git"), "needs git")
+    def test_a_branch_never_passes_for_a_tag(self):
+        repo = self.tmp / "repo"
+        repo.mkdir()
+        run = lambda *a: subprocess.run(["git", *a], cwd=repo, env=git_env(),
+                                        check=True, capture_output=True)
+        run("init", "-q", "-b", "main")
+        run("commit", "-q", "--allow-empty", "-m", "c")
+        run("branch", "v9.9.9")  # a branch named like a tag
+        with self.assertRaisesRegex(common.ReleaseError, "has no tag v9.9.9"):
+            common.tagged_commit(repo, "v9.9.9")
+        run("tag", "v9.9.8")
+        head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo,
+                              capture_output=True, text=True).stdout.strip()
+        self.assertEqual(common.tagged_commit(repo, "v9.9.8", expect=head), head)
+        with self.assertRaisesRegex(common.ReleaseError, "not 0+"):
+            common.tagged_commit(repo, "v9.9.8", expect="0" * 40)
+
+
 class AuthenticodeSubjectTest(unittest.TestCase):
     """osslsigncode versions print the signer differently; the pin matches
     either form, and nothing else."""

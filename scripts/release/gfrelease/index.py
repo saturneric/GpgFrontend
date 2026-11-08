@@ -26,11 +26,10 @@ import imported
 import minisig
 import openpgp
 from common import (BUNDLE, DESCRIPTOR, INDEX, SCHEMA, SIG, SUMS, Product,
-                    ReleaseError, git_version, run,
-                    canonical_json, check_relpath, iso, parse_iso, semver,
-                    sha256_bytes, utcnow)
+                    ReleaseError, atomic_write, canonical_json, check_relpath,
+                    iso, load_json, notes_at, parse_iso, parse_manifest,
+                    parse_version, sha256_bytes, tagged_commit, utcnow)
 from store import Store
-from verify import parse_sums
 
 import release_candidate as rc  # noqa: E402  (scripts/, on the path via common)
 
@@ -39,17 +38,72 @@ RESIGN_BEFORE = dt.timedelta(days=7)
 VOLATILE = ("serial", "generated_at", "expires")
 
 
+def _check_contained(path: str, paths: list[str], prefix: str) -> None:
+    """Every path a descriptor names stays inside its own release."""
+    for p in paths:
+        if not check_relpath(p).startswith(prefix + "/"):
+            raise ReleaseError(f"{path}: {p} is outside its own release")
+
+
+def _check_release_envelope(product: Product, d: dict, path: str,
+                            kind: str) -> str:
+    """What every final release descriptor (stable or imported) must say of
+    itself: this product, this kind, its own path, a final version, its own
+    tag, and a pinned maintainer's OpenPGP key. Returns the version."""
+    version = d.get("version", "")
+    if d.get("schema") != SCHEMA or d.get("product") != product.slug or \
+            d.get("kind") != kind or \
+            path != f"releases/{version}/{DESCRIPTOR}":
+        raise ReleaseError(f"{path}: not a {product.slug} {kind} release")
+    v = parse_version(version, path)
+    if v.prerelease or v.build:
+        raise ReleaseError(f"{path}: {version} is not a final release")
+    if d.get("ref") != f"refs/tags/v{version}":
+        raise ReleaseError(f"{path}: not the release tagged v{version}")
+    signing = d.get("signing", {})
+    if signing.get("scheme") != "openpgp" or \
+            signing.get("fingerprint", "").upper() not in product.maintainers:
+        raise ReleaseError(f"{path}: not signed with a pinned maintainer key")
+    return version
+
+
+def _require(d: dict, path: str, *fields: str) -> None:
+    missing = [f for f in fields if f not in d]
+    if missing:
+        raise ReleaseError(f"{path}: lacks {', '.join(missing)}")
+    for a in d.get("artifacts", []):
+        if not isinstance(a, dict) or any(
+                k not in a for k in ("name", "path", "sig", "sha256")):
+            raise ReleaseError(f"{path}: an artifact entry is incomplete")
+
+
+def _verified_notes(builds: Store, ring: openpgp.Keyring, notes_path: str,
+                    digest: str, work: Path) -> None:
+    """The notes at @p notes_path are exactly @p digest and carry a pinned
+    maintainer's signature."""
+    if not builds.exists(notes_path) or not builds.exists(notes_path + SIG):
+        raise ReleaseError(f"{notes_path}: not signed and uploaded")
+    work.mkdir(parents=True, exist_ok=True)
+    notes, sig = work / "notes.md", work / "notes.md.sig"
+    notes.write_bytes(builds.read(notes_path))
+    sig.write_bytes(builds.read(notes_path + SIG))
+    if sha256_bytes(notes.read_bytes()) != digest:
+        raise ReleaseError(f"{notes_path}: not the reviewed notes")
+    ring.verify(notes, sig)
+
+
 def admit_nightly(product: Product, builds: Store, path: str, raw: bytes,
                   artifact_pub: str, tmp: Path) -> dict:
     """A nightly descriptor is listed only if it is this product's, says what
     it is consistently, and its manifest carries the artifact key's signature
     over exactly the hashes it states."""
-    d = json.loads(raw)
+    d = load_json(raw, path)
     prefix = path.rsplit("/", 1)[0]
     if d.get("schema") != SCHEMA or d.get("product") != product.slug:
         raise ReleaseError(f"{path}: not a {product.slug} descriptor")
     if d.get("kind") != "nightly" or not d.get("ref", "").startswith("refs/heads/"):
         raise ReleaseError(f"{path}: not a nightly")
+    _require(d, path, "version", "sums", "sums_sig", "artifacts")
     # Signed with the current artifact key, or one it replaced: a rotation
     # does not unlist the nightlies published before it.
     keys = {minisig.key_id(k): k for k in product.artifact_keys(artifact_pub)}
@@ -58,22 +112,21 @@ def admit_nightly(product: Product, builds: Store, path: str, raw: bytes,
         if signing.get("scheme") == "minisign" and len(signing) == 2 else None
     if key is None:
         raise ReleaseError(f"{path}: not signed with the artifact key")
-    if prefix != f"nightly/{str(semver.parse(d['version'])).replace('+', '-')}":
+    if prefix != f"nightly/{parse_version(d['version'], path).filesafe}":
         raise ReleaseError(f"{path}: published under another version's name")
-    for p in [d["sums"], d["sums_sig"]] + [a[k] for a in d["artifacts"]
-                                           for k in ("path", "sig")]:
-        if not check_relpath(p).startswith(prefix + "/"):
-            raise ReleaseError(f"{path}: {p} is outside its own release")
+    _check_contained(path, [d["sums"], d["sums_sig"]] +
+                     [a[k] for a in d["artifacts"] for k in ("path", "sig")],
+                     prefix)
 
-    sums, sig = tmp / "SHA256SUMS.txt", tmp / "SHA256SUMS.txt.minisig"
+    sums, sig = tmp / SUMS, tmp / (SUMS + ".minisig")
     sums.write_bytes(builds.read(d["sums"]))
     sig.write_bytes(builds.read(d["sums_sig"]))
     minisig.verify([key], sums, sig)
-    listed = parse_sums(sums.read_bytes())
+    listed = parse_manifest(sums.read_bytes(), d["sums"])
     if listed != {a["name"]: a["sha256"] for a in d["artifacts"]}:
         raise ReleaseError(f"{path}: artifacts differ from the signed manifest")
-    if any(a["sha256"] != a["build_sha256"] or a["transform"] != "none"
-           for a in d["artifacts"]):
+    if any(a.get("sha256") != a.get("build_sha256") or
+           a.get("transform") != "none" for a in d["artifacts"]):
         raise ReleaseError(f"{path}: a nightly is published as built")
     return d
 
@@ -81,12 +134,18 @@ def admit_nightly(product: Product, builds: Store, path: str, raw: bytes,
 def release_notes(git_dir: Path, version: str) -> bytes | None:
     """A release's notes as reviewed: main's copy (where a typo is fixed after
     the release) or, without one, the tagged tree's."""
-    for ref in ("refs/heads/main", f"v{version}"):
-        out = run(["git", "-C", git_dir, "show",
-                   f"{ref}:release/notes/{version}.md"], check=False, text=False)
-        if out.returncode == 0 and out.stdout.strip():
-            return out.stdout
+    for ref in ("refs/heads/main", f"refs/tags/v{version}"):
+        notes = notes_at(git_dir, ref, version)
+        if notes is not None:
+            return notes
     return None
+
+
+def _notes_fields(version: str, notes: bytes) -> dict:
+    digest = sha256_bytes(notes)
+    notes_path = f"notes/{version}/{digest}.md"
+    return {"notes": notes_path, "notes_sha256": digest,
+            "notes_sig": notes_path + SIG}
 
 
 def admit_stable(product: Product, builds: Store, path: str, raw: bytes, *,
@@ -100,39 +159,25 @@ def admit_stable(product: Product, builds: Store, path: str, raw: bytes, *,
     hashes: a release is checked again only when either changes, not on every
     round (checking an installer means downloading it).
     """
-    d = json.loads(raw)
-    version = d.get("version", "")
-    prefix = f"releases/{version}"
-    if d.get("schema") != SCHEMA or d.get("product") != product.slug or \
-            d.get("kind") != "stable" or path != f"{prefix}/{DESCRIPTOR}":
-        raise ReleaseError(f"{path}: not a {product.slug} stable release")
-    v = semver.parse(version)
-    if v.prerelease or v.build:
-        raise ReleaseError(f"{path}: {version} is not a final release")
+    d = load_json(raw, path)
+    version = _check_release_envelope(product, d, path, "stable")
+    _require(d, path, "commit", "sums", "sums_sig", "build", "artifacts")
+    _require(d["build"], path + " build", "sums", "bundle")
     tag = f"v{version}"
-    if d.get("ref") != f"refs/tags/{tag}":
-        raise ReleaseError(f"{path}: not built from {tag}")
-    signing = d.get("signing", {})
-    if signing.get("scheme") != "openpgp" or \
-            signing.get("fingerprint", "").upper() not in product.maintainers:
-        raise ReleaseError(f"{path}: not signed with a pinned maintainer key")
-    for p in [d["sums"], d["sums_sig"], d["build"]["sums"],
-              d["build"]["bundle"]] + [a[k] for a in d["artifacts"]
-                                       for k in ("path", "sig")]:
-        if not check_relpath(p).startswith(prefix + "/"):
-            raise ReleaseError(f"{path}: {p} is outside its own release")
+    prefix = f"releases/{version}"
+    _check_contained(path, [d["sums"], d["sums_sig"], d["build"]["sums"],
+                            d["build"]["bundle"]] +
+                     [a[k] for a in d["artifacts"] for k in ("path", "sig")],
+                     prefix)
 
     notes = release_notes(git_dir, version)
     if notes is None:
         raise ReleaseError(f"{tag}: no release notes to publish with it")
-    notes_sha = sha256_bytes(notes)
-    notes_path = f"notes/{version}/{notes_sha}.md"
-    entry = {"descriptor": path, "sha256": sha256_bytes(raw),
-             "notes": notes_path, "notes_sha256": notes_sha,
-             "notes_sig": notes_path + SIG}
+    entry = {"descriptor": path, "sha256": sha256_bytes(raw)} | \
+        _notes_fields(version, notes)
 
     record = state_dir / "admitted" / f"{version}.json"
-    if record.exists() and json.loads(record.read_text()) == entry:
+    if record.exists() and load_json(record.read_text(), str(record)) == entry:
         return d, entry
 
     work = tmp / version
@@ -140,31 +185,29 @@ def admit_stable(product: Product, builds: Store, path: str, raw: bytes, *,
     with openpgp.Keyring(product.keyring_path, product.maintainers) as ring:
         # The tag: a maintainer's, and the commit that was built.
         ring.verify_tag(git_dir, tag)
-        tagged = run(["git", "-C", git_dir, "rev-parse",
-                      f"{tag}^{{commit}}"]).stdout.strip()
-        if tagged != d["commit"]:
-            raise ReleaseError(f"{path}: {tag} is {tagged}, not {d['commit']}")
+        try:
+            tagged_commit(git_dir, tag, expect=d["commit"])
+        except ReleaseError as e:
+            raise ReleaseError(f"{path}: {e}") from e
 
         # The final manifest, signed by a maintainer, and exactly the
         # descriptor's hashes.
         for name, rel in ((SUMS, d["sums"]), (SUMS + SIG, d["sums_sig"])):
             (work / name).write_bytes(builds.read(rel))
         ring.verify(work / SUMS, work / (SUMS + SIG))
-        if parse_sums((work / SUMS).read_bytes()) != \
+        if parse_manifest((work / SUMS).read_bytes(), d["sums"]) != \
                 {a["name"]: a["sha256"] for a in d["artifacts"]}:
             raise ReleaseError(f"{path}: artifacts differ from the signed "
                                "manifest")
 
         # The notes, signed by a maintainer.
-        if not builds.exists(notes_path) or not builds.exists(notes_path + SIG):
+        try:
+            _verified_notes(builds, ring, entry["notes"],
+                            entry["notes_sha256"], work / "notes")
+        except ReleaseError as e:
             raise ReleaseError(
                 f"{tag}: the notes main has for it are not signed and uploaded "
-                f"yet (gfrelease stable {version} --notes-only)")
-        (work / "notes.md").write_bytes(builds.read(notes_path))
-        (work / "notes.md.sig").write_bytes(builds.read(notes_path + SIG))
-        if sha256_bytes((work / "notes.md").read_bytes()) != notes_sha:
-            raise ReleaseError(f"{notes_path}: not the reviewed notes")
-        ring.verify(work / "notes.md", work / "notes.md.sig")
+                f"yet (gfrelease stable {version} --notes-only): {e}") from e
 
     # What CI built, as Sigstore says: every file's build hash.
     build = work / "build"
@@ -177,12 +220,12 @@ def admit_stable(product: Product, builds: Store, path: str, raw: bytes, *,
     except rc.CandidateError as e:
         raise ReleaseError(f"{path}: {e}") from e
     for a in d["artifacts"]:
-        if built.get(a["name"]) != a["build_sha256"]:
+        if built.get(a["name"]) != a.get("build_sha256"):
             raise ReleaseError(f"{a['name']}: not what CI built")
-        if a["transform"] == "none":
+        if a.get("transform") == "none":
             if a["sha256"] != a["build_sha256"]:
                 raise ReleaseError(f"{a['name']}: changed without a transform")
-        elif a["transform"] == "authenticode":
+        elif a.get("transform") == "authenticode":
             local = work / a["name"]
             local.write_bytes(builds.read(a["path"]))
             if sha256_bytes(local.read_bytes()) != a["sha256"]:
@@ -194,10 +237,9 @@ def admit_stable(product: Product, builds: Store, path: str, raw: bytes, *,
             local.unlink()
         else:
             raise ReleaseError(f"{a['name']}: unknown transform "
-                               f"{a['transform']!r}")
+                               f"{a.get('transform')!r}")
 
-    record.parent.mkdir(parents=True, exist_ok=True)
-    record.write_text(json.dumps(entry, sort_keys=True))
+    atomic_write(record, json.dumps(entry, sort_keys=True))
     return d, entry
 
 
@@ -212,31 +254,17 @@ def admit_imported(product: Product, builds: Store, path: str, raw: bytes, *,
     downloaded and checked, once: the result is recorded under the state
     directory by the descriptor's hash, like a stable release's.
     """
-    d = json.loads(raw)
-    version = d.get("version", "")
-    prefix = f"releases/{version}"
-    if d.get("schema") != SCHEMA or d.get("product") != product.slug or \
-            d.get("kind") != imported.KIND or \
-            path != f"{prefix}/{DESCRIPTOR}":
-        raise ReleaseError(f"{path}: not a {product.slug} imported release")
-    v = semver.parse(version)
-    if v.prerelease or v.build:
-        raise ReleaseError(f"{path}: {version} is not a final release")
-    floor = semver.parse(product.policy["signing"]["legacy_unsigned_before"])
-    if v < floor:
+    d = load_json(raw, path)
+    version = _check_release_envelope(product, d, path, imported.KIND)
+    floor = parse_version(product.policy["signing"]["legacy_unsigned_before"])
+    if parse_version(version) < floor:
         raise ReleaseError(f"{path}: {version} is older than {floor}")
-    tag = f"v{version}"
-    if d.get("ref") != f"refs/tags/{tag}":
-        raise ReleaseError(f"{path}: not the release tagged {tag}")
-    if d.get("signing", {}).get("scheme") != "openpgp" or \
-            d["signing"].get("fingerprint", "").upper() not in product.maintainers:
-        raise ReleaseError(f"{path}: not signed with a pinned maintainer key")
     if not d.get("artifacts"):
         raise ReleaseError(f"{path}: lists no files")
+    _require(d, path, "artifacts")
+    _check_contained(path, [a[k] for a in d["artifacts"]
+                            for k in ("path", "sig")], f"releases/{version}")
     for a in d["artifacts"]:
-        for k in ("path", "sig"):
-            if not check_relpath(a[k]).startswith(prefix + "/"):
-                raise ReleaseError(f"{path}: {a[k]} is outside its own release")
         if product.classify(a["name"], version) != \
                 {k: a[k] for k in ("os", "arch", "kind", "flavor", "min_os")
                  if k in a}:
@@ -245,11 +273,11 @@ def admit_imported(product: Product, builds: Store, path: str, raw: bytes, *,
 
     entry = {"descriptor": path, "sha256": sha256_bytes(raw)}
     record = state_dir / "admitted" / f"{version}.json"
-    if not (record.exists() and json.loads(record.read_text()) == entry):
+    if not (record.exists() and
+            load_json(record.read_text(), str(record)) == entry):
         _check_imported_files(product, builds, d, path, git_dir=git_dir,
                               tmp=tmp)
-        record.parent.mkdir(parents=True, exist_ok=True)
-        record.write_text(json.dumps(entry, sort_keys=True))
+        atomic_write(record, json.dumps(entry, sort_keys=True))
     return d, entry | _imported_notes(product, builds, version,
                                       git_dir=git_dir, state_dir=state_dir,
                                       tmp=tmp)
@@ -258,13 +286,10 @@ def admit_imported(product: Product, builds: Store, path: str, raw: bytes, *,
 def _check_imported_files(product: Product, builds: Store, d: dict, path: str,
                           *, git_dir: Path, tmp: Path) -> None:
     version, tag = d["version"], f"v{d['version']}"
-    tagged = run(["git", "-C", git_dir, "rev-parse", f"{tag}^{{commit}}"],
-                 check=False).stdout.strip()
-    if tagged != d.get("commit"):
-        raise ReleaseError(f"{path}: {tag} is {tagged or 'missing'}, not "
-                           f"{d.get('commit')}")
-    if git_version(git_dir, tagged, f"refs/tags/{tag}") != version:
-        raise ReleaseError(f"{path}: git does not call {tagged} {version}")
+    try:
+        tagged_commit(git_dir, tag, expect=d.get("commit"), version=version)
+    except ReleaseError as e:
+        raise ReleaseError(f"{path}: {e}") from e
 
     work = tmp / version
     work.mkdir(parents=True, exist_ok=True)
@@ -290,28 +315,20 @@ def _imported_notes(product: Product, builds: Store, version: str, *,
     notes = release_notes(git_dir, version)
     if notes is None:
         return {}
-    digest = sha256_bytes(notes)
-    notes_path = f"notes/{version}/{digest}.md"
-    fields = {"notes": notes_path, "notes_sha256": digest,
-              "notes_sig": notes_path + SIG}
+    fields = _notes_fields(version, notes)
     record = state_dir / "admitted" / f"{version}.notes"
-    if record.exists() and record.read_text() == digest:
+    if record.exists() and record.read_text() == fields["notes_sha256"]:
         return fields
-    if not builds.exists(notes_path) or not builds.exists(notes_path + SIG):
+    if not builds.exists(fields["notes"]) or \
+            not builds.exists(fields["notes_sig"]):
         print(f"{version}: listed without notes; main's are not signed and "
               f"uploaded yet (gfrelease stable {version} --notes-only)",
               file=sys.stderr)
         return {}
-    work = tmp / f"{version}-notes"
-    work.mkdir(parents=True, exist_ok=True)
-    (work / "notes.md").write_bytes(builds.read(notes_path))
-    (work / "notes.md.sig").write_bytes(builds.read(notes_path + SIG))
-    if sha256_bytes((work / "notes.md").read_bytes()) != digest:
-        raise ReleaseError(f"{notes_path}: not main's notes")
     with openpgp.Keyring(product.keyring_path, product.maintainers) as ring:
-        ring.verify(work / "notes.md", work / "notes.md.sig")
-    record.parent.mkdir(parents=True, exist_ok=True)
-    record.write_text(digest)
+        _verified_notes(builds, ring, fields["notes"], fields["notes_sha256"],
+                        tmp / f"{version}-notes")
+    atomic_write(record, fields["notes_sha256"])
     return fields
 
 
@@ -330,8 +347,8 @@ def build(product: Product, builds: Store, artifact_pub: str, *,
             # published for testers who fetch them by hand.
             if d["ref"] != "refs/heads/main":
                 continue
-            if nightly is None or semver.parse(d["version"]) > \
-                    semver.parse(nightly["version"]):
+            if nightly is None or parse_version(d["version"]) > \
+                    parse_version(nightly["version"]):
                 nightly = {"version": d["version"], "descriptor": path,
                            "sha256": sha256_bytes(raw)}
 
@@ -341,7 +358,7 @@ def build(product: Product, builds: Store, artifact_pub: str, *,
                 raise ReleaseError("stable releases need --git-dir and "
                                    "--state-dir to be admitted")
             raw = builds.read(path)
-            if json.loads(raw).get("kind") == imported.KIND:
+            if load_json(raw, path).get("kind") == imported.KIND:
                 d, entry = admit_imported(product, builds, path, raw,
                                           git_dir=git_dir, state_dir=state_dir,
                                           tmp=Path(tmp))
@@ -364,15 +381,15 @@ def build(product: Product, builds: Store, artifact_pub: str, *,
     # of the series users are meant to be on (stable, or mainline once its .0
     # shipped and before the policy moved on). Betas join with their own path.
     withdrawn = {w["version"] for w in product.policy.get("withdrawn", [])}
-    for version in sorted(releases, key=semver.parse):
+    for version in sorted(releases, key=parse_version):
         if version in withdrawn:
             continue
-        key = semver.parse(version).series
+        key = parse_version(version).series
         if key in series:
             series[key]["latest"] = version
     current = [s["latest"] for s in series.values()
                if s["status"] in ("stable", "mainline") and s["latest"]]
-    stable = max(current, key=semver.parse) if current else None
+    stable = max(current, key=parse_version) if current else None
 
     return {
         "schema": SCHEMA, "product": product.slug,
@@ -389,12 +406,17 @@ def build(product: Product, builds: Store, artifact_pub: str, *,
 def published(update: Store) -> dict | None:
     if not update.exists(INDEX):
         return None
-    return json.loads(update.read(INDEX))
+    return load_json(update.read(INDEX), INDEX)
 
 
 def read_serial(state_dir: Path) -> int:
     path = state_dir / "serial"
-    return int(path.read_text()) if path.exists() else 0
+    if not path.exists():
+        return 0
+    try:
+        return int(path.read_text())
+    except ValueError as e:
+        raise ReleaseError(f"{path}: not a serial") from e
 
 
 def publish(product: Product, builds: Store, update: Store, *,
@@ -425,7 +447,7 @@ def publish(product: Product, builds: Store, update: Store, *,
                            f"product={product.slug} serial={serial}")
         # Recorded before the upload: a crash after it can only skip a
         # serial, never reuse one.
-        (state_dir / "serial").write_text(f"{serial}\n")
+        atomic_write(state_dir / "serial", f"{serial}\n")
         for store in [update, *mirrors]:
             store.put_file(local, INDEX, immutable=False)
             store.put_file(sig, INDEX + ".minisig", immutable=False)
