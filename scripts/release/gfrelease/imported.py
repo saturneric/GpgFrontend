@@ -29,8 +29,8 @@ from pathlib import Path
 
 import openpgp
 from common import (DESCRIPTOR, SCHEMA, Product, ReleaseError, canonical_json,
-                    git_version, iso, parse_iso, run, semver, sha256_file,
-                    utcnow)
+                    iso, load_json, parse_iso, parse_version, sha256_file,
+                    tagged_commit, utcnow)
 from store import Store
 
 KIND = "imported"
@@ -72,15 +72,15 @@ class GitHubSource:
         return f"https://github.com/{self.repository}/releases/tag/{tag}"
 
 
-def _floor(product: Product) -> semver.Version:
-    return semver.parse(product.policy["signing"]["legacy_unsigned_before"])
+def _floor(product: Product):
+    return parse_version(product.policy["signing"]["legacy_unsigned_before"])
 
 
 class Import:
     def __init__(self, product: Product, version: str, work: Path, *,
                  builds: Store | None, git_dir: Path,
                  source: GitHubSource | None = None):
-        v = semver.parse(version)
+        v = parse_version(version)
         if v.prerelease or v.build:
             raise ReleaseError(f"{version}: only final releases are imported")
         if v < _floor(product):
@@ -138,13 +138,7 @@ class Import:
         files = self._select(release)
 
         # The tag, and that git calls its commit this version.
-        commit = run(["git", "-C", self.git_dir, "rev-parse",
-                      f"{self.tag}^{{commit}}"], check=False).stdout.strip()
-        if not commit:
-            raise ReleaseError(f"{self.git_dir} has no tag {self.tag}")
-        if git_version(self.git_dir, commit, f"refs/tags/{self.tag}") != \
-                self.version:
-            raise ReleaseError(f"git does not call {commit} {self.version}")
+        commit = tagged_commit(self.git_dir, self.tag, version=self.version)
 
         # Every file against its original signature, before anything leaves.
         signers = set()
@@ -177,7 +171,7 @@ class Import:
         descriptor = {
             "schema": SCHEMA, "product": self.product.slug, "kind": KIND,
             "version": self.version,
-            "series": semver.parse(self.version).series,
+            "series": parse_version(self.version).series,
             "ref": f"refs/tags/{self.tag}", "commit": commit,
             "released_at": iso(parse_iso(released)) if released else None,
             "imported_at": iso(utcnow()),
@@ -190,9 +184,10 @@ class Import:
         local = self.dir / DESCRIPTOR
         previous = None
         if self.builds is not None and self.builds.exists(f"{p}/{DESCRIPTOR}"):
-            previous = json.loads(self.builds.read(f"{p}/{DESCRIPTOR}"))
+            previous = load_json(self.builds.read(f"{p}/{DESCRIPTOR}"),
+                                 f"{p}/{DESCRIPTOR}")
         elif local.is_file():
-            previous = json.loads(local.read_bytes())
+            previous = load_json(local.read_bytes(), str(local))
         if previous and previous.get("imported_at"):
             descriptor["imported_at"] = previous["imported_at"]
         local.write_bytes(canonical_json(descriptor))

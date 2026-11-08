@@ -56,6 +56,12 @@ class Version:
     def is_final(self) -> bool:
         return not self.prerelease
 
+    @property
+    def filesafe(self) -> str:
+        """The spelling that names files and storage prefixes: build
+        metadata's "+" folded to "-", as cmake/GitVersion.cmake does."""
+        return str(self).replace("+", "-")
+
     def __str__(self) -> str:
         text = f"{self.major}.{self.minor}.{self.patch}"
         if self.prerelease:

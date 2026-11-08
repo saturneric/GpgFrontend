@@ -73,9 +73,9 @@ export GFR_PRODUCT="$dir/product.json" GFR_POLICY="$dir/policy.toml"
 
 echo "== CI: a candidate of HEAD, signed for main, staged"
 commit="$(git -C "$top" rev-parse HEAD)"
-version="$(cmake -DGF_SOURCE_DIR="$top" -DGPGFRONTEND_VERSION_REV="$commit" \
-  -DGPGFRONTEND_VERSION_REF=main -DGF_FIELD=version -P "$top/cmake/GitVersion.cmake")"
-filesafe="${version//+/-}"
+version="$(python3 "$here/gitversion.py" --repo "$top" --rev "$commit" --ref main)"
+filesafe="$(python3 "$here/gitversion.py" --repo "$top" --rev "$commit" --ref main \
+  --field filesafe)"
 for leg in linux-x86_64.AppImage windows-x86_64.msi windows-x86_64-portable.zip \
            macos-15.dmg android-arm64-v8a.apk; do
   head -c 4096 /dev/urandom > "$dir/candidate/${prefix}${filesafe}-${leg}"
