@@ -33,8 +33,8 @@ import imported
 import minisig
 import openpgp
 from common import (INDEX, SCHEMA, SUMS, Product, ReleaseError, check_relpath,
-                    load_json, parse_iso, parse_manifest, sha256_bytes,
-                    sha256_file, utcnow)
+                    load_json, parse_iso, parse_manifest, parse_version,
+                    sha256_bytes, sha256_file, utcnow)
 from store import Store
 
 
@@ -145,10 +145,19 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
         if channels.get("nightly") != nightly.get("version"):
             raise ReleaseError(f"channels.nightly {channels.get('nightly')} is "
                                "not the listed nightly")
+        # No channel offers what the index itself says is withdrawn.
+        withdrawn = {parse_version(w.get("version"), "withdrawn")
+                     for w in index.get("withdrawn", []) if isinstance(w, dict)}
+        for channel, version in channels.items():
+            if version is not None and \
+                    parse_version(version, f"channels.{channel}") in withdrawn:
+                raise ReleaseError(f"channels.{channel} offers {version}, "
+                                   "which is withdrawn")
 
-        entries = [(None, nightly)] if nightly else []
-        entries += list(releases.items())
-        for listed_as, entry in entries:
+        # A nightly is main's build: the descriptor's ref says so.
+        entries = [(None, nightly, "refs/heads/main")] if nightly else []
+        entries += [(v, e, None) for v, e in releases.items()]
+        for listed_as, entry, ref in entries:
             raw = builds.read(check_relpath(entry["descriptor"]))
             if sha256_bytes(raw) != entry["sha256"]:
                 raise ReleaseError(f"{entry['descriptor']}: sha256 is not the "
@@ -156,7 +165,12 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
             descriptor = load_json(raw, entry["descriptor"])
             if descriptor.get("product") != product.slug:
                 raise ReleaseError(f"{entry['descriptor']}: another product's")
-            want = listed_as or nightly.get("version")
+            want = listed_as or entry.get("version")
+            if ref is not None and not str(descriptor.get("ref", "")) \
+                    .startswith(ref):
+                raise ReleaseError(f"{entry['descriptor']}: built from "
+                                   f"{descriptor.get('ref')}, listed as a "
+                                   f"build of {ref}")
             if descriptor.get("version") != want:
                 raise ReleaseError(f"{entry['descriptor']}: is "
                                    f"{descriptor.get('version')}, listed as "
@@ -182,6 +196,18 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
                                        "the server's countersignature")
                 sums_data, _ = _signed(builds, manifest, artifact_keys, tmp)
                 sums = parse_manifest(sums_data, manifest)
+                # When each file's maintainer signature was made, as the
+                # server admitted it: one per file, nothing else.
+                signatures = entry.get("signatures")
+                if not isinstance(signatures, dict) or set(signatures) != \
+                        {a["name"] for a in descriptor["artifacts"]}:
+                    raise ReleaseError(f"{entry['descriptor']}: listed without "
+                                       "a signature time for every file")
+                for name, sig in signatures.items():
+                    if not isinstance(sig, dict) or \
+                            not isinstance(sig.get("signer"), str):
+                        raise ReleaseError(f"{name}: no signer recorded")
+                    parse_iso(sig.get("created"))
                 # The maintainer's own signature on the manifest: what a
                 # person checks by hand. An imported release has none.
                 if deep and descriptor.get("sums_sig"):
@@ -226,8 +252,16 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
                                        fetch(artifact["path"] +
                                              countersign.MINISIG,
                                              artifact["name"] + ".minisig"))
-                        keyring().verify(local, fetch(artifact["sig"],
-                                                      artifact["name"] + ".sig"))
+                        signed = keyring().verify_signature(
+                            local, fetch(artifact["sig"],
+                                         artifact["name"] + ".sig"))
+                        recorded = entry["signatures"][artifact["name"]]
+                        if signed["primary"] != recorded["signer"] or \
+                                signed["created"] != int(parse_iso(
+                                    recorded["created"]).timestamp()):
+                            raise ReleaseError(
+                                f"{artifact['name']}: its signature is not the "
+                                "one the index records")
                     local.unlink()
             report["checked"].append({"version": descriptor["version"],
                                       "kind": descriptor["kind"],

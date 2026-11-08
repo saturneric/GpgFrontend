@@ -118,6 +118,7 @@
     "artifact_keys_retired": [],
     "maintainer_fingerprints": ["12F7E8858CF15BEC9975FF3C5CA3DA246843FD03"],
     "authenticode_subject": "CN=Open Source Developer Yu Hu,O=Open Source Developer,L=Karlsruhe,ST=Baden-Württemberg,C=DE",
+    "authenticode_timestamp": "required",
     "authenticode_subjects_retired": []
   }
 }

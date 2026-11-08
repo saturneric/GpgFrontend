@@ -70,15 +70,7 @@ class Stage:
         self.dir = Path(work) / self.version
         self.staging, self.builds = staging, builds
         self.git_dir, self.cosign = git_dir, cosign
-        self.key = (key or (product.maintainers[0] if product.maintainers
-                            else "")).upper()
-        # The descriptor names this key, and the host admits only a pinned
-        # primary fingerprint: a subkey's, or a retired key's, would sign
-        # everything here and then never be listed.
-        if self.key and self.key not in product.maintainers:
-            raise ReleaseError(f"--key {self.key} is not a current pinned "
-                               "maintainer's primary fingerprint "
-                               "(release/product.json)")
+        self.requested_key = (key or "").upper()
         self.gnupghome = gnupghome
         self.signer = signer
         self.authenticode_ca = authenticode_ca
@@ -92,8 +84,32 @@ class Stage:
             raise ReleaseError(f"{self.state_path} is the stage of "
                                f"{self.state.get('version')!r}, not "
                                f"{self.version}")
+        # The key that signed this release, once it has: a resumed stage
+        # names it in the descriptor, whatever the default is by now (a
+        # maintainer key rotated meanwhile).
+        signed_with = self.state.get("key")
+        if signed_with and self.requested_key and \
+                self.requested_key != signed_with:
+            self._conflict = (f"{self.version} is signed with {signed_with}; "
+                              f"--key {self.requested_key} cannot finish it")
+        else:
+            self._conflict = None
+        self.key = (signed_with or self.requested_key or
+                    (product.maintainers[0] if product.maintainers else ""))
+        if not signed_with:
+            self._check_signing_key()
 
     # --- bookkeeping ------------------------------------------------------
+
+    def _check_signing_key(self, key: str | None = None) -> None:
+        """A key that signs anything new: the descriptor names it, and the
+        host admits only a pinned primary fingerprint. A subkey's, or a
+        retired key's, would sign everything here and never be listed."""
+        key = key or self.key
+        if key and key not in self.product.maintainers:
+            raise ReleaseError(f"--key {key} is not a current pinned "
+                               "maintainer's primary fingerprint "
+                               "(release/product.json)")
 
     def _save(self) -> None:
         tmp = self.state_path.with_suffix(".new")
@@ -101,6 +117,8 @@ class Stage:
         tmp.replace(self.state_path)
 
     def run(self, redo: str | None = None) -> dict | None:
+        if self._conflict:
+            raise ReleaseError(self._conflict)
         if redo:
             if redo not in STEPS:
                 raise ReleaseError(f"no step {redo!r}; steps are {STEPS}")
@@ -114,6 +132,13 @@ class Stage:
                     "published); only --redo upload can")
             keep = STEPS[:STEPS.index(redo)]
             self.state["done"] = [s for s in self.state["done"] if s in keep]
+            if "pgp" not in keep:
+                # Signed again from scratch: by the key asked for now.
+                self.state.pop("key", None)
+                self.key = self.requested_key or (
+                    self.product.maintainers[0] if self.product.maintainers
+                    else "")
+                self._check_signing_key()
         for step in STEPS:
             if step in self.state["done"]:
                 continue
@@ -122,18 +147,20 @@ class Stage:
             self._save()
         return self.state.get("descriptor")
 
-    def _sign_notes(self, ref: str) -> tuple[Path, str]:
+    def _sign_notes(self, ref: str, directory: str = "notes",
+                    key: str | None = None) -> tuple[Path, str]:
         """The notes @p ref has for this release, written content-addressed
-        under <work>/notes/ and signed; returns the file and its hash."""
+        under <work>/<directory>/ and signed; returns the file and its
+        hash."""
         data = notes_at(self.git_dir, ref, self.version)
         if data is None:
             raise ReleaseError(f"{ref} carries no "
                                f"release/notes/{self.version}.md")
         digest = sha256_bytes(data)
-        local = self.dir / "notes" / f"{digest}.md"
+        local = self.dir / directory / f"{digest}.md"
         local.parent.mkdir(parents=True, exist_ok=True)
         local.write_bytes(data)
-        openpgp.sign(local, self.key, self.gnupghome)
+        openpgp.sign(local, key or self.key, self.gnupghome)
         return local, digest
 
     def publish_notes(self, ref: str = "refs/heads/main") -> str:
@@ -141,7 +168,26 @@ class Stage:
         their hash. Content-addressed, so the old notes stay where they are
         and nothing published is ever replaced."""
         self._need("key", "git_dir", "builds")
-        local, digest = self._sign_notes(ref)
+        data = notes_at(self.git_dir, ref, self.version)
+        if data is None:
+            raise ReleaseError(f"{ref} carries no "
+                               f"release/notes/{self.version}.md")
+        digest = sha256_bytes(data)
+        remote = f"notes/{self.version}/{digest}.md"
+        # Signed and uploaded already (the tag's notes, unchanged on main):
+        # nothing to do. Signing again would only make a .sig of other
+        # bytes, which can never replace the published one.
+        if self.builds.exists(remote) and self.builds.exists(remote + ".sig") \
+                and self.builds.sha256(remote) == digest:
+            return digest
+        # New notes are signed by a current maintainer, whoever signed the
+        # release itself.
+        key = self.requested_key or (
+            self.product.maintainers[0] if self.product.maintainers else "")
+        self._check_signing_key(key)
+        # Its own directory: the stage's notes/ holds what an interrupted
+        # upload still has to send, and is never signed over.
+        local, digest = self._sign_notes(ref, "notes-only", key)
         with openpgp.Keyring(self.product.keyring_path,
                              self.product.trusted_maintainers) as ring:
             ring.verify(local, local.with_name(local.name + ".sig"))
@@ -215,6 +261,12 @@ class Stage:
                       for n in files}}
 
     def _authenticode(self) -> None:
+        if self.signer is not None and not self.signer.timestamp_url and \
+                self.product.authenticode_timestamp_required:
+            # Without a time stamp the signature dies with the certificate:
+            # every later check of the release would refuse it.
+            raise ReleaseError("Authenticode signing needs --timestamp-url "
+                               "(release/product.json requires a timestamp)")
         build = self.dir / "build"
         if self.final_dir.exists():
             shutil.rmtree(self.final_dir)
@@ -228,7 +280,9 @@ class Stage:
                 self.signer.sign(build / name, self.final_dir / name)
                 authenticode.verify(self.final_dir / name,
                                     self.product.authenticode_subject,
-                                    self.authenticode_ca)
+                                    self.authenticode_ca,
+                                    require_timestamp=self.product
+                                    .authenticode_timestamp_required)
                 info["transform"] = "authenticode"
             else:
                 shutil.copy2(build / name, self.final_dir / name)
@@ -237,6 +291,8 @@ class Stage:
 
     def _pgp(self) -> None:
         self._need("key", "git_dir")
+        self._check_signing_key()
+        self.state["key"] = self.key
         files = self.state["build"]["files"]
         for stale in self.final_dir.glob("*.sig"):
             stale.unlink()

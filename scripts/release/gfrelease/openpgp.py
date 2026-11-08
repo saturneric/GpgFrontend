@@ -87,22 +87,27 @@ class Keyring:
         run(["gpgconf", "--homedir", self.home, "--kill", "all"], check=False)
         self._tmp.cleanup()
 
-    def _key_expiry(self, fingerprint: str) -> int | None:
-        """When the (sub)key @p fingerprint expires, as gpg has it; None for
-        never."""
+    def _key_state(self, fingerprint: str) -> tuple[int | None, bool]:
+        """When the (sub)key @p fingerprint expires (None for never), and
+        whether it or its primary is revoked, as gpg has them. gpg reports
+        a key that is both expired and revoked as EXPKEYSIG: the revocation
+        is read here."""
         out = run(["gpg", "--homedir", self.home, "--batch", "--with-colons",
                    "--list-keys", fingerprint], check=False)
-        expiry = None
+        expiry, validity, primary_validity = None, "", ""
         for line in out.stdout.splitlines():
             fields = line.split(":")
             if fields[0] in ("pub", "sub"):
-                expiry = fields[6]
+                expiry, validity = fields[6], fields[1]
+                if fields[0] == "pub":
+                    primary_validity = fields[1]
             elif fields[0] == "fpr" and len(fields) > 9 and \
                     fields[9].upper() == fingerprint:
-                return int(expiry) if expiry and expiry.isdigit() else None
-        return None
+                return (int(expiry) if expiry and expiry.isdigit() else None,
+                        "r" in (validity, primary_validity))
+        return None, False
 
-    def _accept(self, status: str, what: str) -> str:
+    def _accept(self, status: str, what: str) -> dict:
         """The pinned primary fingerprint of a signature gpg found valid, made
         by a key that was good when it signed:
 
@@ -125,11 +130,15 @@ class Keyring:
                 continue
             judgement = sig.get("judgement")
             if judgement == "GOODSIG":
-                return primary
+                return sig
             if judgement == "EXPKEYSIG":
-                expiry = self._key_expiry(sig["signer"])
+                expiry, revoked = self._key_state(sig["signer"])
+                if revoked:
+                    reasons.append(f"signed by {primary}, whose key is "
+                                   "revoked")
+                    continue
                 if expiry is not None and sig["created"] < expiry:
-                    return primary
+                    return sig
                 reasons.append(f"signed by {primary} after its key expired")
             elif judgement == "REVKEYSIG":
                 reasons.append(f"signed by {primary}, whose key is revoked")
@@ -142,25 +151,34 @@ class Keyring:
 
     def verify(self, data: Path, asc: Path) -> str:
         """The pinned primary fingerprint that signed @p data, or an error."""
+        return self.verify_signature(data, asc)["primary"]
+
+    def verify_signature(self, data: Path, asc: Path) -> dict:
+        """The accepted signature on @p data: its pinned primary
+        fingerprint ("primary") and when it was made ("created", Unix
+        seconds), or an error."""
         out = run(["gpg", "--homedir", self.home, "--batch", "--status-fd", "1",
                    "--verify", asc, data], check=False)
         if out.returncode != 0:
             raise ReleaseError(f"{Path(data).name}: the signature does not verify")
-        return self._accept(out.stdout, Path(data).name)
+        sig = self._accept(out.stdout, Path(data).name)
+        return {"primary": sig["primary"], "created": sig["created"]}
 
     def verify_tag(self, git_dir: Path, tag: str) -> str:
         """A signed annotated tag, by a pinned maintainer key."""
-        env = dict(os.environ, GNUPGHOME=self.home)
-        # gpg itself, whatever the repository's or the user's config names.
-        out = run(["git", "-c", "gpg.program=gpg", "-C", git_dir,
+        # gpg itself, and nothing the user's or the system's git config says
+        # (a minimum trust level, another program): the pinning below
+        # decides.
+        env = dict(os.environ, GNUPGHOME=self.home,
+                   GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_NOSYSTEM="1")
+        out = run(["git", "-c", "gpg.program=gpg",
+                   "-c", "gpg.minTrustLevel=undefined", "-C", git_dir,
                    "verify-tag", "--raw", tag], env=env, check=False)
-        if out.returncode != 0:
-            # git refuses more than gpg's exit status does (a revoked key's
-            # tag, for one); say why, from the same status lines.
-            try:
-                self._accept(out.stderr, f"tag {tag}")
-            except ReleaseError as e:
-                raise ReleaseError(f"tag {tag} is not signed by a maintainer "
-                                   f"key ({e})") from e
-            raise ReleaseError(f"tag {tag} is not signed by a maintainer key")
-        return self._accept(out.stderr, f"tag {tag}")
+        # git also refuses what gpg judged acceptable here (a tag a key made
+        # before it expired) or not at all: the status lines decide, by the
+        # same rules as for a file.
+        try:
+            return self._accept(out.stderr, f"tag {tag}")["primary"]
+        except ReleaseError as e:
+            raise ReleaseError(f"tag {tag} is not signed by a maintainer "
+                               f"key ({e})") from e

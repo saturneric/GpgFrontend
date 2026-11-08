@@ -47,9 +47,8 @@ class Signer:
         run(cmd + ["-in", src, "-out", dst])
 
 
-def signer_subject(file: Path, cafile: str | None = None) -> str:
-    """The subject of the certificate that signed @p file, once osslsigncode
-    has verified the signature (and, with @p cafile, the chain to it)."""
+def _verified(file: Path, cafile: str | None) -> str:
+    """osslsigncode's report on @p file, once it verified the signature."""
     cmd = ["osslsigncode", "verify", "-in", file]
     if cafile:
         cmd += ["-CAfile", cafile]
@@ -57,6 +56,16 @@ def signer_subject(file: Path, cafile: str | None = None) -> str:
     text = out.stdout + out.stderr
     if out.returncode != 0 or "Signature verification: ok" not in text:
         raise ReleaseError(f"{file.name}: no valid Authenticode signature")
+    return text
+
+
+def signer_subject(file: Path, cafile: str | None = None) -> str:
+    """The subject of the certificate that signed @p file, once osslsigncode
+    has verified the signature (and, with @p cafile, the chain to it)."""
+    return _subject_in(_verified(file, cafile), file)
+
+
+def _subject_in(text: str, file: Path) -> str:
     # The first subject after "Signer's certificate:" is the signer's; the
     # chain osslsigncode prints later repeats it among others.
     m = re.search(r"Signer's certificate:\s*\n(?:[^\n]*\n)*?\s*Subject:\s*([^\n]+)",
@@ -111,15 +120,21 @@ def _subject_rdns(subject: str) -> list[tuple[str, str]]:
 
 
 def verify(file: Path, subject: str | list[str],
-           cafile: str | None = None) -> None:
+           cafile: str | None = None, require_timestamp: bool = False) -> None:
     """@p file is validly signed by a certificate with @p subject, or one of
     them: the current certificate, and those it replaced, for what they
-    signed before."""
+    signed before. With @p require_timestamp, the signature also carries an
+    RFC 3161 time stamp: without one it stops verifying the day the
+    certificate expires, and the release with it."""
     subjects = [subject] if isinstance(subject, str) else list(subject)
     subjects = [s for s in subjects if s]
     if not subjects:
         raise ReleaseError("no Authenticode subject is pinned")
-    got = signer_subject(file, cafile)
+    text = _verified(file, cafile)
+    if require_timestamp and "Timestamp is not available" in text:
+        raise ReleaseError(f"{file.name}: its Authenticode signature has no "
+                           "time-stamp")
+    got = _subject_in(text, file)
     if not any(_subject_rdns(got) == _subject_rdns(s) for s in subjects):
         pinned = subjects[0] if len(subjects) == 1 else subjects
         raise ReleaseError(f"{file.name}: signed by {got!r}, not {pinned!r}")

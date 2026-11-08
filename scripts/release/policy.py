@@ -197,6 +197,10 @@ def check_product(product: dict) -> None:
             errors.append(f"signing.{field} must be a list of strings")
         elif signing.get(current) and signing[current] in retired:
             errors.append(f"signing.{field} lists the current {current}")
+    if signing.get("authenticode_timestamp", "required") not in \
+            ("required", "optional"):
+        errors.append("signing.authenticode_timestamp is required or "
+                      "optional")
     if len(signing.get("index_keys", [])) > 2:
         errors.append("signing.index_keys holds the current and the next key, "
                       "no more")
@@ -227,11 +231,18 @@ def check_product(product: dict) -> None:
     retention = product.get("nightly_retention_days")
     if retention is not None and (not isinstance(retention, int) or
                                   isinstance(retention, bool) or
-                                  retention <= 7):
+                                  retention <= NIGHTLY_MARGIN_DAYS):
         errors.append("nightly_retention_days must be a whole number of days "
-                      "above the 7-day margin")
+                      f"above the {NIGHTLY_MARGIN_DAYS}-day margin")
     if errors:
         raise PolicyError("\n".join(errors))
+
+
+# How long a signed index is valid, and how long before the bucket deletes a
+# nightly the index stops naming it: longer than an index lives, so no
+# index a client still accepts ever names a nightly that is gone.
+INDEX_LIFETIME_DAYS = 14
+NIGHTLY_MARGIN_DAYS = INDEX_LIFETIME_DAYS + 1
 
 
 def _is_minisign_key(key) -> bool:

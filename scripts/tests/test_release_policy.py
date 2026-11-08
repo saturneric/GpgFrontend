@@ -177,12 +177,16 @@ class PolicyCheckTest(unittest.TestCase):
                 policy.check_product(product)
 
     def test_nightly_retention_outlasts_the_margin(self):
-        for bad in (7, 0, "30", True):
+        # Longer than an index lives (14 days) and the margin after it.
+        for bad in (7, 15, 0, "30", True):
             product = policy.load_product()
             product["nightly_retention_days"] = bad
             with self.subTest(bad=bad), \
                     self.assertRaisesRegex(policy.PolicyError, "retention"):
                 policy.check_product(product)
+        product = policy.load_product()
+        product["nightly_retention_days"] = policy.NIGHTLY_MARGIN_DAYS + 1
+        policy.check_product(product)
 
     def test_the_current_key_or_certificate_is_never_retired(self):
         for field, current in (("artifact_keys_retired", "artifact_key"),

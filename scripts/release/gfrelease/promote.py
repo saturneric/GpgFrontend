@@ -23,6 +23,7 @@ a stable release passes through the offline signing stage.
 from __future__ import annotations
 
 import shutil
+import sys
 import tempfile
 from pathlib import Path
 
@@ -32,6 +33,8 @@ from common import (BUNDLE, DESCRIPTOR, SCHEMA, STAGED, SUMS, Product,
                     parse_version, run, sha256_file, utcnow)
 from stage import read_staged
 from store import Store
+
+import index as index_mod
 
 import release_candidate as rc  # noqa: E402  (scripts/, on the path via common)
 
@@ -74,10 +77,41 @@ def newest_per_ref(found: list[tuple[str, dict]]) -> list[tuple[str, dict]]:
     return [best[ref] for ref in sorted(best)]
 
 
+def by_ref_newest_first(found: list[tuple[str, dict]]
+                        ) -> list[list[tuple[str, dict]]]:
+    """The candidates of each ref, newest first. staged.json is anyone's to
+    write: the newest one that is genuine is promoted, and a forged one
+    claiming a higher version only costs a failed attempt."""
+    refs: dict[str, list[tuple[str, dict]]] = {}
+    for prefix, staged in found:
+        refs.setdefault(staged["ref"], []).append((prefix, staged))
+    return [sorted(refs[ref], key=lambda c: parse_version(c[1]["version"]),
+                   reverse=True) for ref in sorted(refs)]
+
+
 def final_prefix(staged: dict) -> str:
     """Where a candidate is published: named after its version, never after
     the file-safe spelling CI claims for it."""
     return f"nightly/{parse_version(staged['version']).filesafe}"
+
+
+def _finish_marker(product: Product, builds: Store, dest: str, staged: dict,
+                   artifact_pub: str) -> None:
+    """Promoted already. A run that stopped between the descriptor and the
+    commit marker left only the marker to write: for the commit the
+    published descriptor names, once it is admitted, never for what a
+    staged.json claims."""
+    marker = f"commits/{staged['commit']}"
+    if builds.exists(marker):
+        return
+    path = f"{dest}/{DESCRIPTOR}"
+    with tempfile.TemporaryDirectory(prefix="gfr-marker-") as tmp:
+        d = index_mod.admit_nightly(product, builds, path, builds.read(path),
+                                    artifact_pub, Path(tmp))
+    if d["commit"] != staged["commit"] or d["ref"] != staged["ref"]:
+        raise ReleaseError(f"{dest} is {d['commit']} on {d['ref']}, not "
+                           "what this candidate claims")
+    builds.put_bytes(b"", marker)
 
 
 def promote_one(product: Product, staging: Store, builds: Store,
@@ -89,6 +123,11 @@ def promote_one(product: Product, staging: Store, builds: Store,
     if not ref.startswith("refs/heads/"):
         raise ReleaseError(f"{prefix}: {ref} is not a nightly ref")
     branch = ref[len("refs/heads/"):]
+    # A final version is the stable release's, published only through the
+    # offline stage: a branch build of the tagged commit is never one.
+    if parse_version(staged["version"]).is_final:
+        raise ReleaseError(f"{prefix}: {staged['version']} is a final "
+                           "version, which a nightly never is")
     dest = final_prefix(staged)
     filesafe = dest.rsplit("/", 1)[1]
     if staged["filesafe"] != filesafe:
@@ -175,20 +214,30 @@ def promote(product: Product, staging: Store, builds: Store, *,
              "origin"])
     done: list[dict] = []
     failed: list[str] = []
-    for prefix, staged in newest_per_ref(candidates(staging, failed)):
-        try:
-            if builds.exists(f"{final_prefix(staged)}/{DESCRIPTOR}"):
-                # Promoted. A run that stopped between the descriptor and
-                # the commit marker left only the marker to write.
-                marker = f"commits/{staged['commit']}"
-                if not builds.exists(marker):
-                    builds.put_bytes(b"", marker)
+    for tried in by_ref_newest_first(candidates(staging, failed)):
+        for prefix, staged in tried:
+            # The build of a commit a release tag names (main or release/X.Y
+            # pushed at vX.Y.Z): the stable release, which only the offline
+            # stage publishes. Not a nightly, and not a failure either.
+            if parse_version(staged["version"]).is_final:
+                print(f"{prefix}: {staged['version']} is a final version, "
+                      "published as the stable release, never as a nightly",
+                      file=sys.stderr)
                 continue
-            done.append(promote_one(product, staging, builds, prefix, staged,
-                                    git_dir=git_dir, artifact_key=artifact_key,
-                                    artifact_pub=artifact_pub, cosign=cosign))
-        except ReleaseError as e:
-            failed.append(f"{prefix}: {e}")
+            try:
+                dest = final_prefix(staged)
+                if builds.exists(f"{dest}/{DESCRIPTOR}"):
+                    _finish_marker(product, builds, dest, staged,
+                                   artifact_pub)
+                    break
+                done.append(promote_one(
+                    product, staging, builds, prefix, staged,
+                    git_dir=git_dir, artifact_key=artifact_key,
+                    artifact_pub=artifact_pub, cosign=cosign))
+                break
+            except ReleaseError as e:
+                # The next older candidate of this ref gets its turn.
+                failed.append(f"{prefix}: {e}")
     if failed:
         raise PromoteIncomplete(failed, done)
     return done

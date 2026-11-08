@@ -30,7 +30,7 @@ from pathlib import Path
 import openpgp
 from common import (DESCRIPTOR, SCHEMA, Product, ReleaseError, canonical_json,
                     iso, load_json, parse_iso, parse_version, sha256_file,
-                    tagged_commit, utcnow)
+                    tag_time, tagged_commit, utcnow)
 from store import Store
 
 KIND = "imported"
@@ -139,6 +139,7 @@ class Import:
 
         # The tag, and that git calls its commit this version.
         commit = tagged_commit(self.git_dir, self.tag, version=self.version)
+        tagged_at = tag_time(self.git_dir, self.tag)
 
         # Every file against its original signature, before anything leaves.
         signers = set()
@@ -147,7 +148,14 @@ class Import:
             for name, info in files.items():
                 local = self._fetch(name, info["asset"])
                 sig = self._fetch(name + ".sig", info["sig_asset"])
-                signers.add(ring.verify(local, sig))
+                signed = ring.verify_signature(local, sig)
+                # The host refuses a file signed before its tag (an older
+                # release's, relabelled); so does the import, before any
+                # upload.
+                if signed["created"] < tagged_at:
+                    raise ReleaseError(
+                        f"{name}: signed before {self.tag} was made")
+                signers.add(signed["primary"])
                 info["sha256"] = sha256_file(local)
                 info["size"] = local.stat().st_size
         if len(signers) != 1:
