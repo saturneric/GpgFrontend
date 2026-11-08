@@ -78,6 +78,10 @@ class Stage:
                                 str(self.state_path))
                       if self.state_path.exists() else
                       {"version": self.version, "done": []})
+        if self.state.get("version") != self.version:
+            raise ReleaseError(f"{self.state_path} is the stage of "
+                               f"{self.state.get('version')!r}, not "
+                               f"{self.version}")
 
     # --- bookkeeping ------------------------------------------------------
 
@@ -90,6 +94,14 @@ class Stage:
         if redo:
             if redo not in STEPS:
                 raise ReleaseError(f"no step {redo!r}; steps are {STEPS}")
+            # Signing again makes other bytes (new time stamps), and what was
+            # uploaded is never replaced: once anything left this machine,
+            # only the upload itself can be run again.
+            if redo != "upload" and self.state.get("upload_started"):
+                raise ReleaseError(
+                    f"{self.version}: the upload has begun, so {redo} cannot "
+                    "run again (it would sign other bytes than the ones "
+                    "published); only --redo upload can")
             keep = STEPS[:STEPS.index(redo)]
             self.state["done"] = [s for s in self.state["done"] if s in keep]
         for step in STEPS:
@@ -244,6 +256,11 @@ class Stage:
     def _upload(self) -> None:
         self._need("builds")
         files, p = self.state["build"]["files"], self.prefix
+        # Fixed before anything is sent: a resumed upload makes the same
+        # descriptor, byte for byte, as the one it may already have sent.
+        self.state["upload_started"] = True
+        self.state.setdefault("released_at", iso(utcnow()))
+        self._save()
         artifacts = []
         for name in sorted(files):
             info = files[name]
@@ -272,7 +289,7 @@ class Stage:
             "schema": SCHEMA, "product": self.product.slug, "kind": "stable",
             "version": self.version, "series": parse_version(self.version).series,
             "ref": f"refs/tags/{self.tag}", "commit": b["commit"],
-            "built_at": b["built_at"], "released_at": iso(utcnow()),
+            "built_at": b["built_at"], "released_at": self.state["released_at"],
             "signing": {"scheme": "openpgp", "fingerprint": self.key},
             "build": {"sums": f"{p}/build/{SUMS}",
                       "bundle": f"{p}/build/{BUNDLE}",

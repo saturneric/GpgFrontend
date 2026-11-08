@@ -36,12 +36,22 @@ import promote as promote_mod  # noqa: E402
 import stable as stable_mod  # noqa: E402
 import stage as stage_mod  # noqa: E402
 import verify as verify_mod  # noqa: E402
-from common import Product, ReleaseError, default_product, locked  # noqa: E402
+from common import (Product, ReleaseError, default_product, locked,  # noqa: E402
+                    run)
 from store import Store  # noqa: E402
 
 
 def env(name: str, default=None):
     return os.environ.get(f"GFR_{name.upper()}", default)
+
+
+def env_flag(name: str) -> bool:
+    return (env(name) or "").lower() in ("1", "true", "yes")
+
+
+def flag(p, name, help):
+    p.add_argument(f"--{name.replace('_', '-')}", action="store_true",
+                   default=env_flag(name), help=help)
 
 
 def opt(p, name, help, **kw):
@@ -119,10 +129,8 @@ def main(argv=None) -> int:
         opt(p, "state_dir", "where the serial and the lock live")
         opt(p, "cosign", "the cosign binary")
         opt(p, "authenticode_ca", "CA file for Authenticode (a rehearsal's)")
-        p.add_argument("--fetch", action="store_true", default=env("fetch") == "1",
-                       help="git fetch the mirror first")
-        p.add_argument("--force", action="store_true",
-                       help="publish even if nothing changed")
+        flag(p, "fetch", "git fetch the mirror first")
+        flag(p, "force", "publish even if nothing changed")
 
     im = sub.add_parser("import", help="bring a release made before this "
                         "pipeline over from GitHub Releases")
@@ -201,6 +209,9 @@ def main(argv=None) -> int:
             return 0
 
         if args.command == "verify":
+            if bool(args.update) != bool(args.builds):
+                raise ReleaseError("give both --update and --builds, or "
+                                   "neither (the HTTPS bases)")
             if args.update and args.builds:
                 update, builds = Store(args.update, rclone), Store(args.builds, rclone)
             else:
@@ -219,27 +230,44 @@ def main(argv=None) -> int:
         builds = Store(args.builds, rclone)
         artifact_pub = pub(args.artifact_pub)
         state = Path(args.state_dir)
+        failures: list[str] = []
         with locked(state):
+            # Once, for every step: the version promote derives and the
+            # notes and tags index admits are both read from this mirror.
+            if args.fetch:
+                need(args, "git_dir")
+                run(["git", "-C", args.git_dir, "fetch", "--quiet", "--prune",
+                     "--tags", "origin"])
             if args.command in ("promote", "run"):
                 need(args, "staging", "git_dir", "artifact_key")
-                done = promote_mod.promote(
-                    product, Store(args.staging, rclone), builds,
-                    git_dir=Path(args.git_dir), artifact_key=Path(args.artifact_key),
-                    artifact_pub=artifact_pub, cosign=args.cosign or "cosign",
-                    fetch=args.fetch)
+                try:
+                    done = promote_mod.promote(
+                        product, Store(args.staging, rclone), builds,
+                        git_dir=Path(args.git_dir),
+                        artifact_key=Path(args.artifact_key),
+                        artifact_pub=artifact_pub,
+                        cosign=args.cosign or "cosign")
+                except promote_mod.PromoteIncomplete as e:
+                    done = e.done
+                    failures.append(str(e))
                 for d in done:
                     print(f"promoted {d['version']} ({len(d['artifacts'])} files)")
             if args.command in ("index", "run", "resign"):
                 need(args, "update", "index_key", "index_pub")
                 update = Store(args.update, rclone)
                 mirrors = [Store(args.mirror_update, rclone)] if args.mirror_update else []
-                index = index_mod.publish(
-                    product, builds, update, index_key=Path(args.index_key),
-                    artifact_pub=artifact_pub, state_dir=state,
-                    force=args.force or args.command == "resign", mirrors=mirrors,
-                    git_dir=Path(args.git_dir) if args.git_dir else None,
-                    cosign=args.cosign or "cosign",
-                    authenticode_ca=args.authenticode_ca)
+                try:
+                    index = index_mod.publish(
+                        product, builds, update, index_key=Path(args.index_key),
+                        artifact_pub=artifact_pub, state_dir=state,
+                        force=args.force or args.command == "resign",
+                        mirrors=mirrors,
+                        git_dir=Path(args.git_dir) if args.git_dir else None,
+                        cosign=args.cosign or "cosign",
+                        authenticode_ca=args.authenticode_ca)
+                except index_mod.IndexIncomplete as e:
+                    index = e.index
+                    failures.append(str(e))
                 if index is None:
                     print("index unchanged")
                 else:
@@ -251,7 +279,9 @@ def main(argv=None) -> int:
                           f"{index['channels']['stable']}, nightly "
                           f"{index['channels']['nightly']}, expires "
                           f"{index['expires']}")
-        return 0
+        for failure in failures:
+            print(f"gfrelease: {failure}", file=sys.stderr)
+        return 1 if failures else 0
     except ReleaseError as e:
         print(f"gfrelease: {e}", file=sys.stderr)
         return 1

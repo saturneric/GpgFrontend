@@ -36,12 +36,31 @@ from store import Store
 import release_candidate as rc  # noqa: E402  (scripts/, on the path via common)
 
 
-def candidates(staging: Store) -> list[tuple[str, dict]]:
-    """(prefix, staged.json) of every complete nightly candidate."""
+class PromoteIncomplete(ReleaseError):
+    """Some candidates could not be promoted; the others were. Each failure
+    is named, and the run still fails."""
+
+    def __init__(self, failed: list[str], done: list[dict]):
+        super().__init__("not promoted:\n  " + "\n  ".join(failed))
+        self.failed = failed
+        self.done = done
+
+
+def candidates(staging: Store, failed: list[str] | None = None
+               ) -> list[tuple[str, dict]]:
+    """(prefix, staged.json) of every complete nightly candidate. One whose
+    staged.json cannot be read is appended to @p failed (or raised), and
+    blocks no other."""
     out = []
     for path in staging.files("branches", include=f"**/{STAGED}"):
         prefix = f"branches/{path.rsplit('/', 1)[0]}"
-        out.append((prefix, read_staged(staging.read(f"{prefix}/{STAGED}"))))
+        try:
+            out.append((prefix,
+                        read_staged(staging.read(f"{prefix}/{STAGED}"))))
+        except ReleaseError as e:
+            if failed is None:
+                raise
+            failed.append(f"{prefix}: {e}")
     return out
 
 
@@ -56,7 +75,9 @@ def newest_per_ref(found: list[tuple[str, dict]]) -> list[tuple[str, dict]]:
 
 
 def final_prefix(staged: dict) -> str:
-    return f"nightly/{staged['filesafe']}"
+    """Where a candidate is published: named after its version, never after
+    the file-safe spelling CI claims for it."""
+    return f"nightly/{parse_version(staged['version']).filesafe}"
 
 
 def promote_one(product: Product, staging: Store, builds: Store,
@@ -69,6 +90,10 @@ def promote_one(product: Product, staging: Store, builds: Store,
         raise ReleaseError(f"{prefix}: {ref} is not a nightly ref")
     branch = ref[len("refs/heads/"):]
     dest = final_prefix(staged)
+    filesafe = dest.rsplit("/", 1)[1]
+    if staged["filesafe"] != filesafe:
+        raise ReleaseError(f"{prefix}: staged as {staged['filesafe']}, which "
+                           f"is not the file-safe {staged['version']}")
 
     with tempfile.TemporaryDirectory(prefix="gfr-promote-") as tmp:
         work = Path(tmp) / "candidate"
@@ -99,7 +124,7 @@ def promote_one(product: Product, staging: Store, builds: Store,
                                f"product={product.slug} file={name} "
                                f"version={derived}")
             minisig.verify([artifact_pub], path, sig)
-            entry = product.classify(name, staged["filesafe"])
+            entry = product.classify(name, filesafe)
             entry.update({
                 "name": name, "size": path.stat().st_size, "sha256": digest,
                 "build_sha256": digest, "transform": "none",
@@ -148,11 +173,22 @@ def promote(product: Product, staging: Store, builds: Store, *,
     if fetch:
         run(["git", "-C", git_dir, "fetch", "--quiet", "--prune", "--tags",
              "origin"])
-    done = []
-    for prefix, staged in newest_per_ref(candidates(staging)):
-        if builds.exists(f"{final_prefix(staged)}/{DESCRIPTOR}"):
-            continue
-        done.append(promote_one(product, staging, builds, prefix, staged,
-                                git_dir=git_dir, artifact_key=artifact_key,
-                                artifact_pub=artifact_pub, cosign=cosign))
+    done: list[dict] = []
+    failed: list[str] = []
+    for prefix, staged in newest_per_ref(candidates(staging, failed)):
+        try:
+            if builds.exists(f"{final_prefix(staged)}/{DESCRIPTOR}"):
+                # Promoted. A run that stopped between the descriptor and
+                # the commit marker left only the marker to write.
+                marker = f"commits/{staged['commit']}"
+                if not builds.exists(marker):
+                    builds.put_bytes(b"", marker)
+                continue
+            done.append(promote_one(product, staging, builds, prefix, staged,
+                                    git_dir=git_dir, artifact_key=artifact_key,
+                                    artifact_pub=artifact_pub, cosign=cosign))
+        except ReleaseError as e:
+            failed.append(f"{prefix}: {e}")
+    if failed:
+        raise PromoteIncomplete(failed, done)
     return done

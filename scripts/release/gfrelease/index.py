@@ -28,7 +28,8 @@ import openpgp
 from common import (BUNDLE, DESCRIPTOR, INDEX, SCHEMA, SIG, SUMS, Product,
                     ReleaseError, atomic_write, canonical_json, check_relpath,
                     iso, load_json, notes_at, parse_iso, parse_manifest,
-                    parse_version, sha256_bytes, tagged_commit, utcnow)
+                    parse_version, sha256_bytes, sha256_file, tagged_commit,
+                    utcnow)
 from store import Store
 
 import release_candidate as rc  # noqa: E402  (scripts/, on the path via common)
@@ -177,7 +178,27 @@ def admit_stable(product: Product, builds: Store, path: str, raw: bytes, *,
         _notes_fields(version, notes)
 
     record = state_dir / "admitted" / f"{version}.json"
-    if record.exists() and load_json(record.read_text(), str(record)) == entry:
+    previous = load_json(record.read_text(), str(record)) \
+        if record.exists() else None
+    if previous == entry:
+        return d, entry
+    if previous is not None and \
+            {k: previous.get(k) for k in ("descriptor", "sha256")} == \
+            {k: entry[k] for k in ("descriptor", "sha256")}:
+        # The release itself was admitted; only main's notes moved on. Until
+        # the new ones are signed and uploaded, the admitted ones stay listed
+        # rather than the whole release (or the index) going away.
+        try:
+            with openpgp.Keyring(product.keyring_path,
+                                 product.maintainers) as ring:
+                _verified_notes(builds, ring, entry["notes"],
+                                entry["notes_sha256"], tmp / version / "notes")
+        except ReleaseError as e:
+            print(f"{tag}: listed with its admitted notes; main's newer ones "
+                  f"are not signed and uploaded yet (gfrelease stable "
+                  f"{version} --notes-only): {e}", file=sys.stderr)
+            return d, previous
+        atomic_write(record, json.dumps(entry, sort_keys=True))
         return d, entry
 
     work = tmp / version
@@ -226,9 +247,8 @@ def admit_stable(product: Product, builds: Store, path: str, raw: bytes, *,
             if a["sha256"] != a["build_sha256"]:
                 raise ReleaseError(f"{a['name']}: changed without a transform")
         elif a.get("transform") == "authenticode":
-            local = work / a["name"]
-            local.write_bytes(builds.read(a["path"]))
-            if sha256_bytes(local.read_bytes()) != a["sha256"]:
+            local = builds.fetch_to(a["path"], work / a["name"])
+            if sha256_file(local) != a["sha256"]:
                 raise ReleaseError(f"{a['name']}: not the published bytes")
             # The current certificate, or one it replaced: a release stays
             # admitted however often it is checked again.
@@ -295,10 +315,9 @@ def _check_imported_files(product: Product, builds: Store, d: dict, path: str,
     work.mkdir(parents=True, exist_ok=True)
     with openpgp.Keyring(product.keyring_path, product.maintainers) as ring:
         for a in d["artifacts"]:
-            local, sig = work / a["name"], work / (a["name"] + SIG)
-            local.write_bytes(builds.read(a["path"]))
-            sig.write_bytes(builds.read(a["sig"]))
-            if sha256_bytes(local.read_bytes()) != a["sha256"]:
+            local = builds.fetch_to(a["path"], work / a["name"])
+            sig = builds.fetch_to(a["sig"], work / (a["name"] + SIG))
+            if sha256_file(local) != a["sha256"]:
                 raise ReleaseError(f"{a['name']}: not the descriptor's bytes")
             ring.verify(local, sig)
             local.unlink()
@@ -332,17 +351,43 @@ def _imported_notes(product: Product, builds: Store, version: str, *,
     return fields
 
 
+class IndexIncomplete(ReleaseError):
+    """Some releases were refused. The index of everything else was still
+    built (and published, unless nothing changed): one bad release must not
+    take the nightly and every other release off the channel with it. The run
+    fails all the same, naming each refusal, so it is never silent."""
+
+    def __init__(self, refused: list[str], index: dict | None):
+        super().__init__("refused, and left out of the index:\n  " +
+                         "\n  ".join(refused))
+        self.refused = refused
+        self.index = index
+
+
 def build(product: Product, builds: Store, artifact_pub: str, *,
           git_dir: Path | None = None, state_dir: Path | None = None,
-          cosign: str = "cosign", authenticode_ca: str | None = None) -> dict:
-    """The index's content, without serial and times."""
+          cosign: str = "cosign", authenticode_ca: str | None = None,
+          refused: list[str] | None = None) -> dict:
+    """The index's content, without serial and times. A release that fails
+    admission is left out and appended to @p refused (when given; otherwise
+    its error is raised)."""
+    def refuse(path: str, error: ReleaseError) -> None:
+        if refused is None:
+            raise error
+        refused.append(f"{path}: {error}")
+
     nightly = None
     releases: dict[str, dict] = {}
     with tempfile.TemporaryDirectory(prefix="gfr-index-") as tmp:
         for rel in builds.files("nightly", include=f"*/{DESCRIPTOR}"):
             path = f"nightly/{rel}"
-            raw = builds.read(path)
-            d = admit_nightly(product, builds, path, raw, artifact_pub, Path(tmp))
+            try:
+                raw = builds.read(path)
+                d = admit_nightly(product, builds, path, raw, artifact_pub,
+                                  Path(tmp))
+            except ReleaseError as e:
+                refuse(path, e)
+                continue
             # Only main's nightlies make the channel; release/X.Y builds are
             # published for testers who fetch them by hand.
             if d["ref"] != "refs/heads/main":
@@ -357,16 +402,22 @@ def build(product: Product, builds: Store, artifact_pub: str, *,
             if git_dir is None or state_dir is None:
                 raise ReleaseError("stable releases need --git-dir and "
                                    "--state-dir to be admitted")
-            raw = builds.read(path)
-            if load_json(raw, path).get("kind") == imported.KIND:
-                d, entry = admit_imported(product, builds, path, raw,
-                                          git_dir=git_dir, state_dir=state_dir,
-                                          tmp=Path(tmp))
-            else:
-                d, entry = admit_stable(product, builds, path, raw,
-                                        git_dir=git_dir, state_dir=state_dir,
-                                        cosign=cosign, tmp=Path(tmp),
-                                        authenticode_ca=authenticode_ca)
+            try:
+                raw = builds.read(path)
+                if load_json(raw, path).get("kind") == imported.KIND:
+                    d, entry = admit_imported(product, builds, path, raw,
+                                              git_dir=git_dir,
+                                              state_dir=state_dir,
+                                              tmp=Path(tmp))
+                else:
+                    d, entry = admit_stable(product, builds, path, raw,
+                                            git_dir=git_dir,
+                                            state_dir=state_dir,
+                                            cosign=cosign, tmp=Path(tmp),
+                                            authenticode_ca=authenticode_ca)
+            except ReleaseError as e:
+                refuse(path, e)
+                continue
             releases[d["version"]] = entry
 
     series = {}
@@ -424,9 +475,24 @@ def publish(product: Product, builds: Store, update: Store, *,
             force: bool = False, mirrors: list[Store] = (),
             git_dir: Path | None = None, cosign: str = "cosign",
             authenticode_ca: str | None = None) -> dict | None:
+    """Builds, signs and publishes the index; None when it would say nothing
+    new and is not near expiry. Raises IndexIncomplete, after publishing,
+    when any release was refused."""
+    refused: list[str] = []
     content = build(product, builds, artifact_pub, git_dir=git_dir,
                     state_dir=state_dir, cosign=cosign,
-                    authenticode_ca=authenticode_ca)
+                    authenticode_ca=authenticode_ca, refused=refused)
+    index = _sign_and_publish(product, content, update, index_key=index_key,
+                              state_dir=state_dir, force=force,
+                              mirrors=mirrors)
+    if refused:
+        raise IndexIncomplete(refused, index)
+    return index
+
+
+def _sign_and_publish(product: Product, content: dict, update: Store, *,
+                      index_key: Path, state_dir: Path, force: bool,
+                      mirrors: list[Store]) -> dict | None:
     previous = published(update)
     now = utcnow()
     if previous is not None and not force:

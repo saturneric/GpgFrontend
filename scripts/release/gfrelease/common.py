@@ -117,7 +117,11 @@ def canonical_json(value) -> bytes:
 def utcnow() -> dt.datetime:
     override = os.environ.get("GFR_NOW")  # tests and rehearsals only
     if override:
-        return dt.datetime.fromisoformat(override).astimezone(dt.timezone.utc)
+        t = dt.datetime.fromisoformat(override)
+        # Without a zone it is UTC, never this machine's local time.
+        if t.tzinfo is None:
+            t = t.replace(tzinfo=dt.timezone.utc)
+        return t.astimezone(dt.timezone.utc)
     return dt.datetime.now(dt.timezone.utc).replace(microsecond=0)
 
 

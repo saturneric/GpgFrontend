@@ -42,7 +42,7 @@ class HttpSource:
         self.slug = slug
         self.context = ssl.create_default_context(cafile=cafile)
 
-    def read(self, path: str) -> bytes:
+    def _each(self, path: str, consume):
         errors = []
         for base in self.bases:
             url = f"{base}{self.slug}/{check_relpath(path)}"
@@ -53,10 +53,23 @@ class HttpSource:
             try:
                 with urllib.request.urlopen(request, timeout=60,
                                             context=self.context) as r:
-                    return r.read()
+                    return consume(r)
             except (urllib.error.URLError, OSError) as e:
                 errors.append(f"{url}: {e}")
         raise ReleaseError("; ".join(errors))
+
+    def read(self, path: str) -> bytes:
+        return self._each(path, lambda r: r.read())
+
+    def fetch_to(self, path: str, local: Path) -> Path:
+        """Streamed to disk, as Store.fetch_to: an artifact is never held in
+        memory whole."""
+        def copy(r):
+            with open(local, "wb") as f:
+                for chunk in iter(lambda: r.read(1 << 20), b""):
+                    f.write(chunk)
+            return Path(local)
+        return self._each(path, copy)
 
     def __str__(self) -> str:
         return ", ".join(f"{b}{self.slug}/" for b in self.bases)
@@ -112,15 +125,23 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
             return ring
 
         def fetch(rel: str, name: str) -> Path:
-            local = tmp / name
-            local.write_bytes(builds.read(check_relpath(rel)))
-            return local
+            return builds.fetch_to(check_relpath(rel), tmp / name)
 
-        entries = []
-        if index.get("nightly"):
-            entries.append(index["nightly"])
-        entries += list(index.get("releases", {}).values())
-        for entry in entries:
+        # The channels name only what the index lists.
+        releases = index.get("releases", {})
+        channels = index.get("channels", {})
+        nightly = index.get("nightly") or {}
+        if channels.get("stable") is not None and \
+                channels["stable"] not in releases:
+            raise ReleaseError(f"channels.stable {channels['stable']} is not "
+                               "a listed release")
+        if channels.get("nightly") != nightly.get("version"):
+            raise ReleaseError(f"channels.nightly {channels.get('nightly')} is "
+                               "not the listed nightly")
+
+        entries = [(None, nightly)] if nightly else []
+        entries += list(releases.items())
+        for listed_as, entry in entries:
             raw = builds.read(check_relpath(entry["descriptor"]))
             if sha256_bytes(raw) != entry["sha256"]:
                 raise ReleaseError(f"{entry['descriptor']}: sha256 is not the "
@@ -128,6 +149,11 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
             descriptor = load_json(raw, entry["descriptor"])
             if descriptor.get("product") != product.slug:
                 raise ReleaseError(f"{entry['descriptor']}: another product's")
+            want = listed_as or nightly.get("version")
+            if descriptor.get("version") != want:
+                raise ReleaseError(f"{entry['descriptor']}: is "
+                                   f"{descriptor.get('version')}, listed as "
+                                   f"{want}")
             scheme = descriptor["signing"]["scheme"]
             if descriptor.get("kind") == imported.KIND:
                 # From before signed manifests: each file carries its own
