@@ -42,10 +42,9 @@ class Store:
 
     def files(self, prefix: str = "", include: str | None = None) -> list[str]:
         """Every file under prefix, recursively, relative to it."""
-        cmd = [self.rclone, "lsf", "--recursive", "--files-only", self._at(prefix)]
-        if include:
-            cmd[2:2] = ["--include", include]
-        out = run(cmd, check=False)
+        filters = ["--include", include] if include else []
+        out = run([self.rclone, "lsf", *filters, "--recursive", "--files-only",
+                   self._at(prefix)], check=False)
         if out.returncode in _NOT_FOUND:
             return []
         if out.returncode != 0:
@@ -68,17 +67,28 @@ class Store:
     def download(self, prefix: str, local: Path) -> None:
         run([self.rclone, "copy", self._at(prefix), str(local)])
 
+    def fetch_to(self, path: str, local: Path) -> Path:
+        """One object, streamed to @p local: an installer is never held in
+        memory whole."""
+        run([self.rclone, "copyto", self._at(path), str(local)])
+        if not Path(local).is_file():
+            raise ReleaseError(f"{self._at(path)}: nothing was read")
+        return Path(local)
+
     def sha256(self, path: str) -> str:
         """Of the stored bytes themselves, streamed: no backend's own hash
         (an S3 ETag is not one for a multipart upload) is trusted for it."""
         h = hashlib.sha256()
-        with subprocess.Popen([self.rclone, "cat", self._at(path)],
-                              stdout=subprocess.PIPE,
-                              stderr=subprocess.DEVNULL) as proc:
-            for chunk in iter(lambda: proc.stdout.read(1 << 20), b""):
-                h.update(chunk)
-        if proc.returncode != 0:
-            raise ReleaseError(f"reading {self._at(path)} failed")
+        with tempfile.TemporaryFile() as err:
+            with subprocess.Popen([self.rclone, "cat", self._at(path)],
+                                  stdout=subprocess.PIPE,
+                                  stderr=err) as proc:
+                for chunk in iter(lambda: proc.stdout.read(1 << 20), b""):
+                    h.update(chunk)
+            if proc.returncode != 0:
+                err.seek(0)
+                detail = err.read().decode("utf-8", "replace").strip()
+                raise ReleaseError(f"reading {self._at(path)} failed: {detail}")
         return h.hexdigest()
 
     def put_file(self, local: Path, path: str, immutable: bool = True) -> None:
