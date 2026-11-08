@@ -138,6 +138,10 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
         releases = index.get("releases", {})
         channels = index.get("channels", {})
         nightly = index.get("nightly") or {}
+        beta = index.get("beta") or {}
+        if channels.get("beta") != beta.get("version"):
+            raise ReleaseError(f"channels.beta {channels.get('beta')} is not "
+                               "the listed beta")
         if channels.get("stable") is not None and \
                 channels["stable"] not in releases:
             raise ReleaseError(f"channels.stable {channels['stable']} is not "
@@ -154,8 +158,10 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
                 raise ReleaseError(f"channels.{channel} offers {version}, "
                                    "which is withdrawn")
 
-        # A nightly is main's build: the descriptor's ref says so.
+        # A nightly is main's build, a beta a release branch's: the same
+        # chain of trust, the descriptor's ref says which it is.
         entries = [(None, nightly, "refs/heads/main")] if nightly else []
+        entries += [(None, beta, "refs/heads/release/")] if beta else []
         entries += [(v, e, None) for v, e in releases.items()]
         for listed_as, entry, ref in entries:
             raw = builds.read(check_relpath(entry["descriptor"]))

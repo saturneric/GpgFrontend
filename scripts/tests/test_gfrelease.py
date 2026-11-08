@@ -221,7 +221,7 @@ class ChainTest(unittest.TestCase):
 
         index = self.index()
         self.assertEqual(index["serial"], 1)
-        self.assertEqual(index["channels"], {"stable": None,
+        self.assertEqual(index["channels"], {"stable": None, "beta": None,
                                              "nightly": version})
         self.assertEqual(index["series"]["2.1"]["eol"], "2027-12-31")
 
@@ -305,13 +305,43 @@ class ChainTest(unittest.TestCase):
         shutil.rmtree(self.state)
         self.assertEqual(self.index(force=True)["serial"], 3)
 
-    def test_release_branch_nightlies_are_published_without_a_channel(self):
+    def test_a_release_branch_build_is_the_beta_channel(self):
+        self.commit()
+        _, nightly = self.build()
         self.git("checkout", "-q", "-b", "release/2.2", "v2.2.4")
         self.commit()
         _, version = self.build(ref="refs/heads/release/2.2")
-        self.assertTrue(version.startswith("2.2.5-alpha.1"))
+        self.assertTrue(version.startswith("2.2.5-alpha.1+g"))
         self.promote()
-        self.assertIsNone(self.index()["channels"]["nightly"])
+        index = self.index()
+        # Never main's nightly; the beta channel, signed the same way.
+        self.assertEqual(index["channels"]["nightly"], nightly)
+        self.assertEqual(index["channels"]["beta"], version)
+        self.assertEqual(index["beta"]["version"], version)
+        self.assertEqual(index["beta"]["descriptor"],
+                         f"nightly/{version.replace('+', '-')}/"
+                         f"{common.DESCRIPTOR}")
+        self.check()
+        # A series users are no longer meant to be on offers no beta.
+        self.product.policy["series"]["2.2"]["status"] = "legacy"
+        index = self.index(force=True)
+        self.assertIsNone(index["channels"]["beta"])
+        self.assertIsNone(index["beta"])
+        self.check()
+
+    def test_a_tampered_beta_entry_is_caught(self):
+        self.git("checkout", "-q", "-b", "release/2.2", "v2.2.4")
+        self.commit()
+        self.build(ref="refs/heads/release/2.2")
+        self.promote()
+        self.index()
+        path = self.tmp / "update" / self.slug / common.INDEX
+        tampered = json.loads(path.read_text())
+        tampered["channels"]["beta"] = "2.2.9-beta.1"
+        path.write_bytes(common.canonical_json(tampered))
+        minisig.sign(self.idx_key, path,
+                     f"product={self.slug} serial={tampered['serial']}")
+        self.assert_refused(self.check, "channels.beta")
 
     # --- refusals ------------------------------------------------------
 

@@ -47,6 +47,7 @@ RESIGN_BEFORE = dt.timedelta(days=7)
 # valid index that sends it to a descriptor that is gone.
 NIGHTLY_MARGIN = dt.timedelta(days=policy_mod.NIGHTLY_MARGIN_DAYS)
 VOLATILE = ("serial", "generated_at", "expires")
+RELEASE_BRANCH = re.compile(r"refs/heads/release/[0-9]+\.[0-9]+")
 
 
 def _check_contained(path: str, paths: list[str], prefix: str) -> None:
@@ -642,6 +643,7 @@ def build(product: Product, builds: Store, artifact_pub: str, *,
     withdrawn = {parse_version(w["version"])
                  for w in product.policy.get("withdrawn", [])}
     nightly = kept_nightly = None
+    betas: list[dict] = []
     releases: dict[str, dict] = {}
     retention = product.data.get("nightly_retention_days")
     cutoff = utcnow() - dt.timedelta(days=retention) + NIGHTLY_MARGIN \
@@ -667,6 +669,9 @@ def build(product: Product, builds: Store, artifact_pub: str, *,
                 if (previous or {}).get("nightly") and \
                         previous["nightly"].get("descriptor") == path:
                     kept_nightly = previous["nightly"]
+                if (previous or {}).get("beta") and \
+                        previous["beta"].get("descriptor") == path:
+                    betas.append(previous["beta"])
                 continue
             except ReleaseError as e:
                 refuse(path, e)
@@ -675,8 +680,12 @@ def build(product: Product, builds: Store, artifact_pub: str, *,
                 continue
             listed = {"version": d["version"], "descriptor": path,
                       "sha256": sha256_bytes(raw)}
-            # Only main's nightlies make the channel; release/X.Y builds are
-            # published for testers who fetch them by hand.
+            # main's builds are the nightly channel; a release/X.Y branch's
+            # are the beta of that series (which one is chosen below, once
+            # the releases are known).
+            if RELEASE_BRANCH.fullmatch(d["ref"]):
+                betas.append(listed)
+                continue
             if d["ref"] != "refs/heads/main":
                 continue
             if nightly is None or parse_version(d["version"]) > \
@@ -729,8 +738,8 @@ def build(product: Product, builds: Store, artifact_pub: str, *,
 
     # Each series' newest release; the stable channel is the newest release
     # of the series users are meant to be on (stable, or mainline once its .0
-    # shipped and before the policy moved on). The nightly channel is a
-    # build, never a release.
+    # shipped and before the policy moved on). The nightly and beta channels
+    # are builds, never releases.
     for version in sorted(releases, key=parse_version):
         if parse_version(version) in withdrawn:
             continue
@@ -745,15 +754,30 @@ def build(product: Product, builds: Store, artifact_pub: str, *,
                if s["status"] in ("stable", "mainline") and s["latest"]]
     stable = max(current, key=parse_version) if current else None
 
+    # The beta channel: the newest release-branch build of a series users
+    # are meant to be on, and newer than that series' own latest release.
+    # Signed as a nightly is (minisign, the artifact key); a user opts in.
+    def offered(b: dict) -> bool:
+        v = parse_version(b["version"])
+        entry = series.get(v.series)
+        return entry is not None and \
+            entry["status"] in ("stable", "mainline") and \
+            (entry["latest"] is None or v > parse_version(entry["latest"]))
+    candidates = [b for b in betas if offered(b)]
+    beta = max(candidates, key=lambda b: parse_version(b["version"])) \
+        if candidates else None
+
     return {
         "schema": SCHEMA, "product": product.slug,
         "series": series,
         "channels": {"stable": stable,
+                     "beta": beta["version"] if beta else None,
                      "nightly": nightly["version"] if nightly else None},
         "withdrawn": [{"version": w["version"], "reason": w["reason"]}
                       for w in product.policy.get("withdrawn", [])],
         "releases": releases,
         "nightly": nightly,
+        "beta": beta,
     }
 
 
@@ -801,6 +825,7 @@ def dry_run(product: Product, builds: Store, update: Store, *,
         "channels": content["channels"],
         "releases": sorted(content["releases"], key=parse_version),
         "nightly": (content["nightly"] or {}).get("version"),
+        "beta": (content["beta"] or {}).get("version"),
         "refused": refused,
         "changes": sorted(k for k in set(before) | set(content)
                           if before.get(k) != content.get(k)),
