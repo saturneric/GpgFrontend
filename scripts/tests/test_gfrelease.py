@@ -38,7 +38,24 @@ import verify as verify_mod  # noqa: E402
 from store import Store  # noqa: E402
 from test_release_candidate import FAKE_COSIGN  # noqa: E402
 
-TOOLS = all(shutil.which(t) for t in ("minisign", "rclone", "git", "cmake"))
+def tools(*names: str) -> bool:
+    """Whether every command is installed. With GF_REQUIRE_RELEASE_TOOLS=1
+    (CI's setup job) a missing one fails the run instead of skipping the
+    tests that need it: a chain test skipped in CI is a chain untested."""
+    listed = {line.split()[0] for line in
+              (ROOT / "scripts" / "release" / "tools.txt").read_text()
+              .splitlines() if line.strip() and not line.startswith("#")}
+    unlisted = set(names) - listed - {"gpgconf"}
+    if unlisted:
+        raise AssertionError(f"not in scripts/release/tools.txt: {unlisted}")
+    missing = [n for n in names if not shutil.which(n)]
+    if missing and os.environ.get("GF_REQUIRE_RELEASE_TOOLS") == "1":
+        raise AssertionError(f"GF_REQUIRE_RELEASE_TOOLS=1, but {missing} "
+                             "are not installed")
+    return not missing
+
+
+TOOLS = tools("minisign", "rclone", "git", "cmake")
 ISSUER = "https://token.actions.githubusercontent.com"
 
 
@@ -508,6 +525,21 @@ class ChainTest(unittest.TestCase):
         self.assertIn("not signing.artifact_key", err.getvalue())
         self.assertFalse(self.state.exists())
 
+    def test_a_monitor_warns_before_the_index_expires(self):
+        self.commit()
+        self.build()
+        self.promote()
+        self.index()
+        args = ["verify", "--update", str(self.tmp / "update" / self.slug),
+                "--builds", str(self.tmp / "builds" / self.slug),
+                "--index-pub", self.idx_pub, "--artifact-pub", self.art_pub]
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            self.assertEqual(self.cli().main(args + ["--min-days-left", "3"]), 0)
+            # 14 days of validity: a 20-day threshold is not met.
+            self.assertEqual(self.cli().main(args + ["--min-days-left", "20"]), 1)
+        self.assertIn("has not re-signed it", err.getvalue())
+
     def test_a_dry_run_writes_nothing(self):
         self.commit()
         _, version = self.build()
@@ -716,9 +748,8 @@ class AuthenticodeSubjectTest(unittest.TestCase):
             with self.assertRaises(common.ReleaseError):
                 self.rdns(bad)
 
-STABLE_TOOLS = TOOLS and all(shutil.which(t) for t in
-                             ("gpg", "gpgconf", "osslsigncode", "wixl",
-                              "openssl"))
+STABLE_TOOLS = TOOLS and tools("gpg", "gpgconf", "osslsigncode", "wixl",
+                              "openssl")
 WXS = """<?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Product Id="*" Name="Test" Language="1033" Version="2.3.0" Manufacturer="T"
@@ -1319,7 +1350,7 @@ class StableTest(unittest.TestCase):
 
 import imported as imported_mod  # noqa: E402
 
-IMPORT_TOOLS = TOOLS and all(shutil.which(t) for t in ("gpg", "gpgconf"))
+IMPORT_TOOLS = TOOLS and tools("gpg", "gpgconf")
 
 
 class FakeGitHub:

@@ -1,0 +1,13 @@
+# What the release tooling and its tests drive for real, as
+# "<command> <Debian/Ubuntu package>". CI's setup job installs the packages;
+# scripts/tests fail rather than skip when GF_REQUIRE_RELEASE_TOOLS=1 and a
+# command is missing.
+minisign minisign
+rclone rclone
+osslsigncode osslsigncode
+wixl wixl
+gpg gnupg
+openssl openssl
+git git
+cmake cmake
+curl curl
