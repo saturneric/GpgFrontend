@@ -29,14 +29,21 @@
 #   SCREENSHOT_INPUT  "true" for a screenshot-mode build
 #
 # Trunk model: main is the next minor release, release/X.Y receives fixes
-# for one series, and versions come from tags (cmake/GitVersion.cmake):
-#   - a version tag (v*)    -> release build (final, beta or rc alike: they
-#                              share the stable identity)
-#   - a push to main        -> nightly build
-#   - a push to release/X.Y -> nightly build of that series
-#   - a pull request        -> PR validation build
+# for one series, and versions come from tags (cmake/GitVersion.cmake). Two
+# lines, nightly and stable:
+#   - a release tag vX.Y.Z  -> release build                 publish: final
+#   - a push to main        -> nightly build                 publish: nightly-main
+#   - a push to release/X.Y -> nightly build of that series  publish: nightly-branch
+#   - any other tag (a vX.Y.0-alpha.0 base tag, a stray prerelease tag)
+#                           -> nightly build, published nowhere
+#   - a pull request        -> PR validation build, published nowhere
 #   - workflow_dispatch     -> honour the chosen input, so a release package
-#                              can be produced without re-tagging
+#                              can be produced without re-tagging; published
+#                              nowhere
+#
+# `publish_kind` is the one answer to "does this run sign and stage what it
+# builds": every signing, provenance, staging and upload job gates on it
+# (`publishes` is it as a boolean).
 #
 # Also prints the version, derived once here from the full history (the
 # checkout must have fetch-depth: 0) so every job names its files alike.
@@ -51,13 +58,29 @@ if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
 elif [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
   build_mode="pr"
   build_type="RelWithDebInfo"
-elif [[ "$GITHUB_REF" == refs/tags/* ]]; then
+elif [[ "$GITHUB_REF" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   build_mode="release"
   build_type="Release"
 else
   build_mode="nightly"
   build_type="Release"
 fi
+
+# The same release-tag shape as scripts/release/semver.py RELEASE_TAG.
+publish_kind="none"
+if [[ "$GITHUB_EVENT_NAME" == "push" ]]; then
+  case "$GITHUB_REF" in
+    refs/heads/main) publish_kind="nightly-main" ;;
+    refs/heads/release/*)
+      [[ "$GITHUB_REF" =~ ^refs/heads/release/[0-9]+\.[0-9]+$ ]] &&
+        publish_kind="nightly-branch" ;;
+    refs/tags/*)
+      [[ "$GITHUB_REF" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]] &&
+        publish_kind="final" ;;
+  esac
+fi
+publishes="false"
+[[ "$publish_kind" != "none" ]] && publishes="true"
 
 # Stable release builds drop the "Testing" suffix from the app name; nightly
 # and PR builds are both "nightly" to CMake. The bundle identifier is fixed
@@ -102,10 +125,13 @@ echo "build_mode=$build_mode"
 echo "build_type=$build_type"
 echo "gpgfrontend_build_mode=$gpgfrontend_build_mode"
 echo "screenshot_cmake_flag=$screenshot_cmake_flag"
+echo "publish_kind=$publish_kind"
+echo "publishes=$publishes"
 
 {
   echo "Version: $version"
   echo "Build mode: $build_mode"
+  echo "Publish: $publish_kind"
   echo "Build type: $build_type"
   echo "Screenshot mode: ${SCREENSHOT_INPUT:-false}"
 } >&2

@@ -288,11 +288,13 @@ class WorkflowTest(unittest.TestCase):
     def test_right_after_signing_without_the_approval_gate(self):
         self.assertRegex(self.job, r"(?m)^    needs: \[setup, sign-android\]$")
 
-    def test_pushes_to_main_and_version_tags_only(self):
+    def test_pushes_to_main_and_release_tags_only(self):
+        # setup's classification (scripts/ci/build_mode.sh): main's
+        # nightlies and vX.Y.Z releases, never a release/X.Y build, a base
+        # tag or a prerelease tag.
         self.assertEqual(self.condition(),
-                         "github.event_name == 'push' && "
-                         "(github.ref == 'refs/heads/main' || "
-                         "startsWith(github.ref, 'refs/tags/v'))")
+                         "needs.setup.outputs.publish_kind == 'nightly-main' "
+                         "|| needs.setup.outputs.publish_kind == 'final'")
 
     def test_every_ref_goes_to_the_testers_only(self):
         self.assertIn("--track internal", self.job)

@@ -122,6 +122,12 @@ jobs:
       gpgfrontend_build_mode: ${{ steps.mode.outputs.gpgfrontend_build_mode }}
       screenshot_cmake_flag: ${{ steps.mode.outputs.screenshot_cmake_flag }}
       macos_runners: ${{ steps.mode.outputs.macos_runners }}
+      # Whether this run signs and stages what it builds, and as what:
+      # nightly-main, nightly-branch, final or none (scripts/ci/build_mode.sh).
+      # Every signing, provenance, staging and upload job gates on it, so a
+      # base tag (vX.Y.0-alpha.0) or a stray prerelease tag publishes nothing.
+      publish_kind: ${{ steps.mode.outputs.publish_kind }}
+      publishes: ${{ steps.mode.outputs.publishes }}
     steps:
       # The whole history and every tag: the version is derived from them
       # (cmake/GitVersion.cmake), and a shallow clone has neither.
@@ -250,14 +256,11 @@ jobs:
     needs: [setup, build-android]
     # Two independent gates on which refs may ever request the signing key: this
     # condition, and the deployment branch rule on the environment below. Never
-    # a pull request, never a branch other than main or release/*, never a
-    # non-v tag.
-    if: >-
-      github.event_name != 'pull_request' &&
-      (github.ref == 'refs/heads/main' ||
-       startsWith(github.ref, 'refs/heads/release/') ||
-       startsWith(github.ref, 'refs/tags/v'))
+    # a pull request, never a branch other than main or release/X.Y, never a
+    # tag other than a release vX.Y.Z.
+    if: needs.setup.outputs.publishes == 'true'
     strategy:
+      fail-fast: false
       matrix:
         arch: ["arm64-v8a", "x86_64"]
     runs-on: ubuntu-24.04
@@ -403,13 +406,9 @@ jobs:
     needs: [setup, build-macos]
     # Two independent gates on which refs may ever request the signing key: this
     # condition, and the deployment branch rule on the environment. Never a
-    # pull request, never a branch other than main or release/*, never a
-    # non-v tag.
-    if: >-
-      github.event_name != 'pull_request' &&
-      (github.ref == 'refs/heads/main' ||
-       startsWith(github.ref, 'refs/heads/release/') ||
-       startsWith(github.ref, 'refs/tags/v'))
+    # pull request, never a branch other than main or release/X.Y, never a
+    # tag other than a release vX.Y.Z.
+    if: needs.setup.outputs.publishes == 'true'
     permissions:
       contents: read
     uses: ./.github/workflows/sign-apple.yml
@@ -434,11 +433,7 @@ jobs:
   # Apple credentials, nothing to sign. It only consumes.
   macos-smoke:
     needs: [setup, sign-macos]
-    if: >-
-      github.event_name != 'pull_request' &&
-      (github.ref == 'refs/heads/main' ||
-       startsWith(github.ref, 'refs/heads/release/') ||
-       startsWith(github.ref, 'refs/tags/v'))
+    if: needs.setup.outputs.publishes == 'true'
     strategy:
       # Same legs as sign-macos: an arm64 bundle cannot be smoke-tested on an
       # Intel runner, and a module that loads on one may not on the other.
@@ -505,15 +500,14 @@ jobs:
   # The only job that can mint an identity token, and it can write nothing:
   # what it signs leaves through `stage`, and is published by the signing host.
   provenance:
-    needs: [build-linux, build-windows, sign-macos, macos-smoke, sign-android]
+    needs: [setup, build-linux, build-windows, sign-macos, macos-smoke, sign-android]
     runs-on: ubuntu-latest
     # No status function, so success() is implied: every job in `needs` must
     # have succeeded, not merely finished.
-    # main (a nightly) and version tags (a release, signed offline after it
-    # is staged): the signature names the ref, and the signers pin it.
-    if: >-
-      github.event_name == 'push' &&
-      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    # main and release/X.Y (nightlies) and release tags vX.Y.Z (a stable
+    # release, signed offline after it is staged): the signature names the
+    # ref, and the signers pin it.
+    if: needs.setup.outputs.publishes == 'true'
     permissions:
       # The identity token Fulcio exchanges for a certificate. Nothing else.
       id-token: write
@@ -589,8 +583,7 @@ jobs:
   stage:
     needs: [setup, provenance]
     if: >-
-      github.event_name == 'push' &&
-      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) &&
+      needs.setup.outputs.publishes == 'true' &&
       vars.R2_STAGING_ENABLED == 'true'
     runs-on: ubuntu-24.04
     permissions:
@@ -668,9 +661,11 @@ jobs:
   # pass --status draft until then.
   play-upload:
     needs: [setup, sign-android]
+    # main's nightlies and stable releases; never a release/X.Y build, which
+    # Play would take as newer than the next main build.
     if: >-
-      github.event_name == 'push' &&
-      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+      needs.setup.outputs.publish_kind == 'nightly-main' ||
+      needs.setup.outputs.publish_kind == 'final'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -743,8 +738,8 @@ jobs:
           jarsigner -verify "$aab" | grep -x "jar verified."
           keytool -printcert -jarfile "$aab" | grep -E "^[[:space:]]*SHA256:"
 
-      # The ref was already checked by the job's `if:`; anything but a v* tag
-      # here is main. The versionCode is the build number cmake/GitVersion.cmake
+      # The ref was already checked by the job's `if:`: a release tag, or
+      # main. The versionCode is the build number cmake/GitVersion.cmake
       # derived; Play must not already hold one as great, or no phone updates.
       - name: Upload To The Internal Track
         env:
