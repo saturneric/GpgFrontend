@@ -32,10 +32,11 @@ Releases from 2.1.5 on carry a detached signature for every file:
 
 | Releases | Signed with | Verify with |
 | -------- | ----------- | ----------- |
-| Stable (vX.Y.Z) | OpenPGP, detached `.sig` per file | `12F7E8858CF15BEC9975FF3C5CA3DA246843FD03` |
+| Stable (vX.Y.Z) | OpenPGP, detached `.sig` per file, by the maintainer | `12F7E8858CF15BEC9975FF3C5CA3DA246843FD03` |
+| Stable (vX.Y.Z) | minisign, `.minisig` per file, added by the release server after it checked the `.sig` | `RWSxNasy+OIaiWWGzwNYu223e0UNDwrsb+4S/ttGO8knO/URmtMtDpse` |
 | Nightly | minisign, `.minisig` per file | `RWSxNasy+OIaiWWGzwNYu223e0UNDwrsb+4S/ttGO8knO/URmtMtDpse` |
 
-Check a stable download with `gpg --verify FILE.sig FILE`, a nightly one with `minisign -Vm FILE -P <key>`. Windows installers of stable releases are also Authenticode-signed.
+Check a download by hand with `gpg --verify FILE.sig FILE` (stable) or `minisign -Vm FILE -P <key>` (stable or nightly). The application itself checks only minisign, through the signed update index; a stable release is listed there only once its OpenPGP signatures have been checked. Windows installers of stable releases are also Authenticode-signed.
 <!-- policy:keys:end -->
 
 ## Platform & Library Support
