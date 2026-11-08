@@ -379,7 +379,7 @@ def build(product: Product, builds: Store, artifact_pub: str, *,
 
     # Each series' newest release; the stable channel is the newest release
     # of the series users are meant to be on (stable, or mainline once its .0
-    # shipped and before the policy moved on). Betas join with their own path.
+    # shipped and before the policy moved on). There is no other channel.
     withdrawn = {w["version"] for w in product.policy.get("withdrawn", [])}
     for version in sorted(releases, key=parse_version):
         if version in withdrawn:
@@ -394,7 +394,7 @@ def build(product: Product, builds: Store, artifact_pub: str, *,
     return {
         "schema": SCHEMA, "product": product.slug,
         "series": series,
-        "channels": {"stable": stable, "beta": stable,
+        "channels": {"stable": stable,
                      "nightly": nightly["version"] if nightly else None},
         "withdrawn": [{"version": w["version"], "reason": w["reason"]}
                       for w in product.policy.get("withdrawn", [])],
