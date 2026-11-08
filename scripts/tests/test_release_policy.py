@@ -153,6 +153,37 @@ class PolicyCheckTest(unittest.TestCase):
         with self.assertRaises(policy.PolicyError):
             policy.check_product(product)
 
+    def test_artifact_rules_name_known_kinds_and_compile(self):
+        product = policy.load_product()
+        product["artifacts"][0]["kind"] = "deb"
+        with self.assertRaisesRegex(policy.PolicyError, "not one of"):
+            policy.check_product(product)
+        product = policy.load_product()
+        product["artifacts"][0]["match"] = "^(unclosed"
+        with self.assertRaisesRegex(policy.PolicyError, "does not compile"):
+            policy.check_product(product)
+        product = policy.load_product()
+        del product["artifacts"][0]["flavor"]
+        with self.assertRaisesRegex(policy.PolicyError, "lacks flavor"):
+            policy.check_product(product)
+
+    def test_keys_are_minisign_keys(self):
+        for field in ("artifact_key", "index_keys", "artifact_keys_retired"):
+            product = policy.load_product()
+            product["signing"][field] = "RWQ=" if field == "artifact_key" \
+                else ["RWQ="]
+            with self.subTest(field=field), \
+                    self.assertRaisesRegex(policy.PolicyError, "not a minisign"):
+                policy.check_product(product)
+
+    def test_nightly_retention_outlasts_the_margin(self):
+        for bad in (7, 0, "30", True):
+            product = policy.load_product()
+            product["nightly_retention_days"] = bad
+            with self.subTest(bad=bad), \
+                    self.assertRaisesRegex(policy.PolicyError, "retention"):
+                policy.check_product(product)
+
     def test_the_current_key_or_certificate_is_never_retired(self):
         for field, current in (("artifact_keys_retired", "artifact_key"),
                                ("authenticode_subjects_retired",
@@ -164,7 +195,11 @@ class PolicyCheckTest(unittest.TestCase):
             product["signing"][field] = "not a list"
             with self.assertRaisesRegex(policy.PolicyError, "list"):
                 policy.check_product(product)
-            product["signing"][field] = ["something replaced"]
+            # Replaced: another key (here the index key stands in for one),
+            # or another subject.
+            product["signing"][field] = [
+                product["signing"]["index_keys"][0]
+                if field == "artifact_keys_retired" else "something replaced"]
             policy.check_product(product)
 
     def test_a_current_maintainer_is_never_retired(self):

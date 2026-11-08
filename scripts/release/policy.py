@@ -16,6 +16,8 @@ and left alone.
 from __future__ import annotations
 
 import argparse
+import base64
+import binascii
 import datetime as dt
 import json
 import re
@@ -198,8 +200,46 @@ def check_product(product: dict) -> None:
     if len(signing.get("index_keys", [])) > 2:
         errors.append("signing.index_keys holds the current and the next key, "
                       "no more")
+    for field, keys in (("index_keys", signing.get("index_keys", [])),
+                        ("artifact_key", [signing.get("artifact_key", "")]),
+                        ("artifact_keys_retired",
+                         signing.get("artifact_keys_retired", []))):
+        for key in keys if isinstance(keys, list) else []:
+            if not _is_minisign_key(key):
+                errors.append(f"signing.{field}: {key!r} is not a minisign "
+                              "Ed25519 public key")
+
+    # Every published file is classified by these rules (gfrelease refuses
+    # one none matches): each must compile, and name a kind clients know.
+    kinds = product.get("artifact_kinds", [])
+    for i, rule in enumerate(product.get("artifacts", [])):
+        where = f"artifacts[{i}]"
+        try:
+            re.compile(rule.get("match", ""))
+        except re.error as e:
+            errors.append(f"{where}.match does not compile: {e}")
+        for key in ("match", "os", "arch", "kind", "flavor"):
+            if not rule.get(key):
+                errors.append(f"{where} lacks {key}")
+        if rule.get("kind") not in kinds:
+            errors.append(f"{where}.kind {rule.get('kind')!r} is not one of "
+                          "artifact_kinds")
+    retention = product.get("nightly_retention_days")
+    if retention is not None and (not isinstance(retention, int) or
+                                  isinstance(retention, bool) or
+                                  retention <= 7):
+        errors.append("nightly_retention_days must be a whole number of days "
+                      "above the 7-day margin")
     if errors:
         raise PolicyError("\n".join(errors))
+
+
+def _is_minisign_key(key) -> bool:
+    try:
+        raw = base64.b64decode(key, validate=True)
+    except (binascii.Error, TypeError, ValueError):
+        return False
+    return len(raw) == 42 and raw[:2] == b"Ed"
 
 
 def mainline(policy: dict) -> str:
