@@ -345,6 +345,93 @@ class ChainTest(unittest.TestCase):
         self.assertFalse(self.builds.exists("nightly/none/release.json"))
         self.assertEqual(self.builds.files("nightly"), [])
 
+    # --- robustness ----------------------------------------------------
+
+    def test_a_refused_release_leaves_the_rest_published(self):
+        self.commit()
+        _, version = self.build()
+        self.git("checkout", "-q", "-b", "release/2.2", "v2.2.4")
+        self.commit()
+        _, branch_version = self.build(ref="refs/heads/release/2.2")
+        self.promote()
+        # The release branch build's manifest no longer matches its
+        # descriptor: that one release is refused, nothing else is.
+        sums = (self.tmp / "builds" / self.slug / "nightly" /
+                branch_version.replace("+", "-") / common.SUMS)
+        sums.write_text(sums.read_text().replace("0", "1", 1))
+        with self.assertRaises(index_mod.IndexIncomplete) as caught:
+            self.index()
+        self.assertIn(branch_version.replace("+", "-"),
+                      "\n".join(caught.exception.refused))
+        self.assertEqual(caught.exception.index["channels"]["nightly"], version)
+        self.assertEqual(index_mod.published(self.update)["serial"], 1)
+        self.check()
+
+    def test_one_bad_candidate_does_not_block_the_others(self):
+        self.commit()
+        _, version = self.build()
+        self.git("checkout", "-q", "-b", "release/2.2", "v2.2.4")
+        self.commit()
+        prefix, _ = self.build(ref="refs/heads/release/2.2")
+        (self.tmp / "staging" / prefix / common.STAGED).write_text("{")
+        with self.assertRaises(promote_mod.PromoteIncomplete) as caught:
+            self.promote()
+        self.assertEqual([d["version"] for d in caught.exception.done],
+                         [version])
+        self.assertIn("not JSON", str(caught.exception))
+
+    def test_a_filesafe_ci_claims_is_never_trusted(self):
+        self.commit()
+        prefix, version = self.build()
+        staged_path = self.tmp / "staging" / prefix / common.STAGED
+        staged = json.loads(staged_path.read_text())
+        staged["filesafe"] = "9.9.9"
+        staged_path.write_text(json.dumps(staged))
+        self.assert_refused(self.promote, "staged as 9.9.9")
+        self.assertEqual(self.builds.files("nightly"), [])
+
+    def test_a_promotion_cut_short_before_its_marker_completes(self):
+        self.commit()
+        self.build()
+        (descriptor,) = self.promote()
+        marker = (self.tmp / "builds" / self.slug / "commits" /
+                  descriptor["commit"])
+        marker.unlink()
+        self.assertEqual(self.promote(), [])
+        self.assertTrue(marker.exists())
+
+    def test_a_rerun_workflow_stages_again(self):
+        commit = self.commit()
+        prefix, version = self.build()
+        cand = self.tmp / f"cand-{version.replace('+', '-')}"
+        # The re-run's Sigstore bundle has other bytes: still nothing to do.
+        (cand / common.BUNDLE).write_text(
+            (cand / common.BUNDLE).read_text() + "\n")
+        again = stage_mod.stage(self.product, cand, self.staging,
+                                ref="refs/heads/main", commit=commit,
+                                version=version,
+                                filesafe=version.replace("+", "-"),
+                                built_at="2026-11-06T13:00:00Z")
+        self.assertEqual(again, prefix)
+        self.assert_refused(
+            lambda: stage_mod.stage(self.product, cand, self.staging,
+                                    ref="refs/heads/main", commit="f" * 40,
+                                    version=version,
+                                    filesafe=version.replace("+", "-"),
+                                    built_at="x"),
+            "already holds")
+
+    def test_the_cli_wants_both_stores_or_neither(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("gfr_cli",
+                                                      GFR / "__main__.py")
+        cli = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(cli)
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            self.assertEqual(cli.main(["verify", "--update", str(self.tmp)]), 1)
+        self.assertIn("both --update and --builds", err.getvalue())
+
     def test_paths_cannot_leave_the_product_root(self):
         for bad in ("../demo/v1/index.json", "/etc/passwd", "a/../b",
                     "https://x/y", "a%2fb", "a//b", ""):
@@ -371,6 +458,14 @@ class HelperTest(unittest.TestCase):
 
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_a_clock_without_a_zone_is_utc(self):
+        os.environ["GFR_NOW"] = "2026-11-08T10:00:00"
+        try:
+            self.assertEqual(common.iso(common.utcnow()),
+                             "2026-11-08T10:00:00Z")
+        finally:
+            del os.environ["GFR_NOW"]
 
     def test_filesafe_folds_build_metadata(self):
         self.assertEqual(common.parse_version("2.3.0-alpha.4+gabc").filesafe,
@@ -676,6 +771,40 @@ class StableTest(unittest.TestCase):
         self.assertIn({"version": "2.3.0", "kind": "stable", "artifacts": 3},
                       report["checked"])
 
+    def test_a_resumed_upload_sends_the_same_descriptor(self):
+        self.tag()
+        self.build()
+        descriptor = self.stage().run()
+        state_path = self.tmp / "work" / "2.3.0" / "state.json"
+        # As if the run stopped after the descriptor went up but before the
+        # step was recorded: the next run uploads again, byte for byte.
+        state = json.loads(state_path.read_text())
+        state["done"].remove("upload")
+        state_path.write_text(json.dumps(state))
+        os.environ["GFR_NOW"] = "2030-01-01T00:00:00Z"
+        try:
+            again = self.stage().run()
+        finally:
+            del os.environ["GFR_NOW"]
+        self.assertEqual(again["released_at"], descriptor["released_at"])
+
+    def test_signing_again_after_the_upload_is_refused(self):
+        self.tag()
+        self.build()
+        self.stage().run()
+        for step in ("pgp", "authenticode", "fetch"):
+            self.assert_refused(lambda: self.stage().run(redo=step),
+                                "upload has begun")
+        self.assertIsNotNone(self.stage().run(redo="upload"))
+
+    def test_another_versions_state_is_refused(self):
+        self.tag()
+        self.build()
+        self.stage().run()
+        work = self.tmp / "work"
+        shutil.copytree(work / "2.3.0", work / "2.3.1")
+        self.assert_refused(lambda: self.stage("2.3.1"), "not 2.3.1")
+
     def test_an_interrupted_stage_resumes(self):
         self.tag()
         self.build()
@@ -695,9 +824,11 @@ class StableTest(unittest.TestCase):
         (self.repo / "release" / "notes" / "2.3.0.md").write_text(
             "## 2.3.0\n\n- Everything, signed. Fixed.\n")
         self.git("commit", "-qam", "notes: typo")
-        # Not signed yet: the host refuses rather than publish unsigned notes.
-        self.assert_refused(self.index, "notes")
-        # Signed and uploaded by the maintainer, it is published.
+        # Not signed yet: the admitted notes stay listed, the release with
+        # them, and the unsigned ones are never published.
+        kept = self.index()["releases"]["2.3.0"]
+        self.assertEqual(kept["notes_sha256"], first)
+        # Signed and uploaded by the maintainer, they are published.
         sha = self.stage().publish_notes()
         entry = self.index()["releases"]["2.3.0"]
         self.assertEqual(entry["notes_sha256"], sha)

@@ -57,8 +57,13 @@ class Keyring:
         self._tmp = tempfile.TemporaryDirectory(prefix="gfr-gpg-")
         self.home = self._tmp.name
         os.chmod(self.home, 0o700)
-        run(["gpg", "--homedir", self.home, "--batch", "--quiet",
-             "--import", self.keys])
+        try:
+            run(["gpg", "--homedir", self.home, "--batch", "--quiet",
+                 "--import", self.keys])
+        except BaseException:
+            # __exit__ never runs for a failed __enter__.
+            self.__exit__(None, None, None)
+            raise
         return self
 
     def __exit__(self, *exc) -> None:

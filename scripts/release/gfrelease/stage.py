@@ -49,6 +49,15 @@ def stage(product: Product, candidate: Path, staging: Store, *, ref: str,
         product.classify(name, filesafe)  # fail here, not on the signing host
 
     prefix = staging_prefix(ref, filesafe)
+    # A re-run of the whole workflow signs the manifest again, and the new
+    # Sigstore bundle never has the old one's bytes. The build staged there
+    # already is the same commit's: the candidate is complete, done.
+    if staging.exists(f"{prefix}/{STAGED}"):
+        existing = read_staged(staging.read(f"{prefix}/{STAGED}"))
+        if existing["commit"] != commit:
+            raise ReleaseError(f"{prefix} already holds {existing['commit']}, "
+                               f"not {commit}")
+        return prefix
     for name in sorted(manifest) + [SUMS, BUNDLE]:
         staging.put_file(candidate / name, f"{prefix}/{name}")
     staged = {"schema": SCHEMA, "product": product.slug, "ref": ref,
@@ -66,4 +75,11 @@ def read_staged(data: bytes) -> dict:
             raise ReleaseError(f"staged.json lacks {key}")
     if staged["schema"] != SCHEMA:
         raise ReleaseError(f"staged.json schema {staged['schema']} is unknown")
+    parse_version(staged["version"], STAGED)
+    if not isinstance(staged["commit"], str) or \
+            not re.fullmatch(r"[0-9a-f]{40}", staged["commit"]):
+        raise ReleaseError(f"staged.json: not a commit: {staged['commit']!r}")
+    if not isinstance(staged["files"], list) or \
+            not all(isinstance(f, str) for f in staged["files"]):
+        raise ReleaseError("staged.json: files is not a list of names")
     return staged
