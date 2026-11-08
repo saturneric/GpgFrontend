@@ -39,6 +39,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent.parent
 sys.path.insert(0, str(HERE))
 
+import gitversion  # noqa: E402
 import policy as policy_mod  # noqa: E402
 import semver  # noqa: E402
 
@@ -49,11 +50,7 @@ def git(repo: Path, *args: str) -> str:
 
 
 def derived_version(repo: Path, ref: str) -> str:
-    out = subprocess.run(
-        ["cmake", f"-DGF_SOURCE_DIR={repo}", f"-DGPGFRONTEND_VERSION_REF={ref}",
-         "-DGF_FIELD=version", "-P", str(ROOT / "cmake" / "GitVersion.cmake")],
-        check=True, capture_output=True, text=True)
-    return out.stdout.strip()
+    return gitversion.derive(repo, ref=ref)
 
 
 def current_ref(repo: Path) -> str:

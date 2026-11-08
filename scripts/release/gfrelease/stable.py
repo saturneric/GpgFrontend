@@ -39,8 +39,9 @@ from pathlib import Path
 import authenticode
 import openpgp
 from common import (BUNDLE, DESCRIPTOR, SCHEMA, STAGED, SUMS, Product,
-                    ReleaseError, canonical_json, git_version, iso, run,
-                    semver, sha256_bytes, sha256_file, utcnow)
+                    ReleaseError, canonical_json, iso, load_json, notes_at,
+                    parse_version, render_manifest, sha256_bytes, sha256_file,
+                    tagged_commit, utcnow)
 from stage import read_staged
 from store import Store
 
@@ -56,7 +57,7 @@ class Stage:
                  key: str | None = None, gnupghome: str | None = None,
                  signer: authenticode.Signer | None = None,
                  authenticode_ca: str | None = None):
-        v = semver.parse(version)
+        v = parse_version(version)
         if v.prerelease or v.build:
             raise ReleaseError(f"{version}: the offline stage is for final "
                                "releases (vX.Y.Z)")
@@ -73,7 +74,8 @@ class Stage:
         self.authenticode_ca = authenticode_ca
         self.dir.mkdir(parents=True, exist_ok=True)
         self.state_path = self.dir / "state.json"
-        self.state = (json.loads(self.state_path.read_text())
+        self.state = (load_json(self.state_path.read_text(),
+                                str(self.state_path))
                       if self.state_path.exists() else
                       {"version": self.version, "done": []})
 
@@ -98,21 +100,26 @@ class Stage:
             self._save()
         return self.state.get("descriptor")
 
-    def publish_notes(self, ref: str = "refs/heads/main") -> str:
-        """Signs and uploads the notes @p ref has for this release; returns
-        their hash. Content-addressed, so the old notes stay where they are
-        and nothing published is ever replaced."""
-        self._need("key", "git_dir", "builds")
-        notes = run(["git", "-C", self.git_dir, "show",
-                     f"{ref}:release/notes/{self.version}.md"], check=False)
-        if notes.returncode != 0 or not notes.stdout.strip():
-            raise ReleaseError(f"{ref} has no release/notes/{self.version}.md")
-        data = notes.stdout.encode("utf-8")
+    def _sign_notes(self, ref: str) -> tuple[Path, str]:
+        """The notes @p ref has for this release, written content-addressed
+        under <work>/notes/ and signed; returns the file and its hash."""
+        data = notes_at(self.git_dir, ref, self.version)
+        if data is None:
+            raise ReleaseError(f"{ref} carries no "
+                               f"release/notes/{self.version}.md")
         digest = sha256_bytes(data)
         local = self.dir / "notes" / f"{digest}.md"
         local.parent.mkdir(parents=True, exist_ok=True)
         local.write_bytes(data)
         openpgp.sign(local, self.key, self.gnupghome)
+        return local, digest
+
+    def publish_notes(self, ref: str = "refs/heads/main") -> str:
+        """Signs and uploads the notes @p ref has for this release; returns
+        their hash. Content-addressed, so the old notes stay where they are
+        and nothing published is ever replaced."""
+        self._need("key", "git_dir", "builds")
+        local, digest = self._sign_notes(ref)
         with openpgp.Keyring(self.product.keyring_path,
                              self.product.maintainers) as ring:
             ring.verify(local, local.with_name(local.name + ".sig"))
@@ -175,13 +182,8 @@ class Stage:
         with openpgp.Keyring(self.product.keyring_path,
                              self.product.maintainers) as ring:
             ring.verify_tag(self.git_dir, self.tag)
-        tagged = run(["git", "-C", self.git_dir, "rev-parse",
-                      f"{self.tag}^{{commit}}"]).stdout.strip()
-        if tagged != staged["commit"]:
-            raise ReleaseError(f"{self.tag} is {tagged}, the build is of "
-                               f"{staged['commit']}")
-        if git_version(self.git_dir, tagged, ref) != self.version:
-            raise ReleaseError(f"git does not call {tagged} {self.version}")
+        tagged = tagged_commit(self.git_dir, self.tag, expect=staged["commit"],
+                               version=self.version)
 
         self.state["build"] = {
             "commit": tagged, "built_at": staged["built_at"],
@@ -218,25 +220,15 @@ class Stage:
             stale.unlink()
         for name in sorted(files):
             openpgp.sign(self.final_dir / name, self.key, self.gnupghome)
-        (self.final_dir / SUMS).write_text("".join(
-            f"{files[n]['sha256']}  {n}\n" for n in sorted(files)))
+        (self.final_dir / SUMS).write_bytes(render_manifest(
+            {n: files[n]["sha256"] for n in files}))
         openpgp.sign(self.final_dir / SUMS, self.key, self.gnupghome)
 
         # The notes the tag carries, reviewed before it was made.
-        notes = run(["git", "-C", self.git_dir, "show",
-                     f"{self.tag}:release/notes/{self.version}.md"],
-                    check=False)
-        if notes.returncode != 0 or not notes.stdout.strip():
-            raise ReleaseError(f"{self.tag} carries no "
-                               f"release/notes/{self.version}.md")
-        data = notes.stdout.encode("utf-8")
         notes_dir = self.dir / "notes"
         if notes_dir.exists():
             shutil.rmtree(notes_dir)
-        notes_dir.mkdir()
-        digest = sha256_bytes(data)
-        (notes_dir / f"{digest}.md").write_bytes(data)
-        openpgp.sign(notes_dir / f"{digest}.md", self.key, self.gnupghome)
+        _, digest = self._sign_notes(f"refs/tags/{self.tag}")
         self.state["notes_sha256"] = digest
 
         # Everything signed is checked against the pinned keys before it
@@ -278,7 +270,7 @@ class Stage:
         b = self.state["build"]
         descriptor = {
             "schema": SCHEMA, "product": self.product.slug, "kind": "stable",
-            "version": self.version, "series": semver.parse(self.version).series,
+            "version": self.version, "series": parse_version(self.version).series,
             "ref": f"refs/tags/{self.tag}", "commit": b["commit"],
             "built_at": b["built_at"], "released_at": iso(utcnow()),
             "signing": {"scheme": "openpgp", "fingerprint": self.key},
