@@ -122,7 +122,8 @@ def main(argv=None) -> int:
         opt(p, "update", "the index store")
         opt(p, "mirror_update", "the mirror's index store", )
         opt(p, "git_dir", "this product's git mirror (may be bare)")
-        opt(p, "artifact_key", "minisign secret key for artifacts")
+        opt(p, "artifact_key", "minisign secret key for artifacts: nightlies, "
+            "and the countersignature on stable releases")
         opt(p, "artifact_pub", "its public key (file or base64)")
         opt(p, "index_key", "minisign secret key for the index")
         opt(p, "index_pub", "its public key (file or base64)")
@@ -288,6 +289,8 @@ def main(argv=None) -> int:
                     index = index_mod.publish(
                         product, builds, update, index_key=Path(args.index_key),
                         artifact_pub=artifact_pub, state_dir=state,
+                        artifact_key=Path(args.artifact_key)
+                        if args.artifact_key else None,
                         force=args.force or args.command == "resign",
                         mirrors=mirrors,
                         git_dir=Path(args.git_dir) if args.git_dir else None,

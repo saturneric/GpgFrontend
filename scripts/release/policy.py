@@ -255,16 +255,23 @@ def render_keys(policy: dict, product: dict) -> str:
              "file:", "",
              "| Releases | Signed with | Verify with |",
              "| -------- | ----------- | ----------- |"]
-    lines.append("| Stable (vX.Y.Z) | OpenPGP, detached `.sig` per file | "
-                 + (", ".join(f"`{f}`" for f in fprs) if fprs
-                    else "not yet published") + " |")
+    lines.append("| Stable (vX.Y.Z) | OpenPGP, detached `.sig` per file, by the "
+                 "maintainer | " +
+                 (", ".join(f"`{f}`" for f in fprs) if fprs
+                  else "not yet published") + " |")
+    lines.append("| Stable (vX.Y.Z) | minisign, `.minisig` per file, added by "
+                 "the release server after it checked the `.sig` | " +
+                 (f"`{artifact}`" if artifact else "not yet published") + " |")
     lines.append("| Nightly | minisign, `.minisig` per file | "
                  + (f"`{artifact}`" if artifact else "not yet published")
                  + " |")
     lines.append("")
-    lines.append("Check a stable download with `gpg --verify FILE.sig FILE`, "
-                 "a nightly one with `minisign -Vm FILE -P <key>`. "
-                 "Windows installers of stable releases are also "
+    lines.append("Check a download by hand with `gpg --verify FILE.sig FILE` "
+                 "(stable) or `minisign -Vm FILE -P <key>` (stable or "
+                 "nightly). The application itself checks only minisign, "
+                 "through the signed update index; a stable release is "
+                 "listed there only once its OpenPGP signatures have been "
+                 "checked. Windows installers of stable releases are also "
                  "Authenticode-signed.")
     return "\n".join(lines)
 

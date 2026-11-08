@@ -131,6 +131,7 @@ class ChainTest(unittest.TestCase):
     def index(self, force=False):
         return index_mod.publish(self.product, self.builds, self.update,
                                  index_key=self.idx_key, artifact_pub=self.art_pub,
+                                 artifact_key=self.art_key,
                                  state_dir=self.state, force=force)
 
     def check(self, deep=True):
@@ -399,6 +400,55 @@ class ChainTest(unittest.TestCase):
         marker.unlink()
         self.assertEqual(self.promote(), [])
         self.assertTrue(marker.exists())
+
+    def test_a_promotion_cut_short_anywhere_finishes_the_same(self):
+        # One clock, so promoted_at is the same in every run compared.
+        os.environ["GFR_NOW"] = "2026-11-08T10:00:00Z"
+        self.addCleanup(os.environ.pop, "GFR_NOW", None)
+        self.commit()
+        self.build()
+        root = self.tmp / "builds" / self.slug
+        self.promote()
+        self.index()
+        clean = {str(f.relative_to(root)): common.sha256_file(f)
+                 for f in sorted(root.rglob("*")) if f.is_file()}
+
+        class Crash(Exception):
+            pass
+
+        class CrashingStore(Store):
+            def __init__(self, root, at):
+                super().__init__(root)
+                self.puts, self.at = 0, at
+
+            def put_file(self, local, path, immutable=True):
+                self.puts += 1
+                if self.puts == self.at:
+                    raise Crash(path)
+                super().put_file(local, path, immutable)
+
+        n = 1
+        while True:
+            shutil.rmtree(root)
+            shutil.rmtree(self.state, ignore_errors=True)
+            shutil.rmtree(self.tmp / "update", ignore_errors=True)
+            try:
+                promote_mod.promote(self.product, self.staging,
+                                    CrashingStore(str(root), n),
+                                    git_dir=self.repo, artifact_key=self.art_key,
+                                    artifact_pub=self.art_pub,
+                                    cosign=str(self.cosign))
+                break
+            except (Crash, promote_mod.PromoteIncomplete):
+                pass
+            with self.subTest(cut_at=n):
+                self.promote()
+                self.index()
+                self.assertEqual(
+                    {str(f.relative_to(root)): common.sha256_file(f)
+                     for f in sorted(root.rglob("*")) if f.is_file()}, clean)
+            n += 1
+        self.assertGreater(n, 5)
 
     def test_a_rerun_workflow_stages_again(self):
         commit = self.commit()
@@ -797,7 +847,8 @@ class StableTest(unittest.TestCase):
     def index(self):
         return index_mod.publish(
             self.product, self.builds, self.update, index_key=self.idx_key,
-            artifact_pub=self.art_pub, state_dir=self.state, force=True,
+            artifact_pub=self.art_pub, artifact_key=self.art_key,
+            state_dir=self.state, force=True,
             git_dir=self.repo, cosign=str(self.cosign),
             authenticode_ca=str(self.cert))
 
@@ -892,6 +943,158 @@ class StableTest(unittest.TestCase):
         work = self.tmp / "work"
         shutil.copytree(work / "2.3.0", work / "2.3.1")
         self.assert_refused(lambda: self.stage("2.3.1"), "not 2.3.1")
+
+    # --- the OpenPGP gate and the countersignature ----------------------
+
+    def tree(self):
+        """Every object of the artifact store, by path, with its hash."""
+        root = self.tmp / "builds" / self.product.slug
+        return {str(f.relative_to(root)): common.sha256_file(f)
+                for f in sorted(root.rglob("*")) if f.is_file()}
+
+    def minisigned(self, path):
+        root = self.tmp / "builds" / self.product.slug
+        minisig.verify([self.art_pub], root / path, root / (path + ".minisig"))
+
+    def assert_not_countersigned(self, version="2.3.0"):
+        self.assertEqual([p for p in self.tree() if p.endswith(".minisig")],
+                         [])
+        self.assertFalse(any(p.startswith("commits/") for p in self.tree()))
+
+    def test_a_passing_release_is_countersigned(self):
+        self.tag()
+        self.build()
+        descriptor = self.stage().run()
+        entry = self.index()["releases"]["2.3.0"]
+        for a in descriptor["artifacts"]:
+            self.minisigned(a["path"])
+        self.minisigned(descriptor["sums"])
+        self.minisigned(entry["notes"])
+        self.assertEqual(entry["sums_minisig"], descriptor["sums"] + ".minisig")
+        self.assertEqual(entry["notes_minisig"], entry["notes"] + ".minisig")
+        self.assertTrue(self.builds.exists(f"commits/{descriptor['commit']}"))
+        self.check(deep=True)
+
+    def test_any_missing_or_bad_signature_means_no_minisign_no_listing(self):
+        self.tag()
+        self.build()
+        descriptor = self.stage().run()
+        root = self.tmp / "builds" / self.product.slug
+        msi = next(a for a in descriptor["artifacts"] if a["kind"] == "msi")
+        cases = {
+            "a file's .sig missing": lambda: (root / msi["sig"]).unlink(),
+            "a file's .sig over other bytes": lambda: (root / msi["sig"])
+            .write_bytes((root / descriptor["sums_sig"]).read_bytes()),
+            "the manifest's .sig missing":
+                lambda: (root / descriptor["sums_sig"]).unlink(),
+            "the notes' .sig missing": lambda: [
+                p.unlink() for p in (root / "notes").rglob("*.sig")],
+        }
+        pristine = self.tmp / "pristine"
+        shutil.copytree(root, pristine)
+        for name, damage in cases.items():
+            with self.subTest(name):
+                shutil.rmtree(root)
+                shutil.copytree(pristine, root)
+                shutil.rmtree(self.state, ignore_errors=True)
+                damage()
+                with self.assertRaises(index_mod.IndexIncomplete) as caught:
+                    self.index()
+                self.assertNotIn("2.3.0", caught.exception.index["releases"])
+                self.assertIsNone(
+                    caught.exception.index["channels"]["stable"])
+                self.assert_not_countersigned()
+
+    def test_countersigning_again_changes_nothing(self):
+        self.tag()
+        self.build()
+        self.stage().run()
+        self.index()
+        before = self.tree()
+        shutil.rmtree(self.state)  # admitted again from nothing
+        self.index()
+        self.assertEqual(self.tree(), before)
+
+    def test_a_rotated_artifact_key_keeps_the_countersignatures(self):
+        self.tag()
+        self.build()
+        self.stage().run()
+        self.index()
+        before = self.tree()
+        old = self.art_pub
+        self.art_key, self.art_pub = keypair(self.tmp / "keys", "artifact-new")
+        data = json.loads((self.tmp / "product" / "product.json").read_text())
+        data["signing"]["artifact_keys_retired"] = [old]
+        (self.tmp / "product" / "product.json").write_text(json.dumps(data))
+        self.product = common.Product(self.tmp / "product" / "product.json",
+                                      self.tmp / "product" / "policy.toml")
+        self.assertIn("2.3.0", self.index()["releases"])
+        self.assertEqual(self.tree(), before)  # nothing signed again
+
+    def test_a_foreign_countersignature_is_never_replaced(self):
+        self.tag()
+        self.build()
+        descriptor = self.stage().run()
+        root = self.tmp / "builds" / self.product.slug
+        (root / (descriptor["sums"] + ".minisig")).write_text("forged\n")
+        with self.assertRaises(index_mod.IndexIncomplete) as caught:
+            self.index()
+        self.assertIn("never replaced", "\n".join(caught.exception.refused))
+        self.assertEqual((root / (descriptor["sums"] + ".minisig"))
+                         .read_text(), "forged\n")
+        self.assertNotIn("2.3.0", caught.exception.index["releases"])
+
+    def test_a_run_cut_short_anywhere_finishes_the_same(self):
+        self.tag()
+        self.build()
+        self.stage().run()
+        root = self.tmp / "builds" / self.product.slug
+        pristine = self.tmp / "pristine"
+        shutil.copytree(root, pristine)
+        self.index()
+        clean = self.tree()
+
+        class Crash(Exception):
+            pass
+
+        class CrashingStore(Store):
+            def __init__(self, root, at):
+                super().__init__(root)
+                self.puts, self.at = 0, at
+
+            def put_file(self, local, path, immutable=True):
+                self.puts += 1
+                if self.puts == self.at:
+                    raise Crash(path)
+                super().put_file(local, path, immutable)
+
+        n = 1
+        while True:
+            shutil.rmtree(root)
+            shutil.copytree(pristine, root)
+            shutil.rmtree(self.state, ignore_errors=True)
+            shutil.rmtree(self.tmp / "update", ignore_errors=True)
+            crashing = CrashingStore(str(root), n)
+            try:
+                index_mod.publish(
+                    self.product, crashing, self.update,
+                    index_key=self.idx_key, artifact_pub=self.art_pub,
+                    artifact_key=self.art_key, state_dir=self.state,
+                    force=True, git_dir=self.repo, cosign=str(self.cosign),
+                    authenticode_ca=str(self.cert))
+                break  # the run got past its last put: every cut was tried
+            except Crash:
+                pass
+            with self.subTest(cut_at=n):
+                # Nothing half-done is listed, and a plain rerun finishes
+                # with exactly the bytes of a run never cut short.
+                published = index_mod.published(self.update)
+                self.assertTrue(published is None or
+                                "2.3.0" not in published["releases"])
+                self.assertIn("2.3.0", self.index()["releases"])
+                self.assertEqual(self.tree(), clean)
+            n += 1
+        self.assertGreater(n, 5)
 
     # --- trust inputs --------------------------------------------------
 
@@ -1150,8 +1353,8 @@ class ImportTest(unittest.TestCase):
     def index(self):
         return index_mod.publish(
             self.product, self.builds, self.update, index_key=self.idx_key,
-            artifact_pub=self.art_pub, state_dir=self.state, force=True,
-            git_dir=self.repo)
+            artifact_pub=self.art_pub, artifact_key=self.art_key,
+            state_dir=self.state, force=True, git_dir=self.repo)
 
     def check(self):
         return verify_mod.verify(self.product, self.update, self.builds,
@@ -1264,6 +1467,32 @@ class ImportTest(unittest.TestCase):
         return stable_mod.Stage(self.product, version, self.tmp / "work",
                                 builds=self.builds, git_dir=self.repo,
                                 gnupghome=str(self.gnupg)).publish_notes()
+
+    def test_an_imported_release_is_countersigned_too(self):
+        self.publish_on_github("2.2.4", self.LEGS)
+        _, d = self.run_import("2.2.4")
+        entry = self.index()["releases"]["2.2.4"]
+        root = self.tmp / "builds" / self.product.slug
+        sums = "releases/2.2.4/SHA256SUMS.txt"
+        self.assertEqual(entry["sums_minisig"], sums + ".minisig")
+        self.assertEqual(common.parse_manifest((root / sums).read_bytes(), sums),
+                         {a["name"]: a["sha256"] for a in d["artifacts"]})
+        minisig.verify([self.art_pub], root / sums, root / (sums + ".minisig"))
+        for a in d["artifacts"]:
+            minisig.verify([self.art_pub], root / a["path"],
+                           root / (a["path"] + ".minisig"))
+        self.assertTrue(self.builds.exists(f"commits/{d['commit']}"))
+        self.check()
+
+    def test_an_imported_file_without_its_sig_is_not_listed(self):
+        self.publish_on_github("2.2.4", self.LEGS)
+        _, d = self.run_import("2.2.4")
+        root = self.tmp / "builds" / self.product.slug
+        (root / d["artifacts"][0]["sig"]).unlink()
+        with self.assertRaises(index_mod.IndexIncomplete) as caught:
+            self.index()
+        self.assertNotIn("2.2.4", caught.exception.index["releases"])
+        self.assertEqual([p for p in root.rglob("*.minisig")], [])
 
     def test_notes_are_listed_once_a_maintainer_signed_them(self):
         self.publish_on_github("2.2.4", self.LEGS)
