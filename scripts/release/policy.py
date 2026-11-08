@@ -313,12 +313,13 @@ def render_keys(policy: dict, product: dict) -> str:
     lines.append("| Stable (vX.Y.Z) | minisign, `.minisig` per file, added by "
                  "the release server after it checked the `.sig` | " +
                  (f"`{artifact}`" if artifact else "not yet published") + " |")
-    lines.append("| Nightly | minisign, `.minisig` per file | "
+    lines.append("| Nightly (main) and beta (release/X.Y) | minisign, "
+                 "`.minisig` per file | "
                  + (f"`{artifact}`" if artifact else "not yet published")
                  + " |")
     lines.append("")
     lines.append("Check a download by hand with `gpg --verify FILE.sig FILE` "
-                 "(stable) or `minisign -Vm FILE -P <key>` (stable or "
+                 "(stable) or `minisign -Vm FILE -P <key>` (stable, beta or "
                  "nightly). The application itself checks only minisign, "
                  "through the signed update index; a stable release is "
                  "listed there only once its OpenPGP signatures have been "
