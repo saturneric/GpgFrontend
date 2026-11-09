@@ -8,6 +8,9 @@
 #             (its builds are nightlies). At most one.
 #   stable    the newest series that has a final release; fixes go to
 #             release/X.Y. Exactly one once anything has been released.
+#             Builds of release/X.Y (of a stable or the mainline series) are
+#             that series' beta, offered to users who opt in; its releases
+#             are the stable channel.
 #   legacy    an older series that still gets security fixes until `eol`.
 #   eol       no fixes. Its users are pointed at `successor`.
 #

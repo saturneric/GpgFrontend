@@ -23,7 +23,9 @@ RELEASE = ROOT / "scripts" / "release"
 sys.path.insert(0, str(RELEASE))
 
 import check_order  # noqa: E402
+import gitversion  # noqa: E402
 import policy  # noqa: E402
+import refs  # noqa: E402
 import semver  # noqa: E402
 
 GIT = shutil.which("git")
@@ -80,13 +82,63 @@ class SemverTest(unittest.TestCase):
                         semver.parse("2.4.0-beta.1"))
 
     def test_release_tag_shapes(self):
-        # Two lines, nightly and stable: only a final vX.Y.Z is a release.
-        for tag in ("v2.3.0", "v10.20.30"):
+        # Only a final vX.Y.Z is a release: nightlies (main) and betas
+        # (release/X.Y) are builds, and are never tagged.
+        for tag in ("v2.3.0", "v10.20.30", "v0.0.0"):
+            self.assertTrue(refs.is_release_tag(tag), tag)
             self.assertTrue(semver.RELEASE_TAG.match(tag), tag)
         for tag in ("v2.3.0-beta.1", "v2.3.0-rc.12", "v2.4.0-alpha.0",
-                    "nightly", "v2.3", "2.3.0", "v2.3.0+meta"):
-            self.assertFalse(semver.RELEASE_TAG.match(tag), tag)
-        self.assertTrue(semver.BASE_TAG.match("v2.4.0-alpha.0"))
+                    "nightly", "v2.3", "2.3.0", "v2.3.0+meta", "v2.3.0.1",
+                    # A trailing newline, a leading zero, another script's
+                    # digits: none is the tag it resembles.
+                    "v2.3.0\n", "v2.08.0", "v02.3.0", "v\u0662.3.0"):
+            self.assertFalse(refs.is_release_tag(tag), repr(tag))
+            self.assertFalse(semver.RELEASE_TAG.match(tag), repr(tag))
+
+    def test_a_version_is_ascii_and_whole(self):
+        for text in ("\u0662.3.0", "2.03.0", "2.3.0-01", "2.3.0\n.1", "2.3",
+                     "2.3.0-", "2.3.0+"):
+            with self.subTest(text), self.assertRaises(ValueError):
+                semver.parse(text)
+        # What git prints ends in a newline.
+        self.assertEqual(str(semver.parse("v2.3.0-alpha.4+gabc\n")),
+                         "2.3.0-alpha.4+gabc")
+        self.assertTrue(semver.parse("2.3.0").is_release)
+        self.assertFalse(semver.parse("2.3.0+gabc").is_release)
+        self.assertTrue(semver.parse("2.3.0+gabc").is_final)
+        self.assertFalse(semver.parse("2.3.0-alpha.1").is_final)
+
+
+class RefsTest(unittest.TestCase):
+    def test_which_refs_publish_builds(self):
+        for ref, series in (("refs/heads/main", ""),
+                            ("refs/heads/release/2.2", "2.2"),
+                            ("refs/heads/release/10.0", "10.0")):
+            self.assertTrue(refs.publishes_builds(ref), ref)
+            self.assertEqual(refs.release_series(ref), series)
+        for ref in ("refs/heads/release/2.2-fix", "refs/heads/release/2.2/x",
+                    "refs/heads/release/2", "refs/heads/release/2.2\n",
+                    "refs/heads/feature/x", "refs/heads/mainline",
+                    "refs/tags/v2.3.0", "refs/tags/main", "main",
+                    "refs/pull/1/merge", ""):
+            self.assertFalse(refs.publishes_builds(ref), repr(ref))
+            self.assertEqual(refs.release_series(ref), "")
+
+    def test_refs_take_apart_and_go_together(self):
+        self.assertEqual(refs.branch_of("refs/heads/release/2.2"),
+                         "release/2.2")
+        self.assertEqual(refs.branch_of("refs/tags/v2.3.0"), "")
+        self.assertEqual(refs.tag_of("refs/tags/v2.3.0"), "v2.3.0")
+        self.assertEqual(refs.tag_of("refs/heads/main"), "")
+        self.assertEqual(refs.release_tag_ref("2.3.0"), "refs/tags/v2.3.0")
+        self.assertEqual(refs.release_series(
+            "refs/heads/" + refs.release_branch("2.3")), "2.3")
+
+    def test_a_commit_is_a_full_lower_case_id(self):
+        self.assertTrue(refs.is_commit("a" * 40))
+        for text in ("a" * 39, "a" * 41, "A" * 40, "g" * 40, "a" * 40 + "\n",
+                     None, 7):
+            self.assertFalse(refs.is_commit(text), repr(text))
 
 
 class PolicyCheckTest(unittest.TestCase):
@@ -218,6 +270,62 @@ class PolicyCheckTest(unittest.TestCase):
         product["signing"]["maintainer_fingerprints_retired"] = ["A" * 40]
         policy.check_product(product)
 
+    def test_what_identifies_the_build_and_names_its_files_is_checked(self):
+        for field, bad in (("workflow", "build.yml"), ("workflow", None),
+                           ("workflow", ".github/workflows/build.yml\n"),
+                           ("artifact_prefix", ""), ("artifact_prefix", "a/b"),
+                           ("repository", "owner/name/x"),
+                           ("repository", "owner/name\n"),
+                           ("slug", "gpgfrontend\n"),
+                           ("notes_link_hosts", "bktus.com"),
+                           ("notes_link_hosts", [7])):
+            product = policy.load_product()
+            product[field] = bad
+            with self.subTest(field=field, bad=bad), \
+                    self.assertRaisesRegex(policy.PolicyError, field):
+                policy.check_product(product)
+
+    def test_an_index_key_is_pinned(self):
+        for bad in ([], None, "one key"):
+            product = policy.load_product()
+            product["signing"]["index_keys"] = bad
+            with self.subTest(bad=bad), \
+                    self.assertRaisesRegex(policy.PolicyError, "index_keys"):
+                policy.check_product(product)
+
+    def test_a_file_of_the_wrong_shape_is_refused_not_a_crash(self):
+        """Whatever a hand edit made of either file, the check names what
+        is wrong; it never stops on a traceback."""
+        bad = (None, 5, "x", [], [1], True, {"a": []})
+
+        def mutate(document, check):
+            for key in document:
+                for value in bad:
+                    changed = copy.deepcopy(document)
+                    changed[key] = value
+                    with self.subTest(key=key, value=value):
+                        try:
+                            check(changed)
+                        except policy.PolicyError:
+                            pass
+        mutate(POLICY, lambda p: policy.check_policy(p, TODAY))
+        mutate(policy.load_product(), policy.check_product)
+        for value in bad:
+            p = copy.deepcopy(POLICY)
+            p["series"]["2.2"] = value
+            with self.subTest(series=value):
+                self.assert_refused(p, "series")
+            p = copy.deepcopy(POLICY)
+            p["withdrawn"] = [value]
+            with self.subTest(withdrawn=value), \
+                    self.assertRaises(policy.PolicyError):
+                policy.check_policy(p, TODAY)
+            product = policy.load_product()
+            product["artifacts"][0] = value
+            with self.subTest(rule=value), \
+                    self.assertRaises(policy.PolicyError):
+                policy.check_product(product)
+
 
 class SecurityRenderTest(unittest.TestCase):
     def test_repository_security_md_is_current(self):
@@ -259,15 +367,17 @@ class ToolingIsProductAgnosticTest(unittest.TestCase):
 
 
 class CheckOrderTest(unittest.TestCase):
-    TAGS = [semver.parse(v) for v in ("2.1.13", "2.2.4", "2.2.5", "2.3.0-beta.1")]
+    # Releases only: the base tag vX.Y.0-alpha.0 and anything else that is
+    # not a final vX.Y.Z is no release (check_order.release_tags).
+    TAGS = [semver.parse(v) for v in ("2.1.13", "2.2.4", "2.2.5")]
 
     def test_main_newer_than_everything(self):
-        self.assertEqual(check_order.check("2.3.0-beta.1.dev.4+gabc", "main",
+        self.assertEqual(check_order.check("2.3.0-alpha.4+gabc", "main",
                                            self.TAGS, "2.3"), [])
 
     def test_main_behind_a_release(self):
         tags = self.TAGS + [semver.parse("2.3.0")]
-        problems = check_order.check("2.3.0-beta.1.dev.9", "main", tags, "2.3")
+        problems = check_order.check("2.3.0-alpha.9+gabc", "main", tags, "2.3")
         self.assertTrue(any("base tag" in p for p in problems))
 
     def test_main_in_the_wrong_series(self):
@@ -300,8 +410,9 @@ class CheckOrderTest(unittest.TestCase):
             self.assertEqual(check_order.check_tag("v2.4.0-rc.1", repo), [])
 
     def test_other_refs_are_not_checked(self):
-        self.assertEqual(check_order.check("1.0.0", "feature/x", self.TAGS,
-                                           "2.3"), [])
+        for ref in ("feature/x", "release/2.2-fix", "release/2.2/x"):
+            self.assertEqual(check_order.check("1.0.0", ref, self.TAGS,
+                                               "2.3"), [], ref)
 
 
 def clean_env():
@@ -393,7 +504,7 @@ class CutTest(unittest.TestCase):
 
         for ref, want in (("main", "2.4"), ("release/2.3", "2.3")):
             self.git("checkout", "-q", ref)
-            version = check_order.derived_version(self.repo, ref)
+            version = gitversion.derive(self.repo, ref=ref)
             self.assertEqual(semver.parse(version).series, want, version)
             problems = check_order.check(
                 version, ref, check_order.release_tags(self.repo),
