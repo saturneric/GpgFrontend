@@ -36,11 +36,19 @@ PRODUCT = ROOT / "release" / "product.json"
 SECURITY = ROOT / "SECURITY.md"
 
 STATUSES = ("mainline", "stable", "legacy", "eol")
-SERIES_KEY = re.compile(r"^(\d+)(?:\.(\d+))?$")
+# The series users are meant to be on: their newest release is the stable
+# channel, and their release branch's builds are offered as a beta.
+CURRENT_STATUSES = ("stable", "mainline")
+# Used with fullmatch throughout: "$" would also match before a trailing
+# newline.
+SERIES_KEY = re.compile(r"([0-9]+)(?:\.([0-9]+))?")
 PLATFORM_KEYS = {"windows": str, "macos": str, "linux_glibc": str,
                  "android_api": int}
-SLUG = re.compile(r"^[a-z][a-z0-9-]{1,31}$")
-FINGERPRINT = re.compile(r"^[0-9A-F]{40}([0-9A-F]{24})?$")
+SLUG = re.compile(r"[a-z][a-z0-9-]{1,31}")
+FINGERPRINT = re.compile(r"[0-9A-F]{40}([0-9A-F]{24})?")
+REPOSITORY = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+")
+WORKFLOW = re.compile(r"\.github/workflows/[A-Za-z0-9_.-]+\.ya?ml")
+ARTIFACT_PREFIX = re.compile(r"[A-Za-z0-9][A-Za-z0-9._+-]*")
 
 
 class PolicyError(Exception):
@@ -58,7 +66,7 @@ def load_product(path: Path = PRODUCT) -> dict:
 
 
 def series_order(key: str) -> tuple[int, int]:
-    m = SERIES_KEY.match(key)
+    m = SERIES_KEY.fullmatch(key)
     return (int(m.group(1)), int(m.group(2) or -1))
 
 
@@ -66,28 +74,41 @@ def check_policy(policy: dict, today: dt.date | None = None) -> list[str]:
     """Raises PolicyError on a broken policy; returns warnings."""
     errors: list[str] = []
     warnings: list[str] = []
-    today = today or dt.date.today()
+    # UTC, as every other date here: not the day it happens to be where
+    # this runs.
+    today = today or dt.datetime.now(dt.timezone.utc).date()
+
+    def table(value, where: str) -> dict:
+        """A table read as one; anything else is an error, and reads as
+        empty so the checks after it still run."""
+        if isinstance(value, dict):
+            return value
+        errors.append(f"{where} must be a table")
+        return {}
 
     if policy.get("schema") != 1:
         errors.append("schema must be 1")
 
-    signing = policy.get("signing", {})
+    signing = table(policy.get("signing", {}), "signing")
     try:
         floor = semver.parse(signing.get("legacy_unsigned_before", ""))
-        if not floor.is_final:
+        if not floor.is_release:
             errors.append("signing.legacy_unsigned_before must be a final version")
-    except ValueError:
+    except (ValueError, AttributeError):
         errors.append("signing.legacy_unsigned_before must be a SemVer version")
 
-    series = policy.get("series", {})
+    series = table(policy.get("series", {}), "series")
     if not series:
         errors.append("no series")
 
     by_status: dict[str, list[str]] = {s: [] for s in STATUSES}
     for key, entry in series.items():
         where = f'series."{key}"'
-        if not SERIES_KEY.match(key):
+        if not SERIES_KEY.fullmatch(key):
             errors.append(f"{where}: the key must be MAJOR or MAJOR.MINOR")
+            continue
+        if not isinstance(entry, dict):
+            errors.append(f"{where} must be a table")
             continue
         status = entry.get("status")
         if status not in STATUSES:
@@ -96,7 +117,8 @@ def check_policy(policy: dict, today: dt.date | None = None) -> list[str]:
         by_status[status].append(key)
 
         if status in ("legacy", "eol"):
-            if entry.get("successor") not in series:
+            successor = entry.get("successor")
+            if not isinstance(successor, str) or successor not in series:
                 errors.append(f"{where}: a {status} series needs a successor "
                               "that is itself listed")
         elif "successor" in entry:
@@ -120,13 +142,14 @@ def check_policy(policy: dict, today: dt.date | None = None) -> list[str]:
                 errors.append(f'{where}: a {status} series lives on "{want}"')
 
         platforms = entry.get("platforms")
-        if status in ("mainline", "stable") and platforms is None:
+        if status in CURRENT_STATUSES and platforms is None:
             errors.append(f"{where}: a {status} series needs a platforms table")
-        for name, value in (platforms or {}).items():
+        for name, value in table(platforms or {},
+                                 f"{where}.platforms").items():
             kind = PLATFORM_KEYS.get(name)
             if kind is None:
                 errors.append(f"{where}.platforms: unknown key {name}")
-            elif not isinstance(value, kind):
+            elif not isinstance(value, kind) or isinstance(value, bool):
                 errors.append(f"{where}.platforms.{name}: must be a {kind.__name__}")
 
     if len(by_status["mainline"]) > 1:
@@ -145,14 +168,19 @@ def check_policy(policy: dict, today: dt.date | None = None) -> list[str]:
                 errors.append(f'series."{key}": an older line cannot be newer '
                               "than the stable series")
 
-    for i, item in enumerate(policy.get("withdrawn", [])):
+    withdrawn = policy.get("withdrawn", [])
+    if not isinstance(withdrawn, list):
+        errors.append("withdrawn must be an array of tables")
+        withdrawn = []
+    for i, item in enumerate(withdrawn):
+        item = table(item, f"withdrawn[{i}]")
         try:
             v = semver.parse(item.get("version", ""))
             if v.build:
                 raise ValueError
-        except ValueError:
+        except (ValueError, AttributeError):
             errors.append(f"withdrawn[{i}]: version must be a release version")
-        if not item.get("reason"):
+        if not item.get("reason") or not isinstance(item["reason"], str):
             errors.append(f"withdrawn[{i}]: a withdrawal needs a reason")
 
     if errors:
@@ -162,28 +190,60 @@ def check_policy(policy: dict, today: dt.date | None = None) -> list[str]:
 
 def check_product(product: dict) -> None:
     errors: list[str] = []
+
+    def table(value, where: str) -> dict:
+        if isinstance(value, dict):
+            return value
+        errors.append(f"{where} must be an object")
+        return {}
+
+    def strings(value, where: str) -> list[str]:
+        if isinstance(value, list) and \
+                all(isinstance(v, str) and v for v in value):
+            return value
+        errors.append(f"{where} must be a list of strings")
+        return []
+
+    def matches(pattern: re.Pattern, field: str) -> bool:
+        value = product.get(field)
+        return isinstance(value, str) and pattern.fullmatch(value) is not None
+
     if product.get("schema") != 1:
         errors.append("schema must be 1")
-    if not SLUG.match(product.get("slug", "")):
+    if not matches(SLUG, "slug"):
         errors.append("slug must match " + SLUG.pattern)
-    if not re.match(r"^[\w.-]+/[\w.-]+$", product.get("repository", "")):
+    if not matches(REPOSITORY, "repository"):
         errors.append("repository must be owner/name")
+    # The Sigstore identity every build is checked against is made of the
+    # repository and this path: a typo would refuse every candidate.
+    if not matches(WORKFLOW, "workflow"):
+        errors.append("workflow must be a .github/workflows/ file")
+    # What every published file's name starts with, and so part of every
+    # path in the stores.
+    if not matches(ARTIFACT_PREFIX, "artifact_prefix"):
+        errors.append("artifact_prefix must be a file name prefix")
+    bases = table(product.get("bases", {}), "bases")
     for role in ("update", "builds"):
-        bases = product.get("bases", {}).get(role, [])
-        if not bases:
+        listed = strings(bases.get(role, []), f"bases.{role}")
+        if not listed:
             errors.append(f"bases.{role} is empty")
-        for base in bases:
+        for base in listed:
             if not base.startswith("https://") or not base.endswith("/"):
                 errors.append(f"bases.{role}: {base} must be https:// and end in /")
-    signing = product.get("signing", {})
+    if "notes_link_hosts" in product:
+        strings(product["notes_link_hosts"], "notes_link_hosts")
+    signing = table(product.get("signing", {}), "signing")
     for field in ("maintainer_fingerprints", "maintainer_fingerprints_retired"):
-        for fpr in signing.get(field, []):
-            if not isinstance(fpr, str) or not FINGERPRINT.match(fpr):
+        for fpr in strings(signing.get(field, []), f"signing.{field}"):
+            if not FINGERPRINT.fullmatch(fpr):
                 errors.append(f"signing.{field}: {fpr} is not an upper-case "
                               "v4/v6 fingerprint")
-    current = set(signing.get("maintainer_fingerprints", []))
-    for fpr in signing.get("maintainer_fingerprints_retired", []):
-        if fpr in current:
+    if not isinstance(signing.get("authenticode_subject", ""), str):
+        errors.append("signing.authenticode_subject must be a string")
+    current = signing.get("maintainer_fingerprints", [])
+    retired = signing.get("maintainer_fingerprints_retired", [])
+    for fpr in retired if isinstance(retired, list) else []:
+        if isinstance(current, list) and fpr in current:
             errors.append("signing.maintainer_fingerprints_retired lists a "
                           f"current maintainer, {fpr}")
     # A key or certificate replaced: what it signed still verifies, nothing new
@@ -201,10 +261,11 @@ def check_product(product: dict) -> None:
             ("required", "optional"):
         errors.append("signing.authenticode_timestamp is required or "
                       "optional")
-    if len(signing.get("index_keys", [])) > 2:
-        errors.append("signing.index_keys holds the current and the next key, "
-                      "no more")
-    for field, keys in (("index_keys", signing.get("index_keys", [])),
+    index_keys = strings(signing.get("index_keys", []), "signing.index_keys")
+    if not 1 <= len(index_keys) <= 2:
+        errors.append("signing.index_keys holds the current key and at most "
+                      "the next one")
+    for field, keys in (("index_keys", index_keys),
                         ("artifact_key", [signing.get("artifact_key", "")]),
                         ("artifact_keys_retired",
                          signing.get("artifact_keys_retired", []))):
@@ -215,16 +276,25 @@ def check_product(product: dict) -> None:
 
     # Every published file is classified by these rules (gfrelease refuses
     # one none matches): each must compile, and name a kind clients know.
-    kinds = product.get("artifact_kinds", [])
-    for i, rule in enumerate(product.get("artifacts", [])):
+    kinds = strings(product.get("artifact_kinds", []), "artifact_kinds")
+    rules = product.get("artifacts", [])
+    if not isinstance(rules, list):
+        errors.append("artifacts must be a list of rules")
+        rules = []
+    for i, rule in enumerate(rules):
         where = f"artifacts[{i}]"
+        rule = table(rule, where)
         try:
             re.compile(rule.get("match", ""))
-        except re.error as e:
+        except (re.error, TypeError) as e:
             errors.append(f"{where}.match does not compile: {e}")
         for key in ("match", "os", "arch", "kind", "flavor"):
-            if not rule.get(key):
+            if not rule.get(key) or not isinstance(rule[key], str):
                 errors.append(f"{where} lacks {key}")
+        if "min_os" in rule and not (
+                isinstance(rule["min_os"], dict) and
+                all(isinstance(v, str) for v in rule["min_os"].values())):
+            errors.append(f"{where}.min_os must map a platform to a version")
         if rule.get("kind") not in kinds:
             errors.append(f"{where}.kind {rule.get('kind')!r} is not one of "
                           "artifact_kinds")
@@ -255,7 +325,7 @@ def _is_minisign_key(key) -> bool:
 
 def mainline(policy: dict) -> str:
     for key, entry in policy.get("series", {}).items():
-        if entry.get("status") == "mainline":
+        if isinstance(entry, dict) and entry.get("status") == "mainline":
             return key
     return ""
 
@@ -376,6 +446,10 @@ def main(argv: list[str]) -> int:
             return 1
         return 0
     except PolicyError as e:
+        print(f"policy: {e}", file=sys.stderr)
+        return 1
+    except (OSError, ValueError) as e:
+        # A file that is missing, or not TOML or JSON at all.
         print(f"policy: {e}", file=sys.stderr)
         return 1
 
