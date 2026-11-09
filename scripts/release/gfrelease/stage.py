@@ -11,29 +11,28 @@ is ever served: a signer promotes it, or it expires.
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
+import layout
 from common import (BUNDLE, SCHEMA, STAGED, SUMS, Product, ReleaseError,
                     canonical_json, load_json, parse_manifest, parse_version,
-                    semver)
+                    refs)
 from store import Store
 
 
 def staging_prefix(ref: str, filesafe: str) -> str:
-    if ref.startswith("refs/heads/"):
-        branch = ref[len("refs/heads/"):]
-        if not re.match(r"^(main|release/\d+\.\d+)$", branch):
-            raise ReleaseError(f"{ref} does not publish builds")
-        return f"branches/{branch.replace('/', '-')}/{filesafe}"
-    if ref.startswith("refs/tags/") and semver.RELEASE_TAG.match(ref[10:]):
-        return f"tags/{filesafe}"
+    """Where a build of @p ref is staged; only main, a release branch and a
+    release tag publish builds (refs.py)."""
+    if refs.publishes_builds(ref):
+        return layout.staged_branch(refs.branch_of(ref), filesafe)
+    if refs.is_release_tag(refs.tag_of(ref)):
+        return layout.staged_tag(filesafe)
     raise ReleaseError(f"{ref} does not publish builds")
 
 
 def stage(product: Product, candidate: Path, staging: Store, *, ref: str,
           commit: str, version: str, filesafe: str, built_at: str) -> str:
-    if not re.fullmatch(r"[0-9a-f]{40}", commit):
+    if not refs.is_commit(commit):
         raise ReleaseError(f"not a commit: {commit}")
     if parse_version(version).filesafe != filesafe:
         raise ReleaseError(f"{filesafe} is not the file-safe {version}")
@@ -87,8 +86,7 @@ def read_staged(data: bytes) -> dict:
     if not staged["ref"].startswith("refs/"):
         raise ReleaseError(f"staged.json: not a ref: {staged['ref']!r}")
     parse_version(staged["version"], STAGED)
-    if not isinstance(staged["commit"], str) or \
-            not re.fullmatch(r"[0-9a-f]{40}", staged["commit"]):
+    if not refs.is_commit(staged["commit"]):
         raise ReleaseError(f"staged.json: not a commit: {staged['commit']!r}")
     if not isinstance(staged["files"], list) or \
             not all(isinstance(f, str) for f in staged["files"]):

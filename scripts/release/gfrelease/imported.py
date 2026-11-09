@@ -23,26 +23,26 @@ pinned and are not imported.
 
 from __future__ import annotations
 
-import json
 import urllib.request
 from pathlib import Path
 
+import layout
 import openpgp
-from common import (DESCRIPTOR, SCHEMA, Product, ReleaseError, canonical_json,
-                    iso, load_json, parse_iso, parse_version, sha256_file,
+from common import (DESCRIPTOR, SCHEMA, SIG, SMALL_OBJECT_LIMIT, Product,
+                    ReleaseError, atomic_write, canonical_json, iso,
+                    load_json, parse_iso, parse_version, refs, sha256_file,
                     tag_time, tagged_commit, utcnow)
 from store import Store
 
-KIND = "imported"
+API = "https://api.github.com"
 USER_AGENT = "gfrelease-import/1"
 
 
 class GitHubSource:
     """A product's releases on GitHub, read without a token."""
 
-    def __init__(self, repository: str, api: str = "https://api.github.com"):
+    def __init__(self, repository: str):
         self.repository = repository
-        self.api = api
 
     def _open(self, url: str, accept: str):
         req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT,
@@ -50,14 +50,25 @@ class GitHubSource:
         return urllib.request.urlopen(req, timeout=60)
 
     def release(self, tag: str) -> dict:
-        url = f"{self.api}/repos/{self.repository}/releases/tags/{tag}"
+        url = f"{API}/repos/{self.repository}/releases/tags/{tag}"
         try:
             with self._open(url, "application/vnd.github+json") as r:
-                return json.load(r)
+                data = r.read(SMALL_OBJECT_LIMIT + 1)
         except OSError as e:
             raise ReleaseError(f"GitHub release {tag}: {e}") from e
+        release = load_json(data, f"GitHub release {tag}")
+        # Everything read of it below has the type it is read as.
+        assets = release.get("assets", [])
+        if not isinstance(assets, list) or not all(
+                isinstance(a, dict) and isinstance(a.get("name"), str) and
+                isinstance(a.get("browser_download_url"), str) and
+                isinstance(a.get("size"), int) for a in assets):
+            raise ReleaseError(f"GitHub release {tag}: not a list of assets")
+        return release
 
     def download(self, url: str, dst: Path) -> None:
+        if not url.startswith("https://"):
+            raise ReleaseError(f"{dst.name}: not an https download: {url!r}")
         part = dst.with_name(dst.name + ".part")
         try:
             with self._open(url, "application/octet-stream") as r, \
@@ -72,20 +83,16 @@ class GitHubSource:
         return f"https://github.com/{self.repository}/releases/tag/{tag}"
 
 
-def _floor(product: Product):
-    return parse_version(product.policy["signing"]["legacy_unsigned_before"])
-
-
 class Import:
     def __init__(self, product: Product, version: str, work: Path, *,
                  builds: Store | None, git_dir: Path,
                  source: GitHubSource | None = None):
         v = parse_version(version)
-        if v.prerelease or v.build:
+        if not v.is_release:
             raise ReleaseError(f"{version}: only final releases are imported")
-        if v < _floor(product):
+        if v < product.legacy_floor:
             raise ReleaseError(f"{version} is older than "
-                               f"{_floor(product)}, the first release signed "
+                               f"{product.legacy_floor}, the first release signed "
                                "with a pinned key")
         self.product = product
         self.version = str(v)
@@ -98,7 +105,7 @@ class Import:
 
     @property
     def prefix(self) -> str:
-        return f"releases/{self.version}"
+        return layout.release_dir(self.version)
 
     def _select(self, release: dict) -> dict[str, dict]:
         """The files to bring over: name -> classification plus the GitHub
@@ -106,14 +113,14 @@ class Import:
         assets = {a["name"]: a for a in release.get("assets", [])}
         chosen = {}
         for name, asset in sorted(assets.items()):
-            if name.endswith(".sig") or name.endswith(".asc"):
+            if name.endswith(SIG) or name.endswith(".asc"):
                 continue
             try:
                 info = self.product.classify(name, self.version)
             except ReleaseError:
                 self.skipped.append(f"{name} (no artifact rule)")
                 continue
-            sig = assets.get(name + ".sig")
+            sig = assets.get(name + SIG)
             if sig is None:
                 self.skipped.append(f"{name} (no signature)")
                 continue
@@ -143,11 +150,10 @@ class Import:
 
         # Every file against its original signature, before anything leaves.
         signers = set()
-        with openpgp.Keyring(self.product.keyring_path,
-                             self.product.trusted_maintainers) as ring:
+        with openpgp.Keyring.of(self.product) as ring:
             for name, info in files.items():
                 local = self._fetch(name, info["asset"])
-                sig = self._fetch(name + ".sig", info["sig_asset"])
+                sig = self._fetch(name + SIG, info["sig_asset"])
                 signed = ring.verify_signature(local, sig)
                 # The host refuses a file signed before its tag (an older
                 # release's, relabelled); so does the import, before any
@@ -168,39 +174,41 @@ class Import:
             info = files[name]
             if self.builds is not None:
                 self.builds.put_file(self.dir / name, f"{p}/{name}")
-                self.builds.put_file(self.dir / (name + ".sig"),
-                                     f"{p}/{name}.sig")
+                self.builds.put_file(self.dir / (name + SIG),
+                                     f"{p}/{name}{SIG}")
             artifacts.append({
                 k: info[k] for k in ("os", "arch", "kind", "flavor", "min_os",
                                      "sha256", "size") if k in info} | {
-                "name": name, "path": f"{p}/{name}", "sig": f"{p}/{name}.sig"})
+                "name": name, "path": f"{p}/{name}",
+                "sig": f"{p}/{name}{SIG}"})
 
         released = release.get("published_at") or ""
         descriptor = {
-            "schema": SCHEMA, "product": self.product.slug, "kind": KIND,
+            "schema": SCHEMA, "product": self.product.slug,
+            "kind": layout.KIND_IMPORTED,
             "version": self.version,
             "series": parse_version(self.version).series,
-            "ref": f"refs/tags/{self.tag}", "commit": commit,
+            "ref": refs.release_tag_ref(self.version), "commit": commit,
             "released_at": iso(parse_iso(released)) if released else None,
             "imported_at": iso(utcnow()),
             "source": self.source.page(self.tag),
-            "signing": {"scheme": "openpgp", "fingerprint": signers.pop()},
+            "signing": {"scheme": layout.SCHEME_OPENPGP,
+                        "fingerprint": signers.pop()},
             "artifacts": artifacts,
         }
         # A rerun keeps the first import's time, so the descriptor's bytes
         # (immutable once uploaded) come out the same.
         local = self.dir / DESCRIPTOR
         previous = None
-        if self.builds is not None and self.builds.exists(f"{p}/{DESCRIPTOR}"):
-            previous = load_json(self.builds.read(f"{p}/{DESCRIPTOR}"),
-                                 f"{p}/{DESCRIPTOR}")
+        remote = layout.descriptor_of(p)
+        if self.builds is not None and self.builds.exists(remote):
+            previous = load_json(self.builds.read(remote), remote)
         elif local.is_file():
             previous = load_json(local.read_bytes(), str(local))
         if previous and previous.get("imported_at"):
             descriptor["imported_at"] = previous["imported_at"]
-        local.write_bytes(canonical_json(descriptor))
+        atomic_write(local, canonical_json(descriptor))
         if self.builds is not None:
             # Last: a descriptor only ever names objects already there.
-            self.builds.put_bytes(canonical_json(descriptor),
-                                  f"{p}/{DESCRIPTOR}")
+            self.builds.put_bytes(canonical_json(descriptor), remote)
         return descriptor

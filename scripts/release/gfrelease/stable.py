@@ -41,10 +41,11 @@ from pathlib import Path
 
 import authenticode
 import openpgp
-from common import (BUNDLE, DESCRIPTOR, SCHEMA, STAGED, SUMS, Product,
-                    ReleaseError, canonical_json, iso, load_json, notes_at,
-                    parse_version, render_manifest, sha256_bytes, sha256_file,
-                    tagged_commit, utcnow)
+import layout
+from common import (BUNDLE, SCHEMA, SIG, STAGED, SUMS, Product, ReleaseError,
+                    atomic_write, candidate_error, canonical_json, iso, load_json, notes_at,
+                    parse_version, refs, render_manifest, sha256_bytes,
+                    sha256_file, tagged_commit, utcnow)
 from stage import read_staged
 from store import Store
 
@@ -61,7 +62,7 @@ class Stage:
                  signer: authenticode.Signer | None = None,
                  authenticode_ca: str | None = None):
         v = parse_version(version)
-        if v.prerelease or v.build:
+        if not v.is_release:
             raise ReleaseError(f"{version}: the offline stage is for final "
                                "releases (vX.Y.Z)")
         self.product = product
@@ -94,8 +95,7 @@ class Stage:
                               f"--key {self.requested_key} cannot finish it")
         else:
             self._conflict = None
-        self.key = (signed_with or self.requested_key or
-                    (product.maintainers[0] if product.maintainers else ""))
+        self.key = signed_with or self.requested_key or product.signing_key
         if not signed_with:
             self._check_signing_key()
 
@@ -112,15 +112,17 @@ class Stage:
                                "(release/product.json)")
 
     def _save(self) -> None:
-        tmp = self.state_path.with_suffix(".new")
-        tmp.write_text(json.dumps(self.state, indent=1, sort_keys=True))
-        tmp.replace(self.state_path)
+        # Whole or not at all, and on disk before the next step starts: a
+        # machine that loses power mid-release resumes, it never signs
+        # again what it already sent.
+        atomic_write(self.state_path,
+                     json.dumps(self.state, indent=1, sort_keys=True))
 
     def run(self, redo: str | None = None) -> dict | None:
         if self._conflict:
             raise ReleaseError(self._conflict)
         if redo:
-            if redo not in STEPS:
+            if redo not in STEPS:  # the command line offers only these
                 raise ReleaseError(f"no step {redo!r}; steps are {STEPS}")
             # Signing again makes other bytes (new time stamps), and what was
             # uploaded is never replaced: once anything left this machine,
@@ -135,9 +137,7 @@ class Stage:
             if "pgp" not in keep:
                 # Signed again from scratch: by the key asked for now.
                 self.state.pop("key", None)
-                self.key = self.requested_key or (
-                    self.product.maintainers[0] if self.product.maintainers
-                    else "")
+                self.key = self.requested_key or self.product.signing_key
                 self._check_signing_key()
         for step in STEPS:
             if step in self.state["done"]:
@@ -147,53 +147,48 @@ class Stage:
             self._save()
         return self.state.get("descriptor")
 
-    def _sign_notes(self, ref: str, directory: str = "notes",
-                    key: str | None = None) -> tuple[Path, str]:
-        """The notes @p ref has for this release, written content-addressed
-        under <work>/<directory>/ and signed; returns the file and its
-        hash."""
+    def _notes(self, ref: str) -> tuple[bytes, str]:
+        """The notes @p ref has for this release, and their hash."""
         data = notes_at(self.git_dir, ref, self.version)
         if data is None:
             raise ReleaseError(f"{ref} carries no "
                                f"release/notes/{self.version}.md")
-        digest = sha256_bytes(data)
+        return data, sha256_bytes(data)
+
+    def _sign_notes(self, data: bytes, digest: str, directory: str = "notes",
+                    key: str | None = None) -> Path:
+        """Notes written content-addressed under <work>/<directory>/ and
+        signed; returns the file."""
         local = self.dir / directory / f"{digest}.md"
-        local.parent.mkdir(parents=True, exist_ok=True)
-        local.write_bytes(data)
+        atomic_write(local, data)
         openpgp.sign(local, key or self.key, self.gnupghome)
-        return local, digest
+        return local
 
     def publish_notes(self, ref: str = "refs/heads/main") -> str:
         """Signs and uploads the notes @p ref has for this release; returns
         their hash. Content-addressed, so the old notes stay where they are
         and nothing published is ever replaced."""
         self._need("key", "git_dir", "builds")
-        data = notes_at(self.git_dir, ref, self.version)
-        if data is None:
-            raise ReleaseError(f"{ref} carries no "
-                               f"release/notes/{self.version}.md")
-        digest = sha256_bytes(data)
-        remote = f"notes/{self.version}/{digest}.md"
+        data, digest = self._notes(ref)
+        remote = layout.notes_path(self.version, digest)
         # Signed and uploaded already (the tag's notes, unchanged on main):
         # nothing to do. Signing again would only make a .sig of other
         # bytes, which can never replace the published one.
-        if self.builds.exists(remote) and self.builds.exists(remote + ".sig") \
+        if self.builds.exists(remote) and self.builds.exists(remote + SIG) \
                 and self.builds.sha256(remote) == digest:
             return digest
         # New notes are signed by a current maintainer, whoever signed the
         # release itself.
-        key = self.requested_key or (
-            self.product.maintainers[0] if self.product.maintainers else "")
+        key = self.requested_key or self.product.signing_key
         self._check_signing_key(key)
         # Its own directory: the stage's notes/ holds what an interrupted
         # upload still has to send, and is never signed over.
-        local, digest = self._sign_notes(ref, "notes-only", key)
-        with openpgp.Keyring(self.product.keyring_path,
-                             self.product.trusted_maintainers) as ring:
-            ring.verify(local, local.with_name(local.name + ".sig"))
-        for suffix in ("", ".sig"):
+        local = self._sign_notes(data, digest, "notes-only", key)
+        with openpgp.Keyring.of(self.product) as ring:
+            ring.verify(local, local.with_name(local.name + SIG))
+        for suffix in ("", SIG):
             self.builds.put_file(local.with_name(local.name + suffix),
-                                 f"notes/{self.version}/{digest}.md{suffix}")
+                                 remote + suffix)
         return digest
 
     @property
@@ -206,7 +201,7 @@ class Stage:
 
     @property
     def prefix(self) -> str:
-        return f"releases/{self.version}"
+        return layout.release_dir(self.version)
 
     def _need(self, *names: str) -> None:
         missing = [n for n in names if not getattr(self, n)]
@@ -219,14 +214,15 @@ class Stage:
         self._need("staging")
         if self.staged_dir.exists():
             shutil.rmtree(self.staged_dir)
-        self.staging.download(f"tags/{self.version}", self.staged_dir)
+        self.staging.download(layout.staged_tag(self.version),
+                              self.staged_dir)
         if not (self.staged_dir / STAGED).is_file():
             raise ReleaseError(f"nothing complete is staged for {self.tag}")
 
     def _verify(self) -> None:
         self._need("git_dir")
         staged = read_staged((self.staged_dir / STAGED).read_bytes())
-        ref = f"refs/tags/{self.tag}"
+        ref = refs.release_tag_ref(self.version)
         if staged["product"] != self.product.slug or staged["ref"] != ref or \
                 staged["version"] != self.version:
             raise ReleaseError(f"staging holds {staged['product']} "
@@ -240,15 +236,14 @@ class Stage:
         identity = self.product.identity(ref)
         try:
             verified = rc.verify(build, identity, staged["commit"], self.cosign)
-        except rc.CandidateError as e:
-            raise ReleaseError(f"{self.tag}: {e}") from e
+        except (rc.CandidateError, rc.CandidateTimeout) as e:
+            raise candidate_error(self.tag, e) from e
         files = sorted(p.name for p in verified if p.name not in (SUMS, BUNDLE))
         if files != sorted(staged["files"]):
             raise ReleaseError(f"{self.tag}: staged.json lists other files "
                                "than the signed manifest")
 
-        with openpgp.Keyring(self.product.keyring_path,
-                             self.product.trusted_maintainers) as ring:
+        with openpgp.Keyring.of(self.product) as ring:
             ring.verify_tag(self.git_dir, self.tag)
         tagged = tagged_commit(self.git_dir, self.tag, expect=staged["commit"],
                                version=self.version)
@@ -298,7 +293,7 @@ class Stage:
             stale.unlink()
         for name in sorted(files):
             openpgp.sign(self.final_dir / name, self.key, self.gnupghome)
-        (self.final_dir / SUMS).write_bytes(render_manifest(
+        atomic_write(self.final_dir / SUMS, render_manifest(
             {n: files[n]["sha256"] for n in files}))
         openpgp.sign(self.final_dir / SUMS, self.key, self.gnupghome)
 
@@ -306,18 +301,18 @@ class Stage:
         notes_dir = self.dir / "notes"
         if notes_dir.exists():
             shutil.rmtree(notes_dir)
-        _, digest = self._sign_notes(f"refs/tags/{self.tag}")
+        data, digest = self._notes(refs.release_tag_ref(self.version))
+        self._sign_notes(data, digest)
         self.state["notes_sha256"] = digest
 
         # Everything signed is checked against the pinned keys before it
         # leaves this machine.
-        with openpgp.Keyring(self.product.keyring_path,
-                             self.product.trusted_maintainers) as ring:
+        with openpgp.Keyring.of(self.product) as ring:
             for name in [*sorted(files), SUMS]:
                 ring.verify(self.final_dir / name,
-                            self.final_dir / f"{name}.sig")
+                            self.final_dir / (name + SIG))
             ring.verify(notes_dir / f"{digest}.md",
-                        notes_dir / f"{digest}.md.sig")
+                        notes_dir / f"{digest}.md{SIG}")
 
     def _upload(self) -> None:
         self._need("builds")
@@ -331,38 +326,43 @@ class Stage:
         for name in sorted(files):
             info = files[name]
             self.builds.put_file(self.final_dir / name, f"{p}/{name}")
-            self.builds.put_file(self.final_dir / f"{name}.sig",
-                                 f"{p}/{name}.sig")
+            self.builds.put_file(self.final_dir / (name + SIG),
+                                 f"{p}/{name}{SIG}")
             artifacts.append({
                 k: info[k] for k in ("os", "arch", "kind", "flavor", "min_os",
                                      "sha256", "build_sha256", "transform")
                 if k in info} | {
                 "name": name, "size": (self.final_dir / name).stat().st_size,
-                "path": f"{p}/{name}", "sig": f"{p}/{name}.sig"})
+                "path": f"{p}/{name}", "sig": f"{p}/{name}{SIG}"})
         self.builds.put_file(self.final_dir / SUMS, f"{p}/{SUMS}")
-        self.builds.put_file(self.final_dir / f"{SUMS}.sig", f"{p}/{SUMS}.sig")
+        self.builds.put_file(self.final_dir / (SUMS + SIG),
+                             f"{p}/{SUMS}{SIG}")
         build = self.dir / "build"
         self.builds.put_file(build / SUMS, f"{p}/build/{SUMS}")
         self.builds.put_file(build / BUNDLE, f"{p}/build/{BUNDLE}")
 
         digest = self.state["notes_sha256"]
-        for suffix in ("", ".sig"):
+        for suffix in ("", SIG):
             self.builds.put_file(self.dir / "notes" / f"{digest}.md{suffix}",
-                                 f"notes/{self.version}/{digest}.md{suffix}")
+                                 layout.notes_path(self.version, digest)
+                                 + suffix)
 
         b = self.state["build"]
         descriptor = {
-            "schema": SCHEMA, "product": self.product.slug, "kind": "stable",
+            "schema": SCHEMA, "product": self.product.slug,
+            "kind": layout.KIND_STABLE,
             "version": self.version, "series": parse_version(self.version).series,
-            "ref": f"refs/tags/{self.tag}", "commit": b["commit"],
+            "ref": refs.release_tag_ref(self.version), "commit": b["commit"],
             "built_at": b["built_at"], "released_at": self.state["released_at"],
-            "signing": {"scheme": "openpgp", "fingerprint": self.key},
+            "signing": {"scheme": layout.SCHEME_OPENPGP,
+                        "fingerprint": self.key},
             "build": {"sums": f"{p}/build/{SUMS}",
                       "bundle": f"{p}/build/{BUNDLE}",
                       "identity": b["identity"]},
-            "sums": f"{p}/{SUMS}", "sums_sig": f"{p}/{SUMS}.sig",
+            "sums": f"{p}/{SUMS}", "sums_sig": f"{p}/{SUMS}{SIG}",
             "artifacts": artifacts,
         }
         # Last: a descriptor only ever names objects that are already there.
-        self.builds.put_bytes(canonical_json(descriptor), f"{p}/{DESCRIPTOR}")
+        self.builds.put_bytes(canonical_json(descriptor),
+                              layout.descriptor_of(p))
         self.state["descriptor"] = descriptor

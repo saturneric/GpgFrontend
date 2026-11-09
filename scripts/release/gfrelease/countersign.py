@@ -32,11 +32,12 @@ from __future__ import annotations
 from pathlib import Path
 
 import minisig
-from common import (SUMS, Product, ReleaseError, parse_manifest,
+import layout
+from common import (MINISIG, SUMS, Product, ReleaseError, parse_manifest,
                     render_manifest, sha256_bytes, sha256_file)
 from store import Store
 
-MINISIG = ".minisig"
+NOTES_NAME = "notes.md"  # what a notes' countersignature calls its file
 
 
 def manifest_path(d: dict) -> str:
@@ -47,9 +48,13 @@ def manifest_path(d: dict) -> str:
     path beside the old one."""
     if d.get("sums"):
         return d["sums"]
-    digest = sha256_bytes(render_manifest(
-        {a["name"]: a["sha256"] for a in d["artifacts"]}))
-    return f"releases/{d['version']}/manifests/{digest}/{SUMS}"
+    return layout.server_manifest(
+        d["version"], sha256_bytes(render_manifest(hashes_of(d))))
+
+
+def hashes_of(d: dict) -> dict[str, str]:
+    """{name: sha256} of a descriptor's files: what its manifest lists."""
+    return {a["name"]: a["sha256"] for a in d["artifacts"]}
 
 
 def entry_fields(d: dict, notes: dict | None) -> dict:
@@ -111,12 +116,12 @@ class Countersigner:
             if sha256_file(local) != a["sha256"]:
                 raise ReleaseError(f"{a['name']}: not the descriptor's bytes")
             self._sign(builds, a["path"], local,
-                       f"product={slug} file={a['name']} version={version}")
+                       layout.file_comment(slug, a["name"], version))
             local.unlink()
 
         sums = manifest_path(d)
         local = work / SUMS
-        hashes = {a["name"]: a["sha256"] for a in d["artifacts"]}
+        hashes = hashes_of(d)
         if d.get("sums"):
             builds.fetch_to(sums, local)
         else:
@@ -130,9 +135,9 @@ class Countersigner:
             raise ReleaseError(f"{sums}: not the admitted release's hashes; "
                                "nothing is countersigned")
         self._sign(builds, sums, local,
-                   f"product={slug} file={SUMS} version={version}")
+                   layout.file_comment(slug, SUMS, version))
 
-        marker = f"commits/{d['commit']}"
+        marker = layout.commit_marker(d["commit"])
         if not self.dry and not builds.exists(marker):
             builds.put_bytes(b"", marker)
 
@@ -141,10 +146,9 @@ class Countersigner:
         """Notes whose maintainer signature verified: the bytes signed are
         the ones whose hash was admitted, whatever the bucket holds now."""
         work.mkdir(parents=True, exist_ok=True)
-        local = builds.fetch_to(notes["notes"], work / "notes.md")
+        local = builds.fetch_to(notes["notes"], work / NOTES_NAME)
         if sha256_file(local) != notes["notes_sha256"]:
             raise ReleaseError(f"{notes['notes']}: not the admitted notes; "
                                "nothing is countersigned")
-        self._sign(builds, notes["notes"], local,
-                   f"product={self.product.slug} file=notes.md "
-                   f"version={version}")
+        self._sign(builds, notes["notes"], local, layout.file_comment(
+            self.product.slug, NOTES_NAME, version))

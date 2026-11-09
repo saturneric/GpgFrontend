@@ -1,10 +1,11 @@
 # Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The signing host's promotion of nightlies: staging -> final location.
+"""The signing host's promotion of branch builds: staging -> final location.
 
-For each branch, only its newest staged build is promoted (a burst of pushes
-to main costs one promotion; older candidates expire in staging). Before
-anything is signed:
+main's builds are the nightly channel, a release/X.Y branch's the beta of
+its series; no other branch is promoted. For each branch, only its newest
+staged build is (a burst of pushes costs one promotion; older candidates
+expire in staging). Before anything is signed:
 
   1. its Sigstore bundle must name this product's build workflow at exactly
      the ref and commit staged.json claims (scripts/release_candidate.py);
@@ -28,9 +29,11 @@ import tempfile
 from pathlib import Path
 
 import minisig
-from common import (BUNDLE, DESCRIPTOR, SCHEMA, STAGED, SUMS, Product,
-                    ReleaseError, canonical_json, git_version, iso,
-                    parse_version, run, sha256_file, utcnow)
+import layout
+from common import (BUNDLE, SCHEMA, STAGED, SUMS, Problems, Product,
+                    ReleaseError, canonical_json, candidate_error,
+                    git_version, iso, parse_version, refs, sha256_file,
+                    utcnow)
 from stage import read_staged
 from store import Store
 
@@ -43,38 +46,29 @@ class PromoteIncomplete(ReleaseError):
     """Some candidates could not be promoted; the others were. Each failure
     is named, and the run still fails."""
 
-    def __init__(self, failed: list[str], done: list[dict]):
+    def __init__(self, failed: Problems, done: list[dict]):
         super().__init__("not promoted:\n  " + "\n  ".join(failed))
         self.failed = failed
+        self.passing = failed.passing  # common.Problems
         self.done = done
 
 
-def candidates(staging: Store, failed: list[str] | None = None
+def candidates(staging: Store, failed: Problems | None = None
                ) -> list[tuple[str, dict]]:
-    """(prefix, staged.json) of every complete nightly candidate. One whose
+    """(prefix, staged.json) of every complete branch candidate. One whose
     staged.json cannot be read is appended to @p failed (or raised), and
     blocks no other."""
     out = []
-    for path in staging.files("branches", include=f"**/{STAGED}"):
-        prefix = f"branches/{path.rsplit('/', 1)[0]}"
+    for path in staging.files(layout.BRANCHES, include=f"**/{STAGED}"):
+        prefix = f"{layout.BRANCHES}/{path.rsplit('/', 1)[0]}"
         try:
             out.append((prefix,
                         read_staged(staging.read(f"{prefix}/{STAGED}"))))
         except ReleaseError as e:
             if failed is None:
                 raise
-            failed.append(f"{prefix}: {e}")
+            failed.note(prefix, e)
     return out
-
-
-def newest_per_ref(found: list[tuple[str, dict]]) -> list[tuple[str, dict]]:
-    best: dict[str, tuple[str, dict]] = {}
-    for prefix, staged in found:
-        current = best.get(staged["ref"])
-        if current is None or parse_version(staged["version"]) > \
-                parse_version(current[1]["version"]):
-            best[staged["ref"]] = (prefix, staged)
-    return [best[ref] for ref in sorted(best)]
 
 
 def by_ref_newest_first(found: list[tuple[str, dict]]
@@ -92,7 +86,7 @@ def by_ref_newest_first(found: list[tuple[str, dict]]
 def final_prefix(staged: dict) -> str:
     """Where a candidate is published: named after its version, never after
     the file-safe spelling CI claims for it."""
-    return f"nightly/{parse_version(staged['version']).filesafe}"
+    return layout.nightly_dir(staged["version"])
 
 
 def _finish_marker(product: Product, builds: Store, dest: str, staged: dict,
@@ -101,10 +95,10 @@ def _finish_marker(product: Product, builds: Store, dest: str, staged: dict,
     commit marker left only the marker to write: for the commit the
     published descriptor names, once it is admitted, never for what a
     staged.json claims."""
-    marker = f"commits/{staged['commit']}"
+    marker = layout.commit_marker(staged["commit"])
     if builds.exists(marker):
         return
-    path = f"{dest}/{DESCRIPTOR}"
+    path = layout.descriptor_of(dest)
     with tempfile.TemporaryDirectory(prefix="gfr-marker-") as tmp:
         d = index_mod.admit_nightly(product, builds, path, builds.read(path),
                                     artifact_pub, Path(tmp))
@@ -120,9 +114,12 @@ def promote_one(product: Product, staging: Store, builds: Store,
     ref, commit = staged["ref"], staged["commit"]
     if staged["product"] != product.slug:
         raise ReleaseError(f"{prefix} is staged for {staged['product']}")
-    if not ref.startswith("refs/heads/"):
-        raise ReleaseError(f"{prefix}: {ref} is not a nightly ref")
-    branch = ref[len("refs/heads/"):]
+    # staged.json is anyone's to write: the artifact key signs builds of
+    # main and of release branches, whatever else is staged.
+    if not refs.publishes_builds(ref):
+        raise ReleaseError(f"{prefix}: {ref} is neither main nor a release "
+                           "branch")
+    branch = refs.branch_of(ref)
     # A final version is the stable release's, published only through the
     # offline stage: a branch build of the tagged commit is never one.
     if parse_version(staged["version"]).is_final:
@@ -142,8 +139,8 @@ def promote_one(product: Product, staging: Store, builds: Store,
         identity = product.identity(ref)
         try:
             verified = rc.verify(work, identity, commit, cosign)
-        except rc.CandidateError as e:
-            raise ReleaseError(f"{prefix}: {e}") from e
+        except (rc.CandidateError, rc.CandidateTimeout) as e:
+            raise candidate_error(prefix, e) from e
         files = [p.name for p in verified if p.name not in (SUMS, BUNDLE)]
         if sorted(files) != sorted(staged["files"]):
             raise ReleaseError(f"{prefix}: staged.json lists other files "
@@ -154,14 +151,18 @@ def promote_one(product: Product, staging: Store, builds: Store,
             raise ReleaseError(f"{prefix}: git says {commit[:12]} on {branch} "
                                f"is {derived}, the build claims "
                                f"{staged['version']}")
+        series = refs.branch_series(branch)
+        if series and parse_version(derived).series != series:
+            # The branch reached a later series' base tag: not its beta.
+            raise ReleaseError(f"{prefix}: {branch} builds {derived}, "
+                               f"outside its series {series}")
 
         artifacts = []
         for name in sorted(files):
             path = work / name
             digest = sha256_file(path)
-            sig = minisig.sign(artifact_key, path,
-                               f"product={product.slug} file={name} "
-                               f"version={derived}")
+            sig = minisig.sign(artifact_key, path, layout.file_comment(
+                product.slug, name, derived))
             minisig.verify([artifact_pub], path, sig)
             entry = product.classify(name, filesafe)
             entry.update({
@@ -170,9 +171,10 @@ def promote_one(product: Product, staging: Store, builds: Store,
                 "path": f"{dest}/{name}", "sig": f"{dest}/{sig.name}",
             })
             artifacts.append(entry)
-        sums_sig = minisig.sign(artifact_key, work / SUMS,
-                                f"product={product.slug} file={SUMS} "
-                                f"version={derived}")
+        sums_sig = minisig.sign(artifact_key, work / SUMS, layout.file_comment(
+            product.slug, SUMS, derived))
+        # The one signature every client's trust in this build rests on.
+        minisig.verify([artifact_pub], work / SUMS, sums_sig)
 
         build = Path(tmp) / "build"
         build.mkdir()
@@ -180,11 +182,12 @@ def promote_one(product: Product, staging: Store, builds: Store,
         shutil.copy2(work / BUNDLE, build / BUNDLE)
 
         descriptor = {
-            "schema": SCHEMA, "product": product.slug, "kind": "nightly",
+            "schema": SCHEMA, "product": product.slug,
+            "kind": layout.KIND_NIGHTLY,
             "version": derived, "series": parse_version(derived).series,
             "ref": ref, "commit": commit, "built_at": staged["built_at"],
             "promoted_at": iso(utcnow()),
-            "signing": {"scheme": "minisign",
+            "signing": {"scheme": layout.SCHEME_MINISIGN,
                         "key_id": minisig.key_id(artifact_pub)},
             "build": {"sums": f"{dest}/build/{SUMS}",
                       "bundle": f"{dest}/build/{BUNDLE}",
@@ -201,19 +204,17 @@ def promote_one(product: Product, staging: Store, builds: Store,
         builds.put_file(build / SUMS, descriptor["build"]["sums"])
         builds.put_file(build / BUNDLE, descriptor["build"]["bundle"])
         # Last: a descriptor only ever names objects that are already there.
-        builds.put_bytes(canonical_json(descriptor), f"{dest}/{DESCRIPTOR}")
-        builds.put_bytes(b"", f"commits/{commit}")
+        builds.put_bytes(canonical_json(descriptor),
+                         layout.descriptor_of(dest))
+        builds.put_bytes(b"", layout.commit_marker(commit))
     return descriptor
 
 
 def promote(product: Product, staging: Store, builds: Store, *,
             git_dir: Path, artifact_key: Path, artifact_pub: str,
-            cosign: str = "cosign", fetch: bool = False) -> list[dict]:
-    if fetch:
-        run(["git", "-C", git_dir, "fetch", "--quiet", "--prune", "--tags",
-             "origin"])
+            cosign: str = "cosign") -> list[dict]:
     done: list[dict] = []
-    failed: list[str] = []
+    failed = Problems()
     for tried in by_ref_newest_first(candidates(staging, failed)):
         for prefix, staged in tried:
             # The build of a commit a release tag names (main or release/X.Y
@@ -226,7 +227,7 @@ def promote(product: Product, staging: Store, builds: Store, *,
                 continue
             try:
                 dest = final_prefix(staged)
-                if builds.exists(f"{dest}/{DESCRIPTOR}"):
+                if builds.exists(layout.descriptor_of(dest)):
                     _finish_marker(product, builds, dest, staged,
                                    artifact_pub)
                     break
@@ -237,7 +238,7 @@ def promote(product: Product, staging: Store, builds: Store, *,
                 break
             except ReleaseError as e:
                 # The next older candidate of this ref gets its turn.
-                failed.append(f"{prefix}: {e}")
+                failed.note(prefix, e)
     if failed:
         raise PromoteIncomplete(failed, done)
     return done

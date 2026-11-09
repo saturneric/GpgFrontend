@@ -65,13 +65,21 @@ BUILD_INFO = "build-info.json"
 # shadowed by, the file that describes it.
 RESERVED = frozenset({MANIFEST, BUNDLE, BUILD_INFO})
 
-SAFE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+-]*$")
-MANIFEST_LINE = re.compile(r"^([0-9a-f]{64})  (\S+)$")
+# \Z, not $: "$" also matches before a trailing newline, which a file name
+# may end in.
+SAFE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+-]*\Z")
+MANIFEST_LINE = re.compile(r"^([0-9a-f]{64})  (\S+)\Z")
 
 DELIVERABLE_PREFIX = "gpgfrontend-"
 BUILD_INFO_PREFIX = "buildinfo-"
 
 ISSUER = "https://token.actions.githubusercontent.com"
+# cosign checks a bundle against a transparency log it may have to reach.
+COSIGN_TIMEOUT = 600
+
+
+class CandidateTimeout(Exception):
+    """cosign did not finish: nothing was decided about the candidate."""
 
 
 class CandidateError(Exception):
@@ -223,9 +231,12 @@ def cosign_verify(directory, identity, sha, cosign):
         str(directory / MANIFEST),
     ]
     try:
-        status = subprocess.run(cmd).returncode
+        status = subprocess.run(cmd, timeout=COSIGN_TIMEOUT).returncode
     except FileNotFoundError:
         raise CandidateError(f"{cosign} is not installed")
+    except subprocess.TimeoutExpired:
+        raise CandidateTimeout(f"{cosign} did not finish within "
+                               f"{COSIGN_TIMEOUT} s")
     if status != 0:
         raise CandidateError(f"{BUNDLE} does not verify {MANIFEST} "
                              f"as {identity} at {sha}")
