@@ -23,6 +23,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 import gitversion  # noqa: E402
 import policy as policy_mod  # noqa: E402
+import refs  # noqa: E402
 import release_candidate as rc  # noqa: E402
 import semver  # noqa: E402
 
@@ -32,23 +33,75 @@ SIG = ".sig"        # an OpenPGP detached signature, binary
 STAGED = "staged.json"
 SUMS = "SHA256SUMS.txt"
 BUNDLE = "SHA256SUMS.txt.sigstore.json"
-MINISIG = ".minisig"
+MINISIG = ".minisig"  # a minisign signature, beside what it signs
 INDEX = "v1/index.json"
+
+# The longest any one tool (rclone, git, gpg, minisign, cosign, cmake) may
+# run: a transfer that hangs ends as a failed step, and the next round tries
+# again, rather than holding the host's lock for ever.
+TOOL_TIMEOUT = 3600
+# The most a descriptor, an index, a manifest, a signature or release notes
+# may weigh. They are read into memory whole, and come from buckets and
+# mirrors others can write to.
+SMALL_OBJECT_LIMIT = 8 << 20
 
 # What a path inside a descriptor or the index may look like: relative to the
 # product root, no scheme, no "..", no empty or dot segments, nothing a URL
 # join or a filesystem could read as escaping it.
-_SEGMENT = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+-]*$")
+_SEGMENT = re.compile(r"[A-Za-z0-9][A-Za-z0-9._+-]*")
 
 
 class ReleaseError(Exception):
     pass
 
 
+class ToolFailed(ReleaseError):
+    """A tool could not do its job (git, cmake, rclone, gpg importing keys,
+    minisign signing): nothing was decided about what it worked on, and the
+    next run may well succeed. Unlike a verification that ran and said no,
+    which is a ReleaseError."""
+
+    passing = True  # is_passing
+
+
+class ToolTimeout(ToolFailed):
+    """A tool did not finish within its time limit."""
+
+
+class Problems(list):
+    """What a run could not do, one line each, and whether trying again may
+    help: a problem is passing when it came from a store that did not
+    answer or a tool that did not finish, lasting when the thing itself was
+    refused (a forged candidate, a bad signature), which the next run would
+    only refuse again."""
+
+    passing = False
+
+    def note(self, where: str, error: Exception) -> None:
+        self.append(f"{where}: {error}")
+        if is_passing(error):
+            self.passing = True
+
+
+def is_passing(error: Exception) -> bool:
+    """Not a judgement of what was asked about, only a failure to ask:
+    worth trying again as it is (ToolFailed, store.StoreUnavailable)."""
+    return getattr(error, "passing", False)
+
+
+def candidate_error(where: str, error: Exception) -> ReleaseError:
+    """release_candidate's verdict on a candidate, as a ReleaseError; a
+    cosign that did not finish is no verdict (ToolTimeout)."""
+    if isinstance(error, rc.CandidateTimeout):
+        return ToolTimeout(f"{where}: {error}")
+    return ReleaseError(f"{where}: {error}")
+
+
 def check_relpath(path: str) -> str:
-    parts = path.split("/")
-    if not path or path.startswith("/") or "%" in path or "\\" in path or \
-            any(not _SEGMENT.match(p) or p in (".", "..") for p in parts):
+    # fullmatch: "$" would also match before a trailing newline, and let
+    # "a/b\n/c" through.
+    if not isinstance(path, str) or \
+            any(not _SEGMENT.fullmatch(p) for p in path.split("/")):
         raise ReleaseError(f"not a product-relative path: {path!r}")
     return path
 
@@ -64,9 +117,18 @@ def sha256_bytes(data: bytes) -> str:
 def load_json(data: bytes | str, what: str) -> dict:
     """A JSON object read from a store or the state directory; anything else
     is a ReleaseError naming @p what, never a traceback."""
+    def unique(pairs):
+        # A key given twice reads differently in different parsers: the
+        # checks here would pass on one value and a client act on the other.
+        keys = [k for k, _ in pairs]
+        if len(keys) != len(set(keys)):
+            raise ValueError("a key is given twice")
+        return dict(pairs)
+    if len(data) > SMALL_OBJECT_LIMIT:
+        raise ReleaseError(f"{what}: larger than {SMALL_OBJECT_LIMIT} bytes")
     try:
-        value = json.loads(data)
-    except (ValueError, UnicodeDecodeError) as e:
+        value = json.loads(data, object_pairs_hook=unique)
+    except (ValueError, UnicodeDecodeError, RecursionError) as e:
         raise ReleaseError(f"{what}: not JSON ({e})") from e
     if not isinstance(value, dict):
         raise ReleaseError(f"{what}: not a JSON object")
@@ -138,7 +200,10 @@ def parse_iso(text: str) -> dt.datetime:
 
 
 def run(cmd, **kw) -> subprocess.CompletedProcess:
+    """A tool, run to its end: a failure, a missing tool or one that does
+    not finish (ToolTimeout) is a ReleaseError, never a traceback."""
     kw.setdefault("check", True)
+    kw.setdefault("timeout", TOOL_TIMEOUT)
     kw.setdefault("capture_output", True)
     kw.setdefault("text", True)
     if kw["text"]:
@@ -149,20 +214,32 @@ def run(cmd, **kw) -> subprocess.CompletedProcess:
     try:
         return subprocess.run([str(c) for c in cmd], **kw)
     except subprocess.CalledProcessError as e:
+        # check=True: the caller needed the tool to work, not to judge.
         detail = (e.stderr or e.stdout or "").strip()
-        raise ReleaseError(f"{Path(str(cmd[0])).name} failed: {detail}") from e
+        raise ToolFailed(f"{Path(str(cmd[0])).name} failed: {detail}") from e
+    except subprocess.TimeoutExpired as e:
+        raise ToolTimeout(f"{Path(str(cmd[0])).name} did not finish within "
+                          f"{kw['timeout']} s") from e
     except FileNotFoundError as e:
-        raise ReleaseError(f"{cmd[0]} is not installed") from e
+        raise ToolFailed(f"{cmd[0]} is not installed") from e
+    except OSError as e:
+        raise ToolFailed(f"{cmd[0]} cannot be run: {e}") from e
 
 
 class Product:
     """release/product.json, and the policy of the tree it sits in."""
 
     def __init__(self, product_path: Path, policy_path: Path):
-        self.data = policy_mod.load_product(product_path)
-        policy_mod.check_product(self.data)
-        self.policy = policy_mod.load_policy(policy_path)
-        policy_mod.check_policy(self.policy)
+        try:
+            self.data = policy_mod.load_product(product_path)
+            policy_mod.check_product(self.data)
+            self.policy = policy_mod.load_policy(policy_path)
+            policy_mod.check_policy(self.policy)
+        except policy_mod.PolicyError as e:
+            raise ReleaseError(f"{product_path}, {policy_path}:\n{e}") from e
+        except (OSError, ValueError) as e:
+            # Unreadable, or not JSON or TOML at all.
+            raise ReleaseError(f"{product_path}, {policy_path}: {e}") from e
         self.slug = self.data["slug"]
         self.repository = self.data["repository"]
         self.workflow = self.data["workflow"]
@@ -195,6 +272,32 @@ class Product:
                                           "authenticode_subjects_retired", []))
                                       if s]
 
+    @property
+    def signing_key(self) -> str:
+        """The key that signs anything new by default: the first pinned
+        maintainer's, or "" when none is pinned."""
+        return self.maintainers[0] if self.maintainers else ""
+
+    @property
+    def legacy_floor(self) -> semver.Version:
+        """The first release signed with a pinned key: nothing older is
+        imported or listed."""
+        return parse_version(self.policy["signing"]["legacy_unsigned_before"])
+
+    def check_host_keys(self, artifact_pub: str,
+                        index_pub: str | None = None) -> None:
+        """What this host signs with must be what clients pin, or everything
+        it publishes is refused by every client while its own read-back,
+        done with the same wrong key, passes."""
+        signing = self.data.get("signing", {})
+        if artifact_pub != signing.get("artifact_key"):
+            raise ReleaseError("--artifact-pub is not signing.artifact_key in "
+                               "release/product.json")
+        if index_pub is not None and \
+                index_pub not in signing.get("index_keys", []):
+            raise ReleaseError("--index-pub is not one of signing.index_keys "
+                               "in release/product.json")
+
     def artifact_keys(self, current: str) -> list[str]:
         """The artifact keys a published file may carry: @p current (the one
         the host signs with) and the retired ones."""
@@ -214,7 +317,7 @@ class Product:
             raise ReleaseError(f"{name}: not named {prefix}...")
         rest = name[len(prefix):]
         for entry in self.data["artifacts"]:
-            m = re.match(entry["match"], rest)
+            m = re.fullmatch(entry["match"], rest, re.ASCII)
             if not m:
                 continue
             groups = m.groupdict()
@@ -233,13 +336,21 @@ def default_product() -> Product:
 
 
 @contextlib.contextmanager
-def locked(state_dir: Path):
+def locked(state_dir: Path, shared: bool = False):
     """One run at a time per host: promote, index and resign all write the
-    same shared stores."""
+    same state directory, and the stores through it. A second run is
+    refused at once. With @p shared (a reader of the state directory: a dry
+    run copying it) it waits for the run in progress instead.
+
+    The lock is this host's only. The maintainer's `stable` and `import`
+    and CI's `stage` write the stores from other machines, each under paths
+    of its own (releases/<version>/, branches/, tags/)."""
+    state_dir = Path(state_dir)
     state_dir.mkdir(parents=True, exist_ok=True)
-    with open(state_dir / "lock", "w") as f:
+    with open(state_dir / "lock", "a") as f:
         try:
-            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            fcntl.flock(f, fcntl.LOCK_SH if shared
+                        else fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
             raise ReleaseError(f"another run holds {state_dir / 'lock'}")
         yield
@@ -251,23 +362,40 @@ def git_version(git_dir: Path, commit: str, ref: str) -> str:
     try:
         return gitversion.derive(git_dir, ref=ref, rev=commit)
     except subprocess.CalledProcessError as e:
-        raise ReleaseError(f"cmake failed: {(e.stderr or '').strip()}") from e
+        raise ToolFailed(f"cmake failed: {(e.stderr or '').strip()}") from e
+    except subprocess.TimeoutExpired as e:
+        raise ToolTimeout(f"cmake did not finish within {e.timeout} s") from e
     except FileNotFoundError as e:
-        raise ReleaseError("cmake is not installed") from e
+        raise ToolFailed("cmake is not installed") from e
+
+
+def resolve_commit(git_dir: Path, rev: str) -> str | None:
+    """The commit @p rev names in @p git_dir, or None when it names
+    nothing. A repository that cannot be asked is a ToolFailed, never
+    "nothing": a missing tag unlists a release, while a release that could
+    not be checked keeps its listing for the round (index.build)."""
+    out = run(["git", "-C", git_dir, "rev-parse", "-q", "--verify",
+               f"{rev}^{{commit}}"], check=False)
+    commit = out.stdout.strip()
+    if out.returncode == 0 and refs.is_commit(commit):
+        return commit
+    if out.returncode == 1 and not commit:
+        return None
+    raise ToolFailed(f"{git_dir}: cannot resolve {rev}: "
+                     f"{(out.stderr or out.stdout).strip()}")
 
 
 def tagged_commit(git_dir: Path, tag: str, expect: str | None = None,
                   version: str | None = None) -> str:
     """The commit @p tag names, checked: it is @p expect when given, and git
     calls it @p version when given."""
-    commit = run(["git", "-C", git_dir, "rev-parse", "-q", "--verify",
-                  f"refs/tags/{tag}^{{commit}}"], check=False).stdout.strip()
-    if not commit:
+    commit = resolve_commit(git_dir, refs.TAGS + tag)
+    if commit is None:
         raise ReleaseError(f"{git_dir} has no tag {tag}")
     if expect is not None and commit != expect:
         raise ReleaseError(f"{tag} is {commit}, not {expect}")
     if version is not None and \
-            git_version(git_dir, commit, f"refs/tags/{tag}") != version:
+            git_version(git_dir, commit, refs.TAGS + tag) != version:
         raise ReleaseError(f"git does not call {commit} {version}")
     return commit
 
@@ -278,8 +406,7 @@ def tag_time(git_dir: Path, tag: str) -> int:
     signature on a release's file is never older than the release's tag."""
     out = run(["git", "-C", git_dir, "for-each-ref",
                "--format=%(taggerdate:unix) %(committerdate:unix) "
-               "%(*committerdate:unix)", f"refs/tags/{tag}"],
-              check=False).stdout.split()
+               "%(*committerdate:unix)", refs.TAGS + tag]).stdout.split()
     if not out or not out[0].isdigit():
         raise ReleaseError(f"{git_dir} has no tag {tag} with a date")
     return int(out[0])
@@ -287,9 +414,19 @@ def tag_time(git_dir: Path, tag: str) -> int:
 
 def notes_at(git_dir: Path, ref: str, version: str) -> bytes | None:
     """release/notes/<version>.md as @p ref has it, or None when it has none
-    (or an empty one)."""
-    out = run(["git", "-C", git_dir, "show",
-               f"{ref}:release/notes/{version}.md"], check=False, text=False)
-    if out.returncode != 0 or not out.stdout.strip():
+    (or an empty one, or there is no such ref). A repository that cannot be
+    read is an error: "no notes" would list a release without them, or
+    refuse one that has them."""
+    commit = resolve_commit(git_dir, ref)
+    if commit is None:
         return None
-    return out.stdout
+    path = f"release/notes/{version}.md"
+    if not run(["git", "-C", git_dir, "ls-tree", "--name-only", commit, "--",
+                path]).stdout.strip():
+        return None
+    notes = run(["git", "-C", git_dir, "show", f"{commit}:{path}"],
+                text=False).stdout
+    if len(notes) > SMALL_OBJECT_LIMIT:
+        raise ReleaseError(f"{ref}:{path}: larger than {SMALL_OBJECT_LIMIT} "
+                           "bytes")
+    return notes if notes.strip() else None
