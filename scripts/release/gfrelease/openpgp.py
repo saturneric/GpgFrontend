@@ -62,6 +62,12 @@ def _signatures(status: str) -> list[dict]:
 class Keyring:
     """The maintainers' public keys, imported fresh into a throwaway home."""
 
+    @classmethod
+    def of(cls, product) -> "Keyring":
+        """A product's maintainers, current and retired: what they signed
+        is verified against these, wherever it is checked."""
+        return cls(product.keyring_path, product.trusted_maintainers)
+
     def __init__(self, keys: Path, pinned: list[str]):
         if not Path(keys).is_file():
             raise ReleaseError(f"{keys}: no maintainer keys to verify against")

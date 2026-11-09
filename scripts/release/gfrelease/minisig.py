@@ -13,12 +13,15 @@ from __future__ import annotations
 import base64
 from pathlib import Path
 
-from common import ReleaseError, run
+from common import MINISIG, ReleaseError, run
 
 
 def key_id(public_key: str) -> str:
     """The 8-byte key id, as minisign prints it."""
-    raw = base64.b64decode(public_key)
+    try:
+        raw = base64.b64decode(public_key, validate=True)
+    except (TypeError, ValueError) as e:
+        raise ReleaseError("not a minisign Ed25519 public key") from e
     if len(raw) != 42 or raw[:2] != b"Ed":
         raise ReleaseError("not a minisign Ed25519 public key")
     return raw[2:10][::-1].hex().upper()
@@ -37,7 +40,7 @@ def public_key_of(path: Path) -> str:
 def sign(secret_key: Path, file: Path, trusted_comment: str) -> Path:
     if "\n" in trusted_comment:
         raise ReleaseError("a trusted comment is one line")
-    sig = file.with_name(file.name + ".minisig")
+    sig = file.with_name(file.name + MINISIG)
     run(["minisign", "-S", "-s", secret_key, "-m", file, "-x", sig,
          "-t", trusted_comment], input="")
     return sig
