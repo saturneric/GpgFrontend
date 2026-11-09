@@ -59,12 +59,6 @@ def _verified(file: Path, cafile: str | None) -> str:
     return text
 
 
-def signer_subject(file: Path, cafile: str | None = None) -> str:
-    """The subject of the certificate that signed @p file, once osslsigncode
-    has verified the signature (and, with @p cafile, the chain to it)."""
-    return _subject_in(_verified(file, cafile), file)
-
-
 def _subject_in(text: str, file: Path) -> str:
     # The first subject after "Signer's certificate:" is the signer's; the
     # chain osslsigncode prints later repeats it among others.
