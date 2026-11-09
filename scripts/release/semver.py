@@ -14,19 +14,22 @@ import functools
 import re
 from dataclasses import dataclass
 
+# ASCII digits only, and \Z rather than $: "$" also matches before a trailing
+# newline, and "\d" also matches digits of other scripts.
+_NUM = r"(?:0|[1-9][0-9]*)"
+_ID = rf"(?:{_NUM}|[0-9]*[A-Za-z-][0-9A-Za-z-]*)"
 _RE = re.compile(
-    r"^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
-    r"(?:-((?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)"
-    r"(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*))?"
-    r"(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$")
+    rf"v?({_NUM})\.({_NUM})\.({_NUM})"
+    rf"(?:-({_ID}(?:\.{_ID})*))?"
+    r"(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?\Z")
 
 # What a release tag may look like: a final vX.Y.Z, nothing else. Releases
 # are tagged; nightlies (main) and betas (release/X.Y) never are. A
-# prerelease tag (the historical
-# v2.2.0-beta.1, a vX.Y.0-alpha.0 base tag, the moving `nightly`) is not a
-# release, and nothing publishes one.
-RELEASE_TAG = re.compile(r"^v(\d+)\.(\d+)\.(\d+)$")
-BASE_TAG = re.compile(r"^v(\d+)\.(\d+)\.0-alpha\.0$")
+# prerelease tag (the historical v2.2.0-beta.1, a vX.Y.0-alpha.0 base tag,
+# the moving `nightly`) is not a release, and nothing publishes one.
+# scripts/ci/build_mode.sh spells the same shape in bash, and
+# scripts/tests/test_build_mode.py holds the two together.
+RELEASE_TAG = re.compile(rf"v({_NUM})\.({_NUM})\.({_NUM})\Z")
 
 
 @functools.total_ordering
@@ -40,7 +43,7 @@ class Version:
 
     @classmethod
     def parse(cls, text: str) -> "Version":
-        m = _RE.match(text.strip())
+        m = _RE.match(text.strip(" \t\r\n"))
         if not m:
             raise ValueError(f"not a SemVer version: {text!r}")
         pre = tuple(m.group(4).split(".")) if m.group(4) else ()
@@ -58,6 +61,12 @@ class Version:
     @property
     def is_final(self) -> bool:
         return not self.prerelease
+
+    @property
+    def is_release(self) -> bool:
+        """What a release is tagged and published as: final, and exactly a
+        tagged commit (no build metadata)."""
+        return not self.prerelease and not self.build
 
     @property
     def filesafe(self) -> str:
@@ -79,7 +88,7 @@ class Version:
         # ASCII order, and a shorter list below a longer one it prefixes.
         if not self.prerelease:
             return (self.core, 1, ())
-        ids = tuple((0, int(p), "") if p.isdigit() else (1, 0, p)
+        ids = tuple((0, int(p), "") if p.isdecimal() else (1, 0, p)
                     for p in self.prerelease)
         return (self.core, 0, ids)
 

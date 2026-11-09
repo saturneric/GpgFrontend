@@ -16,21 +16,23 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 SCRIPT = ROOT / "cmake" / "GitVersion.cmake"
+# A few git commands on a local clone: far longer than they take.
+TIMEOUT = 300
 
 
 def derive(repo: Path, ref: str = "", rev: str = "",
            field: str = "version") -> str:
     """@p field of the version git gives @p rev (the work tree's HEAD when
-    empty) on @p ref. Raises subprocess.CalledProcessError, or
-    FileNotFoundError without cmake."""
+    empty) on @p ref. Raises subprocess.CalledProcessError (cmake failed),
+    subprocess.TimeoutExpired, or FileNotFoundError without cmake."""
     cmd = ["cmake", f"-DGF_SOURCE_DIR={repo}", f"-DGF_FIELD={field}"]
     if rev:
         cmd.append(f"-DGPGFRONTEND_VERSION_REV={rev}")
     if ref:
         cmd.append(f"-DGPGFRONTEND_VERSION_REF={ref}")
     cmd += ["-P", str(SCRIPT)]
-    return subprocess.run(cmd, check=True, capture_output=True,
-                          text=True).stdout.strip()
+    return subprocess.run(cmd, check=True, capture_output=True, text=True,
+                          timeout=TIMEOUT).stdout.strip()
 
 
 def main(argv: list[str]) -> int:
@@ -45,6 +47,9 @@ def main(argv: list[str]) -> int:
         print(derive(args.repo, args.ref, args.rev, args.field))
     except subprocess.CalledProcessError as e:
         print(f"gitversion: {(e.stderr or '').strip()}", file=sys.stderr)
+        return 1
+    except (subprocess.TimeoutExpired, OSError) as e:
+        print(f"gitversion: {e}", file=sys.stderr)
         return 1
     return 0
 

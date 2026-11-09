@@ -31,7 +31,6 @@ from __future__ import annotations
 
 import argparse
 import os
-import re
 import subprocess
 import sys
 from pathlib import Path
@@ -42,23 +41,23 @@ sys.path.insert(0, str(HERE))
 
 import gitversion  # noqa: E402
 import policy as policy_mod  # noqa: E402
+import refs  # noqa: E402
 import semver  # noqa: E402
 
 
 def git(repo: Path, *args: str) -> str:
     return subprocess.run(["git", *args], cwd=repo, check=True,
-                          capture_output=True, text=True).stdout.strip()
-
-
-def derived_version(repo: Path, ref: str) -> str:
-    return gitversion.derive(repo, ref=ref)
+                          capture_output=True, text=True,
+                          timeout=gitversion.TIMEOUT).stdout.strip()
 
 
 def current_ref(repo: Path) -> str:
+    """The branch being built, a tag as its full ref, or "" for anything
+    else (a pull request's merge ref, a detached HEAD)."""
     ref = os.environ.get("GITHUB_REF", "")
-    if ref.startswith("refs/heads/"):
-        return ref[len("refs/heads/"):]
-    if ref.startswith("refs/tags/"):
+    if refs.branch_of(ref):
+        return refs.branch_of(ref)
+    if refs.tag_of(ref):
         return ref
     if ref:
         return ""
@@ -70,7 +69,7 @@ def current_ref(repo: Path) -> str:
 
 def release_tags(repo: Path) -> list[semver.Version]:
     return [semver.parse(t) for t in git(repo, "tag", "--list", "v*").split()
-            if semver.RELEASE_TAG.match(t)]
+            if refs.is_release_tag(t)]
 
 
 def check(version: str, ref: str, tags: list[semver.Version],
@@ -85,7 +84,7 @@ def check(version: str, ref: str, tags: list[semver.Version],
             return False
         return not (v > newest or (v == newest and not v.build))
 
-    if ref == "main":
+    if ref == refs.MAIN_BRANCH:
         newest = max(tags, default=None)
         if behind(newest):
             problems.append(
@@ -98,9 +97,8 @@ def check(version: str, ref: str, tags: list[semver.Version],
                 f"calls {mainline} mainline. Cut and policy move together.")
         return problems
 
-    m = re.match(r"^release/(\d+\.\d+)$", ref)
-    if m:
-        series = m.group(1)
+    series = refs.branch_series(ref)
+    if series:
         if v.series != series:
             problems.append(
                 f"{ref} builds {v}, outside its series {series}. The branch "
@@ -113,7 +111,7 @@ def check(version: str, ref: str, tags: list[semver.Version],
 
 
 def check_tag(tag: str, repo: Path) -> list[str]:
-    if not semver.RELEASE_TAG.match(tag):
+    if not refs.is_release_tag(tag):
         return []
     notes = repo / "release" / "notes" / f"{tag[1:]}.md"
     if not notes.is_file() or not notes.read_text(encoding="utf-8").strip():
@@ -132,18 +130,28 @@ def main(argv: list[str]) -> int:
     args = ap.parse_args(argv)
 
     ref = args.ref if args.ref is not None else current_ref(args.repo)
-    if ref.startswith("refs/tags/"):
-        problems = check_tag(ref[len("refs/tags/"):], args.repo)
+    if refs.tag_of(ref):
+        problems = check_tag(refs.tag_of(ref), args.repo)
         for p in problems:
             print(f"::error::{p}", file=sys.stderr)
         return 1 if problems else 0
-    if ref != "main" and not ref.startswith("release/"):
+    # Only the branches whose builds are published have an order to keep
+    # (release/2.2-fix is no release branch, and publishes nothing).
+    if ref != refs.MAIN_BRANCH and not refs.branch_series(ref):
         print(f"check_order: nothing to check for ref {ref or '(none)'}")
         return 0
 
-    version = args.version or derived_version(args.repo, ref)
-    mainline = policy_mod.mainline(policy_mod.load_policy(args.policy))
-    problems = check(version, ref, release_tags(args.repo), mainline)
+    try:
+        version = args.version or gitversion.derive(args.repo, ref=ref)
+        mainline = policy_mod.mainline(policy_mod.load_policy(args.policy))
+        problems = check(version, ref, release_tags(args.repo), mainline)
+    except subprocess.CalledProcessError as e:
+        print(f"::error::check_order: {' '.join(map(str, e.cmd[:2]))} "
+              f"failed: {(e.stderr or '').strip()}", file=sys.stderr)
+        return 1
+    except (subprocess.TimeoutExpired, OSError, ValueError) as e:
+        print(f"::error::check_order: {e}", file=sys.stderr)
+        return 1
     for p in problems:
         print(f"::error::{p}", file=sys.stderr)
     if not problems:
