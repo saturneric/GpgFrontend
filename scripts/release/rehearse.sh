@@ -2,7 +2,8 @@
 # Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
-# The nightly update chain, end to end, on this machine:
+# The update chain of main's nightly, end to end, on this machine (a beta
+# from release/X.Y goes the same way):
 #
 #   CI stage -> signing host promote -> index -> HTTPS mirror -> verify
 #

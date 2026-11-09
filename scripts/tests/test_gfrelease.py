@@ -12,6 +12,7 @@ Run: python3 -m unittest discover -s scripts/tests
 """
 
 import contextlib
+import fnmatch
 import io
 import json
 import os
@@ -29,7 +30,9 @@ sys.path.insert(0, str(GFR))
 sys.path.insert(0, str(ROOT / "scripts" / "tests"))
 
 import common  # noqa: E402
+import host as host_mod  # noqa: E402
 import index as index_mod  # noqa: E402
+import layout  # noqa: E402
 import minisig  # noqa: E402
 import openpgp  # noqa: E402
 import promote as promote_mod  # noqa: E402
@@ -75,11 +78,13 @@ def keypair(directory: Path, name: str) -> tuple[Path, str]:
     return sec, minisig.public_key_of(pub)
 
 
-def flaky_rclone(directory: Path, marker: str) -> str:
+def flaky_rclone(directory: Path, marker: str, verb: str = "") -> str:
     """An rclone that fails like an outage (not "not found") for any path
-    containing @p marker, and is rclone for everything else."""
-    script = directory / f"rclone-down-{abs(hash(marker))}"
-    script.write_text("#!/bin/sh\n"
+    containing @p marker (when running @p verb, if given), and is rclone for
+    everything else."""
+    script = directory / f"rclone-down-{abs(hash((marker, verb)))}"
+    only = f'[ "$1" = "{verb}" ] || exec rclone "$@"\n' if verb else ""
+    script.write_text("#!/bin/sh\n" + only +
                       "for a in \"$@\"; do case \"$a\" in "
                       f"*{marker}*) echo 'simulated outage' >&2; exit 1;; "
                       "esac; done\n"
@@ -342,6 +347,288 @@ class ChainTest(unittest.TestCase):
         minisig.sign(self.idx_key, path,
                      f"product={self.slug} serial={tampered['serial']}")
         self.assert_refused(self.check, "channels.beta")
+
+    def resign(self, index: dict) -> None:
+        """@p index published as it is, signed with the index key: what
+        whoever holds that key could publish."""
+        path = self.tmp / "update" / self.slug / common.INDEX
+        path.write_bytes(common.canonical_json(index))
+        minisig.sign(self.idx_key, path,
+                     layout.index_comment(self.slug, index["serial"]))
+
+    def test_each_series_offers_only_its_own_beta(self):
+        self.git("checkout", "-q", "-b", "release/2.2", "v2.2.4")
+        self.commit()
+        _, older = self.build(ref="refs/heads/release/2.2")
+        self.commit()
+        _, newer = self.build(ref="refs/heads/release/2.2")
+        self.assertEqual([d["version"] for d in self.promote_all()],
+                         [older, newer])
+        index = self.index()
+        self.assertEqual(index["series"]["2.2"]["beta"]["version"], newer)
+        # The mainline series has no release branch build: no beta.
+        self.assertIsNone(index["series"]["2.3"]["beta"])
+        # The top-level entry, for clients that predate the per-series
+        # one, is the newest of them.
+        self.assertEqual(index["beta"], index["series"]["2.2"]["beta"])
+        self.check()
+
+    def promote_all(self) -> list[dict]:
+        """Every staged branch candidate promoted, oldest first, as rounds
+        of a host that ran after each push would have."""
+        done = []
+        for tried in promote_mod.by_ref_newest_first(
+                promote_mod.candidates(self.staging)):
+            for prefix, staged in reversed(tried):
+                dest = promote_mod.final_prefix(staged)
+                if self.builds.exists(layout.descriptor_of(dest)):
+                    continue
+                done.append(promote_mod.promote_one(
+                    self.product, self.staging, self.builds, prefix, staged,
+                    git_dir=self.repo, artifact_key=self.art_key,
+                    artifact_pub=self.art_pub, cosign=str(self.cosign)))
+        return done
+
+    def test_a_beta_another_series_claims_is_caught(self):
+        self.git("checkout", "-q", "-b", "release/2.2", "v2.2.4")
+        self.commit()
+        _, version = self.build(ref="refs/heads/release/2.2")
+        self.promote()
+        index = self.index()
+        # Offered as another series' beta, by whoever holds the index key.
+        moved = json.loads(json.dumps(index))
+        moved["series"]["2.3"]["beta"] = moved["series"]["2.2"]["beta"]
+        moved["series"]["2.2"]["beta"] = None
+        self.resign(moved)
+        self.assert_refused(self.check, "series 2.3 offers")
+        # A beta of a series no longer offered one.
+        legacy = json.loads(json.dumps(index))
+        legacy["series"]["2.2"]["status"] = "legacy"
+        self.resign(legacy)
+        self.assert_refused(self.check, "offers no beta")
+        # The top-level beta, not the newest of the series' ones.
+        stray = json.loads(json.dumps(index))
+        stray["beta"] = stray["nightly"] = None
+        stray["channels"]["beta"] = stray["channels"]["nightly"] = None
+        self.resign(stray)
+        self.assert_refused(self.check, "not the newest|does not list")
+
+    def test_an_index_from_before_the_per_series_beta_still_verifies(self):
+        self.git("checkout", "-q", "-b", "release/2.2", "v2.2.4")
+        self.commit()
+        self.build(ref="refs/heads/release/2.2")
+        self.promote()
+        old = self.index()
+        for entry in old["series"].values():
+            del entry["beta"]
+        self.resign(old)
+        self.check()
+
+    def test_a_published_index_the_host_did_not_sign_is_not_believed(self):
+        self.commit()
+        self.build()
+        self.promote()
+        first = self.index()
+        # Someone with write access to the bucket, not the key, publishes a
+        # serial far ahead (clients would refuse the host's next index as a
+        # replay) and drops the nightly.
+        forged = dict(first, serial=10 ** 9, nightly=None)
+        forged["channels"] = dict(first["channels"], nightly=None)
+        path = self.tmp / "update" / self.slug / common.INDEX
+        path.write_bytes(common.canonical_json(forged))
+        _, other = keypair(self.tmp / "keys", "intruder")
+        minisig.sign(self.tmp / "keys" / "intruder.key", path,
+                     layout.index_comment(self.slug, forged["serial"]))
+        with contextlib.redirect_stderr(io.StringIO()) as err:
+            again = self.index()
+        self.assertIn("not one this host signed", err.getvalue())
+        self.assertEqual(again["serial"], first["serial"] + 1)
+        self.assertEqual(again["channels"]["nightly"],
+                         first["channels"]["nightly"])
+        self.check()
+
+    def test_a_lost_state_and_an_unverifiable_index_publish_nothing(self):
+        self.commit()
+        self.build()
+        self.promote()
+        self.index()
+        shutil.rmtree(self.state)
+        sig = self.tmp / "update" / self.slug / (common.INDEX + ".minisig")
+        sig.write_text("cut short\n")
+        # Any serial picked now could be below one clients have seen.
+        self.assert_refused(self.index, "next serial is not known")
+        self.state.mkdir(exist_ok=True)
+        (self.state / "serial").write_text("1\n")
+        self.assertEqual(self.index()["serial"], 2)
+        self.check()
+
+    def test_a_serial_whose_history_exists_is_never_signed_again(self):
+        self.commit()
+        self.build()
+        self.promote()
+        self.index()
+        # A run that died after writing the history of serial 2 and before
+        # the live index, on a host that then lost its state.
+        self.update.put_bytes(b"{}", layout.history_path(2))
+        shutil.rmtree(self.state)
+        self.assertEqual(self.index(force=True)["serial"], 3)
+        self.check()
+
+    def test_history_goes_up_before_the_index_goes_live(self):
+        self.commit()
+        self.build()
+        self.promote()
+        self.index()
+        down = Store(str(self.tmp / "update" / self.slug),
+                     rclone=flaky_rclone(self.tmp, "history", "copyto"))
+        self.commit()
+        self.build()
+        self.promote()
+        with self.assertRaises(StoreUnavailable):
+            index_mod.publish(self.product, self.builds, down,
+                              index_pub=[self.idx_pub],
+                              index_key=self.idx_key,
+                              artifact_pub=self.art_pub,
+                              artifact_key=self.art_key, state_dir=self.state)
+        # The live index is the first one still, whole and verified.
+        self.assertEqual(self.check(deep=False)["serial"], 1)
+
+    def host(self, **kw) -> host_mod.Host:
+        kw.setdefault("cosign", str(self.cosign))
+        return host_mod.Host(
+            self.product, self.builds, self.state, self.art_pub,
+            staging=self.staging, update=self.update, git_dir=self.repo,
+            artifact_key=self.art_key, index_key=self.idx_key,
+            index_pub=[self.idx_pub], **kw)
+
+    def round(self, host: host_mod.Host | None = None):
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            status = (host or self.host()).round(promote=True, index=True)
+        return status, out.getvalue(), err.getvalue()
+
+    def test_a_round_says_done_partial_or_failed(self):
+        self.commit()
+        prefix, version = self.build()
+        status, out, _ = self.round()
+        self.assertEqual(status, host_mod.DONE)
+        self.assertIn(f"{host_mod.PUBLISHED} 1, stable None, beta None, "
+                      f"nightly {version}", out)
+        status, out, _ = self.round()
+        self.assertEqual((status, out.strip()),
+                         (host_mod.DONE, host_mod.UNCHANGED))
+
+        # A forged candidate: refused for what it is, every round alike.
+        staged = json.loads(self.staging.read(f"{prefix}/{common.STAGED}"))
+        self.forge_staged("branches/main/9.9.9-alpha.1", staged,
+                          version="9.9.9-alpha.1", filesafe="9.9.9-alpha.1")
+        status, out, err = self.round()
+        self.assertEqual(status, host_mod.PARTIAL)
+        self.assertIn("not promoted", err)
+        self.assertIn(host_mod.UNCHANGED, out)
+
+        # A store that does not answer: worth another round as it is.
+        down = self.host()
+        down.staging = Store(self.staging.root,
+                             rclone=flaky_rclone(self.tmp, "staging"))
+        status, out, err = self.round(down)
+        self.assertEqual(status, host_mod.FAILED)
+        # The index is kept all the same.
+        self.assertIn(host_mod.UNCHANGED, out)
+
+    def test_a_tool_that_does_not_answer_is_retried_not_refused(self):
+        self.commit()
+        self.build()
+        hung = self.tmp / "hung-cosign"
+        hung.write_text("#!/bin/sh\nsleep 30\n")
+        hung.chmod(0o755)
+        saved = common.rc.COSIGN_TIMEOUT
+        common.rc.COSIGN_TIMEOUT = 1
+        try:
+            status, _, err = self.round(self.host(cosign=str(hung)))
+        finally:
+            common.rc.COSIGN_TIMEOUT = saved
+        # Nothing was decided about the candidate: the next round asks
+        # again, rather than counting it refused until something changes.
+        self.assertEqual(status, host_mod.FAILED, err)
+        self.assertIn("did not finish", err)
+        # A git that cannot be run is no verdict either.
+        self.assertTrue(common.is_passing(common.ToolFailed("git failed")))
+        self.assertFalse(common.is_passing(common.ReleaseError("forged")))
+
+    def test_a_build_that_could_not_be_checked_keeps_its_listing(self):
+        self.commit()
+        _, version = self.build()
+        self.promote()
+        self.index()
+        previous = index_mod.trusted_published(self.product, self.update,
+                                               [self.idx_pub])
+
+        def admit(*_args):
+            raise common.ToolFailed("minisign cannot be run")
+        saved = index_mod.admit_nightly
+        index_mod.admit_nightly = admit
+        try:
+            refused = common.Problems()
+            content = index_mod.build(self.product, self.builds, self.art_pub,
+                                      refused=refused, previous=previous)
+            # Not checked is not refused: still listed, the run still fails.
+            self.assertEqual(content["channels"]["nightly"], version)
+            self.assertTrue(refused and refused.passing)
+
+            def forged(*_args):
+                raise common.ReleaseError("not signed with the artifact key")
+            index_mod.admit_nightly = forged
+            refused = common.Problems()
+            content = index_mod.build(self.product, self.builds, self.art_pub,
+                                      refused=refused, previous=previous)
+            # Refused for what it is: off the channel.
+            self.assertIsNone(content["channels"]["nightly"])
+            self.assertFalse(refused.passing)
+        finally:
+            index_mod.admit_nightly = saved
+
+    def test_the_cli_exits_with_the_rounds_status(self):
+        self.commit()
+        prefix, _ = self.build()
+        staged = json.loads(self.staging.read(f"{prefix}/{common.STAGED}"))
+        self.forge_staged("branches/main/9.9.9-alpha.1", staged,
+                          version="9.9.9-alpha.1", filesafe="9.9.9-alpha.1")
+        product = self.tmp / "product"
+        product.mkdir()
+        data = json.loads((common.ROOT / "release" /
+                           "product.json").read_text())
+        data["signing"]["artifact_key"] = self.art_pub
+        data["signing"]["index_keys"] = [self.idx_pub]
+        (product / "product.json").write_text(json.dumps(data))
+        shutil.copy(common.ROOT / "release" / "policy.toml", product)
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            status = self.cli().main([
+                "--product", str(product / "product.json"), "run",
+                "--staging", self.staging.root, "--builds", self.builds.root,
+                "--update", self.update.root, "--git-dir", str(self.repo),
+                "--state-dir", str(self.state),
+                "--artifact-key", str(self.art_key),
+                "--artifact-pub", self.art_pub,
+                "--index-key", str(self.idx_key), "--index-pub", self.idx_pub,
+                "--cosign", str(self.cosign)])
+        self.assertEqual(status, host_mod.PARTIAL, err.getvalue())
+
+    def test_the_signing_host_lists_what_index_reads(self):
+        """The Release-Server container tells whether anything changed by
+        listing these paths, and runs gfrelease only when something did:
+        whatever index and promote read must be under one of them."""
+        listed = ("branches/**/staged.json", "/releases/**", "/notes/**",
+                  "/nightly/*/release.json")
+        self.assertEqual(layout.BRANCHES, "branches")
+        self.assertEqual(common.STAGED, "staged.json")
+        self.assertEqual(common.DESCRIPTOR, "release.json")
+        for path in (layout.release_dir("2.3.0") + "/x",
+                     layout.notes_path("2.3.0", "a" * 64),
+                     layout.descriptor_of(layout.nightly_dir("2.3.0-alpha.1"))):
+            self.assertTrue(any(fnmatch.fnmatch("/" + path, pattern.replace(
+                "**", "*")) for pattern in listed), path)
 
     # --- refusals ------------------------------------------------------
 
@@ -647,6 +934,7 @@ class ChainTest(unittest.TestCase):
         _, version = self.build()
         self.promote()
         report = index_mod.dry_run(self.product, self.builds, self.update,
+                                   index_pub=[self.idx_pub],
                                    artifact_pub=self.art_pub,
                                    state_dir=self.state)
         self.assertEqual(report["nightly"], version)
@@ -668,7 +956,8 @@ class ChainTest(unittest.TestCase):
 
     def test_paths_cannot_leave_the_product_root(self):
         for bad in ("../demo/v1/index.json", "/etc/passwd", "a/../b",
-                    "https://x/y", "a%2fb", "a//b", ""):
+                    "https://x/y", "a%2fb", "a//b", "", "a/b\n/c",
+                    "a/b\n", ".", "a/.hidden", None):
             with self.subTest(path=bad):
                 self.assert_refused(lambda: common.check_relpath(bad),
                                     "not a product-relative path")
@@ -1010,7 +1299,7 @@ class HelperTest(unittest.TestCase):
                 except common.ReleaseError:
                     continue
                 # What passes is what promote then relies on.
-                promote_mod.newest_per_ref([("p", staged_ok)])
+                promote_mod.by_ref_newest_first([("p", staged_ok)])
                 promote_mod.final_prefix(staged_ok)
                 self.assertTrue(staged_ok["ref"].startswith("refs/"))
 
@@ -1435,7 +1724,8 @@ class StableTest(unittest.TestCase):
 
     def index(self):
         return index_mod.publish(
-            self.product, self.builds, self.update, index_key=self.idx_key,
+            self.product, self.builds, self.update,
+            index_pub=[self.idx_pub], index_key=self.idx_key,
             artifact_pub=self.art_pub, artifact_key=self.art_key,
             state_dir=self.state, force=True,
             git_dir=self.repo, cosign=str(self.cosign),
@@ -1669,8 +1959,9 @@ class StableTest(unittest.TestCase):
             try:
                 index_mod.publish(
                     self.product, crashing, self.update,
-                    index_key=self.idx_key, artifact_pub=self.art_pub,
-                    artifact_key=self.art_key, state_dir=self.state,
+                    index_pub=[self.idx_pub], index_key=self.idx_key,
+                    artifact_pub=self.art_pub, artifact_key=self.art_key,
+                    state_dir=self.state,
                     force=True, git_dir=self.repo, cosign=str(self.cosign),
                     authenticode_ca=str(self.cert))
                 break  # the run got past its last put: every cut was tried
@@ -1779,7 +2070,8 @@ class StableTest(unittest.TestCase):
                       rclone=flaky_rclone(self.tmp, "releases/2.3.0"))
         with self.assertRaises(index_mod.IndexIncomplete) as caught:
             index_mod.publish(
-                self.product, flaky, self.update, index_key=self.idx_key,
+                self.product, flaky, self.update,
+                index_pub=[self.idx_pub], index_key=self.idx_key,
                 artifact_pub=self.art_pub, artifact_key=self.art_key,
                 state_dir=self.tmp / "fresh-state", force=True,
                 git_dir=self.repo, cosign=str(self.cosign),
@@ -1859,7 +2151,8 @@ class StableTest(unittest.TestCase):
         root = self.tmp / "builds" / self.product.slug
         (root / (d["sums"] + ".minisig")).write_text("someone else's\n")
         report = index_mod.dry_run(
-            self.product, self.builds, self.update, artifact_pub=self.art_pub,
+            self.product, self.builds, self.update,
+            index_pub=[self.idx_pub], artifact_pub=self.art_pub,
             state_dir=self.state, git_dir=self.repo, cosign=str(self.cosign),
             authenticode_ca=str(self.cert))
         self.assertNotIn("2.3.0", report["releases"])
@@ -2176,7 +2469,8 @@ class ImportTest(unittest.TestCase):
 
     def index(self):
         return index_mod.publish(
-            self.product, self.builds, self.update, index_key=self.idx_key,
+            self.product, self.builds, self.update,
+            index_pub=[self.idx_pub], index_key=self.idx_key,
             artifact_pub=self.art_pub, artifact_key=self.art_key,
             state_dir=self.state, force=True, git_dir=self.repo)
 

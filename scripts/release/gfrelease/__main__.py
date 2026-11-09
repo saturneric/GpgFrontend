@@ -16,6 +16,11 @@ release/product.json, the series and withdrawals from release/policy.toml.
 Every option can also be set as GFR_<OPTION> in the environment, which is how
 the signing host's container configures it (the Release-Server repository).
 Stores are rclone paths that already include the product root.
+
+Exit status: 0 when everything was done; 3 from the host commands when the
+round ran to its end but something was refused for what it is (named on
+stderr, and refused again until it changes); 1 for any other failure, which
+is worth running again.
 """
 
 from __future__ import annotations
@@ -30,15 +35,14 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import imported as imported_mod  # noqa: E402
-import index as index_mod  # noqa: E402
 import minisig  # noqa: E402
 import authenticode  # noqa: E402
-import promote as promote_mod  # noqa: E402
+import host as host_mod  # noqa: E402
 import stable as stable_mod  # noqa: E402
 import stage as stage_mod  # noqa: E402
 import verify as verify_mod  # noqa: E402
-from common import (Product, ReleaseError, default_product, locked,  # noqa: E402
-                    parse_iso, run, utcnow)
+from common import (Product, ReleaseError, default_product,  # noqa: E402
+                    parse_iso, utcnow)
 from store import Store  # noqa: E402
 
 
@@ -123,8 +127,8 @@ def main(argv=None) -> int:
         opt(p, "update", "the index store")
         opt(p, "mirror_update", "the mirror's index store", )
         opt(p, "git_dir", "this product's git mirror (may be bare)")
-        opt(p, "artifact_key", "minisign secret key for artifacts: nightlies, "
-            "and the countersignature on stable releases")
+        opt(p, "artifact_key", "minisign secret key for artifacts: nightlies "
+            "and betas, and the countersignature on stable releases")
         opt(p, "artifact_pub", "its public key (file or base64)")
         opt(p, "index_key", "minisign secret key for the index")
         opt(p, "index_pub", "its public key (file or base64)")
@@ -239,105 +243,61 @@ def main(argv=None) -> int:
                         f"{left}: the signing host has not re-signed it")
             return 0
 
-        need(args, "builds", "state_dir", "artifact_pub")
-        builds = Store(args.builds, rclone)
-        artifact_pub = pub(args.artifact_pub)
-        # What this host signs must be what clients pin, or everything it
-        # publishes is refused by every client while its own read-back,
-        # done with the same wrong key, passes.
-        if artifact_pub != signing["artifact_key"]:
-            raise ReleaseError("--artifact-pub is not signing.artifact_key in "
-                               "release/product.json")
-        if args.command in ("index", "run", "resign"):
-            need(args, "index_pub")
-            if pub(args.index_pub) not in signing["index_keys"]:
-                raise ReleaseError("--index-pub is not one of "
-                                   "signing.index_keys in release/product.json")
-        state = Path(args.state_dir)
-        if getattr(args, "dry_run", False):
-            need(args, "update")
-            if args.fetch:
-                need(args, "git_dir")
-                run(["git", "-C", args.git_dir, "fetch", "--quiet", "--prune",
-                     "--tags", "origin"])
-            report = index_mod.dry_run(
-                product, builds, Store(args.update, rclone),
-                artifact_pub=artifact_pub, state_dir=state,
-                git_dir=Path(args.git_dir) if args.git_dir else None,
-                cosign=args.cosign or "cosign",
-                authenticode_ca=args.authenticode_ca)
-            print(json.dumps(report, indent=2))
-            return 1 if report["refused"] else 0
-        failures: list[str] = []
-        with locked(state):
-            # Once, for every step: the version promote derives and the
-            # notes and tags index admits are both read from this mirror.
-            if args.fetch:
-                need(args, "git_dir")
-                run(["git", "-C", args.git_dir, "fetch", "--quiet", "--prune",
-                     "--tags", "origin"])
-            if args.command in ("promote", "run"):
-                need(args, "staging", "git_dir", "artifact_key")
-                try:
-                    done = promote_mod.promote(
-                        product, Store(args.staging, rclone), builds,
-                        git_dir=Path(args.git_dir),
-                        artifact_key=Path(args.artifact_key),
-                        artifact_pub=artifact_pub,
-                        cosign=args.cosign or "cosign")
-                except promote_mod.PromoteIncomplete as e:
-                    done = e.done
-                    failures.append(str(e))
-                except ReleaseError as e:
-                    # Whatever stopped promotion, the index is still built
-                    # (and kept from expiring) from what is already there.
-                    done = []
-                    failures.append(f"promote: {e}")
-                for d in done:
-                    print(f"promoted {d['version']} ({len(d['artifacts'])} files)")
-            if args.command in ("index", "run", "resign"):
-                need(args, "update", "index_key", "index_pub")
-                update = Store(args.update, rclone)
-                mirrors = [Store(args.mirror_update, rclone)] if args.mirror_update else []
-                try:
-                    index = index_mod.publish(
-                        product, builds, update, index_key=Path(args.index_key),
-                        artifact_pub=artifact_pub, state_dir=state,
-                        artifact_key=Path(args.artifact_key)
-                        if args.artifact_key else None,
-                        force=args.force or args.command == "resign",
-                        mirrors=mirrors,
-                        git_dir=Path(args.git_dir) if args.git_dir else None,
-                        cosign=args.cosign or "cosign",
-                        authenticode_ca=args.authenticode_ca,
-                        index_pub=signing["index_keys"])
-                except index_mod.IndexIncomplete as e:
-                    index = e.index
-                    failures.append(str(e))
-                if index is None:
-                    print("index unchanged")
-                else:
-                    # Read back what was published, as a client would see it.
-                    verify_mod.verify(product, update, builds,
-                                      index_keys=signing["index_keys"],
-                                      artifact_key=artifact_pub)
-                    print(f"published serial {index['serial']}, stable "
-                          f"{index['channels']['stable']}, nightly "
-                          f"{index['channels']['nightly']}, expires "
-                          f"{index['expires']}")
-        for failure in failures:
-            print(f"gfrelease: {failure}", file=sys.stderr)
-        return 1 if failures else 0
+        return host_round(args, product, rclone)
     except ReleaseError as e:
         print(f"gfrelease: {e}", file=sys.stderr)
-        return 1
+        return host_mod.FAILED
     except (KeyError, TypeError, ValueError, AttributeError, IndexError,
-            UnicodeError) as e:
-        # A safety net: input that slipped past the checks is reported, not
-        # dumped as a traceback.
+            UnicodeError, OSError) as e:
+        # A safety net: input that slipped past the checks, or a file that
+        # could not be read or written, is reported, not dumped as a
+        # traceback.
         print(f"gfrelease: malformed input ({type(e).__name__}: {e})",
               file=sys.stderr)
-        return 1
+        return host_mod.FAILED
+
+
+def host_round(args, product: Product, rclone: str) -> int:
+    """promote, index, run and resign: the signing host's commands."""
+    need(args, "builds", "state_dir", "artifact_pub")
+    command = args.command
+    promotes = command in ("promote", "run")
+    indexes = command in ("index", "run", "resign")
+    dry = getattr(args, "dry_run", False)
+    artifact_pub = pub(args.artifact_pub)
+    if indexes:
+        need(args, "update", *(() if dry else ("index_key",)), "index_pub")
+    if promotes:
+        need(args, "staging", "git_dir", "artifact_key")
+    if args.fetch:
+        need(args, "git_dir")
+    index_pub = pub(args.index_pub) if indexes else None
+    product.check_host_keys(artifact_pub, index_pub)
+
+    def store(root):
+        return Store(root, rclone) if root else None
+
+    def path(value):
+        return Path(value) if value else None
+
+    host = host_mod.Host(
+        product, Store(args.builds, rclone), Path(args.state_dir),
+        artifact_pub, staging=store(args.staging), update=store(args.update),
+        mirrors=[Store(args.mirror_update, rclone)]
+        if args.mirror_update else [],
+        git_dir=path(args.git_dir), artifact_key=path(args.artifact_key),
+        index_key=path(args.index_key),
+        # Every pinned index key, the next one too: what a client accepts.
+        index_pub=product.data["signing"]["index_keys"],
+        cosign=args.cosign or "cosign", authenticode_ca=args.authenticode_ca)
+    if dry:
+        if args.fetch:
+            host.fetch()
+        report = host.dry_run()
+        print(json.dumps(report, indent=2))
+        return host_mod.FAILED if report["refused"] else host_mod.DONE
+    return host.round(promote=promotes, index=indexes, fetch=args.fetch,
+                      force=args.force or command == "resign")
 
 
 if __name__ == "__main__":
