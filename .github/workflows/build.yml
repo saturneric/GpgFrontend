@@ -128,10 +128,11 @@ jobs:
       # base tag (vX.Y.0-alpha.0) or a stray prerelease tag publishes nothing.
       publish_kind: ${{ steps.mode.outputs.publish_kind }}
       publishes: ${{ steps.mode.outputs.publishes }}
-      # main's nightlies, and the finals whose build number is above main's:
-      # Play refuses any versionCode not above every one it holds
-      # (scripts/ci/build_mode.sh).
+      # main's nightlies (to the nightly app) and the finals (to the release
+      # app), as scripts/ci/build_mode.sh decides.
       play_upload: ${{ steps.mode.outputs.play_upload }}
+      # The Android application id: the release's, or the nightly's own.
+      android_package: ${{ steps.mode.outputs.android_package }}
     steps:
       # The whole history and every tag: the version is derived from them
       # (cmake/GitVersion.cmake), and a shallow clone has neither.
@@ -270,6 +271,9 @@ jobs:
     permissions:
       contents: read
     uses: ./.github/workflows/build-android.yml
+    with:
+      gpgfrontend_build_mode: ${{ needs.setup.outputs.gpgfrontend_build_mode }}
+      android_package: ${{ needs.setup.outputs.android_package }}
 
   # Signs the APK and the AAB with the release key. Every APK is signed by the
   # same key, so a newer build installs over an older one on a phone. The APK
@@ -680,22 +684,25 @@ jobs:
   # with the upload key, not the release key that signs the APKs: it is the
   # unsigned bundle from build-android, signed again for this one purpose.
   #
-  # Maintainer, once, before this can pass:
-  #   - create the app (com.bktus.gpgfrontend) in Play Console, enable Play
-  #     App Signing, and upload a first bundle there by hand: the API cannot
-  #     create an app;
-  #   - register the upload key's certificate as the app's upload key;
-  #   - grant a Google Cloud service account "Release to testing tracks" for
-  #     the app, and put its JSON key in the environment below.
-  # While the app has never been published, Play takes only draft releases:
-  # pass --status draft until then.
+  # Two apps, one per identity (android_package): main's nightlies go to
+  # com.bktus.gpgfrontend.nightly, the finals to com.bktus.gpgfrontend. A final
+  # Play already holds a greater versionCode for (a fix of an older series) is
+  # skipped with a notice, not failed (play_upload.py --only-if-newer).
+  #
+  # Maintainer, once per app, before this can pass:
+  #   - create the app in Play Console, enable Play App Signing, and upload a
+  #     first bundle there by hand: the API cannot create an app;
+  #   - register the upload key's certificate as the app's upload key (one
+  #     upload key serves both apps);
+  #   - grant the Google Cloud service account in the environment below
+  #     "Release to testing tracks" for the app.
+  # While an app has never been published, Play takes only draft releases:
+  # pass --status draft for it until then.
   play-upload:
     needs: [setup, sign-android]
-    # main's nightlies and the stable releases above main's build number;
-    # never a release/X.Y build, which Play would take as newer than the next
-    # main build, nor a fix of an older series, whose versionCode Play
-    # refuses. build_mode.sh decides all of it (play_upload is only ever true
-    # for nightly-main and final).
+    # main's nightlies and the finals; never a release/X.Y build, which the
+    # nightly app would take as newer than main's next build. build_mode.sh
+    # decides it (play_upload is only ever true for nightly-main and final).
     if: needs.setup.outputs.play_upload == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -779,16 +786,21 @@ jobs:
           PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           ARTIFACT_VERSION: ${{ needs.setup.outputs.artifact_version }}
           BUILD_NUMBER: ${{ needs.setup.outputs.build_number }}
+          ANDROID_PACKAGE: ${{ needs.setup.outputs.android_package }}
+          PUBLISH_KIND: ${{ needs.setup.outputs.publish_kind }}
         run: |
           set -euo pipefail
-          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+          newer=()
+          if [[ "$PUBLISH_KIND" == "final" ]]; then
             name="$GITHUB_REF_NAME"
+            # A fix of an older series: the release app may hold a newer one.
+            newer=(--only-if-newer)
           else
             name="nightly-${ARTIFACT_VERSION}"
           fi
           python3 -I scripts/android/play_upload.py \
-            --package com.bktus.gpgfrontend \
+            --package "$ANDROID_PACKAGE" \
             --bundle "$RUNNER_TEMP/play/GpgFrontend-${ARTIFACT_VERSION}-android-arm64-v8a.aab" \
             --track internal \
             --release-name "$name" \
-            --version-code "$BUILD_NUMBER"
+            --version-code "$BUILD_NUMBER" "${newer[@]}"

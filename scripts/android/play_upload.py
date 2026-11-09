@@ -12,7 +12,9 @@ With --version-code, the code the build was given (cmake/GitVersion.cmake)
 must be greater than every code Play already holds, uploaded or on any
 track, and the uploaded bundle must report exactly it. A device only updates
 to a greater versionCode, and Play refuses a code twice: failing here, before
-the upload, beats a release no phone will install.
+the upload, beats a release no phone will install. With --only-if-newer, a
+code that is not greater is no failure: nothing is uploaded, and it says so
+(a fix of an older series, while the app already holds a newer release).
 
 On any failure the edit is deleted, so a half-made edit never lingers in
 Play Console. The service account authenticates with a JWT it signs itself
@@ -26,7 +28,7 @@ is fixed here, never read from that file.
 
 usage: play_upload.py --package NAME --bundle FILE [--track internal]
                       [--status completed] [--release-name NAME]
-                      [--version-code N] [--dry-run]
+                      [--version-code N [--only-if-newer]] [--dry-run]
 
 --dry-run signs the assertion (so a broken key fails here too) and prints
 the requests it would make, sending none.
@@ -56,6 +58,10 @@ JWT_BEARER = "urn:ietf:params:oauth:grant-type:jwt-bearer"
 BUNDLE_TYPE = "application/octet-stream"
 # A bundle of some 50 MB over a runner's link, with room to spare.
 TIMEOUT = 900
+
+
+class NotNewer(Exception):
+    """Play already holds a versionCode as great: nothing was uploaded."""
 
 
 class PlayError(Exception):
@@ -264,14 +270,17 @@ class Edit:
 
 
 def publish(package, bundle, track, status, name, token, transport=http,
-            expect_code=None):
+            expect_code=None, only_if_newer=False):
+    """Returns the versionCode published. With @p only_if_newer, a code not
+    greater than Play's highest raises NotNewer (nothing sent but the edit,
+    which is deleted) instead of PlayError."""
     edit = Edit(package, token, transport)
     try:
         edit.insert()
         if expect_code is not None:
             highest = edit.highest_version_code()
             if expect_code <= highest:
-                raise PlayError(
+                raise (NotNewer if only_if_newer else PlayError)(
                     f"versionCode {expect_code} is not greater than {highest}, "
                     "the highest Play already holds; no device would update")
         code = edit.upload_bundle(bundle)
@@ -320,8 +329,13 @@ def main(argv=None):
                         choices=["completed", "draft"])
     parser.add_argument("--release-name", default="")
     parser.add_argument("--version-code", type=int, default=None)
+    parser.add_argument("--only-if-newer", action="store_true",
+                        help="with --version-code: skip, not fail, when Play "
+                        "already holds a code as great")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(argv)
+    if args.only_if_newer and args.version_code is None:
+        parser.error("--only-if-newer needs --version-code")
 
     transport = dry_run_transport if args.dry_run else http
     if args.dry_run and args.version_code is not None:
@@ -334,7 +348,11 @@ def main(argv=None):
         token = fetch_token(assertion, transport)
         code = publish(args.package, args.bundle, args.track, args.status,
                        args.release_name, token, transport,
-                       expect_code=args.version_code)
+                       expect_code=args.version_code,
+                       only_if_newer=args.only_if_newer)
+    except NotNewer as e:
+        print(f"::notice::{args.package}: not uploaded: {e}")
+        return 0
     except PlayError as e:
         print(f"error: {e}", file=sys.stderr)
         return 1

@@ -246,7 +246,19 @@ if(ANDROID)
   set(_gf_android_version_code "${GF_VERSION_BUILD_NUMBER}")
   message(STATUS "GpgFrontend Android Version Code ${_gf_android_version_code}")
 
-  # The application id GpgFrontend uses everywhere else (appstream, Flathub).
+  # The release is the application id GpgFrontend uses everywhere else
+  # (appstream, Flathub). A nightly is an application of its own, as the
+  # desktop's "Testing" profile is: installed beside the release, with its own
+  # data, its own name on the launcher, and its own app on Play. Only the id
+  # changes: the Java classes stay in com.bktus.gpgfrontend, and everything
+  # that names the application at run time asks getPackageName().
+  # scripts/ci/build_mode.sh names the same two ids (android_package).
+  if(GPGFRONTEND_BUILD_STABLE_INT)
+    set(_gf_android_package_name "com.bktus.gpgfrontend")
+  else()
+    set(_gf_android_package_name "com.bktus.gpgfrontend.nightly")
+  endif()
+  message(STATUS "GpgFrontend Android Package ${_gf_android_package_name}")
   # Android 9 is the oldest Qt 6 supports.
   set(_gf_android_min_sdk 28)
   # What the package says of itself, for the About page's build information:
@@ -257,8 +269,8 @@ if(ANDROID)
       GF_ANDROID_TARGET_SDK=${_gf_android_target_sdk}
       GF_ANDROID_VERSION_CODE=${_gf_android_version_code})
   set_target_properties(gf_mob PROPERTIES
-    QT_ANDROID_PACKAGE_NAME "com.bktus.gpgfrontend"
-    QT_ANDROID_APP_NAME "GpgFrontend"
+    QT_ANDROID_PACKAGE_NAME "${_gf_android_package_name}"
+    QT_ANDROID_APP_NAME "${GPGFRONTEND_APP_DISPLAY_NAME}"
     QT_ANDROID_MIN_SDK_VERSION ${_gf_android_min_sdk}
     QT_ANDROID_TARGET_SDK_VERSION ${_gf_android_target_sdk}
     QT_ANDROID_VERSION_NAME "${GF_VERSION}"

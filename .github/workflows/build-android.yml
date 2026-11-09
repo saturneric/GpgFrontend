@@ -26,6 +26,17 @@ name: Build Android
 
 on:
   workflow_call:
+    inputs:
+      # GPGFRONTEND_BUILD_MODE: release or nightly. A nightly is its own
+      # application (src/mob/CMakeLists.txt): another id, its own data.
+      gpgfrontend_build_mode:
+        type: string
+        required: true
+      # The application id that mode gives (scripts/ci/build_mode.sh): the
+      # APK is checked to carry it.
+      android_package:
+        type: string
+        required: true
 
 permissions:
   contents: read
@@ -97,6 +108,7 @@ jobs:
       - name: Build The APK And AAB
         env:
           QT_ARCH: ${{ matrix.qt_arch }}
+          GPGFRONTEND_BUILD_MODE: ${{ inputs.gpgfrontend_build_mode }}
         run: |
           set -euo pipefail
           export JAVA_HOME="$JAVA_HOME_17_X64" PATH="$JAVA_HOME_17_X64/bin:$PATH"
@@ -105,6 +117,7 @@ jobs:
           "$qt/$QT_ARCH/bin/qt-cmake" -S . -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DGPGFRONTEND_BUILD_FLAVOR=android \
+            -DGPGFRONTEND_BUILD_MODE="$GPGFRONTEND_BUILD_MODE" \
             -DANDROID_SDK_ROOT="$ANDROID_HOME" -DANDROID_NDK_ROOT="$ndk" \
             -DQT_HOST_PATH="$qt/gcc_64"
           cmake --build build --parallel
@@ -122,11 +135,16 @@ jobs:
       # scripts are: the package, its API level, and every native library 16
       # KB aligned (apksigner signs without moving entries).
       - name: Check The APK
+        env:
+          ANDROID_PACKAGE: ${{ inputs.android_package }}
         run: |
           set -euo pipefail
           bt="$ANDROID_HOME/build-tools/36.0.0"
           apk="build/artifacts/GpgFrontend-${{ matrix.abi }}-unsigned.apk"
           "$bt/aapt2" dump badging "$apk" | grep -E "^package|targetSdkVersion"
+          # The id CI uploads to Play under is the one the build gave it.
+          "$bt/aapt2" dump packagename "$apk" | grep -qx "$ANDROID_PACKAGE" || {
+            echo "::error::the APK is not $ANDROID_PACKAGE" >&2; exit 1; }
           READELF="$ANDROID_HOME/ndk/$GF_ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf" \
             ZIPALIGN="$bt/zipalign" \
             scripts/android/check-elf-alignment.sh "$apk"

@@ -201,6 +201,23 @@ class PublishTest(unittest.TestCase):
             self.assertFalse(any("uploadType" in u for _, u, _, _ in play.calls))
             self.assertEqual(play.calls[-1][0], "DELETE")
 
+    def test_a_code_not_above_plays_can_be_skipped(self):
+        # A fix of an older series, while the release app holds a newer
+        # release: skipped, nothing uploaded, the edit dropped.
+        play = FakePlay(code=1_202_059_000, tracks=[1_203_009_000])
+        with self.assertRaisesRegex(pu.NotNewer, "not greater"):
+            pu.publish(PACKAGE, self.bundle, "internal", "completed", "n",
+                       "tok", play, expect_code=1_202_059_000,
+                       only_if_newer=True)
+        self.assertFalse(any("uploadType" in u for _, u, _, _ in play.calls))
+        self.assertEqual(play.calls[-1][0], "DELETE")
+        # Newer: uploaded as ever.
+        play = FakePlay(code=1_203_019_000, tracks=[1_203_009_000])
+        self.assertEqual(pu.publish(PACKAGE, self.bundle, "internal",
+                                    "completed", "n", "tok", play,
+                                    expect_code=1_203_019_000,
+                                    only_if_newer=True), 1_203_019_000)
+
     def test_the_bundle_must_carry_the_builds_code(self):
         play = FakePlay(code=1_203_000_399)
         with self.assertRaisesRegex(pu.PlayError, "not the build's"):
@@ -320,6 +337,35 @@ class WorkflowTest(unittest.TestCase):
     def test_the_version_code_is_asserted(self):
         self.assertIn('--version-code "$BUILD_NUMBER"', self.job)
 
+    def test_each_identity_goes_to_its_own_app(self):
+        # build_mode.sh names the app (android_package); only a final may
+        # find its app holding a newer release, and is skipped then.
+        self.assertIn('--package "$ANDROID_PACKAGE"', self.job)
+        self.assertIn("ANDROID_PACKAGE: ${{ needs.setup.outputs.android_package }}",
+                      self.job)
+        self.assertNotIn("--package com.bktus", self.job)
+        final = self.job.index('if [[ "$PUBLISH_KIND" == "final" ]]; then')
+        other = self.job.index("else", final)
+        self.assertIn("newer=(--only-if-newer)", self.job[final:other])
+        self.assertIn('"${newer[@]}"', self.job)
+
+    def test_android_builds_and_checks_the_identity_it_is_given(self):
+        build = jobs(WORKFLOW.read_text(encoding="utf-8"))["build-android"]
+        self.assertIn("gpgfrontend_build_mode: ${{ needs.setup.outputs."
+                      "gpgfrontend_build_mode }}", build)
+        self.assertIn("android_package: ${{ needs.setup.outputs."
+                      "android_package }}", build)
+        called = WORKFLOW.with_name("build-android.yml").read_text(
+            encoding="utf-8")
+        self.assertIn('-DGPGFRONTEND_BUILD_MODE="$GPGFRONTEND_BUILD_MODE"',
+                      called)
+        self.assertIn('aapt2" dump packagename "$apk" | grep -qx '
+                      '"$ANDROID_PACKAGE"', called)
+        # And CMake gives the ids build_mode.sh names.
+        cmake = (WORKFLOW.parent.parent.parent / "src" / "mob" /
+                 "CMakeLists.txt").read_text(encoding="utf-8")
+        for package in ("com.bktus.gpgfrontend", "com.bktus.gpgfrontend.nightly"):
+            self.assertIn(f'set(_gf_android_package_name "{package}")', cmake)
 
 
 if __name__ == "__main__":

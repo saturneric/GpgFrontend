@@ -101,39 +101,16 @@ fi
 publishes="false"
 [[ "$publish_kind" != "none" ]] && publishes="true"
 
-# Google Play takes only a versionCode above every one it has
-# (scripts/android/play_upload.py refuses anything else), and main's
-# nightlies go there too. So a release is uploaded only when its build number
-# is above main's current one: the .0 of the series main is building, never
-# a fix of an older series (v2.3.1 while main builds 2.4.0-alpha.N), which
-# would only fail there. The release's number follows from its tag (it is
-# HEAD's in CI); main's is asked of git, the way the build derives it
-# (GF_MAIN_BUILD_NUMBER: given instead, for the tests).
-release_number() {
-  [[ "$1" =~ $release_tag_re ]]
-  # 10#: decimal, whatever the digits (no leading zero passes the pattern).
-  echo $((1000000000 + 10#${BASH_REMATCH[1]} * 100000000 +
-    10#${BASH_REMATCH[2]} * 1000000 + 10#${BASH_REMATCH[3]} * 10000 + 9000))
-}
+# Google Play: main's nightlies go to the nightly app, finals to the release
+# app (android_package, below). Each app takes only a versionCode above every
+# one it holds; for a final, play-upload asks Play and skips one that is not
+# (scripts/android/play_upload.py --only-if-newer: a fix of an older series,
+# while the app already holds a newer release). A release/X.Y beta never
+# goes to Play: the nightly app would take it as newer than main's next build.
 play_upload="false"
-if [[ "$publish_kind" == "nightly-main" ]]; then
-  play_upload="true"
-elif [[ "$publish_kind" == "final" ]]; then
-  main_number="${GF_MAIN_BUILD_NUMBER:-}"
-  if [[ -z "$main_number" ]]; then
-    main_rev="$(git rev-parse -q --verify refs/remotes/origin/main || true)"
-    if [[ -n "$main_rev" ]]; then
-      main_number="$(cmake -DGF_FIELD=build_number \
-        -DGPGFRONTEND_VERSION_REV="$main_rev" -DGPGFRONTEND_VERSION_REF=main \
-        -P cmake/GitVersion.cmake)"
-    fi
-  fi
-  if [[ -z "$main_number" ]]; then
-    echo "::warning::origin/main is not in this checkout; not uploading to Play" >&2
-  elif (($(release_number "$GITHUB_REF") > main_number)); then
-    play_upload="true"
-  fi
-fi
+case "$publish_kind" in
+  nightly-main | final) play_upload="true" ;;
+esac
 
 # Stable release builds drop the "Testing" suffix from the app name; nightly
 # and PR builds are both "nightly" to CMake. The bundle identifier is fixed
@@ -142,6 +119,14 @@ if [[ "$build_mode" == "release" ]]; then
   gpgfrontend_build_mode="release"
 else
   gpgfrontend_build_mode="nightly"
+fi
+
+# The Android application id follows the build mode, as src/mob/CMakeLists.txt
+# derives it: a nightly is an application of its own, beside the release.
+if [[ "$gpgfrontend_build_mode" == "release" ]]; then
+  android_package="com.bktus.gpgfrontend"
+else
+  android_package="com.bktus.gpgfrontend.nightly"
 fi
 
 # The screenshot mode only ever rides on a nightly-style build, and its
@@ -188,6 +173,7 @@ echo "screenshot_cmake_flag=$screenshot_cmake_flag"
 echo "publish_kind=$publish_kind"
 echo "publishes=$publishes"
 echo "play_upload=$play_upload"
+echo "android_package=$android_package"
 
 {
   echo "Version: $version"
