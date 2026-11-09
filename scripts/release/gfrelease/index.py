@@ -2,16 +2,21 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """The signed update index: v1/index.json, the one thing clients trust.
 
-Built from the release policy and the promoted descriptors (a stable or
-imported release only once its maintainer signatures verified and the server
-countersigned it, countersign.py), signed with the product's index key (trusted comment "product=<slug> serial=<n>"), and
-published to the update store, then the mirrors. A run whose index would say
-nothing new, and is not near expiry, publishes nothing; `resign` publishes
-regardless, to push `expires` out.
+Built from the release policy and the descriptors in the builds store: main's
+newest promoted build is the nightly channel, a release branch's is the beta
+of its series, and a stable or imported release is listed only once its
+maintainer signatures verified and the server countersigned it
+(countersign.py). Signed with the product's index key (trusted comment
+"product=<slug> serial=<n>") and published to the update store, then the
+mirrors. A run whose index would say nothing new, and is not near expiry,
+publishes nothing; `resign` publishes regardless, to push `expires` out.
 
 The serial only grows: it is one more than both the host's own record and the
 published index, so a client that has seen serial n never accepts an older
 index again (its anti-rollback check), even after the host lost its state.
+Of the published index only one that verifies with a pinned index key is
+believed, for its serial as for anything else: the update store is a bucket,
+and what sits in it is not the host's word until the signature says so.
 """
 
 from __future__ import annotations
@@ -19,7 +24,6 @@ from __future__ import annotations
 import datetime as dt
 import json
 import os
-import re
 import shutil
 import sys
 import tempfile
@@ -27,14 +31,17 @@ from pathlib import Path
 
 import authenticode
 import countersign
-import imported
+import descriptor
 import minisig
 import openpgp
-from common import (BUNDLE, DESCRIPTOR, INDEX, SCHEMA, SIG, SUMS, Product,
-                    ReleaseError, atomic_write, canonical_json, check_relpath,
-                    iso, load_json, notes_at, parse_iso, parse_manifest,
-                    parse_version, run, sha256_bytes, sha256_file,
-                    tag_time, tagged_commit, utcnow)
+import layout
+from common import (BUNDLE, DESCRIPTOR, INDEX, MINISIG, SCHEMA, SIG, SUMS,
+                    Problems, Product, ReleaseError, atomic_write,
+                    candidate_error, is_passing, canonical_json,
+                    check_relpath, iso, load_json, locked, notes_at,
+                    parse_iso, parse_manifest, parse_version, refs,
+                    resolve_commit, sha256_bytes, sha256_file, tag_time,
+                    tagged_commit, utcnow)
 from store import Store, StoreUnavailable
 
 import policy as policy_mod  # noqa: E402  (scripts/release/, via common)
@@ -47,7 +54,9 @@ RESIGN_BEFORE = dt.timedelta(days=7)
 # valid index that sends it to a descriptor that is gone.
 NIGHTLY_MARGIN = dt.timedelta(days=policy_mod.NIGHTLY_MARGIN_DAYS)
 VOLATILE = ("serial", "generated_at", "expires")
-RELEASE_BRANCH = re.compile(r"refs/heads/release/[0-9]+\.[0-9]+")
+# How many used serials a host that lost its state steps over before it
+# concludes the history is not its own.
+SERIAL_SKIPS = 64
 
 
 def _check_contained(path: str, paths: list[str], prefix: str) -> None:
@@ -64,80 +73,19 @@ def _check_release_envelope(product: Product, d: dict, path: str,
     tag, and a pinned maintainer's OpenPGP key. Returns the version."""
     version = d.get("version", "")
     if d.get("schema") != SCHEMA or d.get("product") != product.slug or \
-            d.get("kind") != kind or \
-            path != f"releases/{version}/{DESCRIPTOR}":
+            d.get("kind") != kind or not isinstance(version, str) or \
+            path != layout.descriptor_of(layout.release_dir(version)):
         raise ReleaseError(f"{path}: not a {product.slug} {kind} release")
-    v = parse_version(version, path)
-    if v.prerelease or v.build:
+    if not parse_version(version, path).is_release:
         raise ReleaseError(f"{path}: {version} is not a final release")
-    if d.get("ref") != f"refs/tags/v{version}":
+    if d.get("ref") != refs.release_tag_ref(version):
         raise ReleaseError(f"{path}: not the release tagged v{version}")
     signing = d.get("signing", {})
-    if signing.get("scheme") != "openpgp" or \
+    if signing.get("scheme") != layout.SCHEME_OPENPGP or \
             signing.get("fingerprint", "").upper() not in \
             product.trusted_maintainers:
         raise ReleaseError(f"{path}: not signed with a pinned maintainer key")
     return version
-
-
-_STRINGS = ("product", "kind", "version", "ref", "commit", "sums", "sums_sig",
-            "promoted_at", "built_at")
-_ARTIFACT_STRINGS = ("name", "path", "sig", "sha256", "build_sha256",
-                     "transform", "os", "arch", "kind", "flavor")
-_COMMIT = re.compile(r"[0-9a-f]{40}")
-
-
-def _str_map(value) -> bool:
-    return isinstance(value, dict) and \
-        all(isinstance(v, str) for v in value.values())
-
-
-def _check_shape(d: dict, path: str) -> None:
-    """Every field admission reads has the type it reads it as. A
-    descriptor comes from an untrusted bucket: one of the wrong shape is
-    refused like any other bad one, never a traceback that stops the run."""
-    def wrong(what: str):
-        raise ReleaseError(f"{path}: {what} has the wrong type")
-    for k in _STRINGS:
-        if k in d and not isinstance(d[k], str):
-            wrong(k)
-    if "commit" in d and not _COMMIT.fullmatch(d["commit"]):
-        raise ReleaseError(f"{path}: not a commit: {d['commit']!r}")
-    for k in ("signing", "build"):
-        if k in d and not _str_map(d[k]):
-            wrong(k)
-    if "artifacts" not in d:
-        return
-    if not isinstance(d["artifacts"], list):
-        wrong("artifacts")
-    for a in d["artifacts"]:
-        if not isinstance(a, dict):
-            wrong("an artifact entry")
-        for k in _ARTIFACT_STRINGS:
-            if k in a and not isinstance(a[k], str):
-                wrong(f"an artifact's {k}")
-        if "min_os" in a and not _str_map(a["min_os"]):
-            wrong("an artifact's min_os")
-        if "size" in a and (not isinstance(a["size"], int) or
-                            isinstance(a["size"], bool)):
-            wrong("an artifact's size")
-
-
-def _require(d: dict, path: str, *fields: str) -> None:
-    missing = [f for f in fields if f not in d]
-    if missing:
-        raise ReleaseError(f"{path}: lacks {', '.join(missing)}")
-    for a in d.get("artifacts", []):
-        if not isinstance(a, dict) or any(
-                k not in a for k in ("name", "path", "sig", "sha256")):
-            raise ReleaseError(f"{path}: an artifact entry is incomplete")
-    # Every check below compares {name: sha256}: a name listed twice would
-    # collapse there, and its other entry (hash, path) reach the index
-    # unchecked.
-    for field in ("name", "path"):
-        values = [a[field] for a in d.get("artifacts", [])]
-        if len(values) != len(set(values)):
-            raise ReleaseError(f"{path}: an artifact {field} is listed twice")
 
 
 def _check_classified(product: Product, d: dict, path: str,
@@ -175,17 +123,20 @@ def _verified_notes(builds: Store, ring: openpgp.Keyring, notes_path: str,
 
 def admit_nightly(product: Product, builds: Store, path: str, raw: bytes,
                   artifact_pub: str, tmp: Path) -> dict:
-    """A nightly descriptor is listed only if it is this product's, says what
-    it is consistently, and its manifest carries the artifact key's signature
-    over exactly the hashes it states."""
+    """A promoted build (main's, a nightly; a release branch's, a beta) is
+    listed only if its descriptor is this product's, says what it is
+    consistently, and its manifest carries the artifact key's signature over
+    exactly the hashes it states."""
     d = load_json(raw, path)
-    _check_shape(d, path)
+    descriptor.check_shape(d, path)
     prefix = path.rsplit("/", 1)[0]
     if d.get("schema") != SCHEMA or d.get("product") != product.slug:
         raise ReleaseError(f"{path}: not a {product.slug} descriptor")
-    if d.get("kind") != "nightly" or not d.get("ref", "").startswith("refs/heads/"):
-        raise ReleaseError(f"{path}: not a nightly")
-    _require(d, path, "version", "sums", "sums_sig", "artifacts",
+    ref = d.get("ref", "")
+    if d.get("kind") != layout.KIND_NIGHTLY or not refs.publishes_builds(ref):
+        raise ReleaseError(f"{path}: not a build of main or of a release "
+                           "branch")
+    descriptor.require(d, path, "version", "sums", "sums_sig", "artifacts",
              "promoted_at")
     try:
         parse_iso(d["promoted_at"])
@@ -196,39 +147,46 @@ def admit_nightly(product: Product, builds: Store, path: str, raw: bytes,
     keys = {minisig.key_id(k): k for k in product.artifact_keys(artifact_pub)}
     signing = d.get("signing", {})
     key = keys.get(signing.get("key_id")) \
-        if signing.get("scheme") == "minisign" and len(signing) == 2 else None
+        if signing.get("scheme") == layout.SCHEME_MINISIGN and \
+        len(signing) == 2 else None
     if key is None:
         raise ReleaseError(f"{path}: not signed with the artifact key")
     v = parse_version(d['version'], path)
     if v.is_final:
         raise ReleaseError(f"{path}: {d['version']} is a final version, which "
                            "a nightly never is")
+    # A release branch builds its own series and no other: the beta of 2.2
+    # is never a build that calls itself 2.3.
+    series = refs.release_series(ref)
+    if series and v.series != series:
+        raise ReleaseError(f"{path}: {d['version']} is not a build of the "
+                           f"{series} series its branch names")
     filesafe = v.filesafe
-    if prefix != f"nightly/{filesafe}":
+    if prefix != layout.nightly_dir(d["version"]):
         raise ReleaseError(f"{path}: published under another version's name")
     _check_contained(path, [d["sums"], d["sums_sig"]] +
                      [a[k] for a in d["artifacts"] for k in ("path", "sig")],
                      prefix)
     # The signature verify.py and every client check is the one beside the
     # manifest; the host checks that same object.
-    if d["sums_sig"] != d["sums"] + ".minisig":
+    if d["sums_sig"] != d["sums"] + MINISIG:
         raise ReleaseError(f"{path}: the manifest's signature is not beside "
                            "it")
     _check_classified(product, d, path, filesafe)
 
-    sums, sig = tmp / SUMS, tmp / (SUMS + ".minisig")
+    sums, sig = tmp / SUMS, tmp / (SUMS + MINISIG)
     sums.write_bytes(builds.read(d["sums"]))
     sig.write_bytes(builds.read(d["sums_sig"]))
     comment = minisig.verify([key], sums, sig)
     # What the signature says it is: this product's manifest of this very
     # version, as promotion signs it. The same key countersigns releases'
     # manifests; one of those is never a nightly's.
-    want = f"product={product.slug} file={SUMS} version={d['version']}"
+    want = layout.file_comment(product.slug, SUMS, d["version"])
     if comment != want:
         raise ReleaseError(f"{path}: the manifest's trusted comment is "
                            f"{comment!r}, not {want!r}")
     listed = parse_manifest(sums.read_bytes(), d["sums"])
-    if listed != {a["name"]: a["sha256"] for a in d["artifacts"]}:
+    if listed != countersign.hashes_of(d):
         raise ReleaseError(f"{path}: artifacts differ from the signed manifest")
     if any(a.get("sha256") != a.get("build_sha256") or
            a.get("transform") != "none" for a in d["artifacts"]):
@@ -239,7 +197,7 @@ def admit_nightly(product: Product, builds: Store, path: str, raw: bytes,
 def release_notes(git_dir: Path, version: str) -> bytes | None:
     """A release's notes as reviewed: main's copy (where a typo is fixed after
     the release) or, without one, the tagged tree's."""
-    for ref in ("refs/heads/main", f"refs/tags/v{version}"):
+    for ref in (refs.MAIN, refs.release_tag_ref(version)):
         notes = notes_at(git_dir, ref, version)
         if notes is not None:
             return notes
@@ -248,7 +206,7 @@ def release_notes(git_dir: Path, version: str) -> bytes | None:
 
 def _notes_fields(version: str, notes: bytes) -> dict:
     digest = sha256_bytes(notes)
-    notes_path = f"notes/{version}/{digest}.md"
+    notes_path = layout.notes_path(version, digest)
     return {"notes": notes_path, "notes_sha256": digest,
             "notes_sig": notes_path + SIG}
 
@@ -263,17 +221,16 @@ def _trust(product: Product, git_dir: Path, tag: str, kind: str) -> str:
     made. When any of them changes, a release is checked again from
     nothing: a key taken out of the product unlists what only it signed, a
     moved or re-dated tag is caught."""
-    tagged = run(["git", "-C", git_dir, "rev-parse", "-q", "--verify",
-                  f"refs/tags/{tag}^{{commit}}"], check=False).stdout.strip()
+    tagged = resolve_commit(git_dir, refs.TAGS + tag) or ""
     try:
-        tagged_at = tag_time(git_dir, tag)
+        tagged_at = tag_time(git_dir, tag) if tagged else None
     except ReleaseError:
         tagged_at = None
     facts = {"kind": kind, "maintainers": sorted(product.trusted_maintainers),
              "keyring": sha256_file(product.keyring_path)
              if Path(product.keyring_path).is_file() else "",
              "tag": tagged, "tag_time": tagged_at}
-    if kind == "stable":
+    if kind == layout.KIND_STABLE:
         facts["authenticode"] = sorted(product.authenticode_subjects)
     return sha256_bytes(canonical_json(facts))
 
@@ -349,7 +306,9 @@ def _admit_release(product: Product, builds: Store, path: str, raw: bytes,
     last: a run stopped halfway countersigns again (what is there is kept),
     and never lists a release whose countersignatures are not all there.
     Every change of its signatures is appended to <version>.history.jsonl.
-    Without a @p countersigner (a dry run) nothing is signed or recorded."""
+    Without a @p countersigner (an index run with no artifact key) nothing
+    is signed or recorded; a dry run's countersigner signs nothing and
+    records into a copy of the state directory."""
     version = d["version"]
     tag = f"v{version}"
     record_path = state_dir / "admitted" / f"{version}.json"
@@ -374,12 +333,15 @@ def _admit_release(product: Product, builds: Store, path: str, raw: bytes,
     if record is None and stale is not None and stale.get("notes"):
         # Admitted under other trust: kept only once they verify again.
         try:
-            with openpgp.Keyring(product.keyring_path,
-                                 product.trusted_maintainers) as ring:
+            with openpgp.Keyring.of(product) as ring:
                 _verified_notes(builds, ring, stale["notes"]["notes"],
                                 stale["notes"]["notes_sha256"],
                                 tmp / version / "stale-notes")
             previous_notes = stale["notes"]
+        except StoreUnavailable:
+            # Not an answer about the notes: the release keeps its entry
+            # for this round (build), and is checked again on the next.
+            raise
         except ReleaseError:
             previous_notes = None
     notes = release_notes(git_dir, version)
@@ -387,8 +349,7 @@ def _admit_release(product: Product, builds: Store, path: str, raw: bytes,
     chosen = previous_notes
     if wanted is not None and wanted != previous_notes:
         try:
-            with openpgp.Keyring(product.keyring_path,
-                                 product.trusted_maintainers) as ring:
+            with openpgp.Keyring.of(product) as ring:
                 _verified_notes(builds, ring, wanted["notes"],
                                 wanted["notes_sha256"], tmp / version / "notes")
             chosen = wanted
@@ -456,17 +417,18 @@ def admit_stable(product: Product, builds: Store, path: str, raw: bytes, *,
     changes.
     """
     d = load_json(raw, path)
-    _check_shape(d, path)
-    version = _check_release_envelope(product, d, path, "stable")
-    _require(d, path, "commit", "sums", "sums_sig", "build", "artifacts")
-    _require(d["build"], path + " build", "sums", "bundle")
+    descriptor.check_shape(d, path)
+    version = _check_release_envelope(product, d, path, layout.KIND_STABLE)
+    descriptor.require(d, path, "commit", "sums", "sums_sig", "build", "artifacts")
+    descriptor.require(d["build"], path + " build", "sums", "bundle")
     _check_contained(path, [d["sums"], d["sums_sig"], d["build"]["sums"],
                             d["build"]["bundle"]] +
                      [a[k] for a in d["artifacts"] for k in ("path", "sig")],
-                     f"releases/{version}")
+                     layout.release_dir(version))
     _check_classified(product, d, path, version)
     return _admit_release(
-        product, builds, path, raw, d, kind="stable", git_dir=git_dir,
+        product, builds, path, raw, d, kind=layout.KIND_STABLE,
+        git_dir=git_dir,
         state_dir=state_dir, tmp=tmp, notes_required=True,
         countersigner=countersigner,
         check_release=lambda: _check_stable(
@@ -488,8 +450,7 @@ def _check_stable(product: Product, builds: Store, d: dict, path: str, *,
     signatures = {}
     work = tmp / version
     work.mkdir(parents=True, exist_ok=True)
-    with openpgp.Keyring(product.keyring_path,
-                         product.trusted_maintainers) as ring:
+    with openpgp.Keyring.of(product) as ring:
         # The tag: a maintainer's, and the commit that was built.
         ring.verify_tag(git_dir, tag)
         try:
@@ -504,7 +465,7 @@ def _check_stable(product: Product, builds: Store, d: dict, path: str, *,
             sums, builds.fetch_to(d["sums_sig"], work / (SUMS + SIG))),
             sha256_file(sums))
         if parse_manifest(sums.read_bytes(), d["sums"]) != \
-                {a["name"]: a["sha256"] for a in d["artifacts"]}:
+                countersign.hashes_of(d):
             raise ReleaseError(f"{path}: artifacts differ from the signed "
                                "manifest")
 
@@ -526,9 +487,9 @@ def _check_stable(product: Product, builds: Store, d: dict, path: str, *,
     builds.fetch_to(d["build"]["bundle"], build / BUNDLE)
     try:
         rc.cosign_verify(build, product.identity(d["ref"]), d["commit"], cosign)
-        built = rc.parse_manifest((build / SUMS).read_bytes())
-    except rc.CandidateError as e:
-        raise ReleaseError(f"{path}: {e}") from e
+    except (rc.CandidateError, rc.CandidateTimeout) as e:
+        raise candidate_error(path, e) from e
+    built = parse_manifest((build / SUMS).read_bytes(), d["build"]["sums"])
     for a in d["artifacts"]:
         if built.get(a["name"]) != a.get("build_sha256"):
             raise ReleaseError(f"{a['name']}: not what CI built")
@@ -563,24 +524,26 @@ def admit_imported(product: Product, builds: Store, path: str, raw: bytes, *,
     until a maintainer signs main's (gfrelease stable <v> --notes-only).
     """
     d = load_json(raw, path)
-    _check_shape(d, path)
-    version = _check_release_envelope(product, d, path, imported.KIND)
-    floor = parse_version(product.policy["signing"]["legacy_unsigned_before"])
+    descriptor.check_shape(d, path)
+    version = _check_release_envelope(product, d, path, layout.KIND_IMPORTED)
+    floor = product.legacy_floor
     if parse_version(version) < floor:
         raise ReleaseError(f"{path}: {version} is older than {floor}")
     if not d.get("artifacts"):
         raise ReleaseError(f"{path}: lists no files")
-    _require(d, path, "artifacts", "commit")
+    descriptor.require(d, path, "artifacts", "commit")
     # Its manifest is the one the server writes from the checked hashes
     # (countersign.manifest_path); one named here would be countersigned
     # wherever it pointed.
     if "sums" in d or "sums_sig" in d:
         raise ReleaseError(f"{path}: an imported release names no manifest")
     _check_contained(path, [a[k] for a in d["artifacts"]
-                            for k in ("path", "sig")], f"releases/{version}")
+                            for k in ("path", "sig")],
+                     layout.release_dir(version))
     _check_classified(product, d, path, version)
     return _admit_release(
-        product, builds, path, raw, d, kind=imported.KIND, git_dir=git_dir,
+        product, builds, path, raw, d, kind=layout.KIND_IMPORTED,
+        git_dir=git_dir,
         state_dir=state_dir, tmp=tmp, notes_required=False,
         countersigner=countersigner,
         check_release=lambda: _check_imported_files(
@@ -598,8 +561,7 @@ def _check_imported_files(product: Product, builds: Store, d: dict, path: str,
     work = tmp / version
     work.mkdir(parents=True, exist_ok=True)
     signatures = {}
-    with openpgp.Keyring(product.keyring_path,
-                         product.trusted_maintainers) as ring:
+    with openpgp.Keyring.of(product) as ring:
         for a in d["artifacts"]:
             local = builds.fetch_to(a["path"], work / a["name"])
             sig = builds.fetch_to(a["sig"], work / (a["name"] + SIG))
@@ -611,70 +573,97 @@ def _check_imported_files(product: Product, builds: Store, d: dict, path: str,
 
 
 class IndexIncomplete(ReleaseError):
-    """Some releases were refused. The index of everything else was still
-    built (and published, unless nothing changed): one bad release must not
-    take the nightly and every other release off the channel with it. The run
-    fails all the same, naming each refusal, so it is never silent."""
+    """Some releases were refused, or could not be checked, or a mirror
+    could not be written. The index of everything else was still built (and
+    published, unless nothing changed): one bad release must not take the
+    nightly and every other release off the channel with it. The run fails
+    all the same, naming each one, so it is never silent. @p refused says
+    whether running again may help (common.Problems)."""
 
-    def __init__(self, refused: list[str], index: dict | None):
-        super().__init__("refused, and left out of the index:\n  " +
-                         "\n  ".join(refused))
+    def __init__(self, refused: Problems, index: dict | None):
+        super().__init__("refused or not checked (the index lists "
+                         "everything else):\n  " + "\n  ".join(refused))
         self.refused = refused
+        self.passing = refused.passing
         self.index = index
+
+
+def _kept_builds(previous: dict | None, path: str) -> tuple[dict | None,
+                                                            list[dict]]:
+    """What the published index lists for the descriptor at @p path, which
+    could not be read this round: (as the nightly, as betas)."""
+    previous = previous or {}
+    nightly = previous.get("nightly")
+    nightly = nightly if descriptor.names_build(nightly) and \
+        nightly["descriptor"] == path else None
+    series = previous.get("series")
+    betas = [previous.get("beta")] + [
+        s.get("beta") for s in (series.values() if isinstance(series, dict)
+                                else []) if isinstance(s, dict)]
+    return nightly, [b for b in betas
+                     if descriptor.names_build(b) and b["descriptor"] == path][:1]
 
 
 def build(product: Product, builds: Store, artifact_pub: str, *,
           git_dir: Path | None = None, state_dir: Path | None = None,
           cosign: str = "cosign", authenticode_ca: str | None = None,
-          refused: list[str] | None = None,
+          refused: Problems | None = None,
           countersigner: "countersign.Countersigner | None" = None,
           previous: dict | None = None) -> dict:
     """The index's content, without serial and times. A release that fails
     admission is left out and appended to @p refused (when given; otherwise
-    its error is raised). One that could not be checked because the store
-    did not answer (StoreUnavailable) keeps its entry from @p previous, the
-    published index, and is named in @p refused all the same: an outage
+    its error is raised). One that could not be checked (a store that did
+    not answer, a tool that did not run: common.is_passing) keeps its entry
+    from @p previous, the published index (one whose signature verified,
+    trusted_published), and is named in @p refused all the same: an outage
     never takes a release off the channel, and never passes unnoticed."""
     def refuse(path: str, error: ReleaseError) -> None:
         if refused is None:
             raise error
-        refused.append(f"{path}: {error}")
+        refused.note(path, error)
 
     withdrawn = {parse_version(w["version"])
                  for w in product.policy.get("withdrawn", [])}
-    nightly = kept_nightly = None
+    nightly = None
     betas: list[dict] = []
     releases: dict[str, dict] = {}
     retention = product.data.get("nightly_retention_days")
     cutoff = utcnow() - dt.timedelta(days=retention) + NIGHTLY_MARGIN \
         if retention else None
+
+    def newer(a: dict, b: dict | None) -> bool:
+        return b is None or \
+            parse_version(a["version"]) > parse_version(b["version"])
+
     with tempfile.TemporaryDirectory(prefix="gfr-index-") as tmp:
-        for rel in builds.files("nightly", include=f"*/{DESCRIPTOR}"):
-            path = f"nightly/{rel}"
+        promoted = builds.files(layout.NIGHTLY, include=f"*/{DESCRIPTOR}")
+        for rel in promoted:
+            path = f"{layout.NIGHTLY}/{rel}"
             try:
                 raw = builds.read(path)
                 # Soon deleted by the bucket's lifecycle rule: never named,
                 # and not even checked (its files may be going already).
-                promoted = load_json(raw, path).get("promoted_at")
-                if cutoff is not None and isinstance(promoted, str):
+                promoted_at = load_json(raw, path).get("promoted_at")
+                if cutoff is not None and isinstance(promoted_at, str):
                     try:
-                        if parse_iso(promoted) < cutoff:
+                        if parse_iso(promoted_at) < cutoff:
                             continue
                     except ReleaseError:
                         pass  # admit_nightly refuses it
                 d = admit_nightly(product, builds, path, raw, artifact_pub,
                                   Path(tmp))
-            except StoreUnavailable as e:
-                refuse(path, e)
-                if (previous or {}).get("nightly") and \
-                        previous["nightly"].get("descriptor") == path:
-                    kept_nightly = previous["nightly"]
-                if (previous or {}).get("beta") and \
-                        previous["beta"].get("descriptor") == path:
-                    betas.append(previous["beta"])
-                continue
             except ReleaseError as e:
                 refuse(path, e)
+                if not is_passing(e):
+                    continue
+                kept, kept_betas = _kept_builds(previous, path)
+                # Kept as listed, but never past what the policy says now.
+                if kept is not None and \
+                        parse_version(kept["version"]) not in withdrawn and \
+                        newer(kept, nightly):
+                    nightly = kept
+                betas += [b for b in kept_betas
+                          if parse_version(b["version"]) not in withdrawn]
                 continue
             if parse_version(d["version"]) in withdrawn:
                 continue
@@ -682,27 +671,20 @@ def build(product: Product, builds: Store, artifact_pub: str, *,
                       "sha256": sha256_bytes(raw)}
             # main's builds are the nightly channel; a release/X.Y branch's
             # are the beta of that series (which one is chosen below, once
-            # the releases are known).
-            if RELEASE_BRANCH.fullmatch(d["ref"]):
+            # the releases are known). admit_nightly admits no other ref.
+            if d["ref"] != refs.MAIN:
                 betas.append(listed)
-                continue
-            if d["ref"] != "refs/heads/main":
-                continue
-            if nightly is None or parse_version(d["version"]) > \
-                    parse_version(nightly["version"]):
+            elif newer(listed, nightly):
                 nightly = listed
-        if kept_nightly is not None and (nightly is None or parse_version(
-                kept_nightly["version"]) > parse_version(nightly["version"])):
-            nightly = kept_nightly
 
-        for rel in builds.files("releases", include=f"*/{DESCRIPTOR}"):
-            path = f"releases/{rel}"
+        for rel in builds.files(layout.RELEASES, include=f"*/{DESCRIPTOR}"):
+            path = f"{layout.RELEASES}/{rel}"
             if git_dir is None or state_dir is None:
                 raise ReleaseError("stable releases need --git-dir and "
                                    "--state-dir to be admitted")
             try:
                 raw = builds.read(path)
-                if load_json(raw, path).get("kind") == imported.KIND:
+                if load_json(raw, path).get("kind") == layout.KIND_IMPORTED:
                     d, entry = admit_imported(product, builds, path, raw,
                                               git_dir=git_dir,
                                               state_dir=state_dir,
@@ -715,16 +697,16 @@ def build(product: Product, builds: Store, artifact_pub: str, *,
                                             cosign=cosign, tmp=Path(tmp),
                                             authenticode_ca=authenticode_ca,
                                             countersigner=countersigner)
-            except StoreUnavailable as e:
-                refuse(path, e)
-                version = rel.split("/", 1)[0]
-                listed = (previous or {}).get("releases", {})
-                if version in listed and \
-                        listed[version].get("descriptor") == path:
-                    releases[version] = listed[version]
-                continue
             except ReleaseError as e:
                 refuse(path, e)
+                if not is_passing(e):
+                    continue
+                version = rel.split("/", 1)[0]
+                listed = (previous or {}).get("releases")
+                listed = listed if isinstance(listed, dict) else {}
+                if isinstance(listed.get(version), dict) and \
+                        listed[version].get("descriptor") == path:
+                    releases[version] = listed[version]
                 continue
             releases[d["version"]] = entry
 
@@ -733,6 +715,7 @@ def build(product: Product, builds: Store, artifact_pub: str, *,
         series[key] = {k: entry.get(k) for k in ("status", "eol", "successor")}
         series[key]["platforms"] = entry.get("platforms", {})
         series[key]["latest"] = None
+        series[key]["beta"] = None
         if series[key]["eol"] is not None:
             series[key]["eol"] = str(series[key]["eol"])
 
@@ -746,26 +729,33 @@ def build(product: Product, builds: Store, artifact_pub: str, *,
         key = parse_version(version).series
         if key in series:
             series[key]["latest"] = version
-    if cutoff is not None and nightly is None and \
-            builds.files("nightly", include=f"*/{DESCRIPTOR}"):
+    if cutoff is not None and nightly is None and promoted:
         print(f"no main nightly promoted since {iso(cutoff)}: the nightly "
               "channel names none until main is built again", file=sys.stderr)
     current = [s["latest"] for s in series.values()
-               if s["status"] in ("stable", "mainline") and s["latest"]]
+               if s["status"] in policy_mod.CURRENT_STATUSES and s["latest"]]
     stable = max(current, key=parse_version) if current else None
 
-    # The beta channel: the newest release-branch build of a series users
-    # are meant to be on, and newer than that series' own latest release.
-    # Signed as a nightly is (minisign, the artifact key); a user opts in.
-    def offered(b: dict) -> bool:
+    # The beta of a series: its release branch's newest build, when users
+    # are meant to be on that series and the build is newer than its latest
+    # release. Signed as a nightly is (minisign, the artifact key); a user
+    # opts in, and is only ever offered the beta of the series they run.
+    for b in betas:
         v = parse_version(b["version"])
         entry = series.get(v.series)
-        return entry is not None and \
-            entry["status"] in ("stable", "mainline") and \
-            (entry["latest"] is None or v > parse_version(entry["latest"]))
-    candidates = [b for b in betas if offered(b)]
-    beta = max(candidates, key=lambda b: parse_version(b["version"])) \
-        if candidates else None
+        if entry is None or \
+                entry["status"] not in policy_mod.CURRENT_STATUSES or \
+                (entry["latest"] is not None and
+                 v <= parse_version(entry["latest"])):
+            continue
+        if newer(b, entry["beta"]):
+            entry["beta"] = b
+    # The newest of them all, where clients older than the per-series entry
+    # look for it.
+    beta = None
+    for entry in series.values():
+        if entry["beta"] is not None and newer(entry["beta"], beta):
+            beta = entry["beta"]
 
     return {
         "schema": SCHEMA, "product": product.slug,
@@ -782,9 +772,53 @@ def build(product: Product, builds: Store, artifact_pub: str, *,
 
 
 def published(update: Store) -> dict | None:
+    """The index in the update store as it stands, unverified: for showing,
+    never for deciding (trusted_published)."""
     if not update.exists(INDEX):
         return None
     return load_json(update.read(INDEX), INDEX)
+
+
+def _published_pair(product: Product, update: Store, keys: list[str]
+                    ) -> tuple[dict, bytes, bytes] | None:
+    """The published index, its bytes and its signature's, when a pinned
+    index key signed exactly them for this product and the serial it
+    states; None when there is none, or it is not one to believe (said on
+    stderr). A store that does not answer is StoreUnavailable, as ever:
+    that is not knowing, which is not the same."""
+    if not update.exists(INDEX):
+        return None
+    try:
+        data, sig = update.read(INDEX), update.read(INDEX + MINISIG)
+        with tempfile.TemporaryDirectory(prefix="gfr-published-") as tmp:
+            local = Path(tmp) / "index.json"
+            local.write_bytes(data)
+            (Path(tmp) / "index.json.minisig").write_bytes(sig)
+            comment = minisig.verify(keys, local,
+                                     Path(tmp) / "index.json.minisig")
+        index = load_json(data, INDEX)
+        serial = index.get("serial")
+        if not isinstance(serial, int) or isinstance(serial, bool) or \
+                serial < 1:
+            raise ReleaseError(f"{INDEX}: no serial")
+        if comment != layout.index_comment(product.slug, serial):
+            raise ReleaseError(f"{INDEX}: signed as {comment!r}")
+        parse_iso(index.get("expires"))
+    except StoreUnavailable:
+        raise
+    except ReleaseError as e:
+        print(f"the published index is not one this host signed, and is "
+              f"replaced: {e}", file=sys.stderr)
+        return None
+    return index, data, sig
+
+
+def trusted_published(product: Product, update: Store,
+                      index_pub: list[str]) -> dict | None:
+    """The published index when it verifies with one of @p index_pub, the
+    pinned index keys; None otherwise."""
+    pair = _published_pair(product, update, index_pub)
+    return pair[0] if pair else None
 
 
 def read_serial(state_dir: Path) -> int:
@@ -799,18 +833,21 @@ def read_serial(state_dir: Path) -> int:
 
 def dry_run(product: Product, builds: Store, update: Store, *,
             artifact_pub: str, state_dir: Path, git_dir: Path | None = None,
-            cosign: str = "cosign", authenticode_ca: str | None = None
-            ) -> dict:
+            index_pub: list[str], cosign: str = "cosign",
+            authenticode_ca: str | None = None) -> dict:
     """Everything an index run decides, and nothing it writes: admission
     runs against a copy of the state directory, nothing is signed, uploaded
     or countersigned. Returns what would be listed, what was refused, and
     how it differs from the published index."""
-    refused: list[str] = []
-    listed = published(update)
+    refused = Problems()
+    listed = trusted_published(product, update, index_pub)
     with tempfile.TemporaryDirectory(prefix="gfr-dry-") as tmp:
         state = Path(tmp) / "state"
         if Path(state_dir).is_dir():
-            shutil.copytree(state_dir, state)
+            # Copied while no run is writing it: a record half replaced
+            # would read as a release never admitted.
+            with locked(state_dir, shared=True):
+                shutil.copytree(state_dir, state)
         # Admission runs as for real, countersigning included, against the
         # copy: what would clash is refused here too, nothing is written.
         content = build(product, builds, artifact_pub, git_dir=git_dir,
@@ -826,7 +863,10 @@ def dry_run(product: Product, builds: Store, update: Store, *,
         "releases": sorted(content["releases"], key=parse_version),
         "nightly": (content["nightly"] or {}).get("version"),
         "beta": (content["beta"] or {}).get("version"),
-        "refused": refused,
+        "betas": {key: entry["beta"]["version"]
+                  for key, entry in content["series"].items()
+                  if entry["beta"]},
+        "refused": list(refused),
         "changes": sorted(k for k in set(before) | set(content)
                           if before.get(k) != content.get(k)),
         "added": sorted(set(content["releases"]) -
@@ -837,92 +877,96 @@ def dry_run(product: Product, builds: Store, update: Store, *,
 
 
 def publish(product: Product, builds: Store, update: Store, *,
-            index_key: Path, artifact_pub: str, state_dir: Path,
-            artifact_key: Path | None = None,
+            index_key: Path, index_pub: list[str], artifact_pub: str,
+            state_dir: Path, artifact_key: Path | None = None,
             force: bool = False, mirrors: list[Store] = (),
             git_dir: Path | None = None, cosign: str = "cosign",
-            authenticode_ca: str | None = None,
-            index_pub: list[str] | None = None) -> dict | None:
+            authenticode_ca: str | None = None) -> dict | None:
     """Builds, signs and publishes the index; None when it would say nothing
     new, is not near expiry and is whole where it is published. Raises
     IndexIncomplete, after publishing, when any release was refused or a
-    mirror could not be written. @p index_pub, the pinned index keys, lets
-    a published index whose signature does not verify be repaired."""
-    refused: list[str] = []
+    mirror could not be written. @p index_pub: the index keys clients pin.
+    Only a published index one of them signed is believed, and nothing is
+    published that none of them verifies."""
+    keys = list(index_pub)
+    refused = Problems()
+    before = _published_pair(product, update, keys)
     content = build(product, builds, artifact_pub, git_dir=git_dir,
                     state_dir=state_dir, cosign=cosign,
                     authenticode_ca=authenticode_ca, refused=refused,
                     countersigner=countersign.Countersigner(
                         product, artifact_key, artifact_pub)
                     if artifact_key else None,
-                    previous=published(update))
+                    previous=before[0] if before else None)
     if artifact_key is None and content["releases"]:
         # Nothing is listed that the server has not countersigned.
         raise ReleaseError("stable releases need --artifact-key to be "
                            "countersigned and listed")
     index = _sign_and_publish(product, content, update, index_key=index_key,
                               state_dir=state_dir, force=force,
-                              mirrors=mirrors, index_pub=index_pub,
+                              mirrors=list(mirrors), keys=keys,
                               problems=refused)
     if refused:
         raise IndexIncomplete(refused, index)
     return index
 
 
-def _intact(update: Store, index_pub: list[str] | None) -> bool:
-    """The published index is whole: its signature is there and, when the
-    index keys are known, verifies. Two uploads make it, and a run that died
-    between them left it broken until something new was said."""
-    if not update.exists(INDEX + ".minisig"):
-        return False
-    if not index_pub:
-        return True
-    with tempfile.TemporaryDirectory(prefix="gfr-intact-") as tmp:
-        local, sig = Path(tmp) / "index.json", Path(tmp) / "index.json.minisig"
-        local.write_bytes(update.read(INDEX))
-        sig.write_bytes(update.read(INDEX + ".minisig"))
-        try:
-            minisig.verify(index_pub, local, sig)
-        except ReleaseError:
-            return False
-    return True
-
-
-def _sync_mirrors(update: Store, mirrors: list[Store],
-                  problems: list[str]) -> None:
+def _sync_mirrors(data: bytes, sig: bytes, mirrors: list[Store],
+                  problems: Problems) -> None:
     """Each mirror holds the update store's index, byte for byte."""
-    if not mirrors:
-        return
-    data, sig = update.read(INDEX), update.read(INDEX + ".minisig")
     for mirror in mirrors:
         try:
             if mirror.exists(INDEX) and mirror.read(INDEX) == data and \
-                    mirror.exists(INDEX + ".minisig") and \
-                    mirror.read(INDEX + ".minisig") == sig:
+                    mirror.exists(INDEX + MINISIG) and \
+                    mirror.read(INDEX + MINISIG) == sig:
                 continue
+            # As _sign_and_publish: the signature first.
+            mirror.put_bytes(sig, INDEX + MINISIG, immutable=False)
             mirror.put_bytes(data, INDEX, immutable=False)
-            mirror.put_bytes(sig, INDEX + ".minisig", immutable=False)
         except ReleaseError as e:
-            problems.append(f"mirror {mirror}: {e}")
+            problems.note(f"mirror {mirror}", e)
 
 
 def _sign_and_publish(product: Product, content: dict, update: Store, *,
                       index_key: Path, state_dir: Path, force: bool,
-                      mirrors: list[Store], index_pub: list[str] | None = None,
-                      problems: list[str] | None = None) -> dict | None:
-    problems = problems if problems is not None else []
-    previous = published(update)
+                      mirrors: list[Store], keys: list[str],
+                      problems: Problems) -> dict | None:
+    # Read again, after admission (which can take long): what is there now.
+    # Whole and verified, or it does not count: an index whose signature is
+    # missing (a run that died between the two uploads) or does not verify
+    # is replaced, and nothing it says is believed.
+    before = _published_pair(product, update, keys)
+    previous = before[0] if before else None
     now = utcnow()
     if previous is not None and not force:
         same = {k: v for k, v in previous.items() if k not in VOLATILE} == content
-        if same and parse_iso(previous["expires"]) - now > RESIGN_BEFORE and \
-                _intact(update, index_pub):
-            _sync_mirrors(update, mirrors, problems)
+        if same and parse_iso(previous["expires"]) - now > RESIGN_BEFORE:
+            _sync_mirrors(before[1], before[2], mirrors, problems)
             return None
 
     state_dir.mkdir(parents=True, exist_ok=True)
-    serial = max(read_serial(state_dir),
-                 previous["serial"] if previous else 0) + 1
+    recorded = read_serial(state_dir)
+    if previous is None and recorded == 0 and update.exists(INDEX):
+        # Neither the host's record nor a published index it can believe:
+        # any serial it picked could be lower than one clients have seen,
+        # and every one of them would refuse the new index as a replay.
+        raise ReleaseError(
+            f"{update}/{INDEX} does not verify and {state_dir / 'serial'} is "
+            "gone: the next serial is not known. Write the last published "
+            "serial into that file (v1/history/ holds every one) and run "
+            "again")
+    serial = max(recorded, previous["serial"] if previous else 0) + 1
+    # A serial whose history is already there was used by a run this host no
+    # longer remembers (its state was lost after a publish that never went
+    # live): never signed twice, so the next free one it is.
+    for _ in range(SERIAL_SKIPS):
+        if not update.exists(layout.history_path(serial)):
+            break
+        serial += 1
+    else:
+        raise ReleaseError(f"{update}: v1/history/ holds every serial up to "
+                           f"{serial - 1}, far beyond the published one; "
+                           "something else writes there")
     index = dict(content, serial=serial, generated_at=iso(now),
                  expires=iso(now + LIFETIME))
 
@@ -930,24 +974,35 @@ def _sign_and_publish(product: Product, content: dict, update: Store, *,
         local = Path(tmp) / "index.json"
         local.write_bytes(canonical_json(index))
         sig = minisig.sign(index_key, local,
-                           f"product={product.slug} serial={serial}")
+                           layout.index_comment(product.slug, serial))
+        # What clients will check, checked before it leaves: an index key
+        # that is not one of the pinned ones publishes nothing.
+        minisig.verify(keys, local, sig)
         # Recorded before the upload: a crash after it can only skip a
         # serial, never reuse one.
         atomic_write(state_dir / "serial", f"{serial}\n")
-        for store in [update, *mirrors]:
-            try:
-                store.put_file(local, INDEX, immutable=False)
-                store.put_file(sig, INDEX + ".minisig", immutable=False)
-                # Every index ever published, kept: what was listed, and
-                # when a release's signatures changed, can always be shown.
-                store.put_file(local, history_path(serial))
-                store.put_file(sig, history_path(serial) + ".minisig")
-            except ReleaseError as e:
-                if store is update:
-                    raise
-                problems.append(f"mirror {store}: {e}")
+        history = layout.history_path(serial)
+
+        def keep(store: Store) -> None:
+            # Every index ever published, kept: what was listed, and when a
+            # release's signatures changed, can always be shown.
+            store.put_file(local, history)
+            store.put_file(sig, history + MINISIG)
+
+        def go_live(store: Store) -> None:
+            store.put_file(sig, INDEX + MINISIG, immutable=False)
+            store.put_file(local, INDEX, immutable=False)
+
+        # History first: no index is ever live without it, and one that
+        # then fails to go live is only a serial skipped.
+        keep(update)
+        go_live(update)
+        for mirror in mirrors:
+            # A mirror serves clients: the index goes live there whatever
+            # becomes of its copy of the history.
+            for step in (go_live, keep):
+                try:
+                    step(mirror)
+                except ReleaseError as e:
+                    problems.note(f"mirror {mirror}", e)
     return index
-
-
-def history_path(serial: int) -> str:
-    return f"v1/history/{serial}.json"
