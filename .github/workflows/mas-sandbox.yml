@@ -91,6 +91,7 @@ jobs:
       contents: read
     outputs:
       artifact_version: ${{ steps.mode.outputs.artifact_version }}
+      ref_kind: ${{ steps.mode.outputs.ref_kind }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
@@ -109,7 +110,7 @@ jobs:
         run: scripts/ci/build_mode.sh >> "$GITHUB_OUTPUT"
 
       - name: ccache
-        uses: hendrikmuhs/ccache-action@5ebbd400eff9e74630f759d94ddd7b6c26299639 # v1.2.20
+        uses: hendrikmuhs/ccache-action@f09c25b45002a07be2955cbe52e8cee55643f89d # v1.2.24
         with:
           key: mas-${{ github.job }}-${{ matrix.os }}-${{ env.BUILD_TYPE }}
 
@@ -162,14 +163,13 @@ jobs:
     # Two independent gates on which refs may ever request the signing
     # material: this condition, and the deployment branch rule on the
     # environment.
-    # Only main and final release tags (vX.Y.Z): a base tag vX.Y.0-alpha.0
-    # or any prerelease tag never asks for the signing material, as in
-    # build.yml's publish gating.
+    # Only main and final release tags (vX.Y.Z), as scripts/ci/build_mode.sh
+    # classifies refs for build.yml: a base tag vX.Y.0-alpha.0, a prerelease
+    # tag or any other tag never asks for the signing material. Pushed or
+    # run by hand alike (there is no pull_request trigger).
     if: >-
-      github.event_name != 'pull_request' &&
-      (github.ref == 'refs/heads/main' ||
-       (startsWith(github.ref, 'refs/tags/v') &&
-        !contains(github.ref, '-') && !contains(github.ref, '+')))
+      needs.build-mas.outputs.ref_kind == 'main' ||
+      needs.build-mas.outputs.ref_kind == 'release-tag'
     permissions:
       contents: read
     uses: ./.github/workflows/sign-apple.yml

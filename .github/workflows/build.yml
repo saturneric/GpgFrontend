@@ -123,7 +123,7 @@ jobs:
       screenshot_cmake_flag: ${{ steps.mode.outputs.screenshot_cmake_flag }}
       macos_runners: ${{ steps.mode.outputs.macos_runners }}
       # Whether this run signs and stages what it builds, and as what:
-      # nightly-main, nightly-branch, final or none (scripts/ci/build_mode.sh).
+      # nightly-main, beta, final or none (scripts/ci/build_mode.sh).
       # Every signing, provenance, staging and upload job gates on it, so a
       # base tag (vX.Y.0-alpha.0) or a stray prerelease tag publishes nothing.
       publish_kind: ${{ steps.mode.outputs.publish_kind }}
@@ -200,6 +200,16 @@ jobs:
           # flavour: the app is a notarized bundle in /Applications, so a
           # portable layout has no meaning there.
           echo 'macos_runners=["macos-15-intel", "macos-15", "macos-26-intel", "macos-26"]' >> "$GITHUB_OUTPUT"
+
+      # A build that would publish, with the hand-over to the signing host
+      # switched off: the run still ends green, so say so where it shows.
+      - name: Note A Skipped Staging
+        if: >-
+          steps.mode.outputs.publishes == 'true' &&
+          vars.R2_STAGING_ENABLED != 'true'
+        run: |
+          echo "::warning::R2_STAGING_ENABLED is not 'true': this build is" \
+            "signed but not staged, and the signing host will not publish it"
 
   # One leg's failure does not cancel the others (fail-fast: false) in any
   # build matrix: a cancelled leg hides whether it would have failed too. The
@@ -462,6 +472,8 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           lfs: "false"
+          # Nothing here talks to the repository: no token left on disk.
+          persist-credentials: false
 
       - name: Download Build Info
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
@@ -523,6 +535,7 @@ jobs:
     # release, signed offline after it is staged): the signature names the
     # ref, and the signers pin it.
     if: needs.setup.outputs.publishes == 'true'
+    timeout-minutes: 30
     permissions:
       # The identity token Fulcio exchanges for a certificate. Nothing else.
       id-token: write
@@ -531,6 +544,7 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           lfs: "false"
+          persist-credentials: false
 
       # The release-candidate rules ran in setup, on this same commit.
 
@@ -580,8 +594,9 @@ jobs:
 
   # Hands a build to its signers: the release candidate exactly as provenance
   # signed it goes to the private staging bucket, and nothing else. main's
-  # nightly is promoted from there by the signing host (scripts/release/
-  # gfrelease promote); a version tag waits for the maintainer's offline
+  # nightly and a release/X.Y branch's beta are promoted from there by the
+  # signing host (scripts/release/gfrelease promote); a version tag waits
+  # for the maintainer's offline
   # stage (gfrelease stable), which signs it with their OpenPGP key and the
   # Windows installers with their certificate. Both verify the Sigstore
   # bundle against this workflow, ref and commit first. This job can write
@@ -600,6 +615,7 @@ jobs:
       needs.setup.outputs.publishes == 'true' &&
       vars.R2_STAGING_ENABLED == 'true'
     runs-on: ubuntu-24.04
+    timeout-minutes: 60
     permissions:
       contents: read
     environment: r2-staging
@@ -654,7 +670,7 @@ jobs:
   # out to the testers at once, as soon as sign-android has signed it: it
   # does not wait for provenance, which guards the public update channel and
   # not the testers.
-  #   - a push to main  -> named nightly-<sha>.
+  #   - a push to main  -> named nightly-<artifact version>.
   #   - a version tag   -> named after the tag. Promoting it beyond the
   #     testers is done by hand in Play Console.
   # arm64-v8a alone, as Play wants one bundle per release and phones are ARM;
@@ -678,12 +694,11 @@ jobs:
     # main's nightlies and the stable releases above main's build number;
     # never a release/X.Y build, which Play would take as newer than the next
     # main build, nor a fix of an older series, whose versionCode Play
-    # refuses.
-    if: >-
-      needs.setup.outputs.play_upload == 'true' &&
-      (needs.setup.outputs.publish_kind == 'nightly-main' ||
-       needs.setup.outputs.publish_kind == 'final')
+    # refuses. build_mode.sh decides all of it (play_upload is only ever true
+    # for nightly-main and final).
+    if: needs.setup.outputs.play_upload == 'true'
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     permissions:
       contents: read
     # The upload key and the service-account key live in this environment.
@@ -724,6 +739,7 @@ jobs:
         with:
           lfs: "false"
           sparse-checkout: scripts/android
+          persist-credentials: false
 
       - name: Download Unsigned Bundle
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0

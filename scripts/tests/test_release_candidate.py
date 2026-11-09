@@ -590,14 +590,15 @@ class WorkflowTest(unittest.TestCase):
                           "sign-macos", "macos-smoke", "sign-android"})
 
     def test_publishing_jobs_gate_on_the_one_classification(self):
-        # scripts/ci/build_mode.sh decides once which refs publish (two
-        # lines: main and release/X.Y nightlies, vX.Y.Z releases). A job that
-        # matched refs itself could sign a base tag or a prerelease tag.
+        # scripts/ci/build_mode.sh decides once which refs publish (main's
+        # nightlies, release/X.Y betas, vX.Y.Z releases). A job that matched
+        # refs itself could sign a base tag or a prerelease tag.
         for name in ("sign-android", "sign-macos", "macos-smoke",
                      "provenance", "stage", "play-upload"):
             job = self.jobs[name]
             with self.subTest(job=name):
-                self.assertRegex(job, r"needs\.setup\.outputs\.publish")
+                self.assertRegex(
+                    job, r"needs\.setup\.outputs\.(publish|play_upload)")
                 gate = re.search(r"(?ms)^    if: (.*?)\n    \w", job).group(1)
                 self.assertNotIn("github.ref", gate)
 
@@ -659,6 +660,69 @@ class WorkflowTest(unittest.TestCase):
                         self.assertTrue(secret.startswith(prefix[target]), secret)
                 seen.add(target)
         self.assertEqual(seen, set(prefix))
+
+    def test_mas_signs_main_and_release_tags_as_build_mode_classifies(self):
+        # The App Store package is signed on a manual run too, so it gates
+        # on what the ref is (ref_kind), never on a pattern of its own: a
+        # tag such as v2.3 or v2.3.0.1 passed one.
+        mas = jobs(WORKFLOW.with_name("mas-sandbox.yml")
+                   .read_text(encoding="utf-8"))
+        gate = re.search(r"(?ms)^    if: (.*?)\n    \w", mas["sign-mas"]).group(1)
+        self.assertEqual(" ".join(gate.replace(">-", "").split()),
+                         "needs.build-mas.outputs.ref_kind == 'main' || "
+                         "needs.build-mas.outputs.ref_kind == 'release-tag'")
+        self.assertIn("ref_kind: ${{ steps.mode.outputs.ref_kind }}",
+                      mas["build-mas"])
+
+    def test_every_checkout_drops_its_token_unless_it_needs_one(self):
+        # No job pushes or tags: a git token left on disk is only something
+        # a later step could read.
+        for path in WORKFLOW.parent.glob("*.yml"):
+            for name, job in jobs(path.read_text(encoding="utf-8")).items():
+                for step in re.split(r"(?m)^      - ", job):
+                    if "uses: actions/checkout@" not in step:
+                        continue
+                    if path.name in ("codeql-analysis.yml",) or \
+                            "build-" in path.name or name in (
+                                "setup", "build-mas"):
+                        continue  # builders: no secrets in reach
+                    with self.subTest(workflow=path.name, job=name):
+                        self.assertIn("persist-credentials: false", step)
+
+    def test_no_workflow_gives_a_key_twice(self):
+        # GitHub refuses a workflow with a key given twice in one mapping,
+        # and then runs none of it; PyYAML and the regexes here take it.
+        import yaml
+
+        class Strict(yaml.SafeLoader):
+            pass
+
+        def mapping(loader, node, deep=False):
+            keys = [loader.construct_object(k, deep=deep)
+                    for k, _ in node.value]
+            twice = {k for k in keys if keys.count(k) > 1}
+            if twice:
+                raise yaml.constructor.ConstructorError(
+                    None, None, f"{sorted(twice)} given twice",
+                    node.start_mark)
+            return yaml.SafeLoader.construct_mapping(loader, node, deep)
+
+        Strict.add_constructor(
+            yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, mapping)
+        for path in sorted(WORKFLOW.parent.parent.glob("**/*.yml")):
+            with self.subTest(path=path.name):
+                yaml.load(path.read_text(encoding="utf-8"), Loader=Strict)
+
+    def test_a_publishing_build_says_when_staging_is_off(self):
+        # stage is skipped without R2_STAGING_ENABLED and the run stays
+        # green: setup says so, under the same two conditions.
+        stage = re.search(r"(?ms)^    if: >-\n(.*?)\n    \w",
+                          self.jobs["stage"]).group(1).split()
+        self.assertIn("vars.R2_STAGING_ENABLED == 'true'", " ".join(stage))
+        setup = self.jobs["setup"]
+        self.assertIn("steps.mode.outputs.publishes == 'true' &&", setup)
+        self.assertIn("vars.R2_STAGING_ENABLED != 'true'", setup)
+        self.assertIn("::warning::R2_STAGING_ENABLED", setup)
 
     def test_build_info_names_are_whole(self):
         # The pairing above is only a check if it sees whole names.

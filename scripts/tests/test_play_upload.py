@@ -282,7 +282,8 @@ class WorkflowTest(unittest.TestCase):
         cls.job = re.sub(r"^\s*#.*\n", "", job, flags=re.M)
 
     def condition(self):
-        match = re.search(r"(?m)^    if: >-\n((?:      .*\n)+)", self.job)
+        match = re.search(r"(?m)^    if: >-\n((?:      .*\n)+)", self.job) or \
+            re.search(r"(?m)^    if: (.*)\n", self.job)
         return " ".join(match.group(1).split())
 
     def test_right_after_signing_without_the_approval_gate(self):
@@ -290,14 +291,12 @@ class WorkflowTest(unittest.TestCase):
 
     def test_pushes_to_main_and_release_tags_only(self):
         # setup's classification (scripts/ci/build_mode.sh): main's
-        # nightlies and vX.Y.Z releases, never a release/X.Y build, a base
-        # tag or a prerelease tag.
-        # And of the finals, only those above main's build number
-        # (play_upload): Play refuses any lower versionCode.
+        # nightlies and of the vX.Y.Z releases only those above main's build
+        # number (Play refuses any lower versionCode); never a release/X.Y
+        # build, a base tag or a prerelease tag. test_build_mode.py holds
+        # play_upload to exactly that.
         self.assertEqual(self.condition(),
-                         "needs.setup.outputs.play_upload == 'true' && "
-                         "(needs.setup.outputs.publish_kind == 'nightly-main' "
-                         "|| needs.setup.outputs.publish_kind == 'final')")
+                         "needs.setup.outputs.play_upload == 'true'")
 
     def test_every_ref_goes_to_the_testers_only(self):
         self.assertIn("--track internal", self.job)
@@ -320,6 +319,7 @@ class WorkflowTest(unittest.TestCase):
 
     def test_the_version_code_is_asserted(self):
         self.assertIn('--version-code "$BUILD_NUMBER"', self.job)
+
 
 
 if __name__ == "__main__":

@@ -29,12 +29,12 @@
 #   SCREENSHOT_INPUT  "true" for a screenshot-mode build
 #
 # Trunk model: main is the next minor release, release/X.Y receives fixes
-# for one series, and versions come from tags (cmake/GitVersion.cmake). Two
-# lines, nightly and stable:
+# for one series, and versions come from tags (cmake/GitVersion.cmake). Three
+# channels, each fed by one kind of ref (scripts/release/refs.py):
 #   - a release tag vX.Y.Z  -> release build                 publish: final
 #   - a push to main        -> nightly build                 publish: nightly-main
-#   - a push to release/X.Y -> nightly build of that series  publish: nightly-branch
-#                              (the beta channel of that series)
+#   - a push to release/X.Y -> nightly build of that series  publish: beta
+#                              (the opt-in beta channel of that series)
 #   - any other tag (a vX.Y.0-alpha.0 base tag, a stray prerelease tag)
 #                           -> nightly build, published nowhere
 #   - a pull request        -> PR validation build, published nowhere
@@ -44,22 +44,45 @@
 #
 # `publish_kind` is the one answer to "does this run sign and stage what it
 # builds": every signing, provenance, staging and upload job gates on it
-# (`publishes` is it as a boolean).
+# (`publishes` is it as a boolean). `ref_kind` is what the ref is, whatever
+# the event (main, release-branch, release-tag or other): a workflow that
+# signs on a manual run too (mas-sandbox.yml) gates on that.
 #
 # Also prints the version, derived once here from the full history (the
 # checkout must have fetch-depth: 0) so every job names its files alike.
 
 set -euo pipefail
 
-: "${GITHUB_EVENT_NAME:?}" "${GITHUB_REF:?}" "${GITHUB_SHA:?}"
+: "${GITHUB_EVENT_NAME:?}" "${GITHUB_REF:?}"
+
+# The ref shapes, spelled as scripts/release/refs.py and semver.RELEASE_TAG
+# spell them (scripts/tests/test_build_mode.py holds them together): no
+# leading zeros, nothing after the last number.
+num='(0|[1-9][0-9]*)'
+release_tag_re="^refs/tags/v${num}\.${num}\.${num}\$"
+release_branch_re="^refs/heads/release/[0-9]+\.[0-9]+\$"
+
+if [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
+  ref_kind="main"
+elif [[ "$GITHUB_REF" =~ $release_branch_re ]]; then
+  ref_kind="release-branch"
+elif [[ "$GITHUB_REF" =~ $release_tag_re ]]; then
+  ref_kind="release-tag"
+else
+  ref_kind="other"
+fi
 
 if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
   build_mode="${BUILD_MODE_INPUT:?workflow_dispatch needs a build_mode}"
+  [[ "$build_mode" == "nightly" || "$build_mode" == "release" ]] || {
+    echo "::error::build_mode must be nightly or release, not $build_mode" >&2
+    exit 1
+  }
   build_type="Release"
 elif [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
   build_mode="pr"
   build_type="RelWithDebInfo"
-elif [[ "$GITHUB_REF" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+elif [[ "$ref_kind" == "release-tag" ]]; then
   build_mode="release"
   build_type="Release"
 else
@@ -67,17 +90,12 @@ else
   build_type="Release"
 fi
 
-# The same release-tag shape as scripts/release/semver.py RELEASE_TAG.
 publish_kind="none"
 if [[ "$GITHUB_EVENT_NAME" == "push" ]]; then
-  case "$GITHUB_REF" in
-    refs/heads/main) publish_kind="nightly-main" ;;
-    refs/heads/release/*)
-      [[ "$GITHUB_REF" =~ ^refs/heads/release/[0-9]+\.[0-9]+$ ]] &&
-        publish_kind="nightly-branch" ;;
-    refs/tags/*)
-      [[ "$GITHUB_REF" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]] &&
-        publish_kind="final" ;;
+  case "$ref_kind" in
+    main) publish_kind="nightly-main" ;;
+    release-branch) publish_kind="beta" ;;
+    release-tag) publish_kind="final" ;;
   esac
 fi
 publishes="false"
@@ -92,9 +110,10 @@ publishes="false"
 # HEAD's in CI); main's is asked of git, the way the build derives it
 # (GF_MAIN_BUILD_NUMBER: given instead, for the tests).
 release_number() {
-  [[ "$1" =~ ^refs/tags/v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]
-  echo $((1000000000 + BASH_REMATCH[1] * 100000000 +
-    BASH_REMATCH[2] * 1000000 + BASH_REMATCH[3] * 10000 + 9000))
+  [[ "$1" =~ $release_tag_re ]]
+  # 10#: decimal, whatever the digits (no leading zero passes the pattern).
+  echo $((1000000000 + 10#${BASH_REMATCH[1]} * 100000000 +
+    10#${BASH_REMATCH[2]} * 1000000 + 10#${BASH_REMATCH[3]} * 10000 + 9000))
 }
 play_upload="false"
 if [[ "$publish_kind" == "nightly-main" ]]; then
@@ -145,17 +164,24 @@ fi
 version_field() {
   cmake -DGF_FIELD="$1" -P cmake/GitVersion.cmake
 }
+# Each in an assignment of its own: a cmake that fails stops the script
+# (set -e), rather than printing an empty value inside an echo.
 version="$(version_field version)"
 artifact_version="$(version_field filesafe)"
+build_number="$(version_field build_number)"
 [[ "$artifact_version" =~ ^[0-9A-Za-z.-]+$ ]] || {
   echo "::error::unexpected file-safe version: $artifact_version" >&2
   exit 1
 }
+[[ "$build_number" =~ ^[1-9][0-9]*$ ]] || {
+  echo "::error::unexpected build number: $build_number" >&2
+  exit 1
+}
 echo "version=$version"
 echo "artifact_version=$artifact_version"
-echo "version_series=$(version_field series)"
-echo "build_number=$(version_field build_number)"
+echo "build_number=$build_number"
 echo "build_mode=$build_mode"
+echo "ref_kind=$ref_kind"
 echo "build_type=$build_type"
 echo "gpgfrontend_build_mode=$gpgfrontend_build_mode"
 echo "screenshot_cmake_flag=$screenshot_cmake_flag"

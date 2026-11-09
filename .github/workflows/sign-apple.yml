@@ -110,6 +110,9 @@ jobs:
   sign:
     name: sign (${{ matrix.os }})
     strategy:
+      # One leg failing does not cancel the others: a cancelled leg hides
+      # whether it would have failed too (build.yml's matrices alike).
+      fail-fast: false
       matrix:
         os: ${{ fromJSON(inputs.runners) }}
     runs-on: ${{ matrix.os }}
