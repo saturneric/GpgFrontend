@@ -27,8 +27,7 @@ SCRIPT = ROOT / "scripts" / "ci" / "build_mode.sh"
 
 def run_script(event: str, ref: str, **extra):
     env = {k: v for k, v in os.environ.items() if not k.startswith("GITHUB_")
-           and k not in ("BUILD_MODE_INPUT", "SCREENSHOT_INPUT",
-                         "GF_MAIN_BUILD_NUMBER")}
+           and k not in ("BUILD_MODE_INPUT", "SCREENSHOT_INPUT")}
     env.update(GITHUB_EVENT_NAME=event, GITHUB_REF=ref, GITHUB_SHA="0" * 40)
     if event == "workflow_dispatch":
         env["BUILD_MODE_INPUT"] = "release"
@@ -112,32 +111,34 @@ class BuildModeTest(unittest.TestCase):
         nightly = classify("push", "refs/heads/main", SCREENSHOT_INPUT="true")
         self.assertIn("SCREENSHOT_MODE=ON", nightly["screenshot_cmake_flag"])
 
-    def test_play_gets_only_what_beats_mains_build_number(self):
-        # main builds 2.4.0-alpha.37: Play already holds that code, so only
-        # a release above it (2.4.0, or a later series) can be uploaded.
-        main = "1204000037"
-        for ref, expected in (("refs/heads/main", "true"),
-                              ("refs/heads/release/2.3", "false"),
-                              ("refs/tags/v2.4.0", "true"),
-                              ("refs/tags/v2.5.0", "true"),
-                              ("refs/tags/v2.3.1", "false"),
-                              ("refs/tags/v2.2.9", "false"),
-                              ("refs/tags/v2.4.0-rc.1", "false"),
-                              ("refs/tags/v2.08.0", "false")):
-            with self.subTest(ref=ref):
-                self.assertEqual(classify("push", ref,
-                                          GF_MAIN_BUILD_NUMBER=main)
-                                 ["play_upload"], expected)
+    def test_play_gets_mains_nightlies_and_the_finals(self):
+        # Each to its own app; whether a final is newer than what its app
+        # holds is Play's to say (play_upload.py --only-if-newer).
+        for event, ref, expected in (
+                ("push", "refs/heads/main", "true"),
+                ("push", "refs/heads/release/2.3", "false"),
+                ("push", "refs/tags/v2.4.0", "true"),
+                ("push", "refs/tags/v2.3.1", "true"),
+                ("push", "refs/tags/v2.4.0-rc.1", "false"),
+                ("push", "refs/tags/v2.08.0", "false"),
+                ("pull_request", "refs/pull/7/merge", "false"),
+                ("workflow_dispatch", "refs/tags/v2.4.0", "false")):
+            with self.subTest(event=event, ref=ref):
+                self.assertEqual(classify(event, ref)["play_upload"], expected)
 
-    def test_play_matches_the_build_number_the_build_derives(self):
-        # The release's number as build_mode.sh computes it from the tag is
-        # the one cmake/GitVersion.cmake gives a commit on that tag.
-        out = classify("push", "refs/tags/v2.4.0",
-                       GF_MAIN_BUILD_NUMBER="1204008999")
-        self.assertEqual(out["play_upload"], "true")
-        out = classify("push", "refs/tags/v2.4.0",
-                       GF_MAIN_BUILD_NUMBER="1204009000")
-        self.assertEqual(out["play_upload"], "false")
+    def test_a_nightly_is_its_own_android_application(self):
+        for event, ref, package in (
+                ("push", "refs/heads/main", "com.bktus.gpgfrontend.nightly"),
+                ("push", "refs/heads/release/2.3",
+                 "com.bktus.gpgfrontend.nightly"),
+                ("push", "refs/tags/v2.4.0", "com.bktus.gpgfrontend"),
+                ("pull_request", "refs/pull/7/merge",
+                 "com.bktus.gpgfrontend.nightly")):
+            with self.subTest(ref=ref):
+                out = classify(event, ref)
+                self.assertEqual(out["android_package"], package)
+                self.assertEqual(out["gpgfrontend_build_mode"] == "release",
+                                 package == "com.bktus.gpgfrontend")
 
     def test_the_ref_shapes_match_the_tooling(self):
         # The shell patterns and scripts/release/refs.py must agree, or CI
