@@ -246,6 +246,87 @@ TEST(RpgpKeyDatabaseTest, AVersion3DatabaseIsMigrated) {
   EXPECT_TRUE(scratch.db->SaveKey(real.metadata, real.blocks));
 }
 
+namespace {
+
+/// Pretends a newer release wrote the database in @p home: its schema is
+/// @p version and it names @p min_reader (none when empty) as the oldest
+/// schema that may still read it.
+void PretendNewerRelease(const QString& home, int version,
+                         const QString& min_reader) {
+  const auto connection = u"newer-release"_s;
+  {
+    auto sql = QSqlDatabase::addDatabase("QSQLITE", connection);
+    sql.setDatabaseName(home + "/gf_keydb.sqlite");
+    ASSERT_TRUE(sql.open());
+    QSqlQuery query(sql);
+    ASSERT_TRUE(query.exec(u"PRAGMA user_version = %1"_s.arg(version)));
+    ASSERT_TRUE(query.exec("DELETE FROM gf_meta"));
+    if (!min_reader.isEmpty()) {
+      query.prepare("INSERT INTO gf_meta (name, value) VALUES (:n, :v)");
+      query.bindValue(":n", u"min_reader_schema"_s);
+      query.bindValue(":v", min_reader);
+      ASSERT_TRUE(query.exec()) << query.lastError().text().toStdString();
+    }
+    query.finish();
+    sql.close();
+  }
+  QSqlDatabase::removeDatabase(connection);
+}
+
+}  // namespace
+
+// Every database this release writes says which schema may still read it, so
+// an older release meeting a newer database can tell whether to open it.
+TEST(RpgpKeyDatabaseTest, ADatabaseRecordsTheOldestSchemaThatMayReadIt) {
+  ScratchKeyDatabase scratch;
+  ASSERT_TRUE(scratch.initialized);
+  EXPECT_EQ(scratch.db->GetMeta("min_reader_schema"), u"3"_s);
+  EXPECT_FALSE(GFKeyDatabase::IsFromNewerRelease(scratch.home.canonicalPath()));
+}
+
+// v2.2.4 refused to start on a database a newer build had upgraded. A newer
+// database that admits this schema opens, and is left as the newer release
+// wrote it.
+TEST(RpgpKeyDatabaseTest, ANewerDatabaseThatAdmitsUsOpensUnchanged) {
+  ScratchKeyDatabase scratch;
+  ASSERT_TRUE(scratch.initialized);
+  auto squatter = WithSubkey(FakeKey(kSquatter, "squatter"), kSharedSubkey);
+  ASSERT_TRUE(scratch.db->SaveKey(squatter.metadata, squatter.blocks));
+  scratch.db.reset();
+
+  const auto home = scratch.home.canonicalPath();
+  PretendNewerRelease(home, 99, u"4"_s);
+  EXPECT_FALSE(GFKeyDatabase::IsFromNewerRelease(home));
+
+  scratch.db.emplace();
+  ASSERT_TRUE(scratch.db->Init(home));
+  EXPECT_EQ(scratch.db->ResolvePrimaryFpr(kSharedSubkey), kSquatter);
+  auto real = WithSubkey(FakeKey(kRealKey, "real"), kSharedSubkey);
+  EXPECT_TRUE(scratch.db->SaveKey(real.metadata, real.blocks));
+
+  EXPECT_EQ(scratch.db->GetSchemaVersion(), 99) << "never lowered";
+  EXPECT_EQ(scratch.db->GetMeta("min_reader_schema"), u"4"_s)
+      << "the newer release's marker is its own";
+}
+
+// A newer database that does not admit this schema, or says nothing, stays
+// closed, and the startup can tell why.
+TEST(RpgpKeyDatabaseTest, ANewerDatabaseThatDoesNotAdmitUsStaysClosed) {
+  for (const auto& min_reader : {QString(), u"99"_s, u"junk"_s}) {
+    ScratchKeyDatabase scratch;
+    ASSERT_TRUE(scratch.initialized);
+    scratch.db.reset();
+
+    const auto home = scratch.home.canonicalPath();
+    PretendNewerRelease(home, 99, min_reader);
+    EXPECT_TRUE(GFKeyDatabase::IsFromNewerRelease(home))
+        << min_reader.toStdString();
+
+    scratch.db.emplace();
+    EXPECT_FALSE(scratch.db->Init(home)) << min_reader.toStdString();
+  }
+}
+
 // The database is shared by the GUI thread, the task runners and module
 // threads. A QSqlDatabase connection may only be used by the thread that
 // created it, and QSQLITE opens SQLite without its own mutex: every caller,

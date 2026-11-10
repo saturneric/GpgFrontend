@@ -42,6 +42,7 @@ const std::array kAllReasons{
     BadOpenPGPEnvReason::kDEFAULT_CONTEXT_INIT_FAILED,
     BadOpenPGPEnvReason::kKEY_CACHE_INIT_FAILED,
     BadOpenPGPEnvReason::kNO_VALID_KEY_DATABASE,
+    BadOpenPGPEnvReason::kKEY_DATABASE_TOO_NEW,
 };
 
 }  // namespace
@@ -75,9 +76,16 @@ TEST(BadOpenPGPEnvTextTest, RetryIsOfferedOnlyWhereItCouldHelp) {
   EXPECT_FALSE(
       UI::DescribeBadOpenPGPEnv(BadOpenPGPEnvReason::kNO_VALID_KEY_DATABASE, "")
           .offer_retry);
+  // Nor does it turn a newer release's database into one this release reads.
+  EXPECT_FALSE(
+      UI::DescribeBadOpenPGPEnv(BadOpenPGPEnvReason::kKEY_DATABASE_TOO_NEW, "")
+          .offer_retry);
 
   for (const auto reason : kAllReasons) {
-    if (reason == BadOpenPGPEnvReason::kNO_VALID_KEY_DATABASE) continue;
+    if (reason == BadOpenPGPEnvReason::kNO_VALID_KEY_DATABASE ||
+        reason == BadOpenPGPEnvReason::kKEY_DATABASE_TOO_NEW) {
+      continue;
+    }
     EXPECT_TRUE(UI::DescribeBadOpenPGPEnv(reason, "").offer_retry)
         << static_cast<int>(reason);
   }
@@ -89,6 +97,17 @@ TEST(BadOpenPGPEnvTextTest, TheDetailReachesTheUser) {
                     .body.contains("a-specific-detail"))
         << static_cast<int>(reason);
   }
+}
+
+TEST(BadOpenPGPEnvTextTest, ANewerDatabaseIsNotBlamedOnPermissions) {
+  // v2.2.4 told users whose database a newer build had upgraded that it was
+  // locked by another program or its permissions had changed.
+  const auto newer =
+      UI::DescribeBadOpenPGPEnv(BadOpenPGPEnvReason::kKEY_DATABASE_TOO_NEW, "");
+  const auto generic = UI::DescribeBadOpenPGPEnv(
+      BadOpenPGPEnvReason::kDEFAULT_CONTEXT_INIT_FAILED, "");
+  EXPECT_NE(newer.title, generic.title);
+  EXPECT_NE(newer.body, generic.body);
 }
 
 TEST(BadOpenPGPEnvTextTest, UnknownAndNoEngineShareTheGenericFallback) {

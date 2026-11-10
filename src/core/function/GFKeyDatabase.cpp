@@ -37,7 +37,25 @@ namespace GpgFrontend {
 
 static constexpr int kCurrentSchemaVersion = 4;
 
+/// The oldest schema whose code still reads and writes a database of
+/// kCurrentSchemaVersion correctly. Kept in the database under
+/// kMinReaderSchemaName, so an older release that finds a newer database can
+/// tell whether it may open it. Whoever bumps the schema sets this: leave it
+/// for a change older code tolerates (v4 only widened subkey_metadata's
+/// primary key), raise it to the new version for one it does not.
+static constexpr int kMinReaderSchemaVersion = 3;
+static constexpr auto kMinReaderSchemaName = "min_reader_schema";
+
 namespace {
+
+/// Whether a database at @p version, naming @p min_reader as the oldest
+/// schema that may read it, can be opened by this release.
+auto IsReadableSchema(int version, const QString& min_reader) -> bool {
+  if (version <= kCurrentSchemaVersion) return true;
+  bool ok = false;
+  const auto floor = min_reader.toInt(&ok);
+  return ok && floor > 0 && floor <= kCurrentSchemaVersion;
+}
 
 auto PrimaryKeyAsSubKey(const GFKeyMetadata& meta) -> GFSubKeyMetadata {
   GFSubKeyMetadata sub;
@@ -865,12 +883,67 @@ auto GFKeyDatabase::ensure_schema() -> bool {
   }
 
   if (version > kCurrentSchemaVersion) {
-    LOG_E() << "database schema version is newer than application supports:"
-            << version << ">" << kCurrentSchemaVersion;
+    // A newer release wrote it. Opened only when that release said our schema
+    // may still read it, and then left exactly as it is: neither the version
+    // nor the marker is lowered, so the newer release finds its own database.
+    const auto min_reader = GetMeta(kMinReaderSchemaName);
+    if (!IsReadableSchema(version, min_reader)) {
+      LOG_E() << "database schema version is newer than application supports:"
+              << version << ">" << kCurrentSchemaVersion
+              << "min reader:" << min_reader;
+      return false;
+    }
+    LOG_W() << "database schema" << version
+            << "is from a newer release, opening it as schema"
+            << kCurrentSchemaVersion << "(min reader:" << min_reader << ")";
+    return true;
+  }
+
+  if (GetMeta(kMinReaderSchemaName) !=
+          QString::number(kMinReaderSchemaVersion) &&
+      !SetMeta(kMinReaderSchemaName,
+               QString::number(kMinReaderSchemaVersion))) {
+    LOG_E() << "failed to record the oldest schema that may read the database";
     return false;
   }
 
   return true;
+}
+
+auto GFKeyDatabase::IsFromNewerRelease(const QString& path) -> bool {
+  const auto file = QDir(path).filePath("gf_keydb.sqlite");
+  if (!QFileInfo::exists(file)) return false;
+
+  const auto connection = u"GFKeyDBProbe_%1"_s.arg(
+      QUuid::createUuid().toString(QUuid::WithoutBraces));
+  bool newer = false;
+  {
+    auto db = QSqlDatabase::addDatabase("QSQLITE", connection);
+    db.setDatabaseName(file);
+    db.setConnectOptions("QSQLITE_OPEN_READONLY");
+    if (db.open()) {
+      QSqlQuery query(db);
+      int version = 0;
+      if (query.exec("PRAGMA user_version;") && query.next()) {
+        version = query.value(0).toInt();
+      }
+      QString min_reader;
+      if (version > kCurrentSchemaVersion &&
+          query.exec("SELECT name FROM sqlite_master WHERE type = 'table' AND "
+                     "name = 'gf_meta'") &&
+          query.next()) {
+        query.prepare("SELECT value FROM gf_meta WHERE name = :name");
+        query.bindValue(":name", QString(kMinReaderSchemaName));
+        if (query.exec() && query.next())
+          min_reader = query.value(0).toString();
+      }
+      newer = !IsReadableSchema(version, min_reader);
+      query.finish();
+      db.close();
+    }
+  }
+  QSqlDatabase::removeDatabase(connection);
+  return newer;
 }
 
 auto GFKeyDatabase::set_schema_version(int version) -> bool {

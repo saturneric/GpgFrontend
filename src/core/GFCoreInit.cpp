@@ -38,6 +38,7 @@
 #include "core/function/CacheManager.h"
 #include "core/function/CoreInitProgress.h"
 #include "core/function/CoreSignalStation.h"
+#include "core/function/GFKeyDatabase.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
 #if GF_ENGINE_GNUPG
@@ -760,6 +761,15 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
     LOG_E() << "Init GpgME Default Context failed!"
             << "GpgFrontend cannot start under this situation!";
     Module::UpsertRTValue(Module::kGRTCoreNamespace, Module::kCoreStateCtx, -1);
+    // Only rPGP opens the SQLite database, so only it can fail on one a newer
+    // release wrote; say so rather than blame permissions or another program.
+    if (default_choice.engine == OpenPGPEngine::kRPGP &&
+        GFKeyDatabase::IsFromNewerRelease(default_key_db_info.path)) {
+      CoreSignalStation::GetInstance()->SignalBadOpenPGPEnv(
+          BadOpenPGPEnvReason::kKEY_DATABASE_TOO_NEW,
+          QDir::toNativeSeparators(default_key_db_info.path));
+      return -1;
+    }
     CoreSignalStation::GetInstance()->SignalBadOpenPGPEnv(
         BadOpenPGPEnvReason::kDEFAULT_CONTEXT_INIT_FAILED,
         QCoreApplication::tr("GpgME Default Context Initiation Failed"));

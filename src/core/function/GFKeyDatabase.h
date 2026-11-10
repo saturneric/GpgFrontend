@@ -82,6 +82,19 @@ class GF_CORE_EXPORT GFKeyDatabase {
   auto Init(const QString& path) -> bool;
 
   /**
+   * @brief Whether the database in @p path was written by a newer release
+   * that this one cannot safely open.
+   *
+   * Opens the file read-only on a connection of its own, so it neither
+   * creates nor changes anything. A newer database that names this release's
+   * schema as one that may still read it is not counted: Init() opens it.
+   *
+   * @param path directory holding gf_keydb.sqlite
+   * @return true only for a database from a newer, incompatible schema
+   */
+  static auto IsFromNewerRelease(const QString& path) -> bool;
+
+  /**
    * @brief Return all primary key metadata records with their user IDs and
    * subkeys.
    *

@@ -86,6 +86,19 @@ auto DescribeBadOpenPGPEnv(BadOpenPGPEnvReason reason, const QString& detail)
                   "changed. Details: %1")
                   .arg(detail)};
 
+    case BadOpenPGPEnvReason::kKEY_DATABASE_TOO_NEW:
+      return {QCoreApplication::translate("GpgFrontend::UI",
+                                          "Key Database From A Newer Version"),
+              QCoreApplication::translate(
+                  "GpgFrontend::UI",
+                  "This key database was last used by a newer version of "
+                  "GpgFrontend, and this version cannot open it safely. "
+                  "Please update GpgFrontend, or choose another key database "
+                  "in Settings, under Key Databases. Details: %1")
+                  .arg(detail),
+              // Restarting the same version meets the same database.
+              false};
+
     case BadOpenPGPEnvReason::kNO_SUPPORTED_ENGINE:
     case BadOpenPGPEnvReason::kUNKNOWN:
       break;

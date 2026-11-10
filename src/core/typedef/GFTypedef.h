@@ -63,6 +63,7 @@ enum class BadOpenPGPEnvReason : std::uint8_t {
   kNO_VALID_KEY_DATABASE,        ///< no key database resolved to a directory
   kDEFAULT_CONTEXT_INIT_FAILED,  ///< the channel-0 context would not build
   kKEY_CACHE_INIT_FAILED,        ///< the context built but the keys would not
+  kKEY_DATABASE_TOO_NEW,         ///< a newer release's key database
 };
 
 /**
