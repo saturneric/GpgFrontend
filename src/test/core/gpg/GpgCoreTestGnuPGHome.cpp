@@ -29,9 +29,15 @@
 // Where gpg-agent may put its sockets, and the short links that get a deep key
 // database there.
 
+#include <QProcess>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+
 #include "GpgFrontendTest.h"
+#include "core/GFCoreInit.h"
 #include "core/GFCoreTest.h"
 #include "core/function/gpg/GnuPGHome.h"
+#include "core/function/openpgp/ChannelHandle.h"
 #include "core/module/ModuleManager.h"
 
 namespace GpgFrontend::Test {
@@ -367,6 +373,53 @@ TEST_F(GFCoreTest, GnuPGHomeReleaseAllRemovesTheLinksItMade) {
   // Released means released: the next Acquire mints a fresh one.
   EXPECT_NE(store.Acquire(deep), link);
   store.ReleaseAll();
+}
+
+// v2.2.4 would not start on a GnuPG home whose gf_keydb.sqlite a newer build
+// had upgraded, although GnuPG never reads that file. A GnuPG context neither
+// opens it nor makes one.
+TEST_F(GFCoreTest, AGnuPGContextIgnoresTheSQLiteKeyDatabase) {
+  const auto gpgconf = Module::RetrieveRTValueTypedOrDefault<>(
+      "core", "gpgme.ctx.gpgconf_path", QString{});
+  if (gpgconf.isEmpty()) GTEST_SKIP() << "GnuPG is not available";
+
+  // Short on purpose: gpg-agent's socket may live in the homedir.
+  for (const bool newer_db : {true, false}) {
+    const auto home = QDir::tempPath() + "/gfs-" + GenerateRandomString(6);
+    ASSERT_TRUE(QDir().mkpath(home));
+    QFile::setPermissions(home, QFileDevice::ReadOwner |
+                                    QFileDevice::WriteOwner |
+                                    QFileDevice::ExeOwner);
+    const auto file = QDir(home).filePath("gf_keydb.sqlite");
+    if (newer_db) {
+      const auto connection = u"newer-gnupg-home"_s;
+      {
+        auto sql = QSqlDatabase::addDatabase("QSQLITE", connection);
+        sql.setDatabaseName(file);
+        ASSERT_TRUE(sql.open());
+        QSqlQuery query(sql);
+        ASSERT_TRUE(query.exec("CREATE TABLE future (x INTEGER)"));
+        ASSERT_TRUE(query.exec("PRAGMA user_version = 99"));
+        query.finish();
+        sql.close();
+      }
+      QSqlDatabase::removeDatabase(connection);
+    }
+
+    const auto channel = AllocateChannelHandle() + 0x310000;
+    EXPECT_TRUE(BuildOpenPGPContext(
+        channel, OpenPGPContextInitArgs{.engine = OpenPGPEngine::kGNUPG,
+                                        .db_name = "sqlite-ignored",
+                                        .db_path = home,
+                                        .offline_mode = true,
+                                        .auto_import_missing_key = false}))
+        << "newer database: " << newer_db;
+    EXPECT_EQ(QFileInfo::exists(file), newer_db)
+        << "a GnuPG home gets no database file of its own";
+
+    QProcess::execute(gpgconf, {"--homedir", home, "--kill", "all"});
+    QDir(home).removeRecursively();
+  }
 }
 
 }  // namespace GpgFrontend::Test

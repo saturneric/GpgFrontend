@@ -2678,7 +2678,7 @@ TEST(RecycledKeyDatabaseTest, TheEngineIsJudgedByTheFilesLeftBehind) {
   touch("kbx/pubring.kbx");
   touch("legacy/pubring.gpg");
   ASSERT_TRUE(dir.mkpath("agent-only/private-keys-v1.d"));
-  // Opened by GpgFrontend under GnuPG: the shared database file is there too.
+  // Opened under GnuPG by an older release, which made the database file too.
   touch("gnupg-opened/pubring.kbx");
   touch("gnupg-opened/gf_keydb.sqlite");
 

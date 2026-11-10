@@ -1602,8 +1602,8 @@ auto SelectRecycledKeyDatabaseFolders(
 
 auto GuessKeyDatabaseBackend(const QString& path) -> QString {
   const QDir dir(path);
-  // GnuPG's own files first: every context opens the shared database file,
-  // whichever engine it runs, so a GnuPG folder has one too.
+  // GnuPG's own files first: older releases opened the database file for
+  // every engine, so a GnuPG folder may have one too.
   for (const auto* marker :
        {"pubring.kbx", "pubring.gpg", "private-keys-v1.d", "trustdb.gpg"}) {
     if (QFileInfo::exists(dir.filePath(QLatin1StringView(marker)))) {
