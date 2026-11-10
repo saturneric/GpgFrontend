@@ -108,15 +108,19 @@ class BuildModeTest(unittest.TestCase):
         out = run_script("push", "refs/tags/v2.3.0", SCREENSHOT_INPUT="true")
         self.assertNotEqual(out.returncode, 0)
         self.assertIn("screenshot", out.stderr)
+        beta = run_script("push", "refs/heads/release/2.3",
+                          SCREENSHOT_INPUT="true")
+        self.assertNotEqual(beta.returncode, 0)
         nightly = classify("push", "refs/heads/main", SCREENSHOT_INPUT="true")
         self.assertIn("SCREENSHOT_MODE=ON", nightly["screenshot_cmake_flag"])
 
-    def test_play_gets_mains_nightlies_and_the_finals(self):
-        # Each to its own app; whether a final is newer than what its app
+    def test_play_gets_the_betas_and_the_finals(self):
+        # Never a main nightly; whether a build is newer than what the app
         # holds is Play's to say (play_upload.py --only-if-newer).
         for event, ref, expected in (
-                ("push", "refs/heads/main", "true"),
-                ("push", "refs/heads/release/2.3", "false"),
+                ("push", "refs/heads/main", "false"),
+                ("push", "refs/heads/release/2.3", "true"),
+                ("push", "refs/heads/release/2.2-fix", "false"),
                 ("push", "refs/tags/v2.4.0", "true"),
                 ("push", "refs/tags/v2.3.1", "true"),
                 ("push", "refs/tags/v2.4.0-rc.1", "false"),
@@ -127,9 +131,13 @@ class BuildModeTest(unittest.TestCase):
                 self.assertEqual(classify(event, ref)["play_upload"], expected)
 
     def test_a_nightly_is_its_own_android_application(self):
+        # A beta (a push to release/X.Y) is built as a release: it installs
+        # over the release and opens its profile. A release branch built by
+        # hand as a nightly stays one.
         for event, ref, package in (
                 ("push", "refs/heads/main", "com.bktus.gpgfrontend.nightly"),
-                ("push", "refs/heads/release/2.3",
+                ("push", "refs/heads/release/2.3", "com.bktus.gpgfrontend"),
+                ("push", "refs/heads/release/2.2-fix",
                  "com.bktus.gpgfrontend.nightly"),
                 ("push", "refs/tags/v2.4.0", "com.bktus.gpgfrontend"),
                 ("pull_request", "refs/pull/7/merge",
@@ -139,6 +147,10 @@ class BuildModeTest(unittest.TestCase):
                 self.assertEqual(out["android_package"], package)
                 self.assertEqual(out["gpgfrontend_build_mode"] == "release",
                                  package == "com.bktus.gpgfrontend")
+        manual = classify("workflow_dispatch", "refs/heads/release/2.3",
+                          BUILD_MODE_INPUT="nightly")
+        self.assertEqual(manual["android_package"],
+                         "com.bktus.gpgfrontend.nightly")
 
     def test_the_ref_shapes_match_the_tooling(self):
         # The shell patterns and scripts/release/refs.py must agree, or CI
