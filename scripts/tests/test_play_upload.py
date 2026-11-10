@@ -306,19 +306,22 @@ class WorkflowTest(unittest.TestCase):
     def test_right_after_signing_without_the_approval_gate(self):
         self.assertRegex(self.job, r"(?m)^    needs: \[setup, sign-android\]$")
 
-    def test_pushes_to_main_and_release_tags_only(self):
-        # setup's classification (scripts/ci/build_mode.sh): main's
-        # nightlies and of the vX.Y.Z releases only those above main's build
-        # number (Play refuses any lower versionCode); never a release/X.Y
-        # build, a base tag or a prerelease tag. test_build_mode.py holds
-        # play_upload to exactly that.
+    def test_release_tags_and_betas_only(self):
+        # setup's classification (scripts/ci/build_mode.sh): the vX.Y.Z
+        # releases and the release/X.Y betas; never a main nightly, a base
+        # tag or a prerelease tag. test_build_mode.py holds play_upload to
+        # exactly that.
         self.assertEqual(self.condition(),
                          "needs.setup.outputs.play_upload == 'true'")
 
     def test_every_ref_goes_to_the_testers_only(self):
         self.assertIn("--track internal", self.job)
         self.assertNotIn("production", self.job)
-        self.assertIn('name="$GITHUB_REF_NAME"', self.job)
+        self.assertIn('--release-name "$name"', self.job)
+        final = self.job.index('if [[ "$PUBLISH_KIND" == "final" ]]; then')
+        other = self.job.index("else", final)
+        self.assertIn('name="$GITHUB_REF_NAME"', self.job[final:other])
+        self.assertIn('name="beta-${ARTIFACT_VERSION}"', self.job[other:])
 
     def test_secrets_in_their_own_environment(self):
         self.assertRegex(self.job, r"(?m)^    environment: google-play$")
@@ -337,17 +340,16 @@ class WorkflowTest(unittest.TestCase):
     def test_the_version_code_is_asserted(self):
         self.assertIn('--version-code "$BUILD_NUMBER"', self.job)
 
-    def test_each_identity_goes_to_its_own_app(self):
-        # build_mode.sh names the app (android_package); only a final may
-        # find its app holding a newer release, and is skipped then.
+    def test_the_release_goes_to_its_app_only_if_newer(self):
+        # build_mode.sh names the app (android_package); a final or a beta
+        # may find it holding a newer release, and is skipped then. No main
+        # nightly arrives.
         self.assertIn('--package "$ANDROID_PACKAGE"', self.job)
         self.assertIn("ANDROID_PACKAGE: ${{ needs.setup.outputs.android_package }}",
                       self.job)
         self.assertNotIn("--package com.bktus", self.job)
-        final = self.job.index('if [[ "$PUBLISH_KIND" == "final" ]]; then')
-        other = self.job.index("else", final)
-        self.assertIn("newer=(--only-if-newer)", self.job[final:other])
-        self.assertIn('"${newer[@]}"', self.job)
+        self.assertIn("--only-if-newer", self.job)
+        self.assertNotIn("nightly-", self.job)
 
     def test_android_builds_and_checks_the_identity_it_is_given(self):
         build = jobs(WORKFLOW.read_text(encoding="utf-8"))["build-android"]

@@ -128,8 +128,8 @@ jobs:
       # base tag (vX.Y.0-alpha.0) or a stray prerelease tag publishes nothing.
       publish_kind: ${{ steps.mode.outputs.publish_kind }}
       publishes: ${{ steps.mode.outputs.publishes }}
-      # main's nightlies (to the nightly app) and the finals (to the release
-      # app), as scripts/ci/build_mode.sh decides.
+      # Whether to upload to Google Play: the finals and the release/X.Y
+      # betas, to the release app, as scripts/ci/build_mode.sh decides.
       play_upload: ${{ steps.mode.outputs.play_upload }}
       # The Android application id: the release's, or the nightly's own.
       android_package: ${{ steps.mode.outputs.android_package }}
@@ -670,13 +670,13 @@ jobs:
             --filesafe "$ARTIFACT_VERSION" \
             --built-at "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-  # Puts the arm64-v8a app bundle on Google Play's internal testing track, rolled
-  # out to the testers at once, as soon as sign-android has signed it: it
-  # does not wait for provenance, which guards the public update channel and
-  # not the testers.
-  #   - a push to main  -> named nightly-<artifact version>.
-  #   - a version tag   -> named after the tag. Promoting it beyond the
+  # Puts the arm64-v8a app bundle on Google Play's internal testing track,
+  # rolled out to the testers at once, as soon as sign-android has signed it:
+  # it does not wait for provenance, which guards the public update channel
+  # and not the testers. Nightlies never go to Play.
+  #   - a version tag         -> named after the tag. Promoting it beyond the
   #     testers is done by hand in Play Console.
+  #   - a push to release/X.Y -> a beta, named beta-<artifact version>.
   # arm64-v8a alone, as Play wants one bundle per release and phones are ARM;
   # x86_64 is on the update channel.
   #
@@ -684,25 +684,24 @@ jobs:
   # with the upload key, not the release key that signs the APKs: it is the
   # unsigned bundle from build-android, signed again for this one purpose.
   #
-  # Two apps, one per identity (android_package): main's nightlies go to
-  # com.bktus.gpgfrontend.nightly, the finals to com.bktus.gpgfrontend. A final
-  # Play already holds a greater versionCode for (a fix of an older series) is
-  # skipped with a notice, not failed (play_upload.py --only-if-newer).
+  # Both go to com.bktus.gpgfrontend (android_package): a beta is built with
+  # the release identity. A build Play already holds a greater versionCode for
+  # (a fix or beta of an older series) is skipped with a notice, not failed
+  # (play_upload.py --only-if-newer).
   #
-  # Maintainer, once per app, before this can pass:
+  # Maintainer, once, before this can pass:
   #   - create the app in Play Console, enable Play App Signing, and upload a
   #     first bundle there by hand: the API cannot create an app;
-  #   - register the upload key's certificate as the app's upload key (one
-  #     upload key serves both apps);
+  #   - register the upload key's certificate as the app's upload key;
   #   - grant the Google Cloud service account in the environment below
   #     "Release to testing tracks" for the app.
-  # While an app has never been published, Play takes only draft releases:
-  # pass --status draft for it until then.
+  # While the app has never been published, Play takes only draft releases:
+  # pass --status draft until then.
   play-upload:
     needs: [setup, sign-android]
-    # main's nightlies and the finals; never a release/X.Y build, which the
-    # nightly app would take as newer than main's next build. build_mode.sh
-    # decides it (play_upload is only ever true for nightly-main and final).
+    # The finals and the release/X.Y betas; never a main nightly, a base tag
+    # or a prerelease tag. build_mode.sh decides it (play_upload is only ever
+    # true for beta and final).
     if: needs.setup.outputs.play_upload == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -778,8 +777,10 @@ jobs:
           jarsigner -verify "$aab" | grep -x "jar verified."
           keytool -printcert -jarfile "$aab" | grep -E "^[[:space:]]*SHA256:"
 
-      # The ref was already checked by the job's `if:`: a release tag, or
-      # main. The versionCode is the build number cmake/GitVersion.cmake
+      # The ref was already checked by the job's `if:`: a release tag or a
+      # release/X.Y branch. A fix or beta of an older series may find the app
+      # holding a newer release, and is skipped then (--only-if-newer). The
+      # versionCode is the build number cmake/GitVersion.cmake
       # derived; Play must not already hold one as great, or no phone updates.
       - name: Upload To The Internal Track
         env:
@@ -790,17 +791,15 @@ jobs:
           PUBLISH_KIND: ${{ needs.setup.outputs.publish_kind }}
         run: |
           set -euo pipefail
-          newer=()
           if [[ "$PUBLISH_KIND" == "final" ]]; then
             name="$GITHUB_REF_NAME"
-            # A fix of an older series: the release app may hold a newer one.
-            newer=(--only-if-newer)
           else
-            name="nightly-${ARTIFACT_VERSION}"
+            name="beta-${ARTIFACT_VERSION}"
           fi
           python3 -I scripts/android/play_upload.py \
             --package "$ANDROID_PACKAGE" \
             --bundle "$RUNNER_TEMP/play/GpgFrontend-${ARTIFACT_VERSION}-android-arm64-v8a.aab" \
             --track internal \
             --release-name "$name" \
-            --version-code "$BUILD_NUMBER" "${newer[@]}"
+            --version-code "$BUILD_NUMBER" \
+            --only-if-newer

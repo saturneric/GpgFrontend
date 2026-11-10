@@ -101,21 +101,24 @@ fi
 publishes="false"
 [[ "$publish_kind" != "none" ]] && publishes="true"
 
-# Google Play: main's nightlies go to the nightly app, finals to the release
-# app (android_package, below). Each app takes only a versionCode above every
-# one it holds; for a final, play-upload asks Play and skips one that is not
-# (scripts/android/play_upload.py --only-if-newer: a fix of an older series,
-# while the app already holds a newer release). A release/X.Y beta never
-# goes to Play: the nightly app would take it as newer than main's next build.
+# Google Play: the finals and the release/X.Y betas, both to the release app
+# (android_package, below). main's nightlies never go to Play; the nightly
+# application ships through the update channel alone. Play takes only a
+# versionCode above every one the app holds, so play-upload asks Play and
+# skips a build that is not (scripts/android/play_upload.py --only-if-newer:
+# a fix or beta of an older series, while the app already holds a newer one).
 play_upload="false"
 case "$publish_kind" in
-  nightly-main | final) play_upload="true" ;;
+  beta | final) play_upload="true" ;;
 esac
 
 # Stable release builds drop the "Testing" suffix from the app name; nightly
-# and PR builds are both "nightly" to CMake. The bundle identifier is fixed
-# either way, so the App Store provisioning profile matches both.
-if [[ "$build_mode" == "release" ]]; then
+# and PR builds are both "nightly" to CMake. A release/X.Y beta is built as a
+# release too: it is the opt-in beta channel of stable users, so it must
+# install over the release and open its profile, not the nightly's. The bundle
+# identifier is fixed either way, so the App Store provisioning profile
+# matches both.
+if [[ "$build_mode" == "release" || "$publish_kind" == "beta" ]]; then
   gpgfrontend_build_mode="release"
 else
   gpgfrontend_build_mode="nightly"
@@ -137,7 +140,7 @@ fi
 # fails if it is missing.
 screenshot_cmake_flag=""
 if [[ "${SCREENSHOT_INPUT:-false}" == "true" ]]; then
-  if [[ "$build_mode" == "release" ]]; then
+  if [[ "$gpgfrontend_build_mode" == "release" ]]; then
     echo "::error::the screenshot build cannot be a release build" >&2
     exit 1
   fi
