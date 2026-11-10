@@ -39,6 +39,80 @@
 
 namespace GpgFrontend {
 
+namespace {
+
+/**
+ * @brief Catches the secret keys gpg skipped during one export.
+ *
+ * When the agent cannot hand a secret subkey to gpg (its pinentry was
+ * cancelled, the passphrase was wrong), gpg leaves the subkey out, says so in
+ * an "ERROR export_keys.secret <code>" status line and still writes the rest:
+ * the primary key's stub and the user IDs. gpgme (1.24 at least) does not
+ * turn that line into the operation's error, so a subkey export reported
+ * success and the user saved a file without the subkey they asked for.
+ *
+ * While alive, it makes @p ctx pass every status line to it ("full-status")
+ * and keeps the first such error; the destructor restores the context.
+ */
+class SkippedSecretKeyWatch {
+ public:
+  explicit SkippedSecretKeyWatch(gpgme_ctx_t ctx) : ctx_(ctx) {
+    gpgme_get_status_cb(ctx_, &prev_cb_, &prev_value_);
+    const auto* full_status = gpgme_get_ctx_flag(ctx_, "full-status");
+    prev_full_status_ = full_status != nullptr ? full_status : "";
+
+    gpgme_set_status_cb(ctx_, &SkippedSecretKeyWatch::on_status, this);
+    gpgme_set_ctx_flag(ctx_, "full-status", "1");
+  }
+
+  ~SkippedSecretKeyWatch() {
+    gpgme_set_ctx_flag(ctx_, "full-status", prev_full_status_.constData());
+    gpgme_set_status_cb(ctx_, prev_cb_, prev_value_);
+  }
+
+  SkippedSecretKeyWatch(const SkippedSecretKeyWatch&) = delete;
+  auto operator=(const SkippedSecretKeyWatch&)
+      -> SkippedSecretKeyWatch& = delete;
+
+  /**
+   * @brief The error of the first secret key gpg skipped, 0 when none was.
+   */
+  [[nodiscard]] auto Error() const -> gpgme_error_t { return error_; }
+
+ private:
+  gpgme_ctx_t ctx_;
+  gpgme_status_cb_t prev_cb_ = nullptr;
+  void* prev_value_ = nullptr;
+  QByteArray prev_full_status_;
+  gpgme_error_t error_ = GPG_ERR_NO_ERROR;
+
+  static auto on_status(void* opaque, const char* keyword, const char* args)
+      -> gpgme_error_t {
+    auto* self = static_cast<SkippedSecretKeyWatch*>(opaque);
+    if (self->error_ != GPG_ERR_NO_ERROR || keyword == nullptr ||
+        args == nullptr || qstrcmp(keyword, "ERROR") != 0) {
+      return GPG_ERR_NO_ERROR;
+    }
+
+    // "<location> <error code>"
+    const auto fields = QByteArray(args).split(' ');
+    if (fields.size() < 2 || fields[0] != "export_keys.secret") {
+      return GPG_ERR_NO_ERROR;
+    }
+
+    bool ok = false;
+    const auto code = fields[1].toUInt(&ok);
+    // A line without a usable code still means a key was left out.
+    self->error_ =
+        ok && gpgme_err_code(code) != GPG_ERR_NO_ERROR ? code : GPG_ERR_GENERAL;
+
+    // gpg has already moved on to the next key; let it finish.
+    return GPG_ERR_NO_ERROR;
+  }
+};
+
+}  // namespace
+
 auto ImportKeyGnuPGImpl(OpenPGPContext& ctx, const GFBuffer& in_buffer)
     -> QSharedPointer<GpgImportInformation> {
   if (in_buffer.Empty()) return {};
@@ -127,8 +201,10 @@ auto ExportSubkeyGnuPGImpl(OpenPGPContext& ctx, const QString& fpr, bool ascii)
   auto& g_ctx = GpgCtx(ctx);
   GpgData data_out;
   auto* r_ctx = ascii ? g_ctx.DefaultContext() : g_ctx.BinaryContext();
+  SkippedSecretKeyWatch skipped(r_ctx);
   auto err =
       gpgme_op_export(r_ctx, pattern.toLatin1().constData(), mode, data_out);
+  if (gpgme_err_code(err) == GPG_ERR_NO_ERROR) err = skipped.Error();
   if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return {err, {}};
 
   return {err, data_out.Read2GFBuffer()};
