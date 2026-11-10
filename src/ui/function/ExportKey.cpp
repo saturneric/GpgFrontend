@@ -45,11 +45,32 @@ void ExportKey::exec_export(int channel, const GpgKeyPtr& key,
     return;
   }
   const auto options = Shell::KeyExportOptionsFor(kind);
-  const auto secret = options.secret;
-  const auto ascii = options.ascii;
-  const auto shortest = options.shortest;
-  const auto type = options.type;
+  run_export(
+      [=]() {
+        return KeyImportExportOperation::GetInstance(channel).ExportKey(
+            key, options.secret, options.ascii, options.shortest);
+      },
+      Shell::ExportKeyFileName(key->Name(), key->Email(), key->ID(),
+                               options.type));
+}
 
+void ExportKey::ExecSubkey(int channel, const GpgKeyPtr& key,
+                           const QString& subkey_fpr,
+                           const QString& subkey_id) {
+  if (key == nullptr) {
+    deleteLater();
+    return;
+  }
+  run_export(
+      [=]() {
+        return KeyImportExportOperation::GetInstance(channel).ExportSubkey(
+            subkey_fpr, true);
+      },
+      Shell::ExportKeyFileName(key->Name(), key->Email(), subkey_id, "s_key"));
+}
+
+void ExportKey::run_export(const ExportFunction& export_function,
+                           const QString& file_name) {
   // Dialogs are parented to the widget that asked for the export, not to this
   // object: this one deletes itself as soon as the callback is done, and a
   // dialog outliving its parent would take the parent's window with it.
@@ -58,15 +79,13 @@ void ExportKey::exec_export(int channel, const GpgKeyPtr& key,
 
   auto* task = new Thread::Task(
       [=](const DataObjectPtr& data_object) -> int {
-        auto [err, gf_buffer] =
-            KeyImportExportOperation::GetInstance(channel).ExportKey(
-                key, secret, ascii, shortest);
+        auto [err, gf_buffer] = export_function();
         data_object->Swap({err, gf_buffer});
         return 0;
       },
       "key_export", TransferParams(),
       [=](int ret, const DataObjectPtr& data_object) {
-        // Everything below runs long after exec_export() returned; if the
+        // Everything below runs long after run_export() returned; if the
         // window went away in between there is nobody left to show a dialog to.
         if (self.isNull()) return;
 
@@ -86,13 +105,12 @@ void ExportKey::exec_export(int channel, const GpgKeyPtr& key,
         auto err = ExtractParams<GFError>(data_object, 0);
         auto gf_buffer = ExtractParams<GFBuffer>(data_object, 1);
 
+        // A dismissed passphrase prompt is the user's answer, not a failure.
+        if (err.Canceled()) return;
         if (!err.Ok()) {
           RaiseMessageBox(dialog_parent, err);
           return;
         }
-
-        const auto file_name = Shell::ExportKeyFileName(
-            key->Name(), key->Email(), key->ID(), type);
 
         auto filepath = QFileDialog::getSaveFileName(
             dialog_parent, tr("Export Key To File"), file_name,

@@ -66,12 +66,34 @@ class ExportKey : public QWidget {
    */
   void ExecShortPrivate(int channel, const GpgKeyPtr& key);
 
- private:
   /**
-   * @brief Run the export and drive the save dialog.
+   * @brief Export one private subkey of @p key. Asks nothing: the caller
+   * confirms first.
+   *
+   * @param subkey_fpr fingerprint of the subkey to export
+   * @param subkey_id its key id, for the suggested file name
+   */
+  void ExecSubkey(int channel, const GpgKeyPtr& key, const QString& subkey_fpr,
+                  const QString& subkey_id);
+
+ private:
+  using ExportFunction = std::function<std::tuple<GFError, GFBuffer>()>;
+
+  /**
+   * @brief Export one kind of @p key.
    */
   void exec_export(int channel, const GpgKeyPtr& key,
                    Shell::KeyExportKind kind);
+
+  /**
+   * @brief Run @p export_function on the GPG task runner, then drive the save
+   * dialog, offering @p file_name.
+   *
+   * The export may wait on a passphrase prompt, so it never runs on the GUI
+   * thread.
+   */
+  void run_export(const ExportFunction& export_function,
+                  const QString& file_name);
 };
 
 }  // namespace GpgFrontend::UI

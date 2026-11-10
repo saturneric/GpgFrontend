@@ -32,20 +32,19 @@
 #include "core/function/gpg/GpgSmartCardManager.h"
 #endif
 #include "core/function/openpgp/GpgKeyRepository.h"
-#include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/function/openpgp/support/KeyGenerationOpSupport.h"
 #include "core/function/openpgp/support/KeyImportExportOpSupport.h"
 #include "core/function/openpgp/support/KeyManagementOpSupport.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
-#include "core/utils/IOUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/dialog/ADSKsPicker.h"
 #include "ui/dialog/RevocationOptionsDialog.h"
 #include "ui/dialog/key_generate/SubkeyGenerateDialog.h"
 #include "ui/dialog/keypair_details/KeySetExpireDateDialog.h"
 #include "ui/function/DateTimeText.h"
+#include "ui/function/ExportKey.h"
 #include "ui/function/GpgErrorMessageBox.h"
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/function/KeyDatabaseRefresh.h"
@@ -702,36 +701,11 @@ void KeyPairSubkeyTab::slot_export_subkey() {
 
   const auto& s_key = get_selected_subkey();
 
-  auto [err, gf_buffer] =
-      KeyImportExportOperation::GetInstance(current_gpg_context_channel_)
-          .ExportSubkey(s_key.Fingerprint(), true);
-
-  if (!err.Ok()) {
-    RaiseMessageBox(this, err);
-    return;
-  }
-
-  // generate a file name
-#ifdef Q_OS_WINDOWS
-  auto file_string =
-      key_->Name() + "[" + key_->Email() + "](" + s_key.ID() + ")_s_key.asc";
-#else
-  auto file_string =
-      key_->Name() + "<" + key_->Email() + ">(" + s_key.ID() + ")_s_key.asc";
-#endif
-  std::replace(file_string.begin(), file_string.end(), ' ', '_');
-
-  auto file_name = QFileDialog::getSaveFileName(
-      this, tr("Export Key To File"), file_string,
-      tr("Key Files") + " (*.asc *.txt);;All Files (*)");
-
-  if (file_name.isEmpty()) return;
-
-  if (!WriteFileGFBuffer(file_name, gf_buffer)) {
-    QMessageBox::critical(this, tr("Export Error"),
-                          tr("Couldn't open %1 for writing").arg(file_name));
-    return;
-  }
+  // Off the GUI thread, like the other key exports: it waits on gpg-agent's
+  // passphrase prompt, and the window must not freeze while that is up.
+  (new ExportKey(this))
+      ->ExecSubkey(current_gpg_context_channel_, key_, s_key.Fingerprint(),
+                   s_key.ID());
 }
 
 void KeyPairSubkeyTab::slot_delete_subkey() {
