@@ -205,6 +205,11 @@ class OpenPGPContext::Impl {
     key_db_path_ = db_path_info.absoluteFilePath();
     assert(!key_db_path_.isEmpty());
 
+    // Only rPGP keeps its keys in the SQLite database. GnuPG never reads it,
+    // so it must not open it either: a file a newer release has upgraded would
+    // otherwise stop a GnuPG keyring from starting at all.
+    if (engine_ != OpenPGPEngine::kRPGP) return true;
+
     // Published only once Init() has started its owner thread, so no other
     // thread sees the database half set up. Shared with any other context on
     // the same directory, which has already initialised it.
