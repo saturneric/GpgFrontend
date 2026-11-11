@@ -161,12 +161,12 @@ cat > "$dir/client.env" <<EOF
 GF_REHEARSAL_PRODUCT=$slug
 GF_REHEARSAL_UPDATE_BASE=$base/update/
 GF_REHEARSAL_BUILDS_BASE=$base/builds/
-GF_REHEARSAL_INDEX_KEY=$(grep -v '^untrusted' "$dir/keys/index.pub")
+GF_REHEARSAL_TRUST=$dir/trust
 GF_REHEARSAL_CA=$dir/ca.pem
 GF_REHEARSAL_NIGHTLY=$version
 # A client of this mirror: configure a build tree with these (and never
 # distribute it), then Help > Check for Updates.
-GF_REHEARSAL_CMAKE="-DGF_RELEASE_UPDATE_BASES_OVERRIDE=$base/update/ -DGF_RELEASE_BUILDS_BASES_OVERRIDE=$base/builds/ -DGF_RELEASE_INDEX_KEYS_OVERRIDE=$(grep -v '^untrusted' "$dir/keys/index.pub") -DGF_RELEASE_CA_OVERRIDE=$dir/ca.pem"
+GF_REHEARSAL_CMAKE="-DGF_RELEASE_UPDATE_BASES_OVERRIDE=$base/update/ -DGF_RELEASE_BUILDS_BASES_OVERRIDE=$base/builds/ -DGF_RELEASE_TRUST_OVERRIDE=$dir/trust -DGF_RELEASE_CA_OVERRIDE=$dir/ca.pem"
 EOF
 echo "rehearsal: nightly $version published and verified at $base"
 if [ "$serve" = "--serve" ]; then
