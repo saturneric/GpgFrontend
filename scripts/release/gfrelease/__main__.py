@@ -14,7 +14,7 @@
   python3 scripts/release/gfrelease index-keys renew|rotate  the index keys
   python3 scripts/release/gfrelease trust update     main's trust, taken (host)
 
-The product (slug, mirror bases, artifact rules) comes from
+The product (slug, update and build bases, artifact rules) comes from
 release/product.json, the series and withdrawals from release/policy.toml,
 and what is trusted (the build workflow, the maintainers, the index keys)
 from the signed root and index-keys list in release/root/ and
@@ -50,9 +50,8 @@ import stage as stage_mod  # noqa: E402
 import trust  # noqa: E402
 import verify as verify_mod  # noqa: E402
 from common import (MINISIG, ROOT, Product, ReleaseError,  # noqa: E402
-                    atomic_write, iso, load_json, locked, parse_iso, refs,
-                    run, utcnow)
-from common import sha256_file as common_sha256  # noqa: E402
+                    atomic_write, load_json, locked, parse_iso, refs, run,
+                    utcnow)
 from store import Store  # noqa: E402
 
 
@@ -122,25 +121,6 @@ def main(argv=None) -> int:
                          "release/index-keys/, say when each expires")
     rv.add_argument("--from", dest="first", type=int, default=1,
                     help="trust this root on its own signatures, walk on")
-    ri = rsub.add_parser("init", help="the ceremony: three root keys, the "
-                         "first root and index-keys list, signed")
-    ri.add_argument("--key-dir", action="append", default=[],
-                    help="where one root key goes (three times; separate "
-                    "media, never inside the repository)")
-    ri.add_argument("--threshold", type=int, default=2)
-    ri.add_argument("--index-list-key", help="G's public key (.pub)")
-    ri.add_argument("--generate-g", metavar="PATH",
-                    help="make G here instead, outside the repository: "
-                    "import it into the password manager, then delete it")
-    ri.add_argument("-s", dest="secret", help="G's secret key, to sign the "
-                    "index-keys list (default: the one --generate-g made)")
-    ri.add_argument("--legacy-product", help="a product.json with the "
-                    "signing block this replaces (default: the newest one "
-                    "in git history)")
-    ri.add_argument("--dry-run", action="store_true",
-                    help="everything in a new temporary directory, keys "
-                    "without passwords, no questions")
-
     t = sub.add_parser("trust", help="the signing host's trust")
     tu = t.add_subparsers(dest="action", required=True).add_parser(
         "update", help="take main's next roots and index-keys list into "
@@ -200,14 +180,13 @@ def main(argv=None) -> int:
         opt(p, "staging", "the staging store")
         opt(p, "builds", "the final artifact store")
         opt(p, "update", "the index store")
-        opt(p, "mirror_update", "the mirror's index store", )
         opt(p, "git_dir", "this product's git mirror (may be bare)")
         opt(p, "index_key", "minisign secret key for the index")
         opt(p, "index_pub", "its public key (file or base64)")
         opt(p, "state_dir", "where the serial and the lock live")
         opt(p, "cosign", "the cosign binary")
         opt(p, "authenticode_ca", "CA file for Authenticode (a rehearsal's)")
-        flag(p, "fetch", "git fetch the mirror first")
+        flag(p, "fetch", "git fetch the repository mirror first")
         flag(p, "force", "publish even if nothing changed")
         if name == "index":
             flag(p, "dry_run", "decide everything, write nothing: what "
@@ -374,8 +353,6 @@ def root_command(args, slug: str, root_dir: Path, keys_dir: Path) -> int:
         key_id = sign_root(Path(args.file), args.secret)
         print(f"{args.file}: signed by {key_id}")
         return 0
-    if args.action == "init":
-        return root_init(args, slug, root_dir, keys_dir)
     if args.action == "new":
         root = trust.walk(trust.read_dir(root_dir), slug, steps=None)
         if root is None:
@@ -400,161 +377,6 @@ def outside_repository(path: str) -> Path:
     if p == ROOT or ROOT in p.parents:
         raise ReleaseError(f"{p} is inside the repository")
     return p
-
-
-def legacy_product(path: str | None) -> dict:
-    """release/product.json as it was before the trust root, signing block
-    and all: from @p path, or the newest commit whose product.json still
-    had one."""
-    if path:
-        return json.loads(Path(path).read_text())
-    commits = run(["git", "-C", ROOT, "log", "--format=%H", "--",
-                   "release/product.json"]).stdout.split()
-    for commit in commits:
-        data = json.loads(run(["git", "-C", ROOT, "show",
-                               f"{commit}:release/product.json"]).stdout)
-        if "signing" in data:
-            return data
-    raise ReleaseError("no product.json with a signing block in history")
-
-
-def confirm(question: str) -> bool:
-    """A yes or a no typed now: what was typed before (the Enter after
-    minisign's last password) is dropped, and nothing else is an answer."""
-    if sys.stdin.isatty():
-        import termios
-        termios.tcflush(sys.stdin, termios.TCIFLUSH)
-    while True:
-        try:
-            answer = input(question).strip().lower()
-        except EOFError:
-            return False
-        if answer in ("yes", "no"):
-            return answer == "yes"
-
-
-def root_init(args, slug: str, root_dir: Path, keys_dir: Path) -> int:
-    """The root ceremony, from the commands above: nothing is committed."""
-    import tempfile
-    first = root_dir / layout.root_name(1)
-    if args.dry_run:
-        tmp = Path(tempfile.mkdtemp(prefix="gfr-ceremony-"))
-        key_dirs = [tmp / f"key-{i}" for i in (1, 2, 3)]
-        for d in key_dirs:
-            d.mkdir()
-        g_pub, g_out = None, tmp / "g.key"
-        root_dir, keys_dir = tmp / "root", tmp / "index-keys"
-        root_dir.mkdir()
-        keys_dir.mkdir()
-        first = root_dir / layout.root_name(1)
-        password = ["-W"]
-    else:
-        # What it writes, and what is committed with it, must be as checked
-        # out: anything else in the tree is not its business.
-        dirty = run(["git", "-C", ROOT, "status", "--porcelain", "--",
-                     "release/root", "release/index-keys",
-                     "SECURITY.md"]).stdout.strip()
-        if dirty:
-            raise ReleaseError("release/root/, release/index-keys/ and "
-                               f"SECURITY.md must be as checked out:\n{dirty}")
-        if first.exists() or (keys_dir / layout.index_keys_name(1)).exists():
-            raise ReleaseError(f"{first} or index-keys 1 exists already")
-        if len(args.key_dir) != 3:
-            raise ReleaseError("give --key-dir three times")
-        key_dirs = [outside_repository(d) for d in args.key_dir]
-        if not args.index_list_key and not args.generate_g:
-            raise ReleaseError("give --index-list-key or --generate-g")
-        g_pub = Path(args.index_list_key) if args.index_list_key else None
-        g_out = outside_repository(args.generate_g) if args.generate_g \
-            else None
-        password = []
-    legacy = legacy_product(args.legacy_product)
-    signing = legacy["signing"]
-
-    def generate(secret: Path) -> str:
-        pub = secret.with_name(secret.name + ".pub")
-        if secret.exists() or pub.exists():
-            raise ReleaseError(f"{secret} exists")
-        # minisign asks for the password on the terminal (none with -W).
-        run(["minisign", "-G", *password, "-s", secret, "-p", pub],
-            capture_output=False)
-        return minisig.public_key_of(pub)
-
-    root_keys = [generate(d / "root.key") for d in key_dirs]
-    g = generate(g_out) if g_out else minisig.public_key_of(g_pub)
-    if g in root_keys:
-        raise ReleaseError("G is one of the root keys")
-    now = utcnow()
-    head = {"schema": 1, "product": slug, "version": 1}
-    root = dict(head, type=trust.ROOT,
-                expires=iso(now + trust.ROOT_LIFETIME),
-                keys={minisig.key_id(k): k for k in root_keys + [g]},
-                roles={"root": {"keyids": [minisig.key_id(k)
-                                           for k in root_keys],
-                                "threshold": args.threshold},
-                       "index_list": {"keyids": [minisig.key_id(g)],
-                                      "threshold": 1}},
-                host_policy={
-                    "repository": legacy["repository"],
-                    "workflow": legacy["workflow"],
-                    "authenticode_subject":
-                        signing.get("authenticode_subject", ""),
-                    "authenticode_subjects_retired":
-                        signing.get("authenticode_subjects_retired", []),
-                    "authenticode_timestamp":
-                        signing.get("authenticode_timestamp", "required"),
-                    "stable_pgp": {
-                        "fingerprints": signing["maintainer_fingerprints"],
-                        "fingerprints_retired": signing.get(
-                            "maintainer_fingerprints_retired", [])}})
-    keys = dict(head, type=trust.INDEX_KEYS,
-                expires=iso(now + trust.INDEX_KEYS_LIFETIME),
-                keys={minisig.key_id(k): k for k in signing["index_keys"]})
-    trust.load(trust.dump(root), "1.root.json", trust.ROOT, slug)
-    lst = keys_dir / layout.index_keys_name(1)
-    write_new(first, trust.dump(root))
-    write_new(lst, trust.dump(keys))
-    print(f"{first}:\n{trust.dump(root).decode()}\n{lst}:\n"
-          f"{trust.dump(keys).decode()}")
-    print("Carried over from the old product.json, check them: retired "
-          "maintainer fingerprints "
-          f"{root['host_policy']['stable_pgp']['fingerprints_retired']}, "
-          "retired Authenticode subjects "
-          f"{root['host_policy']['authenticode_subjects_retired']}. Every "
-          "admitted release is checked again under this root.")
-    if not args.dry_run and not confirm("Sign these? Type yes or no: "):
-        for f in (first, lst):
-            f.unlink()
-        made = [str(d / "root.key") for d in key_dirs] + \
-            ([str(g_out)] if g_out else [])
-        print("nothing signed; both files removed. The keys made for them "
-              "are unused: delete them before running again:\n  " +
-              "\n  ".join(made))
-        return 1
-    for d in key_dirs[:args.threshold]:
-        sign_root(first, str(d / "root.key"))
-    secret = args.secret or g_out
-    if secret is None:
-        raise ReleaseError("give -s with G's secret key to sign the list")
-    sign_index_keys(lst, str(secret), slug, 1)
-    root, keys = trust.load_trust(root_dir, keys_dir, slug,
-                                  common_sha256(first))
-    report_trust(root, keys)
-    print(f"\nGFR_ROOT_SHA256={common_sha256(first)}")
-    for d, k in zip(key_dirs, root_keys):
-        print(f"root key {minisig.key_id(k)}: {d}")
-    print(f"G (index_list) {minisig.key_id(g)}" +
-          (f": {g_out} (import it into the password manager, then delete "
-           "it)" if g_out else ""))
-    if args.dry_run:
-        print(f"dry run: everything is in {root_dir.parent}")
-        return 0
-    print("\nnext, on this branch:\n"
-          "  python3 scripts/release/policy.py render-security\n"
-          "  git add release/root release/index-keys SECURITY.md\n"
-          "  git commit -m 'release: the first trust root'\n"
-          "then set GFR_ROOT_SHA256 on the signing host.")
-    return 0
 
 
 def index_keys_command(args, slug: str, root_dir: Path,
@@ -683,8 +505,6 @@ def host_round(args, product: Product, rclone: str) -> int:
     host = host_mod.Host(
         product, Store(args.builds, rclone), Path(args.state_dir),
         staging=store(args.staging), update=store(args.update),
-        mirrors=[Store(args.mirror_update, rclone)]
-        if args.mirror_update else [],
         git_dir=path(args.git_dir), index_key=path(args.index_key),
         # Every listed index key: what a client accepts.
         index_pub=product.index_keys,

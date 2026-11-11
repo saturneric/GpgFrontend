@@ -5,16 +5,16 @@
 Built from the release policy and the descriptors in the builds store: main's
 newest promoted build is the nightly channel, a release branch's is the beta
 of its series, and a stable or imported release is listed only once its
-maintainer signatures verified. Signed with the product's index key
-(trusted comment "product=<slug> serial=<n>") and published to the update
-store, then the mirrors. A run whose index would say nothing new, and is
+maintainer signatures verified. Signed with an index key the trusted
+index-keys list names (trusted comment "product=<slug> serial=<n>") and
+published to the update store, after the root and list it names. A run whose index would say nothing new, and is
 not near expiry, publishes nothing; `resign` publishes regardless, to push
 `expires` out.
 
 The serial only grows: it is one more than both the host's own record and the
 published index, so a client that has seen serial n never accepts an older
 index again (its anti-rollback check), even after the host lost its state.
-Of the published index only one that verifies with a pinned index key is
+Of the published index only one that verifies with a listed index key is
 believed, for its serial as for anything else: the update store is a bucket,
 and what sits in it is not the host's word until the signature says so.
 """
@@ -894,13 +894,13 @@ def dry_run(product: Product, builds: Store, update: Store, *,
 
 def publish(product: Product, builds: Store, update: Store, *,
             index_key: Path, index_pub: list[str],
-            state_dir: Path, force: bool = False, mirrors: list[Store] = (),
+            state_dir: Path, force: bool = False,
             git_dir: Path | None = None, cosign: str = "cosign",
             authenticode_ca: str | None = None) -> dict | None:
     """Builds, signs and publishes the index; None when it would say nothing
     new, is not near expiry and is whole where it is published. Raises
-    IndexIncomplete, after publishing, when any release was refused or a
-    mirror could not be written. @p index_pub: the index keys clients pin.
+    IndexIncomplete, after publishing, when any release was refused.
+    @p index_pub: the index keys clients take.
     Only a published index one of them signed is believed, and nothing is
     published that none of them verifies."""
     keys = list(index_pub)
@@ -911,9 +911,7 @@ def publish(product: Product, builds: Store, update: Store, *,
                     authenticode_ca=authenticode_ca, refused=refused,
                     previous=before[0] if before else None)
     index = _sign_and_publish(product, content, update, index_key=index_key,
-                              state_dir=state_dir, force=force,
-                              mirrors=list(mirrors), keys=keys,
-                              problems=refused)
+                              state_dir=state_dir, force=force, keys=keys)
     if refused:
         raise IndexIncomplete(refused, index)
     return index
@@ -940,28 +938,9 @@ def _put_trust(store: Store, files: list[tuple[Path, str]]) -> None:
         store.put_file(local, path)
 
 
-def _sync_mirrors(data: bytes, sig: bytes, mirrors: list[Store],
-                  problems: Problems, trust: list[tuple[Path, str]]) -> None:
-    """Each mirror holds the update store's index, byte for byte, and the
-    trust it names."""
-    for mirror in mirrors:
-        try:
-            if mirror.exists(INDEX) and mirror.read(INDEX) == data and \
-                    mirror.exists(INDEX + MINISIG) and \
-                    mirror.read(INDEX + MINISIG) == sig:
-                continue
-            _put_trust(mirror, trust)
-            # As _sign_and_publish: the signature first.
-            mirror.put_bytes(sig, INDEX + MINISIG, immutable=False)
-            mirror.put_bytes(data, INDEX, immutable=False)
-        except ReleaseError as e:
-            problems.note(f"mirror {mirror}", e)
-
-
 def _sign_and_publish(product: Product, content: dict, update: Store, *,
                       index_key: Path, state_dir: Path, force: bool,
-                      mirrors: list[Store], keys: list[str],
-                      problems: Problems) -> dict | None:
+                      keys: list[str]) -> dict | None:
     # Read again, after admission (which can take long): what is there now.
     # Whole and verified, or it does not count: an index whose signature is
     # missing (a run that died between the two uploads) or does not verify
@@ -973,7 +952,6 @@ def _sign_and_publish(product: Product, content: dict, update: Store, *,
     if previous is not None and not force:
         same = {k: v for k, v in previous.items() if k not in VOLATILE} == content
         if same and parse_iso(previous["expires"]) - now > RESIGN_BEFORE:
-            _sync_mirrors(before[1], before[2], mirrors, problems, trust)
             return None
 
     state_dir.mkdir(parents=True, exist_ok=True)
@@ -1031,12 +1009,4 @@ def _sign_and_publish(product: Product, content: dict, update: Store, *,
         # then fails to go live is only a serial skipped.
         keep(update)
         go_live(update)
-        for mirror in mirrors:
-            # A mirror serves clients: the index goes live there whatever
-            # becomes of its copy of the history.
-            for step in (go_live, keep):
-                try:
-                    step(mirror)
-                except ReleaseError as e:
-                    problems.note(f"mirror {mirror}", e)
     return index

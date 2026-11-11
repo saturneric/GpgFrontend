@@ -23,7 +23,7 @@ or a line starting "published serial".
 from __future__ import annotations
 
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 import index as index_mod
@@ -46,7 +46,6 @@ class Host:
     state_dir: Path
     staging: Store | None = None
     update: Store | None = None
-    mirrors: list[Store] = field(default_factory=list)
     git_dir: Path | None = None
     index_key: Path | None = None
     index_pub: list[str] | None = None
@@ -54,8 +53,8 @@ class Host:
     authenticode_ca: str | None = None
 
     def fetch(self) -> None:
-        """The mirror brought up to date: the version promote derives and
-        the notes and tags index admits are all read from it."""
+        """The repository mirror brought up to date: the version promote
+        derives and the notes and tags index admits are all read from it."""
         run(["git", "-C", self.git_dir, "fetch", "--quiet", "--prune",
              "--tags", "origin"])
 
@@ -120,7 +119,7 @@ class Host:
             index = index_mod.publish(
                 self.product, self.builds, self.update,
                 index_key=self.index_key, state_dir=self.state_dir,
-                force=force, mirrors=self.mirrors, git_dir=self.git_dir,
+                force=force, git_dir=self.git_dir,
                 cosign=self.cosign, authenticode_ca=self.authenticode_ca,
                 index_pub=self.index_pub)
         except index_mod.IndexIncomplete as e:
