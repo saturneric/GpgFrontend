@@ -12,6 +12,7 @@ Run: python3 -m unittest discover -s scripts/tests
 """
 
 import contextlib
+import datetime as dt
 import fnmatch
 import io
 import json
@@ -23,6 +24,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 GFR = ROOT / "scripts" / "release" / "gfrelease"
@@ -41,45 +43,20 @@ import trust  # noqa: E402
 import verify as verify_mod  # noqa: E402
 from store import Store, StoreUnavailable  # noqa: E402
 from test_release_candidate import FAKE_COSIGN  # noqa: E402
-
-def tools(*names: str) -> bool:
-    """Whether every command is installed. With GF_REQUIRE_RELEASE_TOOLS=1
-    (CI's setup job) a missing one fails the run instead of skipping the
-    tests that need it: a chain test skipped in CI is a chain untested."""
-    listed = {line.split()[0] for line in
-              (ROOT / "scripts" / "release" / "tools.txt").read_text()
-              .splitlines() if line.strip() and not line.startswith("#")}
-    unlisted = set(names) - listed - {"gpgconf"}
-    if unlisted:
-        raise AssertionError(f"not in scripts/release/tools.txt: {unlisted}")
-    missing = [n for n in names if not shutil.which(n)]
-    if missing and os.environ.get("GF_REQUIRE_RELEASE_TOOLS") == "1":
-        raise AssertionError(f"GF_REQUIRE_RELEASE_TOOLS=1, but {missing} "
-                             "are not installed")
-    return not missing
+from trustutil import git_env, keypair, tools, write_root  # noqa: E402
 
 
 TOOLS = tools("minisign", "rclone", "git", "cmake")
 ISSUER = "https://token.actions.githubusercontent.com"
 
 
-def git_env():
-    env = {k: v for k, v in os.environ.items()
-           if not k.startswith("GITHUB_") and k != "CI"}
-    env.update({"GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@example.org",
-                "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@example.org",
-                "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1"})
-    return env
-
-
-def keypair(directory: Path, name: str) -> tuple[Path, str]:
-    sec, pub = directory / f"{name}.key", directory / f"{name}.pub"
-    subprocess.run(["minisign", "-G", "-W", "-s", sec, "-p", pub], check=True,
-                   capture_output=True)
-    return sec, minisig.public_key_of(pub)
-
-
 TRUST_KEYS = Path(__file__).resolve().parent / "fixtures" / "trust" / "keys"
+
+
+def published(update: Store) -> dict:
+    """The index in @p update as it stands, unverified: what a test looks
+    at after the run that published it."""
+    return common.load_json(update.read(common.INDEX), common.INDEX)
 
 
 def make_product(directory: Path, index_pubs, after=None,
@@ -138,15 +115,9 @@ def make_product(directory: Path, index_pubs, after=None,
 def sign_root(product: common.Product, doc: dict) -> None:
     """@p doc as the next root of @p product's trust, signed by root keys
     a and b."""
-    n = doc["version"]
-    path = product.root_dir / layout.root_name(n)
-    path.write_bytes(trust.dump(doc))
-    for name in ("root-a", "root-b"):
-        key_id = minisig.key_id(minisig.public_key_of(
-            TRUST_KEYS / f"{name}.pub"))
-        minisig.sign(TRUST_KEYS / f"{name}.key", path,
-                     layout.root_comment("gpgfrontend", n),
-                     product.root_dir / layout.root_sig_name(n, key_id))
+    write_root(product.root_dir, doc,
+               [TRUST_KEYS / f"{name}.key" for name in ("root-a", "root-b")],
+               "gpgfrontend")
     product._trust = None  # read again
 
 
@@ -460,7 +431,9 @@ class ChainTest(unittest.TestCase):
         self.resign(stray)
         self.assert_refused(self.check, "not the newest|does not list")
 
-    def test_an_index_from_before_the_per_series_beta_still_verifies(self):
+    def test_a_beta_no_series_offers_is_refused(self):
+        # The shape of an index from before each series named its own beta:
+        # none is live any more, and the top-level beta alone is not one.
         self.git("checkout", "-q", "-b", "release/2.2", "v2.2.4")
         self.commit()
         self.build(ref="refs/heads/release/2.2")
@@ -469,7 +442,7 @@ class ChainTest(unittest.TestCase):
         for entry in old["series"].values():
             del entry["beta"]
         self.resign(old)
-        self.check()
+        self.assert_refused(self.check, "not the newest")
 
     def test_a_published_index_the_host_did_not_sign_is_not_believed(self):
         self.commit()
@@ -784,7 +757,7 @@ class ChainTest(unittest.TestCase):
         self.assertIn(branch_version.replace("+", "-"),
                       "\n".join(caught.exception.refused))
         self.assertEqual(caught.exception.index["channels"]["nightly"], version)
-        self.assertEqual(index_mod.published(self.update)["serial"], 1)
+        self.assertEqual(published(self.update)["serial"], 1)
         self.check()
 
     def test_one_bad_candidate_does_not_block_the_others(self):
@@ -1037,6 +1010,10 @@ class ChainTest(unittest.TestCase):
                 super().put_file(local, path, immutable)
 
         self.update = Recording(self.update.root)
+        # What a crash can leave beside the trust files: never published.
+        for name in ("1.root.json.new", "1.root.json.new.minisig",
+                     "01.root.json"):
+            (self.product.root_dir / name).write_text("left behind\n")
         self.commit()
         self.build()
         self.promote()
@@ -1071,12 +1048,70 @@ class ChainTest(unittest.TestCase):
         self.assert_refused(lambda: self.check(deep=False),
                             "names root 2")
 
+    def test_a_candidate_that_cannot_be_read_still_lets_the_index_go(self):
+        # A candidate the staging lifecycle deleted while it was being
+        # fetched (or a disk that filled up): an OSError, no verdict on it.
+        self.commit()
+        _, version = self.build()
+        self.promote()
+        self.commit()
+        self.build()
+
+        def vanished(*_args, **_kw):
+            raise FileNotFoundError("staged.json")
+        with mock.patch.object(promote_mod, "promote_one", vanished):
+            status, out, err = self.round()
+        self.assertEqual(status, host_mod.FAILED, err)
+        self.assertIn("staged.json", err)
+        # The index was still built from what is there.
+        self.assertIn(f"{host_mod.PUBLISHED} 1", out)
+        self.assertEqual(published(self.update)["channels"]["nightly"],
+                         version)
+
+    def test_a_minisign_that_does_not_run_never_replaces_the_index(self):
+        # Taking it for "not an index this host signed" would build the
+        # next one without what the published one lists.
         self.commit()
         self.build()
         self.promote()
+        self.index()
+        with mock.patch.object(minisig, "run",
+                               side_effect=common.ToolFailed("no minisign")):
+            with self.assertRaisesRegex(common.ToolFailed, "no minisign"):
+                index_mod.trusted_published(self.product, self.update,
+                                            [self.idx_pub])
 
+    def test_verify_reads_the_index_as_a_client_does(self):
         self.commit()
+        self.build()
         self.promote()
+        self.index()
+        index = published(self.update)
+        comment = layout.index_comment(self.slug, index["serial"])
+        verify_mod.check_index(self.product, index, comment)
+        expires = common.parse_iso(index["expires"])
+        for generated, why in (
+                (common.iso(expires - verify_mod.MAX_INDEX_LIFETIME
+                            - dt.timedelta(seconds=1)),
+                 "longer than any client takes"),
+                (None, "UTC time"), ("2026-1-1T00:00:00Z", "UTC time")):
+            with self.subTest(generated):
+                self.assert_refused(lambda: verify_mod.check_index(
+                    self.product, dict(index, generated_at=generated),
+                    comment), why)
+        # A day past its expiry is still a clock that is off, as for clients.
+        later = common.iso(expires + dt.timedelta(hours=12))
+        with mock.patch.dict(os.environ, {"GFR_NOW": later}):
+            verify_mod.check_index(self.product, index, comment)
+
+    def test_notes_no_client_would_read_are_refused(self):
+        notes = self.repo / "release" / "notes" / "2.3.0.md"
+        notes.parent.mkdir(parents=True)
+        notes.write_bytes(b"x" * (common.NOTES_LIMIT + 1))
+        self.git("add", "release")
+        self.commit()
+        self.assert_refused(lambda: common.notes_at(
+            self.repo, common.refs.MAIN, "2.3.0"), "no client reads")
 
     def forge_staged(self, prefix, staged, **changes):
         """A staged.json in the untrusted staging bucket, written by anyone."""
@@ -1974,7 +2009,7 @@ class StableTest(unittest.TestCase):
 
     def test_signatures_made_before_the_tag_are_refused(self):
         self.admitted()
-        entry = index_mod.published(self.update)["releases"]["2.3.0"]
+        entry = published(self.update)["releases"]["2.3.0"]
         self.assertEqual(set(entry["signatures"]),
                          {a["name"] for a in json.loads(self.builds.read(
                              entry["descriptor"]))["artifacts"]})
@@ -1997,7 +2032,7 @@ class StableTest(unittest.TestCase):
 
     def test_an_outage_keeps_a_listed_release_listed(self):
         self.admitted()
-        before = index_mod.published(self.update)
+        before = published(self.update)
         flaky = Store(str(self.tmp / "builds" / self.product.slug),
                       rclone=flaky_rclone(self.tmp, "releases/2.3.0"))
         with self.assertRaises(index_mod.IndexIncomplete) as caught:
@@ -2079,7 +2114,7 @@ class StableTest(unittest.TestCase):
         (an expiry extended, a key added): the release stays listed with
         the notes it had, once they verify again."""
         self.admitted()
-        first = index_mod.published(self.update)["releases"]["2.3.0"]
+        first = published(self.update)["releases"]["2.3.0"]
         (self.repo / "release" / "notes" / "2.3.0.md").write_text(
             "## 2.3.0\n\n- Everything, signed. Fixed.\n")
         self.git("commit", "-qam", "notes: typo")
@@ -2130,7 +2165,7 @@ class StableTest(unittest.TestCase):
 
     def test_notes_main_changed_keep_the_admitted_ones_when_they_fail(self):
         self.admitted()
-        before = index_mod.published(self.update)["releases"]["2.3.0"]
+        before = published(self.update)["releases"]["2.3.0"]
         (self.repo / "release" / "notes" / "2.3.0.md").write_text(
             "## 2.3.0\n\n- Everything, signed. Fixed.\n")
         self.git("commit", "-qam", "notes: typo")

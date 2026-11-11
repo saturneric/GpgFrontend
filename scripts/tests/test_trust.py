@@ -16,14 +16,17 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 HERE = Path(__file__).resolve().parent
-GFRELEASE = HERE.parent / "release" / "gfrelease"
-sys.path.insert(0, str(GFRELEASE))
+sys.path.insert(0, str(HERE))
 
+from trustutil import (GFRELEASE, gfrelease_env, git_env, keypair,  # noqa: E402
+                       tools, write_root)
 import common  # noqa: E402
 import layout  # noqa: E402
 import minisig  # noqa: E402
+import policy as policy_mod  # noqa: E402
 import trust  # noqa: E402
 
 FIXTURE = HERE / "fixtures" / "trust"
@@ -37,22 +40,20 @@ def fixture_key(name: str) -> tuple[Path, str, str]:
 
 
 def new_key(directory: Path, name: str) -> tuple[Path, str, str]:
-    secret, pub = directory / f"{name}.key", directory / f"{name}.pub"
-    subprocess.run(["minisign", "-G", "-W", "-s", secret, "-p", pub],
-                   check=True, capture_output=True)
-    key = minisig.public_key_of(pub)
+    secret, key = keypair(directory, name)
     return secret, key, minisig.key_id(key)
 
 
-def cli(*args: str, check: bool = True) -> subprocess.CompletedProcess:
+def cli(*args: str, check: bool = True, **env) -> subprocess.CompletedProcess:
     out = subprocess.run([sys.executable, str(GFRELEASE), *args],
-                         capture_output=True, text=True)
+                         capture_output=True, text=True,
+                         env=gfrelease_env(**env))
     if check and out.returncode != 0:
         raise AssertionError(out.stderr)
     return out
 
 
-@unittest.skipUnless(shutil.which("minisign"), "needs minisign")
+@unittest.skipUnless(tools("minisign"), "needs minisign")
 class TrustTest(unittest.TestCase):
 
     def setUp(self):
@@ -71,16 +72,8 @@ class TrustTest(unittest.TestCase):
     def sig(self, n: int, name: str) -> Path:
         return self.root / layout.root_sig_name(n, fixture_key(name)[2])
 
-    def write_root(self, n: int, doc: dict, signers) -> Path:
-        path = self.root / layout.root_name(n)
-        path.write_bytes(trust.dump(doc))
-        for secret in signers:
-            minisig.sign(secret, path, layout.root_comment(SLUG, n),
-                         self.tmp / "sig")
-            key_id = minisig.prehashed_key_id((self.tmp / "sig").read_bytes())
-            (self.tmp / "sig").replace(self.root /
-                                       layout.root_sig_name(n, key_id))
-        return path
+    def write_root(self, doc: dict, signers) -> Path:
+        return write_root(self.root, doc, signers, SLUG)
 
     # --- the root chain -------------------------------------------------
 
@@ -107,7 +100,7 @@ class TrustTest(unittest.TestCase):
                for i in root1["roles"]["index_list"]["keyids"]}))
         root2["roles"] = dict(root1["roles"], root={
             "keyids": [k[2] for k in new], "threshold": 2})
-        self.write_root(2, root2, [k[0] for k in new])
+        self.write_root(root2, [k[0] for k in new])
         with self.assertRaisesRegex(common.ReleaseError,
                                     "0 of root 1's root keys"):
             self.walk()
@@ -157,7 +150,24 @@ class TrustTest(unittest.TestCase):
         self.assertEqual(root1["version"], 1)
         root2 = trust.walk(trust.read_dir(self.root), SLUG, root1, steps=1)
         self.assertEqual(root2["version"], 2)
-        self.assertEqual(trust.MAX_STEPS, 32)
+
+    def test_only_signatures_that_verified_are_kept(self):
+        # c is a root key of root 1 that did not sign root 2: its file there
+        # is garbage, and must never be published with root 2.
+        self.sig(2, "root-c").write_text("garbage\n")
+        kept = {}
+        self.walk(keep=lambda n, data, sigs: kept.update({n: set(sigs)}))
+        a, b, d = (fixture_key(n)[2] for n in ("root-a", "root-b", "root-d"))
+        self.assertEqual(kept[2], {a, b, d})
+        self.assertNotIn(fixture_key("root-c")[2], kept[2])
+
+    def test_a_minisign_that_does_not_run_is_no_verdict(self):
+        # Not "signed by 0 of root 1's keys", which would read as a root
+        # nobody signed and be reported as lasting.
+        with mock.patch.object(minisig, "run",
+                               side_effect=common.ToolFailed("no minisign")):
+            with self.assertRaisesRegex(common.ToolFailed, "no minisign"):
+                self.walk()
 
     def test_the_first_root_must_be_the_anchor(self):
         anchor = common.sha256_file(self.root / "1.root.json")
@@ -170,7 +180,7 @@ class TrustTest(unittest.TestCase):
         doc["roles"]["index_list"]["keyids"] = [
             doc["roles"]["root"]["keyids"][0]]
         with self.assertRaisesRegex(common.ReleaseError, "also a root key"):
-            trust.load(json.dumps(doc).encode(), "1", trust.ROOT, SLUG)
+            trust.load(json.dumps(doc).encode(), "1", trust.ROOT_KIND, SLUG)
 
     def test_a_key_listed_under_another_id_is_refused(self):
         doc = json.loads((self.root / "1.root.json").read_text())
@@ -178,14 +188,42 @@ class TrustTest(unittest.TestCase):
         doc["keys"][ids[0]], doc["keys"][ids[1]] = \
             doc["keys"][ids[1]], doc["keys"][ids[0]]
         with self.assertRaisesRegex(common.ReleaseError, "not the key"):
-            trust.load(json.dumps(doc).encode(), "1", trust.ROOT, SLUG)
+            trust.load(json.dumps(doc).encode(), "1", trust.ROOT_KIND, SLUG)
+
+    def test_a_key_listed_twice_in_a_role_is_refused(self):
+        # One key listed twice would count twice toward the threshold.
+        doc = json.loads((self.root / "1.root.json").read_text())
+        a = doc["roles"]["root"]["keyids"][0]
+        doc["roles"]["root"]["keyids"] = [a, a]
+        with self.assertRaisesRegex(common.ReleaseError, "roles.root"):
+            trust.load(json.dumps(doc).encode(), "1", trust.ROOT_KIND, SLUG)
+
+    def test_an_expiry_is_written_whole(self):
+        # Qt's ISO reader, in the update check, refuses fields that are not
+        # zero-padded: a root it cannot read is never one this takes.
+        doc = json.loads((self.root / "1.root.json").read_text())
+        for expires in ("2028-1-5T00:00:00Z", "2028-01-05T00:00:00.000Z",
+                        "2028-01-05T00:00:00+02:00", "2028-01-05"):
+            doc["expires"] = expires
+            with self.subTest(expires), \
+                    self.assertRaisesRegex(common.ReleaseError, "UTC time"):
+                trust.load(json.dumps(doc).encode(), "1", trust.ROOT_KIND,
+                           SLUG)
 
     def test_only_the_newest_root_must_be_unexpired(self):
-        doc = json.loads((self.root / "3.root.json").read_text())
-        self.assertIsNone(trust.check_unexpired(doc, "root 3"))
-        doc["expires"] = "2020-01-01T00:00:00Z"
+        # Root 2 expired long ago; root 3 still follows it, and is all
+        # that has to be unexpired.
+        root2 = json.loads((self.root / "2.root.json").read_text())
+        root2["expires"] = "2020-01-01T00:00:00Z"
+        for path in self.root.glob("2.root.json.*"):
+            path.unlink()
+        self.write_root(root2, [fixture_key(n)[0]
+                                for n in ("root-a", "root-b", "root-d")])
+        root3 = self.walk()
+        self.assertEqual(root3["version"], 3)
+        self.assertIsNone(trust.check_unexpired(root3, "root 3"))
         with self.assertRaisesRegex(common.ReleaseError, "expired"):
-            trust.check_unexpired(doc, "root 3")
+            trust.check_unexpired(root2, "root 2")
 
     # --- the index-keys list --------------------------------------------
 
@@ -313,8 +351,7 @@ class TrustTest(unittest.TestCase):
                           "2.json.minisig"])
 
 
-@unittest.skipUnless(shutil.which("minisign") and shutil.which("git"),
-                     "needs minisign and git")
+@unittest.skipUnless(tools("minisign", "git"), "needs minisign and git")
 class TrustUpdateTest(unittest.TestCase):
     """The signing host's `gfrelease trust update`: main's trust files,
     from a mirror, into its state."""
@@ -331,9 +368,8 @@ class TrustUpdateTest(unittest.TestCase):
         shutil.rmtree(self.tmp, ignore_errors=True)
 
     def git(self, *args):
-        subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t",
-                        *args], cwd=self.repo, check=True,
-                       capture_output=True)
+        subprocess.run(["git", *args], cwd=self.repo, env=git_env(),
+                       check=True, capture_output=True)
 
     def main_has(self, roots=(1, 2, 3), lists=(1, 2), extra=None):
         """main's release/root/ and release/index-keys/: these of the
@@ -353,7 +389,7 @@ class TrustUpdateTest(unittest.TestCase):
         self.git("commit", "-q", "--allow-empty", "-m", "trust")
 
     def update(self, anchor=None, now=None):
-        env = dict(os.environ, GFR_NOW=now) if now else None
+        env = gfrelease_env(**({"GFR_NOW": now} if now else {}))
         return subprocess.run(
             [sys.executable, str(GFRELEASE),
              "--root-dir", str(self.state / "root"),
@@ -431,6 +467,18 @@ class TrustUpdateTest(unittest.TestCase):
         floor = json.loads((self.state / "index-keys" /
                             "floor.json").read_text())
         self.assertEqual(floor["version"], 2)
+
+    def test_a_list_named_another_way_is_not_one(self):
+        # 01.json is not version 1 (and once stopped the whole update).
+        listed = (FIXTURE / "index-keys" / "2.json").read_bytes()
+        self.main_has(extra={"index-keys/01.json": listed,
+                             "index-keys/2.json.new": listed})
+        out = self.update()
+        self.assertEqual(out.returncode, 0, out.stderr)
+        self.assertEqual(self.trusted()[1]["version"], 2)
+        self.assertEqual(policy_mod.numbered(
+            ["01.json", "1.json", "2.json.new", "x.json", "10.json"],
+            policy_mod.INDEX_KEYS_FILE), [1, 10])
 
     def test_an_expiry_near_is_reported_and_one_past_stops(self):
         self.main_has()

@@ -280,8 +280,7 @@ class PolicyCheckTest(unittest.TestCase):
 class SecurityRenderTest(unittest.TestCase):
     def test_repository_security_md_is_current(self):
         current = policy.SECURITY.read_text(encoding="utf-8")
-        # Red until release/root/1.root.json is committed (gfrelease root
-        # init): SECURITY.md's keys are the root's.
+        # SECURITY.md's keys are the newest signed root's.
         rendered = policy.render_security(current, policy.load_policy(),
                                           policy.newest_root())
         self.assertEqual(current, rendered,
@@ -289,11 +288,34 @@ class SecurityRenderTest(unittest.TestCase):
 
     def test_table_follows_the_policy(self):
         table = policy.render_versions(POLICY)
-        self.assertIn("| 2.1.x | Security fixes only; move to 2.2.x | "
-                      ":white_check_mark: | 2027-12-31 |", table)
-        self.assertIn("| 1.x.x | End of life; move to 2.2.x | :x: |", table)
+        rows = {cells[0]: cells for cells in
+                ([c.strip() for c in line.strip("|").split("|")]
+                 for line in table.splitlines() if line.startswith("| "))}
+        self.assertEqual(rows["2.1.x"], ["2.1.x",
+                                         "Security fixes only; move to 2.2.x",
+                                         "Yes", "2027-12-31"])
+        self.assertEqual(rows["1.x.x"], ["1.x.x", "End of life; move to 2.2.x",
+                                         "No", ""])
         lines = [l for l in table.splitlines() if l.startswith("| 2")]
         self.assertTrue(lines[0].startswith("| 2.3.x"))
+
+    def test_security_md_reads_as_plain_text(self):
+        # Read in a terminal as often as rendered: no emoji shortcodes, the
+        # table's columns line up, and nothing generated is wider than 79.
+        p = copy.deepcopy(POLICY)
+        p["series"]["2.1"]["note"] = "the last series that builds with Qt5"
+        p["withdrawn"] = [{"version": "2.2.3", "reason": "broken key " * 12}]
+        text = policy.render_versions(p) + "\n" + policy.render_keys(
+            p, policy.newest_root(TRUST_FIXTURE))
+        self.assertNotIn(":white_check_mark:", text)
+        self.assertNotRegex(text, r"(?m)\| :x: ")
+        self.assertIn("2.1.x: the last series that builds with Qt5.", text)
+        for line in text.splitlines():
+            # A URL in a code block is the one thing never broken.
+            if not line.startswith("    https://"):
+                self.assertLessEqual(len(line), policy.WIDTH, line)
+        table = [l for l in text.splitlines() if l.startswith("| ")]
+        self.assertEqual(len({len(l) for l in table}), 1, table)
 
     def test_withdrawn_versions_are_listed(self):
         p = copy.deepcopy(POLICY)
@@ -307,9 +329,35 @@ class SecurityRenderTest(unittest.TestCase):
 
     def test_the_keys_are_the_newest_roots(self):
         keys = policy.render_keys(POLICY, policy.newest_root(TRUST_FIXTURE))
-        self.assertIn("`12F7E8858CF15BEC9975FF3C5CA3DA246843FD03`", keys)
+        self.assertIn("\n    12F7E8858CF15BEC9975FF3C5CA3DA246843FD03\n", keys)
         self.assertIn("saturneric/GpgFrontend/.github/workflows/build.yml",
                       keys)
+
+
+    def test_an_unsigned_draft_root_is_not_shown(self):
+        # `gfrelease root new` writes the next root before anyone signed
+        # it: SECURITY.md keeps showing the newest one that is signed.
+        with tempfile.TemporaryDirectory() as tmp:
+            roots = Path(tmp) / "root"
+            shutil.copytree(TRUST_FIXTURE, roots)
+            draft = json.loads((roots / "3.root.json").read_text())
+            draft["version"] = 4
+            draft["host_policy"]["repository"] = "someone/else"
+            (roots / "4.root.json").write_text(json.dumps(draft))
+            (roots / "4.root.json.new").write_text("left behind")
+            self.assertEqual(policy.newest_root(roots)["version"], 3)
+
+    def test_a_root_without_host_policy_is_an_error_not_a_traceback(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            roots = Path(tmp)
+            doc = json.loads((TRUST_FIXTURE / "1.root.json").read_text())
+            del doc["host_policy"]
+            (roots / "1.root.json").write_text(json.dumps(doc))
+            (roots / "1.root.json.0123456789ABCDEF.minisig").write_text("x")
+            with self.assertRaisesRegex(policy.PolicyError, "host_policy"):
+                policy.newest_root(roots)
+            with self.assertRaisesRegex(policy.PolicyError, "no signed root"):
+                policy.newest_root(roots / "missing")
 
 
 class ToolingIsProductAgnosticTest(unittest.TestCase):
