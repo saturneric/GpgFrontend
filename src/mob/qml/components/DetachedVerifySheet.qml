@@ -28,70 +28,10 @@ BottomSheet {
     property string picking: ""
 
     // Which file is the signature and which the original, starting from the
-    // file @p id: what is known of it (a signature made here knows its
-    // file), else what the names suggest. unique: exactly one partner, known
-    // or the only name that matches, and both files there to be read --
-    // never a judgement on the signature, which only verifying makes.
+    // file @p id (FileWorkspace.pairFor: the rule, in C++, beside the
+    // desktop's naming rule it follows).
     function pair(id) {
-        const file = workspace.entry(id)
-        const result = {"signatureId": -1, "originalId": -1,
-                        "signatureHow": "", "originalHow": "", "unique": false,
-                        "inline": false}
-        // The desktop's rule for what a name is and what its other half
-        // is called.
-        const match = workspace.verifyMatch(file.name || "")
-        // The data and its signature in one file, verified alone: what the
-        // desktop takes for one by its name (.gpg, .pgp); and an .asc with
-        // no data file beside it whose first bytes are a message signed in
-        // the clear (where the desktop asks, and is told to leave the data
-        // file empty).
-        const asInline = () => {
-            result.signatureId = id
-            result.inline = true
-            result.unique = usable(id)
-            return result
-        }
-        if (file.madeBy !== "sign" && match.role === "combined") return asInline()
-        let found = []
-        if (file.madeBy === "sign") {
-            result.signatureId = id
-            if (workspace.entry(file.sourceId).fileId !== undefined) {
-                result.originalId = file.sourceId
-                result.originalHow = "linked"
-            }
-        } else if (match.role === "signature") {
-            // A message in its first bytes (signed in the clear, or
-            // encrypted) is verified alone, whatever file is named like
-            // the data it would be a signature of.
-            if (file.content === "message") return asInline()
-            result.signatureId = id
-            found = findAll(match.partners)
-            if (found.length > 0) {
-                result.originalId = found[0]
-                result.originalHow = "suggested"
-            }
-        } else {
-            result.originalId = id
-            const made = findSignatureOf(id)
-            if (made >= 0) {
-                result.signatureId = made
-                result.signatureHow = "linked"
-            } else {
-                found = findAll(match.role === "data" ? match.partners
-                                    : [file.name + ".sig", file.name + ".asc"])
-                if (found.length > 0) {
-                    result.signatureId = found[0]
-                    result.signatureHow = "suggested"
-                }
-            }
-        }
-        const linked = result.signatureHow === "linked"
-                       || result.originalHow === "linked"
-        result.unique = result.signatureId >= 0 && result.originalId >= 0
-                        && result.signatureId !== result.originalId
-                        && (linked || found.length === 1)
-                        && usable(result.signatureId) && usable(result.originalId)
-        return result
+        return workspace.pairFor(id)
     }
 
     // There to be read now: not gone, not waiting or being worked on.
@@ -104,6 +44,7 @@ BottomSheet {
     // Start from the file @p id: verified at once when its other half is
     // certain, else the two fields, filled in as far as is known.
     function begin(id) {
+        acted = false
         const p = pair(id)
         if (p.unique || p.inline) {
             // Inline: originalId is -1, the file is verified alone.
@@ -115,24 +56,6 @@ BottomSheet {
         signatureHow = p.signatureHow
         originalHow = p.originalHow
         open()
-    }
-
-    // The ids of those of @p names that are in the list, in their order;
-    // two files of one name (the second listed as "name (2).ext") both, so
-    // which is meant is never taken as known.
-    function findAll(names) {
-        const ids = []
-        for (let i = 0; i < names.length; ++i) {
-            for (const id of workspace.idsNamed(names[i])) {
-                if (!ids.includes(id)) ids.push(id)
-            }
-        }
-        return ids
-    }
-
-    // The signature made here of the file @p id, if one is still listed.
-    function findSignatureOf(id) {
-        return workspace.signatureOf(id)
     }
 
     function swap() {
@@ -268,9 +191,8 @@ BottomSheet {
         }
     }
 
-    FileDialog {
+    OpenDialog {
         id: picker
-        fileMode: FileDialog.OpenFile
         onAccepted: {
             const ids = sheet.workspace.addFiles([selectedFile])
             if (ids.length === 0) return
@@ -291,18 +213,20 @@ BottomSheet {
         Item {
             Layout.fillWidth: true
         },
-        Button {
+        ActionButton {
+            kind: "text"
             text: qsTr("Cancel")
-            flat: true
             onClicked: sheet.close()
         },
-        Button {
+        ActionButton {
             objectName: "verifyRun"
             text: qsTr("Verify")
-            highlighted: true
             enabled: sheet.signatureId >= 0 && sheet.originalId >= 0
                      && sheet.signatureId !== sheet.originalId
             onClicked: {
+                // A second tap while it slides away: already done.
+                if (sheet.acted) return
+                sheet.acted = true
                 sheet.close()
                 sheet.verifyRequested(sheet.signatureId, sheet.originalId)
             }

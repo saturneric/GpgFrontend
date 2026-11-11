@@ -15,9 +15,6 @@ ItemDelegate {
 
     // One of the line icons in qml/icons, by name.
     property string symbol
-    // A picture in its own colours in place of the symbol (an operation's
-    // desktop icon), not tinted.
-    property url image: ""
     property color symbolColor: Material.secondaryTextColor
     // The icon's size, and whether it stays centred beside two lines of
     // text (a file's type) rather than level with the first (a setting).
@@ -62,7 +59,9 @@ ItemDelegate {
                              implicitContentHeight + topPadding + bottomPadding)
     font.pixelSize: Theme.bodySize
     focusPolicy: inert ? Qt.NoFocus : Qt.StrongFocus
-    Accessible.role: inert ? Accessible.StaticText : Accessible.ListItem
+    // Something to activate, as TalkBack offers it: Android's accessibility
+    // gives a list item no click, a button one (as KeyRow).
+    Accessible.role: inert ? Accessible.StaticText : Accessible.Button
     Accessible.name: text
     Accessible.description: detail
     // A chosen row says so, as its tint shows it.
@@ -107,11 +106,10 @@ ItemDelegate {
             Layout.preferredWidth: row.symbolSize
             Layout.preferredHeight: row.symbolSize
             sourceSize: Qt.size(row.symbolSize, row.symbolSize)
-            visible: row.symbol.length > 0 || row.image.toString().length > 0
+            visible: row.symbol.length > 0
             symbol: row.symbol
-            source: row.image.toString().length > 0 ? row.image
-                    : row.symbol.length > 0 ? Theme.icon(row.symbol) : ""
-            color: row.image.toString().length > 0 ? "transparent" : row.symbolColor
+            source: row.symbol.length > 0 ? Theme.icon(row.symbol) : ""
+            color: row.symbolColor
         }
 
         ColumnLayout {

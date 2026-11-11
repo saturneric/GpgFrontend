@@ -141,14 +141,13 @@ BottomSheet {
         Item {
             Layout.fillWidth: true
         },
-        Button {
+        ActionButton {
+            kind: "text"
             text: qsTr("Cancel")
-            flat: true
             onClicked: sheet.close()
         },
-        Button {
+        ActionButton {
             text: qsTr("Set")
-            highlighted: true
             visible: other.checked
             onClicked: {
                 // What is typed, whether or not the field has committed it:

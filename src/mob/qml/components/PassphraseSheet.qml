@@ -103,6 +103,18 @@ BottomSheet {
                          + "with.")
     }
 
+    // Leaving the app declines it (nothing secret is left waiting): said
+    // here, so a trip to a password manager is not a surprise.
+    Label {
+        objectName: "passphraseLeaving"
+        Layout.fillWidth: true
+        wrapMode: Text.Wrap
+        color: Material.secondaryTextColor
+        font.pixelSize: Theme.labelSize
+        text: qsTr("Leaving GpgFrontend now cancels this. Copy the passphrase "
+                   + "first, or type it.")
+    }
+
     SecretField {
         id: passphrase
         objectName: "passphraseField"
@@ -127,14 +139,22 @@ BottomSheet {
         onAccepted: sheet.submit()
     }
 
+    // Why OK cannot be pressed yet, once the repeat is typed: said, as the
+    // PIN sheet says it, not only shown by a button that does nothing.
+    ProblemLabel {
+        objectName: "passphraseMismatch"
+        text: sheet.choosing && repeat.text.length > 0
+              ? PassphraseBroker.entryProblem(passphrase.text, repeat.text, true) : ""
+    }
+
     footer: [
         Item {
             Layout.fillWidth: true
         },
-        Button {
+        ActionButton {
+            kind: "text"
             objectName: "passphraseCancel"
             text: qsTr("Cancel")
-            flat: true
             enabled: !sheet.answered
             onClicked: {
                 sheet.answered = true
@@ -142,11 +162,10 @@ BottomSheet {
                 PassphraseBroker.cancel()
             }
         },
-        Button {
+        ActionButton {
             id: ok
             objectName: "passphraseOk"
             text: qsTr("OK")
-            highlighted: true
             // The desktop's rule: only a new passphrase is checked.
             // Nothing typed is no answer (and a second tap, the fields
             // cleared, never answers the next request with nothing).

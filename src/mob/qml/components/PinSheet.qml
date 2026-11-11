@@ -71,10 +71,14 @@ Alert {
             onAccepted: if (unlock.enabled) unlock.clicked()
         }
 
-        // Why Set PIN cannot be pressed yet, once the repeat is typed.
+        // Why Set PIN cannot be pressed yet: too short, as the desktop
+        // counts it, then, once the repeat is typed, not the same.
         ProblemLabel {
             objectName: "pinMismatch"
-            text: sheet.creating && repeat.text.length > 0 && pin.text !== repeat.text
+            text: !sheet.creating || pin.text.length === 0 ? ""
+                  : pin.text.length < InteractionBridge.minPinLength
+                  ? qsTr("Use at least %n characters.", "", InteractionBridge.minPinLength)
+                  : repeat.text.length > 0 && pin.text !== repeat.text
                   ? qsTr("The two PINs are not the same.") : ""
         }
 
@@ -90,12 +94,15 @@ Alert {
 
             ActionButton {
                 id: unlock
+                objectName: "pinUnlock"
 
                 width: Math.min(implicitWidth, actions.width)
                 kind: "text"
                 text: sheet.creating ? qsTr("Set PIN") : qsTr("Unlock")
                 enabled: pin.text.length > 0
-                         && (!sheet.creating || pin.text === repeat.text)
+                         && (!sheet.creating
+                             || (pin.text.length >= InteractionBridge.minPinLength
+                                 && pin.text === repeat.text))
                 onClicked: {
                     InteractionBridge.answer(sheet.request.id,
                                              {"action": "pin", "pin": pin.text})

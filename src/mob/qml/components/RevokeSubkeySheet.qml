@@ -20,26 +20,29 @@ BottomSheet {
     property bool saving: false
     // OpenPGP's reason code, not a row: a user ID has its own two.
     property int reason: 3
+    // What is revoked, as the shell's reasons know it.
+    readonly property string target: forUid ? "uid" : forKey ? "key" : "subkey"
 
     signal accepted(var subkey, int reason, string text)
 
     function begin(subkey) {
+        acted = false
         sheet.subkey = subkey
         forUid = false
         forKey = false
         saving = false
-        reason = 3
+        reason = KeyListController.defaultRevocationReason(target)
         why.clear()
         open()
     }
 
     function beginForUid(uid) {
+        acted = false
         sheet.subkey = uid
         forUid = true
         forKey = false
         saving = false
-        // "No longer valid", as the desktop starts.
-        reason = 4
+        reason = KeyListController.defaultRevocationReason(target)
         why.clear()
         open()
     }
@@ -47,12 +50,12 @@ BottomSheet {
     // The whole key, now (@p save false) or by a certificate saved for
     // later (@p save true).
     function beginForKey(key, save) {
+        acted = false
         sheet.subkey = key
         forUid = false
         forKey = true
         saving = save === true
-        // "No longer used", as for a subkey.
-        reason = 3
+        reason = KeyListController.defaultRevocationReason(target)
         why.clear()
         open()
     }
@@ -100,8 +103,9 @@ BottomSheet {
         spacing: 0
 
         Repeater {
-            model: sheet.forUid ? Wording.uidRevocationReasons()
-                                : Wording.revocationReasons()
+            // The desktop's reasons, from the shell: a whole key is
+            // replaced by a newer key, not a subkey.
+            model: KeyListController.revocationReasons(sheet.target)
 
             RadioDelegate {
                 required property var modelData
@@ -132,17 +136,19 @@ BottomSheet {
         Item {
             Layout.fillWidth: true
         },
-        Button {
+        ActionButton {
+            kind: "text"
             text: qsTr("Cancel")
-            flat: true
             onClicked: sheet.close()
         },
-        Button {
+        ActionButton {
+            kind: sheet.saving ? "primary" : "destructive"
             objectName: "revokeRun"
-            text: sheet.saving ? qsTranslate("KeyDetailPage", "Choose where") : qsTr("Revoke")
-            highlighted: true
-            Material.accent: sheet.saving ? sheet.Material.accent : Theme.danger
+            text: sheet.saving ? qsTr("Choose where") : qsTr("Revoke")
             onClicked: {
+                // A second tap while it slides away: already done.
+                if (sheet.acted) return
+                sheet.acted = true
                 sheet.close()
                 sheet.accepted(sheet.subkey, sheet.reason, why.text)
             }

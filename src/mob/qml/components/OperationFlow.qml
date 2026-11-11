@@ -71,13 +71,33 @@ QtObject {
         })
     }
 
-    // Start @p op. An encryption to keys first asks what the desktop asks
-    // (WorkSelection.encryptQuestions), one question after the other.
+    // Start @p op. As the desktop: a chosen key with more than one subkey
+    // that could do it is asked which (WorkSelection.subkeyChoices); then an
+    // encryption to keys asks what the desktop asks
+    // (WorkSelection.encryptQuestions), judged on the subkeys chosen, one
+    // question after the other.
     function run(op, targets) {
-        if (op === "encrypt" && flow.ask)
-            askThen(WorkSelection.encryptQuestions(), function() { flow.go(op, targets) })
-        else
-            go(op, targets)
+        WorkSelection.clearPins()
+        const choices = sheets && (op === "encrypt" || op === "sign")
+                        ? WorkSelection.subkeyChoices(op) : []
+        chooseThen(choices, function() {
+            if (op === "encrypt" && flow.ask)
+                flow.askThen(WorkSelection.encryptQuestions(),
+                             function() { flow.go(op, targets) })
+            else
+                flow.go(op, targets)
+        })
+    }
+
+    function chooseThen(choices, goOn) {
+        if (choices.length === 0) {
+            goOn()
+            return
+        }
+        sheets.chooseSubkey(choices[0], function(subkey) {
+            WorkSelection.pinSubkey(choices[0].key, subkey)
+            flow.chooseThen(choices.slice(1), goOn)
+        })
     }
 
     function askThen(questions, goOn) {

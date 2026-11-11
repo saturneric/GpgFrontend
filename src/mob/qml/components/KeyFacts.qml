@@ -24,17 +24,8 @@ ColumnLayout {
     // the primary first); none known yet: the primary alone, from the list.
     property var parts: []
 
-    readonly property string state: {
-        if (key.revoked === true || key.status === "revoked") return qsTr("Revoked")
-        if (key.status === "disabled") return qsTr("Disabled")
-        if (key.expired === true || key.status === "expired") {
-            const when = Theme.date(key.expires)
-            return when.length > 0 ? qsTr("Expired on %1").arg(when) : qsTr("Expired")
-        }
-        const until = Theme.date(key.expires)
-        return until.length > 0 ? qsTr("Valid until %1").arg(until)
-                                : qsTr("Valid, does not expire")
-    }
+    // Worded as everywhere else a key's state is (Wording.keyState).
+    readonly property string state: Wording.keyState(key)
 
     readonly property var shownParts: parts.length > 0 ? parts
         : [{"primary": true, "algorithm": key.algorithm || "", "capabilities": ""}]

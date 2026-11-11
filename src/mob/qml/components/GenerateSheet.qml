@@ -70,7 +70,9 @@ BottomSheet {
     function fromProfile() {
         const offered = actions.profiles[profile.currentIndex]
         const all = profileStore.profiles
-        const p = offered ? all.find(q => q.name === offered.name) : undefined
+        // By the name it is stored under: the one shown is a translation,
+        // and a hidden profile may be shown under the same.
+        const p = offered ? all.find(q => q.storedName === offered.storedName) : undefined
         if (!p || p.available !== true) {
             suggestSubkey()
             return
@@ -275,16 +277,15 @@ BottomSheet {
         Item {
             Layout.fillWidth: true
         },
-        Button {
+        ActionButton {
+            kind: "text"
             text: qsTr("Cancel")
-            flat: true
             enabled: !actions.busy
             onClicked: sheet.close()
         },
-        Button {
+        ActionButton {
             objectName: "generateRun"
             text: qsTr("Create")
-            highlighted: true
             enabled: !actions.busy && sheet.identity.ok === true
                      && (!expert.checked || (primaryChooser.complete
                          && (!withSubkey.checked || subkeyChooser.complete)))

@@ -14,14 +14,17 @@ Item {
     id: host
 
     // The Text and Files pages, for what the status sheet's actions do with
-    // their results: {holds, relation, retry} and {saveOutput,
-    // saveToFolder, retry, retryFailed, stopWaiting, workspace}.
+    // their results: {holds, heldResult, putIn, relation, retry} and {saveOutput,
+    // saveToFolder, share, retry, retryFailed, stopWaiting, workspace}.
     property var textSurface: null
     property var filesSurface: null
 
     readonly property alias toolbox: toolbox
     readonly property alias status: status
-    readonly property bool sheetOpen: toolbox.opened || status.opened
+    readonly property alias history: history
+    readonly property alias subkeyChoice: subkeyChoice
+    readonly property bool sheetOpen: toolbox.opened || status.opened || history.opened
+                                     || subkeyChoice.opened
 
     // Bumped whenever the log changes, for what reads records by call.
     property int revision: 0
@@ -47,18 +50,24 @@ Item {
         if (revision < 0) return ({})
         const record = lineRecord
         if (record.operationId === undefined) return ({})
-        const batch = OperationQueue.log.batch(record.batchId)
-        if (batch.length <= 1) {
+        return outcomeOf(record, OperationQueue.log.batch(record.batchId)) || ({})
+    }
+
+    // How @p record, of the batch @p records, ended, as a report says it
+    // ({status, severity, cancelled}); null for one that has said nothing.
+    // An operation the engine never reported on ended failed or stopped; a
+    // batch is read as the desktop reads a report of several items: well if
+    // every file did, badly if any failed, and with a warning between. The
+    // status line and the status sheet both say this.
+    function outcomeOf(record, records) {
+        if (records.length <= 1) {
             if (Object.keys(record.report || {}).length > 0) return record.report
             if (record.phase === "cancelled") return {"cancelled": true}
             return record.phase === "failed" ? {"status": -1, "severity": "critical"}
-                                             : ({})
+                                             : null
         }
-        const counts = countsOf(batch)
-        if (counts.failed + counts.cancelled === 0) return {"status": 1, "severity": "ok"}
-        if (counts.done > 0) return {"status": 0, "severity": "warn"}
-        return counts.failed > 0 ? {"status": -1, "severity": "critical"}
-                                 : {"cancelled": true}
+        // As the desktop reads a report of several items (the shell's).
+        return OperationQueue.log.summarize(records)
     }
     readonly property bool lineShown: (OperationQueue.busy && lineDue)
                                       || (!OperationQueue.busy && unseen > 0
@@ -84,9 +93,12 @@ Item {
 
     signal showFileRequested(int fileId)
     signal openKeyRequested(var key)
+    signal importKeysRequested()
+    signal createKeyRequested()
 
     function openKeys(which, pending) {
         status.close()
+        history.close()
         toolbox.begin(which, pending)
     }
 
@@ -99,9 +111,24 @@ Item {
         status.show(id, alone === true)
     }
 
+    // Which subkey @p choice's key should use (WorkSelection.subkeyChoices);
+    // @p goOn gets it ("" for the engine's own) when the person goes on.
+    function chooseSubkey(choice, goOn) {
+        subkeyChoice.ask(choice, goOn)
+    }
+
+    // What was done in this session, each a tap from its status.
+    function openHistory() {
+        toolbox.close()
+        status.close()
+        history.begin()
+    }
+
     function closeAll() {
         toolbox.close()
         status.close()
+        history.close()
+        subkeyChoice.close()
     }
 
     // Back, for whichever sheet is open; false when none is.
@@ -112,6 +139,15 @@ Item {
         }
         if (status.opened) {
             status.back()
+            return true
+        }
+        if (history.opened) {
+            history.close()
+            return true
+        }
+        // Turned down: nothing starts.
+        if (subkeyChoice.opened) {
+            subkeyChoice.close()
             return true
         }
         return false
@@ -211,11 +247,22 @@ Item {
     KeyToolbox {
         id: toolbox
         onOpenKeyRequested: key => host.openKeyRequested(key)
+        onImportKeysRequested: host.importKeysRequested()
+        onCreateKeyRequested: host.createKeyRequested()
     }
 
     StatusSheet {
         id: status
         host: host
+    }
+
+    HistorySheet {
+        id: history
+        host: host
+    }
+
+    SubkeyChoiceSheet {
+        id: subkeyChoice
     }
 
     Timer {
@@ -249,7 +296,11 @@ Item {
         if (counts.active > 0) return
         const batch = record.batchId
         host.tracked = 0
-        if (host.attentive && !host.sheetOpen) host.openStatus(batch)
+        // Cancelled by the person (their own Cancel, no other reason): they
+        // know; the status line says it, no sheet comes up over the page.
+        const byPerson = record.phase === "cancelled" && (record.reason || "") === ""
+                         && OperationQueue.log.batch(batch).length === 1
+        if (host.attentive && !host.sheetOpen && !byPerson) host.openStatus(batch)
         else host.unseen = batch
     }
 

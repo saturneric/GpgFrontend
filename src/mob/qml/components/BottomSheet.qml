@@ -161,7 +161,7 @@ Popup {
     // past the open sheet to the page under it.
     focus: true
     onOpened: {
-        Theme.openSheets = Theme.openSheets.filter(o => o !== sheet).concat([sheet])
+        Sheets.push(sheet)
         Qt.callLater(keepFocus)
     }
     // Gone from the open sheets as soon as it starts to go: Back pressed
@@ -169,22 +169,32 @@ Popup {
     // from it), not for a sheet already closing, which took it and did
     // nothing.
     property bool closing: false
+    // A sheet's action was taken: a second tap while it slides away does
+    // nothing. Put back each time it opens (onAboutToShow, and a sheet's
+    // begin(), which may open it again while it is still sliding away).
+    property bool acted: false
     onAboutToHide: {
         closing = true
-        Theme.openSheets = Theme.openSheets.filter(o => o !== sheet)
+        Sheets.remove(sheet)
     }
-    onAboutToShow: closing = false
+    // One sliding in is open already: a share arriving, or a database
+    // switched, in that moment closes it too (Sheets.closeAll()).
+    onAboutToShow: {
+        closing = false
+        acted = false
+        Sheets.push(sheet)
+    }
     onClosed: {
         settleBack.stop()
         release.stop()
         releasing = false
-        Theme.openSheets = Theme.openSheets.filter(o => o !== sheet)
+        Sheets.remove(sheet)
         expanded = false
         heldHeight = 0
         dragging = false
         offset = 0
     }
-    Component.onDestruction: Theme.openSheets = Theme.openSheets.filter(o => o !== sheet)
+    Component.onDestruction: Sheets.remove(sheet)
 
     // Whether @p item is in a popup (any: a sheet, a menu, a dialog).
     function inPopup(item) {
@@ -200,7 +210,7 @@ Popup {
     // this one. Focus that goes to another popup (a menu, a dialog over the
     // sheet) is left there.
     function keepFocus() {
-        if (!opened || Theme.openSheets[Theme.openSheets.length - 1] !== sheet) return
+        if (!opened || Sheets.open[Sheets.open.length - 1] !== sheet) return
         const window = scroller.Window.window
         const now = window ? window.activeFocusItem : null
         if (now && inPopup(now)) return

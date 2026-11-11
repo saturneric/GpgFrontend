@@ -39,6 +39,7 @@ BottomSheet {
     signal accepted(var keyIds)
 
     function begin(title, alreadyIn) {
+        acted = false
         sheet.title = title
         already = alreadyIn || []
         picked = {}
@@ -152,7 +153,10 @@ BottomSheet {
             wrapMode: Text.Wrap
             visible: filtered.count === 0
             color: Material.secondaryTextColor
-            text: qsTr("No key matches.")
+            // As the key toolbox says it.
+            text: search.text.length > 0
+                  ? qsTranslate("KeyToolbox", "No key matches “%1”.").arg(search.text)
+                  : qsTr("No key matches.")
         }
     }
 
@@ -172,6 +176,9 @@ BottomSheet {
                   : sheet.actionText
             enabled: sheet.pickedCount > 0
             onClicked: {
+                // A second tap while it slides away: already done.
+                if (sheet.acted) return
+                sheet.acted = true
                 const ids = Object.keys(sheet.picked)
                 sheet.close()
                 sheet.accepted(ids)

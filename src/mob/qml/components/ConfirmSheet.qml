@@ -52,6 +52,25 @@ Alert {
                         .arg(sheet.request.application || qsTr("unknown"))
                         .arg(sheet.request.pid)
                         .arg(sheet.request.host || qsTr("this device"))
+                      : sheet.request.reason === "key_file_missing"
+                      // Why, in the desktop's words for each: what to do
+                      // instead differs (put the file back, unlock the
+                      // keychain), not only what resetting costs.
+                      ? qsTranslate("QObject", "The application key file is missing, but this "
+                                    + "profile still holds settings and data "
+                                    + "encrypted with it.") + "\n\n"
+                        + qsTranslate("QObject", "You can quit, put the key file back from your backup, "
+                                      + "and start the application again. Creating a new key "
+                                      + "instead lets the application start, but everything it "
+                                      + "previously encrypted becomes permanently unreadable.")
+                      : sheet.request.reason === "keychain_secret_lost"
+                      ? qsTranslate("QObject", "The application key is protected by a secret "
+                                    + "kept in the system keychain, and that secret "
+                                    + "could not be read.") + "\n\n"
+                        + qsTranslate("QObject", "You can unlock the keychain and start the application "
+                                      + "again. Resetting the key instead lets the application "
+                                      + "start, but everything it previously encrypted becomes "
+                                      + "permanently unreadable.")
                       : qsTr("The key that encrypts this profile cannot be unlocked. "
                              + "Resetting it makes everything it protected "
                              + "permanently unreadable.")

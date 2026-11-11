@@ -40,8 +40,18 @@ BottomSheet {
     signal shareRequested(int id)
     signal openRequested(int id)
     signal removeRequested(int id)
+    // One that can no longer be opened, picked again from where it is now.
+    signal pickAgainRequested(int id)
     // How the last operation on it went, in the status sheet.
     signal resultRequested(int operationId)
+    // What the row's menu offers for what it holds, offered here as well.
+    signal extractRequested(int id)
+    signal importKeysRequested(url file)
+
+    // A TAR archive, offered to extract; read when the sheet opens.
+    property bool isArchive: false
+    // Not while it is worked on or copied in.
+    readonly property bool idle: (file.activity || "").length === 0 && !copying
 
     // What it is (FileWorkspace.typeOf).
     property var type: ({})
@@ -58,6 +68,7 @@ BottomSheet {
         sheet.hashExpanded = false
         copied.visible = false
         sheet.lastOperation = OperationQueue.log.latestOnFile(id)
+        sheet.isArchive = workspace.isArchive(id)
         sheet.hashDue = sheet.copying
         if (!sheet.hashDue && !sheet.isFolder) workspace.hash(id)
         open()
@@ -212,6 +223,7 @@ BottomSheet {
                 onClicked: {
                     output.copy(sheet.sha256, false)
                     copied.visible = true
+                    copiedFades.restart()
                 }
             }
         }
@@ -220,6 +232,13 @@ BottomSheet {
     Label {
         id: copied
         objectName: "fileCopied"
+
+        // Said for a moment, as a copy is said everywhere else.
+        Timer {
+            id: copiedFades
+            interval: 4000
+            onTriggered: copied.visible = false
+        }
         Layout.fillWidth: true
         visible: false
         text: qsTr("Copied.")
@@ -235,6 +254,21 @@ BottomSheet {
         font.pixelSize: Theme.secondarySize
         text: qsTr("This file can no longer be opened. It may have been "
                    + "moved or deleted, or access to it has ended.")
+    }
+
+    // The way back to it, beside what says it is lost: a file picked from
+    // a folder (an output made here is not picked, and is gone for good).
+    ActionButton {
+        objectName: "pickAgain"
+        kind: "text"
+        visible: sheet.file.available === false && !sheet.isOutput && !sheet.isFolder
+                 && sheet.file.origin !== "shared"
+        text: qsTr("Pick it again")
+        onClicked: {
+            const id = sheet.fileId
+            sheet.close()
+            sheet.pickAgainRequested(id)
+        }
     }
 
     Label {
@@ -331,6 +365,40 @@ BottomSheet {
                     sheet.openRequested(sheet.fileId)
                 }
             }
+        }
+    }
+
+    // What it holds offers more: keys to import, an archive to extract, in
+    // the row menu's words.
+    ItemDelegate {
+        objectName: "detailsImportKeys"
+        Layout.fillWidth: true
+        Layout.leftMargin: -Theme.sheetPad
+        Layout.rightMargin: -Theme.sheetPad
+        leftPadding: Theme.sheetPad
+        visible: sheet.file.content === "key" && sheet.file.available === true
+                 && sheet.idle
+        text: qsTranslate("ImportSheet", "Import keys")
+        icon.source: Theme.icon("key")
+        onClicked: {
+            const url = sheet.workspace.readableUrl(sheet.fileId)
+            sheet.close()
+            if (url.toString().length > 0) sheet.importKeysRequested(url)
+        }
+    }
+
+    ItemDelegate {
+        objectName: "detailsExtract"
+        Layout.fillWidth: true
+        Layout.leftMargin: -Theme.sheetPad
+        Layout.rightMargin: -Theme.sheetPad
+        leftPadding: Theme.sheetPad
+        visible: sheet.isArchive && sheet.idle
+        text: qsTranslate("FilesPage", "Extract to a folder…")
+        icon.source: Theme.icon("folder")
+        onClicked: {
+            sheet.close()
+            sheet.extractRequested(sheet.fileId)
         }
     }
 

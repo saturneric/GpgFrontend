@@ -14,30 +14,11 @@ BottomSheet {
     property KeyCategoriesController categories
     // The key: {keyId, name}.
     property var key: ({})
-    // A category made from here takes the key in at once.
-    property bool addToNew: false
 
     function begin(k) {
         key = k
-        addToNew = false
         open()
     }
-
-    function categoryAdded(id) {
-        if (addToNew) categories.setMember(id, key.keyId, true)
-        addToNew = false
-    }
-
-    // Signals named Signal... have no handler property in QML. Once per
-    // controller: an initial value raises no change.
-    property QtObject listening: null
-    function listen() {
-        if (!categories || listening === categories) return
-        categories.SignalAdded.connect(sheet.categoryAdded)
-        listening = categories
-    }
-    onCategoriesChanged: listen()
-    Component.onCompleted: listen()
 
     objectName: "keyCategoriesSheet"
     inset: 0
@@ -117,19 +98,16 @@ BottomSheet {
             symbol: "add"
             symbolColor: Material.foreground
             text: qsTr("New category")
-            onClicked: {
-                sheet.addToNew = true
-                editor.begin(null)
-            }
+            // Made with this key in it.
+            onClicked: newCategory.begin(sheet.key.keyId || "")
         }
     }
 
     // No Close of its own: Back, a tap beside it or pulling it down put it
     // away, as every sheet does.
 
-    CategorySheet {
-        id: editor
+    KeyNewCategory {
+        id: newCategory
         categories: sheet.categories
-        onClosed: Qt.callLater(() => sheet.addToNew = false)
     }
 }

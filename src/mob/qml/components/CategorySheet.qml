@@ -27,6 +27,7 @@ BottomSheet {
     }
 
     function begin(category) {
+        acted = false
         categoryId = category ? category.id : ""
         name.text = category ? category.name : ""
         color = category ? category.color : categories.suggestColor()
@@ -40,11 +41,16 @@ BottomSheet {
     onOpened: name.forceActiveFocus()
 
     function save() {
+        // A second tap while it slides away: already done.
+        if (acted) return
         const why = categoryId.length > 0
                   ? categories.edit(categoryId, name.text, color)
                   : categories.add(name.text, color)
         problem.text = why
-        if (why.length === 0) close()
+        if (why.length === 0) {
+            acted = true
+            close()
+        }
     }
 
     objectName: "categorySheet"

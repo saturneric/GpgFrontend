@@ -25,6 +25,12 @@ BottomSheet {
 
     property bool taken: false
 
+    // A package's passphrase being typed: kept out of screenshots, as a
+    // key's passphrase is.
+    SecureWindowGuard {
+        active: sheet.visible && sheet.mode !== "create"
+    }
+
     function begin(how, error) {
         mode = how
         name.text = ""
@@ -44,6 +50,8 @@ BottomSheet {
 
     // Says why the sheet cannot go on, here, or goes on.
     function submit() {
+        // A second tap while it slides away: already done.
+        if (taken) return
         let why = ""
         if (mode === "create") {
             why = profiles.nameProblem(name.text)
@@ -127,17 +135,16 @@ BottomSheet {
         Item {
             Layout.fillWidth: true
         },
-        Button {
+        ActionButton {
+            kind: "text"
             text: qsTr("Cancel")
-            flat: true
             onClicked: sheet.close()
         },
-        Button {
+        ActionButton {
             objectName: "profileSubmit"
             text: sheet.mode === "create" ? qsTr("Create")
                 : sheet.mode === "export" ? qsTr("Choose where")
                 : qsTr("Import")
-            highlighted: true
             enabled: !sheet.busy
             onClicked: sheet.submit()
         }

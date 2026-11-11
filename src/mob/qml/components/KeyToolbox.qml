@@ -89,6 +89,9 @@ BottomSheet {
                                        ? describer.describe(infoKey.fingerprint) : ({})
 
     signal openKeyRequested(var key)
+    // No keys to choose from: the way to some.
+    signal importKeysRequested()
+    signal createKeyRequested()
 
     // Open on @p which ("encrypt" or "sign"), for @p action (or null).
     function begin(which, action) {
@@ -298,35 +301,51 @@ BottomSheet {
             }
 
             function showInfo() {
-                sheet.infoKey = {
-                    "name": name, "email": email, "keyId": keyId,
-                    "fingerprint": fingerprint, "hasSecret": hasSecret,
-                    "secretState": secretState, "capabilities": capabilities,
-                    "canEncrypt": canEncrypt,
-                    "canSign": canSign, "usable": usable, "status": status,
-                    "statusText": statusText, "created": model.created,
-                    "expires": model.expires, "algorithm": model.algorithm,
-                    "comment": model.comment, "revoked": model.revoked,
-                    "expired": model.expired
-                }
+                // The key as the list has it, every fact its details read.
+                sheet.infoKey = KeyListController.keys.keyOf(fingerprint)
             }
         }
 
-        Label {
-            objectName: "toolboxEmpty"
+        // Nothing to choose from: what is missing, and the way to it, here
+        // rather than a sentence pointing elsewhere.
+        ColumnLayout {
             anchors.fill: parent
             anchors.margins: Theme.gap
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-            wrapMode: Text.Wrap
-            color: Material.secondaryTextColor
             visible: filtered.count === 0
-            text: search.text.length > 0
-                  ? qsTr("No key matches “%1”.").arg(search.text)
-                  : sheet.category.length > 0 ? qsTr("No keys in this category.")
-                  : sheet.signing ? qsTr("You have no key of your own to sign with.")
-                                  : qsTr("No keys yet. Import the keys of the "
-                                         + "people you write to on the Keys page.")
+            spacing: Theme.gapSmall
+
+            Item { Layout.fillHeight: true }
+
+            Label {
+                objectName: "toolboxEmpty"
+                Layout.fillWidth: true
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.Wrap
+                color: Material.secondaryTextColor
+                text: search.text.length > 0
+                      ? qsTr("No key matches “%1”.").arg(search.text)
+                      : sheet.category.length > 0 ? qsTr("No keys in this category.")
+                      : sheet.signing ? qsTr("You have no key of your own to sign with.")
+                                      : qsTr("No keys yet. Import the keys of the "
+                                             + "people you write to on the Keys page.")
+            }
+
+            ActionButton {
+                objectName: "toolboxGetKeys"
+                Layout.alignment: Qt.AlignHCenter
+                kind: "text"
+                visible: search.text.length === 0 && sheet.category.length === 0
+                text: sheet.signing ? qsTranslate("KeysPage", "Create a key")
+                                    : qsTranslate("ImportSheet", "Import keys")
+                onClicked: {
+                    const signing = sheet.signing
+                    sheet.close()
+                    if (signing) sheet.createKeyRequested()
+                    else sheet.importKeysRequested()
+                }
+            }
+
+            Item { Layout.fillHeight: true }
         }
     }
 
@@ -410,8 +429,12 @@ BottomSheet {
         wrapMode: Text.Wrap
         font.pixelSize: Theme.labelSize
         color: summary.issues > 0 ? Theme.danger : Material.secondaryTextColor
+        // For the signer, why it cannot sign, where that is known (gone,
+        // no secret part, a rule both interfaces keep), then what to do.
         text: summary.issues > 0
-              ? Wording.block(sheet.signing ? "signer_issue" : "recipient_issue")
+              ? [sheet.signing ? (WorkSelection.signerKey.note || "") : "",
+                 Wording.block(sheet.signing ? "signer_issue" : "recipient_issue")]
+                .filter(t => t.length > 0).join(" ")
               : WorkSelection.droppedCount > 0
                 ? qsTr("%n key(s) chosen before were left out: they can no longer be used.",
                        "", WorkSelection.droppedCount)

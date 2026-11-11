@@ -21,6 +21,7 @@ BottomSheet {
     signal created(string id)
 
     function begin(group) {
+        acted = false
         groupId = group ? group.id : ""
         name.text = group ? group.name : ""
         email.text = group ? (group.email || "") : ""
@@ -36,6 +37,8 @@ BottomSheet {
     onOpened: name.forceActiveFocus()
 
     function save() {
+        // A second tap while it slides away: already done.
+        if (acted) return
         // What is wrong, under the field it is about.
         const why = groups.problemOf(name.text, email.text)
         nameProblem.text = why.field === "name" ? why.text : ""
@@ -45,7 +48,10 @@ BottomSheet {
         if (groupId.length > 0) {
             const failed = groups.edit(groupId, name.text, email.text, comment.text)
             problem.text = failed
-            if (failed.length === 0) close()
+            if (failed.length === 0) {
+                acted = true
+                close()
+            }
             return
         }
         const id = groups.create(name.text, email.text, comment.text)
@@ -53,6 +59,7 @@ BottomSheet {
             problem.text = qsTr("The group could not be made.")
             return
         }
+        acted = true
         close()
         created(id)
     }
@@ -111,15 +118,14 @@ BottomSheet {
         Item {
             Layout.fillWidth: true
         },
-        Button {
+        ActionButton {
+            kind: "text"
             text: qsTr("Cancel")
-            flat: true
             onClicked: sheet.close()
         },
-        Button {
+        ActionButton {
             objectName: "keyGroupSave"
             text: sheet.groupId.length > 0 ? qsTr("Save") : qsTr("Create")
-            highlighted: true
             enabled: name.text.trim().length > 0
             onClicked: sheet.save()
         }

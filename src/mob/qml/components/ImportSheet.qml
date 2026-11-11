@@ -21,20 +21,32 @@ BottomSheet {
         if ((text || "").trim().length > 0) importer.importText(text)
     }
 
+    // Open and import the file at @p url (one in the Files page's list).
+    function beginFile(url) {
+        outcome.text = ""
+        open()
+        importer.importFile(url)
+    }
+
     objectName: "importSheet"
     title: qsTr("Import keys")
     interactive: !importer.busy
 
     function finished(imported) {
         const r = importer.result
-        if (r.considered === undefined) {
+        if (r.problem === "unreadable") {
+            outcome.text = qsTr("This file could not be opened. Pick it again, "
+                                + "or save it to the device first.")
+        } else if (r.problem === "too_large") {
+            outcome.text = qsTr("This file is too large to be a key file.")
+        } else if (r.considered === undefined) {
             outcome.text = qsTr("No key could be read from this.")
         } else if (imported) {
             // Keys counted once, a secret key with its public part; what a
             // key already here gained is said apart.
             const said = []
-            if (r.imported > 0) said.push(qsTr("Imported %1 key(s).").arg(r.imported))
-            if (r.updated > 0) said.push(qsTr("Updated %1 key(s).").arg(r.updated))
+            if (r.imported > 0) said.push(qsTr("Imported %n key(s).", "", r.imported))
+            if (r.updated > 0) said.push(qsTr("Updated %n key(s).", "", r.updated))
             outcome.text = said.join(" ")
             KeyListController.refresh()
         } else if (r.unchanged > 0) {
@@ -61,9 +73,8 @@ BottomSheet {
     // No name filters: Android's picker filters by MIME type, and it has none
     // that covers .asc, so a filter greys out the very files it names. What a
     // file holds is checked when it is read.
-    FileDialog {
+    OpenDialog {
         id: keyFile
-        fileMode: FileDialog.OpenFile
         onAccepted: {
             outcome.text = ""
             importer.importFile(selectedFile)

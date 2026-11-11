@@ -104,16 +104,15 @@ BottomSheet {
         Item {
             Layout.fillWidth: true
         },
-        Button {
+        ActionButton {
+            kind: "text"
             text: qsTr("Cancel")
-            flat: true
             enabled: !sheet.busy
             onClicked: sheet.close()
         },
-        Button {
+        ActionButton {
             objectName: "addUidRun"
             text: sheet.busy ? qsTr("Adding…") : qsTr("Add")
-            highlighted: true
             enabled: !sheet.busy && sheet.identity.ok === true
             onClicked: {
                 sheet.problem = ""

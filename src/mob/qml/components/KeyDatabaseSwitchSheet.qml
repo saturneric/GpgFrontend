@@ -20,7 +20,7 @@ import GpgFrontend.Mobile
 BottomSheet {
     id: sheet
 
-    property KeyDatabasesController databases
+    property var databases: null
     // The database being switched to or made, by name.
     property string targetName: ""
     // Making a new database rather than switching to one.
