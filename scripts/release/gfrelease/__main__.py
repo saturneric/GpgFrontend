@@ -418,6 +418,21 @@ def legacy_product(path: str | None) -> dict:
     raise ReleaseError("no product.json with a signing block in history")
 
 
+def confirm(question: str) -> bool:
+    """A yes or a no typed now: what was typed before (the Enter after
+    minisign's last password) is dropped, and nothing else is an answer."""
+    if sys.stdin.isatty():
+        import termios
+        termios.tcflush(sys.stdin, termios.TCIFLUSH)
+    while True:
+        try:
+            answer = input(question).strip().lower()
+        except EOFError:
+            return False
+        if answer in ("yes", "no"):
+            return answer == "yes"
+
+
 def root_init(args, slug: str, root_dir: Path, keys_dir: Path) -> int:
     """The root ceremony, from the commands above: nothing is committed."""
     import tempfile
@@ -507,10 +522,14 @@ def root_init(args, slug: str, root_dir: Path, keys_dir: Path) -> int:
           "retired Authenticode subjects "
           f"{root['host_policy']['authenticode_subjects_retired']}. Every "
           "admitted release is checked again under this root.")
-    if not args.dry_run and input("Sign these? Type yes: ").strip() != "yes":
+    if not args.dry_run and not confirm("Sign these? Type yes or no: "):
         for f in (first, lst):
             f.unlink()
-        print("nothing signed; both files removed")
+        made = [str(d / "root.key") for d in key_dirs] + \
+            ([str(g_out)] if g_out else [])
+        print("nothing signed; both files removed. The keys made for them "
+              "are unused: delete them before running again:\n  " +
+              "\n  ".join(made))
         return 1
     for d in key_dirs[:args.threshold]:
         sign_root(first, str(d / "root.key"))
