@@ -2,11 +2,12 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Check a published index the way a client does, and further.
 
-  index.json  minisigned by a pinned index key; the trusted comment names
-              this product and the serial; schema known; not expired; its
-              channels name only what it lists, a beta only a build of its
-              own series' release branch. Over HTTPS, every update base
-              serves it, not just the first that answers.
+  index.json  minisigned by a key of the index-keys list (trust.py); the
+              trusted comment names this product and the serial; schema
+              known; not expired; its channels name only what it lists, a
+              beta only a build of its own series' release branch. Over
+              HTTPS, every update base serves it, not just the first that
+              answers.
   descriptor  its sha256 is the one the index states.
   manifest    every artifact's sha256 in the descriptor is the one its
               manifest lists (a nightly's or a beta's is CI's, under build/;
@@ -260,8 +261,8 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
     """Everything hangs off the signed index: the descriptors by their
     hashes, the files by the descriptors'. A stable or imported release's
     maintainer signatures are checked as well with @p deep, against the
-    keys beside release/product.json (maintainers.asc) with the
-    fingerprints it pins."""
+    keys beside release/product.json (maintainers.asc) whose fingerprints
+    the trust root pins, retired ones included."""
     with tempfile.TemporaryDirectory(prefix="gfr-verify-") as tmp_name, \
             contextlib.ExitStack() as stack:
         tmp = Path(tmp_name)
@@ -280,7 +281,8 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
         def keyring():
             nonlocal ring
             if ring is None:
-                ring = stack.enter_context(openpgp.Keyring.of(product))
+                ring = stack.enter_context(openpgp.Keyring.of(product,
+                                                              retired=True))
             return ring
 
         def fetch(rel: str, name: str) -> Path:

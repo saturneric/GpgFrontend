@@ -12,14 +12,15 @@
 # Everything is real but the buckets (directories, through rclone) and
 # Sigstore (a fake cosign binding the bundle to this workflow, ref and
 # commit, as the real one does). The build is this repository's HEAD on
-# main, with dummy files for artifacts; the keys are made fresh in <dir> and
-# are worth nothing. The mirror is https://localhost:<port>/ with a throwaway
-# CA in <dir>/ca.pem; gfrelease verify then reads it over HTTPS as a client
-# would, deep: every artifact downloaded and its signature checked.
+# main, with dummy files for artifacts; the keys, the trust root and the
+# index-keys list are made fresh in <dir> and are worth nothing. The mirror
+# is https://localhost:<port>/ with a throwaway CA in <dir>/ca.pem;
+# gfrelease verify then reads it over HTTPS as a client would, deep: every
+# artifact downloaded and its hash checked.
 #
 # With --serve the mirror stays up (Ctrl-C ends it), and <dir>/client.env
-# holds what a rehearsal client needs: the bases, the index key and the CA,
-# and the CMake options that build such a client (GF_REHEARSAL_CMAKE).
+# holds what a rehearsal client needs: the bases, the trust files and the
+# CA, and the CMake options that build such a client (GF_REHEARSAL_CMAKE).
 # Needs minisign, rclone, openssl, cmake and git.
 set -euo pipefail
 
@@ -33,12 +34,15 @@ for tool in minisign rclone openssl cmake git; do
   command -v "$tool" >/dev/null || { echo "rehearse: $tool is missing" >&2; exit 1; }
 done
 [ ! -e "$dir" ] || { echo "rehearse: $dir exists; give a new directory" >&2; exit 1; }
-mkdir -p "$dir"/{keys,staging,www/update,www/builds,state,candidate}
+mkdir -p "$dir"/{keys,staging,www/update,www/builds,state,candidate} \
+  "$dir"/trust/{root,index-keys}
 dir="$(cd "$dir" && pwd)"
 export RCLONE_CONFIG=/dev/null
 
 echo "== keys and a TLS certificate for localhost"
-minisign -G -W -s "$dir/keys/index.key" -p "$dir/keys/index.pub" >/dev/null
+for key in index root-a root-b g; do
+  minisign -G -W -s "$dir/keys/$key.key" -p "$dir/keys/$key.pub" >/dev/null
+done
 openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:P-256 -nodes -days 2 \
   -subj "/CN=gfrelease rehearsal CA" -keyout "$dir/ca.key" -out "$dir/ca.pem" \
   -addext basicConstraints=critical,CA:TRUE \
@@ -52,24 +56,44 @@ openssl x509 -req -in "$dir/tls.csr" -CA "$dir/ca.pem" -CAkey "$dir/ca.key" \
 port="$(python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1",0)); print(s.getsockname()[1])')"
 base="https://localhost:${port}"
 
-echo "== the product, pointed at the rehearsal mirror"
-python3 - "$top/release/product.json" "$dir" "$base" <<'PY'
-import json, sys
-src, d, base = sys.argv[1:]
+echo "== the product, pointed at the rehearsal mirror, and its trust"
+repo=saturneric/GpgFrontend
+workflow=.github/workflows/build.yml
+python3 - "$top/release/product.json" "$dir" "$base" "$repo" "$workflow" <<'PY'
+import base64, json, sys
+src, d, base, repo, workflow = sys.argv[1:]
 p = json.load(open(src))
-def pub(name):
-    return [l for l in open(f"{d}/keys/{name}.pub").read().splitlines()
-            if not l.startswith("untrusted")][0]
 p["bases"] = {"update": [f"{base}/update/"], "builds": [f"{base}/builds/"]}
-p["signing"]["index_keys"] = [pub("index")]
 json.dump(p, open(f"{d}/product.json", "w"), indent=2)
+def key(name):
+    pub = [l for l in open(f"{d}/keys/{name}.pub").read().splitlines()
+           if not l.startswith("untrusted")][0]
+    return base64.b64decode(pub)[2:10][::-1].hex().upper(), pub
+ids = {n: key(n) for n in ("root-a", "root-b", "g", "index")}
+doc = {"schema": 1, "product": p["slug"], "version": 1,
+       "expires": "2099-12-31T00:00:00Z"}
+root = dict(doc, type="root",
+            keys=dict(ids[n] for n in ("root-a", "root-b", "g")),
+            roles={"root": {"keyids": [ids["root-a"][0], ids["root-b"][0]],
+                            "threshold": 2},
+                   "index_list": {"keyids": [ids["g"][0]], "threshold": 1}},
+            host_policy={"repository": repo, "workflow": workflow,
+                         "stable_pgp": {"fingerprints": ["A" * 40]}})
+json.dump(root, open(f"{d}/trust/root/1.root.json", "w"), indent=2)
+keys = dict(doc, type="index-keys", keys=dict([ids["index"]]))
+json.dump(keys, open(f"{d}/trust/index-keys/1.json", "w"), indent=2)
 PY
 cp "$top/release/policy.toml" "$dir/policy.toml"
 slug="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["slug"])' "$dir/product.json")"
-repo="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["repository"])' "$dir/product.json")"
-workflow="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["workflow"])' "$dir/product.json")"
 prefix="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["artifact_prefix"])' "$dir/product.json")"
-export GFR_PRODUCT="$dir/product.json" GFR_POLICY="$dir/policy.toml"
+export GFR_PRODUCT="$dir/product.json" GFR_POLICY="$dir/policy.toml" \
+  GFR_ROOT_DIR="$dir/trust/root" GFR_INDEX_KEYS_DIR="$dir/trust/index-keys"
+for key in root-a root-b; do
+  "${gfr[@]}" root sign "$dir/trust/root/1.root.json" -s "$dir/keys/$key.key"
+done
+minisign -S -s "$dir/keys/g.key" -m "$dir/trust/index-keys/1.json" \
+  -t "product=$slug index-keys=1" </dev/null
+"${gfr[@]}" root verify
 
 echo "== CI: a candidate of HEAD, signed for main, staged"
 commit="$(git -C "$top" rev-parse HEAD)"
