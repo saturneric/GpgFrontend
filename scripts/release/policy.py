@@ -20,6 +20,7 @@ import datetime as dt
 import json
 import re
 import sys
+import textwrap
 import tomllib
 from pathlib import Path
 
@@ -49,6 +50,11 @@ FINGERPRINT = re.compile(r"[0-9A-F]{40}([0-9A-F]{24})?")
 REPOSITORY = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+")
 WORKFLOW = re.compile(r"\.github/workflows/[A-Za-z0-9_.-]+\.ya?ml")
 ARTIFACT_PREFIX = re.compile(r"[A-Za-z0-9][A-Za-z0-9._+-]*")
+# The trust files' names (gfrelease/trust.py), versions from 1, in decimal.
+ROOT_FILE = re.compile(r"([1-9][0-9]*)\.root\.json")
+ROOT_SIG_FILE = re.compile(r"([1-9][0-9]*)\.root\.json\.[0-9A-F]{16}\.minisig")
+INDEX_KEYS_FILE = re.compile(r"([1-9][0-9]*)\.json")
+INDEX_KEYS_SIG_FILE = re.compile(r"([1-9][0-9]*)\.json\.minisig")
 
 
 class PolicyError(Exception):
@@ -60,9 +66,37 @@ def load_policy(path: Path = POLICY) -> dict:
         return tomllib.load(f)
 
 
+def unique_keys(pairs: list[tuple]) -> dict:
+    """json's object_pairs_hook refusing a key given twice: it reads
+    differently in different parsers, so the checks here would pass on one
+    value and a client act on the other."""
+    keys = [k for k, _ in pairs]
+    if len(keys) != len(set(keys)):
+        raise ValueError("a key is given twice")
+    return dict(pairs)
+
+
+def load_json_file(path: Path):
+    return json.loads(Path(path).read_text(encoding="utf-8"),
+                      object_pairs_hook=unique_keys)
+
+
 def load_product(path: Path = PRODUCT) -> dict:
-    with open(path, encoding="utf-8") as f:
-        return json.load(f)
+    return load_json_file(path)
+
+
+def is_https_base(base) -> bool:
+    """A store's public base: https://, ending in /."""
+    return isinstance(base, str) and base.startswith("https://") and \
+        base.endswith("/")
+
+
+def numbered(names, pattern: re.Pattern) -> list[int]:
+    """The versions of @p names that are a whole @p pattern (ROOT_FILE,
+    INDEX_KEYS_FILE), oldest first. A name spelled any other way, such as
+    01.json or 1.root.json.new, is not one."""
+    found = (pattern.fullmatch(str(n)) for n in names)
+    return sorted(int(m.group(1)) for m in found if m)
 
 
 def series_order(key: str) -> tuple[int, int]:
@@ -222,7 +256,7 @@ def check_product(product: dict) -> None:
         if not listed:
             errors.append(f"bases.{role} is empty")
         for base in listed:
-            if not base.startswith("https://") or not base.endswith("/"):
+            if not is_https_base(base):
                 errors.append(f"bases.{role}: {base} must be https:// and end in /")
     if len(bases.get("update", [])) > 1:
         # One store holds the index and the trust it names: a second base
@@ -284,6 +318,29 @@ def _label(key: str) -> str:
     return f"{key}.x" if "." in key else f"{key}.x.x"
 
 
+# SECURITY.md is read as plain text as often as rendered: what is generated
+# into it stays within this width, and its tables line up.
+WIDTH = 79
+
+
+def _wrap(text: str, hanging: str = "") -> list[str]:
+    """@p text in lines of WIDTH, every one after the first indented by
+    @p hanging (a list item's)."""
+    return textwrap.wrap(text, WIDTH, subsequent_indent=hanging,
+                         break_long_words=False, break_on_hyphens=False)
+
+
+def _table(rows: list[list[str]]) -> list[str]:
+    """A Markdown table whose columns line up in plain text too."""
+    widths = [max(len(row[c]) for row in rows) for c in range(len(rows[0]))]
+
+    def line(cells):
+        return "| " + " | ".join(c.ljust(w) for c, w in
+                                 zip(cells, widths)) + " |"
+    return [line(rows[0]), line(["-" * w for w in widths]),
+            *(line(row) for row in rows[1:])]
+
+
 def render_versions(policy: dict) -> str:
     describe = {
         "mainline": "In development: nightly builds",
@@ -291,66 +348,87 @@ def render_versions(policy: dict) -> str:
         "legacy": "Security fixes only",
         "eol": "End of life",
     }
-    rows = ["| Version | Status | Supported | Until |",
-            "| ------- | ------ | --------- | ----- |"]
+    rows = [["Version", "Status", "Supported", "Until"]]
+    notes = []
     series = policy["series"]
     for key in sorted(series, key=series_order, reverse=True):
         entry = series[key]
         status = describe[entry["status"]]
-        if entry.get("note"):
-            status += f" ({entry['note']})"
         if entry["status"] in ("legacy", "eol"):
             status += f"; move to {_label(entry['successor'])}"
-        ok = ":x:" if entry["status"] == "eol" else ":white_check_mark:"
+        if entry.get("note"):
+            # Below the table: in a cell it would make every row as wide.
+            notes.append(f"{_label(key)}: {entry['note']}.")
+        supported = "No" if entry["status"] == "eol" else "Yes"
         until = str(entry.get("eol", "")) if entry["status"] == "legacy" else ""
-        rows.append(f"| {_label(key)} | {status} | {ok} | {until} |")
+        rows.append([_label(key), status, supported, until])
+    lines = _table(rows)
+    if notes:
+        lines.append("")
+        for note in notes:
+            lines += _wrap(note)
 
     withdrawn = policy.get("withdrawn", [])
     if withdrawn:
-        rows.append("")
-        rows.append("Withdrawn releases (do not use; update instead):")
-        rows.append("")
+        lines += ["", "Withdrawn releases (do not use; update instead):", ""]
         for item in withdrawn:
-            rows.append(f"- {item['version']}: {item['reason']}")
-    return "\n".join(rows)
+            lines += _wrap(f"- {item['version']}: {item['reason']}", "  ")
+    return "\n".join(lines)
 
 
 def newest_root(directory: Path = TRUST_ROOT) -> dict:
-    """The newest <N>.root.json, as written: what SECURITY.md shows. Its
-    signatures are `gfrelease root verify`'s to check."""
-    found = sorted((int(p.name.split(".")[0]), p)
-                   for p in Path(directory).glob("*.root.json")
-                   if p.name.split(".")[0].isdigit())
+    """The newest <N>.root.json that any root key has signed: what
+    SECURITY.md shows. A draft from `gfrelease root new` nobody signed yet
+    is not shown. Whether the signatures verify is `gfrelease root
+    verify`'s to check."""
+    directory = Path(directory)
+    names = [p.name for p in directory.iterdir()] if directory.is_dir() \
+        else []
+    signed = {int(m.group(1)) for m in map(ROOT_SIG_FILE.fullmatch, names)
+              if m}
+    found = [n for n in numbered(names, ROOT_FILE) if n in signed]
     if not found:
-        raise PolicyError(f"{directory}: no root yet")
-    return json.loads(found[-1][1].read_text(encoding="utf-8"))
+        raise PolicyError(f"{directory}: no signed root yet")
+    path = directory / f"{found[-1]}.root.json"
+    root = load_json_file(path)
+    host = root.get("host_policy") if isinstance(root, dict) else None
+    if not isinstance(host, dict) or \
+            not isinstance(host.get("stable_pgp"), dict) or \
+            not all(isinstance(host.get(f), str)
+                    for f in ("repository", "workflow")):
+        raise PolicyError(f"{path}: no host_policy with repository, "
+                          "workflow and stable_pgp")
+    return root
 
 
 def render_keys(policy: dict, root: dict) -> str:
     floor = policy["signing"]["legacy_unsigned_before"]
     host = root["host_policy"]
     fprs = host["stable_pgp"]["fingerprints"]
-    workflow = (f"`https://github.com/{host['repository']}/"
-                f"{host['workflow']}@<ref>`")
-    lines = [f"Releases from {floor} on can be checked file by file:", "",
-             "| Releases | Signed with | Verify with |",
-             "| -------- | ----------- | ----------- |"]
-    lines.append("| Stable (vX.Y.Z) | OpenPGP, detached `.sig` per file, by the "
-                 "maintainer | " +
-                 (", ".join(f"`{f}`" for f in fprs) if fprs
-                  else "not yet published") + " |")
-    lines.append("| Nightly (main) and beta (release/X.Y) | Sigstore, on the "
-                 "build's manifest (`build/SHA256SUMS.txt.sigstore.json`) | "
-                 f"the build workflow's identity, {workflow} |")
+    workflow = (f"https://github.com/{host['repository']}/"
+                f"{host['workflow']}@<ref>")
+    # Paragraphs, not a table: a fingerprint and a URL each on a line of
+    # their own (an indented code block) read and copy the same either way.
+    lines = [f"Releases from {floor} on can be checked file by file.", ""]
+    lines += _wrap("Stable releases (vX.Y.Z) are signed with OpenPGP, a "
+                   "detached `.sig` per file, by the maintainer's key:")
     lines.append("")
-    lines.append("Check a stable download by hand with `gpg --verify FILE.sig "
-                 "FILE`, a nightly's or beta's manifest with `cosign "
-                 "verify-blob` and its files against that manifest. The "
-                 "application relies on the signed update index, which names "
-                 "each release's descriptor by its hash, and the descriptor "
-                 "each file's; a stable release is listed there only once its "
-                 "OpenPGP signatures have been checked. Windows installers of "
-                 "stable releases are also Authenticode-signed.")
+    lines += [f"    {f}" for f in fprs] or ["    (not yet published)"]
+    lines.append("")
+    lines += _wrap("Nightly builds (main) and betas (release/X.Y) are signed "
+                   "with Sigstore, on the build's manifest "
+                   "(`build/SHA256SUMS.txt.sigstore.json`), by the build "
+                   "workflow's identity:")
+    lines += ["", f"    {workflow}", ""]
+    lines += _wrap("Check a stable download by hand with `gpg --verify "
+                   "FILE.sig FILE`, a nightly's or beta's manifest with "
+                   "`cosign verify-blob` and its files against that manifest. "
+                   "The application relies on the signed update index, which "
+                   "names each release's descriptor by its hash, and the "
+                   "descriptor each file's; a stable release is listed there "
+                   "only once its OpenPGP signatures have been checked. "
+                   "Windows installers of stable releases are also "
+                   "Authenticode-signed.")
     return "\n".join(lines)
 
 
