@@ -30,21 +30,24 @@ distinct root keys that did sign matters.
 
 from __future__ import annotations
 
+import copy
 import datetime as dt
 import itertools
 import json
-import tempfile
 from pathlib import Path
 
 import layout
 import minisig
-from common import (MINISIG, ReleaseError, atomic_write, iso, load_json,
-                    parse_iso, policy_mod, sha256_bytes, utcnow)
+from common import (EXPIRY_SKEW, MINISIG, ReleaseError, ToolFailed,
+                    atomic_write, canonical_json, iso, load_json, parse_iso,
+                    policy_mod, sha256_bytes, utcnow)
 
 SCHEMA = 1
-ROOT, INDEX_KEYS = "root", "index-keys"
+ROOT_KIND, INDEX_KEYS_KIND = "root", "index-keys"  # a file's "type"
 MAX_STEPS = 32  # roots taken from one source in one go
-SKEW = dt.timedelta(days=1)  # a clock a little off is not an expiry
+# The most keys a role may name: a client fetches a signature for each root
+# key before it checks anything (RootTrust.h's kMaxRootKeys).
+MAX_ROLE_KEYS = 16
 ROOT_LIFETIME = dt.timedelta(days=2 * 365)
 INDEX_KEYS_LIFETIME = dt.timedelta(days=365)
 
@@ -71,7 +74,7 @@ def load(data: bytes, what: str, kind: str, slug: str) -> dict:
     for key_id, key in keys.items():
         if not isinstance(key, str) or minisig.key_id(key) != key_id:
             bad(f"key {key_id} is not the key listed under it")
-    if kind == ROOT:
+    if kind == ROOT_KIND:
         roles = doc.get("roles")
         if not isinstance(roles, dict):
             bad("no roles")
@@ -79,7 +82,7 @@ def load(data: bytes, what: str, kind: str, slug: str) -> dict:
             role = roles.get(name)
             ids = role.get("keyids") if isinstance(role, dict) else None
             if not isinstance(ids, list) or not ids or \
-                    len(set(ids)) != len(ids) or \
+                    len(ids) > MAX_ROLE_KEYS or len(set(ids)) != len(ids) or \
                     any(not isinstance(i, str) or i not in keys for i in ids):
                 bad(f"roles.{name} names keys it does not list")
             threshold = role.get("threshold")
@@ -127,35 +130,34 @@ def _check_host_policy(policy, what: str) -> None:
 
 def signers(data: bytes, sigs: dict, keys: dict, comment: str) -> set:
     """The ids of @p keys (id -> public key) that signed @p data with
-    exactly @p comment, by @p sigs (id -> signature bytes or None)."""
+    exactly @p comment, by @p sigs (id -> signature bytes or None). A
+    signature that does not verify is not counted; minisign missing or
+    hanging is no verdict on it, and raises (ToolFailed)."""
     found = set()
-    with tempfile.TemporaryDirectory(prefix="gfr-trust-") as tmp:
-        file = Path(tmp) / "data"
-        file.write_bytes(data)
-        for key_id, sig in sigs.items():
-            if key_id not in keys or sig is None or \
-                    minisig.prehashed_key_id(sig) != key_id:
-                continue
-            (Path(tmp) / "sig").write_bytes(sig)
-            try:
-                if minisig.verify([keys[key_id]], file,
-                                  Path(tmp) / "sig") == comment:
-                    found.add(key_id)
-            except ReleaseError:
-                continue
+    for key_id, sig in sigs.items():
+        if key_id not in keys or sig is None or \
+                minisig.prehashed_key_id(sig) != key_id:
+            continue
+        try:
+            if minisig.verify_bytes([keys[key_id]], data, sig) == comment:
+                found.add(key_id)
+        except ToolFailed:
+            raise
+        except ReleaseError:
+            continue
     return found
 
 
-def accept_root(trusted: dict | None, data: bytes, read_sig, slug: str,
-                what: str, first: int = 1) -> dict:
-    """The root in @p data, when it may follow @p trusted (None: it is root
-    @p first, trusted on its own signatures). @p read_sig(key_id) is that
-    key's signature on it, or None."""
-    root = load(data, what, ROOT, slug)
+def _accept_root(trusted: dict | None, data: bytes, read_sig, slug: str,
+                 what: str, first: int) -> tuple[dict, set]:
+    """accept_root(), and the ids of every root key whose signature on it
+    verified."""
+    root = load(data, what, ROOT_KIND, slug)
     want = trusted["version"] + 1 if trusted else first
     if root["version"] != want:
         raise ReleaseError(f"{what}: version {root['version']}, not {want}")
     comment = layout.root_comment(slug, want)
+    verified = set()
     for signer in [r for r in (trusted, root) if r is not None]:
         role = signer["roles"]["root"]
         keys = {i: signer["keys"][i] for i in role["keyids"]}
@@ -166,7 +168,16 @@ def accept_root(trusted: dict | None, data: bytes, read_sig, slug: str,
             raise ReleaseError(f"{what}: signed by {len(found)} of "
                                f"{whose} root keys, {role['threshold']} "
                                "needed")
-    return root
+        verified |= found
+    return root, verified
+
+
+def accept_root(trusted: dict | None, data: bytes, read_sig, slug: str,
+                what: str, first: int = 1) -> dict:
+    """The root in @p data, when it may follow @p trusted (None: it is root
+    @p first, trusted on its own signatures). @p read_sig(key_id) is that
+    key's signature on it, or None."""
+    return _accept_root(trusted, data, read_sig, slug, what, first)[0]
 
 
 def walk(read, slug: str, trusted: dict | None = None, *,
@@ -177,9 +188,10 @@ def walk(read, slug: str, trusted: dict | None = None, *,
     @p read(name) -> bytes or None, one version at a time until one is
     missing, @p upto is reached, or @p steps were taken. Root 1's sha256
     must be @p anchor when given. Each accepted root is handed to
-    @p keep(n, data, sigs) before the next is read. Returns the newest
-    trusted root (None when there is none at all); one that does not
-    follow raises."""
+    @p keep(n, data, sigs) before the next is read, with the signatures
+    that verified only: one that did not is never kept, nor published.
+    Returns the newest trusted root (None when there is none at all); one
+    that does not follow raises."""
     for _ in range(steps) if steps else itertools.count():
         n = trusted["version"] + 1 if trusted else first
         if upto is not None and n > upto:
@@ -197,9 +209,10 @@ def walk(read, slug: str, trusted: dict | None = None, *,
             if key_id not in sigs:
                 sigs[key_id] = read(layout.root_sig_name(n, key_id))
             return sigs[key_id]
-        trusted = accept_root(trusted, data, read_sig, slug, name, first)
+        trusted, verified = _accept_root(trusted, data, read_sig, slug, name,
+                                         first)
         if keep:
-            keep(n, data, {k: v for k, v in sigs.items() if v is not None})
+            keep(n, data, {k: sigs[k] for k in sorted(verified)})
     return trusted
 
 
@@ -207,7 +220,7 @@ def accept_index_keys(root: dict, data: bytes, sig: bytes | None,
                       slug: str, what: str, floor: int = 0) -> dict:
     """The index-keys list in @p data, when the trusted @p root's G signed
     it and it is not older than @p floor."""
-    keys = load(data, what, INDEX_KEYS, slug)
+    keys = load(data, what, INDEX_KEYS_KIND, slug)
     if keys["version"] < floor:
         raise ReleaseError(f"{what}: version {keys['version']} is older "
                            f"than {floor}, taken before")
@@ -226,7 +239,7 @@ def days_left(doc: dict, now: dt.datetime | None = None) -> float:
 
 def check_unexpired(doc: dict, what: str,
                     now: dt.datetime | None = None) -> None:
-    if parse_iso(doc["expires"]) + SKEW < (now or utcnow()):
+    if parse_iso(doc["expires"]) + EXPIRY_SKEW < (now or utcnow()):
         raise ReleaseError(f"{what} expired at {doc['expires']}")
 
 
@@ -240,9 +253,34 @@ def read_dir(directory: Path):
 
 def versions(directory: Path) -> list[int]:
     """The index-keys versions in @p directory, oldest first."""
-    return sorted(int(p.name[:-len(".json")])
-                  for p in Path(directory).glob("*.json")
-                  if p.name[:-len(".json")].isdigit())
+    directory = Path(directory)
+    if not directory.is_dir():
+        return []
+    return policy_mod.numbered((p.name for p in directory.iterdir()),
+                               policy_mod.INDEX_KEYS_FILE)
+
+
+def newest_root(root_dir: Path, slug: str, anchor: str | None = None,
+                first: int = 1) -> dict:
+    """The newest root of @p root_dir's chain, walked from @p first."""
+    root = walk(read_dir(root_dir), slug, anchor=anchor, steps=None,
+                first=first)
+    if root is None:
+        raise ReleaseError(f"{root_dir}: no {layout.root_name(first)}")
+    return root
+
+
+def newest_index_keys(index_keys_dir: Path, root: dict, slug: str,
+                      floor: int = 0) -> dict:
+    """The newest index-keys list in @p index_keys_dir, signed by @p root's
+    G."""
+    found = versions(index_keys_dir)
+    if not found:
+        raise ReleaseError(f"{index_keys_dir}: no index-keys list")
+    name = layout.index_keys_name(found[-1])
+    read = read_dir(index_keys_dir)
+    return accept_index_keys(root, read(name), read(name + MINISIG), slug,
+                             name, floor)
 
 
 def load_trust(root_dir: Path, index_keys_dir: Path, slug: str,
@@ -251,25 +289,15 @@ def load_trust(root_dir: Path, index_keys_dir: Path, slug: str,
     """The newest root of @p root_dir's chain, walked from @p first, and
     the newest index-keys list of @p index_keys_dir; both must hold. Their
     expiry is the caller's to check (check_unexpired)."""
-    root = walk(read_dir(root_dir), slug, anchor=anchor, steps=None,
-                first=first)
-    if root is None:
-        raise ReleaseError(f"{root_dir}: no {layout.root_name(first)}")
-    found = versions(index_keys_dir)
-    if not found:
-        raise ReleaseError(f"{index_keys_dir}: no index-keys list")
-    name = layout.index_keys_name(found[-1])
-    read = read_dir(index_keys_dir)
-    keys = accept_index_keys(root, read(name), read(name + MINISIG), slug,
-                             name)
-    return root, keys
+    root = newest_root(root_dir, slug, anchor, first)
+    return root, newest_index_keys(index_keys_dir, root, slug)
 
 
 def renewed(doc: dict, lifetime: dt.timedelta,
             now: dt.datetime | None = None) -> dict:
     """@p doc as its next version: the same, one higher, expiring
     @p lifetime from now."""
-    nxt = json.loads(json.dumps(doc))
+    nxt = copy.deepcopy(doc)
     nxt["version"] = doc["version"] + 1
     nxt["expires"] = iso((now or utcnow()) + lifetime)
     return nxt
@@ -297,7 +325,24 @@ def update(read_root, read_keys, keys_versions: list[int], root_dir: Path,
     problems = []
     root_dir.mkdir(parents=True, exist_ok=True)
     keys_dir.mkdir(parents=True, exist_ok=True)
+    root = _update_root(read_root, root_dir, slug, anchor, problems)
+    keys = _update_index_keys(read_keys, keys_versions, keys_dir, root, slug,
+                              problems)
+    for doc, what, warn in ((root, f"root {root['version']}",
+                             ROOT_WARN_DAYS),
+                            (keys, f"index-keys {keys['version']}",
+                             INDEX_KEYS_WARN_DAYS)):
+        check_unexpired(doc, what)
+        if days_left(doc) < warn:
+            problems.append(f"{what} expires at {doc['expires']}, in "
+                            f"{days_left(doc):.0f} days: sign the next one")
+    return root, keys, problems
 
+
+def _update_root(read_root, root_dir: Path, slug: str, anchor: str | None,
+                 problems: list[str]) -> dict:
+    """The roots main has after the ones kept in @p root_dir, kept there
+    too as far as they hold."""
     def keep(n: int, data: bytes, sigs: dict) -> None:
         for key_id, sig in sigs.items():
             atomic_write(root_dir / layout.root_sig_name(n, key_id), sig)
@@ -309,14 +354,23 @@ def update(read_root, read_keys, keys_versions: list[int], root_dir: Path,
                                "to take the first one as")
         if walk(read_root, slug, anchor=anchor, steps=1, keep=keep) is None:
             raise ReleaseError(f"main has no {layout.root_name(1)}")
-    trusted = walk(read_dir(root_dir), slug, anchor=anchor, steps=None)
+    trusted = newest_root(root_dir, slug, anchor)
     try:
-        root = walk(read_root, slug, trusted, keep=keep)
+        return walk(read_root, slug, trusted, keep=keep)
+    except ToolFailed:
+        raise  # nothing was decided about the next root
     except ReleaseError as e:
         # Never a reason to stop: the roots taken so far are kept.
-        root = walk(read_dir(root_dir), slug, anchor=anchor, steps=None)
+        root = newest_root(root_dir, slug, anchor)
         problems.append(f"{e}; root {root['version']} stays trusted")
+        return root
 
+
+def _update_index_keys(read_keys, keys_versions: list[int], keys_dir: Path,
+                       root: dict, slug: str, problems: list[str]) -> dict:
+    """The newest index-keys list, of main's @p keys_versions and those
+    kept in @p keys_dir, that @p root's G signed and that is not older than
+    the one taken before (floor.json); kept in @p keys_dir."""
     floor_path = keys_dir / "floor.json"
     g = root["roles"]["index_list"]["keyids"]
     floor = load_json(floor_path.read_bytes(), str(floor_path)) \
@@ -338,6 +392,8 @@ def update(read_root, read_keys, keys_versions: list[int], root_dir: Path,
         try:
             keys = accept_index_keys(root, read(name), read(name + MINISIG),
                                      slug, name, floor["version"])
+        except ToolFailed:
+            raise
         except ReleaseError as e:
             problems.append(str(e))
             continue
@@ -348,15 +404,6 @@ def update(read_root, read_keys, keys_versions: list[int], root_dir: Path,
     if keys is None:
         raise ReleaseError(f"no index-keys list that root {root['version']}'s"
                            " index_list key signed")
-    atomic_write(floor_path, json.dumps(
-        {"index_list": g, "version": keys["version"]}) + "\n")
-
-    for doc, what, warn in ((root, f"root {root['version']}",
-                             ROOT_WARN_DAYS),
-                            (keys, f"index-keys {keys['version']}",
-                             INDEX_KEYS_WARN_DAYS)):
-        check_unexpired(doc, what)
-        if days_left(doc) < warn:
-            problems.append(f"{what} expires at {doc['expires']}, in "
-                            f"{days_left(doc):.0f} days: sign the next one")
-    return root, keys, problems
+    atomic_write(floor_path, canonical_json(
+        {"index_list": g, "version": keys["version"]}))
+    return keys
