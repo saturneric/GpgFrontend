@@ -549,13 +549,7 @@ void KeyGroupManageDialog::slot_delete_group() {
     return;
   }
 
-  auto& getter = KeyGroupRepository::GetInstance(channel_);
-
-  QStringList parent_names;
-  for (const auto& parent_id : getter.ParentsOf(group_id_)) {
-    auto parent = getter.KeyGroup(parent_id);
-    parent_names << (parent != nullptr ? parent->Name() : parent_id);
-  }
+  const auto parent_names = Shell::KeyGroupParentNames(channel_, group_id_);
 
   QMessageBox box(this);
   box.setIcon(QMessageBox::Question);
@@ -570,8 +564,9 @@ void KeyGroupManageDialog::slot_delete_group() {
 
   // Looked up again: a key database reload can land while the box is open,
   // move this dialog to another channel and free the repository it had.
+  // Out of its categories too, as on the phone.
   if (!IsLiveChannelHandle(channel_) ||
-      !KeyGroupRepository::GetInstance(channel_).Remove(group_id_)) {
+      !Shell::DeleteKeyGroup(channel_, group_id_)) {
     QMessageBox::warning(this, tr("Delete Failed"),
                          tr("This key group could not be deleted."));
     return;

@@ -28,6 +28,7 @@
 
 #include "ui/dialog/profile/ProfileCreateSummary.h"
 
+#include "shell/rules/ProfileNameRules.h"
 #include "ui/function/KeyDatabaseDisplayNames.h"
 
 namespace GpgFrontend::UI {
@@ -44,21 +45,38 @@ auto ProfileCreateStepTitle(ProfileCreateStep step) -> QString {
   return {};
 }
 
-auto IsProfileNameAcceptable(const QString& name) -> bool {
-  return !name.trimmed().isEmpty();
+auto IsProfileNameAcceptable(const QString& name, const QStringList& taken)
+    -> bool {
+  return Shell::CheckProfileName(name, taken) ==
+         Shell::ProfileNameProblem::kNone;
 }
 
-auto CanAdvanceProfileCreate(ProfileCreateStep step, const QString& name)
-    -> bool {
+auto DescribeProfileNameProblem(const QString& name, const QStringList& taken)
+    -> QString {
+  switch (Shell::CheckProfileName(name, taken)) {
+    case Shell::ProfileNameProblem::kTooLong:
+      return QObject::tr("Use at most %1 characters.")
+          .arg(Shell::kMaxProfileNameLength);
+    case Shell::ProfileNameProblem::kTaken:
+      return QObject::tr("A profile with this name already exists.");
+    case Shell::ProfileNameProblem::kEmpty:
+    case Shell::ProfileNameProblem::kNone:
+    default:
+      return {};
+  }
+}
+
+auto CanAdvanceProfileCreate(ProfileCreateStep step, const QString& name,
+                             const QStringList& taken) -> bool {
   switch (step) {
     case ProfileCreateStep::kName:
-      return IsProfileNameAcceptable(name);
+      return IsProfileNameAcceptable(name, taken);
     case ProfileCreateStep::kKeys:
       return true;
     case ProfileCreateStep::kSettings:
       // This step's button creates the profile, so the name is asked again:
       // the wizard must not be more lenient than the dialog it replaced.
-      return IsProfileNameAcceptable(name);
+      return IsProfileNameAcceptable(name, taken);
   }
   return false;
 }

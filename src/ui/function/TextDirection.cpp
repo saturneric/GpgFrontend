@@ -34,38 +34,16 @@
 #include <QTextOption>
 #include <optional>
 
+#include "shell/present/TextDirection.h"
+
 namespace GpgFrontend::UI {
 
 namespace {
 
-/// The direction of the first strong character in @p text, or nothing when it
-/// holds none: the caller has to tell "runs left-to-right" apart from "says
-/// nothing either way" to know whether it may stop looking.
+/// Shell::FirstStrongDirection(), which the phone's editor uses too.
 auto FirstStrongDirection(const QString& text)
     -> std::optional<Qt::LayoutDirection> {
-  // Walked by code point rather than by QChar: right-to-left scripts live above
-  // the BMP too, and a lone surrogate half classifies as left-to-right, so a
-  // plain QChar loop would answer the wrong way for them.
-  for (qsizetype i = 0; i < text.size(); ++i) {
-    auto code_point = static_cast<char32_t>(text.at(i).unicode());
-    if (text.at(i).isHighSurrogate() && i + 1 < text.size() &&
-        text.at(i + 1).isLowSurrogate()) {
-      code_point = QChar::surrogateToUcs4(text.at(i), text.at(i + 1));
-      ++i;
-    }
-
-    switch (QChar::direction(code_point)) {
-      case QChar::DirL:
-        return Qt::LeftToRight;
-      case QChar::DirR:
-      case QChar::DirAL:
-        return Qt::RightToLeft;
-      default:
-        break;
-    }
-  }
-
-  return std::nullopt;
+  return Shell::FirstStrongDirection(text);
 }
 
 /// Writes @p base as the direction every paragraph starts from and anchors the

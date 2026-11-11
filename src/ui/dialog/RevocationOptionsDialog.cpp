@@ -32,12 +32,21 @@
 #include "ui_RevocationOptionsDialog.h"
 
 GpgFrontend::UI::RevocationOptionsDialog::RevocationOptionsDialog(
-    const QStringList& codes, QWidget* parent)
+    Shell::RevocationTarget target, QWidget* parent)
     : GeneralDialog("RevocationOptionsDialog", parent),
-      ui_(GpgFrontend::SecureCreateSharedObject<Ui_RevocationOptionsDialog>()) {
+      ui_(GpgFrontend::SecureCreateSharedObject<Ui_RevocationOptionsDialog>()),
+      reasons_(Shell::RevocationReasonsFor(target)) {
   ui_->setupUi(this);
 
-  ui_->rRcodeComboBox->addItems(codes);
+  const auto chosen = Shell::DefaultRevocationReason(target);
+  for (const auto& reason : reasons_) {
+    ui_->rRcodeComboBox->addItem(
+        QStringLiteral("%1 -> %2").arg(reason.code).arg(reason.text),
+        reason.code);
+    if (reason.code == chosen) {
+      ui_->rRcodeComboBox->setCurrentIndex(ui_->rRcodeComboBox->count() - 1);
+    }
+  }
 
   ui_->revocationReasonCodeLabel->setText(tr("Revocation Reason (Code)"));
   ui_->revocationReasonTextLabel->setText(tr("Revocation Reason (Text)"));
@@ -59,7 +68,7 @@ auto GpgFrontend::UI::RevocationOptionsDialog::Text() const -> QString {
 }
 
 void GpgFrontend::UI::RevocationOptionsDialog::slot_button_box_accepted() {
-  code_ = ui_->rRcodeComboBox->currentIndex();
+  code_ = ui_->rRcodeComboBox->currentData().toInt();
   text_ = ui_->rRPlainTextEdit->toPlainText()
               .trimmed()
               .split('\n', Qt::SkipEmptyParts)

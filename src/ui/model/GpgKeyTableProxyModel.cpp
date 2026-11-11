@@ -103,14 +103,8 @@ auto GpgKeyTableProxyModel::filterAcceptsRow(
   }
 
   // Once per row. This used to sit inside the column loop, appending every UID
-  // twelve times over.
-  if (key->KeyType() == GpgAbstractKeyType::kGPG_KEY) {
-    if (auto *k = dynamic_cast<GpgKey *>(key); k != nullptr) {
-      for (const auto &uid : k->UIDs()) {
-        infos << uid.GetUID();
-      }
-    }
-  }
+  // twelve times over. The phone's search adds the same (KeySearchUids).
+  infos << KeySearchUids(key);
 
   return KeySearchMatches(infos, key->Fingerprint(), filter_keywords_);
 }

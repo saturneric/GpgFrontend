@@ -40,11 +40,8 @@ GenerateRevocationCert::GenerateRevocationCert(QWidget* parent)
 void GenerateRevocationCert::Exec(int channel, const GpgKeyPtr& key) {
   if (key == nullptr) return;
 
-  QStringList codes;
-  codes << tr("0 -> No Reason.") << tr("1 -> This key is no more safe.")
-        << tr("2 -> Key is outdated.") << tr("3 -> Key is no longer used");
-  auto* revocation_options_dialog =
-      new RevocationOptionsDialog(codes, qobject_cast<QWidget*>(parent()));
+  auto* revocation_options_dialog = new RevocationOptionsDialog(
+      Shell::RevocationTarget::kKey, qobject_cast<QWidget*>(parent()));
 
   connect(
       revocation_options_dialog,

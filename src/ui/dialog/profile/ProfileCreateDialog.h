@@ -87,6 +87,9 @@ class ProfileCreateDialog : public GeneralWizard {
   std::array<GeneralWizardPage*, kProfileCreateStepCount> pages_{};
 
   QLineEdit* name_edit_{};
+  QLabel* name_problem_{};
+  /// The names the profiles have now: a new one takes none of them.
+  QStringList taken_names_;
   QRadioButton* own_keyring_{};
   QRadioButton* system_keyring_{};
   QCheckBox* inherit_settings_{};

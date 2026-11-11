@@ -31,6 +31,8 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
 #include "core/profile/Profile.h"
+#include "shell/rules/ProfileNameRules.h"
+#include "ui/function/ProfileController.h"
 #include "ui/function/UIStyle.h"
 #include "ui/widgets/ChoiceTile.h"
 
@@ -68,6 +70,10 @@ ProfileCreateDialog::ProfileCreateDialog(QWidget* parent)
   build_settings_page();
 
   connect(name_edit_, &QLineEdit::textChanged, this, [this]() {
+    const auto problem =
+        DescribeProfileNameProblem(name_edit_->text(), taken_names_);
+    name_problem_->setText(problem);
+    name_problem_->setVisible(!problem.isEmpty());
     for (auto* page : pages_) emit page->completeChanged();
   });
   connect(this, &QWizard::currentIdChanged, this,
@@ -81,7 +87,7 @@ auto ProfileCreateDialog::add_page(ProfileCreateStep step)
   auto* page = AddStep(StepIndex(step), kProfileCreateStepCount,
                        ProfileCreateStepTitle(step));
   page->complete = [this, step]() {
-    return CanAdvanceProfileCreate(step, name_edit_->text());
+    return CanAdvanceProfileCreate(step, name_edit_->text(), taken_names_);
   };
   pages_.at(StepIndex(step)) = page;
   return page;
@@ -98,7 +104,17 @@ void ProfileCreateDialog::build_name_page() {
   name_edit_ = new QLineEdit(page);
   name_edit_->setPlaceholderText(tr("for example: Work"));
   name_edit_->setClearButtonEnabled(true);
+  name_edit_->setMaxLength(Shell::kMaxProfileNameLength);
   layout->addWidget(name_edit_);
+
+  // Why Next waits, once there is a name to say it of (the phone's words).
+  for (const auto& entry : LoadProfiles().profiles) {
+    if (!entry.name.trimmed().isEmpty()) taken_names_ << entry.name.trimmed();
+  }
+  name_problem_ = CreateDetailLabel({}, page);
+  SetLabelTextColor(name_problem_, WarningColor(name_problem_->palette()));
+  name_problem_->hide();
+  layout->addWidget(name_problem_);
 
   layout->addStretch(1);
 }

@@ -136,21 +136,7 @@ void InfoBoardWidget::render_report() {
 
   // The seal: GF branding with the outcome's mark. Never an approval for
   // anything that did not succeed, and never a claim of a signature.
-  const auto seal_kind = [&]() -> ReportSealKind {
-    switch (report.headline) {
-      case InfoBoardHeadline::kSUCCEEDED:
-        return ReportSealKind::kSUCCESS;
-      case InfoBoardHeadline::kCANCELLED:
-        return ReportSealKind::kCANCELLED;
-      case InfoBoardHeadline::kFAILED:
-      case InfoBoardHeadline::kPARTIALLY_FAILED:
-        return ReportSealKind::kFAILURE;
-      case InfoBoardHeadline::kINFORMATION:
-        return ReportSealKind::kINFORMATION;
-      default:
-        return ReportSealKind::kWARNING;
-    }
-  }();
+  const auto seal_kind = ReportSealKindFor(report.headline);
   // Green only for a success, red only for a failure; everything in between
   // (warnings, cancellations, an unsupported operation) is amber.
   const QColor seal_color = seal_kind == ReportSealKind::kSUCCESS

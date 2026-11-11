@@ -38,6 +38,7 @@ namespace {
 
 using UI::CanAdvanceProfileCreate;
 using UI::DescribeProfileKeyringChoice;
+using UI::DescribeProfileNameProblem;
 using UI::IsProfileNameAcceptable;
 using UI::ProfileCreateStep;
 using UI::ProfileCreateStepTitle;
@@ -59,10 +60,26 @@ TEST(ProfileCreateSummaryTest, ABlankNameIsNotAName) {
 }
 
 TEST(ProfileCreateSummaryTest, AnyVisibleTextIsAName) {
-  // Nothing is derived from the name, so nothing about it can collide.
+  // Nothing is derived from the name but the list it is shown in.
   for (const auto& name : {u"Work"_s, u"  padded  "_s, u"a/b"_s, u"."_s}) {
     EXPECT_TRUE(IsProfileNameAcceptable(name)) << name.toStdString();
   }
+}
+
+// The phone's rule: a name already given (whatever its case), or longer than
+// either interface takes, is said and refused; a blank one only waits.
+TEST(ProfileCreateSummaryTest, ATakenOrOverlongNameIsSaidAndRefused) {
+  const QStringList taken{u"Work"_s};
+  EXPECT_FALSE(IsProfileNameAcceptable(u" work "_s, taken));
+  EXPECT_FALSE(
+      CanAdvanceProfileCreate(ProfileCreateStep::kName, u"WORK"_s, taken));
+  EXPECT_TRUE(CanAdvanceProfileCreate(ProfileCreateStep::kName, u"Home"_s,
+                                      taken));
+  EXPECT_FALSE(DescribeProfileNameProblem(u"work"_s, taken).isEmpty());
+  EXPECT_FALSE(IsProfileNameAcceptable(QString(65, u'a')));
+  EXPECT_FALSE(DescribeProfileNameProblem(QString(65, u'a'), {}).isEmpty());
+  EXPECT_TRUE(DescribeProfileNameProblem({}, taken).isEmpty());
+  EXPECT_TRUE(DescribeProfileNameProblem(u"Home"_s, taken).isEmpty());
 }
 
 TEST(ProfileCreateSummaryTest, TheNameStepWaitsForAName) {

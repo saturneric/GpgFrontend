@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "shell/rules/RevocationReasons.h"
 #include "ui/dialog/GeneralDialog.h"
 
 class Ui_RevocationOptionsDialog;
@@ -36,8 +37,12 @@ namespace GpgFrontend::UI {
 class RevocationOptionsDialog : public GeneralDialog {
   Q_OBJECT
  public:
-  explicit RevocationOptionsDialog(const QStringList& codes, QWidget* parent);
+  /// Offers the reasons a revocation of @p target may give (the shell's,
+  /// as the phone offers them), its usual one chosen.
+  explicit RevocationOptionsDialog(Shell::RevocationTarget target,
+                                   QWidget* parent);
 
+  /// The OpenPGP reason code chosen, never the row.
   [[nodiscard]] auto Code() const -> int;
 
   [[nodiscard]] auto Text() const -> QString;
@@ -47,7 +52,8 @@ class RevocationOptionsDialog : public GeneralDialog {
 
  private:
   QSharedPointer<Ui_RevocationOptionsDialog> ui_;  ///<
-  int code_;
+  QList<Shell::RevocationReason> reasons_;
+  int code_ = 0;
   QString text_;
 
   void slot_button_box_accepted();

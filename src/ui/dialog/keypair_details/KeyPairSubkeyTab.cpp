@@ -845,10 +845,8 @@ void KeyPairSubkeyTab::slot_revoke_subkey() {
     return;
   }
 
-  QStringList codes;
-  codes << tr("0 -> No Reason.") << tr("1 -> This key is no more safe.")
-        << tr("2 -> Key is outdated.") << tr("3 -> Key is no longer used");
-  auto* revocation_options_dialog = new RevocationOptionsDialog(codes, this);
+  auto* revocation_options_dialog =
+      new RevocationOptionsDialog(Shell::RevocationTarget::kSubkey, this);
 
   connect(revocation_options_dialog,
           &RevocationOptionsDialog::SignalRevokeOptionAccepted, this,

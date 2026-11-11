@@ -631,9 +631,8 @@ void KeyPairUIDTab::slot_rev_uid() {
     return;
   }
 
-  QStringList codes;
-  codes << tr("0 -> No Reason.") << tr("4 -> User ID is no longer valid.");
-  auto* revocation_options_dialog = new RevocationOptionsDialog(codes, this);
+  auto* revocation_options_dialog =
+      new RevocationOptionsDialog(Shell::RevocationTarget::kUserId, this);
 
   connect(revocation_options_dialog,
           &RevocationOptionsDialog::SignalRevokeOptionAccepted, this,
@@ -642,7 +641,7 @@ void KeyPairUIDTab::slot_rev_uid() {
             auto f = [this, key, channel, uid, code,
                       text](const OperaWaitingHd& hd) {
               UserIdOperation::GetInstance(channel).RevokeUID(
-                  key, uid, code == 1 ? 4 : 0, text,
+                  key, uid, code, text,
                   [this, alive = QPointer<QObject>(this), hd](
                       GFError err, const DataObjectPtr&) {
                     hd();

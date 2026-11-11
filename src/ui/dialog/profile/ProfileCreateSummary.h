@@ -51,15 +51,25 @@ constexpr int kProfileCreateStepCount = 3;
 auto GF_UI_EXPORT ProfileCreateStepTitle(ProfileCreateStep step) -> QString;
 
 /**
- * @brief Whether a name can be given to a profile.
- *
- * Only by being absent can it be wrong: it is shown in the profile list and
- * nothing else is derived from it, so any text that is not blank will do.
+ * @brief Whether a name can be given to a profile: the shell's rule, as the
+ * phone has it (not blank, not too long, not one of @p taken whatever its
+ * case).
  *
  * @param name what was typed
- * @return true when it is not blank
+ * @param taken the names the profiles already have
+ * @return true when it may name a new profile
  */
-auto GF_UI_EXPORT IsProfileNameAcceptable(const QString& name) -> bool;
+auto GF_UI_EXPORT IsProfileNameAcceptable(const QString& name,
+                                           const QStringList& taken = {})
+    -> bool;
+
+/**
+ * @brief Why @p name cannot name a new profile, said under the field; empty
+ * when it can, and while nothing is typed (the button alone waits for it).
+ */
+auto GF_UI_EXPORT DescribeProfileNameProblem(const QString& name,
+                                             const QStringList& taken)
+    -> QString;
 
 /**
  * @brief Whether the primary button may leave a step.
@@ -70,10 +80,13 @@ auto GF_UI_EXPORT IsProfileNameAcceptable(const QString& name) -> bool;
  *
  * @param step the step being left
  * @param name what was typed as the name
+ * @param taken the names the profiles already have
  * @return true when the step may be left forwards
  */
 auto GF_UI_EXPORT CanAdvanceProfileCreate(ProfileCreateStep step,
-                                          const QString& name) -> bool;
+                                          const QString& name,
+                                          const QStringList& taken = {})
+    -> bool;
 
 /**
  * @brief How one answer to the keyring question is offered.
