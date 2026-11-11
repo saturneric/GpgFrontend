@@ -5,7 +5,7 @@
 Signing happens on the maintainer's machine, with the certificate's key on a
 hardware token (PKCS#11) or, for a rehearsal, in a file. Verifying checks the
 signature and its chain, and that the signer is exactly the subject the
-product pins (release/product.json, `signing.authenticode_subject`): a valid
+trust root pins (host_policy.authenticode_subject, trust.py): a valid
 signature by any other certificate is not ours. osslsigncode prints the
 subject as "/CN=.../O=.../C=..." or, in other versions, as RFC 2253
 "C=...,O=...,CN=..." (last RDN first); the pin may be written either way,

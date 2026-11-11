@@ -99,6 +99,16 @@ def _check_classified(product: Product, d: dict, path: str,
                                "artifact rules call it")
 
 
+class KeptListed(ReleaseError):
+    """Something about a release was refused, and the release is listed
+    all the same, as admitted before (its entry here): the run names it
+    and ends PARTIAL."""
+
+    def __init__(self, message: str, d: dict, entry: dict):
+        super().__init__(message)
+        self.d, self.entry = d, entry
+
+
 class NotesNotUploaded(ReleaseError):
     """The notes, or their signature, are not in the store yet: nothing is
     wrong, a maintainer has not signed them yet. Unlike notes that are there
@@ -207,22 +217,20 @@ RECORD_SCHEMA = 4
 
 def _trust(product: Product, git_dir: Path, tag: str, kind: str) -> str:
     """A digest of everything an admission rested on besides the
-    descriptor: the pinned keys (and the key file they come from), the
-    Authenticode subjects, the commit the tag names and when the tag was
-    made. When any of them changes, a release is checked again from
-    nothing: a key taken out of the product unlists what only it signed, a
-    moved or re-dated tag is caught."""
+    descriptor: the root's host policy (the pinned maintainers and
+    Authenticode subjects among it), the commit the tag names and when the
+    tag was made. When any of them changes, a release is checked again from
+    nothing: a key taken out of the policy unlists what only it signed, a
+    moved or re-dated tag is caught. Renewing the root, or editing the
+    maintainers' key file, checks nothing again."""
     tagged = resolve_commit(git_dir, refs.TAGS + tag) or ""
     try:
         tagged_at = tag_time(git_dir, tag) if tagged else None
     except ReleaseError:
         tagged_at = None
-    facts = {"kind": kind, "maintainers": sorted(product.trusted_maintainers),
-             "keyring": sha256_file(product.keyring_path)
-             if Path(product.keyring_path).is_file() else "",
+    facts = {"kind": kind,
+             "host_policy": sha256_bytes(canonical_json(product.host_policy)),
              "tag": tagged, "tag_time": tagged_at}
-    if kind == layout.KIND_STABLE:
-        facts["authenticode"] = sorted(product.authenticode_subjects)
     return sha256_bytes(canonical_json(facts))
 
 
@@ -278,18 +286,22 @@ def _append_history(path: Path, line: dict) -> None:
 def _admit_release(product: Product, builds: Store, path: str, raw: bytes,
                    d: dict, *, kind: str, git_dir: Path, state_dir: Path,
                    tmp: Path, check_release, notes_required: bool,
-                   dry: bool) -> tuple[dict, dict]:
+                   dry: bool, listed: bool) -> tuple[dict, dict]:
     """What stable and imported admission share: the record, the signature
     times, the notes.
 
     The release itself is checked (@p check_release, which returns every
     maintainer signature it verified) only when the record does not already
-    vouch for this descriptor under the same trust inputs. A release keeps
+    vouch for this descriptor under the same trust inputs. Retired
+    maintainer keys and certificates count only when a release admitted
+    before is checked again (it has a record, or the published index
+    @p listed it), never for a new one. A release keeps
     the kind it was first admitted as. The notes are main's (or the tag's):
     new ones are listed once their maintainer signature verifies; until they
     are uploaded the ones admitted before stay (after a trust change, once
-    they verify again). Notes that are uploaded but do not verify refuse the
-    release, as any bad signature does. A release without admitted notes is
+    they verify again). Notes that are uploaded but do not verify refuse a
+    release that has no admitted notes yet; one that has keeps them, and is
+    listed with them (KeptListed). A release without admitted notes is
     refused when @p notes_required.
 
     Then its commit marker is written (the application asks it whether a
@@ -312,7 +324,7 @@ def _admit_release(product: Product, builds: Store, path: str, raw: bytes,
     if record is None:
         tagged_at = tag_time(git_dir, tag)
         try:
-            signatures = check_release()
+            signatures = check_release(stale is not None or listed)
         finally:
             # A release's files are big; the first run admits every
             # imported one in turn.
@@ -325,7 +337,7 @@ def _admit_release(product: Product, builds: Store, path: str, raw: bytes,
     if record is None and stale is not None and stale.get("notes"):
         # Admitted under other trust: kept only once they verify again.
         try:
-            with openpgp.Keyring.of(product) as ring:
+            with openpgp.Keyring.of(product, retired=True) as ring:
                 _verified_notes(builds, ring, stale["notes"]["notes"],
                                 stale["notes"]["notes_sha256"],
                                 tmp / version / "stale-notes")
@@ -339,12 +351,15 @@ def _admit_release(product: Product, builds: Store, path: str, raw: bytes,
     notes = release_notes(git_dir, version)
     wanted = _notes_fields(version, notes) if notes is not None else None
     chosen = previous_notes
+    kept = None
     if wanted is not None and wanted != previous_notes:
         try:
             with openpgp.Keyring.of(product) as ring:
                 _verified_notes(builds, ring, wanted["notes"],
                                 wanted["notes_sha256"], tmp / version / "notes")
             chosen = wanted
+        except StoreUnavailable:
+            raise
         except NotesNotUploaded as e:
             if notes_required and previous_notes is None:
                 raise ReleaseError(
@@ -355,6 +370,12 @@ def _admit_release(product: Product, builds: Store, path: str, raw: bytes,
                   f"{'with its admitted notes' if previous_notes else 'without notes'}"
                   f"; main's are not signed and uploaded yet (gfrelease "
                   f"stable {version} --notes-only)", file=sys.stderr)
+        except ReleaseError as e:
+            if previous_notes is None:
+                raise
+            # A keyring edited on main, or notes swapped in the bucket:
+            # never a reason to take an admitted release off the channel.
+            kept = f"{tag}: listed with its admitted notes; main's: {e}"
     if notes_required and chosen is None:
         raise ReleaseError(f"{tag}: no release notes to publish with it")
 
@@ -363,6 +384,8 @@ def _admit_release(product: Product, builds: Store, path: str, raw: bytes,
     new_record = dict(base, schema=RECORD_SCHEMA, kind=kind, notes=chosen,
                       signatures=signatures)
     if dry or new_record == record:
+        if kept:
+            raise KeptListed(kept, d, entry)
         return d, entry
     marker = layout.commit_marker(d["commit"])
     if not builds.exists(marker):
@@ -376,13 +399,15 @@ def _admit_release(product: Product, builds: Store, path: str, raw: bytes,
                          "descriptor_sha256": base["sha256"],
                          "signatures": signatures, "previous": previous})
     atomic_write(record_path, json.dumps(new_record, sort_keys=True))
+    if kept:
+        raise KeptListed(kept, d, entry)
     return d, entry
 
 
 def admit_stable(product: Product, builds: Store, path: str, raw: bytes, *,
                  git_dir: Path, state_dir: Path, cosign: str, tmp: Path,
-                 authenticode_ca: str | None = None, dry: bool = False
-                 ) -> tuple[dict, dict]:
+                 authenticode_ca: str | None = None, dry: bool = False,
+                 listed: bool = False) -> tuple[dict, dict]:
     """A stable release is listed only with everything the offline stage
     promises (scripts/release/gfrelease/stable.py), checked again here: the
     maintainer's signed tag and manifest, what CI built, the Authenticode
@@ -408,9 +433,10 @@ def admit_stable(product: Product, builds: Store, path: str, raw: bytes, *,
         product, builds, path, raw, d, kind=layout.KIND_STABLE,
         git_dir=git_dir,
         state_dir=state_dir, tmp=tmp, notes_required=True, dry=dry,
-        check_release=lambda: _check_stable(
+        listed=listed,
+        check_release=lambda recheck: _check_stable(
             product, builds, d, path, git_dir=git_dir, cosign=cosign,
-            tmp=tmp, authenticode_ca=authenticode_ca))
+            tmp=tmp, authenticode_ca=authenticode_ca, recheck=recheck))
 
 
 def _require_sigs(d: dict, path: str) -> None:
@@ -426,14 +452,15 @@ def _signed(sig: dict, sha256: str) -> dict:
 
 def _check_stable(product: Product, builds: Store, d: dict, path: str, *,
                   git_dir: Path, cosign: str, tmp: Path,
-                  authenticode_ca: str | None) -> dict:
+                  authenticode_ca: str | None, recheck: bool) -> dict:
     """Every check of a stable release; returns the maintainer signatures
-    it rests on, by file name (and the manifest's)."""
+    it rests on, by file name (and the manifest's). Retired keys and
+    certificates count only when it is a @p recheck."""
     version, tag = d["version"], f"v{d['version']}"
     signatures = {}
     work = tmp / version
     work.mkdir(parents=True, exist_ok=True)
-    with openpgp.Keyring.of(product) as ring:
+    with openpgp.Keyring.of(product, retired=recheck) as ring:
         # The tag: a maintainer's, and the commit that was built.
         ring.verify_tag(git_dir, tag)
         try:
@@ -479,10 +506,12 @@ def _check_stable(product: Product, builds: Store, d: dict, path: str, *,
             if a["sha256"] != a["build_sha256"]:
                 raise ReleaseError(f"{a['name']}: changed without a transform")
         elif a.get("transform") == "authenticode":
-            # Downloaded and hashed above, with its signature.
-            # The current certificate, or one it replaced: a release stays
+            # Downloaded and hashed above, with its signature. The current
+            # certificate, or on a recheck one it replaced: a release stays
             # admitted however often it is checked again.
-            authenticode.verify(work / a["name"], product.authenticode_subjects,
+            authenticode.verify(work / a["name"],
+                                product.authenticode_subjects if recheck
+                                else [product.authenticode_subject],
                                 authenticode_ca,
                                 require_timestamp=product
                                 .authenticode_timestamp_required)
@@ -494,7 +523,8 @@ def _check_stable(product: Product, builds: Store, d: dict, path: str, *,
 
 def admit_imported(product: Product, builds: Store, path: str, raw: bytes, *,
                    git_dir: Path, state_dir: Path, tmp: Path,
-                   dry: bool = False) -> tuple[dict, dict]:
+                   dry: bool = False, listed: bool = False
+                   ) -> tuple[dict, dict]:
     """A release from before this pipeline (gfrelease import): listed when
     every file verifies against its own maintainer signature, made when it
     was released, and its tag is the commit git calls that version.
@@ -525,12 +555,14 @@ def admit_imported(product: Product, builds: Store, path: str, raw: bytes, *,
         product, builds, path, raw, d, kind=layout.KIND_IMPORTED,
         git_dir=git_dir,
         state_dir=state_dir, tmp=tmp, notes_required=False, dry=dry,
-        check_release=lambda: _check_imported_files(
-            product, builds, d, path, git_dir=git_dir, tmp=tmp))
+        listed=listed,
+        check_release=lambda recheck: _check_imported_files(
+            product, builds, d, path, git_dir=git_dir, tmp=tmp,
+            recheck=recheck))
 
 
 def _check_imported_files(product: Product, builds: Store, d: dict, path: str,
-                          *, git_dir: Path, tmp: Path) -> dict:
+                          *, git_dir: Path, tmp: Path, recheck: bool) -> dict:
     version, tag = d["version"], f"v{d['version']}"
     try:
         tagged_commit(git_dir, tag, expect=d.get("commit"), version=version)
@@ -540,7 +572,7 @@ def _check_imported_files(product: Product, builds: Store, d: dict, path: str,
     work = tmp / version
     work.mkdir(parents=True, exist_ok=True)
     signatures = {}
-    with openpgp.Keyring.of(product) as ring:
+    with openpgp.Keyring.of(product, retired=recheck) as ring:
         for a in d["artifacts"]:
             local = builds.fetch_to(a["path"], work / a["name"])
             sig = builds.fetch_to(a["sig"], work / (a["name"] + SIG))
@@ -655,35 +687,40 @@ def build(product: Product, builds: Store, *,
             elif newer(listed, nightly):
                 nightly = listed
 
+        published = (previous or {}).get("releases")
+        published = published if isinstance(published, dict) else {}
         for rel in builds.files(layout.RELEASES, include=f"*/{DESCRIPTOR}"):
             path = f"{layout.RELEASES}/{rel}"
             if git_dir is None or state_dir is None:
                 raise ReleaseError("stable releases need --git-dir and "
                                    "--state-dir to be admitted")
+            version = rel.split("/", 1)[0]
+            listed = isinstance(published.get(version), dict) and \
+                published[version].get("descriptor") == path
             try:
                 raw = builds.read(path)
                 if load_json(raw, path).get("kind") == layout.KIND_IMPORTED:
                     d, entry = admit_imported(product, builds, path, raw,
                                               git_dir=git_dir,
                                               state_dir=state_dir,
-                                              tmp=Path(tmp), dry=dry)
+                                              tmp=Path(tmp), dry=dry,
+                                              listed=listed)
                 else:
                     d, entry = admit_stable(product, builds, path, raw,
                                             git_dir=git_dir,
                                             state_dir=state_dir,
                                             cosign=cosign, tmp=Path(tmp),
                                             authenticode_ca=authenticode_ca,
-                                            dry=dry)
+                                            dry=dry, listed=listed)
+            except KeptListed as e:
+                refuse(path, e)
+                d, entry = e.d, e.entry
             except ReleaseError as e:
                 refuse(path, e)
                 if not is_passing(e):
                     continue
-                version = rel.split("/", 1)[0]
-                listed = (previous or {}).get("releases")
-                listed = listed if isinstance(listed, dict) else {}
-                if isinstance(listed.get(version), dict) and \
-                        listed[version].get("descriptor") == path:
-                    releases[version] = listed[version]
+                if listed:
+                    releases[version] = published[version]
                 continue
             releases[d["version"]] = entry
 

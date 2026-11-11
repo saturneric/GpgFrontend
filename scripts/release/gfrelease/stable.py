@@ -110,7 +110,7 @@ class Stage:
         if key and key not in self.product.maintainers:
             raise ReleaseError(f"--key {key} is not a current pinned "
                                "maintainer's primary fingerprint "
-                               "(release/product.json)")
+                               "(the trust root's host_policy)")
 
     def _save(self) -> None:
         # Whole or not at all, and on disk before the next step starts: a
@@ -262,7 +262,7 @@ class Stage:
             # Without a time stamp the signature dies with the certificate:
             # every later check of the release would refuse it.
             raise ReleaseError("Authenticode signing needs --timestamp-url "
-                               "(release/product.json requires a timestamp)")
+                               "(the trust root requires a timestamp)")
         build = self.dir / "build"
         if self.final_dir.exists():
             shutil.rmtree(self.final_dir)

@@ -70,7 +70,8 @@ printf '%s\n' "$dirty" | grep -q -E '^.. release/policy\.toml$' ||
   die "edit release/policy.toml first: ${series} stable, ${next} mainline"
 
 policy=(python3 "${here}/policy.py" --policy "${top}/release/policy.toml"
-  --product "${top}/release/product.json" --security "${top}/SECURITY.md")
+  --product "${top}/release/product.json" --security "${top}/SECURITY.md"
+  --root-dir "${top}/release/root")
 "${policy[@]}" check
 [ "$("${policy[@]}" mainline)" = "${next}" ] ||
   die "release/policy.toml must name ${next} mainline"

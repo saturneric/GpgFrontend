@@ -20,6 +20,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 RELEASE = ROOT / "scripts" / "release"
+TRUST_FIXTURE = ROOT / "scripts" / "tests" / "fixtures" / "trust" / "root"
 sys.path.insert(0, str(RELEASE))
 
 import check_order  # noqa: E402
@@ -219,12 +220,6 @@ class PolicyCheckTest(unittest.TestCase):
         with self.assertRaisesRegex(policy.PolicyError, "lacks flavor"):
             policy.check_product(product)
 
-    def test_keys_are_minisign_keys(self):
-        product = policy.load_product()
-        product["signing"]["index_keys"] = ["RWQ="]
-        with self.assertRaisesRegex(policy.PolicyError, "not a minisign"):
-            policy.check_product(product)
-
     def test_nightly_retention_outlasts_the_margin(self):
         # Longer than an index lives (14 days) and the margin after it.
         for bad in (7, 15, 0, "30", True):
@@ -237,37 +232,8 @@ class PolicyCheckTest(unittest.TestCase):
         product["nightly_retention_days"] = policy.NIGHTLY_MARGIN_DAYS + 1
         policy.check_product(product)
 
-    def test_the_current_certificate_is_never_retired(self):
-        field = "authenticode_subjects_retired"
-        product = policy.load_product()
-        product["signing"][field] = [
-            product["signing"]["authenticode_subject"]]
-        with self.assertRaisesRegex(policy.PolicyError, "current"):
-            policy.check_product(product)
-        product["signing"][field] = "not a list"
-        with self.assertRaisesRegex(policy.PolicyError, "list"):
-            policy.check_product(product)
-        product["signing"][field] = ["something replaced"]
-        policy.check_product(product)
-
-    def test_a_current_maintainer_is_never_retired(self):
-        product = policy.load_product()
-        current = product["signing"]["maintainer_fingerprints"][0]
-        product["signing"]["maintainer_fingerprints_retired"] = [current]
-        with self.assertRaisesRegex(policy.PolicyError, "lists a current"):
-            policy.check_product(product)
-        product["signing"]["maintainer_fingerprints_retired"] = ["abc"]
-        with self.assertRaisesRegex(policy.PolicyError, "upper-case"):
-            policy.check_product(product)
-        product["signing"]["maintainer_fingerprints_retired"] = ["A" * 40]
-        policy.check_product(product)
-
     def test_what_identifies_the_build_and_names_its_files_is_checked(self):
-        for field, bad in (("workflow", "build.yml"), ("workflow", None),
-                           ("workflow", ".github/workflows/build.yml\n"),
-                           ("artifact_prefix", ""), ("artifact_prefix", "a/b"),
-                           ("repository", "owner/name/x"),
-                           ("repository", "owner/name\n"),
+        for field, bad in (("artifact_prefix", ""), ("artifact_prefix", "a/b"),
                            ("slug", "gpgfrontend\n"),
                            ("notes_link_hosts", "bktus.com"),
                            ("notes_link_hosts", [7])):
@@ -275,14 +241,6 @@ class PolicyCheckTest(unittest.TestCase):
             product[field] = bad
             with self.subTest(field=field, bad=bad), \
                     self.assertRaisesRegex(policy.PolicyError, field):
-                policy.check_product(product)
-
-    def test_an_index_key_is_pinned(self):
-        for bad in ([], None, "one key"):
-            product = policy.load_product()
-            product["signing"]["index_keys"] = bad
-            with self.subTest(bad=bad), \
-                    self.assertRaisesRegex(policy.PolicyError, "index_keys"):
                 policy.check_product(product)
 
     def test_a_file_of_the_wrong_shape_is_refused_not_a_crash(self):
@@ -322,8 +280,10 @@ class PolicyCheckTest(unittest.TestCase):
 class SecurityRenderTest(unittest.TestCase):
     def test_repository_security_md_is_current(self):
         current = policy.SECURITY.read_text(encoding="utf-8")
+        # Red until release/root/1.root.json is committed (gfrelease root
+        # init): SECURITY.md's keys are the root's.
         rendered = policy.render_security(current, policy.load_policy(),
-                                          policy.load_product())
+                                          policy.newest_root())
         self.assertEqual(current, rendered,
                          "run scripts/release/policy.py render-security")
 
@@ -343,7 +303,13 @@ class SecurityRenderTest(unittest.TestCase):
     def test_render_needs_markers(self):
         with self.assertRaises(policy.PolicyError):
             policy.render_security("# no markers\n", POLICY,
-                                   policy.load_product())
+                                   policy.newest_root(TRUST_FIXTURE))
+
+    def test_the_keys_are_the_newest_roots(self):
+        keys = policy.render_keys(POLICY, policy.newest_root(TRUST_FIXTURE))
+        self.assertIn("`12F7E8858CF15BEC9975FF3C5CA3DA246843FD03`", keys)
+        self.assertIn("saturneric/GpgFrontend/.github/workflows/build.yml",
+                      keys)
 
 
 class ToolingIsProductAgnosticTest(unittest.TestCase):
@@ -423,6 +389,7 @@ class CutTest(unittest.TestCase):
         self.repo = self.tmp / "repo"
         (self.repo / "release").mkdir(parents=True)
         shutil.copy(ROOT / "release" / "product.json", self.repo / "release")
+        shutil.copytree(TRUST_FIXTURE, self.repo / "release" / "root")
         self.write_policy(POLICY)
         (self.repo / "SECURITY.md").write_text(
             "# Security\n<!-- policy:versions:begin -->\n"

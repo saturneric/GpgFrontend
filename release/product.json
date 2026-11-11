@@ -1,8 +1,6 @@
 {
   "schema": 1,
   "slug": "gpgfrontend",
-  "repository": "saturneric/GpgFrontend",
-  "workflow": ".github/workflows/build.yml",
   "bases": {
     "update": ["https://update.bktus.com/", "https://ftp.bktus.com/update/"],
     "builds": ["https://builds.bktus.com/"]
@@ -111,12 +109,5 @@
         "macos": "{major}.0"
       }
     }
-  ],
-  "signing": {
-    "index_keys": ["RWRH9qrcd60tH7et1JqW864oJ5irkSI8iYwVa0n38k/mqJoA8IDS8Q9a"],
-    "maintainer_fingerprints": ["12F7E8858CF15BEC9975FF3C5CA3DA246843FD03"],
-    "authenticode_subject": "CN=Open Source Developer Yu Hu,O=Open Source Developer,L=Karlsruhe,ST=Baden-Württemberg,C=DE",
-    "authenticode_timestamp": "required",
-    "authenticode_subjects_retired": []
-  }
+  ]
 }
