@@ -18,7 +18,7 @@
               manifest and on the notes.
 
 Reads either a Store (the signing host's read-back) or the public HTTPS bases
-from release/product.json, tried in order, as a client would.
+from release/product.json, as a client would.
 """
 
 from __future__ import annotations
@@ -40,9 +40,6 @@ from common import (INDEX, MINISIG, SCHEMA, SIG, SMALL_OBJECT_LIMIT, SUMS,
                     parse_iso, parse_manifest, parse_version, policy_mod,
                     refs, sha256_bytes, sha256_file, utcnow)
 
-# How far behind the first base a mirror may be while the host is writing
-# it: the index goes to the update store first, then to each mirror.
-MIRROR_LAG = 2
 
 
 class HttpSource:
@@ -57,18 +54,12 @@ class HttpSource:
         self.cafile = cafile
         self.context = ssl.create_default_context(cafile=cafile)
 
-    def each(self) -> list["HttpSource"]:
-        """One source per base: what a client that reached only that mirror
-        would read."""
-        return [HttpSource([base], self.slug, self.cafile)
-                for base in self.bases]
-
     def _each(self, path: str, consume):
         errors = []
         for base in self.bases:
             url = f"{base}{self.slug}/{check_relpath(path)}"
             # Its own name: Cloudflare's bot filter answers urllib's default
-            # User-Agent with 403, which would read as a broken mirror.
+            # User-Agent with 403, which would read as a broken store.
             request = urllib.request.Request(
                 url, headers={"User-Agent": "gfrelease-verify/1"})
             try:
@@ -232,31 +223,6 @@ def _check_channels(index: dict) -> list[tuple[str, dict]]:
     return betas
 
 
-def check_mirrors(product: Product, update, index_keys: list[str],
-                  serial: int) -> list[dict]:
-    """Every update base on its own: a client that reaches only the second
-    mirror is served a signed, unexpired index of this product too. One a
-    serial or two behind is being synced; one further back, or broken, is
-    an error. Returns each base's serial."""
-    seen, problems = [], []
-    for source in update.each():
-        try:
-            with tempfile.TemporaryDirectory(prefix="gfr-mirror-") as tmp:
-                data, comment = _signed(source, INDEX, index_keys, Path(tmp))
-            index = load_json(data, INDEX)
-            check_index(product, index, comment)
-            if index["serial"] < serial - MIRROR_LAG:
-                raise ReleaseError(f"serves serial {index['serial']}, the "
-                                   f"first base {serial}")
-            seen.append({"base": str(source), "serial": index["serial"]})
-        except ReleaseError as e:
-            problems.append(f"{source}: {e}")
-    if problems:
-        raise ReleaseError("an update mirror does not serve the index:\n  "
-                           + "\n  ".join(problems))
-    return seen
-
-
 def _index_keys(product: Product, source, index: dict) -> list[str]:
     """The keys a client would take @p index on: this tree's trust,
     walked forward to the root and index-keys list the index names, read
@@ -311,9 +277,6 @@ def verify(product: Product, update, builds, *, deep: bool = False) -> dict:
         report = {"product": product.slug, "serial": index["serial"],
                   "expires": index["expires"], "channels": index["channels"],
                   "checked": []}
-        if hasattr(update, "each"):
-            report["bases"] = check_mirrors(product, update, index_keys,
-                                            index["serial"])
 
         ring = None
 

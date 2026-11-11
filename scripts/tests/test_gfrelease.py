@@ -1037,26 +1037,18 @@ class ChainTest(unittest.TestCase):
                 super().put_file(local, path, immutable)
 
         self.update = Recording(self.update.root)
-        mirror = Recording(str(self.tmp / "mirror" / self.slug))
         self.commit()
         self.build()
         self.promote()
-        index = index_mod.publish(
-            self.product, self.builds, self.update, index_key=self.idx_key,
-            state_dir=self.state, git_dir=self.repo, cosign=str(self.cosign),
-            mirrors=[mirror], index_pub=[self.idx_pub])
+        index = self.index()
         self.assertEqual((index["root_version"],
                           index["index_keys_version"]), (1, 1))
         trust_paths = [path for _, path in index_mod.trust_files(self.product)]
         self.assertEqual(len(trust_paths), 5)  # a root, 2 sigs, a list, 1
-        live = [i for i, p in enumerate(order) if p == common.INDEX]
-        self.assertEqual(len(live), 2)  # the update store, the mirror
-        for at in live:
-            for path in trust_paths:
-                self.assertIn(path, order[:at])
-        for store in (self.update, mirror):
-            for path in trust_paths:
-                self.assertTrue(store.exists(path), path)
+        (live,) = [i for i, p in enumerate(order) if p == common.INDEX]
+        for path in trust_paths:
+            self.assertIn(path, order[:live])
+            self.assertTrue(self.update.exists(path), path)
         self.check()
 
     def test_verify_walks_to_the_root_an_index_names(self):
@@ -1079,40 +1071,12 @@ class ChainTest(unittest.TestCase):
         self.assert_refused(lambda: self.check(deep=False),
                             "names root 2")
 
-    def test_a_mirror_that_differs_is_brought_back_in_line(self):
-        mirror = Store(str(self.tmp / "mirror" / self.slug))
         self.commit()
         self.build()
         self.promote()
-        index_mod.publish(self.product, self.builds, self.update,
-                          index_key=self.idx_key, state_dir=self.state,
-                          git_dir=self.repo, cosign=str(self.cosign),
-                          mirrors=[mirror], index_pub=[self.idx_pub])
-        (self.tmp / "mirror" / self.slug / common.INDEX).unlink()
-        # Nothing new to say: no new serial, the mirror repaired all the
-        # same.
-        self.assertIsNone(index_mod.publish(
-            self.product, self.builds, self.update, index_key=self.idx_key,
-            state_dir=self.state, mirrors=[mirror],
-            git_dir=self.repo, cosign=str(self.cosign),
-            index_pub=[self.idx_pub]))
-        for name in (common.INDEX, common.INDEX + ".minisig"):
-            self.assertEqual(mirror.read(name), self.update.read(name))
 
-    def test_a_mirror_that_is_down_fails_the_run_not_the_update_store(self):
-        down = Store(str(self.tmp / "mirror" / self.slug),
-                     rclone=flaky_rclone(self.tmp, "mirror"))
         self.commit()
-        _, version = self.build()
         self.promote()
-        with self.assertRaises(index_mod.IndexIncomplete) as caught:
-            index_mod.publish(self.product, self.builds, self.update,
-                              index_key=self.idx_key, state_dir=self.state,
-                              git_dir=self.repo, cosign=str(self.cosign),
-                              mirrors=[down], index_pub=[self.idx_pub])
-        self.assertIn("mirror", "\n".join(caught.exception.refused))
-        self.assertEqual(index_mod.published(self.update)["channels"]
-                         ["nightly"], version)
 
     def forge_staged(self, prefix, staged, **changes):
         """A staged.json in the untrusted staging bucket, written by anyone."""
