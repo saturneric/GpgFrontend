@@ -58,7 +58,7 @@ def require(d: dict, path: str, *fields: str) -> None:
         raise ReleaseError(f"{path}: lacks {', '.join(missing)}")
     for a in d.get("artifacts", []):
         if not isinstance(a, dict) or any(
-                k not in a for k in ("name", "path", "sig", "sha256")):
+                k not in a for k in ("name", "path", "sha256")):
             raise ReleaseError(f"{path}: an artifact entry is incomplete")
     # Every check of a descriptor compares {name: sha256}: a name listed twice would
     # collapse there, and its other entry (hash, path) reach the index
@@ -67,6 +67,11 @@ def require(d: dict, path: str, *fields: str) -> None:
         values = [a[field] for a in d.get("artifacts", [])]
         if len(values) != len(set(values)):
             raise ReleaseError(f"{path}: an artifact {field} is listed twice")
+
+
+def hashes(d: dict) -> dict[str, str]:
+    """{name: sha256} of a descriptor's files: what its manifest lists."""
+    return {a["name"]: a["sha256"] for a in d["artifacts"]}
 
 
 def names_build(entry) -> bool:

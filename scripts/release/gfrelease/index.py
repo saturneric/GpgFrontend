@@ -5,11 +5,11 @@
 Built from the release policy and the descriptors in the builds store: main's
 newest promoted build is the nightly channel, a release branch's is the beta
 of its series, and a stable or imported release is listed only once its
-maintainer signatures verified and the server countersigned it
-(countersign.py). Signed with the product's index key (trusted comment
-"product=<slug> serial=<n>") and published to the update store, then the
-mirrors. A run whose index would say nothing new, and is not near expiry,
-publishes nothing; `resign` publishes regardless, to push `expires` out.
+maintainer signatures verified. Signed with the product's index key
+(trusted comment "product=<slug> serial=<n>") and published to the update
+store, then the mirrors. A run whose index would say nothing new, and is
+not near expiry, publishes nothing; `resign` publishes regardless, to push
+`expires` out.
 
 The serial only grows: it is one more than both the host's own record and the
 published index, so a client that has seen serial n never accepts an older
@@ -30,7 +30,6 @@ import tempfile
 from pathlib import Path
 
 import authenticode
-import countersign
 import descriptor
 import minisig
 import openpgp
@@ -38,8 +37,8 @@ import layout
 from common import (BUNDLE, DESCRIPTOR, INDEX, MINISIG, SCHEMA, SIG, SUMS,
                     Problems, Product, ReleaseError, atomic_write,
                     candidate_error, is_passing, canonical_json,
-                    check_relpath, iso, load_json, locked, notes_at,
-                    parse_iso, parse_manifest, parse_version, refs,
+                    check_relpath, git_version, iso, load_json, locked,
+                    notes_at, parse_iso, parse_manifest, parse_version, refs,
                     resolve_commit, sha256_bytes, sha256_file, tag_time,
                     tagged_commit, utcnow)
 from store import Store, StoreUnavailable
@@ -122,11 +121,14 @@ def _verified_notes(builds: Store, ring: openpgp.Keyring, notes_path: str,
 
 
 def admit_nightly(product: Product, builds: Store, path: str, raw: bytes,
-                  artifact_pub: str, tmp: Path) -> dict:
+                  tmp: Path, *, git_dir: Path | None, cosign: str) -> dict:
     """A promoted build (main's, a nightly; a release branch's, a beta) is
     listed only if its descriptor is this product's, says what it is
-    consistently, and its manifest carries the artifact key's signature over
-    exactly the hashes it states."""
+    consistently, and what promotion checked holds again: the Sigstore
+    bundle under build/ names this product's workflow at the descriptor's
+    ref and commit, that manifest states exactly the descriptor's hashes,
+    and git calls that commit this version. The builds store is a bucket:
+    nothing in it is the host's word until it is checked."""
     d = load_json(raw, path)
     descriptor.check_shape(d, path)
     prefix = path.rsplit("/", 1)[0]
@@ -136,21 +138,13 @@ def admit_nightly(product: Product, builds: Store, path: str, raw: bytes,
     if d.get("kind") != layout.KIND_NIGHTLY or not refs.publishes_builds(ref):
         raise ReleaseError(f"{path}: not a build of main or of a release "
                            "branch")
-    descriptor.require(d, path, "version", "sums", "sums_sig", "artifacts",
-             "promoted_at")
+    descriptor.require(d, path, "version", "commit", "build", "artifacts",
+                       "promoted_at")
+    descriptor.require(d["build"], path + " build", "sums", "bundle")
     try:
         parse_iso(d["promoted_at"])
     except ReleaseError as e:
         raise ReleaseError(f"{path}: promoted_at: {e}") from e
-    # Signed with the current artifact key, or one it replaced: a rotation
-    # does not unlist the nightlies published before it.
-    keys = {minisig.key_id(k): k for k in product.artifact_keys(artifact_pub)}
-    signing = d.get("signing", {})
-    key = keys.get(signing.get("key_id")) \
-        if signing.get("scheme") == layout.SCHEME_MINISIGN and \
-        len(signing) == 2 else None
-    if key is None:
-        raise ReleaseError(f"{path}: not signed with the artifact key")
     v = parse_version(d['version'], path)
     if v.is_final:
         raise ReleaseError(f"{path}: {d['version']} is a final version, which "
@@ -161,36 +155,33 @@ def admit_nightly(product: Product, builds: Store, path: str, raw: bytes,
     if series and v.series != series:
         raise ReleaseError(f"{path}: {d['version']} is not a build of the "
                            f"{series} series its branch names")
-    filesafe = v.filesafe
     if prefix != layout.nightly_dir(d["version"]):
         raise ReleaseError(f"{path}: published under another version's name")
-    _check_contained(path, [d["sums"], d["sums_sig"]] +
-                     [a[k] for a in d["artifacts"] for k in ("path", "sig")],
-                     prefix)
-    # The signature verify.py and every client check is the one beside the
-    # manifest; the host checks that same object.
-    if d["sums_sig"] != d["sums"] + MINISIG:
-        raise ReleaseError(f"{path}: the manifest's signature is not beside "
-                           "it")
-    _check_classified(product, d, path, filesafe)
-
-    sums, sig = tmp / SUMS, tmp / (SUMS + MINISIG)
-    sums.write_bytes(builds.read(d["sums"]))
-    sig.write_bytes(builds.read(d["sums_sig"]))
-    comment = minisig.verify([key], sums, sig)
-    # What the signature says it is: this product's manifest of this very
-    # version, as promotion signs it. The same key countersigns releases'
-    # manifests; one of those is never a nightly's.
-    want = layout.file_comment(product.slug, SUMS, d["version"])
-    if comment != want:
-        raise ReleaseError(f"{path}: the manifest's trusted comment is "
-                           f"{comment!r}, not {want!r}")
-    listed = parse_manifest(sums.read_bytes(), d["sums"])
-    if listed != countersign.hashes_of(d):
-        raise ReleaseError(f"{path}: artifacts differ from the signed manifest")
+    _check_contained(path, [d["build"]["sums"], d["build"]["bundle"]] +
+                     [a["path"] for a in d["artifacts"]], prefix)
+    _check_classified(product, d, path, v.filesafe)
     if any(a.get("sha256") != a.get("build_sha256") or
            a.get("transform") != "none" for a in d["artifacts"]):
         raise ReleaseError(f"{path}: a nightly is published as built")
+
+    build = tmp / v.filesafe
+    build.mkdir(parents=True, exist_ok=True)
+    builds.fetch_to(d["build"]["sums"], build / SUMS)
+    builds.fetch_to(d["build"]["bundle"], build / BUNDLE)
+    try:
+        rc.cosign_verify(build, product.identity(ref), d["commit"], cosign)
+    except (rc.CandidateError, rc.CandidateTimeout) as e:
+        raise candidate_error(path, e) from e
+    if parse_manifest((build / SUMS).read_bytes(), d["build"]["sums"]) != \
+            descriptor.hashes(d):
+        raise ReleaseError(f"{path}: artifacts differ from the signed manifest")
+    if git_dir is None:
+        raise ReleaseError("builds need --git-dir to be admitted")
+    derived = git_version(git_dir, d["commit"], refs.branch_of(ref))
+    if derived != d["version"]:
+        raise ReleaseError(f"{path}: git says {d['commit'][:12]} on "
+                           f"{refs.branch_of(ref)} is {derived}, not "
+                           f"{d['version']}")
     return d
 
 
@@ -211,7 +202,7 @@ def _notes_fields(version: str, notes: bytes) -> dict:
             "notes_sig": notes_path + SIG}
 
 
-RECORD_SCHEMA = 3
+RECORD_SCHEMA = 4
 
 
 def _trust(product: Product, git_dir: Path, tag: str, kind: str) -> str:
@@ -287,8 +278,7 @@ def _append_history(path: Path, line: dict) -> None:
 def _admit_release(product: Product, builds: Store, path: str, raw: bytes,
                    d: dict, *, kind: str, git_dir: Path, state_dir: Path,
                    tmp: Path, check_release, notes_required: bool,
-                   countersigner: "countersign.Countersigner | None"
-                   ) -> tuple[dict, dict]:
+                   dry: bool) -> tuple[dict, dict]:
     """What stable and imported admission share: the record, the signature
     times, the notes.
 
@@ -302,13 +292,10 @@ def _admit_release(product: Product, builds: Store, path: str, raw: bytes,
     release, as any bad signature does. A release without admitted notes is
     refused when @p notes_required.
 
-    Only then is it countersigned (countersign.py), and the record says so
-    last: a run stopped halfway countersigns again (what is there is kept),
-    and never lists a release whose countersignatures are not all there.
-    Every change of its signatures is appended to <version>.history.jsonl.
-    Without a @p countersigner (an index run with no artifact key) nothing
-    is signed or recorded; a dry run's countersigner signs nothing and
-    records into a copy of the state directory."""
+    Then its commit marker is written (the application asks it whether a
+    build is official), and the record last. Every change of its signatures
+    is appended to <version>.history.jsonl. A @p dry run writes nothing to
+    the store, and records into a copy of the state directory."""
     version = d["version"]
     tag = f"v{version}"
     record_path = state_dir / "admitted" / f"{version}.json"
@@ -324,7 +311,12 @@ def _admit_release(product: Product, builds: Store, path: str, raw: bytes,
         {k: stale.get(k) for k in base} == base else None
     if record is None:
         tagged_at = tag_time(git_dir, tag)
-        signatures = check_release()
+        try:
+            signatures = check_release()
+        finally:
+            # A release's files are big; the first run admits every
+            # imported one in turn.
+            shutil.rmtree(tmp / version, ignore_errors=True)
         _check_signature_times(signatures, stale, tag, tagged_at)
     else:
         signatures = record["signatures"]
@@ -366,28 +358,15 @@ def _admit_release(product: Product, builds: Store, path: str, raw: bytes,
     if notes_required and chosen is None:
         raise ReleaseError(f"{tag}: no release notes to publish with it")
 
-    entry = {"descriptor": path, "sha256": base["sha256"]} | (chosen or {}) | \
-        countersign.entry_fields(d, chosen) | _signature_fields(signatures)
-    if countersigner is None:
-        return d, entry
-
-    done = (record or {}).get("countersigned") or {}
-    work = tmp / version
-    try:
-        if done.get("key") != countersigner.key_id:
-            countersigner.release(builds, d, work)
-            done = {"key": countersigner.key_id, "notes": None}
-        if chosen and done.get("notes") != chosen["notes_sha256"]:
-            countersigner.notes(builds, version, chosen, work / "notes")
-    finally:
-        # A release's files are big; the first run admits every imported
-        # one in turn.
-        shutil.rmtree(work, ignore_errors=True)
+    entry = {"descriptor": path, "sha256": base["sha256"]} | \
+        (chosen or {}) | _signature_fields(signatures)
     new_record = dict(base, schema=RECORD_SCHEMA, kind=kind, notes=chosen,
-                      signatures=signatures,
-                      countersigned={"key": countersigner.key_id,
-                                     "notes": chosen["notes_sha256"]
-                                     if chosen else None})
+                      signatures=signatures)
+    if dry or new_record == record:
+        return d, entry
+    marker = layout.commit_marker(d["commit"])
+    if not builds.exists(marker):
+        builds.put_bytes(b"", marker)
     previous = (stale or {}).get("signatures")
     if signatures != previous:
         # Before the record: a crash in between repeats a line, never
@@ -396,15 +375,13 @@ def _admit_release(product: Product, builds: Store, path: str, raw: bytes,
                         {"at": iso(utcnow()), "descriptor": path,
                          "descriptor_sha256": base["sha256"],
                          "signatures": signatures, "previous": previous})
-    if new_record != record:
-        atomic_write(record_path, json.dumps(new_record, sort_keys=True))
+    atomic_write(record_path, json.dumps(new_record, sort_keys=True))
     return d, entry
 
 
 def admit_stable(product: Product, builds: Store, path: str, raw: bytes, *,
                  git_dir: Path, state_dir: Path, cosign: str, tmp: Path,
-                 authenticode_ca: str | None = None,
-                 countersigner: "countersign.Countersigner | None" = None
+                 authenticode_ca: str | None = None, dry: bool = False
                  ) -> tuple[dict, dict]:
     """A stable release is listed only with everything the offline stage
     promises (scripts/release/gfrelease/stable.py), checked again here: the
@@ -421,6 +398,7 @@ def admit_stable(product: Product, builds: Store, path: str, raw: bytes, *,
     version = _check_release_envelope(product, d, path, layout.KIND_STABLE)
     descriptor.require(d, path, "commit", "sums", "sums_sig", "build", "artifacts")
     descriptor.require(d["build"], path + " build", "sums", "bundle")
+    _require_sigs(d, path)
     _check_contained(path, [d["sums"], d["sums_sig"], d["build"]["sums"],
                             d["build"]["bundle"]] +
                      [a[k] for a in d["artifacts"] for k in ("path", "sig")],
@@ -429,11 +407,16 @@ def admit_stable(product: Product, builds: Store, path: str, raw: bytes, *,
     return _admit_release(
         product, builds, path, raw, d, kind=layout.KIND_STABLE,
         git_dir=git_dir,
-        state_dir=state_dir, tmp=tmp, notes_required=True,
-        countersigner=countersigner,
+        state_dir=state_dir, tmp=tmp, notes_required=True, dry=dry,
         check_release=lambda: _check_stable(
             product, builds, d, path, git_dir=git_dir, cosign=cosign,
             tmp=tmp, authenticode_ca=authenticode_ca))
+
+
+def _require_sigs(d: dict, path: str) -> None:
+    """A release's every file carries its maintainer's OpenPGP signature."""
+    if any(not isinstance(a.get("sig"), str) for a in d["artifacts"]):
+        raise ReleaseError(f"{path}: a file without its signature")
 
 
 def _signed(sig: dict, sha256: str) -> dict:
@@ -465,13 +448,12 @@ def _check_stable(product: Product, builds: Store, d: dict, path: str, *,
             sums, builds.fetch_to(d["sums_sig"], work / (SUMS + SIG))),
             sha256_file(sums))
         if parse_manifest(sums.read_bytes(), d["sums"]) != \
-                countersign.hashes_of(d):
+                descriptor.hashes(d):
             raise ReleaseError(f"{path}: artifacts differ from the signed "
                                "manifest")
 
         # Every file's own signature, as published beside it: a release
-        # with one missing or invalid is not listed. The downloads stay in
-        # @p work for the countersignature.
+        # with one missing or invalid is not listed.
         for a in d["artifacts"]:
             local = builds.fetch_to(a["path"], work / a["name"])
             if sha256_file(local) != a["sha256"]:
@@ -512,8 +494,7 @@ def _check_stable(product: Product, builds: Store, d: dict, path: str, *,
 
 def admit_imported(product: Product, builds: Store, path: str, raw: bytes, *,
                    git_dir: Path, state_dir: Path, tmp: Path,
-                   countersigner: "countersign.Countersigner | None" = None
-                   ) -> tuple[dict, dict]:
+                   dry: bool = False) -> tuple[dict, dict]:
     """A release from before this pipeline (gfrelease import): listed when
     every file verifies against its own maintainer signature, made when it
     was released, and its tag is the commit git calls that version.
@@ -532,9 +513,8 @@ def admit_imported(product: Product, builds: Store, path: str, raw: bytes, *,
     if not d.get("artifacts"):
         raise ReleaseError(f"{path}: lists no files")
     descriptor.require(d, path, "artifacts", "commit")
-    # Its manifest is the one the server writes from the checked hashes
-    # (countersign.manifest_path); one named here would be countersigned
-    # wherever it pointed.
+    _require_sigs(d, path)
+    # Each file is checked on its own signature; there is no manifest.
     if "sums" in d or "sums_sig" in d:
         raise ReleaseError(f"{path}: an imported release names no manifest")
     _check_contained(path, [a[k] for a in d["artifacts"]
@@ -544,8 +524,7 @@ def admit_imported(product: Product, builds: Store, path: str, raw: bytes, *,
     return _admit_release(
         product, builds, path, raw, d, kind=layout.KIND_IMPORTED,
         git_dir=git_dir,
-        state_dir=state_dir, tmp=tmp, notes_required=False,
-        countersigner=countersigner,
+        state_dir=state_dir, tmp=tmp, notes_required=False, dry=dry,
         check_release=lambda: _check_imported_files(
             product, builds, d, path, git_dir=git_dir, tmp=tmp))
 
@@ -604,11 +583,10 @@ def _kept_builds(previous: dict | None, path: str) -> tuple[dict | None,
                      if descriptor.names_build(b) and b["descriptor"] == path][:1]
 
 
-def build(product: Product, builds: Store, artifact_pub: str, *,
+def build(product: Product, builds: Store, *,
           git_dir: Path | None = None, state_dir: Path | None = None,
           cosign: str = "cosign", authenticode_ca: str | None = None,
-          refused: Problems | None = None,
-          countersigner: "countersign.Countersigner | None" = None,
+          refused: Problems | None = None, dry: bool = False,
           previous: dict | None = None) -> dict:
     """The index's content, without serial and times. A release that fails
     admission is left out and appended to @p refused (when given; otherwise
@@ -650,8 +628,8 @@ def build(product: Product, builds: Store, artifact_pub: str, *,
                             continue
                     except ReleaseError:
                         pass  # admit_nightly refuses it
-                d = admit_nightly(product, builds, path, raw, artifact_pub,
-                                  Path(tmp))
+                d = admit_nightly(product, builds, path, raw, Path(tmp),
+                                  git_dir=git_dir, cosign=cosign)
             except ReleaseError as e:
                 refuse(path, e)
                 if not is_passing(e):
@@ -688,15 +666,14 @@ def build(product: Product, builds: Store, artifact_pub: str, *,
                     d, entry = admit_imported(product, builds, path, raw,
                                               git_dir=git_dir,
                                               state_dir=state_dir,
-                                              tmp=Path(tmp),
-                                              countersigner=countersigner)
+                                              tmp=Path(tmp), dry=dry)
                 else:
                     d, entry = admit_stable(product, builds, path, raw,
                                             git_dir=git_dir,
                                             state_dir=state_dir,
                                             cosign=cosign, tmp=Path(tmp),
                                             authenticode_ca=authenticode_ca,
-                                            countersigner=countersigner)
+                                            dry=dry)
             except ReleaseError as e:
                 refuse(path, e)
                 if not is_passing(e):
@@ -738,8 +715,8 @@ def build(product: Product, builds: Store, artifact_pub: str, *,
 
     # The beta of a series: its release branch's newest build, when users
     # are meant to be on that series and the build is newer than its latest
-    # release. Signed as a nightly is (minisign, the artifact key); a user
-    # opts in, and is only ever offered the beta of the series they run.
+    # release. Admitted as a nightly is; a user opts in, and is only ever
+    # offered the beta of the series they run.
     for b in betas:
         v = parse_version(b["version"])
         entry = series.get(v.series)
@@ -832,12 +809,12 @@ def read_serial(state_dir: Path) -> int:
 
 
 def dry_run(product: Product, builds: Store, update: Store, *,
-            artifact_pub: str, state_dir: Path, git_dir: Path | None = None,
+            state_dir: Path, git_dir: Path | None = None,
             index_pub: list[str], cosign: str = "cosign",
             authenticode_ca: str | None = None) -> dict:
     """Everything an index run decides, and nothing it writes: admission
-    runs against a copy of the state directory, nothing is signed, uploaded
-    or countersigned. Returns what would be listed, what was refused, and
+    runs against a copy of the state directory, nothing is signed or
+    uploaded. Returns what would be listed, what was refused, and
     how it differs from the published index."""
     refused = Problems()
     listed = trusted_published(product, update, index_pub)
@@ -848,14 +825,11 @@ def dry_run(product: Product, builds: Store, update: Store, *,
             # would read as a release never admitted.
             with locked(state_dir, shared=True):
                 shutil.copytree(state_dir, state)
-        # Admission runs as for real, countersigning included, against the
-        # copy: what would clash is refused here too, nothing is written.
-        content = build(product, builds, artifact_pub, git_dir=git_dir,
+        # Admission runs as for real, against the copy; nothing is written.
+        content = build(product, builds, git_dir=git_dir,
                         state_dir=state, cosign=cosign,
                         authenticode_ca=authenticode_ca, refused=refused,
-                        previous=listed,
-                        countersigner=countersign.Countersigner(
-                            product, None, artifact_pub, dry=True))
+                        previous=listed, dry=True)
     previous = listed or {}
     before = {k: v for k, v in previous.items() if k not in VOLATILE}
     return {
@@ -877,9 +851,8 @@ def dry_run(product: Product, builds: Store, update: Store, *,
 
 
 def publish(product: Product, builds: Store, update: Store, *,
-            index_key: Path, index_pub: list[str], artifact_pub: str,
-            state_dir: Path, artifact_key: Path | None = None,
-            force: bool = False, mirrors: list[Store] = (),
+            index_key: Path, index_pub: list[str],
+            state_dir: Path, force: bool = False, mirrors: list[Store] = (),
             git_dir: Path | None = None, cosign: str = "cosign",
             authenticode_ca: str | None = None) -> dict | None:
     """Builds, signs and publishes the index; None when it would say nothing
@@ -891,17 +864,10 @@ def publish(product: Product, builds: Store, update: Store, *,
     keys = list(index_pub)
     refused = Problems()
     before = _published_pair(product, update, keys)
-    content = build(product, builds, artifact_pub, git_dir=git_dir,
+    content = build(product, builds, git_dir=git_dir,
                     state_dir=state_dir, cosign=cosign,
                     authenticode_ca=authenticode_ca, refused=refused,
-                    countersigner=countersign.Countersigner(
-                        product, artifact_key, artifact_pub)
-                    if artifact_key else None,
                     previous=before[0] if before else None)
-    if artifact_key is None and content["releases"]:
-        # Nothing is listed that the server has not countersigned.
-        raise ReleaseError("stable releases need --artifact-key to be "
-                           "countersigned and listed")
     index = _sign_and_publish(product, content, update, index_key=index_key,
                               state_dir=state_dir, force=force,
                               mirrors=list(mirrors), keys=keys,

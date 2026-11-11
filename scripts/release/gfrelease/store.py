@@ -160,7 +160,7 @@ class Store:
         check and the upload are two steps: what keeps another writer from
         coming between them is that every path has one writer. The host's
         runs are serialized by its lock; the maintainer's stage and CI write
-        other paths (releases/<version>/ before the host countersigns them,
+        other paths (releases/<version>/, which the host only reads,
         the staging store per version)."""
         if immutable and self.exists(path):
             if self.sha256(path) != sha256_file(local):

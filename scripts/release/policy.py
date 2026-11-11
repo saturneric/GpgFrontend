@@ -248,15 +248,15 @@ def check_product(product: dict) -> None:
                           f"current maintainer, {fpr}")
     # A key or certificate replaced: what it signed still verifies, nothing new
     # is signed with it. The current one is never also retired.
-    for field, current in (("artifact_keys_retired", "artifact_key"),
-                           ("authenticode_subjects_retired",
-                            "authenticode_subject")):
-        retired = signing.get(field, [])
-        if not isinstance(retired, list) or \
-                not all(isinstance(v, str) and v for v in retired):
-            errors.append(f"signing.{field} must be a list of strings")
-        elif signing.get(current) and signing[current] in retired:
-            errors.append(f"signing.{field} lists the current {current}")
+    retired = signing.get("authenticode_subjects_retired", [])
+    if not isinstance(retired, list) or \
+            not all(isinstance(v, str) and v for v in retired):
+        errors.append("signing.authenticode_subjects_retired must be a list "
+                      "of strings")
+    elif signing.get("authenticode_subject") and \
+            signing["authenticode_subject"] in retired:
+        errors.append("signing.authenticode_subjects_retired lists the "
+                      "current authenticode_subject")
     if signing.get("authenticode_timestamp", "required") not in \
             ("required", "optional"):
         errors.append("signing.authenticode_timestamp is required or "
@@ -265,14 +265,10 @@ def check_product(product: dict) -> None:
     if not 1 <= len(index_keys) <= 2:
         errors.append("signing.index_keys holds the current key and at most "
                       "the next one")
-    for field, keys in (("index_keys", index_keys),
-                        ("artifact_key", [signing.get("artifact_key", "")]),
-                        ("artifact_keys_retired",
-                         signing.get("artifact_keys_retired", []))):
-        for key in keys if isinstance(keys, list) else []:
-            if not _is_minisign_key(key):
-                errors.append(f"signing.{field}: {key!r} is not a minisign "
-                              "Ed25519 public key")
+    for key in index_keys:
+        if not _is_minisign_key(key):
+            errors.append(f"signing.index_keys: {key!r} is not a minisign "
+                          "Ed25519 public key")
 
     # Every published file is classified by these rules (gfrelease refuses
     # one none matches): each must compile, and name a kind clients know.
@@ -371,30 +367,27 @@ def render_keys(policy: dict, product: dict) -> str:
     floor = policy["signing"]["legacy_unsigned_before"]
     signing = product.get("signing", {})
     fprs = signing.get("maintainer_fingerprints", [])
-    artifact = signing.get("artifact_key", "")
-    lines = [f"Releases from {floor} on carry a detached signature for every "
-             "file:", "",
+    workflow = (f"`https://github.com/{product.get('repository')}/"
+                f"{product.get('workflow')}@<ref>`")
+    lines = [f"Releases from {floor} on can be checked file by file:", "",
              "| Releases | Signed with | Verify with |",
              "| -------- | ----------- | ----------- |"]
     lines.append("| Stable (vX.Y.Z) | OpenPGP, detached `.sig` per file, by the "
                  "maintainer | " +
                  (", ".join(f"`{f}`" for f in fprs) if fprs
                   else "not yet published") + " |")
-    lines.append("| Stable (vX.Y.Z) | minisign, `.minisig` per file, added by "
-                 "the release server after it checked the `.sig` | " +
-                 (f"`{artifact}`" if artifact else "not yet published") + " |")
-    lines.append("| Nightly (main) and beta (release/X.Y) | minisign, "
-                 "`.minisig` per file | "
-                 + (f"`{artifact}`" if artifact else "not yet published")
-                 + " |")
+    lines.append("| Nightly (main) and beta (release/X.Y) | Sigstore, on the "
+                 "build's manifest (`build/SHA256SUMS.txt.sigstore.json`) | "
+                 f"the build workflow's identity, {workflow} |")
     lines.append("")
-    lines.append("Check a download by hand with `gpg --verify FILE.sig FILE` "
-                 "(stable) or `minisign -Vm FILE -P <key>` (stable, beta or "
-                 "nightly). The application itself checks only minisign, "
-                 "through the signed update index; a stable release is "
-                 "listed there only once its OpenPGP signatures have been "
-                 "checked. Windows installers of stable releases are also "
-                 "Authenticode-signed.")
+    lines.append("Check a stable download by hand with `gpg --verify FILE.sig "
+                 "FILE`, a nightly's or beta's manifest with `cosign "
+                 "verify-blob` and its files against that manifest. The "
+                 "application relies on the signed update index, which names "
+                 "each release's descriptor by its hash, and the descriptor "
+                 "each file's; a stable release is listed there only once its "
+                 "OpenPGP signatures have been checked. Windows installers of "
+                 "stable releases are also Authenticode-signed.")
     return "\n".join(lines)
 
 

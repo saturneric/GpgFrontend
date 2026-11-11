@@ -8,14 +8,13 @@
               own series' release branch. Over HTTPS, every update base
               serves it, not just the first that answers.
   descriptor  its sha256 is the one the index states.
-  manifest    SHA256SUMS.txt minisigned by the artifact key (a nightly's or
-              a beta's by promotion, a stable or imported release's by the
-              server's countersignature), and every artifact's sha256 in
-              the descriptor is the one it lists.
-  notes       their sha256 is the index's, and the countersignature holds.
-  --deep      every artifact downloaded, hashed, and its .minisig checked;
-              for a stable or imported release also the maintainer's OpenPGP
-              .sig on it, on the manifest and on the notes.
+  manifest    every artifact's sha256 in the descriptor is the one its
+              manifest lists (a nightly's or a beta's is CI's, under build/;
+              a stable release's the maintainer's).
+  notes       their sha256 is the index's.
+  --deep      every artifact downloaded and hashed; for a stable or imported
+              release also the maintainer's OpenPGP .sig on it, on the
+              manifest and on the notes.
 
 Reads either a Store (the signing host's read-back) or the public HTTPS bases
 from release/product.json, tried in order, as a client would.
@@ -30,7 +29,6 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-import countersign
 import descriptor
 import layout
 import minisig
@@ -258,19 +256,16 @@ def check_mirrors(product: Product, update, index_keys: list[str],
 
 
 def verify(product: Product, update, builds, *, index_keys: list[str],
-           artifact_key: str, deep: bool = False) -> dict:
-    """A nightly's or beta's files are minisigned with the artifact key by
-    promotion; a stable or imported release's by the server's
-    countersignature, made once the maintainer's OpenPGP signatures
-    verified. Those are checked as well with @p deep, against the keys
-    beside release/product.json (maintainers.asc) with the fingerprints it
-    pins."""
+           deep: bool = False) -> dict:
+    """Everything hangs off the signed index: the descriptors by their
+    hashes, the files by the descriptors'. A stable or imported release's
+    maintainer signatures are checked as well with @p deep, against the
+    keys beside release/product.json (maintainers.asc) with the
+    fingerprints it pins."""
     with tempfile.TemporaryDirectory(prefix="gfr-verify-") as tmp_name, \
             contextlib.ExitStack() as stack:
         tmp = Path(tmp_name)
         data, comment = _signed(update, INDEX, index_keys, tmp)
-        # The current artifact key, or one it replaced.
-        artifact_keys = product.artifact_keys(artifact_key)
         index = load_json(data, INDEX)
         check_index(product, index, comment)
         report = {"product": product.slug, "serial": index["serial"],
@@ -320,12 +315,10 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
                 if ref is None:
                     raise ReleaseError(f"{where}: a build, listed as a "
                                        "release")
-                if scheme != layout.SCHEME_MINISIGN:
-                    raise ReleaseError(f"{where}: a nightly is minisigned")
-                descriptor.require(d, where, "sums")
-                sums_data, _ = _signed(builds, check_relpath(d["sums"]),
-                                       artifact_keys, tmp)
-                sums = parse_manifest(sums_data, d["sums"])
+                descriptor.require(d, where, "build")
+                manifest = d["build"].get("sums", "")
+                sums = parse_manifest(builds.read(check_relpath(manifest)),
+                                      manifest)
             elif kind in (layout.KIND_STABLE, layout.KIND_IMPORTED):
                 if ref is not None:
                     raise ReleaseError(f"{where}: a release, listed as a "
@@ -333,15 +326,14 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
                 if scheme != layout.SCHEME_OPENPGP:
                     raise ReleaseError(f"{where}: a {kind} release is signed "
                                        "by a maintainer")
-                # What the application relies on: the release server's
-                # countersignature, made after it checked the maintainer's.
-                manifest = countersign.manifest_path(d)
-                if entry.get("sums_minisig") != manifest + MINISIG:
-                    raise ReleaseError(f"{where}: listed without the server's "
-                                       "countersignature")
-                sums_data, _ = _signed(builds, check_relpath(manifest),
-                                       artifact_keys, tmp)
-                sums = parse_manifest(sums_data, manifest)
+                # A stable release's manifest is the maintainer's; an
+                # imported one has none, and each file is checked on its own
+                # signature (with --deep).
+                if d.get("sums"):
+                    sums = parse_manifest(
+                        builds.read(check_relpath(d["sums"])), d["sums"])
+                else:
+                    sums = descriptor.hashes(d)
                 # When each file's maintainer signature was made, as the
                 # server admitted it: one per file, nothing else.
                 signatures = entry.get("signatures")
@@ -357,12 +349,12 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
                 # The maintainer's own signature on the manifest: what a
                 # person checks by hand. An imported release has none.
                 if deep and d.get("sums_sig"):
-                    local = fetch(manifest, SUMS)
+                    local = fetch(d["sums"], SUMS)
                     keyring().verify(local, fetch(d["sums_sig"], SUMS + SIG))
             else:
                 raise ReleaseError(f"{where}: unknown kind {kind!r}")
-            # A release's notes: the index pins their hash; the server's
-            # countersignature is checked always, the maintainer's with --deep.
+            # A release's notes: the index pins their hash; the maintainer's
+            # signature is checked with --deep.
             if "notes" in entry:
                 for field in ("notes", "notes_sha256", "notes_sig"):
                     _typed(entry.get(field), str, f"{want}'s {field}")
@@ -370,12 +362,6 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
                 if sha256_file(notes) != entry["notes_sha256"]:
                     raise ReleaseError(f"{entry['notes']}: not the index's "
                                        "notes")
-                if entry.get("notes_minisig") != entry["notes"] + MINISIG:
-                    raise ReleaseError(f"{entry['notes']}: listed without "
-                                       "the server's countersignature")
-                minisig.verify(artifact_keys, notes,
-                               fetch(entry["notes_minisig"],
-                                     "notes.md" + MINISIG))
                 if deep:
                     keyring().verify(notes, fetch(entry["notes_sig"],
                                                   "notes.md" + SIG))
@@ -383,19 +369,13 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
                 name = artifact["name"]
                 if sums.get(name) != artifact["sha256"]:
                     raise ReleaseError(f"{name}: the descriptor's sha256 is "
-                                       "not the signed manifest's")
+                                       "not the manifest's")
                 if deep:
                     local = fetch(artifact["path"], name)
                     if sha256_file(local) != artifact["sha256"]:
                         raise ReleaseError(f"{name}: the download does not "
                                            "match its sha256")
-                    if kind == layout.KIND_NIGHTLY:
-                        minisig.verify(artifact_keys, local,
-                                       fetch(artifact["sig"], name + MINISIG))
-                    else:
-                        minisig.verify(artifact_keys, local,
-                                       fetch(artifact["path"] + MINISIG,
-                                             name + MINISIG))
+                    if kind != layout.KIND_NIGHTLY:
                         signed = keyring().verify_signature(
                             local, fetch(artifact["sig"], name + SIG))
                         recorded = entry["signatures"][name]

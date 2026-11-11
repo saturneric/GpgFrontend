@@ -39,7 +39,6 @@ export RCLONE_CONFIG=/dev/null
 
 echo "== keys and a TLS certificate for localhost"
 minisign -G -W -s "$dir/keys/index.key" -p "$dir/keys/index.pub" >/dev/null
-minisign -G -W -s "$dir/keys/artifact.key" -p "$dir/keys/artifact.pub" >/dev/null
 openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:P-256 -nodes -days 2 \
   -subj "/CN=gfrelease rehearsal CA" -keyout "$dir/ca.key" -out "$dir/ca.pem" \
   -addext basicConstraints=critical,CA:TRUE \
@@ -63,7 +62,6 @@ def pub(name):
             if not l.startswith("untrusted")][0]
 p["bases"] = {"update": [f"{base}/update/"], "builds": [f"{base}/builds/"]}
 p["signing"]["index_keys"] = [pub("index")]
-p["signing"]["artifact_key"] = pub("artifact")
 json.dump(p, open(f"{d}/product.json", "w"), indent=2)
 PY
 cp "$top/release/policy.toml" "$dir/policy.toml"
@@ -110,7 +108,6 @@ echo "== signing host: promote, sign, publish the index"
 export GFR_STAGING="$dir/staging" GFR_BUILDS="$dir/www/builds/$slug" \
   GFR_UPDATE="$dir/www/update/$slug" GFR_STATE_DIR="$dir/state" \
   GFR_GIT_DIR="$top" GFR_COSIGN="$dir/cosign" \
-  GFR_ARTIFACT_KEY="$dir/keys/artifact.key" GFR_ARTIFACT_PUB="$dir/keys/artifact.pub" \
   GFR_INDEX_KEY="$dir/keys/index.key" GFR_INDEX_PUB="$dir/keys/index.pub"
 "${gfr[@]}" run
 

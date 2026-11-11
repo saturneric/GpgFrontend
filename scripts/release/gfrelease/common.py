@@ -262,11 +262,8 @@ class Product:
         # certificate expires; required unless the product says otherwise.
         self.authenticode_timestamp_required = \
             signing.get("authenticode_timestamp", "required") == "required"
-        # Replaced keys and certificates: accepted on what they signed before,
-        # never used to sign anything new. The host and the offline stage sign
-        # only with the current ones.
-        self.retired_artifact_keys = list(signing.get("artifact_keys_retired",
-                                                      []))
+        # Replaced certificates: accepted on what they signed before, never
+        # used to sign anything new.
         self.authenticode_subjects = [s for s in [self.authenticode_subject]
                                       + list(signing.get(
                                           "authenticode_subjects_retired", []))
@@ -284,25 +281,13 @@ class Product:
         imported or listed."""
         return parse_version(self.policy["signing"]["legacy_unsigned_before"])
 
-    def check_host_keys(self, artifact_pub: str,
-                        index_pub: str | None = None) -> None:
+    def check_host_keys(self, index_pub: str) -> None:
         """What this host signs with must be what clients pin, or everything
         it publishes is refused by every client while its own read-back,
         done with the same wrong key, passes."""
-        signing = self.data.get("signing", {})
-        if artifact_pub != signing.get("artifact_key"):
-            raise ReleaseError("--artifact-pub is not signing.artifact_key in "
-                               "release/product.json")
-        if index_pub is not None and \
-                index_pub not in signing.get("index_keys", []):
+        if index_pub not in self.data.get("signing", {}).get("index_keys", []):
             raise ReleaseError("--index-pub is not one of signing.index_keys "
                                "in release/product.json")
-
-    def artifact_keys(self, current: str) -> list[str]:
-        """The artifact keys a published file may carry: @p current (the one
-        the host signs with) and the retired ones."""
-        return [current] + [k for k in self.retired_artifact_keys
-                            if k != current]
 
     def identity(self, ref: str) -> str:
         """The Sigstore identity of this product's build workflow at a ref."""
