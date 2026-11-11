@@ -26,9 +26,12 @@
  *
  */
 #include <QCoreApplication>
+#include <QDir>
 #include <QFile>
 #include <QStandardPaths>
 #include <QTemporaryDir>
+#include <chrono>
+#include <thread>
 
 #include "MobileTest.h"
 #include "core/profile/ProfileRegistry.h"
@@ -230,6 +233,39 @@ TEST_F(ProfilesTest, ExportsAndImportsAPackage) {
   EXPECT_TRUE(cache.entryList(QDir::Files).isEmpty());
 }
 
+TEST_F(ProfilesTest, APageLeftWhileExportingLeavesNoPackageBehind) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto url = QUrl::fromLocalFile(dir.filePath("backup.gfp"));
+  const auto scratch =
+      QStandardPaths::writableLocation(QStandardPaths::CacheLocation) +
+      "/profile-packages";
+  const auto packages = [&scratch]() {
+    return QDir(scratch).entryList(QDir::Files).size();
+  };
+  ProfilesController::RemoveLeftPackages();
+
+  // Left at once: the package is still being written.
+  RunOnMainThread([&]() {
+    profiles_->exportTo(url, "a good passphrase");
+    delete profiles_;
+    profiles_ = nullptr;
+  });
+  // Written (an export here takes well under a second), then gone with
+  // the work, though nobody heard how it went: before, it stayed for good.
+  std::this_thread::sleep_for(std::chrono::seconds(3));
+  EXPECT_TRUE(WaitFor([&]() { return packages() == 0; }, 30000))
+      << "a package stayed in " << scratch.toStdString();
+
+  // One left by a run that ended: gone at the next start.
+  QDir().mkpath(scratch);
+  QFile left(scratch + "/left.gfp");
+  ASSERT_TRUE(left.open(QIODevice::WriteOnly));
+  left.close();
+  ProfilesController::RemoveLeftPackages();
+  EXPECT_EQ(packages(), 0);
+}
+
 TEST_F(ProfilesTest, ImportRefusesWhatIsNotAPackage) {
   QTemporaryDir dir;
   ASSERT_TRUE(dir.isValid());
@@ -269,13 +305,25 @@ TEST_F(ProfilesTest, SwitchingRemembersTheChoiceAndRestarts) {
 
   // The next start names it, while it is there.
   const auto saved = qgetenv("GF_PROFILE");
-  ProfilesController::ApplyChosenProfile(InstalledRoot());
+  EXPECT_TRUE(ProfilesController::ApplyChosenProfile(InstalledRoot()));
   EXPECT_EQ(qEnvironmentVariable("GF_PROFILE"), id);
+
+  // It will not open, say: the way back forgets it and starts again.
+  EXPECT_TRUE(ProfilesController::OpenDefaultProfile(InstalledRoot()));
+  EXPECT_EQ(restarts_, 2);
+  EXPECT_FALSE(
+      QFile::exists(ProfilesController::ChosenProfileFile(InstalledRoot())));
+  qunsetenv("GF_PROFILE");
+  EXPECT_FALSE(ProfilesController::ApplyChosenProfile(InstalledRoot()));
+  EXPECT_TRUE(qEnvironmentVariable("GF_PROFILE").isEmpty());
+  RunOnMainThread([&]() { switched = profiles_->switchTo(id); });
+  ASSERT_TRUE(switched);
+  EXPECT_EQ(restarts_, 3);
 
   DeleteProfile(ProfilesRoot(), id);
   made_.clear();
   qunsetenv("GF_PROFILE");
-  ProfilesController::ApplyChosenProfile(InstalledRoot());
+  EXPECT_FALSE(ProfilesController::ApplyChosenProfile(InstalledRoot()));
   EXPECT_TRUE(qEnvironmentVariable("GF_PROFILE").isEmpty());
   EXPECT_FALSE(
       QFile::exists(ProfilesController::ChosenProfileFile(InstalledRoot())));

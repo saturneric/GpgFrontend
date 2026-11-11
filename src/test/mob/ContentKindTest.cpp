@@ -34,6 +34,29 @@ namespace GpgFrontend::Test::Mobile {
 
 using GpgFrontend::Mobile::ClassifyFileName;
 using GpgFrontend::Mobile::ClassifyText;
+using GpgFrontend::Mobile::TextOperationAllowed;
+
+TEST(ContentKindTest, TextIsOfferedOnlyWhatFitsIt) {
+  // Anything is encrypted or signed, an armored block too.
+  for (const auto* kind : {"plain", "message", "signed", "public_key"}) {
+    EXPECT_TRUE(TextOperationAllowed("encrypt", kind)) << kind;
+    EXPECT_TRUE(TextOperationAllowed("sign", kind)) << kind;
+  }
+  // Only a message is decrypted.
+  EXPECT_TRUE(TextOperationAllowed("decrypt", "message"));
+  EXPECT_TRUE(TextOperationAllowed("decrypt_verify", "message"));
+  EXPECT_FALSE(TextOperationAllowed("decrypt", "plain"));
+  EXPECT_FALSE(TextOperationAllowed("decrypt", "signed"));
+  EXPECT_FALSE(TextOperationAllowed("decrypt", "public_key"));
+  // A message or a cleartext signed text is verified; plain text has no
+  // signature here to go with it.
+  EXPECT_TRUE(TextOperationAllowed("verify", "message"));
+  EXPECT_TRUE(TextOperationAllowed("verify", "signed"));
+  EXPECT_FALSE(TextOperationAllowed("verify", "plain"));
+  EXPECT_FALSE(TextOperationAllowed("verify", "private_key"));
+  // Nothing on an empty page.
+  EXPECT_FALSE(TextOperationAllowed("encrypt", "empty"));
+}
 
 TEST(ContentKindTest, EachArmorIsWhatItSays) {
   EXPECT_EQ(ClassifyText(""), "empty");

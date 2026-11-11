@@ -46,6 +46,7 @@
 #include "files/FileWorkspace.h"
 #include "files/ShareInbox.h"
 #include "files/ShareRetentionStore.h"
+#include "files/StagingArea.h"
 #include "lifecycle/AppLifecycle.h"
 
 namespace GpgFrontend::Test::Mobile {
@@ -214,6 +215,31 @@ class FileWorkspaceTest : public ::testing::Test {
         .toStdString();
   }
 };
+
+// A file's SHA-256, read a piece at a time: the known digest of "abc", why
+// not for a file that is not there, and nothing once it is no longer wanted.
+TEST(FileDigestTest, AFileIsHashedOrSaysWhyNot) {
+  QTemporaryDir dir;
+  const auto path = dir.filePath("abc.txt");
+  QFile file(path);
+  ASSERT_TRUE(file.open(QIODevice::WriteOnly));
+  file.write("abc");
+  file.close();
+  const auto digest = GpgFrontend::Mobile::Sha256OfFile(path, {});
+  EXPECT_EQ(digest.sha256,
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
+  EXPECT_TRUE(digest.error.isEmpty());
+
+  const auto missing =
+      GpgFrontend::Mobile::Sha256OfFile(dir.filePath("none"), {});
+  EXPECT_EQ(missing.error, "unreadable");
+  EXPECT_TRUE(missing.sha256.isEmpty());
+
+  const auto unwanted =
+      GpgFrontend::Mobile::Sha256OfFile(path, []() { return false; });
+  EXPECT_TRUE(unwanted.sha256.isEmpty());
+  EXPECT_TRUE(unwanted.error.isEmpty());
+}
 
 TEST_F(FileWorkspaceTest, EncryptAFileToAKeyAndDecryptIt) {
   const QByteArray content = "line one\nline two\n";
@@ -437,6 +463,74 @@ TEST_F(FileWorkspaceTest, CancellingTheQueueLeavesTheRunningOne) {
   EXPECT_LT(OutputOf(c), 0);
 }
 
+TEST_F(FileWorkspaceTest, StoppingOneBatchLeavesTheOthersWaiting) {
+  const auto a = Add("first", "a.txt");
+  const auto b = Add("second", "b.txt");
+  const auto c = Add("third", "c.txt");
+
+  // Two batches: the first waits at its prompt, the second behind it.
+  Do([&](auto* f) { f->encrypt({a, b}, {}, {}, true); });
+  ASSERT_FALSE(WaitForRequest().isEmpty());
+  Do([&](auto* f) { f->encrypt({c}, {}, {}, true); });
+  const auto first = RecordOfFile(a).value("batchId").toInt();
+  ASSERT_NE(RecordOfFile(c).value("batchId").toInt(), first);
+  EXPECT_EQ(State(b), "queued");
+  EXPECT_EQ(State(c), "queued");
+
+  // Stopped from the first batch's sheet: only its own.
+  Do([&](auto* f) { f->cancelQueued(first); });
+  EXPECT_EQ(State(b), "cancelled");
+  EXPECT_EQ(State(c), "queued");
+
+  Answer("batch passphrase");
+  ASSERT_FALSE(WaitForRequest().isEmpty());
+  Answer("second passphrase");
+  Finish();
+  EXPECT_EQ(State(a), "done");
+  EXPECT_EQ(State(c), "done");
+}
+
+// Which file is the signature and which the data: what is known of a
+// signature made here, else what the names say; certain only when there is
+// exactly one of each.
+TEST_F(FileWorkspaceTest, ASignatureIsPairedWithItsFile) {
+  const auto data = Add("signed content", "report.txt");
+  Do([&](auto* f) { f->sign({data}, fred_); });
+  Finish();
+  const auto signature = OutputOf(data);
+  ASSERT_GE(signature, 0) << Errors(data);
+
+  QVariantMap from_signature;
+  QVariantMap from_data;
+  QVariantMap combined;
+  const auto inline_signed = Add("-----BEGIN PGP MESSAGE-----", "notes.gpg");
+  Do([&](auto* f) {
+    from_signature = f->pairFor(signature);
+    from_data = f->pairFor(data);
+    combined = f->pairFor(inline_signed);
+  });
+  EXPECT_EQ(from_signature.value("signatureId").toInt(), signature);
+  EXPECT_EQ(from_signature.value("originalId").toInt(), data);
+  EXPECT_EQ(from_signature.value("originalHow").toString(), "linked");
+  EXPECT_TRUE(from_signature.value("unique").toBool());
+  EXPECT_EQ(from_data.value("signatureId").toInt(), signature);
+  EXPECT_EQ(from_data.value("signatureHow").toString(), "linked");
+  EXPECT_TRUE(combined.value("inline").toBool());
+
+  // Two files a name points to: suggested, never taken as certain.
+  const auto sig = Add("not really a signature", "letter.txt.sig");
+  Add("one", "letter.txt");
+  QDir().mkpath(dir_.filePath("other"));
+  WriteFile(dir_.filePath("other/letter.txt"), "two");
+  RunOnMainThread([&]() {
+    files_->addFiles({QUrl::fromLocalFile(dir_.filePath("other/letter.txt"))});
+  });
+  QVariantMap ambiguous;
+  Do([&](auto* f) { ambiguous = f->pairFor(sig); });
+  EXPECT_EQ(ambiguous.value("originalHow").toString(), "suggested");
+  EXPECT_FALSE(ambiguous.value("unique").toBool());
+}
+
 TEST_F(FileWorkspaceTest, ADetachedSignatureVerifiesOnlyOverItsFile) {
   const auto data = Add("signed content", "contract.txt");
   Do([&](auto* f) { f->sign({data}, fred_); });
@@ -595,6 +689,34 @@ TEST_F(FileWorkspaceTest, AFolderIsOneItem) {
   EXPECT_TRUE(encrypt);
   EXPECT_FALSE(sign);
   EXPECT_FALSE(decrypt);
+}
+
+// A folder whose name ends in .tar already is not named ".tar.tar".
+TEST_F(FileWorkspaceTest, AFolderCalledTarIsNotNamedTwice) {
+  QTemporaryDir parent;
+  const auto root = parent.filePath("backup.tar");
+  ASSERT_TRUE(QDir().mkpath(root));
+  WriteFile(root + "/README", "read me");
+  int folder = -1;
+  RunOnMainThread([&]() {
+    QObject::connect(
+        files_, &FileWorkspace::folderAdded, files_,
+        [&folder](int id, const QString&) { folder = id; },
+        Qt::SingleShotConnection);
+    files_->addFolder(QUrl::fromLocalFile(root));
+  });
+  ASSERT_TRUE(WaitFor(
+      [&folder]() {
+        int id = -1;
+        RunOnMainThread([&]() { id = folder; });
+        return id >= 0;
+      },
+      10000));
+  Do([&](auto* f) { f->encrypt({folder}, {fred_}); });
+  Finish();
+  const auto encrypted = OutputOf(folder);
+  ASSERT_GE(encrypted, 0) << Errors(folder);
+  EXPECT_EQ(Entry(encrypted).value("name").toString(), "backup.tar.gpg");
 }
 
 // A folder encrypted is one .tar.gpg of all in it, nested and empty folders
@@ -791,6 +913,22 @@ TEST_F(FileWorkspaceTest, SelectionIsKeptPerFile) {
     EXPECT_GE(spy->count(), 3);
     delete spy;
   });
+}
+
+// On the return to the foreground every picked file is looked at again --
+// off the interface thread, a cloud document may be fetched to open it.
+TEST_F(FileWorkspaceTest, AFileGoneWhileAwayIsNoticedOnTheReturn) {
+  const auto a = Add("first", "a.txt");
+  ASSERT_TRUE(Entry(a).value("available").toBool());
+  ASSERT_TRUE(QFile::remove(dir_.filePath("a.txt")));
+  RunOnMainThread([]() {
+    auto* lifecycle =
+        GpgFrontend::Mobile::AppLifecycle::create(nullptr, nullptr);
+    lifecycle->OnApplicationStateChanged(Qt::ApplicationSuspended);
+    lifecycle->OnApplicationStateChanged(Qt::ApplicationActive);
+  });
+  EXPECT_TRUE(
+      WaitFor([&]() { return !Entry(a).value("available").toBool(); }, 10000));
 }
 
 // Returning to the foreground is one of the store's chances to clean up.
@@ -1446,7 +1584,139 @@ TEST_F(FileWorkspaceTest, SavingIntoAFolderAsksNothingButWhatIsTaken) {
   EXPECT_EQ(ReadFile(folder.filePath("b.txt.gpg")),
             ReadFile(QFileInfo(folder.filePath("b.txt (1).gpg")).filePath()));
   EXPECT_EQ(Entry(out_b).value("savedName").toString(), "b.txt.gpg");
+  // Replaced in place: no new number left beside it.
   EXPECT_EQ(QDir(folder.path()).entryList(QDir::Files).size(), 4);
+}
+
+TEST_F(FileWorkspaceTest, AnOutputBeingSavedIsNotRemovedFromUnderTheCopy) {
+  const auto a = Add("first", "a.txt");
+  Do([&](auto* f) { f->encrypt({a}, {fred_}); });
+  Finish();
+  const auto out = OutputOf(a);
+  ASSERT_GE(out, 0);
+  QTemporaryDir folder;
+  const auto to = QUrl::fromLocalFile(folder.filePath("a.txt.gpg"));
+
+  int saved = -1;
+  RunOnMainThread([&]() {
+    QObject::connect(
+        files_, &FileWorkspace::SignalSaved, files_,
+        [&saved](int, bool ok) { saved = ok ? 1 : 0; },
+        Qt::SingleShotConnection);
+    files_->saveAs(out, to);
+    // At once, before the copy has run: it stays for the copy.
+    files_->remove({out});
+    EXPECT_FALSE(files_->entry(out).isEmpty());
+  });
+  ASSERT_TRUE(WaitFor(
+      [&]() {
+        int s = -1;
+        RunOnMainThread([&]() { s = saved; });
+        return s >= 0;
+      },
+      30000));
+  EXPECT_EQ(saved, 1);
+  EXPECT_EQ(ReadFile(folder.filePath("a.txt.gpg")).isEmpty(), false);
+  // Done: it goes now.
+  RunOnMainThread([&]() {
+    files_->remove({out});
+    EXPECT_TRUE(files_->entry(out).isEmpty());
+  });
+}
+
+TEST_F(FileWorkspaceTest, AFileCanBeReadWhereItIs) {
+  const auto a = Add("first", "a.txt");
+  Do([&](auto* f) { f->encrypt({a}, {fred_}); });
+  Finish();
+  const auto out = OutputOf(a);
+  ASSERT_GE(out, 0);
+  QUrl added;
+  QUrl made;
+  RunOnMainThread([&]() {
+    added = files_->readableUrl(a);
+    made = files_->readableUrl(out);
+    EXPECT_TRUE(files_->readableUrl(-1).isEmpty());
+  });
+  EXPECT_EQ(added, QUrl::fromLocalFile(dir_.filePath("a.txt")));
+  // An output is the copy here: read from it, as a key import would.
+  ASSERT_TRUE(made.isLocalFile());
+  QFile file(made.toLocalFile());
+  ASSERT_TRUE(file.open(QIODevice::ReadOnly));
+  EXPECT_FALSE(file.readAll().isEmpty());
+}
+
+TEST(CopyLimitedTest, ACopyThatFailsLeavesTheFileThereAsItWas) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto from = dir.filePath("from");
+  const auto to = dir.filePath("to");
+  {
+    QFile in(from);
+    ASSERT_TRUE(in.open(QIODevice::WriteOnly));
+    in.write(QByteArray(64, 'n'));
+    QFile out(to);
+    ASSERT_TRUE(out.open(QIODevice::WriteOnly));
+    out.write("kept");
+  }
+  // Over the limit part way: what was there stays, whole.
+  EXPECT_FALSE(GpgFrontend::Mobile::CopyLimited(from, to, 16));
+  QFile kept(to);
+  ASSERT_TRUE(kept.open(QIODevice::ReadOnly));
+  EXPECT_EQ(kept.readAll(), "kept");
+  kept.close();
+  EXPECT_EQ(QDir(dir.path()).entryList(QDir::Files).size(), 2);
+
+  EXPECT_TRUE(GpgFrontend::Mobile::CopyLimited(from, to, 64));
+  ASSERT_TRUE(kept.open(QIODevice::ReadOnly));
+  EXPECT_EQ(kept.readAll(), QByteArray(64, 'n'));
+}
+
+TEST_F(FileWorkspaceTest, ASaveThatFailsLeavesWhatWasThereAndNothingEmpty) {
+  const auto a = Add("first", "a.txt");
+  Do([&](auto* f) { f->encrypt({a}, {fred_}); });
+  Finish();
+  const auto out = OutputOf(a);
+  ASSERT_GE(out, 0);
+  QTemporaryDir folder;
+  const auto url = QUrl::fromLocalFile(folder.path());
+  WriteFile(folder.filePath("a.txt.gpg"), "the one kept before");
+
+  // The output can no longer be read: the copy fails part way.
+  QString path;
+  RunOnMainThread([&]() {
+    QDirIterator walk(GpgFrontend::Mobile::FileStagingArea()->Directory(),
+                      {"a.txt.gpg"}, QDir::Files, QDirIterator::Subdirectories);
+    if (walk.hasNext()) path = walk.next();
+  });
+  ASSERT_FALSE(path.isEmpty());
+  ASSERT_TRUE(QFile::setPermissions(path, QFileDevice::Permissions()));
+
+  for (const auto* taken : {"replace", "keep_both"}) {
+    std::array<int, 3> counts{-1, -1, -1};
+    RunOnMainThread([&]() {
+      QObject::connect(
+          files_, &FileWorkspace::SignalSavedAll, files_,
+          [&counts](int saved, int skipped, int failed) {
+            counts = {saved, skipped, failed};
+          },
+          Qt::SingleShotConnection);
+      files_->saveAll({out}, url, QString::fromLatin1(taken));
+    });
+    ASSERT_TRUE(WaitFor(
+        [&]() {
+          int saved = -1;
+          RunOnMainThread([&]() { saved = counts[0]; });
+          return saved >= 0;
+        },
+        30000));
+    EXPECT_EQ(counts, (std::array<int, 3>{0, 0, 1})) << taken;
+    EXPECT_EQ(ReadFile(folder.filePath("a.txt.gpg")), "the one kept before")
+        << taken;
+    EXPECT_EQ(QDir(folder.path()).entryList(QDir::Files),
+              QStringList{"a.txt.gpg"})
+        << taken;
+  }
+  QFile::setPermissions(path, QFileDevice::ReadOwner | QFileDevice::WriteOwner);
 }
 
 TEST_F(FileWorkspaceTest, OpeningWithoutAnotherAppSaysSo) {

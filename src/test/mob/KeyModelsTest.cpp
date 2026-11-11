@@ -75,7 +75,11 @@ struct FakeKey : GpgAbstractKey {
   [[nodiscard]] auto CreationTime() const -> QDateTime override {
     return QDateTime::fromSecsSinceEpoch(1700000000);
   }
-  [[nodiscard]] auto ExpirationTime() const -> QDateTime override { return {}; }
+  /// As the engines give it: 0, the epoch, for a key that never expires.
+  [[nodiscard]] auto ExpirationTime() const -> QDateTime override {
+    return QDateTime::fromSecsSinceEpoch(expires_at);
+  }
+  qint64 expires_at = 0;
 };
 
 auto Key(QString name, QString email, QString id,
@@ -137,7 +141,37 @@ TEST(KeyModelsTest, RolesReadTheKeyItself) {
   EXPECT_TRUE(alice.data(KeyRoleModel::kUsableRole).toBool());
   EXPECT_FALSE(f.roles.index(2, 0).data(KeyRoleModel::kUsableRole).toBool());
   EXPECT_FALSE(f.roles.index(4, 0).data(KeyRoleModel::kIsKeyRole).toBool());
+  // Never expiring: no date, not 1970-01-01.
   EXPECT_FALSE(alice.data(KeyRoleModel::kExpiresRole).toDateTime().isValid());
+}
+
+// A key opened from anywhere carries every fact the list has of it.
+TEST(KeyModelsTest, AKeyIsReadWholeByItsFingerprint) {
+  Fixture f;
+  const auto alice = f.roles.keyOf(QString("AAAA0001").repeated(4).toLower());
+  EXPECT_EQ(alice.value("name").toString(), "alice");
+  EXPECT_EQ(alice.value("email").toString(), "alice@example.org");
+  EXPECT_TRUE(alice.value("hasSecret").toBool());
+  for (const auto* field : {"created", "expires", "capabilities", "status",
+                            "statusText", "secretState", "algorithm"}) {
+    EXPECT_TRUE(alice.contains(field)) << field;
+  }
+  EXPECT_TRUE(f.roles.keyOf("0123").isEmpty());
+}
+
+TEST(KeyModelsTest, AnExpirationIsADateOnlyWhenThereIsOne) {
+  GpgKeyTableModel keys{0,
+                        {Key("dora", "dora@example.org", "DDDD0004",
+                             [](FakeKey& k) { k.expires_at = 1900000000; }),
+                         Key("eve", "eve@example.org", "EEEE0005")}};
+  KeyRoleModel roles;
+  roles.setSourceModel(&keys);
+  EXPECT_EQ(roles.index(0, 0).data(KeyRoleModel::kExpiresRole).toDateTime(),
+            QDateTime::fromSecsSinceEpoch(1900000000));
+  EXPECT_FALSE(roles.index(1, 0)
+                   .data(KeyRoleModel::kExpiresRole)
+                   .toDateTime()
+                   .isValid());
 }
 
 // What a key can do, in GnuPG's letters and order, from the key itself; a
@@ -536,6 +570,12 @@ TEST(WorkSelectionTest, AChoiceTakenUpAgainLeavesOutWhatCannotBeUsed) {
   selection.revalidate();
   EXPECT_TRUE(selection.Recipients().isEmpty());
   EXPECT_EQ(selection.DroppedCount(), 1);
+  // Opened again with nothing left out: said once, not every time.
+  selection.revalidate();
+  EXPECT_EQ(selection.DroppedCount(), 0);
+  selection.addRecipient(Fpr("EEEE0005"));
+  selection.revalidate();
+  EXPECT_EQ(selection.DroppedCount(), 1);
   // The next choice makes it old news.
   selection.addRecipient(Fpr("CCCC0003"));
   EXPECT_EQ(selection.DroppedCount(), 0);
@@ -548,6 +588,13 @@ TEST(WorkSelectionTest, ASignerThatIsGoneIsReported) {
   selection.SetKeysReady();
   selection.setPreferredSigner(QStringLiteral("FFFF").repeated(10));
   EXPECT_EQ(selection.SignerKey().value("issue").toString(), "missing");
+  EXPECT_EQ(selection.SignerKey().value("note").toString(),
+            "No longer in your keys");
+  // One with no secret part here says that, not only "cannot be used".
+  selection.setPreferredSigner(Fpr("CCCC0003"));
+  EXPECT_EQ(selection.SignerKey().value("issue").toString(), "no_secret");
+  EXPECT_EQ(selection.SignerKey().value("note").toString(),
+            "Its secret part is not on this device");
   EXPECT_EQ(selection.SignBlock(), "signer_issue");
 }
 

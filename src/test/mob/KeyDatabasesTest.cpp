@@ -35,9 +35,13 @@
 #include "core/model/SettingsObject.h"
 #include "core/struct/settings_object/KeyDatabaseListSO.h"
 #include "core/utils/GpgUtils.h"
+#include "crypto/OperationQueue.h"
 #include "model/KeyDatabasesController.h"
 
 namespace GpgFrontend::Test::Mobile {
+
+using GpgFrontend::Mobile::OperationPhase;
+using GpgFrontend::Mobile::OperationQueue;
 
 using GpgFrontend::Mobile::KeyDatabasesController;
 
@@ -259,6 +263,35 @@ TEST_F(KeyDatabasesTest, CreatesOneByNameAndWorksInIt) {
 
   Forget(id, path);
   EXPECT_EQ(CurrentDatabaseId(), original_);
+}
+
+TEST_F(KeyDatabasesTest, NoSwitchWhileAnOperationIsUnderWay) {
+  // An operation that has started and not ended, as one waiting for its
+  // passphrase.
+  QObject owner;
+  int running = 0;
+  RunOnMainThread([&]() {
+    auto* queue = OperationQueue::Instance();
+    ASSERT_NE(queue, nullptr);
+    OperationQueue::Request request;
+    request.owner = &owner;
+    request.run = [](int) {};
+    running = queue->Submit(std::move(request));
+  });
+  ASSERT_GT(running, 0);
+
+  const QString name = "Mobile Busy DB";
+  const auto refused = Act([&](auto* dbs) { dbs->create(name); });
+  EXPECT_FALSE(refused.succeeded);
+  EXPECT_FALSE(refused.error.isEmpty());
+  EXPECT_EQ(CurrentDatabaseId(), original_);
+  QVariantMap entry;
+  RunOnMainThread([&]() { entry = FindDatabase(dbs_->Databases(), name); });
+  EXPECT_TRUE(entry.isEmpty());
+
+  RunOnMainThread([&]() {
+    OperationQueue::Instance()->Complete(running, OperationPhase::kDONE, {});
+  });
 }
 
 TEST_F(KeyDatabasesTest, AFolderAlreadyThereIsNeverTakenOver) {

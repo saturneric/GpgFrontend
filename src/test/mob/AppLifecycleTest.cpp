@@ -52,7 +52,9 @@ TEST(AppLifecycleTest, GoingToTheBackgroundForgetsSecrets) {
   lifecycle.OnApplicationStateChanged(Qt::ApplicationSuspended);
   EXPECT_TRUE(lifecycle.IsSuspended());
   EXPECT_EQ(suspended.count(), 1);
-  EXPECT_TRUE(wiped.wait(2000));
+  // At once: in the background the event loop is held, and a wipe left for
+  // it would wait for the return.
+  EXPECT_EQ(wiped.count(), 1);
 
   // A second Suspended is the same background stay.
   lifecycle.OnApplicationStateChanged(Qt::ApplicationSuspended);

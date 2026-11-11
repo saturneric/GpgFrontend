@@ -145,8 +145,11 @@ TEST(OperationLogTest, ABatchGoesOnlyAsAWholeOnceItIsOver) {
     EXPECT_EQ(Ids(log), (QList<int>{3, 2, 1}));
 
     log.SetFinished(2, OperationPhase::kDONE, {}, {}, {});
-    // Over now, and the oldest: both of it go.
-    EXPECT_EQ(Ids(log), (QList<int>{3}));
+    // Over now, and the one that ended last: all of it stays, and what
+    // ended before it goes.
+    EXPECT_EQ(Ids(log), (QList<int>{2, 1}));
+    log.Add(Ended(4));
+    EXPECT_EQ(Ids(log), (QList<int>{4}));
   });
 }
 
@@ -159,6 +162,99 @@ TEST(OperationLogTest, TheBatchJustFinishedStaysHoweverLarge) {
     // its outputs and for Retry; the older one goes.
     for (int id = 2; id <= 4; ++id) log.Add(Ended(id, 2));
     EXPECT_EQ(Ids(log), (QList<int>{4, 3, 2}));
+  });
+}
+
+TEST(OperationLogTest, TheBatchThatEndedLastStaysThoughAskedForEarlier) {
+  RunOnMainThread([]() {
+    OperationLog log;
+    log.SetCapacity(2);
+    log.Add(Ended(1, 1));
+    // A large batch asked for, still going ...
+    for (int id = 2; id <= 4; ++id) {
+      auto going = Ended(id, 2);
+      going.phase = OperationPhase::kQUEUED;
+      log.Add(going);
+    }
+    // ... a text asked for after it ends first ...
+    log.Add(Ended(5, 5));
+    // ... then the batch ends: the one just finished, all of it, stays,
+    // and what ended before it goes (the text too: the log holds two).
+    for (int id = 2; id <= 4; ++id) {
+      log.SetFinished(id, OperationPhase::kDONE, {}, {}, {});
+    }
+    EXPECT_EQ(Ids(log), (QList<int>{4, 3, 2}));
+  });
+}
+
+TEST(OperationLogTest, ADecryptionThatVerifiesSaysSo) {
+  RunOnMainThread([]() {
+    OperationLog log;
+    auto both = Ended(1);
+    both.params.op = QStringLiteral("decrypt");
+    both.params.verify = true;
+    log.Add(both);
+    EXPECT_EQ(log.record(1).value("operation").toString(), "decrypt");
+    EXPECT_TRUE(log.record(1).value("verify").toBool());
+  });
+}
+
+// A batch is read as the desktop reads a report of several items: a
+// failure anywhere makes it critical and stamps the failure seal; files
+// stopped beside finished ones leave it partly done; all stopped, cancelled.
+TEST(OperationLogTest, ABatchIsSummedUpAsTheDesktopSumsAReport) {
+  OperationLog log;
+  const auto item = [](const char* phase, const char* outcome = nullptr) {
+    QVariantMap report;
+    if (outcome != nullptr) report.insert("outcome", outcome);
+    return QVariant(QVariantMap{{"phase", phase}, {"report", report}});
+  };
+
+  const auto all_done = log.summarize({item("done", "succeeded"), item("done")});
+  EXPECT_EQ(all_done.value("severity"), "ok");
+  EXPECT_EQ(all_done.value("seal"), "success");
+  EXPECT_EQ(all_done.value("status").toInt(), 1);
+
+  const auto part_failed =
+      log.summarize({item("done", "succeeded"), item("failed")});
+  EXPECT_EQ(part_failed.value("severity"), "critical");
+  EXPECT_EQ(part_failed.value("seal"), "failure");
+  EXPECT_EQ(part_failed.value("status").toInt(), -1);
+
+  const auto part_stopped =
+      log.summarize({item("done", "succeeded"), item("cancelled")});
+  EXPECT_EQ(part_stopped.value("severity"), "warn");
+  EXPECT_EQ(part_stopped.value("seal"), "warning");
+  EXPECT_FALSE(part_stopped.value("cancelled").toBool());
+
+  const auto all_stopped = log.summarize({item("cancelled"), item("cancelled")});
+  EXPECT_TRUE(all_stopped.value("cancelled").toBool());
+  EXPECT_EQ(all_stopped.value("seal"), "cancelled");
+
+  // The engine's own word wins over how the item ended.
+  const auto warned = log.summarize({item("done", "warning"), item("done")});
+  EXPECT_EQ(warned.value("severity"), "warn");
+  EXPECT_EQ(warned.value("seal"), "warning");
+}
+
+// The session's history: one row per batch, shown by its first operation
+// with how many it holds, the batch added last first.
+TEST(OperationLogTest, RecentListsEachBatchOnceNewestFirst) {
+  RunOnMainThread([]() {
+    OperationLog log;
+    EXPECT_TRUE(log.recent().isEmpty());
+    log.Add(Ended(1));
+    log.Add(Ended(2, 2));
+    log.Add(Ended(3, 2));
+    log.Add(Ended(4, 2));
+    log.Add(Ended(5));
+    const auto recent = log.recent();
+    ASSERT_EQ(recent.size(), 3);
+    EXPECT_EQ(recent.at(0).toMap().value("operationId").toInt(), 5);
+    EXPECT_EQ(recent.at(0).toMap().value("count").toInt(), 1);
+    EXPECT_EQ(recent.at(1).toMap().value("operationId").toInt(), 2);
+    EXPECT_EQ(recent.at(1).toMap().value("count").toInt(), 3);
+    EXPECT_EQ(recent.at(2).toMap().value("operationId").toInt(), 1);
   });
 }
 
@@ -350,9 +446,12 @@ TEST(OperationQueueTest, ACancelAfterTheBackgroundSaysSo) {
       return queue.Submit(std::move(request));
     };
 
+    // Waiting at its prompt when the application left: declined by it.
     const auto a = submit();
+    queue.Log()->SetPhase(a, OperationPhase::kWAITING_PASSPHRASE);
     lifecycle->OnApplicationStateChanged(Qt::ApplicationSuspended);
     lifecycle->OnApplicationStateChanged(Qt::ApplicationActive);
+    EXPECT_EQ(queue.EndReason(a, OperationPhase::kCANCELLED), "background");
     queue.Complete(a, OperationPhase::kCANCELLED, {{"cancelled", true}});
     EXPECT_EQ(queue.Log()->Find(a)->reason, "background");
 
@@ -360,6 +459,28 @@ TEST(OperationQueueTest, ACancelAfterTheBackgroundSaysSo) {
     const auto b = submit();
     queue.Complete(b, OperationPhase::kCANCELLED, {{"cancelled", true}});
     EXPECT_TRUE(queue.Log()->Find(b)->reason.isEmpty());
+
+    // Running, not yet asking, while the application was away: a prompt
+    // it asks later, and cancelled then, is not the background's doing.
+    const auto c = submit();
+    lifecycle->OnApplicationStateChanged(Qt::ApplicationSuspended);
+    lifecycle->OnApplicationStateChanged(Qt::ApplicationActive);
+    queue.Log()->SetPhase(c, OperationPhase::kWAITING_PASSPHRASE);
+    queue.Complete(c, OperationPhase::kCANCELLED, {{"cancelled", true}});
+    EXPECT_TRUE(queue.Log()->Find(c)->reason.isEmpty());
+
+    // Recorded by the page first, then completed: once, with its reason.
+    const auto d = submit();
+    queue.Log()->SetPhase(d, OperationPhase::kWAITING_PASSPHRASE);
+    lifecycle->OnApplicationStateChanged(Qt::ApplicationSuspended);
+    lifecycle->OnApplicationStateChanged(Qt::ApplicationActive);
+    queue.Log()->SetFinished(d, OperationPhase::kCANCELLED,
+                             queue.EndReason(d, OperationPhase::kCANCELLED),
+                             {{"cancelled", true}}, {});
+    QSignalSpy changed(queue.Log(), &OperationLog::dataChanged);
+    queue.Complete(d, OperationPhase::kCANCELLED, {{"cancelled", true}});
+    EXPECT_EQ(changed.count(), 0);
+    EXPECT_EQ(queue.Log()->Find(d)->reason, "background");
   });
 }
 

@@ -27,12 +27,17 @@
  */
 
 #include <QClipboard>
+#include <QFile>
+#include <QFileInfo>
 #include <QGuiApplication>
 #include <QSignalSpy>
+#include <QTemporaryDir>
+#include <QUrl>
 #include <atomic>
 
 #include "MobileTest.h"
-#include "crypto/OutputActions.h"
+#include "files/OutputActions.h"
+#include "lifecycle/SecureWindowGuard.h"
 #include "plat/common/PlatformClipboard.h"
 #include "plat/common/PlatformPrivacy.h"
 #include "plat/common/PlatformShare.h"
@@ -165,6 +170,21 @@ TEST_F(ShareSessionTest, NothingIsConcludedBeforeTheApplicationLeaves) {
   EXPECT_EQ(done.last.detail, "no share sheet");
 }
 
+// A split screen can keep the application active while a target reads the
+// file: a target chosen then is handed off at once, never failed later as a
+// sheet that did not appear (which would withdraw the grant mid-read).
+TEST_F(ShareSessionTest, ATargetChosenWithoutLeavingIsHandedOff) {
+  Completions done;
+  const auto id = Begin(&done, 200);
+  SetState(Qt::ApplicationActive);
+  ShareSession::Instance().TargetChosen(id);
+  ASSERT_TRUE(WaitFor([&done]() { return done.count > 0; }));
+  EXPECT_EQ(done.last.outcome, ShareOutcome::kHandedOff);
+  PastTheGrace();
+  EXPECT_EQ(done.count, 1);
+  EXPECT_EQ(done.last.outcome, ShareOutcome::kHandedOff);
+}
+
 TEST_F(ShareSessionTest, ASheetThatNeverAppearedFails) {
   // Nothing reported, and the application never left: the sheet was never
   // shown. The request ends instead of staying open for the process's life.
@@ -238,6 +258,40 @@ TEST(PlatformStubTest, NoWindowIsSecuredWhereThePlatformCannot) {
   });
 }
 
+// Counted: the window stays protected while any scope for it lives, so a
+// passphrase sheet closing over decrypted text does not unprotect the text.
+TEST(PlatformStubTest, AWindowStaysSecureWhileAnyScopeLives) {
+  RunOnMainThread([]() {
+    QWindow window;
+    EXPECT_FALSE(WindowSecureRequested(&window));
+    {
+      SecureWindowScope text(&window);
+      EXPECT_TRUE(WindowSecureRequested(&window));
+      {
+        SecureWindowScope passphrase(&window);
+        EXPECT_TRUE(WindowSecureRequested(&window));
+      }
+      EXPECT_TRUE(WindowSecureRequested(&window));
+    }
+    EXPECT_FALSE(WindowSecureRequested(&window));
+  });
+}
+
+TEST(PlatformStubTest, AGuardHoldsTheWindowOnlyWhileActive) {
+  RunOnMainThread([]() {
+    GpgFrontend::Mobile::SecureWindowGuard guard;
+    QSignalSpy changed(
+        &guard, &GpgFrontend::Mobile::SecureWindowGuard::SignalActiveChanged);
+    EXPECT_FALSE(guard.Active());
+    guard.SetActive(true);
+    guard.SetActive(true);  // once is enough
+    EXPECT_TRUE(guard.Active());
+    guard.SetActive(false);
+    EXPECT_FALSE(guard.Active());
+    EXPECT_EQ(changed.count(), 2);
+  });
+}
+
 TEST(SensitiveClipboardTest, ExpiresWhenItsTimeIsUp) {
   // Read back on the interface thread before the timer can run there.
   QString copied;
@@ -277,6 +331,34 @@ TEST(SensitiveClipboardTest, ACopyThatIsNotSensitiveStays) {
     ExpireSensitiveCopy(true);
   });
   EXPECT_EQ(ClipboardText(), "-----BEGIN PGP MESSAGE-----");
+}
+
+TEST(OutputActionsTest, AKeyIsSavedToThePlacePicked) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto path = dir.filePath("key.asc");
+  // Something longer there before: none of it stays.
+  {
+    QFile old(path);
+    ASSERT_TRUE(old.open(QIODevice::WriteOnly));
+    old.write(QByteArray(4096, 'x'));
+  }
+  OutputActions actions;
+  EXPECT_TRUE(actions.saveFile("-----BEGIN PGP PUBLIC KEY BLOCK-----\n",
+                               QUrl::fromLocalFile(path)));
+  QFile saved(path);
+  ASSERT_TRUE(saved.open(QIODevice::ReadOnly));
+  EXPECT_EQ(saved.readAll(), "-----BEGIN PGP PUBLIC KEY BLOCK-----\n");
+}
+
+TEST(OutputActionsTest, APlaceThatCannotBeWrittenIsReported) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  OutputActions actions;
+  EXPECT_FALSE(actions.saveFile("key", {}));
+  EXPECT_FALSE(actions.saveFile(
+      "key", QUrl::fromLocalFile(dir.filePath("no/such/folder/key.asc"))));
+  EXPECT_FALSE(QFileInfo::exists(dir.filePath("no/such/folder/key.asc")));
 }
 
 }  // namespace GpgFrontend::Test::Mobile

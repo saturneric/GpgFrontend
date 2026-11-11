@@ -32,20 +32,26 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QSignalSpy>
 #include <QTemporaryDir>
+#include <chrono>
+#include <thread>
 
 #include "MobileCryptoTest.h"
 #include "core/function/rpgp/PasswordFetcher.h"
 #include "core/utils/GpgUtils.h"
+#include "core/function/openpgp/KeyGroupRepository.h"
 #include "core/utils/IOUtils.h"
+#include "crypto/WorkSelection.h"
 #include "core/utils/RustUtils.h"
 #include "crypto/KeySelection.h"
-#include "crypto/OutputActions.h"
+#include "files/OutputActions.h"
 #include "model/KeyActionsController.h"
 #include "model/KeyCategoriesController.h"
 #include "model/KeyFilterModel.h"
 #include "model/KeyGenProfilesController.h"
 #include "model/KeyGroupsController.h"
+#include "model/KeyDescription.h"
 #include "model/KeyImportController.h"
 #include "model/KeyListController.h"
 #include "shell/rules/KeyExportRules.h"
@@ -149,6 +155,11 @@ TEST_F(KeyActionsTest, TheRecommendedProfileComesFirst) {
   ASSERT_FALSE(profiles.isEmpty());
   EXPECT_TRUE(profiles.front().toMap().value("name").toString().contains(
       "Ed25519", Qt::CaseInsensitive));
+  // Each says the name it is stored under, which tells it from another
+  // shown under the same translated name.
+  for (const auto& p : profiles) {
+    EXPECT_FALSE(p.toMap().value("storedName").toString().isEmpty());
+  }
 }
 
 TEST_F(KeyActionsTest, AKeyIsGeneratedWithItsPassphrase) {
@@ -317,10 +328,25 @@ TEST_F(KeyActionsTest, AFileThatIsNotAKeyImportsNothing) {
       [&path](auto* i) { i->importFile(QUrl::fromLocalFile(path)); });
   EXPECT_EQ(result.value("imported").toInt(), 0);
 
+  EXPECT_FALSE(result.contains("problem"));
+
+  // One that cannot be opened, or is far too large for keys, says so: not
+  // the same as one that holds no key.
   const auto missing = Import([&dir](auto* i) {
     i->importFile(QUrl::fromLocalFile(dir.filePath("no-such-file.asc")));
   });
-  EXPECT_TRUE(missing.isEmpty());
+  EXPECT_EQ(missing.value("problem").toString(), "unreadable");
+  EXPECT_FALSE(missing.contains("considered"));
+
+  const auto big_path = dir.filePath("big.asc");
+  QFile big(big_path);
+  ASSERT_TRUE(big.open(QIODevice::WriteOnly));
+  ASSERT_TRUE(big.resize(kMaxKeyFileBytes + 1));
+  big.close();
+  const auto too_large = Import([&big_path](auto* i) {
+    i->importFile(QUrl::fromLocalFile(big_path));
+  });
+  EXPECT_EQ(too_large.value("problem").toString(), "too_large");
 }
 
 // The clipboard is read only when asked, and what it says decides: nothing
@@ -672,6 +698,18 @@ TEST_F(KeyActionsTest, ProfilesAreEditedAsTheDesktopEditsThem) {
     EXPECT_EQ(LoadStoredKeyGenProfiles().default_profile,
               "Phone Renamed Profile");
 
+    // Another page's controller hears of a change made here, and Create a
+    // key's list too: an index it holds is never an older list's.
+    QSignalSpy heard(&other, &KeyGenProfilesController::SignalProfilesChanged);
+    KeyActionsController offering;
+    QSignalSpy offered(&offering, &KeyActionsController::SignalProfilesChanged);
+    profiles.move(0, 0);  // nowhere: nothing to tell
+    EXPECT_EQ(heard.count(), 0);
+    profiles.move(0, 1);
+    EXPECT_EQ(heard.count(), 1);
+    EXPECT_EQ(offered.count(), 1);
+    profiles.move(1, 0);
+
     // Another page's controller, which read them before the change, does not
     // write its older copy back over it.
     other.setDefault(0);
@@ -714,8 +752,29 @@ TEST_F(KeyActionsTest, ProfilesAreEditedAsTheDesktopEditsThem) {
     EXPECT_FALSE(profiles.save(added, hidden).isEmpty());
     EXPECT_FALSE(
         profiles.Profiles().at(added).toMap().value("hidden").toBool());
-    EXPECT_FALSE(profiles.remove(added));
+    EXPECT_FALSE(profiles.remove(added).isEmpty());
+    // One gone meanwhile (another page) says so, as every edit refused does.
+    EXPECT_EQ(profiles.setDefault(9999), "That profile is no longer there.");
+    EXPECT_EQ(profiles.remove(-1), "That profile is no longer there.");
     EXPECT_EQ(profiles.Profiles().size(), list.size());
+
+    // A hidden one is not made the default: Quick Generate would pass it
+    // over without a word.
+    auto shy = copy;
+    shy["storedName"] = "Phone Hidden Profile";
+    shy["hidden"] = true;
+    EXPECT_EQ(profiles.save(-1, shy), "");
+    const auto shy_at = profiles.Profiles().size() - 1;
+    EXPECT_FALSE(profiles.Profiles()
+                     .at(shy_at)
+                     .toMap()
+                     .value("defaultRefusal")
+                     .toString()
+                     .isEmpty());
+    EXPECT_FALSE(profiles.setDefault(shy_at).isEmpty());
+    EXPECT_EQ(LoadStoredKeyGenProfiles().default_profile,
+              "Phone Renamed Profile");
+    EXPECT_TRUE(profiles.remove(shy_at).isEmpty());
 
     // Once another is the default, it goes, and the built-ins come back when
     // asked.
@@ -726,7 +785,7 @@ TEST_F(KeyActionsTest, ProfilesAreEditedAsTheDesktopEditsThem) {
                     .value("deleteRefusal")
                     .toString()
                     .isEmpty());
-    EXPECT_TRUE(profiles.remove(added));
+    EXPECT_TRUE(profiles.remove(added).isEmpty());
     EXPECT_EQ(profiles.Profiles().size(), list.size() - 1);
     profiles.setDefault(1);
     profiles.remove(0);
@@ -906,7 +965,7 @@ TEST_F(KeyActionsTest, AWrongPassphraseIsSaidAndTheUserIdIsAddedOnRetry) {
   EXPECT_FALSE(wrong.succeeded);
   EXPECT_EQ(wrong.detail.value("reason").toString(), "bad_passphrase");
   EXPECT_EQ(wrong.detail.value("error").toString(),
-            "Incorrect passphrase. Please try again.");
+            "The passphrase was wrong. Try again with the right one.");
   EXPECT_EQ(count(), 1);
 
   // Declined: stopped by the person, not a failure to explain.
@@ -929,11 +988,55 @@ TEST_F(KeyActionsTest, AWrongPassphraseIsSaidAndTheUserIdIsAddedOnRetry) {
       << declined.detail.value("error").toString().toStdString();
   EXPECT_EQ(count(), 1);
 
+  // A revocation declined the same: the engine only says it made none,
+  // and it is still the person's doing, not a failure to explain.
+  ClearRpgpPasswordCache();
+  QTemporaryDir revocations;
+  const auto rev_path = revocations.filePath("ivy.rev");
+  const int before_rev = finished_;
+  RunOnMainThread([&]() {
+    actions_->saveRevocation(fpr, QUrl::fromLocalFile(rev_path), 0, {});
+  });
+  ASSERT_TRUE(WaitFor([]() { return !CurrentRequest().isEmpty(); }, 30000));
+  Decline();
+  ASSERT_TRUE(WaitFor(
+      [&]() {
+        int now = 0;
+        RunOnMainThread([&]() { now = finished_; });
+        return now > before_rev;
+      },
+      30000));
+  Finished rev_declined;
+  RunOnMainThread([&]() { rev_declined = last_; });
+  EXPECT_FALSE(rev_declined.succeeded);
+  EXPECT_EQ(rev_declined.detail.value("reason").toString(), "cancelled");
+  EXPECT_FALSE(QFileInfo::exists(rev_path));
+
   ClearRpgpPasswordCache();
   const auto right = Act(add, "ivy's passphrase");
   ASSERT_TRUE(right.succeeded)
       << right.detail.value("error").toString().toStdString();
   EXPECT_EQ(count(), 2);
+
+  // Found by the second user ID's address too, as on the desktop.
+  RunOnMainThread([&]() {
+    auto* keys =
+        GpgFrontend::Mobile::KeyListController::create(nullptr, nullptr);
+    ASSERT_NE(keys, nullptr);
+    GpgFrontend::Mobile::KeyListController::Reload();
+    GpgFrontend::Mobile::KeyFilterModel found;
+    found.setSourceModel(keys->Keys());
+    found.SetSearchText("ivy.work@mobile");
+    QStringList fingerprints;
+    for (int row = 0; row < found.rowCount(); ++row) {
+      fingerprints
+          << found.index(row, 0)
+                 .data(GpgFrontend::Mobile::KeyRoleModel::kFingerprintRole)
+                 .toString();
+    }
+    EXPECT_TRUE(fingerprints.contains(fpr, Qt::CaseInsensitive))
+        << fingerprints.join(",").toStdString();
+  });
 }
 
 // Sharing a public key: only public packets, read by the engine's packet
@@ -1227,13 +1330,37 @@ TEST_F(KeyActionsTest, KeyGroupsAreMadeFilledAndEncryptedTo) {
     EXPECT_EQ(groups.group(other).value("email"), "other@example.org");
     EXPECT_EQ(groups.group(other).value("comment"), "c");
     EXPECT_TRUE(groups.create("Bad Mail Group", "nope").isEmpty());
+    // Nested as the desktop may nest it: the group it is in is named, as
+    // the one that loses it when it is deleted.
+    EXPECT_TRUE(groups.parentNames(other).isEmpty());
+    auto& repository = KeyGroupRepository::GetInstance(channel);
+    ASSERT_TRUE(repository.AddKey2KeyGroup(id, repository.KeyGroup(other)));
+    EXPECT_EQ(groups.parentNames(other), QStringList{"Phone Group"});
     EXPECT_TRUE(groups.remove(other));
+    EXPECT_FALSE(groups.memberIds(id).contains(other));
 
     // Renamed by the same rule, emptied, deleted; its key stays.
     EXPECT_FALSE(groups.edit(id, "Grp", "", "").isEmpty());
     EXPECT_EQ(groups.edit(id, "Phone Group B", "", ""), "");
     EXPECT_EQ(groups.group(id).value("name"), "Phone Group B");
+    // Said at once, while the key list is being read again too; that
+    // refresh runs once more, to show it.
+    std::vector<std::function<void()>> held;
+    GpgFrontend::Mobile::KeyListController::SetRefresherForTesting(
+        [&held](QObject*, std::function<void()> done) {
+          held.push_back(std::move(done));
+        });
+    keys->refresh();
+    ASSERT_TRUE(keys->Refreshing());
+    const auto revision = groups.Revision();
     EXPECT_TRUE(groups.removeMember(id, member_id));
+    EXPECT_GT(groups.Revision(), revision);
+    ASSERT_EQ(held.size(), 1U);
+    held[0]();
+    ASSERT_EQ(held.size(), 2U);
+    held[1]();
+    EXPECT_FALSE(keys->Refreshing());
+    GpgFrontend::Mobile::KeyListController::SetRefresherForTesting({});
     EXPECT_TRUE(groups.memberIds(id).isEmpty());
     // Empty, it reaches nobody: as good as gone.
     EXPECT_EQ(GpgFrontend::Mobile::SelectKeys(channel, {id}).missing,
@@ -1348,11 +1475,147 @@ TEST_F(KeyActionsTest, AKeysStateIsReadAnewAndCountsWhileItIsHere) {
   });
 }
 
+// A key change waiting at its passphrase holds the engine's thread: a key
+// list refresh behind it waits for the person, not "took too long".
+TEST_F(KeyActionsTest, ARefreshWaitsForAKeyChangeAtItsPassphrase) {
+  const auto made = Act(
+      [](auto* a) {
+        a->generate("Wes Wait", "wes@mobile.example.invalid", 0, true);
+      },
+      "wes's passphrase");
+  ASSERT_TRUE(made.succeeded);
+  const auto fpr = made.detail.value("fingerprint").toString();
+
+  std::vector<std::function<void()>> held;
+  GpgFrontend::Mobile::KeyListController::SetRefresherForTesting(
+      [&held](QObject*, std::function<void()> done) {
+        held.push_back(std::move(done));
+      });
+  std::unique_ptr<GpgFrontend::Mobile::KeyListController> keys;
+  RunOnMainThread([&]() {
+    keys = std::make_unique<GpgFrontend::Mobile::KeyListController>(nullptr);
+    keys->SetRefreshTimeoutForTesting(50);
+  });
+
+  ClearRpgpPasswordCache();
+  const int before = finished_;
+  RunOnMainThread([&]() {
+    actions_->addUid(fpr, "Wes Work", "wes.work@mobile.example.invalid", "");
+  });
+  ASSERT_TRUE(WaitFor([]() { return !CurrentRequest().isEmpty(); }, 30000));
+  RunOnMainThread([&]() { keys->refresh(); });
+  std::this_thread::sleep_for(std::chrono::milliseconds(400));
+  RunOnMainThread([&]() {
+    EXPECT_TRUE(keys->Refreshing());
+    EXPECT_TRUE(keys->Error().isEmpty());
+  });
+
+  // Once the change is over, a refresh that never reports is said to.
+  Decline();
+  ASSERT_TRUE(WaitFor(
+      [&]() {
+        int now = 0;
+        RunOnMainThread([&]() { now = finished_; });
+        return now > before;
+      },
+      30000));
+  EXPECT_TRUE(WaitFor(
+      [&]() {
+        bool refreshing = true;
+        RunOnMainThread([&]() { refreshing = keys->Refreshing(); });
+        return !refreshing;
+      },
+      5000));
+  RunOnMainThread([&]() {
+    EXPECT_FALSE(keys->Error().isEmpty());
+    keys.reset();
+  });
+  GpgFrontend::Mobile::KeyListController::SetRefresherForTesting({});
+}
+
 TEST_F(KeyActionsTest, DeletingAnUnknownKeyFails) {
   const auto done = Act([](auto* a) {
     a->remove("0000000000000000000000000000000000000000");
   });
   EXPECT_FALSE(done.succeeded);
+}
+
+// A key with two subkeys that could encrypt is asked about, as the desktop
+// asks; the subkey chosen reaches the operation alone ("<fingerprint>!"),
+// and the engine's own choice leaves the key as it is.
+TEST_F(KeyActionsTest, AnAmbiguousSubkeyIsAskedAndPinned) {
+  const auto fpr = GenerateKey("Two Subkeys", "");
+  ASSERT_FALSE(fpr.isEmpty());
+  const auto channel = UsableDefaultChannelHandle();
+  {
+    GpgFrontend::Mobile::WorkSelection selection(nullptr);
+    selection.addRecipient(fpr);
+    // One encryption subkey: nothing to ask.
+    EXPECT_TRUE(selection.subkeyChoices("encrypt").isEmpty());
+  }
+  const auto added =
+      Act([&](auto* a) { a->addSubkey(fpr, "encrypt", "forever", false); });
+  ASSERT_TRUE(added.succeeded)
+      << added.detail.value("error").toString().toStdString();
+  GpgKeyRepository::GetInstance(channel).FlushKeyCache();
+
+  GpgFrontend::Mobile::WorkSelection selection(nullptr);
+  selection.addRecipient(fpr);
+  const auto choices = selection.subkeyChoices("encrypt");
+  ASSERT_EQ(choices.size(), 1);
+  const auto choice = choices.first().toMap();
+  EXPECT_EQ(choice.value("role"), "encrypt");
+  EXPECT_EQ(choice.value("name"), "Two Subkeys");
+  const auto subkeys = choice.value("subkeys").toList();
+  ASSERT_EQ(subkeys.size(), 2);
+  // Signing asks nothing of a recipient.
+  EXPECT_TRUE(selection.subkeyChoices("sign").isEmpty());
+
+  // The engine's choice: the key as it was chosen.
+  selection.pinSubkey(fpr, "");
+  EXPECT_EQ(selection.operationRecipients(), QStringList{fpr});
+
+  const auto sub = subkeys.at(1).toMap().value("fingerprint").toString();
+  selection.pinSubkey(fpr, sub);
+  const auto taken = selection.operationRecipients();
+  ASSERT_EQ(taken.size(), 1);
+  EXPECT_EQ(taken.first(), sub.toUpper() + "!");
+  const auto resolved = GpgFrontend::Mobile::SelectKeys(channel, taken);
+  EXPECT_TRUE(resolved.missing.isEmpty());
+  ASSERT_EQ(resolved.keys.size(), 1);
+  // The key, with the chosen subkey marked for the engine to use alone.
+  const auto pinned_key =
+      qSharedPointerDynamicCast<GpgKey>(resolved.keys.first());
+  ASSERT_NE(pinned_key, nullptr);
+  EXPECT_EQ(pinned_key->Fingerprint().toUpper(), fpr.toUpper());
+  QStringList marked;
+  for (const auto& s_key : pinned_key->SubKeys()) {
+    if (s_key.IsMarked()) marked << s_key.Fingerprint().toUpper();
+  }
+  EXPECT_EQ(marked, QStringList{sub.toUpper()});
+
+  // A new request starts afresh.
+  selection.clearPins();
+  EXPECT_EQ(selection.operationRecipients(), QStringList{fpr});
+  EXPECT_TRUE(Act([&fpr](auto* a) { a->remove(fpr); }).succeeded);
+}
+
+// A key's description is a read alone, made apart from the actions: nothing
+// for a key that is not there; for one that is, its parts with the primary
+// first and what it allows.
+TEST_F(KeyActionsTest, AKeyIsDescribedWithoutTheActions) {
+  const auto channel = UsableDefaultChannelHandle();
+  EXPECT_TRUE(GpgFrontend::Mobile::DescribeKey(channel, QString(40, u'F'))
+                  .isEmpty());
+  const auto fpr = GenerateKey("Described", "");
+  ASSERT_FALSE(fpr.isEmpty());
+  const auto described = GpgFrontend::Mobile::DescribeKey(channel, fpr);
+  EXPECT_EQ(described.value("name"), "Described");
+  const auto subkeys = described.value("subkeys").toList();
+  ASSERT_GE(subkeys.size(), 2);
+  EXPECT_TRUE(subkeys.first().toMap().value("primary").toBool());
+  EXPECT_TRUE(described.value("can").toMap().value("addUid").isValid());
+  EXPECT_TRUE(Act([&fpr](auto* a) { a->remove(fpr); }).succeeded);
 }
 
 }  // namespace GpgFrontend::Test::Mobile

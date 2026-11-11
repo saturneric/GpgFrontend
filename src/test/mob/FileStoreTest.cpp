@@ -105,7 +105,8 @@ TEST_F(RetentionTest, ASharedFileIsMovedInAndRecorded) {
 
 TEST_F(RetentionTest, AFileStaysUntilItIsEligibleThenGoesAtTheNextChance) {
   auto store = Make();
-  const auto entry = store->Retain(Staged("a.txt"), "a.txt", true, T0());
+  // Not decrypted: kept the day (a decrypted one, an hour).
+  const auto entry = store->Retain(Staged("a.txt"), "a.txt", false, T0());
   ASSERT_TRUE(entry.has_value());
 
   // A minute short of a day: kept.
@@ -189,6 +190,16 @@ TEST_F(RetentionTest, TheCapsEvictTheOldestButNeverTheNewFile) {
   const auto big = small->Retain(Staged("big", 64), "big", false, T0());
   ASSERT_TRUE(big.has_value());
   EXPECT_TRUE(QFile::exists(big->path));
+}
+
+TEST_F(RetentionTest, ADecryptedFileIsKeptOnlyAnHour) {
+  auto store = Make();
+  const auto plain = *store->Retain(Staged("p"), "p", true, T0());
+  const auto sealed = *store->Retain(Staged("s"), "s", false, T0());
+  EXPECT_EQ(plain.eligible, T0().addSecs(3600));
+  store->Cleanup(T0().addSecs(3601));
+  EXPECT_FALSE(QFile::exists(plain.path));
+  EXPECT_TRUE(QFile::exists(sealed.path));
 }
 
 TEST_F(RetentionTest, ClearingRemovesEverythingAtOnce) {
