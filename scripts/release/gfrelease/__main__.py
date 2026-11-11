@@ -434,8 +434,14 @@ def root_init(args, slug: str, root_dir: Path, keys_dir: Path) -> int:
         first = root_dir / layout.root_name(1)
         password = ["-W"]
     else:
-        if run(["git", "-C", ROOT, "status", "--porcelain"]).stdout.strip():
-            raise ReleaseError("run the ceremony from a clean checkout")
+        # What it writes, and what is committed with it, must be as checked
+        # out: anything else in the tree is not its business.
+        dirty = run(["git", "-C", ROOT, "status", "--porcelain", "--",
+                     "release/root", "release/index-keys",
+                     "SECURITY.md"]).stdout.strip()
+        if dirty:
+            raise ReleaseError("release/root/, release/index-keys/ and "
+                               f"SECURITY.md must be as checked out:\n{dirty}")
         if first.exists() or (keys_dir / layout.index_keys_name(1)).exists():
             raise ReleaseError(f"{first} or index-keys 1 exists already")
         if len(args.key_dir) != 3:
