@@ -32,15 +32,14 @@ from pathlib import Path
 
 import layout
 from common import (BUNDLE, SCHEMA, STAGED, SUMS, Problems, Product,
-                    ReleaseError, canonical_json, candidate_error,
-                    git_version, iso, parse_version, refs, sha256_file,
-                    utcnow)
+                    ReleaseError, ToolFailed, canonical_json, git_version,
+                    iso, parse_version, refs, sha256_file, utcnow,
+                    verify_candidate)
 from stage import read_staged
 from store import Store
 
 import index as index_mod
 
-import release_candidate as rc  # noqa: E402  (scripts/, on the path via common)
 
 
 class PromoteIncomplete(ReleaseError):
@@ -135,17 +134,12 @@ def promote_one(product: Product, staging: Store, builds: Store,
     with tempfile.TemporaryDirectory(prefix="gfr-promote-") as tmp:
         work = Path(tmp) / "candidate"
         staging.download(prefix, work)
-        (work / STAGED).unlink()
+        # Gone already when the candidate expired in between: the manifest
+        # check below refuses what is left of it.
+        (work / STAGED).unlink(missing_ok=True)
 
         identity = product.identity(ref)
-        try:
-            verified = rc.verify(work, identity, commit, cosign)
-        except (rc.CandidateError, rc.CandidateTimeout) as e:
-            raise candidate_error(prefix, e) from e
-        files = [p.name for p in verified if p.name not in (SUMS, BUNDLE)]
-        if sorted(files) != sorted(staged["files"]):
-            raise ReleaseError(f"{prefix}: staged.json lists other files "
-                               "than the signed manifest")
+        files = verify_candidate(prefix, work, staged, identity, cosign)
 
         derived = git_version(git_dir, commit, branch)
         if derived != staged["version"]:
@@ -226,6 +220,10 @@ def promote(product: Product, staging: Store, builds: Store, *,
             except ReleaseError as e:
                 # The next older candidate of this ref gets its turn.
                 failed.note(prefix, e)
+            except OSError as e:
+                # A local file that could not be read or written: no verdict
+                # on the candidate, and no reason to stop the others.
+                failed.note(prefix, ToolFailed(f"local file: {e}"))
     if failed:
         raise PromoteIncomplete(failed, done)
     return done
