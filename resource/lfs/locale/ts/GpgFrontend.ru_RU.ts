@@ -388,6 +388,11 @@
         <source>Only the category goes: its keys stay, in the key list and in their other categories.</source>
         <translation>Удаляется только категория: её ключи остаются в списке ключей и в других своих категориях.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="1"/>
+        <source>%1 could not be taken out of the category.</source>
+        <translation>Не удалось убрать %1 из категории.</translation>
+    </message>
 </context>
 <context>
     <name>CategoryListSheet</name>
@@ -634,6 +639,16 @@
         <source>Quit</source>
         <translation>Выйти</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/ErrorPage.qml" line="1"/>
+        <source>Open the default profile</source>
+        <translation>Открыть профиль по умолчанию</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/ErrorPage.qml" line="1"/>
+        <source>GpgFrontend could not start again. Quit, then open it again: the default profile opens.</source>
+        <translation>Не удалось перезапустить GpgFrontend. Закройте его и откройте снова: откроется профиль по умолчанию.</translation>
+    </message>
 </context>
 <context>
     <name>FactsPage</name>
@@ -857,8 +872,8 @@
     </message>
     <message>
         <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="1"/>
-        <source>Extract to a folder…</source>
-        <translation>Извлечь в папку…</translation>
+        <source>Pick it again</source>
+        <translation>Выбрать снова</translation>
     </message>
 </context>
 <context>
@@ -1376,8 +1391,8 @@
     </message>
     <message>
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="946"/>
-        <source>A copy stays in GpgFrontend&apos;s private storage for up to 24 hours so the receiving app can read it. You can remove it sooner under Temporary shared files in Settings.</source>
-        <translation>Копия хранится в приватном хранилище GpgFrontend до 24 часов, чтобы принимающее приложение могло её прочитать. Вы можете удалить её раньше в разделе «Временные общие файлы» в Настройках.</translation>
+        <source>A copy stays in GpgFrontend&apos;s private storage for up to an hour so the receiving app can read it. You can remove it sooner under Temporary shared files in Settings.</source>
+        <translation>Копия хранится в приватном хранилище GpgFrontend до часа, чтобы принимающее приложение могло её прочитать. Вы можете удалить её раньше в разделе «Временные общие файлы» в Настройках.</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="951"/>
@@ -1513,6 +1528,11 @@
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
         <source>Added as one item, with everything in it. Encrypting it makes one .tar.gpg archive.</source>
         <translation>Добавляется одним элементом со всем содержимым. При шифровании получается один архив .tar.gpg.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
+        <source>Extract to a folder…</source>
+        <translation>Извлечь в папку…</translation>
     </message>
 </context>
 <context>
@@ -2848,13 +2868,13 @@
     </message>
     <message>
         <location filename="../../../../src/mob/model/ErrorWording.cpp" line="55"/>
-        <source>Incorrect passphrase. Please try again.</source>
-        <translation>Неверная парольная фраза. Попробуйте ещё раз.</translation>
+        <source>The passphrase was wrong. Try again with the right one.</source>
+        <translation>Парольная фраза неверна. Попробуйте ещё раз с правильной.</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/model/ErrorWording.cpp" line="60"/>
-        <source>No passphrase was given. Please try again.</source>
-        <translation>Парольная фраза не введена. Попробуйте ещё раз.</translation>
+        <source>No passphrase was given, so the key could not be used.</source>
+        <translation>Парольная фраза не была введена, поэтому ключ нельзя было использовать.</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/model/ErrorWording.cpp" line="65"/>
@@ -3023,6 +3043,16 @@
         <source>This key database cannot be used here.</source>
         <translation>Эту базу ключей нельзя использовать здесь.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="1"/>
+        <source>Wait until the work under way is done, or stop it, then switch.</source>
+        <translation>Дождитесь окончания текущей работы или остановите её, затем переключитесь.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="1"/>
+        <source>A key database is still being opened.</source>
+        <translation>База ключей ещё открывается.</translation>
+    </message>
 </context>
 <context>
     <name>GpgFrontend::Mobile::KeyGenProfilesController</name>
@@ -3035,6 +3065,11 @@
         <location filename="../../../../src/mob/model/KeyGenProfilesController.cpp" line="275"/>
         <source>Choose the algorithms in full: this one cannot be made here.</source>
         <translation>Укажите алгоритмы полностью: этот здесь создать нельзя.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyGenProfilesController.cpp" line="1"/>
+        <source>That profile is no longer there.</source>
+        <translation>Этого профиля больше нет.</translation>
     </message>
 </context>
 <context>
@@ -3138,6 +3173,11 @@
         <location filename="../../../../src/mob/model/ProfilesController.cpp" line="436"/>
         <source>GpgFrontend could not start again. It opens this profile the next time it starts.</source>
         <translation>GpgFrontend не удалось перезапуститься. Этот профиль откроется при следующем запуске.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/ProfilesController.cpp" line="1"/>
+        <source>Another profile package is still being written or read.</source>
+        <translation>Другой пакет профиля ещё записывается или читается.</translation>
     </message>
 </context>
 <context>
@@ -19019,6 +19059,34 @@ Open it in your browser?</source>
         <source>Updated %1 key(s).</source>
         <translation>Обновлено ключей: %1.</translation>
     </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/components/ImportSheet.qml" line="1"/>
+        <source>Imported %n key(s).</source>
+        <translation>
+            <numerusform>Импортирован %n ключ.</numerusform>
+            <numerusform>Импортировано %n ключа.</numerusform>
+            <numerusform>Импортировано %n ключей.</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/components/ImportSheet.qml" line="1"/>
+        <source>Updated %n key(s).</source>
+        <translation>
+            <numerusform>Обновлён %n ключ.</numerusform>
+            <numerusform>Обновлено %n ключа.</numerusform>
+            <numerusform>Обновлено %n ключей.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/ImportSheet.qml" line="1"/>
+        <source>This file could not be opened. Pick it again, or save it to the device first.</source>
+        <translation>Не удалось открыть этот файл. Выберите его снова или сначала сохраните на устройстве.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/ImportSheet.qml" line="1"/>
+        <source>This file is too large to be a key file.</source>
+        <translation>Этот файл слишком велик для файла ключей.</translation>
+    </message>
 </context>
 <context>
     <name>KeyAlgoChooser</name>
@@ -19345,6 +19413,11 @@ Open it in your browser?</source>
         <translation>Секретный ключ сохранён.</translation>
     </message>
     <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="72"/>
+        <source>Public key saved.</source>
+        <translation>Открытый ключ сохранён.</translation>
+    </message>
+    <message>
         <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="210"/>
         <source>Owner</source>
         <translation>Владелец</translation>
@@ -19616,11 +19689,6 @@ Open it in your browser?</source>
         <translation>Любой, у кого есть этот файл и его парольная фраза, сможет читать ваши сообщения и подписывать от вашего имени. Храните файл в надёжном месте и никогда не вместе с парольной фразой.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="707"/>
-        <source>Choose where</source>
-        <translation>Выберите место</translation>
-    </message>
-    <message>
         <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="725"/>
         <source>Delete this key?</source>
         <translation>Удалить этот ключ?</translation>
@@ -19689,6 +19757,11 @@ Open it in your browser?</source>
         <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="851"/>
         <source>Save as file</source>
         <translation>Сохранить как файл</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="1"/>
+        <source>Back it up first (Back up secret key) if you may need it again.</source>
+        <translation>Сначала сделайте резервную копию («Резервная копия секретного ключа»), если он может понадобиться снова.</translation>
     </message>
 </context>
 <context>
@@ -20067,6 +20140,21 @@ Open it in your browser?</source>
         <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="226"/>
         <source>Only the group goes: its keys stay in the key list.</source>
         <translation>Удалится только группа: её ключи останутся в списке ключей.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="1"/>
+        <source>%1 could not be taken out of the group.</source>
+        <translation>Не удалось убрать %1 из группы.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="1"/>
+        <source>The group could not be deleted.</source>
+        <translation>Не удалось удалить группу.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="1"/>
+        <source>It is also in %1, which will lose it.</source>
+        <translation>Она также входит в %1, и они её потеряют.</translation>
     </message>
 </context>
 <context>
@@ -20771,6 +20859,11 @@ Open it in your browser?</source>
         <source>OK</source>
         <translation>ОК</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/PassphraseSheet.qml" line="1"/>
+        <source>Leaving GpgFrontend now cancels this. Copy the passphrase first, or type it.</source>
+        <translation>Если сейчас выйти из GpgFrontend, это будет отменено. Сначала скопируйте парольную фразу или введите её.</translation>
+    </message>
 </context>
 <context>
     <name>PinSheet</name>
@@ -20833,6 +20926,15 @@ Open it in your browser?</source>
         <location filename="../../../../src/mob/qml/components/PinSheet.qml" line="78"/>
         <source>The two PINs are not the same.</source>
         <translation>PIN-коды не совпадают.</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/components/PinSheet.qml" line="1"/>
+        <source>Use at least %n characters.</source>
+        <translation>
+            <numerusform>Используйте не менее %n символа.</numerusform>
+            <numerusform>Используйте не менее %n символов.</numerusform>
+            <numerusform>Используйте не менее %n символов.</numerusform>
+        </translation>
     </message>
 </context>
 <context>
@@ -21030,6 +21132,11 @@ Open it in your browser?</source>
         <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="216"/>
         <source>Open</source>
         <translation>Открыть</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="1"/>
+        <source>What is not saved goes: the text on the Text page, files made and not saved, and operations under way.</source>
+        <translation>Несохранённое пропадёт: текст на странице «Текст», созданные и не сохранённые файлы и выполняемые операции.</translation>
     </message>
 </context>
 <context>
@@ -24014,6 +24121,16 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <source>Opening the profile was cancelled.</source>
         <translation>Открытие профиля отменено.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="1"/>
+        <source>Use at most %1 characters.</source>
+        <translation>Используйте не более %1 символов.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="1"/>
+        <source>A profile with this name already exists.</source>
+        <translation>Профиль с таким именем уже существует.</translation>
+    </message>
 </context>
 <context>
     <name>QWizardPage</name>
@@ -24078,6 +24195,11 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="84"/>
         <source>A revoked key can no longer be used to encrypt to you or to sign, and this cannot be undone. Unlike deleting, it tells others: share the key afterwards, so they learn of it.</source>
         <translation>Отозванный ключ больше нельзя использовать для шифрования для вас или для подписи, и это нельзя отменить. В отличие от удаления, это сообщает другим: поделитесь ключом после этого, чтобы они узнали.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="1"/>
+        <source>Choose where</source>
+        <translation>Выберите место</translation>
     </message>
 </context>
 <context>
@@ -24548,6 +24670,16 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <source>Opening your profile…</source>
         <translation>Открытие вашего профиля…</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/SplashPage.qml" line="1"/>
+        <source>Closing your profile…</source>
+        <translation>Закрытие профиля…</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/SplashPage.qml" line="1"/>
+        <source>This is taking longer than usual. A large key database takes a while to read the first time.</source>
+        <translation>Это занимает больше времени, чем обычно. Большая база ключей при первом запуске читается какое-то время.</translation>
+    </message>
 </context>
 <context>
     <name>StatusLine</name>
@@ -24712,6 +24844,21 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="448"/>
         <source>Show less</source>
         <translation>Показать меньше</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="1"/>
+        <source>Put it in the text</source>
+        <translation>Вставить в текст</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="1"/>
+        <source>Import the signer&apos;s key</source>
+        <translation>Импортировать ключ подписавшего</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="1"/>
+        <source>It was not signed: there was no signature to check.</source>
+        <translation>Не было подписи: проверять было нечего.</translation>
     </message>
 </context>
 <context>
@@ -25024,6 +25171,26 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <location filename="../../../../src/mob/qml/TextPage.qml" line="235"/>
         <source>Done on an earlier text, so the result was not put in.</source>
         <translation>Выполнено над прежним текстом, поэтому результат не был вставлен.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="1"/>
+        <source>Share the decrypted text?</source>
+        <translation>Поделиться расшифрованным текстом?</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="1"/>
+        <source>The app you choose gets it as readable text, and keeps it as that app does. It is not encrypted any more.</source>
+        <translation>Выбранное приложение получит его как читаемый текст и сохранит по-своему. Он больше не зашифрован.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="1"/>
+        <source>Only for a signed or encrypted message.</source>
+        <translation>Только для подписанного или зашифрованного сообщения.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="1"/>
+        <source>Only for an encrypted message.</source>
+        <translation>Только для зашифрованного сообщения.</translation>
     </message>
 </context>
 <context>
@@ -25851,6 +26018,41 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <source>%1 · by its name</source>
         <translation>%1 · судя по имени</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Made by a revoked key</source>
+        <translation>Сделана отозванным ключом</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Made by an expired key</source>
+        <translation>Сделана просроченным ключом</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Made by a key not allowed to sign</source>
+        <translation>Сделана ключом, которому нельзя подписывать</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Made by a key with problems</source>
+        <translation>Сделана ключом с проблемами</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Done</source>
+        <translation>Готово</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/crypto/WorkSelection.cpp" line="1"/>
+        <source>Its secret part is not on this device</source>
+        <translation>Его секретной части нет на этом устройстве</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>This cannot be decrypted because no matching secret key is available.</source>
+        <translation>Это невозможно расшифровать: нет подходящего секретного ключа.</translation>
+    </message>
 </context>
 <context>
     <name>GpgFrontend::Mobile::KeyActionsController</name>
@@ -25863,6 +26065,11 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <location filename="../../../../src/mob/model/KeyActionsController.cpp" line="631"/>
         <source>The revocation could not be applied, so the key has not been revoked.</source>
         <translation>Не удалось применить отзыв, поэтому ключ не отозван.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyActionsController.cpp" line="1"/>
+        <source>Another change is still under way. Try again once it is done.</source>
+        <translation>Другое изменение ещё выполняется. Повторите, когда оно завершится.</translation>
     </message>
 </context>
 <context>
@@ -25896,6 +26103,105 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <location filename="../../../../src/mob/files/FolderArchive.cpp" line="1"/>
         <source>A file could not be written there.</source>
         <translation>Там не удалось записать файл.</translation>
+    </message>
+</context>
+<context>
+    <name>GpgFrontend::Shell::RevocationReasons</name>
+    <message>
+        <location filename="../../../../src/shell/rules/RevocationReasons.cpp" line="1"/>
+        <source>No reason given</source>
+        <translation>Причина не указана</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/rules/RevocationReasons.cpp" line="1"/>
+        <source>It may have been compromised</source>
+        <translation>Возможно, он скомпрометирован</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/rules/RevocationReasons.cpp" line="1"/>
+        <source>A newer subkey replaces it</source>
+        <translation>Его заменяет более новый подключ</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/rules/RevocationReasons.cpp" line="1"/>
+        <source>It is no longer used</source>
+        <translation>Больше не используется</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/rules/RevocationReasons.cpp" line="1"/>
+        <source>The user ID is no longer valid</source>
+        <translation>Идентификатор пользователя больше не действителен</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/rules/RevocationReasons.cpp" line="1"/>
+        <source>A newer key replaces it</source>
+        <translation>Его заменяет более новый ключ</translation>
+    </message>
+</context>
+<context>
+    <name>HistorySheet</name>
+    <message>
+        <location filename="../../../../src/mob/qml/components/HistorySheet.qml" line="1"/>
+        <source>Recent operations</source>
+        <translation>Недавние операции</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/HistorySheet.qml" line="1"/>
+        <source>Text</source>
+        <translation>Текст</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/HistorySheet.qml" line="1"/>
+        <source>Files</source>
+        <translation>Файлы</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/HistorySheet.qml" line="1"/>
+        <source>Nothing was done yet since GpgFrontend started.</source>
+        <translation>С момента запуска GpgFrontend ещё ничего не сделано.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/HistorySheet.qml" line="1"/>
+        <source>Kept only until GpgFrontend closes.</source>
+        <translation>Хранится только до закрытия GpgFrontend.</translation>
+    </message>
+</context>
+<context>
+    <name>SubkeyChoiceSheet</name>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SubkeyChoiceSheet.qml" line="1"/>
+        <source>Which subkey?</source>
+        <translation>Какой подключ?</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SubkeyChoiceSheet.qml" line="1"/>
+        <source>%1 has more than one subkey that can sign. Which one should sign this?</source>
+        <translation>У %1 несколько подключей, которые могут подписывать. Каким подписать?</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SubkeyChoiceSheet.qml" line="1"/>
+        <source>%1 has more than one subkey that can encrypt. Which one should this be encrypted to?</source>
+        <translation>У %1 несколько подключей, которые могут шифровать. Для какого зашифровать?</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SubkeyChoiceSheet.qml" line="1"/>
+        <source>Let GpgFrontend choose</source>
+        <translation>Пусть выберет GpgFrontend</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SubkeyChoiceSheet.qml" line="1"/>
+        <source>made %1</source>
+        <translation>создан %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SubkeyChoiceSheet.qml" line="1"/>
+        <source>Cancel</source>
+        <translation>Отмена</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SubkeyChoiceSheet.qml" line="1"/>
+        <source>Continue</source>
+        <translation>Продолжить</translation>
     </message>
 </context>
 </TS>

@@ -386,6 +386,11 @@
         <source>Only the category goes: its keys stay, in the key list and in their other categories.</source>
         <translation>Yalnızca kategori kaldırılır: anahtarları anahtar listesinde ve diğer kategorilerinde kalır.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="1"/>
+        <source>%1 could not be taken out of the category.</source>
+        <translation>%1 kategoriden çıkarılamadı.</translation>
+    </message>
 </context>
 <context>
     <name>CategoryListSheet</name>
@@ -632,6 +637,16 @@
         <source>Quit</source>
         <translation>Çık</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/ErrorPage.qml" line="1"/>
+        <source>Open the default profile</source>
+        <translation>Varsayılan profili aç</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/ErrorPage.qml" line="1"/>
+        <source>GpgFrontend could not start again. Quit, then open it again: the default profile opens.</source>
+        <translation>GpgFrontend yeniden başlatılamadı. Kapatıp yeniden açın: varsayılan profil açılır.</translation>
+    </message>
 </context>
 <context>
     <name>FactsPage</name>
@@ -853,8 +868,8 @@
     </message>
     <message>
         <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="1"/>
-        <source>Extract to a folder…</source>
-        <translation>Bir klasöre çıkar…</translation>
+        <source>Pick it again</source>
+        <translation>Yeniden seç</translation>
     </message>
 </context>
 <context>
@@ -1362,8 +1377,8 @@
     </message>
     <message>
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="946"/>
-        <source>A copy stays in GpgFrontend&apos;s private storage for up to 24 hours so the receiving app can read it. You can remove it sooner under Temporary shared files in Settings.</source>
-        <translation>Bir kopya, alıcı uygulamanın okuyabilmesi için GpgFrontend&apos;in özel depolama alanında 24 saate kadar kalır. Ayarlar&apos;daki Geçici paylaşılan dosyalar bölümünden daha erken kaldırabilirsiniz.</translation>
+        <source>A copy stays in GpgFrontend&apos;s private storage for up to an hour so the receiving app can read it. You can remove it sooner under Temporary shared files in Settings.</source>
+        <translation>Bir kopya, alıcı uygulamanın okuyabilmesi için GpgFrontend&apos;in özel depolama alanında bir saate kadar kalır. Ayarlar&apos;daki Geçici paylaşılan dosyalar bölümünden daha erken kaldırabilirsiniz.</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="951"/>
@@ -1489,6 +1504,11 @@
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
         <source>Added as one item, with everything in it. Encrypting it makes one .tar.gpg archive.</source>
         <translation>İçindekilerle birlikte tek öğe olarak eklenir. Şifrelemek tek bir .tar.gpg arşivi oluşturur.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
+        <source>Extract to a folder…</source>
+        <translation>Bir klasöre çıkar…</translation>
     </message>
 </context>
 <context>
@@ -2816,13 +2836,13 @@
     </message>
     <message>
         <location filename="../../../../src/mob/model/ErrorWording.cpp" line="55"/>
-        <source>Incorrect passphrase. Please try again.</source>
-        <translation>Parola yanlış. Lütfen tekrar deneyin.</translation>
+        <source>The passphrase was wrong. Try again with the right one.</source>
+        <translation>Parola yanlıştı. Doğru parolayla tekrar deneyin.</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/model/ErrorWording.cpp" line="60"/>
-        <source>No passphrase was given. Please try again.</source>
-        <translation>Parola girilmedi. Lütfen tekrar deneyin.</translation>
+        <source>No passphrase was given, so the key could not be used.</source>
+        <translation>Parola verilmediği için anahtar kullanılamadı.</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/model/ErrorWording.cpp" line="65"/>
@@ -2991,6 +3011,16 @@
         <source>This key database cannot be used here.</source>
         <translation>Bu anahtar veritabanı burada kullanılamaz.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="1"/>
+        <source>Wait until the work under way is done, or stop it, then switch.</source>
+        <translation>Süren iş bitene kadar bekleyin ya da durdurun, sonra geçiş yapın.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="1"/>
+        <source>A key database is still being opened.</source>
+        <translation>Bir anahtar veritabanı hâlâ açılıyor.</translation>
+    </message>
 </context>
 <context>
     <name>GpgFrontend::Mobile::KeyGenProfilesController</name>
@@ -3003,6 +3033,11 @@
         <location filename="../../../../src/mob/model/KeyGenProfilesController.cpp" line="275"/>
         <source>Choose the algorithms in full: this one cannot be made here.</source>
         <translation>Algoritmaları tam olarak seçin: bu burada oluşturulamaz.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyGenProfilesController.cpp" line="1"/>
+        <source>That profile is no longer there.</source>
+        <translation>Bu profil artık yok.</translation>
     </message>
 </context>
 <context>
@@ -3106,6 +3141,11 @@
         <location filename="../../../../src/mob/model/ProfilesController.cpp" line="436"/>
         <source>GpgFrontend could not start again. It opens this profile the next time it starts.</source>
         <translation>GpgFrontend yeniden başlatılamadı. Bir sonraki açılışında bu profili açar.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/ProfilesController.cpp" line="1"/>
+        <source>Another profile package is still being written or read.</source>
+        <translation>Başka bir profil paketi hâlâ yazılıyor ya da okunuyor.</translation>
     </message>
 </context>
 <context>
@@ -17491,6 +17531,30 @@ Tarayıcınızda açılsın mı?</translation>
         <source>Updated %1 key(s).</source>
         <translation>%1 anahtar güncellendi.</translation>
     </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/components/ImportSheet.qml" line="1"/>
+        <source>Imported %n key(s).</source>
+        <translation>
+            <numerusform>%n anahtar içe aktarıldı.</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/components/ImportSheet.qml" line="1"/>
+        <source>Updated %n key(s).</source>
+        <translation>
+            <numerusform>%n anahtar güncellendi.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/ImportSheet.qml" line="1"/>
+        <source>This file could not be opened. Pick it again, or save it to the device first.</source>
+        <translation>Bu dosya açılamadı. Yeniden seçin ya da önce cihaza kaydedin.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/ImportSheet.qml" line="1"/>
+        <source>This file is too large to be a key file.</source>
+        <translation>Bu dosya bir anahtar dosyası olamayacak kadar büyük.</translation>
+    </message>
 </context>
 <context>
     <name>KeyAlgoChooser</name>
@@ -17815,6 +17879,11 @@ Tarayıcınızda açılsın mı?</translation>
         <translation>Gizli anahtar kaydedildi.</translation>
     </message>
     <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="72"/>
+        <source>Public key saved.</source>
+        <translation>Açık anahtar kaydedildi.</translation>
+    </message>
+    <message>
         <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="210"/>
         <source>Owner</source>
         <translation>Sahip</translation>
@@ -18086,11 +18155,6 @@ Tarayıcınızda açılsın mı?</translation>
         <translation>Bu dosyaya ve parolasına sahip olan herkes mesajlarınızı okuyabilir ve sizin adınıza imzalayabilir. Güvenli bir yerde saklayın, parolayla asla birlikte değil.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="707"/>
-        <source>Choose where</source>
-        <translation>Konum seçin</translation>
-    </message>
-    <message>
         <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="725"/>
         <source>Delete this key?</source>
         <translation>Bu anahtar silinsin mi?</translation>
@@ -18159,6 +18223,11 @@ Tarayıcınızda açılsın mı?</translation>
         <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="851"/>
         <source>Save as file</source>
         <translation>Dosya olarak kaydet</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="1"/>
+        <source>Back it up first (Back up secret key) if you may need it again.</source>
+        <translation>Yeniden gerekebilecekse önce yedekleyin (Gizli anahtarı yedekle).</translation>
     </message>
 </context>
 <context>
@@ -18535,6 +18604,21 @@ Tarayıcınızda açılsın mı?</translation>
         <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="226"/>
         <source>Only the group goes: its keys stay in the key list.</source>
         <translation>Yalnızca grup silinir: anahtarları anahtar listesinde kalır.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="1"/>
+        <source>%1 could not be taken out of the group.</source>
+        <translation>%1 gruptan çıkarılamadı.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="1"/>
+        <source>The group could not be deleted.</source>
+        <translation>Grup silinemedi.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="1"/>
+        <source>It is also in %1, which will lose it.</source>
+        <translation>Ayrıca %1 içinde; onlar da onu kaybedecek.</translation>
     </message>
 </context>
 <context>
@@ -19237,6 +19321,11 @@ Tarayıcınızda açılsın mı?</translation>
         <source>OK</source>
         <translation>Tamam</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/PassphraseSheet.qml" line="1"/>
+        <source>Leaving GpgFrontend now cancels this. Copy the passphrase first, or type it.</source>
+        <translation>GpgFrontend’den şimdi çıkmak bunu iptal eder. Parolayı önce kopyalayın ya da yazın.</translation>
+    </message>
 </context>
 <context>
     <name>PinSheet</name>
@@ -19299,6 +19388,13 @@ Tarayıcınızda açılsın mı?</translation>
         <location filename="../../../../src/mob/qml/components/PinSheet.qml" line="78"/>
         <source>The two PINs are not the same.</source>
         <translation>İki PIN aynı değil.</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/components/PinSheet.qml" line="1"/>
+        <source>Use at least %n characters.</source>
+        <translation>
+            <numerusform>En az %n karakter kullanın.</numerusform>
+        </translation>
     </message>
 </context>
 <context>
@@ -19496,6 +19592,11 @@ Tarayıcınızda açılsın mı?</translation>
         <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="216"/>
         <source>Open</source>
         <translation>Aç</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="1"/>
+        <source>What is not saved goes: the text on the Text page, files made and not saved, and operations under way.</source>
+        <translation>Kaydedilmeyenler gider: Metin sayfasındaki metin, oluşturulup kaydedilmeyen dosyalar ve süren işlemler.</translation>
     </message>
 </context>
 <context>
@@ -22236,6 +22337,16 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
         <source>Opening the profile was cancelled.</source>
         <translation>Profil açma iptal edildi.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="1"/>
+        <source>Use at most %1 characters.</source>
+        <translation>En fazla %1 karakter kullanın.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="1"/>
+        <source>A profile with this name already exists.</source>
+        <translation>Bu ada sahip bir profil zaten var.</translation>
+    </message>
 </context>
 <context>
     <name>RevokeSubkeySheet</name>
@@ -22293,6 +22404,11 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
         <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="84"/>
         <source>A revoked key can no longer be used to encrypt to you or to sign, and this cannot be undone. Unlike deleting, it tells others: share the key afterwards, so they learn of it.</source>
         <translation>İptal edilmiş bir anahtar artık size şifrelemek veya imzalamak için kullanılamaz ve bu geri alınamaz. Silmenin aksine bunu başkalarına bildirir: öğrenmeleri için anahtarı ardından paylaşın.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="1"/>
+        <source>Choose where</source>
+        <translation>Konum seçin</translation>
     </message>
 </context>
 <context>
@@ -22753,6 +22869,16 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
         <source>Opening your profile…</source>
         <translation>Profiliniz açılıyor…</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/SplashPage.qml" line="1"/>
+        <source>Closing your profile…</source>
+        <translation>Profiliniz kapatılıyor…</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/SplashPage.qml" line="1"/>
+        <source>This is taking longer than usual. A large key database takes a while to read the first time.</source>
+        <translation>Bu her zamankinden uzun sürüyor. Büyük bir anahtar veritabanının ilk kez okunması biraz zaman alır.</translation>
+    </message>
 </context>
 <context>
     <name>StatusLine</name>
@@ -22917,6 +23043,21 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
         <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="448"/>
         <source>Show less</source>
         <translation>Daha az göster</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="1"/>
+        <source>Put it in the text</source>
+        <translation>Metne koy</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="1"/>
+        <source>Import the signer&apos;s key</source>
+        <translation>İmzalayanın anahtarını içe aktar</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="1"/>
+        <source>It was not signed: there was no signature to check.</source>
+        <translation>İmzalanmamıştı: denetlenecek imza yoktu.</translation>
     </message>
 </context>
 <context>
@@ -23229,6 +23370,26 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
         <location filename="../../../../src/mob/qml/TextPage.qml" line="235"/>
         <source>Done on an earlier text, so the result was not put in.</source>
         <translation>Daha önceki bir metin üzerinde yapıldığı için sonuç metne yerleştirilmedi.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="1"/>
+        <source>Share the decrypted text?</source>
+        <translation>Şifresi çözülmüş metin paylaşılsın mı?</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="1"/>
+        <source>The app you choose gets it as readable text, and keeps it as that app does. It is not encrypted any more.</source>
+        <translation>Seçtiğiniz uygulama onu okunabilir metin olarak alır ve kendi bildiği gibi saklar. Artık şifreli değildir.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="1"/>
+        <source>Only for a signed or encrypted message.</source>
+        <translation>Yalnızca imzalı ya da şifreli bir ileti için.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="1"/>
+        <source>Only for an encrypted message.</source>
+        <translation>Yalnızca şifreli bir ileti için.</translation>
     </message>
 </context>
 <context>
@@ -24052,6 +24213,41 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
         <source>%1 · by its name</source>
         <translation>%1 · adına göre</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Made by a revoked key</source>
+        <translation>İptal edilmiş bir anahtarla yapılmış</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Made by an expired key</source>
+        <translation>Süresi dolmuş bir anahtarla yapılmış</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Made by a key not allowed to sign</source>
+        <translation>İmzalamaya yetkisi olmayan bir anahtarla yapılmış</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Made by a key with problems</source>
+        <translation>Sorunlu bir anahtarla yapılmış</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Done</source>
+        <translation>Tamamlandı</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/crypto/WorkSelection.cpp" line="1"/>
+        <source>Its secret part is not on this device</source>
+        <translation>Gizli kısmı bu cihazda değil</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>This cannot be decrypted because no matching secret key is available.</source>
+        <translation>Eşleşen bir gizli anahtar olmadığından bu çözülemiyor.</translation>
+    </message>
 </context>
 <context>
     <name>GpgFrontend::Mobile::KeyActionsController</name>
@@ -24064,6 +24260,11 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
         <location filename="../../../../src/mob/model/KeyActionsController.cpp" line="631"/>
         <source>The revocation could not be applied, so the key has not been revoked.</source>
         <translation>İptal uygulanamadı, bu yüzden anahtar iptal edilmedi.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyActionsController.cpp" line="1"/>
+        <source>Another change is still under way. Try again once it is done.</source>
+        <translation>Başka bir değişiklik hâlâ sürüyor. Bittiğinde yeniden deneyin.</translation>
     </message>
 </context>
 <context>
@@ -24097,6 +24298,105 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
         <location filename="../../../../src/mob/files/FolderArchive.cpp" line="1"/>
         <source>A file could not be written there.</source>
         <translation>Oraya bir dosya yazılamadı.</translation>
+    </message>
+</context>
+<context>
+    <name>GpgFrontend::Shell::RevocationReasons</name>
+    <message>
+        <location filename="../../../../src/shell/rules/RevocationReasons.cpp" line="1"/>
+        <source>No reason given</source>
+        <translation>Sebep belirtilmedi</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/rules/RevocationReasons.cpp" line="1"/>
+        <source>It may have been compromised</source>
+        <translation>Güvenliği ihlal edilmiş olabilir</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/rules/RevocationReasons.cpp" line="1"/>
+        <source>A newer subkey replaces it</source>
+        <translation>Yerini daha yeni bir alt anahtar alır</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/rules/RevocationReasons.cpp" line="1"/>
+        <source>It is no longer used</source>
+        <translation>Artık kullanılmıyor</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/rules/RevocationReasons.cpp" line="1"/>
+        <source>The user ID is no longer valid</source>
+        <translation>Kullanıcı kimliği artık geçerli değil</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/rules/RevocationReasons.cpp" line="1"/>
+        <source>A newer key replaces it</source>
+        <translation>Yerini daha yeni bir anahtar alıyor</translation>
+    </message>
+</context>
+<context>
+    <name>HistorySheet</name>
+    <message>
+        <location filename="../../../../src/mob/qml/components/HistorySheet.qml" line="1"/>
+        <source>Recent operations</source>
+        <translation>Son işlemler</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/HistorySheet.qml" line="1"/>
+        <source>Text</source>
+        <translation>Metin</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/HistorySheet.qml" line="1"/>
+        <source>Files</source>
+        <translation>Dosyalar</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/HistorySheet.qml" line="1"/>
+        <source>Nothing was done yet since GpgFrontend started.</source>
+        <translation>GpgFrontend başladığından beri henüz bir şey yapılmadı.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/HistorySheet.qml" line="1"/>
+        <source>Kept only until GpgFrontend closes.</source>
+        <translation>Yalnızca GpgFrontend kapanana kadar tutulur.</translation>
+    </message>
+</context>
+<context>
+    <name>SubkeyChoiceSheet</name>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SubkeyChoiceSheet.qml" line="1"/>
+        <source>Which subkey?</source>
+        <translation>Hangi alt anahtar?</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SubkeyChoiceSheet.qml" line="1"/>
+        <source>%1 has more than one subkey that can sign. Which one should sign this?</source>
+        <translation>%1 için imzalayabilen birden fazla alt anahtar var. Bunu hangisi imzalasın?</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SubkeyChoiceSheet.qml" line="1"/>
+        <source>%1 has more than one subkey that can encrypt. Which one should this be encrypted to?</source>
+        <translation>%1 için şifreleyebilen birden fazla alt anahtar var. Bu hangisine şifrelensin?</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SubkeyChoiceSheet.qml" line="1"/>
+        <source>Let GpgFrontend choose</source>
+        <translation>GpgFrontend seçsin</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SubkeyChoiceSheet.qml" line="1"/>
+        <source>made %1</source>
+        <translation>oluşturuldu %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SubkeyChoiceSheet.qml" line="1"/>
+        <source>Cancel</source>
+        <translation>İptal</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SubkeyChoiceSheet.qml" line="1"/>
+        <source>Continue</source>
+        <translation>Devam</translation>
     </message>
 </context>
 </TS>
