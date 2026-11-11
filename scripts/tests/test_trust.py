@@ -280,6 +280,21 @@ class TrustTest(unittest.TestCase):
         f.write_text("x")
         minisig.verify([new], f, minisig.sign(secret, f, "c"))
 
+    def test_a_new_g_takes_over_by_signing_the_next_list(self):
+        # Root 3 replaced g1 with g2; the newest list is still g1's.
+        for name in ("2.json", "2.json.minisig"):
+            (self.keys / name).unlink()
+        secret = self.tmp / "out" / "index.key"
+        secret.parent.mkdir()
+        cli(*self.args(), "index-keys", "rotate", "--secret-out", str(secret),
+            "-s", str(fixture_key("g2")[0]))
+        root, keys = trust.load_trust(self.root, self.keys, SLUG)
+        self.assertEqual((root["version"], keys["version"]), (3, 2))
+        # g1 cannot do the same: it is no root's G any more.
+        out = cli(*self.args(), "index-keys", "renew", "-s",
+                  str(fixture_key("g1")[0]), check=False)
+        self.assertNotEqual(out.returncode, 0)
+
     def test_rotate_never_writes_a_secret_into_the_repository(self):
         out = cli(*self.args(), "index-keys", "rotate", "--secret-out",
                   str(common.ROOT / "index.key"), "-s",
