@@ -89,6 +89,11 @@ auto ReleasedOutput(const GpgOpResultInfo& info, const DataObjectPtr& data,
 
 }  // namespace detail
 
+/// Whether @p data holds @p Results, followed by the output when
+/// @p kWithOutput: for a caller that picks which of an operation's results
+/// to analyse (the phone's Decrypt & Verify of an unsigned message).
+using detail::HoldsOperaResults;
+
 /**
  * @brief The info of an operation that stopped before it could be analysed,
  * or nothing when it did not.

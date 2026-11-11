@@ -35,6 +35,8 @@
 #include <QPolygonF>
 #include <cmath>
 
+#include "shell/present/InfoBoardReport.h"
+
 namespace GpgFrontend {
 
 auto BlendReportColor(const QColor& a, const QColor& b, int wa, int wb)
@@ -262,6 +264,47 @@ void PaintReportSeal(QPainter& p, const QRectF& bounds, ReportSealKind kind,
     draw_dot(symbol_ink, QPointF(0, 0));
   }
   p.restore();
+}
+
+auto ReportSealKindFor(InfoBoardHeadline headline) -> ReportSealKind {
+  switch (headline) {
+    case InfoBoardHeadline::kSUCCEEDED:
+      return ReportSealKind::kSUCCESS;
+    case InfoBoardHeadline::kCANCELLED:
+      return ReportSealKind::kCANCELLED;
+    case InfoBoardHeadline::kFAILED:
+    case InfoBoardHeadline::kPARTIALLY_FAILED:
+      return ReportSealKind::kFAILURE;
+    case InfoBoardHeadline::kINFORMATION:
+      return ReportSealKind::kINFORMATION;
+    default:
+      return ReportSealKind::kWARNING;
+  }
+}
+
+auto ReportSealId(ReportSealKind kind) -> QString {
+  switch (kind) {
+    case ReportSealKind::kSUCCESS:
+      return QStringLiteral("success");
+    case ReportSealKind::kCANCELLED:
+      return QStringLiteral("cancelled");
+    case ReportSealKind::kFAILURE:
+      return QStringLiteral("failure");
+    case ReportSealKind::kINFORMATION:
+      return QStringLiteral("information");
+    case ReportSealKind::kWARNING:
+    default:
+      return QStringLiteral("warning");
+  }
+}
+
+auto ReportSealKindFromId(const QString& id) -> ReportSealKind {
+  for (const auto kind :
+       {ReportSealKind::kSUCCESS, ReportSealKind::kCANCELLED,
+        ReportSealKind::kFAILURE, ReportSealKind::kINFORMATION}) {
+    if (ReportSealId(kind) == id) return kind;
+  }
+  return ReportSealKind::kWARNING;
 }
 
 }  // namespace GpgFrontend

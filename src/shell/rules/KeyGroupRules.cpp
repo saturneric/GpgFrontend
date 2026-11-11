@@ -28,6 +28,7 @@
 
 #include "shell/rules/KeyGroupRules.h"
 
+#include "core/function/openpgp/KeyCategoryRepository.h"
 #include "core/function/openpgp/KeyGroupRepository.h"
 #include "core/model/GpgAbstractKey.h"
 
@@ -38,6 +39,27 @@ auto CanJoinKeyGroup(int channel, const QString& group_id,
   if (key == nullptr || !key->IsHasEncrCap()) return false;
   return KeyGroupRepository::GetInstance(channel).CanAddKeyToKeyGroup(
       group_id, key->ID());
+}
+
+auto DeleteKeyGroup(int channel, const QString& group_id) -> bool {
+  if (!KeyGroupRepository::GetInstance(channel).Remove(group_id)) return false;
+  auto& categories = KeyCategoryRepository::GetInstance(channel);
+  for (const auto& category : categories.Fetch()) {
+    if (!category.builtin && category.key_ids.contains(group_id)) {
+      categories.RemoveKeyFromCategory(category.id, group_id);
+    }
+  }
+  return true;
+}
+
+auto KeyGroupParentNames(int channel, const QString& group_id) -> QStringList {
+  auto& groups = KeyGroupRepository::GetInstance(channel);
+  QStringList names;
+  for (const auto& parent_id : groups.ParentsOf(group_id)) {
+    const auto parent = groups.KeyGroup(parent_id);
+    names << (parent != nullptr ? parent->Name() : parent_id);
+  }
+  return names;
 }
 
 }  // namespace GpgFrontend::Shell

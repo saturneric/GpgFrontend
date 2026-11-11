@@ -51,4 +51,18 @@ namespace GpgFrontend::Shell {
 auto GF_SHELL_EXPORT CanJoinKeyGroup(int channel, const QString& group_id,
                                      const GpgAbstractKey* key) -> bool;
 
+/**
+ * @brief Delete the key group @p group_id, and take it out of every category
+ * it was put in, so a later group never inherits them by chance. Its keys,
+ * and the groups it was a member of, stay.
+ * @return whether the group was deleted
+ */
+auto GF_SHELL_EXPORT DeleteKeyGroup(int channel, const QString& group_id)
+    -> bool;
+
+/// The names of the key groups @p group_id is a member of, which lose it
+/// when it is deleted (a group gone from the list by its id).
+auto GF_SHELL_EXPORT KeyGroupParentNames(int channel, const QString& group_id)
+    -> QStringList;
+
 }  // namespace GpgFrontend::Shell

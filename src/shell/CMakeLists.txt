@@ -32,7 +32,7 @@ aux_source_directory(result_analyse SHELL_SOURCE)
 
 register_library(shell LIBRARY_TARGET ${SHELL_SOURCE})
 
-target_link_libraries(${LIBRARY_TARGET} PUBLIC gf_core Qt::Core Qt::Gui
-  Qt::Network)
+# QtCore and QtGui only: nothing here talks to a network.
+target_link_libraries(${LIBRARY_TARGET} PUBLIC gf_core Qt::Core Qt::Gui)
 
 target_precompile_headers(${LIBRARY_TARGET} PUBLIC GpgFrontendShell.h)

@@ -47,6 +47,24 @@ enum class ReportSealKind : std::uint8_t {
   kINFORMATION,
 };
 
+enum class InfoBoardHeadline : std::uint8_t;
+
+/**
+ * @brief The seal a report with @p headline is stamped with, on both
+ * interfaces: a success only for one that succeeded, a failure for one that
+ * failed even in part, the information mark for a report of facts, and the
+ * warning mark for everything between.
+ */
+auto GF_SHELL_EXPORT ReportSealKindFor(InfoBoardHeadline headline)
+    -> ReportSealKind;
+
+/// @p kind as the phone's interface names it ("success", "warning",
+/// "cancelled", "failure", "information").
+auto GF_SHELL_EXPORT ReportSealId(ReportSealKind kind) -> QString;
+
+/// The kind @p id names; the warning mark for one it does not know.
+auto GF_SHELL_EXPORT ReportSealKindFromId(const QString& id) -> ReportSealKind;
+
 /// The colours and lettering a seal is painted in: the page's, not its own.
 struct ReportSealStyle {
   QColor accent;  ///< the outcome's colour

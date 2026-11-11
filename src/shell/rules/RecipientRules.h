@@ -30,6 +30,7 @@
 
 #include "GFShellExport.h"
 #include "core/model/GpgAbstractKey.h"
+#include "core/model/GpgSubKey.h"
 #include "core/model/KeyDatabaseInfo.h"
 #include "core/typedef/GpgTypedef.h"
 
@@ -70,6 +71,17 @@ MixesPostQuantumAndClassical(const QList<QList<bool>>& recipients) -> bool;
  */
 auto GF_SHELL_EXPORT
 RecipientsMixPostQuantumAndClassical(const GpgAbstractKeyPtrList& keys) -> bool;
+
+/**
+ * @brief The subkeys of @p key (the primary key included) that could sign:
+ * not revoked, not expired, able to. Nothing for a key group.
+ */
+auto GF_SHELL_EXPORT UsableSigningSubkeys(const GpgAbstractKeyPtr& key)
+    -> QList<GpgSubKey>;
+
+/// UsableSigningSubkeys() for encryption.
+auto GF_SHELL_EXPORT UsableEncryptionSubkeys(const GpgAbstractKeyPtr& key)
+    -> QList<GpgSubKey>;
 
 /**
  * @brief Whether any of these keys has more than one usable (not revoked, not

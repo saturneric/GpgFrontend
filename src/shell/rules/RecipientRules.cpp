@@ -80,36 +80,45 @@ auto RecipientsMixPostQuantumAndClassical(const GpgAbstractKeyPtrList& keys)
 namespace {
 
 template <typename Capability>
-auto HasAmbiguousSubkey(const GpgAbstractKeyPtrList& keys,
-                        Capability&& capability) -> bool {
-  for (const auto& key : keys) {
-    if (key == nullptr || key->KeyType() != GpgAbstractKeyType::kGPG_KEY) {
-      continue;
-    }
-    auto gpg_key = qSharedPointerDynamicCast<GpgKey>(key);
-    if (gpg_key == nullptr) continue;
-
-    int usable = 0;
-    for (const auto& s_key : gpg_key->SubKeys()) {
-      if (capability(s_key) && !s_key.IsRevoked() && !s_key.IsExpired()) {
-        usable++;
-      }
-    }
-    if (usable > 1) return true;
+auto UsableSubkeys(const GpgAbstractKeyPtr& key, Capability&& capability)
+    -> QList<GpgSubKey> {
+  QList<GpgSubKey> usable;
+  if (key == nullptr || key->KeyType() != GpgAbstractKeyType::kGPG_KEY) {
+    return usable;
   }
-  return false;
+  const auto gpg_key = qSharedPointerDynamicCast<GpgKey>(key);
+  if (gpg_key == nullptr) return usable;
+  for (const auto& s_key : gpg_key->SubKeys()) {
+    if (capability(s_key) && !s_key.IsRevoked() && !s_key.IsExpired()) {
+      usable << s_key;
+    }
+  }
+  return usable;
 }
 
 }  // namespace
 
+auto UsableSigningSubkeys(const GpgAbstractKeyPtr& key) -> QList<GpgSubKey> {
+  return UsableSubkeys(
+      key, [](const GpgSubKey& s_key) { return s_key.IsHasSignCap(); });
+}
+
+auto UsableEncryptionSubkeys(const GpgAbstractKeyPtr& key)
+    -> QList<GpgSubKey> {
+  return UsableSubkeys(
+      key, [](const GpgSubKey& s_key) { return s_key.IsHasEncrCap(); });
+}
+
 auto HasAmbiguousSigningSubkey(const GpgAbstractKeyPtrList& keys) -> bool {
-  return HasAmbiguousSubkey(
-      keys, [](const GpgSubKey& s_key) { return s_key.IsHasSignCap(); });
+  return std::any_of(keys.begin(), keys.end(), [](const auto& key) {
+    return UsableSigningSubkeys(key).size() > 1;
+  });
 }
 
 auto HasAmbiguousEncryptionSubkey(const GpgAbstractKeyPtrList& keys) -> bool {
-  return HasAmbiguousSubkey(
-      keys, [](const GpgSubKey& s_key) { return s_key.IsHasEncrCap(); });
+  return std::any_of(keys.begin(), keys.end(), [](const auto& key) {
+    return UsableEncryptionSubkeys(key).size() > 1;
+  });
 }
 
 }  // namespace GpgFrontend

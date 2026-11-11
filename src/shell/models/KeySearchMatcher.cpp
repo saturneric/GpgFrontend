@@ -28,7 +28,20 @@
 
 #include "shell/models/KeySearchMatcher.h"
 
+#include "core/model/GpgKey.h"
+
 namespace GpgFrontend {
+
+auto KeySearchUids(const GpgAbstractKey* key) -> QStringList {
+  QStringList uids;
+  if (key == nullptr || key->KeyType() != GpgAbstractKeyType::kGPG_KEY) {
+    return uids;
+  }
+  if (const auto* k = dynamic_cast<const GpgKey*>(key); k != nullptr) {
+    for (const auto& uid : k->UIDs()) uids << uid.GetUID();
+  }
+  return uids;
+}
 
 auto KeySearchNormalize(const QString& text) -> QString {
   QString out;

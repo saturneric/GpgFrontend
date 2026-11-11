@@ -29,8 +29,16 @@
 #pragma once
 
 #include "GFShellExport.h"
+#include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
+
+/**
+ * @brief Every user ID of @p key, each as the search box may find it: a
+ * key is found by a secondary user ID's address too, not only by the one
+ * shown. None for a key group. Both interfaces' searches add these.
+ */
+auto GF_SHELL_EXPORT KeySearchUids(const GpgAbstractKey* key) -> QStringList;
 
 /**
  * @brief Reduce a fingerprint or a fingerprint-shaped query to its bare hex.

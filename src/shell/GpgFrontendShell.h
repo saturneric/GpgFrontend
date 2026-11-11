@@ -31,7 +31,6 @@
 // qt: what both interfaces have, and never a widget or a QML type
 #include <QtCore>
 #include <QtGui>
-#include <QtNetwork>
 
 // private declare area of shell
 #ifdef GF_SHELL_PRIVATE
