@@ -50,8 +50,9 @@ import stage as stage_mod  # noqa: E402
 import trust  # noqa: E402
 import verify as verify_mod  # noqa: E402
 from common import (MINISIG, ROOT, Product, ReleaseError,  # noqa: E402
-                    atomic_write, load_json, locked, parse_iso, refs, run,
-                    utcnow)
+                    atomic_write, iso, load_json, locked, parse_iso, refs,
+                    run, utcnow)
+from common import sha256_file as common_sha256  # noqa: E402
 from store import Store  # noqa: E402
 
 
@@ -121,6 +122,24 @@ def main(argv=None) -> int:
                          "release/index-keys/, say when each expires")
     rv.add_argument("--from", dest="first", type=int, default=1,
                     help="trust this root on its own signatures, walk on")
+    ri = rsub.add_parser("init", help="the ceremony: three root keys, the "
+                         "first root and index-keys list, signed")
+    ri.add_argument("--key-dir", action="append", default=[],
+                    help="where one root key goes (three times; separate "
+                    "media, never inside the repository)")
+    ri.add_argument("--threshold", type=int, default=2)
+    ri.add_argument("--index-list-key", help="G's public key (.pub)")
+    ri.add_argument("--generate-g", metavar="PATH",
+                    help="make G here instead, outside the repository: "
+                    "import it into the password manager, then delete it")
+    ri.add_argument("-s", dest="secret", help="G's secret key, to sign the "
+                    "index-keys list (default: the one --generate-g made)")
+    ri.add_argument("--legacy-product", help="a product.json with the "
+                    "signing block this replaces (default: the newest one "
+                    "in git history)")
+    ri.add_argument("--dry-run", action="store_true",
+                    help="everything in a new temporary directory, keys "
+                    "without passwords, no questions")
 
     t = sub.add_parser("trust", help="the signing host's trust")
     tu = t.add_subparsers(dest="action", required=True).add_parser(
@@ -355,6 +374,8 @@ def root_command(args, slug: str, root_dir: Path, keys_dir: Path) -> int:
         key_id = sign_root(Path(args.file), args.secret)
         print(f"{args.file}: signed by {key_id}")
         return 0
+    if args.action == "init":
+        return root_init(args, slug, root_dir, keys_dir)
     if args.action == "new":
         root = trust.walk(trust.read_dir(root_dir), slug, steps=None)
         if root is None:
@@ -371,6 +392,143 @@ def root_command(args, slug: str, root_dir: Path, keys_dir: Path) -> int:
     report_trust(root, keys)
     trust.check_unexpired(root, f"root {root['version']}")
     trust.check_unexpired(keys, f"index-keys {keys['version']}")
+    return 0
+
+
+def outside_repository(path: str) -> Path:
+    p = Path(path).resolve()
+    if p == ROOT or ROOT in p.parents:
+        raise ReleaseError(f"{p} is inside the repository")
+    return p
+
+
+def legacy_product(path: str | None) -> dict:
+    """release/product.json as it was before the trust root, signing block
+    and all: from @p path, or the newest commit whose product.json still
+    had one."""
+    if path:
+        return json.loads(Path(path).read_text())
+    commits = run(["git", "-C", ROOT, "log", "--format=%H", "--",
+                   "release/product.json"]).stdout.split()
+    for commit in commits:
+        data = json.loads(run(["git", "-C", ROOT, "show",
+                               f"{commit}:release/product.json"]).stdout)
+        if "signing" in data:
+            return data
+    raise ReleaseError("no product.json with a signing block in history")
+
+
+def root_init(args, slug: str, root_dir: Path, keys_dir: Path) -> int:
+    """The root ceremony, from the commands above: nothing is committed."""
+    import tempfile
+    first = root_dir / layout.root_name(1)
+    if args.dry_run:
+        tmp = Path(tempfile.mkdtemp(prefix="gfr-ceremony-"))
+        key_dirs = [tmp / f"key-{i}" for i in (1, 2, 3)]
+        for d in key_dirs:
+            d.mkdir()
+        g_pub, g_out = None, tmp / "g.key"
+        root_dir, keys_dir = tmp / "root", tmp / "index-keys"
+        root_dir.mkdir()
+        keys_dir.mkdir()
+        first = root_dir / layout.root_name(1)
+        password = ["-W"]
+    else:
+        if run(["git", "-C", ROOT, "status", "--porcelain"]).stdout.strip():
+            raise ReleaseError("run the ceremony from a clean checkout")
+        if first.exists() or (keys_dir / layout.index_keys_name(1)).exists():
+            raise ReleaseError(f"{first} or index-keys 1 exists already")
+        if len(args.key_dir) != 3:
+            raise ReleaseError("give --key-dir three times")
+        key_dirs = [outside_repository(d) for d in args.key_dir]
+        if not args.index_list_key and not args.generate_g:
+            raise ReleaseError("give --index-list-key or --generate-g")
+        g_pub = Path(args.index_list_key) if args.index_list_key else None
+        g_out = outside_repository(args.generate_g) if args.generate_g \
+            else None
+        password = []
+    legacy = legacy_product(args.legacy_product)
+    signing = legacy["signing"]
+
+    def generate(secret: Path) -> str:
+        pub = secret.with_name(secret.name + ".pub")
+        if secret.exists() or pub.exists():
+            raise ReleaseError(f"{secret} exists")
+        # minisign asks for the password on the terminal (none with -W).
+        run(["minisign", "-G", *password, "-s", secret, "-p", pub],
+            capture_output=False)
+        return minisig.public_key_of(pub)
+
+    root_keys = [generate(d / "root.key") for d in key_dirs]
+    g = generate(g_out) if g_out else minisig.public_key_of(g_pub)
+    if g in root_keys:
+        raise ReleaseError("G is one of the root keys")
+    now = utcnow()
+    head = {"schema": 1, "product": slug, "version": 1}
+    root = dict(head, type=trust.ROOT,
+                expires=iso(now + trust.ROOT_LIFETIME),
+                keys={minisig.key_id(k): k for k in root_keys + [g]},
+                roles={"root": {"keyids": [minisig.key_id(k)
+                                           for k in root_keys],
+                                "threshold": args.threshold},
+                       "index_list": {"keyids": [minisig.key_id(g)],
+                                      "threshold": 1}},
+                host_policy={
+                    "repository": legacy["repository"],
+                    "workflow": legacy["workflow"],
+                    "authenticode_subject":
+                        signing.get("authenticode_subject", ""),
+                    "authenticode_subjects_retired":
+                        signing.get("authenticode_subjects_retired", []),
+                    "authenticode_timestamp":
+                        signing.get("authenticode_timestamp", "required"),
+                    "stable_pgp": {
+                        "fingerprints": signing["maintainer_fingerprints"],
+                        "fingerprints_retired": signing.get(
+                            "maintainer_fingerprints_retired", [])}})
+    keys = dict(head, type=trust.INDEX_KEYS,
+                expires=iso(now + trust.INDEX_KEYS_LIFETIME),
+                keys={minisig.key_id(k): k for k in signing["index_keys"]})
+    trust.load(trust.dump(root), "1.root.json", trust.ROOT, slug)
+    lst = keys_dir / layout.index_keys_name(1)
+    write_new(first, trust.dump(root))
+    write_new(lst, trust.dump(keys))
+    print(f"{first}:\n{trust.dump(root).decode()}\n{lst}:\n"
+          f"{trust.dump(keys).decode()}")
+    print("Carried over from the old product.json, check them: retired "
+          "maintainer fingerprints "
+          f"{root['host_policy']['stable_pgp']['fingerprints_retired']}, "
+          "retired Authenticode subjects "
+          f"{root['host_policy']['authenticode_subjects_retired']}. Every "
+          "admitted release is checked again under this root.")
+    if not args.dry_run and input("Sign these? Type yes: ").strip() != "yes":
+        for f in (first, lst):
+            f.unlink()
+        print("nothing signed; both files removed")
+        return 1
+    for d in key_dirs[:args.threshold]:
+        sign_root(first, str(d / "root.key"))
+    secret = args.secret or g_out
+    if secret is None:
+        raise ReleaseError("give -s with G's secret key to sign the list")
+    sign_index_keys(lst, str(secret), slug, 1)
+    root, keys = trust.load_trust(root_dir, keys_dir, slug,
+                                  common_sha256(first))
+    report_trust(root, keys)
+    print(f"\nGFR_ROOT_SHA256={common_sha256(first)}")
+    for d, k in zip(key_dirs, root_keys):
+        print(f"root key {minisig.key_id(k)}: {d}")
+    print(f"G (index_list) {minisig.key_id(g)}" +
+          (f": {g_out} (import it into the password manager, then delete "
+           "it)" if g_out else ""))
+    if args.dry_run:
+        print(f"dry run: everything is in {root_dir.parent}")
+        return 0
+    print("\nnext, on this branch:\n"
+          "  python3 scripts/release/policy.py render-security\n"
+          "  git add release/root release/index-keys SECURITY.md\n"
+          "  git commit -m 'release: the first trust root'\n"
+          "then set GFR_ROOT_SHA256 on the signing host.")
     return 0
 
 
