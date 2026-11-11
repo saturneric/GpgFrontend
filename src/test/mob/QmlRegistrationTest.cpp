@@ -39,6 +39,7 @@
 #include "crypto/PassphraseBroker.h"
 #include "files/FileWorkspace.h"
 #include "lifecycle/AppLifecycle.h"
+#include "model/KeyCategoriesController.h"
 #include "model/KeyListController.h"
 #include "shell/rules/KeyGenProfile.h"
 #include "startup/InteractionBridge.h"
@@ -80,7 +81,7 @@ TEST(QmlRegistrationTest, EveryTypeOfTheModuleResolves) {
         property var keyActions: KeyActionsController {}
         property var profiles: KeyGenProfilesController {}
         property var categories: KeyCategoriesController {}
-        property var keyDatabases: KeyDatabasesController {}
+        property var keyDatabases: KeyDatabasesController
         property var phoneProfiles: ProfilesController {}
         property var files: FileWorkspace
         property var selection: WorkSelection
@@ -178,6 +179,8 @@ TEST(QmlRegistrationTest, EveryPageLoads) {
                                "KeyPickerSheet",
                                "CategoryKeysPage",
                                "KeyGroupPage",
+                               "MemberListPage",
+                               "KeyNewCategory",
                                "KeyGroupSheet",
                                "FactsPage",
                                "TranslatorsPage",
@@ -320,8 +323,8 @@ TEST(QmlRegistrationTest, KeyDatabaseSheetOffersTheDatabases) {
       import QtQuick
       import GpgFrontend.Mobile
       KeyDatabaseSheet {
-        databases: KeyDatabasesController {}
-        switcher: KeyDatabaseSwitchSheet { databases: KeyDatabasesController {} }
+        databases: KeyDatabasesController
+        switcher: KeyDatabaseSwitchSheet { databases: KeyDatabasesController }
       }
     )",
                        QUrl());
@@ -408,6 +411,89 @@ TEST(QmlRegistrationTest, ProfilesPageChecksWhatIsTyped) {
     QMetaObject::invokeMethod(sheet, "submit");
     EXPECT_FALSE(problem().isEmpty());
     EXPECT_EQ(accepted.count(), 1);
+  });
+}
+
+// A key group's page and a category's page share their frame: each still
+// names its own menu, list and add button, and only the group's picker is
+// limited to keys one can encrypt to.
+TEST(QmlRegistrationTest, MemberPagesKeepTheirOwnParts) {
+  RunOnMainThread([]() {
+    QQmlEngine engine;
+    const auto load = [&engine](const char* name) {
+      QQmlComponent type(&engine, "GpgFrontend.Mobile", name);
+      std::unique_ptr<QObject> page(type.create());
+      EXPECT_NE(page, nullptr) << type.errorString().toStdString();
+      return page;
+    };
+
+    const auto group = load("KeyGroupPage");
+    ASSERT_NE(group, nullptr);
+    EXPECT_NE(FindItem(group.get(), "groupMenu"), nullptr);
+    EXPECT_NE(FindItem(group.get(), "groupMembers"), nullptr);
+    EXPECT_NE(FindItem(group.get(), "addGroupMembers"), nullptr);
+    auto* group_picker = group->property("picker").value<QObject*>();
+    ASSERT_NE(group_picker, nullptr);
+    EXPECT_TRUE(group_picker->property("onlyEncryptCapable").toBool());
+    auto* group_delete = group->property("confirmDelete").value<QObject*>();
+    ASSERT_NE(group_delete, nullptr);
+    EXPECT_TRUE(group_delete->property("destructive").toBool());
+
+    const auto category = load("CategoryKeysPage");
+    ASSERT_NE(category, nullptr);
+    category->setProperty("category",
+                          QVariantMap{{"id", "c1"}, {"name", "Work"}});
+    EXPECT_EQ(category->property("title").toString(), "Work");
+    EXPECT_NE(FindItem(category.get(), "categoryMenu"), nullptr);
+    EXPECT_NE(FindItem(category.get(), "categoryKeys"), nullptr);
+    EXPECT_NE(FindItem(category.get(), "categoryAddKeys"), nullptr);
+    auto* category_picker = category->property("picker").value<QObject*>();
+    ASSERT_NE(category_picker, nullptr);
+    EXPECT_FALSE(category_picker->property("onlyEncryptCapable").toBool());
+    EXPECT_EQ(category_picker->property("actionText").toString(), "Add");
+  });
+}
+
+// A category made from a key's page or its categories sheet takes that key
+// in; one made afterwards, or after the sheet was put away, does not.
+TEST(QmlRegistrationTest, ANewCategoryFromAKeyTakesTheKey) {
+  RunOnMainThread([]() {
+    QQmlEngine engine;
+    QQmlComponent type(&engine, "GpgFrontend.Mobile", "KeyNewCategory");
+    std::unique_ptr<QObject> maker(type.create());
+    ASSERT_NE(maker, nullptr) << type.errorString().toStdString();
+    GpgFrontend::Mobile::KeyCategoriesController categories;
+    maker->setProperty("categories", QVariant::fromValue(
+                                         static_cast<QObject*>(&categories)));
+
+    const auto key = QStringLiteral("0123456789ABCDEF");
+    QMetaObject::invokeMethod(maker.get(), "begin", Q_ARG(QVariant, key));
+    EXPECT_TRUE(maker->property("pending").toBool());
+    QString first;
+    QObject::connect(
+        &categories,
+        &GpgFrontend::Mobile::KeyCategoriesController::SignalAdded,
+        [&first](const QString& id) {
+          if (first.isEmpty()) first = id;
+        });
+    ASSERT_EQ(categories.add("From A Key", categories.suggestColor()), "");
+    ASSERT_FALSE(first.isEmpty());
+    EXPECT_TRUE(categories.categoriesOf(key).contains(first));
+    EXPECT_FALSE(maker->property("pending").toBool());
+
+    // The next one is made with nothing in it.
+    QString second;
+    QObject::connect(
+        &categories,
+        &GpgFrontend::Mobile::KeyCategoriesController::SignalAdded,
+        [&second, &first](const QString& id) {
+          if (id != first) second = id;
+        });
+    ASSERT_EQ(categories.add("Not A Key's", categories.suggestColor()), "");
+    ASSERT_FALSE(second.isEmpty());
+    EXPECT_FALSE(categories.categoriesOf(key).contains(second));
+    categories.remove(first);
+    categories.remove(second);
   });
 }
 

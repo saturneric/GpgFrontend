@@ -425,9 +425,23 @@ TEST_F(TextCryptoTest, GoingToTheBackgroundCancelsAPromptAndForgets) {
   const auto cancelled = Finish();
   EXPECT_TRUE(cancelled.result.value("cancelled").toBool());
   EXPECT_TRUE(CurrentRequest().isEmpty());
+
+  // One that asks while the application is still away is declined too,
+  // not shown on the return for a moment that has passed.
+  ClearRpgpPasswordCache();
+  Start([&](auto* c) { c->decrypt(encrypted.output); });
+  const auto away = Finish();
+  EXPECT_TRUE(away.result.value("cancelled").toBool());
+  EXPECT_TRUE(CurrentRequest().isEmpty());
   RunOnMainThread([lifecycle]() {
     lifecycle->OnApplicationStateChanged(Qt::ApplicationActive);
   });
+
+  // Back: asked as before.
+  Start([&](auto* c) { c->decrypt(encrypted.output); });
+  ASSERT_FALSE(WaitForRequest().isEmpty());
+  Answer(kAlicePassphrase);
+  ASSERT_EQ(Finish().output, QString(kMessage));
 }
 
 TEST_F(TextCryptoTest, AnUnansweredPromptEndsAsCancelledAtItsTimeout) {

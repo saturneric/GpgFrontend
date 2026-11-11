@@ -119,8 +119,10 @@ TEST(SettingsModelTest, AValueIsReadAndWrittenThroughTheCatalog) {
     EXPECT_EQ(SettingItems::kExpiringSoonDays.Read(GetSettings()), 45);
     EXPECT_EQ(model.data(index, SettingsModel::kValueRole), 45);
 
-    // Not a number: refused, nothing written.
+    // Not a number: refused, nothing written -- a word too, which would
+    // otherwise convert to 0.
     EXPECT_FALSE(model.setValue(row, QVariant::fromValue(QStringList{"x"})));
+    EXPECT_FALSE(model.setValue(row, QStringLiteral("abc")));
     EXPECT_EQ(SettingItems::kExpiringSoonDays.Read(GetSettings()), 45);
 
     ASSERT_TRUE(model.setValue(row, SettingItems::kExpiringSoonDays.Default()));
@@ -296,6 +298,8 @@ TEST(SettingsModelTest, TheLongestCacheTimeIsNeverTheShorter) {
     EXPECT_EQ(model.data(model.index(max_ttl), SettingsModel::kValueRole),
               3600);
 
+    // Only one of its choices: no other number comes in from the page.
+    EXPECT_FALSE(model.setValue(ttl, 12345));
     model.setValue(ttl, SettingItems::kPasswordCacheTtl.Default());
     model.setValue(max_ttl, SettingItems::kPasswordCacheMaxTtl.Default());
   });
