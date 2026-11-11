@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "type": "index-keys",
+  "product": "gpgfrontend",
+  "version": 2,
+  "expires": "2099-12-31T00:00:00Z",
+  "keys": {
+    "5667AE322F4A3D8C": "RWSMPUovMq5nVvg1vtu9tUxQQad6H55ZpQbOkzVd69Qc1/GKPc2FPzMc"
+  }
+}

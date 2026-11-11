@@ -10,6 +10,8 @@
   python3 scripts/release/gfrelease import 2.2.4   a release from GitHub Releases
   python3 scripts/release/gfrelease resign              a new serial and expiry
   python3 scripts/release/gfrelease verify [--deep]    over HTTPS (anyone)
+  python3 scripts/release/gfrelease root new|sign|verify     the trust root
+  python3 scripts/release/gfrelease index-keys renew|rotate  the index keys
 
 The product (slug, repository, workflow, mirror bases, public keys) comes from
 release/product.json, the series and withdrawals from release/policy.toml.
@@ -35,14 +37,17 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import imported as imported_mod  # noqa: E402
+import layout  # noqa: E402
 import minisig  # noqa: E402
 import authenticode  # noqa: E402
 import host as host_mod  # noqa: E402
 import stable as stable_mod  # noqa: E402
 import stage as stage_mod  # noqa: E402
+import trust  # noqa: E402
 import verify as verify_mod  # noqa: E402
-from common import (Product, ReleaseError, default_product,  # noqa: E402
-                    parse_iso, utcnow)
+from common import (MINISIG, ROOT, Product, ReleaseError,  # noqa: E402
+                    atomic_write, default_product, load_json, parse_iso, run,
+                    utcnow)
 from store import Store  # noqa: E402
 
 
@@ -87,7 +92,40 @@ def main(argv=None) -> int:
     opt(ap, "product", "release/product.json of another product")
     opt(ap, "policy", "its release/policy.toml")
     opt(ap, "rclone", "the rclone binary")
+    opt(ap, "root_dir", "the trust roots (default: release/root/)")
+    opt(ap, "index_keys_dir", "the index-keys lists (default: "
+        "release/index-keys/)")
     sub = ap.add_subparsers(dest="command", required=True)
+
+    r = sub.add_parser("root", help="the trust root (offline)")
+    rsub = r.add_subparsers(dest="action", required=True)
+    rsub.add_parser("new", help="write the next root: the newest one, one "
+                    "version up, expiring in two years; edit it by hand "
+                    "for anything else")
+    rs = rsub.add_parser("sign", help="add one root key's signature")
+    rs.add_argument("file", help="<N>.root.json")
+    rs.add_argument("-s", dest="secret", required=True,
+                    help="that root key's minisign secret key")
+    rv = rsub.add_parser("verify", help="walk release/root/, check "
+                         "release/index-keys/, say when each expires")
+    rv.add_argument("--from", dest="first", type=int, default=1,
+                    help="trust this root on its own signatures, walk on")
+
+    k = sub.add_parser("index-keys", help="the keys that may sign the index")
+    ksub = k.add_subparsers(dest="action", required=True)
+    kr = ksub.add_parser("renew", help="the same keys, one version up, "
+                         "expiring in a year, signed with G")
+    ko = ksub.add_parser("rotate", help="a new index key, listed in the "
+                         "next version, signed with G")
+    ko.add_argument("--secret-out", required=True,
+                    help="where the new index key's secret goes (never "
+                    "inside the repository)")
+    ko.add_argument("--keep-old", action="store_true",
+                    help="list the current keys too, for a swap at leisure")
+    for p in (kr, ko):
+        p.add_argument("-s", dest="secret", required=True,
+                       help="G's minisign secret key; a path read once, so "
+                       "<(bw get notes ...) works")
 
     s = sub.add_parser("stage", help="upload a release candidate (CI)")
     for name, h in (("candidate", "the verified candidate directory"),
@@ -164,6 +202,14 @@ def main(argv=None) -> int:
     try:
         product = product_of(args)
         signing = product.data["signing"]
+        root_dir = Path(args.root_dir or ROOT / "release" / "root")
+        keys_dir = Path(args.index_keys_dir or
+                        ROOT / "release" / "index-keys")
+
+        if args.command == "root":
+            return root_command(args, product.slug, root_dir, keys_dir)
+        if args.command == "index-keys":
+            return index_keys_command(args, product.slug, root_dir, keys_dir)
 
         if args.command == "stage":
             need(args, "candidate", "staging", "ref", "commit", "version",
@@ -250,6 +296,125 @@ def main(argv=None) -> int:
         print(f"gfrelease: malformed input ({type(e).__name__}: {e})",
               file=sys.stderr)
         return host_mod.FAILED
+
+
+def write_new(path: Path, data: bytes) -> None:
+    """A trust file is written once: one there already is never replaced."""
+    if path.exists():
+        raise ReleaseError(f"{path} exists")
+    atomic_write(path, data)
+
+
+def sign_root(file: Path, secret: str) -> str:
+    """One root key's signature on @p file, beside it as
+    <N>.root.json.<keyid>.minisig; returns the key id."""
+    doc = load_json(file.read_bytes(), str(file))
+    n, slug = doc.get("version"), doc.get("product")
+    if not isinstance(n, int) or not isinstance(slug, str):
+        raise ReleaseError(f"{file}: not a root")
+    tmp = file.with_name(file.name + ".new" + MINISIG)
+    try:
+        minisig.sign(Path(secret), file, layout.root_comment(slug, n), tmp)
+        key_id = minisig.prehashed_key_id(tmp.read_bytes())
+        if key_id is None:
+            raise ReleaseError("minisign made a legacy signature")
+        write_new(file.with_name(layout.root_sig_name(n, key_id)),
+                  tmp.read_bytes())
+    finally:
+        tmp.unlink(missing_ok=True)
+    return key_id
+
+
+def sign_index_keys(file: Path, secret: str, slug: str, version: int) -> None:
+    minisig.sign(Path(secret), file, layout.index_keys_comment(slug, version))
+
+
+def report_trust(root: dict, keys: dict) -> None:
+    for doc, what in ((root, f"root {root['version']}"),
+                      (keys, f"index-keys {keys['version']}")):
+        print(f"{what}: expires {doc['expires']}, in "
+              f"{trust.days_left(doc):.0f} days")
+
+
+def root_command(args, slug: str, root_dir: Path, keys_dir: Path) -> int:
+    if args.action == "sign":
+        key_id = sign_root(Path(args.file), args.secret)
+        print(f"{args.file}: signed by {key_id}")
+        return 0
+    if args.action == "new":
+        root = trust.walk(trust.read_dir(root_dir), slug, steps=None)
+        if root is None:
+            raise ReleaseError(f"{root_dir}: no root to follow")
+        nxt = trust.renewed(root, trust.ROOT_LIFETIME)
+        path = root_dir / layout.root_name(nxt["version"])
+        write_new(path, trust.dump(nxt))
+        print(f"{path}: written; edit it by hand if anything else changes, "
+              f"then have {root['roles']['root']['threshold']} of root "
+              f"{root['version']}'s keys and as many of its own sign it "
+              "(gfrelease root sign)")
+        return 0
+    root, keys = trust.load_trust(root_dir, keys_dir, slug, first=args.first)
+    report_trust(root, keys)
+    trust.check_unexpired(root, f"root {root['version']}")
+    trust.check_unexpired(keys, f"index-keys {keys['version']}")
+    return 0
+
+
+def index_keys_command(args, slug: str, root_dir: Path,
+                       keys_dir: Path) -> int:
+    root = trust.walk(trust.read_dir(root_dir), slug, steps=None)
+    if root is None:
+        raise ReleaseError(f"{root_dir}: no root")
+    trust.check_unexpired(root, f"root {root['version']}")
+    found = trust.versions(keys_dir)
+    if not found:
+        raise ReleaseError(f"{keys_dir}: no index-keys list to follow")
+    name = layout.index_keys_name(found[-1])
+    read = trust.read_dir(keys_dir)
+    # Expired or not: renewing one that lapsed is what this is for.
+    current = trust.accept_index_keys(root, read(name),
+                                      read(name + MINISIG), slug, name)
+    nxt = trust.renewed(current, trust.INDEX_KEYS_LIFETIME)
+    new_key = None
+    if args.action == "rotate":
+        secret = Path(args.secret_out).resolve()
+        if secret == ROOT or ROOT in secret.parents:
+            raise ReleaseError(f"{secret} is inside the repository")
+        if secret.exists():
+            raise ReleaseError(f"{secret} exists")
+        run(["minisign", "-G", "-W", "-s", secret, "-p",
+             secret.with_name(secret.name + ".pub")])
+        new_key = minisig.public_key_of(secret.with_name(secret.name + ".pub"))
+        nxt["keys"] = ({**current["keys"]} if args.keep_old else {}) |             {minisig.key_id(new_key): new_key}
+    path = keys_dir / layout.index_keys_name(nxt["version"])
+    write_new(path, trust.dump(nxt))
+    try:
+        sign_index_keys(path, args.secret, slug, nxt["version"])
+        trust.accept_index_keys(root, path.read_bytes(),
+                                path.with_name(path.name + MINISIG)
+                                .read_bytes(), slug, path.name)
+    except ReleaseError:
+        path.unlink(missing_ok=True)
+        path.with_name(path.name + MINISIG).unlink(missing_ok=True)
+        raise
+    print(f"{path}: written and signed, expires {nxt['expires']}")
+    if new_key is None:
+        print(f"next: commit {path} and its {MINISIG}")
+        return 0
+    print(f"new index key {minisig.key_id(new_key)}: {new_key}\n"
+          f"  its secret is {secret}, made without a password (minisign -W):"
+          "\n  the signing host uses it unattended. Keep it as a secret, "
+          "nowhere else.")
+    if args.keep_old:
+        print("next: commit the list; then, in any order, install the new "
+              "secret on the host as index.key, and later list only the "
+              "new key (rotate again without --keep-old, or edit and sign)")
+    else:
+        print("next: the host signs with a listed key only. Install the new "
+              "secret on the host as index.key and commit the list together:"
+              " until both are done the host refuses to sign (the old "
+              "index stays valid until it expires)")
+    return 0
 
 
 def host_round(args, product: Product, rclone: str) -> int:

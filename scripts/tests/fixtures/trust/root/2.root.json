@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "type": "root",
+  "product": "gpgfrontend",
+  "version": 2,
+  "expires": "2099-12-31T00:00:00Z",
+  "keys": {
+    "8BA315D4B04FBCE3": "RWTjvE+w1BWji2U3qvkPEMa+wTFICVFXdKT318daDn/C8uIUg5LpgVBc",
+    "02B0707C39417EEE": "RWTufkE5fHCwAglM3oFw76jk5SR04xvtzjk7YNT5152C7hKn84iBTar7",
+    "DC04208D1173C0A6": "RWSmwHMRjSAE3JIPwXalw6WjEBWCplONpEQVme122A4/f9rKsx+uZOOm",
+    "DB6F63EE0D84678E": "RWSOZ4QN7mNv29Q1KoxIOttXtgcou/bYi2Mt0md2I//n4u3579gVKUna"
+  },
+  "roles": {
+    "root": {
+      "keyids": [
+        "8BA315D4B04FBCE3",
+        "02B0707C39417EEE",
+        "DC04208D1173C0A6"
+      ],
+      "threshold": 2
+    },
+    "index_list": {
+      "keyids": [
+        "DB6F63EE0D84678E"
+      ],
+      "threshold": 1
+    }
+  },
+  "host_policy": {
+    "repository": "saturneric/GpgFrontend",
+    "workflow": ".github/workflows/build.yml",
+    "authenticode_subject": "CN=Example",
+    "stable_pgp": {
+      "fingerprints": [
+        "12F7E8858CF15BEC9975FF3C5CA3DA246843FD03"
+      ]
+    }
+  }
+}
