@@ -26,8 +26,8 @@
 schema = 1
 
 [signing]
-# The first release whose files are signed with a key pinned in
-# release/product.json. Older ones were signed with keys no longer pinned and
+# The first release whose files are signed with a key the trust root pins
+# (release/root/, host_policy.stable_pgp). Older ones were signed with keys no longer pinned and
 # stay on GitHub only; from this version on, releases made before the update
 # index are brought into it with `gfrelease import`, on their original
 # signatures. Every release must carry the signatures its kind requires.
