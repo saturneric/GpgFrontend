@@ -130,8 +130,7 @@ class Host:
             print(UNCHANGED)
         else:
             # Read back what was published, as a client would see it.
-            verify_mod.verify(self.product, self.update, self.builds,
-                              index_keys=self.index_pub)
+            verify_mod.verify(self.product, self.update, self.builds)
             channels = index["channels"]
             print(f"{PUBLISHED} {index['serial']}, stable "
                   f"{channels['stable']}, beta {channels['beta']}, nightly "
