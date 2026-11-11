@@ -24,9 +24,10 @@ Each step records itself in <work>/<version>/state.json and is skipped once
 done, so a run interrupted anywhere (a token unplugged, a connection lost)
 resumes where it stopped; `--redo STEP` runs that step and every one after it
 again (a signing step only until the upload has begun). The signing host
-then checks every signature again on its next round, countersigns the
-release with minisign (countersign.py) and lists it: the application relies
-on that countersignature alone, the `.sig` files are for checking by hand.
+then checks every signature again on its next round and lists it: the
+application relies on the signed index, which names the descriptor by its
+hash, and the descriptor every file's; the `.sig` files are for checking by
+hand.
 
 Authenticode changes the bytes it signs. The descriptor keeps both hashes:
 `build_sha256`, which the CI's signed manifest covers, and `sha256`, of the

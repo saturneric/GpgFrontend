@@ -14,11 +14,13 @@ expire in staging). Before anything is signed:
   3. the version must be what git says that commit is (cmake/GitVersion.cmake
      against the host's own mirror), not merely what the build claimed.
 
-Then every file and the manifest are minisigned with the product's artifact
-key, everything is copied to nightly/<version>/ (immutable: a rerun skips
-what is there, a different object is an error), the descriptor is written
-last, and the commit marker after it. Release tags are never promoted here:
-a stable release passes through the offline signing stage.
+Then everything is copied to nightly/<version>/ (immutable: a rerun skips
+what is there, a different object is an error), CI's manifest and Sigstore
+bundle under build/, the descriptor last, and the commit marker after it.
+Nothing is signed here: the index names the descriptor by its hash, and
+index.admit_nightly checks what promotion checked again before it does.
+Release tags are never promoted here: a stable release passes through the
+offline signing stage.
 """
 
 from __future__ import annotations
@@ -28,7 +30,6 @@ import sys
 import tempfile
 from pathlib import Path
 
-import minisig
 import layout
 from common import (BUNDLE, SCHEMA, STAGED, SUMS, Problems, Product,
                     ReleaseError, canonical_json, candidate_error,
@@ -90,7 +91,7 @@ def final_prefix(staged: dict) -> str:
 
 
 def _finish_marker(product: Product, builds: Store, dest: str, staged: dict,
-                   artifact_pub: str) -> None:
+                   *, git_dir: Path, cosign: str) -> None:
     """Promoted already. A run that stopped between the descriptor and the
     commit marker left only the marker to write: for the commit the
     published descriptor names, once it is admitted, never for what a
@@ -101,7 +102,7 @@ def _finish_marker(product: Product, builds: Store, dest: str, staged: dict,
     path = layout.descriptor_of(dest)
     with tempfile.TemporaryDirectory(prefix="gfr-marker-") as tmp:
         d = index_mod.admit_nightly(product, builds, path, builds.read(path),
-                                    artifact_pub, Path(tmp))
+                                    Path(tmp), git_dir=git_dir, cosign=cosign)
     if d["commit"] != staged["commit"] or d["ref"] != staged["ref"]:
         raise ReleaseError(f"{dest} is {d['commit']} on {d['ref']}, not "
                            "what this candidate claims")
@@ -110,12 +111,12 @@ def _finish_marker(product: Product, builds: Store, dest: str, staged: dict,
 
 def promote_one(product: Product, staging: Store, builds: Store,
                 prefix: str, staged: dict, *, git_dir: Path,
-                artifact_key: Path, artifact_pub: str, cosign: str) -> dict:
+                cosign: str) -> dict:
     ref, commit = staged["ref"], staged["commit"]
     if staged["product"] != product.slug:
         raise ReleaseError(f"{prefix} is staged for {staged['product']}")
-    # staged.json is anyone's to write: the artifact key signs builds of
-    # main and of release branches, whatever else is staged.
+    # staged.json is anyone's to write: only builds of main and of release
+    # branches are published, whatever else is staged.
     if not refs.publishes_builds(ref):
         raise ReleaseError(f"{prefix}: {ref} is neither main nor a release "
                            "branch")
@@ -161,20 +162,13 @@ def promote_one(product: Product, staging: Store, builds: Store,
         for name in sorted(files):
             path = work / name
             digest = sha256_file(path)
-            sig = minisig.sign(artifact_key, path, layout.file_comment(
-                product.slug, name, derived))
-            minisig.verify([artifact_pub], path, sig)
             entry = product.classify(name, filesafe)
             entry.update({
                 "name": name, "size": path.stat().st_size, "sha256": digest,
                 "build_sha256": digest, "transform": "none",
-                "path": f"{dest}/{name}", "sig": f"{dest}/{sig.name}",
+                "path": f"{dest}/{name}",
             })
             artifacts.append(entry)
-        sums_sig = minisig.sign(artifact_key, work / SUMS, layout.file_comment(
-            product.slug, SUMS, derived))
-        # The one signature every client's trust in this build rests on.
-        minisig.verify([artifact_pub], work / SUMS, sums_sig)
 
         build = Path(tmp) / "build"
         build.mkdir()
@@ -187,20 +181,15 @@ def promote_one(product: Product, staging: Store, builds: Store,
             "version": derived, "series": parse_version(derived).series,
             "ref": ref, "commit": commit, "built_at": staged["built_at"],
             "promoted_at": iso(utcnow()),
-            "signing": {"scheme": layout.SCHEME_MINISIGN,
-                        "key_id": minisig.key_id(artifact_pub)},
+            "signing": {"scheme": layout.SCHEME_SIGSTORE},
             "build": {"sums": f"{dest}/build/{SUMS}",
                       "bundle": f"{dest}/build/{BUNDLE}",
                       "identity": identity},
-            "sums": f"{dest}/{SUMS}", "sums_sig": f"{dest}/{sums_sig.name}",
             "artifacts": artifacts,
         }
 
         for entry in artifacts:
             builds.put_file(work / entry["name"], entry["path"])
-            builds.put_file(work / Path(entry["sig"]).name, entry["sig"])
-        builds.put_file(work / SUMS, descriptor["sums"])
-        builds.put_file(sums_sig, descriptor["sums_sig"])
         builds.put_file(build / SUMS, descriptor["build"]["sums"])
         builds.put_file(build / BUNDLE, descriptor["build"]["bundle"])
         # Last: a descriptor only ever names objects that are already there.
@@ -211,8 +200,7 @@ def promote_one(product: Product, staging: Store, builds: Store,
 
 
 def promote(product: Product, staging: Store, builds: Store, *,
-            git_dir: Path, artifact_key: Path, artifact_pub: str,
-            cosign: str = "cosign") -> list[dict]:
+            git_dir: Path, cosign: str = "cosign") -> list[dict]:
     done: list[dict] = []
     failed = Problems()
     for tried in by_ref_newest_first(candidates(staging, failed)):
@@ -229,12 +217,11 @@ def promote(product: Product, staging: Store, builds: Store, *,
                 dest = final_prefix(staged)
                 if builds.exists(layout.descriptor_of(dest)):
                     _finish_marker(product, builds, dest, staged,
-                                   artifact_pub)
+                                   git_dir=git_dir, cosign=cosign)
                     break
                 done.append(promote_one(
                     product, staging, builds, prefix, staged,
-                    git_dir=git_dir, artifact_key=artifact_key,
-                    artifact_pub=artifact_pub, cosign=cosign))
+                    git_dir=git_dir, cosign=cosign))
                 break
             except ReleaseError as e:
                 # The next older candidate of this ref gets its turn.

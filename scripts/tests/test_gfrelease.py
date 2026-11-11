@@ -140,7 +140,6 @@ class ChainTest(unittest.TestCase):
         self.state = self.tmp / "state"
         keys = self.tmp / "keys"
         keys.mkdir()
-        self.art_key, self.art_pub = keypair(keys, "artifact")
         self.idx_key, self.idx_pub = keypair(keys, "index")
         self.cosign = self.tmp / "cosign"
         self.cosign.write_text(FAKE_COSIGN.format(python=sys.executable))
@@ -194,20 +193,18 @@ class ChainTest(unittest.TestCase):
 
     def promote(self):
         return promote_mod.promote(self.product, self.staging, self.builds,
-                                   git_dir=self.repo, artifact_key=self.art_key,
-                                   artifact_pub=self.art_pub, cosign=str(self.cosign))
+                                   git_dir=self.repo, cosign=str(self.cosign))
 
     def index(self, force=False):
         return index_mod.publish(self.product, self.builds, self.update,
-                                 index_key=self.idx_key, artifact_pub=self.art_pub,
-                                 artifact_key=self.art_key,
+                                 index_key=self.idx_key,
                                  state_dir=self.state, force=force,
+                                 git_dir=self.repo, cosign=str(self.cosign),
                                  index_pub=[self.idx_pub])
 
     def check(self, deep=True):
         return verify_mod.verify(self.product, self.update, self.builds,
-                                 index_keys=[self.idx_pub],
-                                 artifact_key=self.art_pub, deep=deep)
+                                 index_keys=[self.idx_pub], deep=deep)
 
     # --- the chain -----------------------------------------------------
 
@@ -255,42 +252,6 @@ class ChainTest(unittest.TestCase):
         second = self.index()
         self.assertEqual(second["channels"]["nightly"], newer)
         self.assertEqual(second["serial"], first["serial"] + 1)
-
-    def with_retired_artifact_keys(self, retired):
-        """This product as release/product.json has it, with @p retired."""
-        d = self.tmp / "rotated"
-        d.mkdir(exist_ok=True)
-        data = json.loads((common.ROOT / "release" / "product.json").read_text())
-        data["signing"]["artifact_keys_retired"] = retired
-        (d / "product.json").write_text(json.dumps(data))
-        shutil.copy(common.ROOT / "release" / "policy.toml", d)
-        return common.Product(d / "product.json", d / "policy.toml")
-
-    def test_a_rotated_artifact_key_keeps_earlier_nightlies(self):
-        self.commit()
-        self.build()
-        self.promote()
-        self.index()
-        old = self.art_pub
-        self.art_key, self.art_pub = keypair(self.tmp / "keys", "artifact-new")
-
-        # The host signs with the new key. Unless the old one is retired, what
-        # it signed is no longer admitted, and no index is published at all.
-        self.assert_refused(lambda: self.index(force=True),
-                            "not signed with the artifact key")
-
-        self.product = self.with_retired_artifact_keys([old])
-        self.commit()
-        _, newer = self.build()
-        self.promote()
-        index = self.index(force=True)
-        self.assertEqual(index["channels"]["nightly"], newer)
-        listed = {json.loads(self.builds.read(p))["signing"]["key_id"]
-                  for p in ("nightly/" + r for r in
-                            self.builds.files("nightly", include="*/release.json"))}
-        self.assertEqual(listed, {minisig.key_id(old),
-                                  minisig.key_id(self.art_pub)})
-        self.check()
 
     def test_resign_pushes_expiry_with_a_new_serial(self):
         self.commit()
@@ -385,8 +346,7 @@ class ChainTest(unittest.TestCase):
                     continue
                 done.append(promote_mod.promote_one(
                     self.product, self.staging, self.builds, prefix, staged,
-                    git_dir=self.repo, artifact_key=self.art_key,
-                    artifact_pub=self.art_pub, cosign=str(self.cosign)))
+                    git_dir=self.repo, cosign=str(self.cosign)))
         return done
 
     def test_a_beta_another_series_claims_is_caught(self):
@@ -487,18 +447,17 @@ class ChainTest(unittest.TestCase):
         with self.assertRaises(StoreUnavailable):
             index_mod.publish(self.product, self.builds, down,
                               index_pub=[self.idx_pub],
-                              index_key=self.idx_key,
-                              artifact_pub=self.art_pub,
-                              artifact_key=self.art_key, state_dir=self.state)
+                              index_key=self.idx_key, state_dir=self.state,
+                              git_dir=self.repo, cosign=str(self.cosign))
         # The live index is the first one still, whole and verified.
         self.assertEqual(self.check(deep=False)["serial"], 1)
 
     def host(self, **kw) -> host_mod.Host:
         kw.setdefault("cosign", str(self.cosign))
         return host_mod.Host(
-            self.product, self.builds, self.state, self.art_pub,
+            self.product, self.builds, self.state,
             staging=self.staging, update=self.update, git_dir=self.repo,
-            artifact_key=self.art_key, index_key=self.idx_key,
+            index_key=self.idx_key,
             index_pub=[self.idx_pub], **kw)
 
     def round(self, host: host_mod.Host | None = None):
@@ -564,23 +523,23 @@ class ChainTest(unittest.TestCase):
         previous = index_mod.trusted_published(self.product, self.update,
                                                [self.idx_pub])
 
-        def admit(*_args):
-            raise common.ToolFailed("minisign cannot be run")
+        def admit(*_args, **_kw):
+            raise common.ToolFailed("cosign cannot be run")
         saved = index_mod.admit_nightly
         index_mod.admit_nightly = admit
         try:
             refused = common.Problems()
-            content = index_mod.build(self.product, self.builds, self.art_pub,
+            content = index_mod.build(self.product, self.builds,
                                       refused=refused, previous=previous)
             # Not checked is not refused: still listed, the run still fails.
             self.assertEqual(content["channels"]["nightly"], version)
             self.assertTrue(refused and refused.passing)
 
-            def forged(*_args):
-                raise common.ReleaseError("not signed with the artifact key")
+            def forged(*_args, **_kw):
+                raise common.ReleaseError("not what CI built")
             index_mod.admit_nightly = forged
             refused = common.Problems()
-            content = index_mod.build(self.product, self.builds, self.art_pub,
+            content = index_mod.build(self.product, self.builds,
                                       refused=refused, previous=previous)
             # Refused for what it is: off the channel.
             self.assertIsNone(content["channels"]["nightly"])
@@ -598,7 +557,6 @@ class ChainTest(unittest.TestCase):
         product.mkdir()
         data = json.loads((common.ROOT / "release" /
                            "product.json").read_text())
-        data["signing"]["artifact_key"] = self.art_pub
         data["signing"]["index_keys"] = [self.idx_pub]
         (product / "product.json").write_text(json.dumps(data))
         shutil.copy(common.ROOT / "release" / "policy.toml", product)
@@ -609,8 +567,6 @@ class ChainTest(unittest.TestCase):
                 "--staging", self.staging.root, "--builds", self.builds.root,
                 "--update", self.update.root, "--git-dir", str(self.repo),
                 "--state-dir", str(self.state),
-                "--artifact-key", str(self.art_key),
-                "--artifact-pub", self.art_pub,
                 "--index-key", str(self.idx_key), "--index-pub", self.idx_pub,
                 "--cosign", str(self.cosign)])
         self.assertEqual(status, host_mod.PARTIAL, err.getvalue())
@@ -680,10 +636,10 @@ class ChainTest(unittest.TestCase):
         self.commit()
         self.build()
         (d,) = self.promote()
-        sums = self.tmp / "builds" / self.slug / d["sums"]
+        sums = self.tmp / "builds" / self.slug / d["build"]["sums"]
         sums.chmod(0o644)
         sums.write_text(sums.read_text().replace("0", "1", 1))
-        self.assert_refused(self.index, "no pinned key verifies")
+        self.assert_refused(self.index, "does not verify")
 
     def test_verify_rejects_a_tampered_index(self):
         self.commit()
@@ -705,8 +661,7 @@ class ChainTest(unittest.TestCase):
         other.slug = "demo"
         self.assert_refused(
             lambda: verify_mod.verify(other, self.update, self.builds,
-                                      index_keys=[self.idx_pub],
-                                      artifact_key=self.art_pub),
+                                      index_keys=[self.idx_pub]),
             "is for 'gpgfrontend'|not 'demo'")
 
     def test_verify_rejects_the_wrong_key(self):
@@ -717,7 +672,7 @@ class ChainTest(unittest.TestCase):
         _, other = keypair(self.tmp / "keys", "other")
         self.assert_refused(
             lambda: verify_mod.verify(self.product, self.update, self.builds,
-                                      index_keys=[other], artifact_key=self.art_pub),
+                                      index_keys=[other]),
             "no pinned key")
 
     def test_a_store_that_cannot_be_read_is_an_error_not_an_absence(self):
@@ -741,7 +696,7 @@ class ChainTest(unittest.TestCase):
         # The release branch build's manifest no longer matches its
         # descriptor: that one release is refused, nothing else is.
         sums = (self.tmp / "builds" / self.slug / "nightly" /
-                branch_version.replace("+", "-") / common.SUMS)
+                branch_version.replace("+", "-") / "build" / common.SUMS)
         sums.write_text(sums.read_text().replace("0", "1", 1))
         with self.assertRaises(index_mod.IndexIncomplete) as caught:
             self.index()
@@ -818,8 +773,7 @@ class ChainTest(unittest.TestCase):
             try:
                 promote_mod.promote(self.product, self.staging,
                                     CrashingStore(str(root), n),
-                                    git_dir=self.repo, artifact_key=self.art_key,
-                                    artifact_pub=self.art_pub,
+                                    git_dir=self.repo,
                                     cosign=str(self.cosign))
                 break
             except (Crash, promote_mod.PromoteIncomplete):
@@ -867,7 +821,7 @@ class ChainTest(unittest.TestCase):
         self.index()
         # The lifecycle rule has started on it: its manifest is gone.
         self.at("2026-11-29T00:00:00Z")
-        (self.tmp / "builds" / self.slug / d["sums"]).unlink()
+        (self.tmp / "builds" / self.slug / d["build"]["sums"]).unlink()
         with contextlib.redirect_stderr(io.StringIO()):
             index = self.index(force=True)
         self.assertIsNone(index["nightly"])
@@ -908,10 +862,9 @@ class ChainTest(unittest.TestCase):
                 "index", "--builds", str(self.tmp / "b"),
                 "--update", str(self.tmp / "u"),
                 "--state-dir", str(self.state),
-                "--artifact-pub", self.art_pub,
                 "--index-key", str(self.idx_key), "--index-pub", self.idx_pub])
         self.assertEqual(status, 1)
-        self.assertIn("not signing.artifact_key", err.getvalue())
+        self.assertIn("not one of signing.index_keys", err.getvalue())
         self.assertFalse(self.state.exists())
 
     def test_a_monitor_warns_before_the_index_expires(self):
@@ -921,7 +874,7 @@ class ChainTest(unittest.TestCase):
         self.index()
         args = ["verify", "--update", str(self.tmp / "update" / self.slug),
                 "--builds", str(self.tmp / "builds" / self.slug),
-                "--index-pub", self.idx_pub, "--artifact-pub", self.art_pub]
+                "--index-pub", self.idx_pub]
         out, err = io.StringIO(), io.StringIO()
         with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
             self.assertEqual(self.cli().main(args + ["--min-days-left", "3"]), 0)
@@ -935,8 +888,8 @@ class ChainTest(unittest.TestCase):
         self.promote()
         report = index_mod.dry_run(self.product, self.builds, self.update,
                                    index_pub=[self.idx_pub],
-                                   artifact_pub=self.art_pub,
-                                   state_dir=self.state)
+                                   state_dir=self.state, git_dir=self.repo,
+                                   cosign=str(self.cosign))
         self.assertEqual(report["nightly"], version)
         self.assertEqual(report["refused"], [])
         self.assertIn("nightly", report["changes"])
@@ -997,16 +950,16 @@ class ChainTest(unittest.TestCase):
         self.build()
         self.promote()
         index_mod.publish(self.product, self.builds, self.update,
-                          index_key=self.idx_key, artifact_pub=self.art_pub,
-                          artifact_key=self.art_key, state_dir=self.state,
+                          index_key=self.idx_key, state_dir=self.state,
+                          git_dir=self.repo, cosign=str(self.cosign),
                           mirrors=[mirror], index_pub=[self.idx_pub])
         (self.tmp / "mirror" / self.slug / common.INDEX).unlink()
         # Nothing new to say: no new serial, the mirror repaired all the
         # same.
         self.assertIsNone(index_mod.publish(
             self.product, self.builds, self.update, index_key=self.idx_key,
-            artifact_pub=self.art_pub, artifact_key=self.art_key,
             state_dir=self.state, mirrors=[mirror],
+            git_dir=self.repo, cosign=str(self.cosign),
             index_pub=[self.idx_pub]))
         for name in (common.INDEX, common.INDEX + ".minisig"):
             self.assertEqual(mirror.read(name), self.update.read(name))
@@ -1019,9 +972,8 @@ class ChainTest(unittest.TestCase):
         self.promote()
         with self.assertRaises(index_mod.IndexIncomplete) as caught:
             index_mod.publish(self.product, self.builds, self.update,
-                              index_key=self.idx_key,
-                              artifact_pub=self.art_pub,
-                              artifact_key=self.art_key, state_dir=self.state,
+                              index_key=self.idx_key, state_dir=self.state,
+                              git_dir=self.repo, cosign=str(self.cosign),
                               mirrors=[down], index_pub=[self.idx_pub])
         self.assertIn("mirror", "\n".join(caught.exception.refused))
         self.assertEqual(index_mod.published(self.update)["channels"]
@@ -1110,12 +1062,13 @@ class ChainTest(unittest.TestCase):
         self.commit()
         self.build()
         (d,) = self.promote()
-        path = d["sums"].rsplit("/", 1)[0] + "/" + common.DESCRIPTOR
+        path = layout.descriptor_of(layout.nightly_dir(d["version"]))
         work = self.tmp / "admit"
         work.mkdir()
         assert_only_release_errors(
             self, lambda raw: index_mod.admit_nightly(
-                self.product, self.builds, path, raw, self.art_pub, work), d)
+                self.product, self.builds, path, raw, work,
+                git_dir=self.repo, cosign=str(self.cosign)), d)
 
     def test_poisoned_descriptors_leave_the_good_nightly_published(self):
         self.commit()
@@ -1126,13 +1079,11 @@ class ChainTest(unittest.TestCase):
         self.promote()
         # The older nightly's promotion time garbled, and two descriptors
         # whose fields have the wrong types.
-        prefix = first["sums"].rsplit("/", 1)[0]
+        prefix = layout.nightly_dir(first["version"])
         self.rewrite(dict(first, promoted_at="yesterday"),
                      f"{prefix}/{common.DESCRIPTOR}")
         base = {"schema": 1, "product": self.slug, "kind": "nightly",
                 "version": "9.9.9-alpha.1", "ref": "refs/heads/main",
-                "sums": "nightly/9.9.9-alpha.1/SHA256SUMS.txt",
-                "sums_sig": "nightly/9.9.9-alpha.1/SHA256SUMS.txt.minisig",
                 "artifacts": []}
         for name, d in (("9.9.9-alpha.1", dict(base, signing="x")),
                         ("9.9.9-alpha.2", dict(base, ref=5))):
@@ -1145,7 +1096,7 @@ class ChainTest(unittest.TestCase):
                          version)
         self.assertNotEqual(old, version)
 
-    # --- what the artifact key's signature binds ------------------------
+    # --- what admitting a nightly checks again -------------------------
 
     def stored(self, path):
         f = self.tmp / "builds" / self.slug / path
@@ -1161,37 +1112,25 @@ class ChainTest(unittest.TestCase):
         self.assertIsNone(caught.exception.index["nightly"])
         return caught.exception
 
-    def test_a_manifest_signed_for_another_file_or_version_is_refused(self):
+    def test_a_descriptor_other_than_the_signed_manifest_is_refused(self):
         self.commit()
         self.build()
         (d,) = self.promote()
-        sums = self.stored(d["sums"])
-        for comment in (f"product={self.slug} file={common.SUMS} version=2.3.0",
-                        f"product={self.slug} file=notes.md "
-                        f"version={d['version']}",
-                        f"product=other file={common.SUMS} "
-                        f"version={d['version']}"):
-            with self.subTest(comment=comment):
-                sig = minisig.sign(self.art_key, sums, comment)
-                self.stored(d["sums_sig"]).write_bytes(sig.read_bytes())
-                error = self.assert_no_nightly()
-                self.assertIn("trusted comment", str(error))
-
-    def test_a_manifest_signature_elsewhere_than_beside_it_is_refused(self):
-        self.commit()
-        self.build()
-        (d,) = self.promote()
-        prefix = d["sums"].rsplit("/", 1)[0]
-        moved = f"{prefix}/other.minisig"
-        self.builds.put_bytes(self.builds.read(d["sums_sig"]), moved)
-        self.rewrite(dict(d, sums_sig=moved), f"{prefix}/{common.DESCRIPTOR}")
-        self.assertIn("beside", str(self.assert_no_nightly()))
+        prefix = layout.nightly_dir(d["version"])
+        first = d["artifacts"][0]
+        self.stored(first["path"]).write_bytes(b"replaced")
+        digest = common.sha256_bytes(b"replaced")
+        changed = [dict(first, sha256=digest, build_sha256=digest)] + \
+            d["artifacts"][1:]
+        self.rewrite(dict(d, artifacts=changed),
+                     f"{prefix}/{common.DESCRIPTOR}")
+        self.assertIn("signed manifest", str(self.assert_no_nightly()))
 
     def test_a_name_listed_twice_is_refused(self):
         self.commit()
         self.build()
         (d,) = self.promote()
-        prefix = d["sums"].rsplit("/", 1)[0]
+        prefix = layout.nightly_dir(d["version"])
         first = dict(d["artifacts"][0], sha256="0" * 64, build_sha256="0" * 64,
                      path=f"{prefix}/elsewhere.bin")
         self.rewrite(dict(d, artifacts=[first] + d["artifacts"]),
@@ -1202,46 +1141,39 @@ class ChainTest(unittest.TestCase):
         self.commit()
         self.build()
         (d,) = self.promote()
-        prefix = d["sums"].rsplit("/", 1)[0]
+        prefix = layout.nightly_dir(d["version"])
         lied = [dict(a, os="linux") if a["kind"] == "msi" else a
                 for a in d["artifacts"]]
         self.rewrite(dict(d, artifacts=lied), f"{prefix}/{common.DESCRIPTOR}")
         self.assertIn("artifact rules", str(self.assert_no_nightly()))
 
-    def test_a_countersignature_never_passes_for_a_nightly_manifest(self):
-        """The chain a writable bucket once had: a manifest the server
-        countersigned as a release's, reused as a nightly's."""
+    def test_a_nightly_forged_in_the_builds_bucket_is_never_listed(self):
+        """Whoever can write the builds bucket, but is not the host: a
+        descriptor of a higher version, with a genuine build's Sigstore
+        bundle and manifest, and with files of its own."""
         self.commit()
         self.build()
         (d,) = self.promote()
         version = "2.9.0-alpha.1+g" + "a" * 12
-        prefix = f"nightly/{common.parse_version(version).filesafe}"
-        evil = self.tmp / "evil"
-        evil.mkdir()
+        prefix = layout.nightly_dir(version)
+        # The genuine bundle and manifest, relabelled: Sigstore still holds,
+        # git does not call that commit 2.9.0-alpha.1.
+        build = {k: f"{prefix}/build/{k}"
+                 for k in (common.SUMS, common.BUNDLE)}
+        for name, path in build.items():
+            self.builds.put_bytes(self.builds.read(d["build"][
+                "sums" if name == common.SUMS else "bundle"]), path)
         artifacts = []
         for a in d["artifacts"]:
             name = a["name"].replace(
                 common.parse_version(d["version"]).filesafe,
                 common.parse_version(version).filesafe)
-            (evil / name).write_bytes(b"evil " + name.encode())
-            digest = common.sha256_file(evil / name)
-            artifacts.append(dict(a, name=name, sha256=digest,
-                                  build_sha256=digest,
-                                  path=f"{prefix}/{name}",
-                                  sig=f"{prefix}/{name}.minisig"))
-            self.builds.put_file(evil / name, f"{prefix}/{name}")
-        sums = evil / common.SUMS
-        sums.write_bytes(common.render_manifest(
-            {a["name"]: a["sha256"] for a in artifacts}))
-        # As the server signs an imported release's manifest.
-        sig = minisig.sign(self.art_key, sums,
-                           f"product={self.slug} file={common.SUMS} "
-                           "version=2.2.4")
-        self.builds.put_file(sums, f"{prefix}/{common.SUMS}")
-        self.builds.put_file(sig, f"{prefix}/{common.SUMS}.minisig")
+            artifacts.append(dict(a, name=name, path=f"{prefix}/{name}"))
+            self.builds.put_bytes(self.builds.read(a["path"]),
+                                  f"{prefix}/{name}")
         forged = dict(d, version=version, artifacts=artifacts,
-                      sums=f"{prefix}/{common.SUMS}",
-                      sums_sig=f"{prefix}/{common.SUMS}.minisig")
+                      build=dict(d["build"], sums=build[common.SUMS],
+                                 bundle=build[common.BUNDLE]))
         self.builds.put_bytes(common.canonical_json(forged),
                               f"{prefix}/{common.DESCRIPTOR}")
         with self.assertRaises(index_mod.IndexIncomplete) as caught:
@@ -1602,7 +1534,6 @@ class StableTest(unittest.TestCase):
         self.state = self.tmp / "state"
         keys = self.tmp / "keys"
         keys.mkdir()
-        self.art_key, self.art_pub = keypair(keys, "artifact")
         self.idx_key, self.idx_pub = keypair(keys, "index")
         self.cosign = self.tmp / "cosign"
         self.cosign.write_text(FAKE_COSIGN.format(python=sys.executable))
@@ -1726,7 +1657,6 @@ class StableTest(unittest.TestCase):
         return index_mod.publish(
             self.product, self.builds, self.update,
             index_pub=[self.idx_pub], index_key=self.idx_key,
-            artifact_pub=self.art_pub, artifact_key=self.art_key,
             state_dir=self.state, force=True,
             git_dir=self.repo, cosign=str(self.cosign),
             authenticode_ca=str(self.cert))
@@ -1734,7 +1664,7 @@ class StableTest(unittest.TestCase):
     def check(self, deep=True):
         return verify_mod.verify(self.product, self.update, self.builds,
                                  index_keys=[self.idx_pub],
-                                 artifact_key=self.art_pub, deep=deep)
+                                 deep=deep)
 
     def assert_refused(self, fn, pattern):
         with self.assertRaisesRegex(common.ReleaseError, pattern):
@@ -1823,7 +1753,7 @@ class StableTest(unittest.TestCase):
         shutil.copytree(work / "2.3.0", work / "2.3.1")
         self.assert_refused(lambda: self.stage("2.3.1"), "not 2.3.1")
 
-    # --- the OpenPGP gate and the countersignature ----------------------
+    # --- the OpenPGP gate ----------------------------------------------
 
     def tree(self):
         """Every object of the artifact store, by path, with its hash."""
@@ -1831,30 +1761,20 @@ class StableTest(unittest.TestCase):
         return {str(f.relative_to(root)): common.sha256_file(f)
                 for f in sorted(root.rglob("*")) if f.is_file()}
 
-    def minisigned(self, path):
-        root = self.tmp / "builds" / self.product.slug
-        minisig.verify([self.art_pub], root / path, root / (path + ".minisig"))
-
-    def assert_not_countersigned(self, version="2.3.0"):
-        self.assertEqual([p for p in self.tree() if p.endswith(".minisig")],
-                         [])
+    def assert_no_marker(self):
         self.assertFalse(any(p.startswith("commits/") for p in self.tree()))
 
-    def test_a_passing_release_is_countersigned(self):
+    def test_a_passing_release_gets_its_commit_marker(self):
         self.tag()
         self.build()
         descriptor = self.stage().run()
-        entry = self.index()["releases"]["2.3.0"]
-        for a in descriptor["artifacts"]:
-            self.minisigned(a["path"])
-        self.minisigned(descriptor["sums"])
-        self.minisigned(entry["notes"])
-        self.assertEqual(entry["sums_minisig"], descriptor["sums"] + ".minisig")
-        self.assertEqual(entry["notes_minisig"], entry["notes"] + ".minisig")
+        self.index()
         self.assertTrue(self.builds.exists(f"commits/{descriptor['commit']}"))
+        self.assertEqual([p for p in self.tree() if p.endswith(".minisig")],
+                         [])
         self.check(deep=True)
 
-    def test_any_missing_or_bad_signature_means_no_minisign_no_listing(self):
+    def test_any_missing_or_bad_signature_means_no_listing(self):
         self.tag()
         self.build()
         descriptor = self.stage().run()
@@ -1882,9 +1802,9 @@ class StableTest(unittest.TestCase):
                 self.assertNotIn("2.3.0", caught.exception.index["releases"])
                 self.assertIsNone(
                     caught.exception.index["channels"]["stable"])
-                self.assert_not_countersigned()
+                self.assert_no_marker()
 
-    def test_countersigning_again_changes_nothing(self):
+    def test_admitting_again_changes_nothing(self):
         self.tag()
         self.build()
         self.stage().run()
@@ -1894,92 +1814,7 @@ class StableTest(unittest.TestCase):
         self.index()
         self.assertEqual(self.tree(), before)
 
-    def test_a_rotated_artifact_key_keeps_the_countersignatures(self):
-        self.tag()
-        self.build()
-        self.stage().run()
-        self.index()
-        before = self.tree()
-        old = self.art_pub
-        self.art_key, self.art_pub = keypair(self.tmp / "keys", "artifact-new")
-        data = json.loads((self.tmp / "product" / "product.json").read_text())
-        data["signing"]["artifact_keys_retired"] = [old]
-        (self.tmp / "product" / "product.json").write_text(json.dumps(data))
-        self.product = common.Product(self.tmp / "product" / "product.json",
-                                      self.tmp / "product" / "policy.toml")
-        self.assertIn("2.3.0", self.index()["releases"])
-        self.assertEqual(self.tree(), before)  # nothing signed again
-
-    def test_a_foreign_countersignature_is_never_replaced(self):
-        self.tag()
-        self.build()
-        descriptor = self.stage().run()
-        root = self.tmp / "builds" / self.product.slug
-        (root / (descriptor["sums"] + ".minisig")).write_text("forged\n")
-        with self.assertRaises(index_mod.IndexIncomplete) as caught:
-            self.index()
-        self.assertIn("never replaced", "\n".join(caught.exception.refused))
-        self.assertEqual((root / (descriptor["sums"] + ".minisig"))
-                         .read_text(), "forged\n")
-        self.assertNotIn("2.3.0", caught.exception.index["releases"])
-
-    def test_a_run_cut_short_anywhere_finishes_the_same(self):
-        self.tag()
-        self.build()
-        self.stage().run()
-        root = self.tmp / "builds" / self.product.slug
-        pristine = self.tmp / "pristine"
-        shutil.copytree(root, pristine)
-        self.index()
-        clean = self.tree()
-
-        # What a failing rclone raises: the run goes on with the rest, and
-        # publishes an index without the release it could not finish.
-        class Crash(StoreUnavailable):
-            pass
-
-        class CrashingStore(Store):
-            def __init__(self, root, at):
-                super().__init__(root)
-                self.puts, self.at = 0, at
-
-            def put_file(self, local, path, immutable=True):
-                self.puts += 1
-                if self.puts == self.at:
-                    raise Crash(f"cut short before {path}")
-                super().put_file(local, path, immutable)
-
-        n = 1
-        while True:
-            shutil.rmtree(root)
-            shutil.copytree(pristine, root)
-            shutil.rmtree(self.state, ignore_errors=True)
-            shutil.rmtree(self.tmp / "update", ignore_errors=True)
-            crashing = CrashingStore(str(root), n)
-            try:
-                index_mod.publish(
-                    self.product, crashing, self.update,
-                    index_pub=[self.idx_pub], index_key=self.idx_key,
-                    artifact_pub=self.art_pub, artifact_key=self.art_key,
-                    state_dir=self.state,
-                    force=True, git_dir=self.repo, cosign=str(self.cosign),
-                    authenticode_ca=str(self.cert))
-                break  # the run got past its last put: every cut was tried
-            except index_mod.IndexIncomplete as e:
-                refused = "\n".join(e.refused)
-            with self.subTest(cut_at=n):
-                # Nothing half-done is listed, and a plain rerun finishes
-                # with exactly the bytes of a run never cut short.
-                self.assertIn("cut short", refused)
-                published = index_mod.published(self.update)
-                self.assertIsNotNone(published)
-                self.assertNotIn("2.3.0", published["releases"])
-                self.assertIn("2.3.0", self.index()["releases"])
-                self.assertEqual(self.tree(), clean)
-            n += 1
-        self.assertGreater(n, 5)
-
-    def test_a_client_over_https_sees_the_countersigned_release(self):
+    def test_a_client_over_https_sees_the_stable_release(self):
         import functools
         import http.server
         import ssl
@@ -2012,7 +1847,7 @@ class StableTest(unittest.TestCase):
                                        self.product.slug, str(ca))
         report = verify_mod.verify(self.product, update, builds,
                                    index_keys=[self.idx_pub],
-                                   artifact_key=self.art_pub, deep=True)
+                                   deep=True)
         self.assertEqual([c["version"] for c in report["checked"]], ["2.3.0"])
         self.assertEqual(report["channels"]["stable"], "2.3.0")
 
@@ -2072,7 +1907,6 @@ class StableTest(unittest.TestCase):
             index_mod.publish(
                 self.product, flaky, self.update,
                 index_pub=[self.idx_pub], index_key=self.idx_key,
-                artifact_pub=self.art_pub, artifact_key=self.art_key,
                 state_dir=self.tmp / "fresh-state", force=True,
                 git_dir=self.repo, cosign=str(self.cosign),
                 authenticode_ca=str(self.cert))
@@ -2143,59 +1977,6 @@ class StableTest(unittest.TestCase):
         self.stage().run()
         self.product = required
         self.assert_refused(self.index, "time-stamp")
-
-    def test_a_dry_run_reports_a_countersignature_conflict(self):
-        self.tag()
-        self.build()
-        d = self.stage().run()
-        root = self.tmp / "builds" / self.product.slug
-        (root / (d["sums"] + ".minisig")).write_text("someone else's\n")
-        report = index_mod.dry_run(
-            self.product, self.builds, self.update,
-            index_pub=[self.idx_pub], artifact_pub=self.art_pub,
-            state_dir=self.state, git_dir=self.repo, cosign=str(self.cosign),
-            authenticode_ca=str(self.cert))
-        self.assertNotIn("2.3.0", report["releases"])
-        self.assertIn("never replaced", "\n".join(report["refused"]))
-
-    def test_a_manifest_swapped_before_countersigning_is_refused(self):
-        self.tag()
-        self.build()
-        d = self.stage().run()
-        self.index()
-        # A run cut short before it countersigned (the record vouches for
-        # the release, not yet for its countersignatures) and a manifest
-        # swapped in the bucket meanwhile.
-        record = self.state / "admitted" / "2.3.0.json"
-        data = json.loads(record.read_text())
-        data.pop("countersigned")
-        record.write_text(json.dumps(data))
-        root = self.tmp / "builds" / self.product.slug
-        (root / (d["sums"] + ".minisig")).unlink()
-        sums = root / d["sums"]
-        sums.write_text(sums.read_text().replace("0", "1", 1))
-        with self.assertRaises(index_mod.IndexIncomplete) as caught:
-            self.index()
-        self.assertNotIn("2.3.0", caught.exception.index["releases"])
-        self.assertFalse((root / (d["sums"] + ".minisig")).exists())
-
-    def test_notes_swapped_before_a_key_rotation_are_never_countersigned(self):
-        self.admitted()
-        entry = index_mod.published(self.update)["releases"]["2.3.0"]
-        root = self.tmp / "builds" / self.product.slug
-        (root / entry["notes"]).write_bytes(b"not what was reviewed\n")
-        (root / entry["notes_minisig"]).unlink()
-        # The artifact key rotated: every release is countersigned again.
-        path = self.tmp / "product" / "product.json"
-        data = json.loads(path.read_text())
-        data["signing"]["artifact_keys_retired"] = [self.art_pub]
-        path.write_text(json.dumps(data))
-        self.product = common.Product(path, path.with_name("policy.toml"))
-        self.art_key, self.art_pub = keypair(self.tmp / "keys", "artifact2")
-        with self.assertRaises(index_mod.IndexIncomplete) as caught:
-            self.index()
-        self.assertNotIn("2.3.0", caught.exception.index["releases"])
-        self.assertFalse((root / entry["notes_minisig"]).exists())
 
     def test_a_trust_change_keeps_the_admitted_notes(self):
         """main's notes edited and not signed yet when the key file changes
@@ -2379,7 +2160,6 @@ class StableTest(unittest.TestCase):
         self.assert_refused(self.index, "tag v2.3.0|notes")
 
 
-import countersign as countersign_mod  # noqa: E402
 import imported as imported_mod  # noqa: E402
 
 IMPORT_TOOLS = TOOLS and tools("gpg", "gpgconf")
@@ -2432,7 +2212,6 @@ class ImportTest(unittest.TestCase):
         self.state = self.tmp / "state"
         keys = self.tmp / "keys"
         keys.mkdir()
-        self.art_key, self.art_pub = keypair(keys, "artifact")
         self.idx_key, self.idx_pub = keypair(keys, "index")
         self.github = FakeGitHub(self.tmp / "github")
 
@@ -2471,13 +2250,12 @@ class ImportTest(unittest.TestCase):
         return index_mod.publish(
             self.product, self.builds, self.update,
             index_pub=[self.idx_pub], index_key=self.idx_key,
-            artifact_pub=self.art_pub, artifact_key=self.art_key,
             state_dir=self.state, force=True, git_dir=self.repo)
 
     def check(self):
         return verify_mod.verify(self.product, self.update, self.builds,
                                  index_keys=[self.idx_pub],
-                                 artifact_key=self.art_pub, deep=True)
+                                 deep=True)
 
     LEGS = ("linux-x86_64.AppImage", "windows-x86_64.msi",
             "windows-x86_64.msix", "macos-15.dmg")
@@ -2586,20 +2364,10 @@ class ImportTest(unittest.TestCase):
                                 builds=self.builds, git_dir=self.repo,
                                 gnupghome=str(self.gnupg)).publish_notes()
 
-    def test_an_imported_release_is_countersigned_too(self):
+    def test_an_imported_release_gets_its_commit_marker(self):
         self.publish_on_github("2.2.4", self.LEGS)
         _, d = self.run_import("2.2.4")
-        entry = self.index()["releases"]["2.2.4"]
-        root = self.tmp / "builds" / self.product.slug
-        sums = entry["sums_minisig"][:-len(".minisig")]
-        self.assertRegex(sums, r"^releases/2\.2\.4/manifests/[0-9a-f]{64}/"
-                         r"SHA256SUMS\.txt$")
-        self.assertEqual(common.parse_manifest((root / sums).read_bytes(), sums),
-                         {a["name"]: a["sha256"] for a in d["artifacts"]})
-        minisig.verify([self.art_pub], root / sums, root / (sums + ".minisig"))
-        for a in d["artifacts"]:
-            minisig.verify([self.art_pub], root / a["path"],
-                           root / (a["path"] + ".minisig"))
+        self.assertIn("2.2.4", self.index()["releases"])
         self.assertTrue(self.builds.exists(f"commits/{d['commit']}"))
         self.check()
 
@@ -2614,9 +2382,7 @@ class ImportTest(unittest.TestCase):
             work.mkdir()
             index_mod.admit_imported(
                 self.product, self.builds, path, raw, git_dir=self.repo,
-                state_dir=work / "state", tmp=work,
-                countersigner=countersign_mod.Countersigner(
-                    self.product, self.art_key, self.art_pub))
+                state_dir=work / "state", tmp=work)
         assert_only_release_errors(self, admit, d, values=(None, 5, {}))
 
     def test_files_signed_before_their_tag_are_refused(self):
@@ -2671,7 +2437,7 @@ class ImportTest(unittest.TestCase):
 
     def test_a_manifest_path_in_an_imported_descriptor_is_refused(self):
         """An imported release has no manifest of its own: one named in its
-        descriptor would be countersigned unchecked, wherever it is."""
+        descriptor is not what its files were checked against."""
         self.publish_on_github("2.2.4", self.LEGS)
         _, d = self.run_import("2.2.4")
         planted = "nightly/9.9.9-alpha.1/SHA256SUMS.txt"
@@ -2684,7 +2450,6 @@ class ImportTest(unittest.TestCase):
         with self.assertRaises(index_mod.IndexIncomplete) as caught:
             self.index()
         self.assertNotIn("2.2.4", caught.exception.index["releases"])
-        self.assertFalse((root / (planted + ".minisig")).exists())
 
     def test_an_imported_file_without_its_sig_is_not_listed(self):
         self.publish_on_github("2.2.4", self.LEGS)
