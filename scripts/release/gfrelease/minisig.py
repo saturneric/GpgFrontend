@@ -16,9 +16,16 @@ from __future__ import annotations
 
 import base64
 import os
+import tempfile
 from pathlib import Path
 
 from common import MINISIG, ReleaseError, run
+
+
+def _id(raw: bytes) -> str:
+    """The key id in a decoded key or signature (bytes 2-10, stored little
+    endian), as minisign prints it."""
+    return raw[2:10][::-1].hex().upper()
 
 
 def key_id(public_key: str) -> str:
@@ -29,7 +36,7 @@ def key_id(public_key: str) -> str:
         raise ReleaseError("not a minisign Ed25519 public key") from e
     if len(raw) != 42 or raw[:2] != b"Ed":
         raise ReleaseError("not a minisign Ed25519 public key")
-    return raw[2:10][::-1].hex().upper()
+    return _id(raw)
 
 
 def public_key_of(path: Path) -> str:
@@ -74,7 +81,7 @@ def prehashed_key_id(sig: bytes) -> str | None:
         return None
     if len(raw) != 74 or raw[:2] != b"ED":
         return None
-    return raw[2:10][::-1].hex().upper()
+    return _id(raw)
 
 
 def trusted_comment(sig: bytes) -> str:
@@ -106,3 +113,28 @@ def verify(public_keys: list[str], file: Path, sig: Path) -> str:
         errors.append((out.stderr or out.stdout).strip())
     raise ReleaseError(f"{Path(file).name}: no pinned key verifies it "
                        f"({'; '.join(errors)})")
+
+
+def verify_bytes(public_keys: list[str], data: bytes, sig: bytes,
+                 name: str = "data") -> str:
+    """verify() for what is held in memory: @p data and @p sig are written
+    to a private directory first. @p name is what an error calls them."""
+    with tempfile.TemporaryDirectory(prefix="gfr-minisig-") as tmp:
+        file = Path(tmp) / Path(name).name
+        file.write_bytes(data)
+        sig_file = file.with_name(file.name + MINISIG)
+        sig_file.write_bytes(sig)
+        return verify(public_keys, file, sig_file)
+
+
+def generate(secret: Path, password: bool = False) -> str:
+    """A new key pair, @p secret and @p secret.pub beside it; returns the
+    public key. Without @p password it is made with -W, for a key used
+    unattended; with one, minisign asks for it on the terminal."""
+    secret = Path(secret)
+    pub = secret.with_name(secret.name + ".pub")
+    if secret.exists() or pub.exists():
+        raise ReleaseError(f"{secret} exists")
+    run(["minisign", "-G", *(() if password else ("-W",)), "-s", secret,
+         "-p", pub], capture_output=not password)
+    return public_key_of(pub)
