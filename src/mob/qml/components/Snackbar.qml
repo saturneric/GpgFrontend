@@ -19,12 +19,8 @@ Popup {
     // Room left under it, for a bar at the foot of the page.
     property real bottomOffset: 0
 
-    // What the action does when it was given with show(); else action() is
-    // emitted.
+    // What the action does, as given with show().
     property var handler: null
-
-    // The action was taken; the bar is gone.
-    signal action()
 
     x: parent ? (parent.width - width) / 2 : 0
     y: parent ? parent.height - height - bottomOffset - 12 : 0
@@ -72,7 +68,6 @@ Popup {
                 bar.handler = null
                 bar.close()
                 if (run) run()
-                else bar.action()
             }
         }
     }
@@ -95,7 +90,7 @@ Popup {
 
     // Show @p message, even when it is the one already shown -- "Copied."
     // twice in a row is two copies -- with @p actionText, if given, which
-    // runs @p handler when given (else action() is emitted). An empty
+    // runs @p handler. An empty
     // message hides it.
     function show(message, actionText, handler) {
         bar.actionText = ""

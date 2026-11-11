@@ -101,6 +101,8 @@ BottomSheet {
         objectName: "uidRevoke"
         visible: sheet.can.revokeUid === true && !sheet.primary && !sheet.revoked
         symbol: "warning"
+        // As Delete beside it: neither can be taken back.
+        symbolColor: Theme.danger
         text: qsTr("Revoke")
         detail: qsTr("Says to everyone with the updated key that it no longer "
                      + "stands for you. This cannot be undone.")

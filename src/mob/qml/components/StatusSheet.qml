@@ -34,6 +34,13 @@ BottomSheet {
         return single ? [first] : log.batch(first.batchId)
     }
     readonly property bool isBatch: items.length > 1
+
+    // A Decrypt & Verify that decrypted a message no one signed.
+    function notSigned(r) {
+        const report = r.report || {}
+        return r.verify === true && r.operation === "decrypt"
+               && report.status >= 0 && (report.signatures || []).length === 0
+    }
     readonly property var record: items.length > 0 ? items[0] : ({})
     readonly property var counts: host ? host.countsOf(items) : ({})
     readonly property bool active: counts.active > 0
@@ -74,6 +81,9 @@ BottomSheet {
 
     // What the batch made that is still in the list.
     function batchOutputs() {
+        // Read again as files leave the list (a binding sees the count).
+        const surface0 = sheet.host ? sheet.host.filesSurface : null
+        if (surface0 && surface0.workspace) void surface0.workspace.count
         let outputs = []
         for (const item of sheet.items) outputs = outputs.concat(item.outputs || [])
         const surface = sheet.host ? sheet.host.filesSurface : null
@@ -141,17 +151,8 @@ BottomSheet {
     // failed or stopped; a batch ended well if every file did, badly if
     // none did, and with a warning between.
     readonly property var outcome: {
-        if (items.length === 0 || active) return null
-        if (!isBatch) {
-            if (Object.keys(record.report || {}).length > 0) return record.report
-            if (record.phase === "cancelled") return {"cancelled": true}
-            return record.phase === "failed" ? {"status": -1, "severity": "critical"}
-                                             : null
-        }
-        if (counts.failed + counts.cancelled === 0) return {"status": 1, "severity": "ok"}
-        if (counts.done > 0) return {"status": 0, "severity": "warn"}
-        return counts.failed > 0 ? {"status": -1, "severity": "critical"}
-                                 : {"cancelled": true}
+        if (items.length === 0 || active || !host) return null
+        return host.outcomeOf(record, isBatch ? items : [record])
     }
     readonly property bool hasReport: outcome !== null
     // Why one operation failed, as a kind with words of its own; then the
@@ -207,10 +208,14 @@ BottomSheet {
                 Layout.fillWidth: true
                 // As the desktop's report heads it: the outcome, then which
                 // operation.
+                // Decrypt & Verify named so, as the menu that started it.
+                readonly property string name: sheet.record.verify === true
+                                               && sheet.record.operation === "decrypt"
+                                               ? Wording.operationLabel("decrypt_verify")
+                                               : Wording.operationName(sheet.record.operation)
                 text: sheet.isBatch
-                      ? qsTr("%1 · %2 files").arg(Wording.operationName(sheet.record.operation))
-                                             .arg(sheet.items.length)
-                      : Wording.operationName(sheet.record.operation)
+                      ? qsTr("%1 · %2 files").arg(name).arg(sheet.items.length)
+                      : name
                 color: Material.secondaryTextColor
                 font.pixelSize: Theme.bodySize
                 wrapMode: Text.Wrap
@@ -295,6 +300,18 @@ BottomSheet {
         text: sheet.explained ? Wording.failureExplanation(sheet.failureKind)
               : (sheet.record.report || {}).description
                 || Wording.reason(sheet.record.reason || "")
+    }
+
+    // Decrypt & Verify of a message that was never signed: graded as its
+    // decryption (the Decrypt button may run it on every message, so a
+    // warning would be noise), but said, as a check was asked for.
+    Label {
+        objectName: "statusUnsigned"
+        Layout.fillWidth: true
+        visible: !sheet.isBatch && sheet.notSigned(sheet.record)
+        wrapMode: Text.Wrap
+        color: Material.secondaryTextColor
+        text: qsTr("It was not signed: there was no signature to check.")
     }
 
     // Each signature: does it hold, what state is the key in, and was the
@@ -407,6 +424,17 @@ BottomSheet {
             icon.source: Theme.icon("save")
             onClicked: sheet.host.filesSurface.saveOutput(sheet.record.outputs[0])
         }
+        // As the file's own menu offers it (a decrypted one warns first).
+        ResultAction {
+            objectName: "statusShare"
+            visible: !sheet.isText && !sheet.isBatch
+                     && (sheet.record.outputs || []).length > 0
+                     && sheet.host !== null && sheet.host.filesSurface !== null
+                     && (sheet.host.filesSurface.workspace || {}).canShare === true
+            text: qsTranslate("FilesPage", "Share")
+            icon.source: Theme.icon("share")
+            onClicked: sheet.host.filesSurface.share(sheet.record.outputs[0])
+        }
         ResultAction {
             visible: !sheet.isText && !sheet.active
             text: qsTr("Show in Files")
@@ -417,6 +445,33 @@ BottomSheet {
                              : (sheet.record.targets || [{"fileId": -1}])[0].fileId
                 sheet.close()
                 sheet.host.showFileRequested(target)
+            }
+        }
+        // A text's result that was not put in (the text changed meanwhile):
+        // still here to take, after its notice went.
+        ResultAction {
+            objectName: "statusPutIn"
+            visible: sheet.isText && !sheet.active && sheet.record.phase === "done"
+                     && sheet.host !== null && sheet.host.textSurface !== null
+                     && sheet.host.revision >= 0
+                     && sheet.host.textSurface.heldResult(sheet.record.operationId)
+            text: qsTr("Put it in the text")
+            onClicked: {
+                const id = sheet.record.operationId
+                sheet.close()
+                sheet.host.textSurface.putIn(id)
+            }
+        }
+        // A signature whose key is not here: the way to it, not a dead end.
+        ResultAction {
+            objectName: "statusImportSigner"
+            visible: !sheet.active && sheet.host !== null
+                     && ((sheet.record.report || {}).signatures || [])
+                        .some(s => s.keyStatus === "missing")
+            text: qsTr("Import the signer's key")
+            onClicked: {
+                sheet.close()
+                sheet.host.importKeysRequested()
             }
         }
         ResultAction {
@@ -448,7 +503,8 @@ BottomSheet {
             visible: sheet.active && !sheet.isText && sheet.counts.queued > 0
             text: qsTr("Stop waiting files")
             flat: true
-            onClicked: sheet.host.filesSurface.stopWaiting()
+            // This batch's: another one's files are not this sheet's.
+            onClicked: sheet.host.filesSurface.stopWaiting(sheet.record.batchId)
         }
         // The cards and the engine's report: hidden until asked for, and
         // put away again the same way. One of the row, as its neighbours.
@@ -501,8 +557,11 @@ BottomSheet {
                          : modelData.phase === "failed" ? Theme.danger
                                                         : Material.secondaryTextColor
             text: Wording.target(modelData)
+            // Why, in the words the file's own row says it (its kind),
+            // the engine's words only where no kind says more.
             detail: modelData.phase === "failed"
-                    ? (((modelData.report || {}).errors || [])[0]
+                    ? (Wording.failureReason((modelData.report || {}).reason || "")
+                       || ((modelData.report || {}).errors || [])[0]
                        || Wording.title(modelData))
                     : Wording.title(modelData)
             detailLines: 2

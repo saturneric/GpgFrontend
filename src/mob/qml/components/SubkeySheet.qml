@@ -119,6 +119,8 @@ BottomSheet {
         visible: sheet.can.revokeSubkey === true && !sheet.primary
                  && sheet.subkey.revoked !== true
         symbol: "warning"
+        // As Delete beside it: neither can be taken back.
+        symbolColor: Theme.danger
         text: qsTr("Revoke")
         detail: qsTr("No one can use it once they have the updated key. "
                      + "This cannot be undone.")

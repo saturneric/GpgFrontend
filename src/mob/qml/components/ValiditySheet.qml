@@ -20,6 +20,7 @@ BottomSheet {
     signal accepted(string validity)
 
     function begin(title, about) {
+        acted = false
         sheet.title = title
         sheet.about = about
         chosen = "2y"
@@ -60,16 +61,18 @@ BottomSheet {
         Item {
             Layout.fillWidth: true
         },
-        Button {
+        ActionButton {
+            kind: "text"
             text: qsTr("Cancel")
-            flat: true
             onClicked: sheet.close()
         },
-        Button {
+        ActionButton {
             objectName: "validityApply"
             text: qsTr("Apply")
-            highlighted: true
             onClicked: {
+                // A second tap while it slides away: already done.
+                if (sheet.acted) return
+                sheet.acted = true
                 sheet.close()
                 sheet.accepted(sheet.chosen)
             }
