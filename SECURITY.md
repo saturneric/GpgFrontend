@@ -28,15 +28,14 @@ Which key signs which releases (generated from `release/policy.toml` and
 `release/product.json`):
 
 <!-- policy:keys:begin -->
-Releases from 2.1.5 on carry a detached signature for every file:
+Releases from 2.1.5 on can be checked file by file:
 
 | Releases | Signed with | Verify with |
 | -------- | ----------- | ----------- |
 | Stable (vX.Y.Z) | OpenPGP, detached `.sig` per file, by the maintainer | `12F7E8858CF15BEC9975FF3C5CA3DA246843FD03` |
-| Stable (vX.Y.Z) | minisign, `.minisig` per file, added by the release server after it checked the `.sig` | `RWSxNasy+OIaiWWGzwNYu223e0UNDwrsb+4S/ttGO8knO/URmtMtDpse` |
-| Nightly (main) and beta (release/X.Y) | minisign, `.minisig` per file | `RWSxNasy+OIaiWWGzwNYu223e0UNDwrsb+4S/ttGO8knO/URmtMtDpse` |
+| Nightly (main) and beta (release/X.Y) | Sigstore, on the build's manifest (`build/SHA256SUMS.txt.sigstore.json`) | the build workflow's identity, `https://github.com/saturneric/GpgFrontend/.github/workflows/build.yml@<ref>` |
 
-Check a download by hand with `gpg --verify FILE.sig FILE` (stable) or `minisign -Vm FILE -P <key>` (stable, beta or nightly). The application itself checks only minisign, through the signed update index; a stable release is listed there only once its OpenPGP signatures have been checked. Windows installers of stable releases are also Authenticode-signed.
+Check a stable download by hand with `gpg --verify FILE.sig FILE`, a nightly's or beta's manifest with `cosign verify-blob` and its files against that manifest. The application relies on the signed update index, which names each release's descriptor by its hash, and the descriptor each file's; a stable release is listed there only once its OpenPGP signatures have been checked. Windows installers of stable releases are also Authenticode-signed.
 <!-- policy:keys:end -->
 
 ## Platform & Library Support

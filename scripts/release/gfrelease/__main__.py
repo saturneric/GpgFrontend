@@ -127,9 +127,6 @@ def main(argv=None) -> int:
         opt(p, "update", "the index store")
         opt(p, "mirror_update", "the mirror's index store", )
         opt(p, "git_dir", "this product's git mirror (may be bare)")
-        opt(p, "artifact_key", "minisign secret key for artifacts: nightlies "
-            "and betas, and the countersignature on stable releases")
-        opt(p, "artifact_pub", "its public key (file or base64)")
         opt(p, "index_key", "minisign secret key for the index")
         opt(p, "index_pub", "its public key (file or base64)")
         opt(p, "state_dir", "where the serial and the lock live")
@@ -154,7 +151,6 @@ def main(argv=None) -> int:
     opt(v, "update", "the index store (default: the HTTPS bases)")
     opt(v, "builds", "the artifact store (default: the HTTPS bases)")
     opt(v, "index_pub", "pinned index key(s), comma-separated (file or base64)")
-    opt(v, "artifact_pub", "the artifact key (file or base64)")
     opt(v, "cafile", "CA bundle for the HTTPS bases")
     v.add_argument("--deep", action="store_true", help="download every artifact")
     opt(v, "min_days_left", "fail when the index expires sooner than this "
@@ -231,9 +227,8 @@ def main(argv=None) -> int:
                 builds = verify_mod.HttpSource(bases["builds"], product.slug, args.cafile)
             keys = [pub(k) for k in (args.index_pub.split(",") if args.index_pub
                                      else signing["index_keys"])]
-            artifact = pub(args.artifact_pub) if args.artifact_pub else signing["artifact_key"]
             report = verify_mod.verify(product, update, builds, index_keys=keys,
-                                       artifact_key=artifact, deep=args.deep)
+                                       deep=args.deep)
             print(json.dumps(report, indent=2))
             if args.min_days_left:
                 left = parse_iso(report["expires"]) - utcnow()
@@ -259,20 +254,19 @@ def main(argv=None) -> int:
 
 def host_round(args, product: Product, rclone: str) -> int:
     """promote, index, run and resign: the signing host's commands."""
-    need(args, "builds", "state_dir", "artifact_pub")
+    need(args, "builds", "state_dir")
     command = args.command
     promotes = command in ("promote", "run")
     indexes = command in ("index", "run", "resign")
     dry = getattr(args, "dry_run", False)
-    artifact_pub = pub(args.artifact_pub)
     if indexes:
         need(args, "update", *(() if dry else ("index_key",)), "index_pub")
     if promotes:
-        need(args, "staging", "git_dir", "artifact_key")
+        need(args, "staging", "git_dir")
     if args.fetch:
         need(args, "git_dir")
-    index_pub = pub(args.index_pub) if indexes else None
-    product.check_host_keys(artifact_pub, index_pub)
+    if indexes:
+        product.check_host_keys(pub(args.index_pub))
 
     def store(root):
         return Store(root, rclone) if root else None
@@ -282,11 +276,10 @@ def host_round(args, product: Product, rclone: str) -> int:
 
     host = host_mod.Host(
         product, Store(args.builds, rclone), Path(args.state_dir),
-        artifact_pub, staging=store(args.staging), update=store(args.update),
+        staging=store(args.staging), update=store(args.update),
         mirrors=[Store(args.mirror_update, rclone)]
         if args.mirror_update else [],
-        git_dir=path(args.git_dir), artifact_key=path(args.artifact_key),
-        index_key=path(args.index_key),
+        git_dir=path(args.git_dir), index_key=path(args.index_key),
         # Every pinned index key, the next one too: what a client accepts.
         index_pub=product.data["signing"]["index_keys"],
         cosign=args.cosign or "cosign", authenticode_ca=args.authenticode_ca)

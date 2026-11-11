@@ -220,13 +220,10 @@ class PolicyCheckTest(unittest.TestCase):
             policy.check_product(product)
 
     def test_keys_are_minisign_keys(self):
-        for field in ("artifact_key", "index_keys", "artifact_keys_retired"):
-            product = policy.load_product()
-            product["signing"][field] = "RWQ=" if field == "artifact_key" \
-                else ["RWQ="]
-            with self.subTest(field=field), \
-                    self.assertRaisesRegex(policy.PolicyError, "not a minisign"):
-                policy.check_product(product)
+        product = policy.load_product()
+        product["signing"]["index_keys"] = ["RWQ="]
+        with self.assertRaisesRegex(policy.PolicyError, "not a minisign"):
+            policy.check_product(product)
 
     def test_nightly_retention_outlasts_the_margin(self):
         # Longer than an index lives (14 days) and the margin after it.
@@ -240,23 +237,18 @@ class PolicyCheckTest(unittest.TestCase):
         product["nightly_retention_days"] = policy.NIGHTLY_MARGIN_DAYS + 1
         policy.check_product(product)
 
-    def test_the_current_key_or_certificate_is_never_retired(self):
-        for field, current in (("artifact_keys_retired", "artifact_key"),
-                               ("authenticode_subjects_retired",
-                                "authenticode_subject")):
-            product = policy.load_product()
-            product["signing"][field] = [product["signing"][current]]
-            with self.assertRaisesRegex(policy.PolicyError, "current"):
-                policy.check_product(product)
-            product["signing"][field] = "not a list"
-            with self.assertRaisesRegex(policy.PolicyError, "list"):
-                policy.check_product(product)
-            # Replaced: another key (here the index key stands in for one),
-            # or another subject.
-            product["signing"][field] = [
-                product["signing"]["index_keys"][0]
-                if field == "artifact_keys_retired" else "something replaced"]
+    def test_the_current_certificate_is_never_retired(self):
+        field = "authenticode_subjects_retired"
+        product = policy.load_product()
+        product["signing"][field] = [
+            product["signing"]["authenticode_subject"]]
+        with self.assertRaisesRegex(policy.PolicyError, "current"):
             policy.check_product(product)
+        product["signing"][field] = "not a list"
+        with self.assertRaisesRegex(policy.PolicyError, "list"):
+            policy.check_product(product)
+        product["signing"][field] = ["something replaced"]
+        policy.check_product(product)
 
     def test_a_current_maintainer_is_never_retired(self):
         product = policy.load_product()

@@ -44,12 +44,10 @@ class Host:
     product: Product
     builds: Store
     state_dir: Path
-    artifact_pub: str
     staging: Store | None = None
     update: Store | None = None
     mirrors: list[Store] = field(default_factory=list)
     git_dir: Path | None = None
-    artifact_key: Path | None = None
     index_key: Path | None = None
     index_pub: list[str] | None = None
     cosign: str = "cosign"
@@ -64,7 +62,7 @@ class Host:
     def dry_run(self) -> dict:
         return index_mod.dry_run(
             self.product, self.builds, self.update,
-            artifact_pub=self.artifact_pub, state_dir=self.state_dir,
+            state_dir=self.state_dir,
             git_dir=self.git_dir, cosign=self.cosign,
             authenticode_ca=self.authenticode_ca, index_pub=self.index_pub)
 
@@ -105,8 +103,7 @@ class Host:
         try:
             done = promote_mod.promote(
                 self.product, self.staging, self.builds,
-                git_dir=self.git_dir, artifact_key=self.artifact_key,
-                artifact_pub=self.artifact_pub, cosign=self.cosign)
+                git_dir=self.git_dir, cosign=self.cosign)
         except promote_mod.PromoteIncomplete as e:
             done = e.done
             problem(str(e), e.passing)
@@ -122,8 +119,7 @@ class Host:
         try:
             index = index_mod.publish(
                 self.product, self.builds, self.update,
-                index_key=self.index_key, artifact_pub=self.artifact_pub,
-                state_dir=self.state_dir, artifact_key=self.artifact_key,
+                index_key=self.index_key, state_dir=self.state_dir,
                 force=force, mirrors=self.mirrors, git_dir=self.git_dir,
                 cosign=self.cosign, authenticode_ca=self.authenticode_ca,
                 index_pub=self.index_pub)
@@ -135,8 +131,7 @@ class Host:
         else:
             # Read back what was published, as a client would see it.
             verify_mod.verify(self.product, self.update, self.builds,
-                              index_keys=self.index_pub,
-                              artifact_key=self.artifact_pub)
+                              index_keys=self.index_pub)
             channels = index["channels"]
             print(f"{PUBLISHED} {index['serial']}, stable "
                   f"{channels['stable']}, beta {channels['beta']}, nightly "
