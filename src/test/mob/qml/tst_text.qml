@@ -256,6 +256,23 @@ Item {
             compare(text.editor.text, "abcd")
         }
 
+        // The notice goes after a while; the result does not go with it:
+        // its status sheet still offers it.
+        function test_a_result_not_put_in_outlives_its_notice() {
+            type("abc")
+            text.request("decrypt")
+            type("d")
+            fake.finish(true, "result")
+            const id = text.offeredId
+            verify(id !== 0)
+            text.notice.close()
+            tryVerify(() => !text.notice.visible)
+            verify(text.heldResult(id))
+            text.putIn(id)
+            compare(text.editor.text, "result")
+            verify(!text.heldResult(id))
+        }
+
         function test_undo_meanwhile_counts_as_a_change() {
             type("abc")
             text.request("decrypt")

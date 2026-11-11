@@ -328,9 +328,13 @@ Item {
             picker.toggle("CCCC")
             compare(picker.pickedCount, 1)
             let got = null
-            picker.accepted.connect(ids => got = ids)
+            let times = 0
+            picker.accepted.connect(ids => { got = ids; ++times })
+            // Tapped twice before it has slid away: taken once.
+            findByName(picker.contentItem, "keyPickerAccept").clicked()
             findByName(picker.contentItem, "keyPickerAccept").clicked()
             compare(got, ["DDDD"])
+            compare(times, 1)
             // Begun again, nothing is ticked.
             picker.begin("Add keys", [])
             compare(picker.pickedCount, 0)
@@ -397,6 +401,17 @@ Item {
             tryVerify(() => sheet.opened)
             verify(findByName(sheet.contentItem, "revokeReason_3").checked)
             compare(findByName(sheet.contentItem, "revokeReason_4"), null)
+            compare(findByName(sheet.contentItem, "revokeReason_2").text,
+                    "A newer subkey replaces it")
+            sheet.close()
+            tryVerify(() => !sheet.visible)
+
+            // A whole key is replaced by a newer key, not a subkey.
+            sheet.beginForKey({"keyId": "0123456789ABCDEF"}, false)
+            tryVerify(() => sheet.opened)
+            verify(findByName(sheet.contentItem, "revokeReason_3").checked)
+            compare(findByName(sheet.contentItem, "revokeReason_2").text,
+                    "A newer key replaces it")
             sheet.close()
         }
 
@@ -814,6 +829,18 @@ Item {
             tryVerify(() => !said.visible, 3000)
         }
 
+        // A key's state is worded once: the list's status decides where
+        // there is one (a revoked key the shell lists as disabled reads
+        // "Disabled" on its page too); a subkey has only its flags.
+        function test_a_key_s_state_follows_its_row() {
+            compare(Wording.keyState({"status": "disabled", "revoked": true}), "Disabled")
+            compare(Wording.keyState({"status": "revoked"}), "Revoked")
+            compare(Wording.keyState({"revoked": true, "disabled": true}), "Revoked")
+            compare(Wording.keyState({"expired": true, "expires": new Date(NaN)}), "Expired")
+            compare(Wording.keyState({"status": "ok", "expires": new Date(NaN)}),
+                    "Does not expire")
+        }
+
         function test_the_key_s_state_and_delete_apart() {
             detail.key = {"name": "Alice", "fingerprint": "AAAA".repeat(10),
                           "status": "ok", "canEncrypt": true, "usable": true,
@@ -930,11 +957,11 @@ Item {
             // for another try.
             addSubkey.busy = false
             addSubkey.settle(false, {"reason": "bad_passphrase",
-                                     "error": "Incorrect passphrase. Please try again."})
+                                     "error": "The passphrase was wrong. Try again with the right one."})
             verify(addSubkey.opened)
             const problem = findByName(addSubkey.contentItem, "addSubkeyProblem")
             verify(problem.visible)
-            compare(problem.text, "Incorrect passphrase. Please try again.")
+            compare(problem.text, "The passphrase was wrong. Try again with the right one.")
             verify(run.enabled)
             // Tried again from the same button, asked for the passphrase anew.
             compare(run.text, "Try again")
@@ -943,7 +970,7 @@ Item {
             verify(!problem.visible)
             compare(run.text, "Add")
             addSubkey.settle(false, {"reason": "bad_passphrase",
-                                     "error": "Incorrect passphrase. Please try again."})
+                                     "error": "The passphrase was wrong. Try again with the right one."})
             // Any other failure is said as it is, not as a passphrase one.
             addSubkey.settle(false, {"reason": "failed", "error": "Not supported."})
             compare(problem.text, "Not supported.")

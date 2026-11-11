@@ -114,6 +114,16 @@ Item {
             compare(Theme.signaturesTone([{"signature": "valid", "verdict": "good"},
                                           {"signature": "invalid", "verdict": "bad"}]),
                     Theme.danger)
+            // Said as it is coloured: never "checked" in red.
+            const revoked = {"signature": "valid", "verdict": "bad", "keyStatus": "revoked"}
+            const record = {"operation": "verify", "phase": "done",
+                            "report": {"signatures": [revoked]}}
+            compare(Wording.title(record), "Signature problem")
+            compare(Wording.signatureSummary(revoked), "Made by a revoked key")
+            // The worst of several is the one a line names.
+            const good = {"signature": "valid", "verdict": "good", "keyStatus": "ok"}
+            compare(Wording.worstSignature([good, revoked]), revoked)
+            compare(Wording.signatureSummary(Wording.worstSignature([good])), "Valid")
         }
 
         // A file's result opened from the file (its details) is not one
@@ -128,6 +138,24 @@ Item {
             sheet.close()
             tryVerify(() => !sheet.visible)
             verify(!sheet.single)
+        }
+
+        // Decrypt & Verify of a message no one signed says so, under the
+        // decryption's own grade; a signed one, a plain Decrypt or a failure
+        // does not.
+        function test_an_unsigned_message_is_said_to_be() {
+            const record = (verify, status, sigs) => ({
+                "operation": "decrypt", "verify": verify,
+                "report": {"status": status, "signatures": sigs}})
+            verify(sheet.notSigned(record(true, 1, [])))
+            verify(!sheet.notSigned(record(true, 1, [{"signature": "valid"}])))
+            verify(!sheet.notSigned(record(false, 1, [])))
+            verify(!sheet.notSigned(record(true, -1, [])))
+            verify(!sheet.notSigned({"operation": "verify", "verify": true,
+                                     "report": {"status": 1, "signatures": []}}))
+            const line = findByName(sheet.body, "statusUnsigned")
+            verify(line !== null)
+            compare(line.text, "It was not signed: there was no signature to check.")
         }
 
         // A cancel's stamp says it was cancelled.

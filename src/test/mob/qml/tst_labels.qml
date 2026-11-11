@@ -118,6 +118,19 @@ Item {
 
         // A badge at a row's end keeps the row's margin, as the words at
         // its start do; two do not touch. A control brings its own inset.
+        // A row to tap is a button to TalkBack, which offers a list item no
+        // click; one only to read is text.
+        function test_a_row_to_tap_is_a_button() {
+            compare(chipRow.Accessible.role, Accessible.Button)
+            const shown = createTemporaryObject(rowComponent, root, {"inert": true})
+            compare(shown.Accessible.role, Accessible.StaticText)
+        }
+
+        Component {
+            id: rowComponent
+            ListRow { text: "A fact" }
+        }
+
         function test_a_rows_badges_keep_its_margin() {
             compare(chipRow.rightPadding, Theme.gap)
             const end = primaryChip.mapToItem(chipRow, primaryChip.width, 0).x

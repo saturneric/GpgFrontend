@@ -104,12 +104,35 @@ Item {
             const repeat = findByName(pinSheet.contentItem, "pinRepeat")
             const problem = findByName(pinSheet.contentItem, "pinMismatch")
             verify(repeat.visible)
-            pin.text = "2468"
+            pin.text = "24682468"
             verify(!problem.visible)
-            repeat.text = "2469"
+            repeat.text = "24682469"
             verify(problem.visible)
-            repeat.text = "2468"
+            repeat.text = "24682468"
             verify(!problem.visible)
+            mouseClick(findByName(pinSheet.contentItem, "pinQuit"))
+            answered(() => TestSupport.answer(), "cancelled")
+        }
+
+        // A new PIN as short as the desktop refuses one: said so, and it
+        // cannot be set, the same twice or not.
+        function test_a_short_new_pin_cannot_be_set() {
+            TestSupport.askPin(true, 0)
+            tryVerify(() => pinSheet.opened, 3000, "the PIN prompt came up")
+            const pin = findByName(pinSheet.contentItem, "pinField")
+            const repeat = findByName(pinSheet.contentItem, "pinRepeat")
+            const problem = findByName(pinSheet.contentItem, "pinMismatch")
+            const set = findByName(pinSheet.contentItem, "pinUnlock")
+            verify(set, "the Set PIN button")
+            compare(InteractionBridge.minPinLength, 8)
+            pin.text = "1234"
+            repeat.text = "1234"
+            verify(problem.visible)
+            verify(!set.enabled)
+            pin.text = "12345678"
+            repeat.text = "12345678"
+            verify(!problem.visible)
+            verify(set.enabled)
             mouseClick(findByName(pinSheet.contentItem, "pinQuit"))
             answered(() => TestSupport.answer(), "cancelled")
         }

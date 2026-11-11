@@ -45,6 +45,44 @@ Item {
             WorkSelection.reset()
         }
 
+        // The session's history opens over the page, shuts with Back, and
+        // says when nothing was done yet (no operation runs here).
+        function test_the_history_opens_and_backs_away() {
+            sheets.openHistory()
+            tryVerify(() => sheets.history.opened)
+            verify(sheets.sheetOpen)
+            const empty = findChild(sheets.history.contentItem, "historyEmpty")
+            verify(empty !== null)
+            compare(sheets.history.batches.length === 0, empty.visible)
+            verify(sheets.back())
+            tryVerify(() => !sheets.history.visible)
+        }
+
+        // A key with two subkeys that could do it is asked which: the one
+        // tapped goes on; Back turns it down and nothing goes on.
+        function test_a_subkey_is_chosen_or_turned_down() {
+            const choice = {"key": "AAAA", "name": "Alice", "role": "encrypt",
+                            "subkeys": [{"fingerprint": "S1", "keyId": "1111", "primary": true},
+                                        {"fingerprint": "S2", "keyId": "2222", "primary": false}]}
+            let got = null
+            sheets.chooseSubkey(choice, sub => got = sub)
+            const sheet = sheets.subkeyChoice
+            tryVerify(() => sheet.opened)
+            verify(findChild(sheet.contentItem, "subkeyChoice_any").checked)
+            findChild(sheet.contentItem, "subkeyChoice_2222").clicked()
+            compare(sheet.chosen, "S2")
+            findChild(sheet.contentItem, "subkeyChoiceGo").clicked()
+            compare(got, "S2")
+            tryVerify(() => !sheet.visible)
+
+            got = null
+            sheets.chooseSubkey(choice, sub => got = sub)
+            tryVerify(() => sheet.opened)
+            verify(sheets.back())
+            tryVerify(() => !sheet.visible)
+            compare(got, null)
+        }
+
         function openDeep() {
             const box = sheets.toolbox
             sheets.openKeys("encrypt", {"op": "encrypt", "signs": true,
@@ -90,14 +128,14 @@ Item {
             verify(!sheets.back())
         }
 
-        // Any sheet up is known (Theme.openSheets), a page's own too: Back,
+        // Any sheet up is known (Sheets.open), a page's own too: Back,
         // asked of the page (MainPage.back()), goes to the one on top, never
         // to the page under it -- even when the sheet lost the focus. A sheet
         // at work is not let go.
         function test_back_goes_to_the_sheet_on_top() {
             pageSheet.open()
             tryVerify(() => pageSheet.opened)
-            const open = Theme.openSheets
+            const open = Sheets.open
             compare(open[open.length - 1], pageSheet)
             pageSheet.interactive = false
             open[open.length - 1].back()
@@ -105,7 +143,7 @@ Item {
             pageSheet.interactive = true
             open[open.length - 1].back()
             tryVerify(() => !pageSheet.visible)
-            verify(Theme.openSheets.indexOf(pageSheet) < 0)
+            verify(Sheets.open.indexOf(pageSheet) < 0)
         }
 
         // Closing every sheet for the application's own reasons (a share
@@ -115,7 +153,7 @@ Item {
             pageSheet.open()
             askingSheet.open()
             tryVerify(() => pageSheet.opened && askingSheet.opened)
-            verify(Theme.closeOpenSheets())
+            verify(Sheets.closeAll())
             tryVerify(() => !pageSheet.visible)
             verify(askingSheet.opened)
             askingSheet.close()
@@ -124,10 +162,10 @@ Item {
             pageSheet.open()
             tryVerify(() => pageSheet.opened)
             pageSheet.interactive = false
-            verify(Theme.closeOpenSheets())
+            verify(Sheets.closeAll())
             verify(pageSheet.opened)
             pageSheet.interactive = true
-            verify(!Theme.closeOpenSheets())
+            verify(!Sheets.closeAll())
             tryVerify(() => !pageSheet.visible)
         }
 
@@ -139,12 +177,12 @@ Item {
             tryVerify(() => pageSheet.opened)
             pageSheet.close()
             verify(pageSheet.visible, "still sliding away")
-            verify(Theme.openSheets.indexOf(pageSheet) < 0)
+            verify(Sheets.open.indexOf(pageSheet) < 0)
             tryVerify(() => !pageSheet.visible)
             // Opened again, it is Back's again.
             pageSheet.open()
             tryVerify(() => pageSheet.opened)
-            compare(Theme.openSheets[Theme.openSheets.length - 1], pageSheet)
+            compare(Sheets.open[Sheets.open.length - 1], pageSheet)
             pageSheet.back()
             tryVerify(() => !pageSheet.visible)
         }

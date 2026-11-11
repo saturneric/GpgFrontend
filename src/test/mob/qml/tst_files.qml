@@ -399,6 +399,25 @@ Item {
             ws.clear()
         }
 
+        // The details offer what the row's menu offers for what a file
+        // holds: no Extract or Import for a plain file.
+        function test_details_offer_only_what_the_file_holds() {
+            const ws = files.workspace
+            ws.addFiles([Qt.resolvedUrl("tst_files.qml")])
+            const id = ws.idNamed("tst_files.qml")
+            files.fileDetails.begin(id)
+            tryVerify(() => files.fileDetails.opened)
+            const extract = findByName(files.fileDetails.contentItem, "detailsExtract")
+            const importKeys = findByName(files.fileDetails.contentItem, "detailsImportKeys")
+            verify(extract !== null && importKeys !== null)
+            verify(!extract.visible)
+            verify(!importKeys.visible)
+            compare(extract.text, "Extract to a folder…")
+            files.fileDetails.close()
+            tryVerify(() => !files.fileDetails.visible)
+            ws.clear()
+        }
+
         // Taken off the list, a file's details go with it: nothing is left
         // open about a file that is not there.
         function test_details_go_with_their_file() {
@@ -512,7 +531,7 @@ Item {
             verify(!findByName(content, "fileSha256").parent.visible)
             verify(findByName(content, "folderFiles").visible)
             verify(findByName(content, "folderNote").visible)
-            compare(findByName(content, "detailsExtract"), null)
+            verify(!findByName(content, "detailsExtract").visible)
             compare(findByName(findByName(content, "fileType"), "infoValue").text, "Folder")
             files.fileDetails.close()
             tryVerify(() => !files.fileDetails.visible)
