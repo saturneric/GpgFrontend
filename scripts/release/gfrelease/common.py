@@ -44,6 +44,12 @@ TOOL_TIMEOUT = 3600
 # may weigh. They are read into memory whole, and come from buckets and
 # mirrors others can write to.
 SMALL_OBJECT_LIMIT = 8 << 20
+# Release notes: what the update check reads of them at most
+# (UpdateChecker::kMaxNotesBytes); longer ones it would drop.
+NOTES_LIMIT = 256 << 10
+# How far a clock may be off before something has expired: the update
+# check allows as much (kExpirySkewSeconds).
+EXPIRY_SKEW = dt.timedelta(days=1)
 
 # What a path inside a descriptor or the index may look like: relative to the
 # product root, no scheme, no "..", no empty or dot segments, nothing a URL
@@ -97,6 +103,22 @@ def candidate_error(where: str, error: Exception) -> ReleaseError:
     return ReleaseError(f"{where}: {error}")
 
 
+def verify_candidate(where: str, work: Path, staged: dict, identity: str,
+                     cosign: str) -> list[str]:
+    """The staged candidate in @p work (staged.json taken out), as CI
+    signed it for @p identity and the commit @p staged names; returns its
+    files, which must be the ones @p staged lists."""
+    try:
+        verified = rc.verify(work, identity, staged["commit"], cosign)
+    except (rc.CandidateError, rc.CandidateTimeout) as e:
+        raise candidate_error(where, e) from e
+    files = sorted(p.name for p in verified if p.name not in (SUMS, BUNDLE))
+    if files != sorted(staged["files"]):
+        raise ReleaseError(f"{where}: staged.json lists other files than the "
+                           "signed manifest")
+    return files
+
+
 def check_relpath(path: str) -> str:
     # fullmatch: "$" would also match before a trailing newline, and let
     # "a/b\n/c" through.
@@ -117,17 +139,12 @@ def sha256_bytes(data: bytes) -> str:
 def load_json(data: bytes | str, what: str) -> dict:
     """A JSON object read from a store or the state directory; anything else
     is a ReleaseError naming @p what, never a traceback."""
-    def unique(pairs):
-        # A key given twice reads differently in different parsers: the
-        # checks here would pass on one value and a client act on the other.
-        keys = [k for k, _ in pairs]
-        if len(keys) != len(set(keys)):
-            raise ValueError("a key is given twice")
-        return dict(pairs)
+    if not isinstance(data, (bytes, str)):
+        raise ReleaseError(f"{what}: missing")
     if len(data) > SMALL_OBJECT_LIMIT:
         raise ReleaseError(f"{what}: larger than {SMALL_OBJECT_LIMIT} bytes")
     try:
-        value = json.loads(data, object_pairs_hook=unique)
+        value = json.loads(data, object_pairs_hook=policy_mod.unique_keys)
     except (ValueError, UnicodeDecodeError, RecursionError) as e:
         raise ReleaseError(f"{what}: not JSON ({e})") from e
     if not isinstance(value, dict):
@@ -191,8 +208,16 @@ def iso(t: dt.datetime) -> str:
     return t.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+_UTC_TIME = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:"
+                       r"[0-9]{2}Z", re.ASCII)
+
+
 def parse_iso(text: str) -> dt.datetime:
+    """A time as iso() writes it, every field zero-padded: strptime alone
+    would take 2028-1-5T1:2:3Z too, which the update check refuses."""
     try:
+        if not _UTC_TIME.fullmatch(text):
+            raise ValueError("not YYYY-MM-DDTHH:MM:SSZ")
         return dt.datetime.strptime(text, "%Y-%m-%dT%H:%M:%SZ").replace(
             tzinfo=dt.timezone.utc)
     except (TypeError, ValueError) as e:
@@ -459,7 +484,7 @@ def notes_at(git_dir: Path, ref: str, version: str) -> bytes | None:
         return None
     notes = run(["git", "-C", git_dir, "show", f"{commit}:{path}"],
                 text=False).stdout
-    if len(notes) > SMALL_OBJECT_LIMIT:
-        raise ReleaseError(f"{ref}:{path}: larger than {SMALL_OBJECT_LIMIT} "
-                           "bytes")
+    if len(notes) > NOTES_LIMIT:
+        raise ReleaseError(f"{ref}:{path}: larger than {NOTES_LIMIT} bytes, "
+                           "which no client reads")
     return notes if notes.strip() else None
