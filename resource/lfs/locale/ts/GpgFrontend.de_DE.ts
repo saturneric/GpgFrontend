@@ -387,6 +387,11 @@
         <source>Only the category goes: its keys stay, in the key list and in their other categories.</source>
         <translation>Nur die Kategorie wird entfernt: Die Schlüssel bleiben in der Schlüsselliste und in ihren anderen Kategorien.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="1"/>
+        <source>%1 could not be taken out of the category.</source>
+        <translation>%1 konnte nicht aus der Kategorie entfernt werden.</translation>
+    </message>
 </context>
 <context>
     <name>CategoryListSheet</name>
@@ -633,6 +638,16 @@
         <source>Quit</source>
         <translation>Beenden</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/ErrorPage.qml" line="1"/>
+        <source>Open the default profile</source>
+        <translation>Standardprofil öffnen</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/ErrorPage.qml" line="1"/>
+        <source>GpgFrontend could not start again. Quit, then open it again: the default profile opens.</source>
+        <translation>GpgFrontend konnte nicht neu starten. Beenden Sie es und öffnen Sie es erneut: Das Standardprofil wird geöffnet.</translation>
+    </message>
 </context>
 <context>
     <name>FactsPage</name>
@@ -855,8 +870,8 @@
     </message>
     <message>
         <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="1"/>
-        <source>Extract to a folder…</source>
-        <translation>In einen Ordner entpacken …</translation>
+        <source>Pick it again</source>
+        <translation>Erneut auswählen</translation>
     </message>
 </context>
 <context>
@@ -1369,8 +1384,8 @@
     </message>
     <message>
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="946"/>
-        <source>A copy stays in GpgFrontend&apos;s private storage for up to 24 hours so the receiving app can read it. You can remove it sooner under Temporary shared files in Settings.</source>
-        <translation>Eine Kopie bleibt bis zu 24 Stunden in GpgFrontends privatem Speicher, damit die empfangende App sie lesen kann. Sie können sie früher entfernen, unter Temporär geteilte Dateien in den Einstellungen.</translation>
+        <source>A copy stays in GpgFrontend&apos;s private storage for up to an hour so the receiving app can read it. You can remove it sooner under Temporary shared files in Settings.</source>
+        <translation>Eine Kopie bleibt bis zu einer Stunde in GpgFrontends privatem Speicher, damit die empfangende App sie lesen kann. Sie können sie früher entfernen, unter Temporär geteilte Dateien in den Einstellungen.</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="951"/>
@@ -1501,6 +1516,11 @@
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
         <source>Added as one item, with everything in it. Encrypting it makes one .tar.gpg archive.</source>
         <translation>Wird als ein Eintrag mit allem Inhalt hinzugefügt. Beim Verschlüsseln entsteht ein .tar.gpg-Archiv.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
+        <source>Extract to a folder…</source>
+        <translation>In einen Ordner entpacken …</translation>
     </message>
 </context>
 <context>
@@ -2834,13 +2854,13 @@
     </message>
     <message>
         <location filename="../../../../src/mob/model/ErrorWording.cpp" line="55"/>
-        <source>Incorrect passphrase. Please try again.</source>
-        <translation>Falsche Passphrase. Bitte versuchen Sie es erneut.</translation>
+        <source>The passphrase was wrong. Try again with the right one.</source>
+        <translation>Die Passphrase war falsch. Versuchen Sie es mit der richtigen erneut.</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/model/ErrorWording.cpp" line="60"/>
-        <source>No passphrase was given. Please try again.</source>
-        <translation>Es wurde keine Passphrase eingegeben. Bitte versuchen Sie es erneut.</translation>
+        <source>No passphrase was given, so the key could not be used.</source>
+        <translation>Es wurde keine Passphrase angegeben, daher konnte der Schlüssel nicht verwendet werden.</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/model/ErrorWording.cpp" line="65"/>
@@ -3009,6 +3029,16 @@
         <source>This key database cannot be used here.</source>
         <translation>Diese Schlüsseldatenbank kann hier nicht verwendet werden.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="1"/>
+        <source>Wait until the work under way is done, or stop it, then switch.</source>
+        <translation>Warten Sie, bis die laufende Arbeit erledigt ist, oder brechen Sie sie ab, und wechseln Sie dann.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="1"/>
+        <source>A key database is still being opened.</source>
+        <translation>Eine Schlüsseldatenbank wird noch geöffnet.</translation>
+    </message>
 </context>
 <context>
     <name>GpgFrontend::Mobile::KeyGenProfilesController</name>
@@ -3021,6 +3051,11 @@
         <location filename="../../../../src/mob/model/KeyGenProfilesController.cpp" line="275"/>
         <source>Choose the algorithms in full: this one cannot be made here.</source>
         <translation>Wählen Sie die Algorithmen vollständig aus: Dieser kann hier nicht erstellt werden.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyGenProfilesController.cpp" line="1"/>
+        <source>That profile is no longer there.</source>
+        <translation>Dieses Profil gibt es nicht mehr.</translation>
     </message>
 </context>
 <context>
@@ -3124,6 +3159,11 @@
         <location filename="../../../../src/mob/model/ProfilesController.cpp" line="436"/>
         <source>GpgFrontend could not start again. It opens this profile the next time it starts.</source>
         <translation>GpgFrontend konnte nicht neu gestartet werden. Beim nächsten Start wird dieses Profil geöffnet.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/ProfilesController.cpp" line="1"/>
+        <source>Another profile package is still being written or read.</source>
+        <translation>Ein anderes Profilpaket wird noch geschrieben oder gelesen.</translation>
     </message>
 </context>
 <context>
@@ -18981,6 +19021,32 @@ Im Browser öffnen?</translation>
         <source>Updated %1 key(s).</source>
         <translation>%1 Schlüssel aktualisiert.</translation>
     </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/components/ImportSheet.qml" line="1"/>
+        <source>Imported %n key(s).</source>
+        <translation>
+            <numerusform>%n Schlüssel importiert.</numerusform>
+            <numerusform>%n Schlüssel importiert.</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/components/ImportSheet.qml" line="1"/>
+        <source>Updated %n key(s).</source>
+        <translation>
+            <numerusform>%n Schlüssel aktualisiert.</numerusform>
+            <numerusform>%n Schlüssel aktualisiert.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/ImportSheet.qml" line="1"/>
+        <source>This file could not be opened. Pick it again, or save it to the device first.</source>
+        <translation>Diese Datei konnte nicht geöffnet werden. Wählen Sie sie erneut aus oder speichern Sie sie zuerst auf dem Gerät.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/ImportSheet.qml" line="1"/>
+        <source>This file is too large to be a key file.</source>
+        <translation>Diese Datei ist zu groß für eine Schlüsseldatei.</translation>
+    </message>
 </context>
 <context>
     <name>KeyAlgoChooser</name>
@@ -19306,6 +19372,11 @@ Im Browser öffnen?</translation>
         <translation>Geheimer Schlüssel gespeichert.</translation>
     </message>
     <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="72"/>
+        <source>Public key saved.</source>
+        <translation>Öffentlicher Schlüssel gespeichert.</translation>
+    </message>
+    <message>
         <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="210"/>
         <source>Owner</source>
         <translation>Eigentümer</translation>
@@ -19577,11 +19648,6 @@ Im Browser öffnen?</translation>
         <translation>Wer diese Datei und die Passphrase hat, kann Ihre Nachrichten lesen und in Ihrem Namen signieren. Bewahren Sie sie sicher auf, niemals zusammen mit der Passphrase.</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="707"/>
-        <source>Choose where</source>
-        <translation>Speicherort wählen</translation>
-    </message>
-    <message>
         <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="725"/>
         <source>Delete this key?</source>
         <translation>Diesen Schlüssel löschen?</translation>
@@ -19650,6 +19716,11 @@ Im Browser öffnen?</translation>
         <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="851"/>
         <source>Save as file</source>
         <translation>Als Datei speichern</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="1"/>
+        <source>Back it up first (Back up secret key) if you may need it again.</source>
+        <translation>Sichern Sie ihn zuerst (Geheimen Schlüssel sichern), falls Sie ihn wieder brauchen könnten.</translation>
     </message>
 </context>
 <context>
@@ -20027,6 +20098,21 @@ Im Browser öffnen?</translation>
         <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="226"/>
         <source>Only the group goes: its keys stay in the key list.</source>
         <translation>Nur die Gruppe wird gelöscht: ihre Schlüssel bleiben in der Schlüsselliste.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="1"/>
+        <source>%1 could not be taken out of the group.</source>
+        <translation>%1 konnte nicht aus der Gruppe entfernt werden.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="1"/>
+        <source>The group could not be deleted.</source>
+        <translation>Die Gruppe konnte nicht gelöscht werden.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="1"/>
+        <source>It is also in %1, which will lose it.</source>
+        <translation>Sie ist auch in %1, die sie verlieren.</translation>
     </message>
 </context>
 <context>
@@ -20734,6 +20820,11 @@ Im Browser öffnen?</translation>
         <source>OK</source>
         <translation>OK</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/PassphraseSheet.qml" line="1"/>
+        <source>Leaving GpgFrontend now cancels this. Copy the passphrase first, or type it.</source>
+        <translation>Wenn Sie GpgFrontend jetzt verlassen, wird dies abgebrochen. Kopieren Sie die Passphrase vorher oder tippen Sie sie ein.</translation>
+    </message>
 </context>
 <context>
     <name>PinSheet</name>
@@ -20796,6 +20887,14 @@ Im Browser öffnen?</translation>
         <location filename="../../../../src/mob/qml/components/PinSheet.qml" line="78"/>
         <source>The two PINs are not the same.</source>
         <translation>Die beiden PINs stimmen nicht überein.</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/components/PinSheet.qml" line="1"/>
+        <source>Use at least %n characters.</source>
+        <translation>
+            <numerusform>Verwenden Sie mindestens %n Zeichen.</numerusform>
+            <numerusform>Verwenden Sie mindestens %n Zeichen.</numerusform>
+        </translation>
     </message>
 </context>
 <context>
@@ -20993,6 +21092,11 @@ Im Browser öffnen?</translation>
         <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="216"/>
         <source>Open</source>
         <translation>Öffnen</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="1"/>
+        <source>What is not saved goes: the text on the Text page, files made and not saved, and operations under way.</source>
+        <translation>Was nicht gespeichert ist, geht verloren: der Text auf der Textseite, erstellte und nicht gespeicherte Dateien und laufende Vorgänge.</translation>
     </message>
 </context>
 <context>
@@ -23977,6 +24081,16 @@ Machen Sie diese Änderungen rückgängig oder wählen Sie Abbrechen, um alle Ih
         <source>Opening the profile was cancelled.</source>
         <translation>Das Öffnen des Profils wurde abgebrochen.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="1"/>
+        <source>Use at most %1 characters.</source>
+        <translation>Verwenden Sie höchstens %1 Zeichen.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="1"/>
+        <source>A profile with this name already exists.</source>
+        <translation>Ein Profil mit diesem Namen existiert bereits.</translation>
+    </message>
 </context>
 <context>
     <name>QWizardPage</name>
@@ -24041,6 +24155,11 @@ Machen Sie diese Änderungen rückgängig oder wählen Sie Abbrechen, um alle Ih
         <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="84"/>
         <source>A revoked key can no longer be used to encrypt to you or to sign, and this cannot be undone. Unlike deleting, it tells others: share the key afterwards, so they learn of it.</source>
         <translation>Ein widerrufener Schlüssel kann nicht mehr verwendet werden, um an Sie zu verschlüsseln oder zu signieren, und das kann nicht rückgängig gemacht werden. Anders als Löschen teilt es dies anderen mit: Teilen Sie den Schlüssel danach, damit sie davon erfahren.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="1"/>
+        <source>Choose where</source>
+        <translation>Speicherort wählen</translation>
     </message>
 </context>
 <context>
@@ -24506,6 +24625,16 @@ Machen Sie diese Änderungen rückgängig oder wählen Sie Abbrechen, um alle Ih
         <source>Opening your profile…</source>
         <translation>Ihr Profil wird geöffnet…</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/SplashPage.qml" line="1"/>
+        <source>Closing your profile…</source>
+        <translation>Profil wird geschlossen…</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/SplashPage.qml" line="1"/>
+        <source>This is taking longer than usual. A large key database takes a while to read the first time.</source>
+        <translation>Das dauert länger als üblich. Eine große Schlüsseldatenbank braucht beim ersten Mal eine Weile zum Lesen.</translation>
+    </message>
 </context>
 <context>
     <name>StatusLine</name>
@@ -24670,6 +24799,21 @@ Machen Sie diese Änderungen rückgängig oder wählen Sie Abbrechen, um alle Ih
         <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="448"/>
         <source>Show less</source>
         <translation>Weniger anzeigen</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="1"/>
+        <source>Put it in the text</source>
+        <translation>In den Text einfügen</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="1"/>
+        <source>Import the signer&apos;s key</source>
+        <translation>Schlüssel des Unterzeichners importieren</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="1"/>
+        <source>It was not signed: there was no signature to check.</source>
+        <translation>Sie war nicht signiert: Es gab keine Signatur zu prüfen.</translation>
     </message>
 </context>
 <context>
@@ -24982,6 +25126,26 @@ Machen Sie diese Änderungen rückgängig oder wählen Sie Abbrechen, um alle Ih
         <location filename="../../../../src/mob/qml/TextPage.qml" line="235"/>
         <source>Done on an earlier text, so the result was not put in.</source>
         <translation>Mit einem früheren Text ausgeführt, daher wurde das Ergebnis nicht übernommen.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="1"/>
+        <source>Share the decrypted text?</source>
+        <translation>Entschlüsselten Text teilen?</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="1"/>
+        <source>The app you choose gets it as readable text, and keeps it as that app does. It is not encrypted any more.</source>
+        <translation>Die gewählte App erhält ihn als lesbaren Text und bewahrt ihn so auf, wie sie es tut. Er ist nicht mehr verschlüsselt.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="1"/>
+        <source>Only for a signed or encrypted message.</source>
+        <translation>Nur für eine signierte oder verschlüsselte Nachricht.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="1"/>
+        <source>Only for an encrypted message.</source>
+        <translation>Nur für eine verschlüsselte Nachricht.</translation>
     </message>
 </context>
 <context>
@@ -25807,6 +25971,41 @@ Machen Sie diese Änderungen rückgängig oder wählen Sie Abbrechen, um alle Ih
         <source>%1 · by its name</source>
         <translation>%1 · laut Name</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Made by a revoked key</source>
+        <translation>Mit einem widerrufenen Schlüssel erstellt</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Made by an expired key</source>
+        <translation>Mit einem abgelaufenen Schlüssel erstellt</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Made by a key not allowed to sign</source>
+        <translation>Mit einem Schlüssel erstellt, der nicht signieren darf</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Made by a key with problems</source>
+        <translation>Mit einem fehlerhaften Schlüssel erstellt</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Done</source>
+        <translation>Erledigt</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/crypto/WorkSelection.cpp" line="1"/>
+        <source>Its secret part is not on this device</source>
+        <translation>Sein geheimer Teil ist nicht auf diesem Gerät</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>This cannot be decrypted because no matching secret key is available.</source>
+        <translation>Dies kann nicht entschlüsselt werden, da kein passender geheimer Schlüssel vorhanden ist.</translation>
+    </message>
 </context>
 <context>
     <name>GpgFrontend::Mobile::KeyActionsController</name>
@@ -25819,6 +26018,11 @@ Machen Sie diese Änderungen rückgängig oder wählen Sie Abbrechen, um alle Ih
         <location filename="../../../../src/mob/model/KeyActionsController.cpp" line="631"/>
         <source>The revocation could not be applied, so the key has not been revoked.</source>
         <translation>Der Widerruf konnte nicht angewendet werden, daher wurde der Schlüssel nicht widerrufen.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyActionsController.cpp" line="1"/>
+        <source>Another change is still under way. Try again once it is done.</source>
+        <translation>Eine andere Änderung läuft noch. Versuchen Sie es erneut, wenn sie abgeschlossen ist.</translation>
     </message>
 </context>
 <context>
@@ -25852,6 +26056,105 @@ Machen Sie diese Änderungen rückgängig oder wählen Sie Abbrechen, um alle Ih
         <location filename="../../../../src/mob/files/FolderArchive.cpp" line="1"/>
         <source>A file could not be written there.</source>
         <translation>Eine Datei konnte dort nicht geschrieben werden.</translation>
+    </message>
+</context>
+<context>
+    <name>GpgFrontend::Shell::RevocationReasons</name>
+    <message>
+        <location filename="../../../../src/shell/rules/RevocationReasons.cpp" line="1"/>
+        <source>No reason given</source>
+        <translation>Kein Grund angegeben</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/rules/RevocationReasons.cpp" line="1"/>
+        <source>It may have been compromised</source>
+        <translation>Möglicherweise kompromittiert</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/rules/RevocationReasons.cpp" line="1"/>
+        <source>A newer subkey replaces it</source>
+        <translation>Ein neuerer Unterschlüssel ersetzt ihn</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/rules/RevocationReasons.cpp" line="1"/>
+        <source>It is no longer used</source>
+        <translation>Er wird nicht mehr verwendet</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/rules/RevocationReasons.cpp" line="1"/>
+        <source>The user ID is no longer valid</source>
+        <translation>Die Benutzer-ID ist nicht mehr gültig.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/rules/RevocationReasons.cpp" line="1"/>
+        <source>A newer key replaces it</source>
+        <translation>Ein neuerer Schlüssel ersetzt ihn</translation>
+    </message>
+</context>
+<context>
+    <name>HistorySheet</name>
+    <message>
+        <location filename="../../../../src/mob/qml/components/HistorySheet.qml" line="1"/>
+        <source>Recent operations</source>
+        <translation>Letzte Vorgänge</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/HistorySheet.qml" line="1"/>
+        <source>Text</source>
+        <translation>Text</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/HistorySheet.qml" line="1"/>
+        <source>Files</source>
+        <translation>Dateien</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/HistorySheet.qml" line="1"/>
+        <source>Nothing was done yet since GpgFrontend started.</source>
+        <translation>Seit dem Start von GpgFrontend wurde noch nichts ausgeführt.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/HistorySheet.qml" line="1"/>
+        <source>Kept only until GpgFrontend closes.</source>
+        <translation>Wird nur aufbewahrt, bis GpgFrontend beendet wird.</translation>
+    </message>
+</context>
+<context>
+    <name>SubkeyChoiceSheet</name>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SubkeyChoiceSheet.qml" line="1"/>
+        <source>Which subkey?</source>
+        <translation>Welcher Unterschlüssel?</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SubkeyChoiceSheet.qml" line="1"/>
+        <source>%1 has more than one subkey that can sign. Which one should sign this?</source>
+        <translation>%1 hat mehr als einen Unterschlüssel, der signieren kann. Welcher soll dies signieren?</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SubkeyChoiceSheet.qml" line="1"/>
+        <source>%1 has more than one subkey that can encrypt. Which one should this be encrypted to?</source>
+        <translation>%1 hat mehr als einen Unterschlüssel, der verschlüsseln kann. Für welchen soll dies verschlüsselt werden?</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SubkeyChoiceSheet.qml" line="1"/>
+        <source>Let GpgFrontend choose</source>
+        <translation>GpgFrontend wählen lassen</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SubkeyChoiceSheet.qml" line="1"/>
+        <source>made %1</source>
+        <translation>erstellt %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SubkeyChoiceSheet.qml" line="1"/>
+        <source>Cancel</source>
+        <translation>Abbrechen</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SubkeyChoiceSheet.qml" line="1"/>
+        <source>Continue</source>
+        <translation>Weiter</translation>
     </message>
 </context>
 </TS>
