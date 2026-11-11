@@ -13,8 +13,11 @@
   python3 scripts/release/gfrelease root new|sign|verify     the trust root
   python3 scripts/release/gfrelease index-keys renew|rotate  the index keys
 
-The product (slug, repository, workflow, mirror bases, public keys) comes from
-release/product.json, the series and withdrawals from release/policy.toml.
+The product (slug, mirror bases, artifact rules) comes from
+release/product.json, the series and withdrawals from release/policy.toml,
+and what is trusted (the build workflow, the maintainers, the index keys)
+from the signed root and index-keys list in release/root/ and
+release/index-keys/ (trust.py).
 Every option can also be set as GFR_<OPTION> in the environment, which is how
 the signing host's container configures it (the Release-Server repository).
 Stores are rclone paths that already include the product root.
@@ -46,8 +49,7 @@ import stage as stage_mod  # noqa: E402
 import trust  # noqa: E402
 import verify as verify_mod  # noqa: E402
 from common import (MINISIG, ROOT, Product, ReleaseError,  # noqa: E402
-                    atomic_write, default_product, load_json, parse_iso, run,
-                    utcnow)
+                    atomic_write, load_json, parse_iso, run, utcnow)
 from store import Store  # noqa: E402
 
 
@@ -70,8 +72,13 @@ def opt(p, name, help, **kw):
 
 def product_of(args) -> Product:
     if args.product:
-        return Product(Path(args.product), Path(args.policy))
-    return default_product()
+        product, policy = Path(args.product), Path(args.policy)
+    else:
+        product = ROOT / "release" / "product.json"
+        policy = product.with_name("policy.toml")
+    return Product(product, policy, root_dir=args.root_dir,
+                   index_keys_dir=args.index_keys_dir,
+                   root_sha256=args.root_sha256)
 
 
 def need(args, *names):
@@ -95,6 +102,8 @@ def main(argv=None) -> int:
     opt(ap, "root_dir", "the trust roots (default: release/root/)")
     opt(ap, "index_keys_dir", "the index-keys lists (default: "
         "release/index-keys/)")
+    opt(ap, "root_sha256", "the sha256 root 1 must have (the signing "
+        "host's anchor)")
     sub = ap.add_subparsers(dest="command", required=True)
 
     r = sub.add_parser("root", help="the trust root (offline)")
@@ -188,7 +197,6 @@ def main(argv=None) -> int:
     v = sub.add_parser("verify", help="check a published index")
     opt(v, "update", "the index store (default: the HTTPS bases)")
     opt(v, "builds", "the artifact store (default: the HTTPS bases)")
-    opt(v, "index_pub", "pinned index key(s), comma-separated (file or base64)")
     opt(v, "cafile", "CA bundle for the HTTPS bases")
     v.add_argument("--deep", action="store_true", help="download every artifact")
     opt(v, "min_days_left", "fail when the index expires sooner than this "
@@ -201,15 +209,12 @@ def main(argv=None) -> int:
 
     try:
         product = product_of(args)
-        signing = product.data["signing"]
-        root_dir = Path(args.root_dir or ROOT / "release" / "root")
-        keys_dir = Path(args.index_keys_dir or
-                        ROOT / "release" / "index-keys")
-
         if args.command == "root":
-            return root_command(args, product.slug, root_dir, keys_dir)
+            return root_command(args, product.slug, product.root_dir,
+                                product.index_keys_dir)
         if args.command == "index-keys":
-            return index_keys_command(args, product.slug, root_dir, keys_dir)
+            return index_keys_command(args, product.slug, product.root_dir,
+                                      product.index_keys_dir)
 
         if args.command == "stage":
             need(args, "candidate", "staging", "ref", "commit", "version",
@@ -271,9 +276,8 @@ def main(argv=None) -> int:
                 bases = product.data["bases"]
                 update = verify_mod.HttpSource(bases["update"], product.slug, args.cafile)
                 builds = verify_mod.HttpSource(bases["builds"], product.slug, args.cafile)
-            keys = [pub(k) for k in (args.index_pub.split(",") if args.index_pub
-                                     else signing["index_keys"])]
-            report = verify_mod.verify(product, update, builds, index_keys=keys,
+            report = verify_mod.verify(product, update, builds,
+                                       index_keys=product.index_keys,
                                        deep=args.deep)
             print(json.dumps(report, indent=2))
             if args.min_days_left:
@@ -445,8 +449,8 @@ def host_round(args, product: Product, rclone: str) -> int:
         mirrors=[Store(args.mirror_update, rclone)]
         if args.mirror_update else [],
         git_dir=path(args.git_dir), index_key=path(args.index_key),
-        # Every pinned index key, the next one too: what a client accepts.
-        index_pub=product.data["signing"]["index_keys"],
+        # Every listed index key: what a client accepts.
+        index_pub=product.index_keys,
         cosign=args.cosign or "cosign", authenticode_ca=args.authenticode_ca)
     if dry:
         if args.fetch:

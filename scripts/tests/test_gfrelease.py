@@ -37,6 +37,7 @@ import minisig  # noqa: E402
 import openpgp  # noqa: E402
 import promote as promote_mod  # noqa: E402
 import stage as stage_mod  # noqa: E402
+import trust  # noqa: E402
 import verify as verify_mod  # noqa: E402
 from store import Store, StoreUnavailable  # noqa: E402
 from test_release_candidate import FAKE_COSIGN  # noqa: E402
@@ -76,6 +77,58 @@ def keypair(directory: Path, name: str) -> tuple[Path, str]:
     subprocess.run(["minisign", "-G", "-W", "-s", sec, "-p", pub], check=True,
                    capture_output=True)
     return sec, minisig.public_key_of(pub)
+
+
+TRUST_KEYS = Path(__file__).resolve().parent / "fixtures" / "trust" / "keys"
+
+
+def make_product(directory: Path, index_pubs, **host_policy) -> common.Product:
+    """This product as release/product.json has it, published under a
+    trust root of its own (fixtures/trust/keys: root keys a and b sign it,
+    g1 signs the index-keys list), which lists @p index_pubs and whose
+    host_policy is @p host_policy over a plain one."""
+    directory.mkdir(parents=True, exist_ok=True)
+    for name in ("product.json", "policy.toml"):
+        shutil.copy(common.ROOT / "release" / name, directory)
+    pub = {n: minisig.public_key_of(TRUST_KEYS / f"{n}.pub")
+           for n in ("root-a", "root-b", "g1")}
+    ids = {n: minisig.key_id(k) for n, k in pub.items()}
+    head = {"schema": 1, "product": "gpgfrontend", "version": 1,
+            "expires": "2099-12-31T00:00:00Z"}
+    root = dict(head, type="root", keys={ids[n]: pub[n] for n in pub},
+                roles={"root": {"keyids": [ids["root-a"], ids["root-b"]],
+                                "threshold": 2},
+                       "index_list": {"keyids": [ids["g1"]],
+                                      "threshold": 1}},
+                host_policy={"repository": "saturneric/GpgFrontend",
+                             "workflow": ".github/workflows/build.yml",
+                             "stable_pgp": {"fingerprints": ["A" * 40]},
+                             **host_policy})
+    keys = dict(head, type="index-keys",
+                keys={minisig.key_id(k): k for k in index_pubs})
+    (directory / "root").mkdir(exist_ok=True)
+    (directory / "index-keys").mkdir(exist_ok=True)
+    path = directory / "root" / layout.root_name(1)
+    path.write_bytes(trust.dump(root))
+    for name in ("root-a", "root-b"):
+        minisig.sign(TRUST_KEYS / f"{name}.key", path,
+                     layout.root_comment("gpgfrontend", 1),
+                     directory / "root" / layout.root_sig_name(1, ids[name]))
+    path = directory / "index-keys" / layout.index_keys_name(1)
+    path.write_bytes(trust.dump(keys))
+    minisig.sign(TRUST_KEYS / "g1.key", path,
+                 layout.index_keys_comment("gpgfrontend", 1))
+    return common.Product(directory / "product.json",
+                          directory / "policy.toml",
+                          root_dir=directory / "root",
+                          index_keys_dir=directory / "index-keys")
+
+
+def trust_args(product: common.Product) -> list[str]:
+    """The command line that names @p product and its trust."""
+    return ["--product", str(product.keyring_path.with_name("product.json")),
+            "--root-dir", str(product.root_dir),
+            "--index-keys-dir", str(product.index_keys_dir)]
 
 
 def flaky_rclone(directory: Path, marker: str, verb: str = "") -> str:
@@ -132,15 +185,15 @@ class ChainTest(unittest.TestCase):
 
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp(prefix="gfr-test-"))
-        self.product = common.default_product()
+        keys = self.tmp / "keys"
+        keys.mkdir()
+        self.idx_key, self.idx_pub = keypair(keys, "index")
+        self.product = make_product(self.tmp / "trusted", [self.idx_pub])
         self.slug = self.product.slug
         self.staging = Store(str(self.tmp / "staging"))
         self.builds = Store(str(self.tmp / "builds" / self.slug))
         self.update = Store(str(self.tmp / "update" / self.slug))
         self.state = self.tmp / "state"
-        keys = self.tmp / "keys"
-        keys.mkdir()
-        self.idx_key, self.idx_pub = keypair(keys, "index")
         self.cosign = self.tmp / "cosign"
         self.cosign.write_text(FAKE_COSIGN.format(python=sys.executable))
         self.cosign.chmod(self.cosign.stat().st_mode | stat.S_IEXEC)
@@ -553,17 +606,10 @@ class ChainTest(unittest.TestCase):
         staged = json.loads(self.staging.read(f"{prefix}/{common.STAGED}"))
         self.forge_staged("branches/main/9.9.9-alpha.1", staged,
                           version="9.9.9-alpha.1", filesafe="9.9.9-alpha.1")
-        product = self.tmp / "product"
-        product.mkdir()
-        data = json.loads((common.ROOT / "release" /
-                           "product.json").read_text())
-        data["signing"]["index_keys"] = [self.idx_pub]
-        (product / "product.json").write_text(json.dumps(data))
-        shutil.copy(common.ROOT / "release" / "policy.toml", product)
         out, err = io.StringIO(), io.StringIO()
         with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
             status = self.cli().main([
-                "--product", str(product / "product.json"), "run",
+                *trust_args(self.product), "run",
                 "--staging", self.staging.root, "--builds", self.builds.root,
                 "--update", self.update.root, "--git-dir", str(self.repo),
                 "--state-dir", str(self.state),
@@ -657,7 +703,7 @@ class ChainTest(unittest.TestCase):
         self.build()
         self.promote()
         self.index()
-        other = common.default_product()
+        other = make_product(self.tmp / "other", [self.idx_pub])
         other.slug = "demo"
         self.assert_refused(
             lambda: verify_mod.verify(other, self.update, self.builds,
@@ -856,15 +902,18 @@ class ChainTest(unittest.TestCase):
         return cli
 
     def test_a_host_with_keys_clients_do_not_pin_refuses_to_run(self):
+        _, other = keypair(self.tmp / "keys", "other")
+        listed = make_product(self.tmp / "other", [other])
         err = io.StringIO()
         with contextlib.redirect_stderr(err):
             status = self.cli().main([
+                *trust_args(listed),
                 "index", "--builds", str(self.tmp / "b"),
                 "--update", str(self.tmp / "u"),
                 "--state-dir", str(self.state),
                 "--index-key", str(self.idx_key), "--index-pub", self.idx_pub])
         self.assertEqual(status, 1)
-        self.assertIn("not one of signing.index_keys", err.getvalue())
+        self.assertIn("not in index-keys 1", err.getvalue())
         self.assertFalse(self.state.exists())
 
     def test_a_monitor_warns_before_the_index_expires(self):
@@ -872,9 +921,9 @@ class ChainTest(unittest.TestCase):
         self.build()
         self.promote()
         self.index()
-        args = ["verify", "--update", str(self.tmp / "update" / self.slug),
-                "--builds", str(self.tmp / "builds" / self.slug),
-                "--index-pub", self.idx_pub]
+        args = [*trust_args(self.product), "verify",
+                "--update", str(self.tmp / "update" / self.slug),
+                "--builds", str(self.tmp / "builds" / self.slug)]
         out, err = io.StringIO(), io.StringIO()
         with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
             self.assertEqual(self.cli().main(args + ["--min-days-left", "3"]), 0)
@@ -1526,15 +1575,15 @@ class StableTest(unittest.TestCase):
         self.gnupg = self.tmp / "gnupg"
         self.gnupg.mkdir(mode=0o700)
         self.fpr = self.new_key("Test Maintainer <maintainer@example.org>")
+        keys = self.tmp / "keys"
+        keys.mkdir()
+        self.idx_key, self.idx_pub = keypair(keys, "index")
         self.product = self.write_product(self.tmp / "product", [self.fpr])
 
         self.staging = Store(str(self.tmp / "staging"))
         self.builds = Store(str(self.tmp / "builds" / self.product.slug))
         self.update = Store(str(self.tmp / "update" / self.product.slug))
         self.state = self.tmp / "state"
-        keys = self.tmp / "keys"
-        keys.mkdir()
-        self.idx_key, self.idx_pub = keypair(keys, "index")
         self.cosign = self.tmp / "cosign"
         self.cosign.write_text(FAKE_COSIGN.format(python=sys.executable))
         self.cosign.chmod(self.cosign.stat().st_mode | stat.S_IEXEC)
@@ -1577,22 +1626,21 @@ class StableTest(unittest.TestCase):
                 if l.startswith("fpr:")][0]
 
     def write_product(self, directory, fingerprints, retired=(),
-                      exported=None):
-        directory.mkdir(parents=True, exist_ok=True)
-        data = json.loads((common.ROOT / "release" / "product.json").read_text())
-        data["signing"]["maintainer_fingerprints"] = fingerprints
-        data["signing"]["maintainer_fingerprints_retired"] = list(retired)
-        data["signing"]["authenticode_subject"] = SUBJECT
-        # A rehearsal certificate has no time-stamping service to use.
-        data["signing"]["authenticode_timestamp"] = "optional"
-        (directory / "product.json").write_text(json.dumps(data))
-        shutil.copy(common.ROOT / "release" / "policy.toml", directory)
+                      exported=None, **policy):
+        """A product whose root pins @p fingerprints (and @p retired), with
+        @p policy over this test's host policy, and a key file holding
+        @p exported (by default every one of them)."""
+        product = make_product(directory, [self.idx_pub], **{
+            "stable_pgp": {"fingerprints": list(fingerprints),
+                           "fingerprints_retired": list(retired)},
+            "authenticode_subject": SUBJECT,
+            # A rehearsal certificate has no time-stamping service to use.
+            "authenticode_timestamp": "optional", **policy})
         (directory / "maintainers.asc").write_text(self.gpg(
             "--armor", "--export",
             *(exported if exported is not None
               else [*fingerprints, *retired])))
-        return common.Product(directory / "product.json",
-                              directory / "policy.toml")
+        return product
 
     def git(self, *args):
         env = git_env()
@@ -1679,21 +1727,21 @@ class StableTest(unittest.TestCase):
         self.index()
 
         def pin(subject, retired):
-            path = self.tmp / "product" / "product.json"
-            data = json.loads(path.read_text())
-            data["signing"]["authenticode_subject"] = subject
-            data["signing"]["authenticode_subjects_retired"] = retired
-            path.write_text(json.dumps(data))
-            self.product = common.Product(path, path.with_name("policy.toml"))
+            self.product = self.write_product(
+                self.tmp / f"p{len(retired)}", [self.fpr],
+                authenticode_subject=subject,
+                authenticode_subjects_retired=retired)
 
         # A new certificate under another name, and a host that checks every
-        # release again (a lost state, a new machine).
+        # release again (a lost state, a new machine): the old one retired,
+        # the release the published index lists stays.
         shutil.rmtree(self.state / "admitted")
-        pin("/CN=GpgFrontend New Signing/O=Rehearsal/C=DE", [])
-        self.assert_refused(self.index, "signed by")
         pin("/CN=GpgFrontend New Signing/O=Rehearsal/C=DE", [SUBJECT])
         self.assertEqual(self.index()["releases"]["2.3.0"]["descriptor"],
                          "releases/2.3.0/release.json")
+        # Not retired but dropped: it signed nothing that counts any more.
+        pin("/CN=GpgFrontend New Signing/O=Rehearsal/C=DE", [])
+        self.assert_refused(self.index, "signed by")
 
     def test_a_stable_release_goes_from_tag_to_a_verified_index(self):
         self.tag()
@@ -1947,17 +1995,16 @@ class StableTest(unittest.TestCase):
         # the old one's, and the descriptor must say so.
         d = self.stage().run()
         self.assertEqual(d["signing"]["fingerprint"], self.fpr)
-        self.assertIn("2.3.0", self.index()["releases"])
+        # Never admitted before the key retired: a retired key's signatures
+        # count only for releases that were.
+        self.assert_refused(self.index, "not a pinned maintainer")
         # Naming another key than the one that signed is an error.
         self.assert_refused(lambda: self.stage(key=other).run(redo="upload"),
                             "signed with")
 
     def test_a_timestamp_is_required_where_the_product_says_so(self):
-        path = self.tmp / "product" / "product.json"
-        data = json.loads(path.read_text())
-        data["signing"]["authenticode_timestamp"] = "required"
-        path.write_text(json.dumps(data))
-        required = common.Product(path, path.with_name("policy.toml"))
+        required = self.write_product(self.tmp / "required", [self.fpr],
+                                      authenticode_timestamp="required")
         self.tag()
         self.build()
         # The stage will not sign without a time-stamping service.
@@ -1995,22 +2042,102 @@ class StableTest(unittest.TestCase):
         self.assertEqual(entry["notes_sha256"], first["notes_sha256"])
         self.check()
 
-    def test_a_key_dropped_from_the_key_file_unlists_its_releases(self):
+    def test_editing_the_key_file_never_unlists_a_release(self):
+        """maintainers.asc is read from main unsigned: re-exported with a
+        later expiry, with someone else's key added, or gone, it changes
+        nothing for what was admitted, nor for its notes."""
         self.admitted()
+        before = self.index()["releases"]["2.3.0"]
         other = self.new_key("Someone Else <else@example.org>")
-        # Still pinned by fingerprint, but no longer in maintainers.asc: the
-        # record no longer vouches, and the check from nothing fails.
-        self.product = self.write_product(self.tmp / "p2", [self.fpr],
-                                          exported=[other])
+        for name, exported in (("an unpinned key added", [self.fpr, other]),
+                               ("the pinned key dropped", [other]),
+                               ("nothing left", [])):
+            with self.subTest(name):
+                product = self.tmp / "product"
+                (product / "maintainers.asc").write_text(
+                    self.gpg("--armor", "--export", *exported)
+                    if exported else "")
+                self.assertEqual(self.index()["releases"]["2.3.0"], before)
+        (self.tmp / "product" / "maintainers.asc").unlink()
+        self.assertEqual(self.index()["releases"]["2.3.0"], before)
+
+    def release_2_3_1(self):
+        """2.3.1, made and uploaded, not yet admitted."""
+        (self.repo / "release" / "notes" / "2.3.1.md").write_text("2.3.1\n")
+        self.git("add", "release")
+        self.git("commit", "-q", "-m", "notes for 2.3.1")
+        self.tag("2.3.1")
+        self.build("2.3.1")
+        self.stage("2.3.1").run()
+
+    def test_a_key_file_that_cannot_verify_refuses_only_new_releases(self):
+        self.admitted()
+        self.release_2_3_1()
+        (self.tmp / "product" / "maintainers.asc").unlink()
         with self.assertRaises(index_mod.IndexIncomplete) as caught:
             self.index()
-        self.assertNotIn("2.3.0", caught.exception.index["releases"])
+        self.assertIn("2.3.0", caught.exception.index["releases"])
+        self.assertFalse(caught.exception.passing)  # PARTIAL, not FAILED
+
+    def test_notes_main_changed_keep_the_admitted_ones_when_they_fail(self):
+        self.admitted()
+        before = index_mod.published(self.update)["releases"]["2.3.0"]
+        (self.repo / "release" / "notes" / "2.3.0.md").write_text(
+            "## 2.3.0\n\n- Everything, signed. Fixed.\n")
+        self.git("commit", "-qam", "notes: typo")
+        self.stage().publish_notes()
+        # Signed by the maintainer, then the key file loses their key.
+        (self.tmp / "product" / "maintainers.asc").write_text("")
+        with self.assertRaises(index_mod.IndexIncomplete) as caught:
+            self.index()
+        self.assertEqual(caught.exception.index["releases"]["2.3.0"]
+                         ["notes_sha256"], before["notes_sha256"])
+        self.assertIn("listed with its admitted notes",
+                      "\n".join(caught.exception.refused))
+
+    def test_renewing_the_root_checks_nothing_again(self):
+        self.admitted()
+        record = (self.state / "admitted" / "2.3.0.json").read_text()
+        root_dir = self.product.root_dir
+        doc = json.loads((root_dir / "1.root.json").read_text())
+        path = root_dir / "2.root.json"
+        path.write_bytes(trust.dump(trust.renewed(doc, trust.ROOT_LIFETIME)))
+        for name in ("root-a", "root-b"):
+            minisig.sign(TRUST_KEYS / f"{name}.key", path,
+                         layout.root_comment("gpgfrontend", 2),
+                         root_dir / layout.root_sig_name(
+                             2, minisig.key_id(minisig.public_key_of(
+                                 TRUST_KEYS / f"{name}.pub"))))
+        self.product = common.Product(
+            self.tmp / "product" / "product.json",
+            self.tmp / "product" / "policy.toml", root_dir=root_dir,
+            index_keys_dir=self.product.index_keys_dir)
+        self.assertEqual(self.product.trust[0]["version"], 2)
+        # Nothing downloaded again: the cert's CA is not even given.
+        self.cert.unlink()
+        self.assertIn("2.3.0", self.index()["releases"])
+        self.assertEqual((self.state / "admitted" / "2.3.0.json")
+                         .read_text(), record)
 
     def test_an_unpinned_key_unlists_its_releases(self):
         self.admitted()
         other = self.new_key("Someone Else <else@example.org>")
         self.product = self.write_product(self.tmp / "p2", [other])
         self.assert_refused(self.index, "not signed with a pinned maintainer")
+
+    def test_a_retired_key_counts_only_for_releases_admitted_before(self):
+        self.admitted()
+        # 2.3.1, signed by the same key, not admitted yet when it retires.
+        self.release_2_3_1()
+        other = self.new_key("Next Maintainer <next@example.org>")
+        self.product = self.write_product(self.tmp / "p2", [other],
+                                          retired=[self.fpr])
+        with self.assertRaises(index_mod.IndexIncomplete) as caught:
+            self.index()
+        self.assertIn("2.3.0", caught.exception.index["releases"])
+        self.assertNotIn("2.3.1", caught.exception.index["releases"])
+        self.assertIn("not a pinned maintainer",
+                      "\n".join(caught.exception.refused))
 
     def test_a_retired_key_keeps_its_releases(self):
         self.admitted()
@@ -2033,16 +2160,22 @@ class StableTest(unittest.TestCase):
         self.git("tag", "-f", "-s", "v2.3.0", "-m", "moved")
         self.assert_refused(self.index, r"v2\.3\.0 is [0-9a-f]+, not")
 
-    def test_a_revoked_key_unlists_its_releases(self):
+    def test_a_revoked_key_unlists_its_releases_once_the_root_says_so(self):
         self.admitted()
         cert = self.gnupg / "openpgp-revocs.d" / f"{self.fpr}.rev"
         revocation = self.tmp / "revoke.asc"
         revocation.write_text(cert.read_text().replace(":-----BEGIN",
                                                        "-----BEGIN"))
         self.gpg("--import", str(revocation))
-        # The key file now carries the revocation: everything it signed is
+        # The key file carries the revocation: alone, it unlists nothing.
+        (self.tmp / "product" / "maintainers.asc").write_text(self.gpg(
+            "--armor", "--export", self.fpr))
+        self.assertIn("2.3.0", self.index()["releases"])
+        # A new root (here: any change of its host policy) has everything
         # checked again, and gpg's REVKEYSIG is refused.
-        self.product = self.write_product(self.tmp / "p2", [self.fpr])
+        self.product = self.write_product(
+            self.tmp / "p2", [self.fpr],
+            authenticode_subjects_retired=["/CN=An Old Certificate"])
         self.assert_refused(self.index, "revoked")
 
     def test_only_a_pinned_primary_signs(self):
@@ -2206,13 +2339,13 @@ class ImportTest(unittest.TestCase):
         self.gnupg = self.tmp / "gnupg"
         self.gnupg.mkdir(mode=0o700)
         self.fpr = self.new_key("Test Maintainer <maintainer@example.org>")
+        keys = self.tmp / "keys"
+        keys.mkdir()
+        self.idx_key, self.idx_pub = keypair(keys, "index")
         self.product = self.write_product(self.tmp / "product", [self.fpr])
         self.builds = Store(str(self.tmp / "builds" / self.product.slug))
         self.update = Store(str(self.tmp / "update" / self.product.slug))
         self.state = self.tmp / "state"
-        keys = self.tmp / "keys"
-        keys.mkdir()
-        self.idx_key, self.idx_pub = keypair(keys, "index")
         self.github = FakeGitHub(self.tmp / "github")
 
         self.repo = self.tmp / "repo"

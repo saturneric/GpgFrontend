@@ -63,10 +63,12 @@ class Keyring:
     """The maintainers' public keys, imported fresh into a throwaway home."""
 
     @classmethod
-    def of(cls, product) -> "Keyring":
-        """A product's maintainers, current and retired: what they signed
-        is verified against these, wherever it is checked."""
-        return cls(product.keyring_path, product.trusted_maintainers)
+    def of(cls, product, retired: bool = False) -> "Keyring":
+        """A product's current maintainers, and with @p retired the ones
+        replaced: those count only when a release admitted before is
+        checked again."""
+        return cls(product.keyring_path, product.trusted_maintainers
+                   if retired else product.maintainers)
 
     def __init__(self, keys: Path, pinned: list[str]):
         if not Path(keys).is_file():
