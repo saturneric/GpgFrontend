@@ -9,11 +9,23 @@
   of Qt's, in a task of its own, to take what other applications share.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="org.qtproject.example"
     android:installLocation="auto"
     android:versionCode="-- %%INSERT_VERSION_CODE%% --"
     android:versionName="-- %%INSERT_VERSION_NAME%% --">
     <!-- %%INSERT_PERMISSIONS -->
+    <!-- Qt Core asks for it; GpgFrontend reaches files only through the
+         system's pickers, and never needs shared storage. -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        tools:node="remove" />
+    <!-- The share sheet's "target chosen" callback (PlatformBridge): only an
+         application signed as this one may send it. -->
+    <permission
+        android:name="${applicationId}.permission.SHARE_TARGET_CHOSEN"
+        android:protectionLevel="signature" />
+    <uses-permission android:name="${applicationId}.permission.SHARE_TARGET_CHOSEN" />
     <!-- %%INSERT_FEATURES -->
     <supports-screens
         android:anyDensity="true"

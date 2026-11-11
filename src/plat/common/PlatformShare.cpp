@@ -58,7 +58,9 @@ auto ShareSession::Begin(ShareCallback done, int never_shown_ms) -> int {
   open_.insert(id, Request{std::move(done)});
   QTimer::singleShot(never_shown_ms, this, [this, id]() {
     auto it = open_.find(id);
-    if (it == open_.end() || it->left) return;
+    // Shown: the application left, or a target was chosen (a split screen
+    // can keep it active throughout).
+    if (it == open_.end() || it->left || it->target_chosen) return;
     complete(id, ShareOutcome::kFailed,
              QStringLiteral("the share sheet never appeared"));
   });
@@ -69,9 +71,12 @@ void ShareSession::TargetChosen(int id) {
   QMetaObject::invokeMethod(
       this,
       [this, id]() {
-        if (auto it = open_.find(id); it != open_.end()) {
-          it->target_chosen = true;
-        }
+        auto it = open_.find(id);
+        if (it == open_.end()) return;
+        it->target_chosen = true;
+        // Chosen while the application never left (a split screen): no
+        // return will come to conclude it, and the target reads now.
+        if (active_ && !it->left) complete(id, ShareOutcome::kHandedOff);
       },
       Qt::QueuedConnection);
 }

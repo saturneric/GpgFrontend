@@ -41,8 +41,9 @@
 #if defined(Q_OS_ANDROID)
 
 #include <QJniEnvironment>
-#include <array>
 #include <QJniObject>
+#include <array>
+#include <utility>
 
 namespace GpgFrontend {
 
@@ -75,11 +76,40 @@ void JNICALL OnShared(JNIEnv*, jclass) {
       Qt::QueuedConnection);
 }
 
+auto DocumentsPickedSlot() -> DocumentsPicked& {
+  static DocumentsPicked picked;
+  return picked;
+}
+
+void JNICALL OnDocumentsPicked(JNIEnv* env, jclass, jobjectArray uris) {
+  // On Android's main thread: read here, handed to the application's.
+  QList<QUrl> urls;
+  const auto length = uris != nullptr ? env->GetArrayLength(uris) : 0;
+  for (jsize i = 0; i < length; ++i) {
+    const auto uri =
+        QJniObject::fromLocalRef(env->GetObjectArrayElement(uris, i))
+            .toString();
+    if (!uri.isEmpty()) urls << QUrl(uri);
+  }
+  auto* app = QCoreApplication::instance();
+  if (app == nullptr) return;
+  QMetaObject::invokeMethod(
+      app,
+      [urls]() {
+        // Taken first: what it does may ask for the picker again.
+        const auto picked = std::exchange(DocumentsPickedSlot(), {});
+        if (picked) picked(urls);
+      },
+      Qt::QueuedConnection);
+}
+
 void RegisterNatives() {
   static bool registered = false;
   if (registered) return;
   QJniEnvironment env;
-  std::array<JNINativeMethod, 2> methods{{
+  std::array<JNINativeMethod, 3> methods{{
+      {"onDocumentsPicked", "([Ljava/lang/String;)V",
+       reinterpret_cast<void*>(OnDocumentsPicked)},
       {"onShareTargetChosen", "(I)V",
        reinterpret_cast<void*>(OnShareTargetChosen)},
       {"onShared", "()V", reinterpret_cast<void*>(OnShared)},
@@ -147,11 +177,11 @@ void RevokeSharedFile(const QString& path) {
 }
 
 auto SetSensitiveClipboardText(const QString& text) -> bool {
-  QJniObject::callStaticMethod<void>(
-      kBridge, "setSensitiveClip",
-      "(Landroid/content/Context;Ljava/lang/String;)V", Activity().object(),
-      QJniObject::fromString(text).object<jstring>());
-  return true;
+  return QJniObject::callStaticMethod<jboolean>(
+             kBridge, "setSensitiveClip",
+             "(Landroid/content/Context;Ljava/lang/String;)Z",
+             Activity().object(),
+             QJniObject::fromString(text).object<jstring>()) != JNI_FALSE;
 }
 
 auto SystemFontScale() -> qreal {
@@ -269,6 +299,18 @@ auto DeleteFolderDocument(const QUrl& document) -> bool {
                  .object<jstring>()) != JNI_FALSE;
 }
 
+auto RenameFolderDocument(const QUrl& document, const QString& name) -> QUrl {
+  const auto uri = QJniObject::callStaticObjectMethod(
+      kBridge, "renameDocument",
+      "(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)"
+      "Ljava/lang/String;",
+      Activity().object(),
+      QJniObject::fromString(document.toString(QUrl::FullyEncoded))
+          .object<jstring>(),
+      QJniObject::fromString(name).object<jstring>());
+  return uri.isValid() ? QUrl(uri.toString()) : QUrl();
+}
+
 auto FindFolderDocument(const QUrl& folder, const QString& name) -> QUrl {
   const auto uri = QJniObject::callStaticObjectMethod(
       kBridge, "findChild",
@@ -303,6 +345,22 @@ void SetWindowSecure(QWindow*, bool secure) {
                                      "(Landroid/app/Activity;Z)V",
                                      Activity().object(),
                                      static_cast<jboolean>(secure));
+}
+
+auto PickDocuments(bool multiple, DocumentsPicked done) -> bool {
+  RegisterNatives();
+  DocumentsPickedSlot() = std::move(done);
+  const auto shown =
+      QJniObject::callStaticMethod<jboolean>(
+          kBridge, "pickDocuments", "(Landroid/app/Activity;Z)Z",
+          Activity().object(), static_cast<jboolean>(multiple)) != JNI_FALSE;
+  if (!shown) DocumentsPickedSlot() = {};
+  return shown;
+}
+
+auto SendToBackground() -> bool {
+  return Activity().callMethod<jboolean>("moveTaskToBack", "(Z)Z",
+                                         jboolean(true)) != JNI_FALSE;
 }
 
 auto RestartApplication() -> bool {

@@ -15,9 +15,22 @@ import org.qtproject.qt.android.bindings.QtActivity;
  * starting a second Qt activity in the sender's task.
  */
 public class GpgFrontendActivity extends QtActivity {
+    /**
+     * The extra Qt's loader reads the application's arguments from, in any
+     * build. The activity is exported (it is the launcher's, and takes
+     * shares), so any application could start it with arguments of its
+     * choosing: --temp-profile and the like choose the profile. GpgFrontend
+     * is never started with arguments on a phone.
+     */
+    private static final String EXTRA_QT_ARGUMENTS = "applicationArguments";
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        // Before Qt's loader reads it.
+        Intent started = getIntent();
+        if (started != null) started.removeExtra(EXTRA_QT_ARGUMENTS);
         super.onCreate(savedInstanceState);
+        PlatformBridge.releasePersistedGrants(this);
         // The loading page, until the application draws it (gf_splash): Qt
         // may set a theme of its own, whose window is plain white.
         int splash = getResources().getIdentifier(
@@ -37,6 +50,16 @@ public class GpgFrontendActivity extends QtActivity {
         take(intent);
         // A page already on screen takes it now, not on the next resume.
         PlatformBridge.announceShare();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // GpgFrontend's own picker; anything else is Qt's.
+        if (requestCode == PlatformBridge.REQUEST_PICK_DOCUMENTS) {
+            PlatformBridge.documentsPicked(resultCode, data);
+            return;
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     private void take(Intent intent) {

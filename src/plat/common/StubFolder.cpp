@@ -47,6 +47,8 @@ auto DirectoryOf(const QUrl& folder) -> QString {
 
 }  // namespace
 
+auto PickDocuments(bool, DocumentsPicked) -> bool { return false; }
+
 auto FolderDocumentNames(const QUrl& folder) -> std::optional<QStringList> {
   const QDir dir(DirectoryOf(folder));
   if (DirectoryOf(folder).isEmpty() || !dir.exists()) return std::nullopt;
@@ -113,6 +115,17 @@ auto DeleteFolderDocument(const QUrl& document) -> bool {
   const QFileInfo info(path);
   if (info.isDir()) return QDir(path).removeRecursively();
   return QFile::remove(path);
+}
+
+auto RenameFolderDocument(const QUrl& document, const QString& name) -> QUrl {
+  const auto path = DirectoryOf(document);
+  if (path.isEmpty() || name.isEmpty() || name.contains(QLatin1Char('/')) ||
+      name == QStringLiteral(".") || name == QStringLiteral("..")) {
+    return {};
+  }
+  const auto renamed = QFileInfo(path).dir().filePath(name);
+  if (QFileInfo::exists(renamed) || !QFile::rename(path, renamed)) return {};
+  return QUrl::fromLocalFile(renamed);
 }
 
 auto FindFolderDocument(const QUrl& folder, const QString& name) -> QUrl {

@@ -31,6 +31,7 @@
 #include <QList>
 #include <QStringList>
 #include <QUrl>
+#include <functional>
 #include <optional>
 
 /**
@@ -45,7 +46,29 @@
 
 namespace GpgFrontend {
 
-/// The names of the documents in @p folder; none when it cannot be listed.
+/// What the person picked to read; none when the picker was left.
+using DocumentsPicked = std::function<void(const QList<QUrl>&)>;
+
+/**
+ * @brief Show the system's picker for documents to read, one or
+ * (@p multiple) several, and hand what was picked to @p done on the
+ * application's thread.
+ *
+ * Android only, where it is ACTION_OPEN_DOCUMENT asked for directly: Qt
+ * Quick's FileDialog drops, without a word, a pick from any provider but
+ * the device's own storage (it checks that each picked file exists, and
+ * knows only those providers' URLs), so a file from a cloud folder never
+ * arrived. The documents stay readable while the application runs; nothing
+ * is kept beyond that.
+ *
+ * @return false where there is no such picker (the desktop, whose file
+ * dialog has no such limit) or it could not be shown; @p done is then
+ * never called.
+ */
+auto PickDocuments(bool multiple, DocumentsPicked done) -> bool;
+
+/// The names of the files in @p folder (not its folders); none when it
+/// cannot be listed.
 auto FolderDocumentNames(const QUrl& folder) -> std::optional<QStringList>;
 
 /// One document in a folder's tree.
@@ -90,7 +113,13 @@ auto CreateFolderChild(const QUrl& folder, const QString& name) -> QUrl;
 /// made in a picked folder; false when it could not be.
 auto DeleteFolderDocument(const QUrl& document) -> bool;
 
-/// The document named @p name in @p folder; empty when there is none.
+/// Give the document @p document (made in a picked folder) the name
+/// @p name; its new URL, or empty when it could not be renamed (a name
+/// taken, or a provider that renames nothing).
+auto RenameFolderDocument(const QUrl& document, const QString& name) -> QUrl;
+
+/// The file named @p name in @p folder; empty when there is none (a folder
+/// of that name is not one).
 auto FindFolderDocument(const QUrl& folder, const QString& name) -> QUrl;
 
 /// A new, empty document named @p name in @p folder; empty when it could

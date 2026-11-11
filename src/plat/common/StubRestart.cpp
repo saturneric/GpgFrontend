@@ -45,6 +45,8 @@ auto RestartApplication() -> bool {
                                  arguments);
 }
 
+auto SendToBackground() -> bool { return false; }
+
 }  // namespace GpgFrontend
 
 #endif

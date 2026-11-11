@@ -45,4 +45,9 @@ namespace GpgFrontend {
 /// Begin the restart; the caller quits once it returns true.
 auto RestartApplication() -> bool;
 
+/// Leave the screen, the application left running as it is, as Back from
+/// the first screen does on Android (12 and later). False where there is no
+/// such thing (a desktop window), and the caller closes instead.
+auto SendToBackground() -> bool;
+
 }  // namespace GpgFrontend

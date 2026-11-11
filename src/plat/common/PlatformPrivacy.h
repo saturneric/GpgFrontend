@@ -72,4 +72,11 @@ class SecureWindowScope {
 /// The platform's switch; SecureWindowScope counts calls to it.
 void SetWindowSecure(QWindow* window, bool secure);
 
+#if !defined(Q_OS_ANDROID)
+/// What the last SetWindowSecure() asked of @p window, where the platform
+/// cannot do it (common/StubPrivacy.cpp): what a test on a desktop checks in
+/// place of the device's FLAG_SECURE.
+auto WindowSecureRequested(const QWindow* window) -> bool;
+#endif
+
 }  // namespace GpgFrontend

@@ -38,7 +38,20 @@ namespace GpgFrontend {
 
 auto CanSecureWindow() -> bool { return false; }
 
-void SetWindowSecure(QWindow*, bool) {}
+namespace {
+
+// Only remembered: the window itself is never changed.
+constexpr auto kRequested = "gfSecureRequested";
+
+}  // namespace
+
+void SetWindowSecure(QWindow* window, bool secure) {
+  if (window != nullptr) window->setProperty(kRequested, secure);
+}
+
+auto WindowSecureRequested(const QWindow* window) -> bool {
+  return window != nullptr && window->property(kRequested).toBool();
+}
 
 }  // namespace GpgFrontend
 
