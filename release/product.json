@@ -2,7 +2,7 @@
   "schema": 1,
   "slug": "gpgfrontend",
   "bases": {
-    "update": ["https://update.bktus.com/", "https://ftp.bktus.com/update/"],
+    "update": ["https://update.bktus.com/"],
     "builds": ["https://builds.bktus.com/"]
   },
   "nightly_retention_days": 30,
