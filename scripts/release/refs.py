@@ -70,6 +70,11 @@ def is_release_tag(tag: str) -> bool:
     return RELEASE_TAG.fullmatch(tag) is not None
 
 
+def release_tag(version: str) -> str:
+    """The tag a final version is released as."""
+    return f"v{version}"
+
+
 def release_tag_ref(version: str) -> str:
-    """The ref of the tag a final version is released as."""
-    return f"{TAGS}v{version}"
+    """The ref of that tag."""
+    return TAGS + release_tag(version)
