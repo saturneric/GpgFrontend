@@ -46,6 +46,9 @@ QtObject {
         switch (report.severity) {
         case "ok": return qsTr("Success")
         case "warn": return qsTr("Warning")
+        // Nothing to grade (no outcome the report could weigh): said as
+        // done, never as an error.
+        case "neutral": return qsTr("Done")
         default: return qsTr("Error")
         }
     }
@@ -191,7 +194,11 @@ QtObject {
                 // Every signature, not the first: one that fails is a
                 // problem; one only not checked (no key) says so.
                 const facts = sigs.map(s => s.signature)
-                if (facts.every(f => f === "valid")) return qsTr("Signature checked")
+                // One that holds by a key that does not (revoked, not
+                // allowed to sign) is a problem all the same, as its colour.
+                if (facts.every(f => f === "valid"))
+                    return sigs.some(s => s.verdict === "bad") ? qsTr("Signature problem")
+                                                              : qsTr("Signature checked")
                 if (facts.every(f => f === "valid" || f === "unchecked"))
                     return qsTr("Signature not checked")
                 return qsTr("Signature problem")
@@ -209,6 +216,15 @@ QtObject {
         case "closed": return qsTr("Stopped when the app closed it.")
         default: return ""
         }
+    }
+
+    // Why @p op cannot start with what is chosen now, the same on every
+    // page; empty when the keys are not why.
+    function startRefusal(op) {
+        if (op === "encrypt" && !WorkSelection.passphraseMode
+                && WorkSelection.recipients.length === 0)
+            return block("no_recipients")
+        return ""
     }
 
     // Why an operation failed, in a few words, by the kind ResultPresenter
@@ -235,8 +251,9 @@ QtObject {
     function failureExplanation(kind) {
         switch (kind) {
         case "no_secret_key":
-            return qsTr("This message cannot be decrypted because no matching "
-                        + "secret key is available.")
+            // A file or a text: not "this message" for a file.
+            return qsTr("This cannot be decrypted because no matching secret "
+                        + "key is available.")
         case "no_public_key":
             return qsTr("The public key this needs is not in your keys.")
         case "no_key":
@@ -272,6 +289,36 @@ QtObject {
         if (targets.length > 1)
             return qsTr("%1 with %2").arg(targets[0].name).arg(targets[1].name)
         return targets[0].name
+    }
+
+    // The signature that says most of several: the worst, as
+    // Theme.signaturesTone() colours them; null when there is none.
+    function worstSignature(signatures) {
+        let worst = null
+        let rank = -1
+        for (const sig of signatures || []) {
+            const tone = Theme.signatureTone(sig)
+            const r = tone === Theme.danger ? 2 : tone === Theme.warning ? 1 : 0
+            if (r > rank) {
+                rank = r
+                worst = sig
+            }
+        }
+        return worst
+    }
+
+    // A signature in a few words, for a line: its own fact, or, when it
+    // holds but its key does not, the key's.
+    function signatureSummary(sig) {
+        if (sig.signature === "valid" && sig.verdict === "bad") {
+            switch (sig.keyStatus) {
+            case "revoked": return qsTr("Made by a revoked key")
+            case "expired": return qsTr("Made by an expired key")
+            case "not_authorized": return qsTr("Made by a key not allowed to sign")
+            default: return qsTr("Made by a key with problems")
+            }
+        }
+        return signatureFact(sig.signature)
     }
 
     // The three facts of a signature, apart.
@@ -315,32 +362,23 @@ QtObject {
                .filter(t => t.length > 0).join(", ")
     }
 
-    // A key's or subkey's state in a few words: revoked, expired, or until
-    // when it is valid.
+    // A key's or subkey's state in a few words: revoked, disabled, expired,
+    // or until when it is valid. A key's list status (the shell's, which the
+    // key list shows) decides where there is one, so the key's page never
+    // names another state than its row; a subkey has only its flags.
     function keyState(k) {
         if (!k) return ""
-        if (k.revoked === true) return qsTr("Revoked")
-        if (k.disabled === true) return qsTr("Disabled")
+        const status = k.status || (k.revoked === true ? "revoked"
+                                    : k.disabled === true ? "disabled"
+                                    : k.expired === true ? "expired" : "ok")
         const when = Theme.date(k.expires)
-        if (k.expired === true)
+        switch (status) {
+        case "revoked": return qsTr("Revoked")
+        case "disabled": return qsTr("Disabled")
+        case "expired":
             return when.length > 0 ? qsTr("Expired on %1").arg(when) : qsTr("Expired")
+        }
         return when.length > 0 ? qsTr("Valid until %1").arg(when)
                                : qsTr("Does not expire")
-    }
-
-    // Why a subkey is revoked, as OpenPGP's reason codes say it (0 to 3).
-    function revocationReasons() {
-        return [{"code": 0, "text": qsTr("No reason given")},
-                {"code": 1, "text": qsTr("It may have been compromised")},
-                {"code": 2, "text": qsTr("A newer subkey replaces it")},
-                {"code": 3, "text": qsTr("It is no longer used")}]
-    }
-
-    // Why a user ID is revoked: OpenPGP gives a user ID only these two
-    // (RFC 9580 §5.2.3.31), as the desktop offers them; the core refuses
-    // any other.
-    function uidRevocationReasons() {
-        return [{"code": 0, "text": qsTr("No reason given")},
-                {"code": 4, "text": qsTr("The user ID is no longer valid")}]
     }
 }

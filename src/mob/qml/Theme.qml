@@ -99,22 +99,6 @@ QtObject {
     readonly property string mono: monoFont.status === FontLoader.Ready
                                    ? monoFont.name : "monospace"
 
-    // The bottom sheets open, in the order they opened: the last one is the
-    // topmost, the one Back and typing are for (BottomSheet).
-    property var openSheets: []
-
-    // Closes every open sheet but one at work (it may not be let go) or one
-    // that asks what only the person may answer (keepOpen: a passphrase);
-    // true when such a sheet stays.
-    function closeOpenSheets() {
-        let stays = false
-        for (const sheet of openSheets.slice()) {
-            if (sheet.interactive === false || sheet.keepOpen === true) stays = true
-            else sheet.close()
-        }
-        return stays
-    }
-
     // The window's height and pixel ratio, from the window, for the keyboard.
     property real windowHeight: 0
     property real pixelRatio: 1
@@ -154,6 +138,7 @@ QtObject {
         switch (report.severity) {
         case "ok": return "check_circle"
         case "warn": return "warning"
+        case "neutral": return "info"
         default: return "error"
         }
     }
@@ -161,9 +146,12 @@ QtObject {
     // The report seal's kind (ReportSeal) for a report.
     function sealKind(report) {
         if (report.cancelled === true) return "cancelled"
+        // The desktop's, by the report's headline, where it says one.
+        if (report.seal) return report.seal
         switch (report.severity) {
         case "ok": return "success"
         case "warn": return "warning"
+        case "neutral": return "information"
         default: return "failure"
         }
     }
@@ -226,6 +214,7 @@ QtObject {
         switch (report.severity) {
         case "ok": return positive
         case "warn": return warning
+        case "neutral": return neutral
         default: return danger
         }
     }

@@ -116,6 +116,18 @@ Page {
         return crypto.holds(id)
     }
 
+    // Whether operation @p id's result is kept, not put in (offer()).
+    function heldResult(id) {
+        return crypto.isHeld(id)
+    }
+
+    // That result, in place of the text, as the offer's "Replace anyway".
+    function putIn(id) {
+        const text = crypto.take(id)
+        if (offeredId === id) offeredId = 0
+        if (text.length > 0) replaceText(text)
+    }
+
     // "input" or "output" when the text on the page is operation @p id's.
     function relation(id) {
         return OperationQueue.log.textRelation(id, editor.text)
@@ -172,8 +184,8 @@ Page {
         switch (op) {
         case "encrypt":
             started = crypto.encrypt(text,
-                                     WorkSelection.passphraseMode ? [] : WorkSelection.recipients,
-                                     WorkSelection.signsEncryption ? WorkSelection.preferredSigner : "",
+                                     WorkSelection.passphraseMode ? [] : WorkSelection.operationRecipients(),
+                                     WorkSelection.signsEncryption ? WorkSelection.operationSigner() : "",
                                      WorkSelection.passphraseMode)
             break
         case "decrypt":
@@ -183,13 +195,13 @@ Page {
             started = crypto.decrypt(text, op === "decrypt_verify")
             break
         case "sign":
-            started = crypto.sign(text, WorkSelection.preferredSigner)
+            started = crypto.sign(text, WorkSelection.operationSigner())
             break
         default:
             started = crypto.verify(text)
         }
         if (started) track(target.revision)
-        else notice.show(qsTr("An operation is still running."))
+        else notice.show(Wording.startRefusal(op) || qsTr("An operation is still running."))
         return started
     }
 
@@ -313,6 +325,14 @@ Page {
                               : qsTr("Copied."))
     }
 
+    // Why @p op cannot run on this text in particular; empty when it can.
+    // Said in the item, as the Files page says it of files.
+    function reasonFor(op) {
+        if (ContentKind.allowsText(op, page.kind)) return ""
+        return op === "verify" ? qsTr("Only for a signed or encrypted message.")
+                               : qsTr("Only for an encrypted message.")
+    }
+
     // Why an operation cannot run on the text; empty when it can.
     readonly property string unavailable: editor.length === 0
         ? qsTr("Type or paste text first.")
@@ -395,7 +415,10 @@ Page {
                 enabled: editor.length > 0 && actions.canShare
                 height: actions.canShare ? implicitHeight : 0
                 visible: actions.canShare
-                onTriggered: actions.share(editor.text)
+                // Decrypted text leaves the app readable: said first, as
+                // the Files page says it of a decrypted file.
+                onTriggered: crypto.sensitive ? confirmShare.open()
+                                              : actions.share(editor.text)
             }
             MenuItem {
                 objectName: "importButton"
@@ -410,6 +433,12 @@ Page {
                 checkable: true
                 checked: page.lineNumbers
                 onTriggered: page.lineNumbers = !page.lineNumbers
+            }
+            MenuItem {
+                objectName: "recentOperations"
+                text: qsTranslate("HistorySheet", "Recent operations")
+                enabled: page.sheets !== null
+                onTriggered: page.sheets.openHistory()
             }
             MenuSeparator {}
             MenuItem {
@@ -598,6 +627,7 @@ Page {
         id: operationMenu
 
         unavailable: page.unavailable
+        reasonFor: op => page.reasonFor(op)
         symmetric: prefs.extraOperations.includes("symmetric")
         onRequested: op => page.request(op)
     }
@@ -606,11 +636,9 @@ Page {
         id: notice
         objectName: "textNotice"
         bottomOffset: Theme.fabBand + page.keyboardCover
-        // A result offered and not taken is let go once the offer is gone
-        // (a taken one has already been).
-        onClosed: Qt.callLater(function() {
-            if (!notice.opened) page.dropOffer()
-        })
+        // A result offered and not taken stays kept when the notice goes:
+        // its status sheet still offers it, until the next one replaces it
+        // or the text is cleared.
     }
 
     EncryptQuestionAlert {
@@ -636,6 +664,17 @@ Page {
     }
 
     MessageAlert {
+        id: confirmShare
+
+        objectName: "confirmShareText"
+        title: qsTr("Share the decrypted text?")
+        message: qsTr("The app you choose gets it as readable text, and keeps "
+                   + "it as that app does. It is not encrypted any more.")
+        acceptText: qsTr("Share")
+        onAccepted: actions.share(editor.text)
+    }
+
+    MessageAlert {
         id: confirmClear
 
         objectName: "confirmClear"
@@ -643,6 +682,7 @@ Page {
         message: qsTr("It cannot be brought back with Undo. Decrypt the "
                    + "message again to see it. The keys you chose stay chosen.")
         acceptText: qsTr("Clear")
+        destructive: true
         onAccepted: page.clearText()
     }
 }
