@@ -1,3 +1,10 @@
 # git archive writes the release this tree was cut from into VERSION, so a
 # source archive without .git still knows its version (cmake/GitVersion.cmake).
 VERSION export-subst
+
+# The update trust is signed byte for byte, and its bytes are built into
+# the update check (modules/src/m_ver_check): a checkout that turned LF into
+# CRLF would break every signature on it.
+release/root/** -text
+release/index-keys/** -text
+scripts/tests/fixtures/trust/** -text
