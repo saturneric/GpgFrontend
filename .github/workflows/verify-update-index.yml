@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 # The published update index, checked from outside every day, as a client
-# reads it: over the public HTTPS bases, against the keys release/product.json
-# pins. It fails when anything does not verify, and when the index is due to
+# reads it: over the public HTTPS bases, from the trust in release/root/ and
+# release/index-keys/, walked forward to what the index names. It fails when anything does not verify, and when the index is due to
 # expire within three days: an index is good for 14 days and the signing host
 # re-signs it after 7, so a near expiry means the host stopped, before any
 # client sees "Couldn't check for updates". It holds no secret and writes

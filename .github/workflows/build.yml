@@ -182,6 +182,11 @@ jobs:
           python3 scripts/release/policy.py check
           python3 scripts/release/policy.py check-security
 
+      # The update trust: release/root/ walks from root 1 on the threshold
+      # signatures, the newest index-keys list is G's, neither has expired.
+      - name: Check Update Trust
+        run: python3 scripts/release/gfrelease root verify
+
       # A nightly must sort after every release on its line, and a release tag
       # must carry its reviewed notes. Fails main when the base tag of the
       # last cut was not pushed (scripts/release/cut.sh).
