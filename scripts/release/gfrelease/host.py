@@ -106,7 +106,7 @@ class Host:
         except promote_mod.PromoteIncomplete as e:
             done = e.done
             problem(str(e), e.passing)
-        except ReleaseError as e:
+        except (ReleaseError, OSError) as e:
             # Whatever stopped promotion, the index is still built (and
             # kept from expiring) from what is already there.
             done = []

@@ -23,6 +23,7 @@ pinned and are not imported.
 
 from __future__ import annotations
 
+import http.client
 import urllib.request
 from pathlib import Path
 
@@ -54,7 +55,7 @@ class GitHubSource:
         try:
             with self._open(url, "application/vnd.github+json") as r:
                 data = r.read(SMALL_OBJECT_LIMIT + 1)
-        except OSError as e:
+        except (OSError, http.client.HTTPException) as e:
             raise ReleaseError(f"GitHub release {tag}: {e}") from e
         release = load_json(data, f"GitHub release {tag}")
         # Everything read of it below has the type it is read as.
@@ -75,7 +76,7 @@ class GitHubSource:
                     open(part, "wb") as f:
                 for chunk in iter(lambda: r.read(1 << 20), b""):
                     f.write(chunk)
-        except OSError as e:
+        except (OSError, http.client.HTTPException) as e:
             raise ReleaseError(f"{dst.name}: {e}") from e
         part.replace(dst)
 
@@ -96,7 +97,7 @@ class Import:
                                "with a pinned key")
         self.product = product
         self.version = str(v)
-        self.tag = f"v{self.version}"
+        self.tag = refs.release_tag(self.version)
         self.dir = Path(work) / self.version
         self.dir.mkdir(parents=True, exist_ok=True)
         self.builds, self.git_dir = builds, git_dir
