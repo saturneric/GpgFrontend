@@ -32,6 +32,9 @@
 #include <QJSEngine>
 #include <QThread>
 
+#include "core/GFConstants.h"
+#include "plat/common/PlatformPrivacy.h"
+
 namespace GpgFrontend::Mobile {
 
 namespace {
@@ -54,7 +57,10 @@ auto KindName(InteractionBridge::Kind kind) -> QString {
 
 InteractionBridge::InteractionBridge(QObject* parent) : QObject(parent) {}
 
-InteractionBridge::~InteractionBridge() { CancelAll(); }
+InteractionBridge::~InteractionBridge() {
+  CancelAll();
+  secure_.reset();
+}
 
 void InteractionBridge::SetInstance(InteractionBridge* instance) {
   g_instance = instance;
@@ -121,7 +127,16 @@ void InteractionBridge::answer(int id, const QVariant& value) {
 
 void InteractionBridge::decline(int id) { resolve(id, {}); }
 
+auto InteractionBridge::MinPinLength() -> int { return kMinSecretLength; }
+
 void InteractionBridge::WipeSecretInputs() {
+  // Now, on the interface thread: once the application is in the
+  // background its event loop is held, and a queued wipe would wait for
+  // the return.
+  if (QThread::currentThread() == thread()) {
+    emit SignalWipeSecretInputs();
+    return;
+  }
   QMetaObject::invokeMethod(
       this, [this]() { emit SignalWipeSecretInputs(); }, Qt::QueuedConnection);
 }
@@ -141,7 +156,24 @@ void InteractionBridge::resolve(int id, const QVariant& value) {
 
 void InteractionBridge::notify_changed() {
   QMetaObject::invokeMethod(
-      this, [this]() { emit SignalCurrentChanged(); }, Qt::QueuedConnection);
+      this,
+      [this]() {
+        update_secure_window();
+        emit SignalCurrentChanged();
+      },
+      Qt::QueuedConnection);
+}
+
+void InteractionBridge::update_secure_window() {
+  // A PIN being typed is kept out of screenshots and the recent-apps
+  // preview, as a passphrase is (PassphraseBroker).
+  if (Current().value(QStringLiteral("kind")) != KindName(Kind::kAPP_KEY_PIN)) {
+    secure_.reset();
+    return;
+  }
+  if (secure_ == nullptr) {
+    secure_ = std::make_unique<SecureWindowScope>(PrimaryWindow());
+  }
 }
 
 }  // namespace GpgFrontend::Mobile

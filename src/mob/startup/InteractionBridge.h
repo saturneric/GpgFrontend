@@ -35,10 +35,15 @@
 #include <QVariant>
 #include <deque>
 #include <future>
+#include <memory>
 #include <mutex>
 
 class QQmlEngine;
 class QJSEngine;
+
+namespace GpgFrontend {
+class SecureWindowScope;
+}  // namespace GpgFrontend
 
 namespace GpgFrontend::Mobile {
 
@@ -62,8 +67,13 @@ class InteractionBridge : public QObject {
 
   /// The question on screen: {id, kind, ...details}; empty when there is none.
   Q_PROPERTY(QVariantMap current READ Current NOTIFY SignalCurrentChanged)
+  /// The fewest characters a new PIN may have: the desktop's floor for any
+  /// secret chosen (kMinSecretLength).
+  Q_PROPERTY(int minPinLength READ MinPinLength CONSTANT)
 
  public:
+  [[nodiscard]] static auto MinPinLength() -> int;
+
   enum class Kind {
     kAPP_KEY_PIN,          ///< {creating, failures} -> {action, pin}
     kCONFIRM_KEY_RESET,    ///< {reason} -> bool
@@ -122,6 +132,10 @@ class InteractionBridge : public QObject {
 
   mutable std::mutex mutex_;
   std::deque<Pending> pending_;
+  /// While a PIN is asked for: the window kept out of screenshots.
+  std::unique_ptr<SecureWindowScope> secure_;
+
+  void update_secure_window();
   int next_id_ = 1;
   bool cancelled_ = false;
 

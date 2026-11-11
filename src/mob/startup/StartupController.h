@@ -83,6 +83,9 @@ class StartupController : public QObject {
                  NOTIFY SignalStateChanged)
   Q_PROPERTY(int progress READ Progress NOTIFY SignalProgressChanged)
   Q_PROPERTY(QString message READ Message NOTIFY SignalStateChanged)
+  /// The profile opened (or that would not) was chosen, not the default:
+  /// openDefaultProfile() is a way out.
+  Q_PROPERTY(bool chosenProfile READ ChosenProfile NOTIFY SignalStateChanged)
 
  public:
   enum class State {
@@ -122,12 +125,14 @@ class StartupController : public QObject {
    */
   auto Shutdown(int timeout_ms = 5000) -> bool;
 
-  /// Startup cannot go on; shows @p message. Any thread.
-  void ReportFatal(const QString& message);
-
   [[nodiscard]] auto GetState() const -> State;
   [[nodiscard]] auto Progress() const -> int;
   [[nodiscard]] auto Message() const -> QString;
+  [[nodiscard]] auto ChosenProfile() const -> bool;
+
+  /// Forget the chosen profile and start again with the default one; the
+  /// application quits. False when that could not be done.
+  Q_INVOKABLE bool openDefaultProfile();
 
   /// Exit code for a process ended by AbandonProcess() after Shutdown().
   static constexpr int kAbandonedExitCode = 70;

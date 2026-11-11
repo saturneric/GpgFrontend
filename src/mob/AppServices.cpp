@@ -31,6 +31,7 @@
 #include <QStandardPaths>
 
 #include "core/function/CoreSignalStation.h"
+#include "core/function/openpgp/ChannelHandle.h"
 #include "files/FileOperations.h"
 #include "model/KeyCategoriesController.h"
 #include "model/ProfilesController.h"
@@ -79,6 +80,13 @@ AppServices::AppServices(QSharedPointer<BootContext> ctx)
   OperationQueue::SetInstance(&operations);
   KeyListController::SetInstance(&keys);
   WorkSelection::SetInstance(&selection);
+  // The database of the keys the list shows, not the one just switched to
+  // and not read yet: a choice is checked against the keys it is of.
+  selection.SetDatabaseSource([this]() {
+    return keys.Loaded()
+               ? keys.LoadedDatabase()
+               : LookupChannelHandle(UsableDefaultChannelHandle()).database_id;
+  });
   SetFileStores(&staging, &retention);
   FileWorkspace::SetInstance(&files);
 
@@ -125,6 +133,8 @@ AppServices::AppServices(QSharedPointer<BootContext> ctx)
 
   // Start and every return are the store's chances to clean up.
   retention.Cleanup(QDateTime::currentDateTimeUtc());
+  // Nothing of an earlier run is still writing or reading one.
+  ProfilesController::RemoveLeftPackages();
   QObject::connect(&lifecycle, &AppLifecycle::SignalResumed, [this]() {
     retention.Cleanup(QDateTime::currentDateTimeUtc());
   });

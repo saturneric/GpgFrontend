@@ -63,6 +63,8 @@ struct StartupJob {
 
   bool ok = false;
   QString error;
+  /// Another profile than the default was chosen to open.
+  bool chosen = false;
 
   StartupJob(QSharedPointer<BootContext> context,
              InteractionBridge* bridge)
@@ -77,7 +79,7 @@ struct StartupJob {
     }
 
     // The profile opened last time another was chosen (ProfilesController).
-    ProfilesController::ApplyChosenProfile(
+    chosen = ProfilesController::ApplyChosenProfile(
         QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation));
     ctx->SelectProfile();
     if (!ctx->profile_error.isEmpty()) {
@@ -233,16 +235,23 @@ auto StartupController::Shutdown(int timeout_ms) -> bool {
   return true;
 }
 
-void StartupController::ReportFatal(const QString& message) {
-  QMetaObject::invokeMethod(
-      this, [this, message]() { fail(message); }, Qt::QueuedConnection);
-}
-
 auto StartupController::GetState() const -> State { return state_; }
 
 auto StartupController::Progress() const -> int { return progress_; }
 
 auto StartupController::Message() const -> QString { return message_; }
+
+auto StartupController::ChosenProfile() const -> bool {
+  // Read once the worker is done with it.
+  return job_ != nullptr && worker_ != nullptr && worker_->isFinished() &&
+         job_->chosen;
+}
+
+auto StartupController::openDefaultProfile() -> bool {
+  if (!ChosenProfile()) return false;
+  return ProfilesController::OpenDefaultProfile(
+      QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation));
+}
 
 void StartupController::set_state(State state) {
   if (state_ == state) return;

@@ -37,6 +37,7 @@ qt_add_library(gf_mob_lib STATIC
   startup/MobileProfileLoaderDelegate.cpp
   startup/StartupController.cpp
   lifecycle/AppLifecycle.cpp
+  lifecycle/SecureWindowGuard.cpp
   model/KeyRoleModel.cpp
   model/KeyFilterModel.cpp
   model/KeyListController.cpp
@@ -48,6 +49,7 @@ qt_add_library(gf_mob_lib STATIC
   model/KeyGroupsController.cpp
   model/AboutInfo.cpp
   model/KeyDatabasesController.cpp
+  model/KeyDescription.cpp
   model/ProfilesController.cpp
   model/ReportSeal.cpp
   model/SettingsModel.cpp
@@ -57,11 +59,11 @@ qt_add_library(gf_mob_lib STATIC
   crypto/KeySelection.cpp
   crypto/OperationLog.cpp
   crypto/OperationQueue.cpp
-  crypto/OutputActions.cpp
   crypto/PassphraseBroker.cpp
   crypto/ResultPresenter.cpp
   crypto/TextCryptoController.cpp
   crypto/EditorHistory.cpp
+  crypto/FileCrypto.cpp
   crypto/WorkSelection.cpp
   files/StagingArea.cpp
   files/ShareRetentionStore.cpp
@@ -70,13 +72,15 @@ qt_add_library(gf_mob_lib STATIC
   files/FileWorkspace.cpp
   files/FolderArchive.cpp
   files/ShareInbox.cpp
-  ${GF_PLATFORM_APP_SOURCES}
+  files/DocumentPicker.cpp
+  files/OutputActions.cpp
+  # The secret store's backends are gf_boot's, which installs them.
   ${GF_PLATFORM_MOBILE_SOURCES})
 
 # What the style does not give: GpgFrontend's own touches (the desktop's
 # status colours, see src/ui/function/UIStyle.cpp), spacing and the keyboard's
 # reach, one instance for the whole application.
-set_source_files_properties(qml/Theme.qml qml/Wording.qml
+set_source_files_properties(qml/Theme.qml qml/Wording.qml qml/Sheets.qml
   PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
 # Material Symbols (Apache-2.0, the license is next to them), drawn in the
@@ -101,6 +105,7 @@ qt_add_qml_module(gf_mob_lib
   QML_FILES
     qml/Theme.qml
     qml/Wording.qml
+    qml/Sheets.qml
     qml/Shell.qml
     qml/SplashPage.qml
     qml/ErrorPage.qml
@@ -116,6 +121,7 @@ qt_add_qml_module(gf_mob_lib
     qml/components/ConfirmSheet.qml
     qml/components/PassphraseSheet.qml
     qml/components/ImportSheet.qml
+    qml/components/OpenDialog.qml
     qml/components/GenerateSheet.qml
     qml/components/Icon.qml
     qml/components/AppBar.qml
@@ -178,6 +184,10 @@ qt_add_qml_module(gf_mob_lib
     qml/components/ResultCard.qml
     qml/components/KeyCategoriesSheet.qml
     qml/components/KeyPickerSheet.qml
+    qml/components/MemberListPage.qml
+    qml/components/KeyNewCategory.qml
+    qml/components/HistorySheet.qml
+    qml/components/SubkeyChoiceSheet.qml
     qml/CategoryKeysPage.qml
     qml/KeyGroupPage.qml
     qml/FactsPage.qml

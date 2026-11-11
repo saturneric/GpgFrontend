@@ -35,6 +35,7 @@
 #include "crypto/PassphraseBroker.h"
 #include "plat/common/PlatformClipboard.h"
 #include "plat/common/PlatformDisplay.h"
+#include "plat/common/PlatformRestart.h"
 #include "startup/InteractionBridge.h"
 
 namespace GpgFrontend::Mobile {
@@ -57,6 +58,8 @@ AppLifecycle::AppLifecycle(InteractionBridge* bridge,
 }
 
 auto AppLifecycle::FontScale() const -> qreal { return font_scale_; }
+
+auto AppLifecycle::toBackground() -> bool { return SendToBackground(); }
 
 void AppLifecycle::read_font_scale() {
   const auto scale = SystemFontScale();
@@ -81,9 +84,11 @@ void AppLifecycle::OnApplicationStateChanged(Qt::ApplicationState state) {
     if (suspended_) return;
     suspended_ = true;
 
+    // Before anything is declined: what was waiting for it.
+    emit SignalSuspending();
     // Done before returning: Android may end a stopped process without
     // calling back again.
-    if (passphrases_ != nullptr) passphrases_->CancelAll();
+    if (passphrases_ != nullptr) passphrases_->SetSuspended(true);
     ClearRpgpPasswordCache();
     bridge_->WipeSecretInputs();
 
@@ -94,6 +99,7 @@ void AppLifecycle::OnApplicationStateChanged(Qt::ApplicationState state) {
 
   if (state == Qt::ApplicationActive && suspended_) {
     suspended_ = false;
+    if (passphrases_ != nullptr) passphrases_->SetSuspended(false);
     // A sensitive copy's timer did not run in the background.
     ExpireSensitiveCopy();
     read_font_scale();

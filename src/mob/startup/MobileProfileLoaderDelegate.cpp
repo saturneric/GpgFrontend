@@ -28,6 +28,7 @@
 
 #include "startup/MobileProfileLoaderDelegate.h"
 
+#include "core/utils/MemoryUtils.h"
 #include "startup/InteractionBridge.h"
 
 namespace GpgFrontend::Mobile {
@@ -64,7 +65,11 @@ auto MobileProfileLoaderDelegate::AskAppKeyPin(const AppKeyPinRequest& request)
   const auto action = reply.value(QStringLiteral("action")).toString();
   if (action == QStringLiteral("pin")) {
     answer.action = AppKeyPinAnswer::Action::kUsePin;
-    answer.pin = GFBuffer(reply.value(QStringLiteral("pin")).toString());
+    auto pin = reply.value(QStringLiteral("pin")).toString();
+    answer.pin = GFBuffer(pin);
+    // This copy, at least, is not left behind (the interface's is wiped
+    // by the sheet).
+    WipeString(pin);
   } else if (action == QStringLiteral("reset")) {
     // Confirmed here, as on the desktop: the loader takes a reset as decided.
     // Declined, it is one more wrong attempt, and the PIN is asked again.

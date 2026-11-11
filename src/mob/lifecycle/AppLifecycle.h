@@ -78,12 +78,23 @@ class AppLifecycle : public QObject {
   /// Follow the application's state; called with every change.
   void OnApplicationStateChanged(Qt::ApplicationState state);
 
+  /**
+   * @brief Leave the screen with everything as it is: what was typed, the
+   * files made and not saved, operations under way. What Back from the
+   * first screen does, where the platform can (SendToBackground()).
+   * @return false where it cannot; the window then closes.
+   */
+  Q_INVOKABLE bool toBackground();
+
   [[nodiscard]] auto IsSuspended() const -> bool;
   [[nodiscard]] auto FontScale() const -> qreal;
 
  signals:
   void SignalSuspendedChanged();
   void SignalFontScaleChanged();
+  /// Going to the background: the prompts on screen are about to be
+  /// declined, cached passphrases about to be dropped.
+  void SignalSuspending();
   /// Went to the background; cached passphrases are already gone.
   void SignalSuspended();
   /// Back in the foreground.
