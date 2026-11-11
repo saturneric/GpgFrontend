@@ -543,9 +543,20 @@ def index_keys_command(args, slug: str, root_dir: Path,
         raise ReleaseError(f"{keys_dir}: no index-keys list to follow")
     name = layout.index_keys_name(found[-1])
     read = trust.read_dir(keys_dir)
-    # Expired or not: renewing one that lapsed is what this is for.
-    current = trust.accept_index_keys(root, read(name),
-                                      read(name + MINISIG), slug, name)
+    # Expired or not: renewing one that lapsed is what this is for. Signed
+    # by the trusted root's G, or after G was replaced by an earlier root's:
+    # the new G takes over by signing the next one.
+    for n in range(root["version"], 0, -1):
+        signer = trust.walk(trust.read_dir(root_dir), slug, upto=n,
+                            steps=None)
+        try:
+            current = trust.accept_index_keys(signer, read(name),
+                                              read(name + MINISIG), slug,
+                                              name)
+            break
+        except ReleaseError:
+            if n == 1:
+                raise
     nxt = trust.renewed(current, trust.INDEX_KEYS_LIFETIME)
     new_key = None
     if args.action == "rotate":
