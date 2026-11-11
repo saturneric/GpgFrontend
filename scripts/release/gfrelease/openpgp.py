@@ -7,8 +7,9 @@ subkey is fine): detached, binary `.sig` files, the form every release has
 carried. Verifying happens anywhere, against nothing but the maintainers'
 public keys: a throwaway keyring is made from release/maintainers.asc for
 each check, and a signature counts only when gpg calls it valid (VALIDSIG)
-and the key it chains to has a primary fingerprint the product pins. Trust
-settings, the caller's own keyring and an agent play no part.
+and the key it chains to has a primary fingerprint the trust root pins
+(host_policy.stable_pgp). Trust settings, the caller's own keyring and an
+agent play no part.
 """
 
 from __future__ import annotations
