@@ -44,13 +44,12 @@ import authenticode
 import openpgp
 import layout
 from common import (BUNDLE, SCHEMA, SIG, STAGED, SUMS, Product, ReleaseError,
-                    atomic_write, candidate_error, canonical_json, iso, load_json, notes_at,
+                    atomic_write, canonical_json, iso, load_json, notes_at,
                     parse_version, refs, render_manifest, sha256_bytes,
-                    sha256_file, tagged_commit, utcnow)
+                    sha256_file, tagged_commit, utcnow, verify_candidate)
 from stage import read_staged
 from store import Store
 
-import release_candidate as rc  # noqa: E402  (scripts/, on the path via common)
 
 STEPS = ("fetch", "verify", "authenticode", "pgp", "upload")
 
@@ -68,7 +67,7 @@ class Stage:
                                "releases (vX.Y.Z)")
         self.product = product
         self.version = str(v)
-        self.tag = f"v{self.version}"
+        self.tag = refs.release_tag(self.version)
         self.dir = Path(work) / self.version
         self.staging, self.builds = staging, builds
         self.git_dir, self.cosign = git_dir, cosign
@@ -235,14 +234,8 @@ class Stage:
         shutil.copytree(self.staged_dir, build)
         (build / STAGED).unlink()
         identity = self.product.identity(ref)
-        try:
-            verified = rc.verify(build, identity, staged["commit"], self.cosign)
-        except (rc.CandidateError, rc.CandidateTimeout) as e:
-            raise candidate_error(self.tag, e) from e
-        files = sorted(p.name for p in verified if p.name not in (SUMS, BUNDLE))
-        if files != sorted(staged["files"]):
-            raise ReleaseError(f"{self.tag}: staged.json lists other files "
-                               "than the signed manifest")
+        files = verify_candidate(self.tag, build, staged, identity,
+                                 self.cosign)
 
         with openpgp.Keyring.of(self.product) as ring:
             ring.verify_tag(self.git_dir, self.tag)
