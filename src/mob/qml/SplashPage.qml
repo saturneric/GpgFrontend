@@ -19,6 +19,17 @@ Page {
     // its parts do (Qt gives a Page the role of an unnamed tab).
     Accessible.ignored: true
 
+    // Back while a question of the start is open: what its own Back does,
+    // never leaving with it unanswered (its Quit is there for that). A
+    // forgotten PIN's reset question goes back to the PIN.
+    function back() {
+        const question = InteractionBridge.current
+        if (question.kind === undefined) return false
+        if (question.kind === "confirm_key_reset" && question.reason === "pin_forgotten")
+            InteractionBridge.decline(question.id)
+        return true
+    }
+
     // The launch screen's logo centre, from the top of the whole window,
     // where the page's own top is below the status bar.
     readonly property real logoCentre: (Window.height > 0 ? Window.height : height) / 2
@@ -78,7 +89,35 @@ Page {
             color: Material.secondaryTextColor
             text: StartupController.state === StartupController.State.kINIT_CORE
                   ? qsTr("Starting the OpenPGP engine…")
+                  : StartupController.state === StartupController.State.kSHUTTING_DOWN
+                  ? qsTr("Closing your profile…")
                   : qsTr("Opening your profile…")
+        }
+
+        // A start that takes long says so, rather than spin without a word:
+        // a large key database is read in full the first time.
+        Label {
+            objectName: "splashSlow"
+            Layout.alignment: Qt.AlignHCenter
+            Layout.maximumWidth: page.width - 2 * Theme.gap
+            horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.Wrap
+            visible: slow.slow
+            color: Material.secondaryTextColor
+            font.pixelSize: Theme.labelSize
+            text: qsTr("This is taking longer than usual. A large key database "
+                       + "takes a while to read the first time.")
+        }
+
+        Timer {
+            id: slow
+            property bool slow: false
+            interval: 30000
+            // The engine's start only: opening the profile may wait for a
+            // person typing the PIN.
+            running: StartupController.state === StartupController.State.kINIT_CORE
+            onRunningChanged: if (!running) slow = false
+            onTriggered: slow = true
         }
     }
 }

@@ -198,9 +198,8 @@ Page {
         onRejected: page.exportSecret = ""
     }
 
-    FileDialog {
+    OpenDialog {
         id: importDialog
-        fileMode: FileDialog.OpenFile
         onAccepted: profileStore.importFrom(selectedFile)
     }
 
@@ -212,7 +211,9 @@ Page {
 
         message: qsTr("GpgFrontend starts again and opens “%1”. It opens "
                       + "this profile until you choose another.")
-                 .arg(profileName)
+                 .arg(profileName) + "\n\n"
+                 + qsTr("What is not saved goes: the text on the Text page, files "
+                        + "made and not saved, and operations under way.")
         acceptText: qsTr("Open")
         acceptObjectName: "openProfile"
         onAccepted: profileStore.switchTo(profileId)

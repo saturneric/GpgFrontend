@@ -60,10 +60,9 @@ Page {
 
     Component.onCompleted: categoryStore.SignalChanged.connect(page.categoriesChanged)
 
-    // The key databases: the application's one controller (MainPage), so
-    // a switch begun on one page is seen as under way on the other; its own
-    // where the page stands alone.
-    property KeyDatabasesController keyDatabases: KeyDatabasesController {}
+    // The key databases: the application's one controller, so a switch
+    // begun here is seen as under way in Settings.
+    readonly property var keyDatabases: KeyDatabasesController
 
     // A long press on a key: the categories it is in.
     KeyCategoriesSheet {
@@ -208,19 +207,7 @@ Page {
                     "keyId": model.keyId, "name": primaryText
                 })
                 onClicked: if (!model.isKey) page.groupOpened(model.fingerprint, false)
-                           else page.keyChosen({
-                    "name": model.name, "email": model.email,
-                    "comment": model.comment, "keyId": model.keyId,
-                    "fingerprint": model.fingerprint,
-                    "hasSecret": model.hasSecret,
-                    "secretState": model.secretState,
-                    "capabilities": model.capabilities,
-                    "canEncrypt": model.canEncrypt, "canSign": model.canSign,
-                    "usable": model.usable, "expired": model.expired,
-                    "revoked": model.revoked, "status": model.status,
-                    "statusText": model.statusText, "created": model.created,
-                    "expires": model.expires, "algorithm": model.algorithm
-                })
+                           else page.keyChosen(KeyListController.keys.keyOf(model.fingerprint))
             }
 
             // Let go of pulled far enough: the room is held open at once

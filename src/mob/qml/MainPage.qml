@@ -18,7 +18,7 @@ Page {
         // is busy); either way Back is not for the page under it, or the
         // application. Every sheet, a page's own too, not only some.
         if (sheets.back()) return true
-        const open = Theme.openSheets
+        const open = Sheets.open
         if (open.length > 0) {
             open[open.length - 1].back()
             return true
@@ -89,13 +89,7 @@ Page {
     // be let go; true when such a sheet stays.
     function closeSheets() {
         sheets.closeAll()
-        return Theme.closeOpenSheets()
-    }
-
-    // One for the application: a switch begun from Keys or from Settings is
-    // seen under way on both.
-    KeyDatabasesController {
-        id: sharedDatabases
+        return Sheets.closeAll()
     }
 
     // Back to the first page of the Keys and the Settings tabs, but for a
@@ -133,6 +127,7 @@ Page {
         FilesPage {
             id: filesPage
             sheets: sheets
+            onImportKeysRequested: file => importSheet.beginFile(file)
         }
 
         StackView {
@@ -142,7 +137,6 @@ Page {
                 id: keysPage
 
                 creatingKey: generateSheet.quickRunning
-                keyDatabases: sharedDatabases
                 onKeyChosen: function(key) {
                     stack.push(keyDetail, {"key": key})
                 }
@@ -161,7 +155,6 @@ Page {
             id: settingsStack
 
             initialItem: SettingsPage {
-                keyDatabases: sharedDatabases
                 onAboutRequested: settingsStack.push(about)
                 onBuildInfoRequested: settingsStack.push(buildInfo)
                 onEngineInfoRequested: settingsStack.push(engineInfo)
@@ -208,6 +201,8 @@ Page {
             filesPage.showFile(id)
         }
         onOpenKeyRequested: key => main.showKey(key)
+        onImportKeysRequested: importSheet.begin()
+        onCreateKeyRequested: generateSheet.begin()
     }
 
     Component {
@@ -225,7 +220,6 @@ Page {
                 // Only this page: one opened over it while it worked stays.
                 if (StackView.view.currentItem === detailPage) StackView.view.pop()
                 else gone = true
-                KeyListController.refresh()
                 // Said where the person now is: the page that would have said
                 // it is gone.
                 keysPage.notice.show(qsTr("Key deleted."))
@@ -262,6 +256,12 @@ Page {
         id: keyGroupPage
         KeyGroupPage {
             onBack: StackView.view.pop()
+            onKeyChosen: function(key) {
+                StackView.view.push(keyDetail, {"key": key})
+            }
+            onGroupOpened: function(id) {
+                StackView.view.push(keyGroupPage, {"groupId": id})
+            }
         }
     }
 
@@ -343,8 +343,8 @@ Page {
 
     GenerateSheet {
         id: generateSheet
+        // The key list has it already (KeyActionsController).
         onGenerated: function(fingerprint) {
-            KeyListController.refresh()
             generatedSheet.begin(fingerprint)
         }
         onQuickFailed: error => keysPage.notice.show(

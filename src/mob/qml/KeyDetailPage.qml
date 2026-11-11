@@ -83,16 +83,15 @@ Page {
             return
         case "revoke_key":
             reload()
-            KeyListController.refresh()
             // Others learn of it from the key: offered at once.
             notice.show(qsTr("Key revoked. Share it so others learn of it."),
                         qsTranslate("FilesPage", "Share"),
                         () => actions.exportPublic(page.key.fingerprint))
             return
         }
-        // A change to the key: shown at once, and in the list.
+        // A change to the key: shown at once here; the list has it already
+        // (KeyActionsController).
         reload()
-        KeyListController.refresh()
         const said = {
             "add_subkey": qsTr("Subkey added."),
             "expiration": qsTr("Expiration changed."),
@@ -104,7 +103,15 @@ Page {
             "delete_uid": qsTr("User ID deleted."),
             "passphrase": qsTr("Passphrase changed.")
         }
-        notice.show(said[action] || "")
+        // Others learn of these only from the key: offered at once, as a
+        // revoked key is.
+        const toShare = ["expiration", "revoke_subkey", "add_uid", "primary_uid",
+                         "revoke_uid", "add_subkey"]
+        if (toShare.includes(action))
+            notice.show(said[action] || "", qsTranslate("FilesPage", "Share"),
+                        () => actions.exportPublic(page.key.fingerprint))
+        else
+            notice.show(said[action] || "")
     }
 
     // What of the key's secret is here (KeyRoleModel's secretState):
@@ -120,6 +127,9 @@ Page {
     // The public key, armored, once exported, and the name of its file.
     property string exported: ""
     property string exportedName: ""
+
+    // The owner's comment, the one thing of the user ID the header leaves out.
+    readonly property string ownerComment: described ? (details.comment || "") : ""
 
     header: AppBar {
         title: qsTr("Key")
@@ -221,10 +231,11 @@ Page {
                 key: page.key
             }
 
-            // ---- Owner, as on the desktop's first tab
+            // ---- Owner, as on the desktop's first tab: only what the header
+            // above does not say already (its name and email are there).
             SectionHeader {
                 Layout.fillWidth: true
-                visible: page.described
+                visible: page.ownerComment.length > 0
                 text: qsTr("Owner")
             }
 
@@ -232,21 +243,14 @@ Page {
                 Layout.fillWidth: true
                 Layout.leftMargin: Theme.gap
                 Layout.rightMargin: Theme.gap
-                visible: page.described
+                visible: page.ownerComment.length > 0
                 columns: 1
                 rowSpacing: 8
 
                 Fact {
-                    title: qsTr("Name")
-                    value: page.details.name || ""
-                }
-                Fact {
-                    title: qsTr("Email")
-                    value: page.details.email || ""
-                }
-                Fact {
+                    objectName: "keyComment"
                     title: qsTr("Comment")
-                    value: page.details.comment || ""
+                    value: page.ownerComment
                 }
             }
 
@@ -455,10 +459,8 @@ Page {
                     font.pixelSize: Theme.secondarySize
                     topInset: 4
                     bottomInset: 4
-                    onClicked: {
-                        page.addToNew = true
-                        categorySheet.begin(null)
-                    }
+                    // Made with this key in it.
+                    onClicked: newCategory.begin(page.key.keyId || "")
                 }
             }
 
@@ -583,7 +585,6 @@ Page {
 
     Component.onCompleted: {
         reload()
-        categories.SignalAdded.connect(page.categoryAdded)
         actions.SignalFinished.connect(page.finished)
         output.SignalShared.connect(page.shared)
     }
@@ -622,6 +623,21 @@ Page {
             }
         }
 
+        // To the phone's storage or a cloud folder: the place is picked.
+        ListRow {
+            objectName: "saveKeyFile"
+            Layout.fillWidth: true
+            leftPadding: Theme.sheetPad
+            symbol: "save"
+            text: qsTr("Save as file")
+            detail: output.canShare ? "" : page.exportedName
+            onClicked: {
+                publicKeyDialog.currentFile = page.exportedName
+                exportActions.close()
+                publicKeyDialog.open()
+            }
+        }
+
         ListRow {
             objectName: "copyKeyText"
             Layout.fillWidth: true
@@ -637,22 +653,24 @@ Page {
         }
     }
 
-    // A category made from this page takes this key in at once.
-    property bool addToNew: false
+    FileDialog {
+        id: publicKeyDialog
+        fileMode: FileDialog.SaveFile
+        onAccepted: notice.show(
+            output.saveFile(page.exported, selectedFile)
+                ? qsTr("Public key saved.")
+                : qsTranslate("GpgFrontend::Mobile::ProfilesController",
+                              "The file could not be saved there."))
+    }
 
     KeyCategoriesController {
         id: categories
     }
 
-    function categoryAdded(id) {
-        if (page.addToNew) categories.setMember(id, page.key.keyId, true)
-        page.addToNew = false
-    }
-
-    CategorySheet {
-        id: categorySheet
+    // A category made from this page takes this key in at once.
+    KeyNewCategory {
+        id: newCategory
         categories: categories
-        onClosed: Qt.callLater(() => page.addToNew = false)
     }
 
     // The subkey (or primary key) whose expiry is being chosen.
@@ -747,6 +765,7 @@ Page {
                    + "others have keep it: to withdraw it, revoke it instead.")
                  .arg(uid.uid || "")
         acceptText: qsTr("Delete")
+        destructive: true
         onAccepted: actions.deleteUid(page.details.fingerprint, uid.uid)
     }
 
@@ -761,6 +780,7 @@ Page {
                    + "others have keep it: to end its use, revoke it instead. "
                    + "This cannot be undone.")
         acceptText: qsTr("Delete")
+        destructive: true
         onAccepted: actions.deleteSubkey(page.details.fingerprint, subkey.fingerprint)
     }
 
@@ -776,6 +796,7 @@ Page {
         message: qsTr("You are asked for its passphrase, then the key is revoked "
                       + "here at once. This cannot be undone.")
         acceptText: qsTranslate("RevokeSubkeySheet", "Revoke")
+        destructive: true
         acceptObjectName: "confirmRevokeKeyRun"
         onAccepted: actions.revokeKey(page.details.fingerprint, reason, text)
     }
@@ -874,12 +895,15 @@ Page {
         message: page.key.hasSecret
               ? qsTr("This is your own key. Without it you can no "
                      + "longer read messages encrypted to it or sign "
-                     + "with it. This cannot be undone.")
+                     + "with it. This cannot be undone.") + "\n\n"
+                + qsTr("Back it up first (Back up secret key) if you may "
+                       + "need it again.")
               : qsTr("You will no longer be able to encrypt to this "
                      + "key or check its signatures, until you import "
                      + "it again.")
 
         acceptText: qsTr("Delete")
+        destructive: true
         acceptObjectName: "confirmDeleteRun"
 
         onAccepted: actions.remove(page.key.fingerprint)

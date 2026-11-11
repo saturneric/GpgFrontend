@@ -140,6 +140,7 @@ Page {
         message: qsTr("Only the category goes: its keys stay, in the key list "
                    + "and in their other categories.")
         acceptText: qsTr("Delete")
+        destructive: true
         onAccepted: store.remove(category.id)
     }
 }

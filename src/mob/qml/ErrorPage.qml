@@ -37,11 +37,39 @@ Page {
             color: Material.secondaryTextColor
         }
 
-        Button {
+        Label {
+            id: restartProblem
+            objectName: "restartProblem"
+            Layout.fillWidth: true
+            visible: text.length > 0
+            wrapMode: Text.Wrap
+            color: Theme.danger
+        }
+
+        RowLayout {
             Layout.alignment: Qt.AlignRight
-            text: qsTr("Quit")
-            highlighted: true
-            onClicked: Qt.quit()
+            spacing: Theme.gapSmall
+
+            // A profile chosen in Settings that will not open: the default
+            // one still can, and there is no other way back to it.
+            Button {
+                objectName: "openDefaultProfile"
+                visible: StartupController.chosenProfile
+                text: qsTr("Open the default profile")
+                flat: true
+                onClicked: {
+                    if (!StartupController.openDefaultProfile())
+                        restartProblem.text = qsTr("GpgFrontend could not start again. "
+                                                   + "Quit, then open it again: the "
+                                                   + "default profile opens.")
+                }
+            }
+
+            Button {
+                text: qsTr("Quit")
+                highlighted: true
+                onClicked: Qt.quit()
+            }
         }
     }
 }

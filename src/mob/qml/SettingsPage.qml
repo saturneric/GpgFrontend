@@ -44,10 +44,9 @@ Page {
         id: settings
     }
 
-    // The key databases: the application's one controller (MainPage), so
-    // a switch begun on one page is seen as under way on the other; its own
-    // where the page stands alone.
-    property KeyDatabasesController keyDatabases: KeyDatabasesController {}
+    // The key databases: the application's one controller, so a switch
+    // begun here is seen as under way on the Keys page.
+    readonly property var keyDatabases: KeyDatabasesController
 
     ProfilesController {
         id: phoneProfiles
@@ -426,6 +425,7 @@ Page {
         message: qsTr("Apps you shared files with can no longer open them.")
 
         acceptText: qsTr("Remove")
+        destructive: true
 
         onAccepted: {
             settings.clearSharedFiles()

@@ -9,22 +9,14 @@ import GpgFrontend.Mobile
 // One key group, as the desktop manages it: the keys in it, taken out one
 // by one, many put in at once with the key picker; renamed or deleted from
 // the menu. Encrypting to it encrypts to every key it holds.
-Page {
+MemberListPage {
     id: page
-
-    // Not a stop for a screen reader: a page has no name of its own, only
-    // its parts do (Qt gives a Page the role of an unnamed tab).
-    Accessible.ignored: true
 
     // The group's id (KeyRoleModel's fingerprint of it).
     property string groupId: ""
     // Opened just after it was made: ask for its keys at once.
     property bool pickOnOpen: false
 
-    signal back()
-
-    readonly property alias notice: done
-    readonly property alias picker: picker
     readonly property alias groups: groups
 
     // Read again on every change of the key list.
@@ -38,33 +30,147 @@ Page {
 
     Component.onCompleted: if (pickOnOpen) Qt.callLater(page.addKeys)
 
-    header: AppBar {
-        title: page.group.name || ""
-        canGoBack: true
-        raised: list.contentY > list.originY
-        onBack: page.back()
+    title: group.name || ""
+    menuName: "groupMenu"
+    menuItems: [
+        MenuItem {
+            objectName: "groupEdit"
+            text: qsTr("Edit")
+            onTriggered: namer.begin(page.group)
+        },
+        MenuItem {
+            objectName: "groupCategories"
+            text: qsTr("Categories")
+            onTriggered: groupCategories.begin({
+                "keyId": page.groupId, "name": page.group.name || ""
+            })
+        },
+        MenuItem {
+            objectName: "groupDelete"
+            text: qsTr("Delete")
+            onTriggered: page.confirmDelete.open()
+        }
+    ]
 
-        OverflowButton {
-            objectName: "groupMenu"
+    listName: "groupMembers"
+    model: members
 
-            MenuItem {
-                objectName: "groupEdit"
-                text: qsTr("Edit")
-                onTriggered: namer.begin(page.group)
+    // The group's email and comment, as the desktop keeps them, when it has
+    // any; then a section label, what a group means a tap on (i) away.
+    listHeader: ColumnLayout {
+        width: ListView.view.width
+        spacing: 0
+
+        ColumnLayout {
+            objectName: "groupDetails"
+            Layout.fillWidth: true
+            Layout.leftMargin: Theme.gap
+            Layout.rightMargin: Theme.gap
+            Layout.topMargin: Theme.gapSmall
+            visible: (page.group.email || "").length > 0
+                     || (page.group.comment || "").length > 0
+            spacing: Theme.gapSmall
+
+            InfoRow {
+                objectName: "groupEmail"
+                Layout.fillWidth: true
+                label: qsTr("Email")
+                value: page.group.email || ""
             }
-            MenuItem {
-                objectName: "groupCategories"
-                text: qsTr("Categories")
-                onTriggered: groupCategories.begin({
-                    "keyId": page.groupId, "name": page.group.name || ""
-                })
-            }
-            MenuItem {
-                objectName: "groupDelete"
-                text: qsTr("Delete")
-                onTriggered: confirmDelete.open()
+
+            InfoRow {
+                objectName: "groupComment"
+                Layout.fillWidth: true
+                label: qsTr("Comment")
+                value: page.group.comment || ""
             }
         }
+
+        RowLayout {
+            Layout.fillWidth: true
+            visible: page.count > 0
+            spacing: 0
+
+            SectionHeader {
+                objectName: "groupMembersLabel"
+                Layout.fillWidth: true
+                text: qsTr("Member keys (%1)").arg(page.count)
+            }
+
+            BarButton {
+                objectName: "groupHelp"
+                Layout.rightMargin: 4
+                text: qsTr("About key groups")
+                icon.source: Theme.icon("info")
+                onClicked: groupHelp.open()
+            }
+        }
+    }
+
+    delegate: ListRow {
+        id: member
+
+        required property var modelData
+
+        width: ListView.view.width
+        // One gone from the keys has nothing to open.
+        inert: modelData.missing === true
+        onClicked: page.openMember(modelData.isGroup === true, modelData.id,
+                                   modelData.fingerprint)
+        symbol: modelData.isGroup ? "group" : modelData.missing ? "warning" : "key"
+        symbolColor: modelData.missing ? Theme.warning : Material.secondaryTextColor
+        text: modelData.name || modelData.email || modelData.id
+        detail: modelData.missing ? qsTr("No longer in your keys")
+              : modelData.isGroup ? qsTr("Key group")
+              : [modelData.email || "", (modelData.keyId || "").slice(-8)]
+                .filter(t => t.length > 0).join(" · ")
+
+        // Out of the group only: the key itself stays in the key list.
+        BarButton {
+            objectName: "groupTakeOut_" + member.modelData.id
+            text: qsTr("Remove %1 from the group").arg(member.text)
+            icon.source: Theme.icon("close")
+            onClicked: {
+                const group = page.groupId
+                const key = member.modelData.id
+                page.tookOut(groups.removeMember(group, key),
+                             qsTr("%1 is out of %2.").arg(member.text)
+                             .arg(page.group.name),
+                             qsTr("%1 could not be taken out of the group.")
+                             .arg(member.text),
+                             () => groups.addMembers(group, [key]))
+            }
+        }
+    }
+
+    emptyName: "groupEmpty"
+    emptyText: qsTr("No keys in it yet")
+    emptyDetail: qsTr("Use + to add keys, many at once. Encrypting to a "
+                      + "key group encrypts to every key in it.")
+
+    addName: "addGroupMembers"
+    addText: qsTr("Add keys to the group")
+    onAddRequested: addKeys()
+
+    picker.onlyEncryptCapable: true
+    onKeysPicked: function(keyIds) {
+        const added = groups.addMembers(page.groupId, keyIds)
+        notice.show(qsTr("%n key(s) added.", "", added))
+    }
+
+    deleteTitle: qsTr("Delete “%1”?").arg(group.name || "")
+    // The groups it is a member of lose it too: named, as the desktop does.
+    readonly property var parentNames: groups.revision >= 0 ? groups.parentNames(groupId) : []
+    deleteMessage: qsTr("Only the group goes: its keys stay in the key list.")
+                   + (parentNames.length > 0
+                      ? "\n\n" + qsTr("It is also in %1, which will lose it.")
+                        .arg(parentNames.join(", "))
+                      : "")
+    confirmDelete.acceptText: qsTr("Delete")
+    // Gone, then the page with it; not gone, said, and the page stays.
+    onDeleteAccepted: {
+        if (groups.remove(page.groupId)) page.back()
+        else notice.show(qsTr("The group could not be deleted."))
     }
 
     KeyGroupsController {
@@ -81,119 +187,6 @@ Page {
         categories: categoryStore
     }
 
-    ListView {
-        id: list
-
-        objectName: "groupMembers"
-        anchors.fill: parent
-        clip: true
-        ScrollIndicator.vertical: ScrollIndicator {}
-        model: page.members
-
-        // The last row scrolls clear of the add button.
-        bottomMargin: Theme.fabBand
-
-        // The group's email and comment, as the desktop keeps them, when it
-        // has any; then a section label, what a group means a tap on (i)
-        // away.
-        header: ColumnLayout {
-            width: ListView.view.width
-            spacing: 0
-
-            ColumnLayout {
-                objectName: "groupDetails"
-                Layout.fillWidth: true
-                Layout.leftMargin: Theme.gap
-                Layout.rightMargin: Theme.gap
-                Layout.topMargin: Theme.gapSmall
-                visible: (page.group.email || "").length > 0
-                         || (page.group.comment || "").length > 0
-                spacing: Theme.gapSmall
-
-                InfoRow {
-                    objectName: "groupEmail"
-                    Layout.fillWidth: true
-                    label: qsTr("Email")
-                    value: page.group.email || ""
-                }
-
-                InfoRow {
-                    objectName: "groupComment"
-                    Layout.fillWidth: true
-                    label: qsTr("Comment")
-                    value: page.group.comment || ""
-                }
-            }
-
-            RowLayout {
-                Layout.fillWidth: true
-                visible: list.count > 0
-                spacing: 0
-
-                SectionHeader {
-                    objectName: "groupMembersLabel"
-                    Layout.fillWidth: true
-                    text: qsTr("Member keys (%1)").arg(list.count)
-                }
-
-                BarButton {
-                    objectName: "groupHelp"
-                    Layout.rightMargin: 4
-                    text: qsTr("About key groups")
-                    icon.source: Theme.icon("info")
-                    onClicked: groupHelp.open()
-                }
-            }
-        }
-
-        delegate: ListRow {
-            id: member
-
-            required property var modelData
-
-            width: ListView.view.width
-            inert: true
-            symbol: modelData.isGroup ? "group" : modelData.missing ? "warning" : "key"
-            symbolColor: modelData.missing ? Theme.warning : Material.secondaryTextColor
-            text: modelData.name || modelData.email || modelData.id
-            detail: modelData.missing ? qsTr("No longer in your keys")
-                  : modelData.isGroup ? qsTr("Key group")
-                  : [modelData.email || "", (modelData.keyId || "").slice(-8)]
-                    .filter(t => t.length > 0).join(" · ")
-
-            // Out of the group only: the key itself stays in the key list.
-            BarButton {
-                objectName: "groupTakeOut_" + member.modelData.id
-                text: qsTr("Remove %1 from the group").arg(member.text)
-                icon.source: Theme.icon("close")
-                onClicked: {
-                    if (groups.removeMember(page.groupId, member.modelData.id))
-                        done.show(qsTr("%1 is out of %2.").arg(member.text)
-                                  .arg(page.group.name))
-                }
-            }
-        }
-
-        EmptyState {
-            objectName: "groupEmpty"
-            parent: list
-            anchors.centerIn: list
-            width: list.width - 64
-            visible: list.count === 0
-            symbol: "key"
-            text: qsTr("No keys in it yet")
-            detail: qsTr("Use + to add keys, many at once. Encrypting to a "
-                         + "key group encrypts to every key in it.")
-        }
-    }
-
-    Fab {
-        objectName: "addGroupMembers"
-        text: qsTr("Add keys to the group")
-        icon.source: Theme.icon("add")
-        onClicked: page.addKeys()
-    }
-
     MessageAlert {
         id: groupHelp
 
@@ -204,36 +197,8 @@ Page {
                       + "keeps the key in your key list.")
     }
 
-    KeyPickerSheet {
-        id: picker
-        actionText: qsTr("Add")
-        onlyEncryptCapable: true
-        onAccepted: function(keyIds) {
-            const added = groups.addMembers(page.groupId, keyIds)
-            done.show(qsTr("%n key(s) added.", "", added))
-        }
-    }
-
     KeyGroupSheet {
         id: namer
         groups: groups
-    }
-
-    MessageAlert {
-        id: confirmDelete
-
-        title: qsTr("Delete “%1”?").arg(page.group.name || "")
-        message: qsTr("Only the group goes: its keys stay in the key list.")
-        acceptText: qsTr("Delete")
-        onAccepted: {
-            groups.remove(page.groupId)
-            page.back()
-        }
-    }
-
-    Snackbar {
-        id: done
-        // Above the add button, never over it.
-        bottomOffset: Theme.fabBand - 12
     }
 }

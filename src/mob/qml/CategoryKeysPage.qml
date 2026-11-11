@@ -9,25 +9,11 @@ import GpgFrontend.Mobile
 // One key category: the keys in it, taken out one by one, and many put in at
 // once with a picker like the key toolbox. Renamed, recoloured or deleted
 // from the menu.
-Page {
+MemberListPage {
     id: page
-
-    // Not a stop for a screen reader: a page has no name of its own, only
-    // its parts do (Qt gives a Page the role of an unnamed tab).
-    Accessible.ignored: true
 
     // The category: {id, name, color}.
     property var category: ({})
-
-    signal back()
-    // A key of it was tapped: its page.
-    signal keyChosen(var key)
-    // A key group in the category, to open (by its id).
-    signal groupOpened(string id)
-
-    // What the page last said in passing (a pop-up, not in the item tree).
-    readonly property alias notice: done
-    readonly property alias picker: picker
 
     // Its name and colour as they are now, after an edit here.
     readonly property var current: {
@@ -45,132 +31,83 @@ Page {
                      store.keyIdsOf(category.id))
     }
 
-    header: AppBar {
-        title: page.current.name || ""
-        canGoBack: true
-        raised: list.contentY > list.originY
-        onBack: page.back()
+    title: current.name || ""
+    menuName: "categoryMenu"
+    menuItems: [
+        MenuItem {
+            text: qsTr("Edit")
+            onTriggered: editor.begin(page.current)
+        },
+        MenuItem {
+            objectName: "categoryDelete"
+            text: qsTr("Delete")
+            onTriggered: page.confirmDelete.open()
+        }
+    ]
 
-        OverflowButton {
-            objectName: "categoryMenu"
+    listName: "categoryKeys"
+    model: KeyFilterModel {
+        id: members
+        sourceModel: KeyListController.keys
+        category: page.category.id || ""
+        // The key groups put in it too.
+        withGroups: true
+    }
+    delegate: KeyRow {
+        id: member
 
-            MenuItem {
-                text: qsTr("Edit")
-                onTriggered: editor.begin(page.current)
-            }
-            MenuItem {
-                objectName: "categoryDelete"
-                text: qsTr("Delete")
-                onTriggered: confirmDelete.open()
+        required property var model
+
+        width: ListView.view.width
+        onClicked: page.openMember(!model.isKey, model.fingerprint, model.fingerprint)
+
+        BarButton {
+            objectName: "categoryTakeOut_" + member.keyId
+            text: qsTr("Remove %1 from the category").arg(member.primaryText)
+            icon.source: Theme.icon("close")
+            onClicked: {
+                const category = page.category.id
+                const key = member.keyId
+                page.tookOut(store.setMember(category, key, false),
+                             qsTr("%1 is out of %2.").arg(member.primaryText)
+                             .arg(page.current.name),
+                             qsTr("%1 could not be taken out of the category.")
+                             .arg(member.primaryText),
+                             () => store.setMember(category, key, true))
             }
         }
+    }
+
+    emptyName: "categoryEmpty"
+    emptyText: qsTr("No keys in it yet")
+    emptyDetail: qsTr("Use + to add keys you have, many at once, or "
+                      + "long-press a key in the key list.")
+
+    // Adding keys one has to the category: never making a new key.
+    addName: "categoryAddKeys"
+    addText: qsTr("Add keys to the category")
+    onAddRequested: addKeys()
+
+    onKeysPicked: function(keyIds) {
+        const added = store.setMembers(page.category.id, keyIds, true)
+        notice.show(qsTr("%n key(s) added.", "", added))
+    }
+
+    deleteTitle: qsTr("Delete “%1”?").arg(current.name || "")
+    deleteMessage: qsTr("Only the category goes: its keys stay, in the key list "
+                        + "and in their other categories.")
+    confirmDelete.acceptText: qsTr("Delete")
+    onDeleteAccepted: {
+        store.remove(page.category.id)
+        page.back()
     }
 
     KeyCategoriesController {
         id: store
     }
 
-    ListView {
-        id: list
-
-        objectName: "categoryKeys"
-        anchors.fill: parent
-        clip: true
-        // The last row scrolls clear of the add button.
-        bottomMargin: Theme.fabBand
-        ScrollIndicator.vertical: ScrollIndicator {}
-        model: KeyFilterModel {
-            id: members
-            sourceModel: KeyListController.keys
-            category: page.category.id || ""
-            // The key groups put in it too.
-            withGroups: true
-        }
-
-        delegate: KeyRow {
-            id: member
-
-            required property var model
-
-            width: ListView.view.width
-            onClicked: if (!model.isKey) page.groupOpened(model.fingerprint)
-                       else page.keyChosen({
-                "name": model.name, "email": model.email,
-                "comment": model.comment, "keyId": model.keyId,
-                "fingerprint": model.fingerprint,
-                "hasSecret": model.hasSecret,
-                "secretState": model.secretState,
-                "capabilities": model.capabilities,
-                "canEncrypt": model.canEncrypt, "canSign": model.canSign,
-                "usable": model.usable, "expired": model.expired,
-                "revoked": model.revoked, "status": model.status,
-                "statusText": model.statusText, "created": model.created,
-                "expires": model.expires, "algorithm": model.algorithm
-            })
-
-            BarButton {
-                objectName: "categoryTakeOut_" + member.keyId
-                text: qsTr("Remove %1 from the category").arg(member.primaryText)
-                icon.source: Theme.icon("close")
-                onClicked: {
-                    store.setMember(page.category.id, member.keyId, false)
-                    done.show(qsTr("%1 is out of %2.").arg(member.primaryText)
-                              .arg(page.current.name))
-                }
-            }
-        }
-
-        EmptyState {
-            objectName: "categoryEmpty"
-            parent: list
-            anchors.centerIn: list
-            width: list.width - 64
-            visible: list.count === 0
-            symbol: "key"
-            text: qsTr("No keys in it yet")
-            detail: qsTr("Use + to add keys you have, many at once, or "
-                         + "long-press a key in the key list.")
-        }
-    }
-
-    // Adding keys one has to the category: never making a new key.
-    Fab {
-        objectName: "categoryAddKeys"
-        text: qsTr("Add keys to the category")
-        icon.source: Theme.icon("add")
-        onClicked: page.addKeys()
-    }
-
-    KeyPickerSheet {
-        id: picker
-        actionText: qsTr("Add")
-        onAccepted: function(keyIds) {
-            const added = store.setMembers(page.category.id, keyIds, true)
-            done.show(qsTr("%n key(s) added.", "", added))
-        }
-    }
-
     CategorySheet {
         id: editor
         categories: store
-    }
-
-    MessageAlert {
-        id: confirmDelete
-
-        title: qsTr("Delete “%1”?").arg(page.current.name || "")
-        message: qsTr("Only the category goes: its keys stay, in the key list "
-                      + "and in their other categories.")
-        acceptText: qsTr("Delete")
-        onAccepted: {
-            store.remove(page.category.id)
-            page.back()
-        }
-    }
-
-    Snackbar {
-        id: done
-        // Above the add button, never over it.
-        bottomOffset: Theme.fabBand - 12
     }
 }

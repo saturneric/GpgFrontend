@@ -22,6 +22,9 @@ Page {
     // The sheets the working pages share; null where none is (tests).
     property SheetHost sheets: null
 
+    // A key file in the list is to be imported (the Keys' import sheet).
+    signal importKeysRequested(url file)
+
     // What the page last said in passing (a pop-up, not in the item tree).
     readonly property alias notice: notice
     // A passphrase is being asked: a picker now would send the application
@@ -59,7 +62,6 @@ Page {
     readonly property alias operationMenu: operationMenu
     readonly property alias fileDetails: details
     readonly property alias addChoice: addSheet
-    readonly property alias rowActions: rowMenu
 
     // One step back, as Android's Back asks: out of the search (its text
     // first), then out of choosing files.
@@ -123,8 +125,8 @@ Page {
         switch (op) {
         case "encrypt":
             started = files.encrypt(ids,
-                                    WorkSelection.passphraseMode ? [] : WorkSelection.recipients,
-                                    WorkSelection.signsEncryption ? WorkSelection.preferredSigner : "",
+                                    WorkSelection.passphraseMode ? [] : WorkSelection.operationRecipients(),
+                                    WorkSelection.signsEncryption ? WorkSelection.operationSigner() : "",
                                     WorkSelection.passphraseMode)
             break
         case "decrypt":
@@ -134,13 +136,13 @@ Page {
             started = files.decrypt(ids, op === "decrypt_verify")
             break
         case "sign":
-            started = files.sign(ids, WorkSelection.preferredSigner)
+            started = files.sign(ids, WorkSelection.operationSigner())
             break
         }
         // Nothing queued (each is waiting or running already): said, and
         // the choice kept, never an earlier operation shown as this one.
         if (!started) {
-            notice.show(page.refusal(ids))
+            notice.show(Wording.startRefusal(op) || page.refusal(ids))
             return false
         }
         files.clearSelection()
@@ -235,6 +237,17 @@ Page {
         page.saveAs(id)
     }
 
+    // The file @p id, which can no longer be opened, picked again.
+    function pickAgain(id) {
+        if (page.prompting) {
+            notice.show(page.pickerBlocked)
+            return
+        }
+        relinkDialog.target = id
+        relinkDialog.retryId = 0
+        relinkDialog.open()
+    }
+
     function retry(opId) {
         const why = files.retry(opId)
         if (why === "") {
@@ -269,8 +282,9 @@ Page {
         return queued > 0
     }
 
-    function stopWaiting() {
-        files.cancelQueued()
+    // What waits of the batch @p batchId; of every batch with none.
+    function stopWaiting(batchId) {
+        files.cancelQueued(batchId || 0)
     }
 
     // Bring the file @p id into view, and mark it for a moment; a filter
@@ -377,9 +391,12 @@ Page {
             confirmRemove.open()
             return
         }
+        // A copy another app shared is GpgFrontend's own: it goes; only a
+        // file picked from the device stays where it is.
         let originals = 0
         for (const id of removable) {
-            if (files.entry(id).kind === "external") ++originals
+            const e = files.entry(id)
+            if (e.kind === "external" && e.origin !== "shared") ++originals
         }
         files.remove(removable)
         if (originals > 0)
@@ -416,11 +433,13 @@ Page {
         const size = Theme.fileSize(file.size)
         if (file.isFolder)
             return qsTr("Folder · %n file(s) · %1", "", file.fileCount).arg(size)
-        if (file.operation === "verify" && file.phase === "done") {
-            const signatures = file.result.signatures || []
+        // A verification, or a decryption that checked signatures too: the
+        // worst of them, as the line's colour (detailColorOf()).
+        const signatures = file.phase === "done" ? (file.result.signatures || []) : []
+        if (file.phase === "done" && (file.operation === "verify" || signatures.length > 0)) {
             return signatures.length > 0
                    ? qsTr("%1 · Signature: %2").arg(size)
-                         .arg(Wording.signatureFact(signatures[0].signature))
+                         .arg(Wording.signatureSummary(Wording.worstSignature(signatures)))
                    : qsTr("%1 · No signature found").arg(size)
         }
         if (file.origin === "made" && file.savedName.length === 0)
@@ -442,8 +461,8 @@ Page {
 
     function detailColorOf(file) {
         if (!file.available || file.phase === "failed") return Theme.danger
-        if (file.operation === "verify" && file.phase === "done") {
-            const signatures = file.result.signatures || []
+        const signatures = file.phase === "done" ? (file.result.signatures || []) : []
+        if (file.phase === "done" && (file.operation === "verify" || signatures.length > 0)) {
             if (signatures.length === 0) return Theme.warning
             // Every signature, each by its fact and its grade.
             return Theme.signaturesTone(signatures)
@@ -584,6 +603,12 @@ Page {
                     enabled: page.unsaved > 0
                     onTriggered: page.saveToFolder(page.unsavedIds())
                 }
+                MenuItem {
+                    objectName: "recentOperations"
+                    text: qsTranslate("HistorySheet", "Recent operations")
+                    enabled: page.sheets !== null
+                    onTriggered: page.sheets.openHistory()
+                }
                 MenuSeparator {}
                 MenuItem {
                     text: qsTranslate("StatusSheet", "Stop waiting files")
@@ -594,7 +619,17 @@ Page {
                     objectName: "clearList"
                     text: qsTr("Clear list")
                     enabled: !files.busy && files.count > 0
-                    onTriggered: confirmClear.open()
+                    // Asked only when it would delete something not saved,
+                    // as Remove does.
+                    onTriggered: {
+                        if (page.unsaved > 0) {
+                            confirmClear.open()
+                        } else {
+                            files.clear()
+                            notice.show(qsTr("Removed from the list. The original "
+                                             + "files are not deleted."))
+                        }
+                    }
                 }
             }
         }
@@ -639,7 +674,13 @@ Page {
                     topInset: 0
                     bottomInset: 0
                     text: page.unsaved === 1 ? qsTr("Save") : qsTr("Save all")
-                    onClicked: page.saveToFolder(page.unsavedIds())
+                    // One file is saved as one is everywhere else (a place
+                    // and a name); several, into a folder.
+                    onClicked: {
+                        const ids = page.unsavedIds()
+                        if (ids.length === 1) page.saveAs(ids[0])
+                        else page.saveToFolder(ids)
+                    }
                     Accessible.description: qsTr("Save the temporary files into a folder")
                 }
             }
@@ -700,9 +741,9 @@ Page {
 
     // No name filters: Android's picker filters by MIME type, and it has none
     // that covers .asc or .gpg, so a filter greys out the very files it names.
-    FileDialog {
+    OpenDialog {
         id: addDialog
-        fileMode: FileDialog.OpenFiles
+        multiple: true
         onAccepted: files.addFiles(selectedFiles)
     }
 
@@ -775,12 +816,15 @@ Page {
         property bool fromSelection: false
 
         onAccepted: {
-            if (fromSelection) files.clearSelection()
             const taken = files.takenIn(targets, selectedFolder)
             if (taken.length === 0) {
+                if (fromSelection) files.clearSelection()
                 files.saveAll(targets, selectedFolder, "keep_both")
                 return
             }
+            // The choosing is over once they are saved: Cancel at the
+            // question keeps it, for another folder.
+            takenDialog.fromSelection = fromSelection
             takenDialog.targets = targets
             takenDialog.folder = selectedFolder
             takenDialog.names = taken
@@ -795,9 +839,11 @@ Page {
         property var targets: []
         property url folder
         property var names: []
+        property bool fromSelection: false
 
         function answer(how) {
             close()
+            if (fromSelection) files.clearSelection()
             files.saveAll(targets, folder, how)
         }
 
@@ -1046,15 +1092,16 @@ Page {
     }
 
     // A file that moved, picked again for a retry.
-    FileDialog {
+    OpenDialog {
         id: relinkDialog
 
         property int target: -1
         property int retryId: 0
 
-        fileMode: FileDialog.OpenFile
         onAccepted: {
-            if (files.relink(target, selectedFile)) page.retry(retryId)
+            if (files.relink(target, selectedFile)) {
+                if (retryId > 0) page.retry(retryId)
+            }
             else if (files.entry(target).fileId === undefined)
                 notice.show(qsTr("Its file is no longer in the list. Add it again."))
             else notice.show(qsTr("It is already waiting or running."))
@@ -1081,9 +1128,25 @@ Page {
             isArchive = files.isArchive(t) && (file.activity || "").length === 0
         }
 
+        // A key file -- shared from another app, say, which the system's
+        // picker cannot reach -- imported from here.
+        MenuItem {
+            objectName: "rowImportKeys"
+            text: qsTranslate("ImportSheet", "Import keys")
+            readonly property bool offered: rowMenu.file.content === "key"
+                                            && rowMenu.file.available === true
+                                            && (rowMenu.file.activity || "").length === 0
+            height: offered ? implicitHeight : 0
+            visible: offered
+            onTriggered: {
+                const url = files.readableUrl(rowMenu.target)
+                if (url.toString().length > 0) page.importKeysRequested(url)
+            }
+        }
+
         MenuItem {
             objectName: "rowExtract"
-            text: qsTranslate("FileDetailsSheet", "Extract to a folder…")
+            text: qsTr("Extract to a folder…")
             height: rowMenu.isArchive ? implicitHeight : 0
             visible: rowMenu.isArchive
             onTriggered: page.extract(rowMenu.target)
@@ -1137,7 +1200,7 @@ Page {
                        : qsTr("Share the decrypted file?")
 
         message: qsTr("A copy stays in GpgFrontend's private storage for "
-                   + "up to 24 hours so the receiving app can read it. "
+                   + "up to an hour so the receiving app can read it. "
                    + "You can remove it sooner under Temporary shared "
                    + "files in Settings.")
 
@@ -1157,6 +1220,7 @@ Page {
         message: qsTr("Files GpgFrontend made are deleted unless you saved "
                    + "them. The files you added are not deleted.")
         acceptText: qsTr("Remove from list")
+        destructive: true
         onAccepted: page.remove(targets, true)
     }
 
@@ -1168,6 +1232,7 @@ Page {
         message: qsTr("Files GpgFrontend made are deleted unless you saved "
                    + "them. The files you added are not deleted.")
         acceptText: qsTr("Clear")
+        destructive: true
         onAccepted: files.clear()
     }
 
@@ -1179,6 +1244,9 @@ Page {
         onShareRequested: id => page.share(id)
         onOpenRequested: id => page.openWith(id)
         onRemoveRequested: id => page.remove([id])
+        onPickAgainRequested: id => page.pickAgain(id)
+        onExtractRequested: id => page.extract(id)
+        onImportKeysRequested: url => page.importKeysRequested(url)
         onResultRequested: id => { if (page.sheets) page.sheets.openStatus(id, true) }
     }
 

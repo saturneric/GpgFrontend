@@ -24,9 +24,14 @@ ApplicationWindow {
     Material.theme: Theme.dark ? Material.Dark : Material.Light
 
     // Back on Android: close what is open, step back, return to the first
-    // section, and only then leave. Popups take Back themselves.
+    // section, and only then leave -- to the background, as Android 12 and
+    // later leave every application: closing would end the session, and
+    // with it unsaved files, the text and any operation under way. Popups
+    // take Back themselves.
     onClosing: function(close) {
         if (shell.item && shell.item.back && shell.item.back()) close.accepted = false
+        else if (StartupController.state === StartupController.State.kREADY
+                 && AppLifecycle.toBackground()) close.accepted = false
     }
 
     // The window's measures, for the keyboard.

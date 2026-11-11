@@ -133,8 +133,13 @@ Page {
         MenuItem {
             objectName: "makeDefault"
             text: qsTr("Use by default")
-            enabled: rowMenu.profile.isDefault !== true && rowMenu.profile.available === true
-            onTriggered: store.setDefault(rowMenu.profile.index)
+            // Not one hidden or that cannot be made here (the list says why).
+            enabled: rowMenu.profile.isDefault !== true
+                     && (rowMenu.profile.defaultRefusal || "") === ""
+            onTriggered: {
+                const why = store.setDefault(rowMenu.profile.index)
+                if (why.length > 0) notice.show(why)
+            }
         }
         MenuItem {
             objectName: "toggleHidden"
@@ -170,7 +175,11 @@ Page {
         message: qsTr("Keys made with it are not touched. Built-in profiles "
                    + "can be restored later.")
         acceptText: qsTr("Delete")
-        onAccepted: store.remove(profile.index)
+        destructive: true
+        onAccepted: {
+            const why = store.remove(profile.index)
+            if (why.length > 0) notice.show(why)
+        }
     }
 
     Snackbar {
