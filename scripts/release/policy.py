@@ -224,6 +224,10 @@ def check_product(product: dict) -> None:
         for base in listed:
             if not base.startswith("https://") or not base.endswith("/"):
                 errors.append(f"bases.{role}: {base} must be https:// and end in /")
+    if len(bases.get("update", [])) > 1:
+        # One store holds the index and the trust it names: a second base
+        # would serve clients what nothing here writes.
+        errors.append("bases.update lists more than the one update store")
     if "notes_link_hosts" in product:
         strings(product["notes_link_hosts"], "notes_link_hosts")
     # Every published file is classified by these rules (gfrelease refuses

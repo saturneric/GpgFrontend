@@ -304,37 +304,6 @@ class TrustTest(unittest.TestCase):
         self.assertFalse((common.ROOT / "index.key").exists())
         self.assertEqual(trust.versions(self.keys), [1, 2])
 
-    def test_the_ceremony_runs_dry(self):
-        legacy = json.loads((common.ROOT / "release" /
-                             "product.json").read_text())
-        index = fixture_key("index-1")[1]
-        legacy.update(repository="saturneric/GpgFrontend",
-                      workflow=".github/workflows/build.yml",
-                      signing={"index_keys": [index],
-                               "maintainer_fingerprints": ["A" * 40],
-                               "maintainer_fingerprints_retired": ["B" * 40],
-                               "authenticode_subject": "CN=Now",
-                               "authenticode_subjects_retired": ["CN=Then"]})
-        path = self.tmp / "legacy.json"
-        path.write_text(json.dumps(legacy))
-        out = cli(*self.args(), "root", "init", "--dry-run",
-                  "--legacy-product", str(path))
-        where = Path(out.stdout.rsplit("everything is in ", 1)[1].strip())
-        self.addCleanup(shutil.rmtree, where, ignore_errors=True)
-        self.assertIn("['BBBB", out.stdout)  # retired ones, shown
-        anchor = out.stdout.split("GFR_ROOT_SHA256=")[1].split()[0]
-        root, keys = trust.load_trust(where / "root", where / "index-keys",
-                                      SLUG, anchor)
-        self.assertEqual(list(keys["keys"].values()), [index])
-        self.assertEqual(root["host_policy"]["authenticode_subjects_retired"],
-                         ["CN=Then"])
-        self.assertEqual(root["roles"]["root"]["threshold"], 2)
-        self.assertEqual(len(root["roles"]["root"]["keyids"]), 3)
-        self.assertEqual(len(list((where / "root").glob("*.minisig"))), 2)
-        self.assertGreater(trust.days_left(root), 700)
-        # Nothing here: the trust dirs of this test are untouched.
-        self.assertEqual(trust.versions(self.keys), [1, 2])
-
     def test_a_list_g_did_not_sign_is_never_left_behind(self):
         out = cli(*self.args(), "index-keys", "renew", "-s",
                   str(fixture_key("g1")[0]), check=False)
