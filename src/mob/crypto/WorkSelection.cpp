@@ -35,9 +35,12 @@
 #include "core/function/SettingCatalog.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/ChannelHandle.h"
+#include "core/profile/ProfileSession.h"
 #include "core/utils/GpgUtils.h"
 #include "model/KeyRoleModel.h"
+#include "core/model/GpgKey.h"
 #include "shell/rules/RecipientConfirm.h"
+#include "shell/rules/RecipientRules.h"
 
 namespace GpgFrontend::Mobile {
 
@@ -167,7 +170,23 @@ auto WorkSelection::SignerKey() const -> QVariantMap {
   if (key.isEmpty()) {
     key.insert(QStringLiteral("fingerprint"), preferred_signer_);
   }
-  key.insert(QStringLiteral("issue"), signer_issue());
+  const auto issue = signer_issue();
+  key.insert(QStringLiteral("issue"), issue);
+  // Why, as a recipient's note says it: the shell's words where it has
+  // them, the key's state, else what is missing.
+  QString note;
+  if (issue == QStringLiteral("missing")) {
+    note = QCoreApplication::translate("Wording", "No longer in your keys");
+  } else if (issue == QStringLiteral("no_secret")) {
+    note = QCoreApplication::translate("Wording",
+                                       "Its secret part is not on this device");
+  } else if (!issue.isEmpty()) {
+    note = key.value(QStringLiteral("signNote")).toString();
+    if (note.isEmpty()) {
+      note = key.value(QStringLiteral("statusText")).toString();
+    }
+  }
+  key.insert(QStringLiteral("note"), note);
   return key;
 }
 
@@ -254,6 +273,10 @@ void WorkSelection::SetKeysReady() {
   database_id_ = database_ ? database_() : QString();
   auto settings = GetSettings();
   preferred_signer_ = SettingItems::kPreferredSigner.Read(settings);
+  // As when another database is taken up (follow_database()): one that
+  // cannot sign here is not offered; the setting keeps it for the
+  // database it is of.
+  if (!signer_issue().isEmpty()) preferred_signer_.clear();
   // What an earlier version kept to offer "Again": the fingerprints of the
   // last operation, which nothing reads any more.
   settings.remove(QLatin1StringView(SettingItems::kLastOperation.key));
@@ -295,7 +318,8 @@ auto WorkSelection::encryptQuestions() const -> QVariantList {
   auto& repository =
       AbstractKeyRepository::GetInstance(UsableDefaultChannelHandle());
   GpgAbstractKeyPtrList keys;
-  for (const auto& fingerprint : recipients_) {
+  // Judged on the final list, after any subkey pinned (as the desktop).
+  for (const auto& fingerprint : operationRecipients()) {
     if (auto key = repository.GetKey(fingerprint); key != nullptr) {
       keys.append(key);
     }
@@ -335,8 +359,81 @@ void WorkSelection::setPreferredSigner(const QString& fingerprint) {
   emit SignalChanged();
 }
 
+auto WorkSelection::subkeyChoices(const QString& op) const -> QVariantList {
+  // No keys before a profile is open.
+  if (!ProfileSession::Loaded()) return {};
+  auto& repository =
+      AbstractKeyRepository::GetInstance(UsableDefaultChannelHandle());
+  QVariantList choices;
+  const auto ask = [&](const QString& fingerprint, const QString& role) {
+    if (IsKeyGroupID(fingerprint)) return;
+    const auto key = repository.GetKey(fingerprint);
+    const auto subkeys = role == QLatin1String("sign")
+                             ? UsableSigningSubkeys(key)
+                             : UsableEncryptionSubkeys(key);
+    if (subkeys.size() < 2) return;
+    QVariantList listed;
+    for (const auto& s_key : subkeys) {
+      listed << QVariantMap{
+          {QStringLiteral("fingerprint"), s_key.Fingerprint()},
+          {QStringLiteral("keyId"), s_key.ID()},
+          {QStringLiteral("algorithm"), s_key.Algo()},
+          {QStringLiteral("created"), s_key.CreationTime()},
+          {QStringLiteral("expires"), s_key.ExpirationTime()},
+          {QStringLiteral("primary"),
+           s_key.Fingerprint().compare(key->Fingerprint(),
+                                       Qt::CaseInsensitive) == 0},
+      };
+    }
+    choices << QVariantMap{
+        {QStringLiteral("key"), fingerprint},
+        {QStringLiteral("name"),
+         key->Name().isEmpty() ? key->Email() : key->Name()},
+        {QStringLiteral("role"), role},
+        {QStringLiteral("subkeys"), listed},
+    };
+  };
+  if (op == QLatin1String("encrypt") && !passphrase_mode_) {
+    for (const auto& fingerprint : recipients_) {
+      ask(fingerprint, QStringLiteral("encrypt"));
+    }
+  }
+  const auto signs = op == QLatin1String("sign") ||
+                     (op == QLatin1String("encrypt") && SignsEncryption());
+  if (signs && !preferred_signer_.isEmpty()) {
+    ask(preferred_signer_, QStringLiteral("sign"));
+  }
+  return choices;
+}
+
+void WorkSelection::pinSubkey(const QString& key, const QString& subkey) {
+  if (subkey.isEmpty()) {
+    pins_.remove(key.toUpper());
+  } else {
+    pins_.insert(key.toUpper(), subkey.toUpper());
+  }
+}
+
+void WorkSelection::clearPins() { pins_.clear(); }
+
+auto WorkSelection::pinned(const QString& fingerprint) const -> QString {
+  const auto subkey = pins_.value(fingerprint.toUpper());
+  return subkey.isEmpty() ? fingerprint : subkey + QLatin1Char('!');
+}
+
+auto WorkSelection::operationRecipients() const -> QStringList {
+  QStringList taken;
+  for (const auto& fingerprint : recipients_) taken << pinned(fingerprint);
+  return taken;
+}
+
+auto WorkSelection::operationSigner() const -> QString {
+  return preferred_signer_.isEmpty() ? QString() : pinned(preferred_signer_);
+}
+
 void WorkSelection::reset() {
   touched();
+  pins_.clear();
   recipients_.clear();
   recipient_set_.clear();
   passphrase_mode_ = false;
@@ -346,9 +443,14 @@ void WorkSelection::reset() {
 
 void WorkSelection::revalidate() {
   if (!ready_) return;
+  const auto before = database_id_;
   follow_database();
-  if (const auto dropped = drop_unusable(); dropped > 0) {
-    dropped_ = dropped;
+  // Said for this opening: what an earlier one left out is old news, but
+  // a choice just taken up for another database says what it lost.
+  const auto dropped = drop_unusable();
+  const auto now = database_id_ != before ? dropped_ + dropped : dropped;
+  if (now != dropped_) {
+    dropped_ = now;
     emit SignalChanged();
   }
 }
@@ -442,32 +544,14 @@ auto WorkSelection::lookup(const QString& fingerprint) const -> QVariantMap {
   const auto found = rows_.constFind(upper);
   if (found == rows_.constEnd()) return {};
   const auto at = keys_->index(*found, 0);
-  return key_info_[upper] = {
-             {QStringLiteral("fingerprint"),
-              at.data(KeyRoleModel::kFingerprintRole)},
-             {QStringLiteral("name"), at.data(KeyRoleModel::kNameRole)},
-             {QStringLiteral("email"), at.data(KeyRoleModel::kEmailRole)},
-             {QStringLiteral("keyId"), at.data(KeyRoleModel::kKeyIdRole)},
-             {QStringLiteral("hasSecret"),
-              at.data(KeyRoleModel::kHasSecretRole)},
-             {QStringLiteral("canEncrypt"),
-              at.data(KeyRoleModel::kCanEncryptRole)},
-             {QStringLiteral("canSign"), at.data(KeyRoleModel::kCanSignRole)},
-             {QStringLiteral("status"), at.data(KeyRoleModel::kStatusRole)},
-             {QStringLiteral("statusText"),
-              at.data(KeyRoleModel::kStatusTextRole)},
-             {QStringLiteral("encryptNote"),
-              at.data(KeyRoleModel::kEncryptNoteRole)},
-             {QStringLiteral("signNote"), at.data(KeyRoleModel::kSignNoteRole)},
-             {QStringLiteral("isGroup"),
-              !at.data(KeyRoleModel::kIsKeyRole).toBool()},
-             // As the key list's rows name them, which the faces and the
-             // key's details read: a group shows as one, never as a key.
-             {QStringLiteral("isKey"), at.data(KeyRoleModel::kIsKeyRole)},
-             {QStringLiteral("members"), at.data(KeyRoleModel::kMembersRole)},
-             {QStringLiteral("memberCount"),
-              at.data(KeyRoleModel::kMembersRole).toStringList().size()},
-         };
+  // Every fact the list has of it (its details read them), and what a
+  // choice needs besides.
+  auto info = KeyRoleModel::MapOf(at);
+  const auto is_key = at.data(KeyRoleModel::kIsKeyRole).toBool();
+  info.insert(QStringLiteral("isGroup"), !is_key);
+  info.insert(QStringLiteral("memberCount"),
+              at.data(KeyRoleModel::kMembersRole).toStringList().size());
+  return key_info_[upper] = info;
 }
 
 auto WorkSelection::recipient_key(const QString& fingerprint) const
@@ -523,6 +607,10 @@ auto WorkSelection::signer_issue() const -> QString {
   }
   if (const auto status = StatusIssue(key); !status.isEmpty()) return status;
   if (!key.value(QStringLiteral("canSign")).toBool()) {
+    return QStringLiteral("cannot_sign");
+  }
+  // A rule the shell decides for both interfaces, as for recipients.
+  if (!key.value(QStringLiteral("signNote")).toString().isEmpty()) {
     return QStringLiteral("cannot_sign");
   }
   return {};

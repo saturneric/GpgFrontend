@@ -154,22 +154,32 @@ auto ClassifyFileHeadOf(const QString& name, const QByteArray& head)
   return {kind, true};
 }
 
-auto ClassifyFileHead(const QString& name, const QByteArray& head) -> QString {
-  return ClassifyFileHeadOf(name, head).kind;
-}
-
 auto ClassifyFileOf(const QString& name, const QString& path) -> FileKind {
   QFile file(path);
   if (!file.open(QIODevice::ReadOnly)) return {ClassifyFileName(name)};
   return ClassifyFileHeadOf(name, file.read(kHeadBytes));
 }
 
-auto ClassifyFile(const QString& name, const QString& path) -> QString {
-  return ClassifyFileOf(name, path).kind;
+auto TextOperationAllowed(const QString& op, const QString& kind) -> bool {
+  if (kind == QStringLiteral("empty")) return false;
+  if (op == QStringLiteral("decrypt") ||
+      op == QStringLiteral("decrypt_verify")) {
+    return kind == QStringLiteral("message");
+  }
+  if (op == QStringLiteral("verify")) {
+    return kind == QStringLiteral("message") ||
+           kind == QStringLiteral("signed");
+  }
+  return true;
 }
 
 auto ContentKind::textKind(const QString& text) const -> QString {
   return ClassifyText(text);
+}
+
+auto ContentKind::allowsText(const QString& op, const QString& kind) const
+    -> bool {
+  return TextOperationAllowed(op, kind);
 }
 
 }  // namespace GpgFrontend::Mobile

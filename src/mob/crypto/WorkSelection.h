@@ -193,6 +193,27 @@ class WorkSelection : public QObject {
   /// Remember @p fingerprint as the signing key; empty forgets it.
   Q_INVOKABLE void setPreferredSigner(const QString& fingerprint);
 
+  /**
+   * @brief Which subkey to use, asked as the desktop asks it before it
+   * encrypts or signs: one entry for each chosen key with more than one
+   * usable subkey for @p op ("encrypt", with the signer when it signs; or
+   * "sign"), as {key, name, role ("encrypt" or "sign"), subkeys: [{
+   * fingerprint, keyId, algorithm, created, expires, primary}]}. Key groups
+   * are not asked of; the engine picks within them.
+   */
+  [[nodiscard]] Q_INVOKABLE QVariantList subkeyChoices(const QString& op) const;
+
+  /// Use @p subkey of the chosen @p key in the next operation; empty lets
+  /// the engine choose. Each request starts afresh (clearPins()).
+  Q_INVOKABLE void pinSubkey(const QString& key, const QString& subkey);
+  Q_INVOKABLE void clearPins();
+
+  /// The recipients and the signer as the operation takes them: a key with a
+  /// subkey pinned as that subkey's "<fingerprint>!", as the desktop's
+  /// pickers hand it to the engine.
+  [[nodiscard]] Q_INVOKABLE QStringList operationRecipients() const;
+  [[nodiscard]] Q_INVOKABLE QString operationSigner() const;
+
   /// Reset keys: no recipients, encrypt to keys, unsigned. The preferred
   /// signer stays.
   Q_INVOKABLE void reset();
@@ -237,6 +258,11 @@ class WorkSelection : public QObject {
   bool signing_enabled_ = false;
   QString preferred_signer_;
   bool ready_ = false;
+  /// Upper-cased key fingerprint to the subkey pinned for the next operation.
+  QHash<QString, QString> pins_;
+
+  /// @p fingerprint as an operation takes it: its pinned subkey, if any.
+  [[nodiscard]] auto pinned(const QString& fingerprint) const -> QString;
 
   /// What the key list says of @p fingerprint; empty when it is not there.
   [[nodiscard]] auto lookup(const QString& fingerprint) const -> QVariantMap;

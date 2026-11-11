@@ -30,8 +30,12 @@
 
 #include <QMessageAuthenticationCode>
 #include <QRandomGenerator>
+#include <QSet>
 #include <algorithm>
 #include <array>
+
+#include "shell/present/InfoBoardReport.h"
+#include "shell/present/ReportSealPainter.h"
 
 namespace GpgFrontend::Mobile {
 
@@ -102,6 +106,7 @@ auto OperationLog::roleNames() const -> QHash<int, QByteArray> {
       {kRecipientsRole, "recipients"}, {kSignerRole, "signer"},
       {kSymmetricRole, "symmetric"},   {kOutputsRole, "outputs"},
       {kSubmittedRole, "submitted"},   {kFinishedRole, "finished"},
+      {kVerifyRole, "verify"},
   };
 }
 
@@ -120,6 +125,8 @@ auto OperationLog::data(const QModelIndex& index, int role) const -> QVariant {
       return record.params.op;
     case kPhaseRole:
       return PhaseName(record.phase);
+    case kVerifyRole:
+      return record.params.verify;
     case kReasonRole:
       return record.reason;
     case kReportRole:
@@ -153,6 +160,8 @@ auto OperationLog::data(const QModelIndex& index, int role) const -> QVariant {
 }
 
 void OperationLog::Add(OperationRecord record) {
+  // One added as ended (cancelled before it could start, say) ended now.
+  if (!record.Active() && record.ended == 0) record.ended = ++ended_;
   beginInsertRows({}, 0, 0);
   records_.push_front(std::move(record));
   endInsertRows();
@@ -191,6 +200,7 @@ void OperationLog::SetFinished(int id, OperationPhase phase,
   record.report = report;
   record.outputs = outputs;
   record.finished = QDateTime::currentDateTimeUtc();
+  record.ended = ++ended_;
   changed(id,
           {kPhaseRole, kReasonRole, kReportRole, kOutputsRole, kFinishedRole});
   evict();
@@ -242,10 +252,63 @@ auto OperationLog::IdsOfBatch(int batch_id) const -> QList<int> {
   return ids;
 }
 
+auto OperationLog::summarize(const QVariantList& records) const
+    -> QVariantMap {
+  InfoBoardOutcomeCounts counts;
+  for (const auto& item : records) {
+    const auto record = item.toMap();
+    const auto phase = record.value(QStringLiteral("phase")).toString();
+    if (phase == QLatin1String("cancelled")) {
+      counts.Add(InfoBoardOutcome::kCANCELLED);
+      continue;
+    }
+    const auto reported = OutcomeFromId(record.value(QStringLiteral("report"))
+                                            .toMap()
+                                            .value(QStringLiteral("outcome"))
+                                            .toString());
+    if (reported) {
+      counts.Add(*reported);
+    } else if (phase == QLatin1String("failed")) {
+      counts.Add(InfoBoardOutcome::kFAILED);
+    } else if (phase == QLatin1String("done")) {
+      counts.Add(InfoBoardOutcome::kSUCCEEDED);
+    }
+  }
+  const auto severity = AggregateSeverity(counts);
+  const auto headline = AggregateHeadline(counts);
+  return {
+      {QStringLiteral("status"), severity == kINFO_ERROR_CRITICAL ? -1
+                                 : severity == kINFO_ERROR_WARN   ? 0
+                                                                  : 1},
+      {QStringLiteral("severity"), SeverityId(severity)},
+      {QStringLiteral("headline"), HeadlineText(headline)},
+      {QStringLiteral("seal"), ReportSealId(ReportSealKindFor(headline))},
+      {QStringLiteral("cancelled"),
+       headline == InfoBoardHeadline::kCANCELLED},
+  };
+}
+
 auto OperationLog::batch(int batch_id) const -> QVariantList {
   QVariantList records;
   for (const auto id : IdsOfBatch(batch_id)) records << record(id);
   return records;
+}
+
+auto OperationLog::recent() const -> QVariantList {
+  QVariantList batches;
+  QSet<int> seen;
+  // Newest first: a batch is placed where its newest operation is, and
+  // shown by its first.
+  for (const auto& record : records_) {
+    if (seen.contains(record.batch_id)) continue;
+    seen.insert(record.batch_id);
+    const auto ids = IdsOfBatch(record.batch_id);
+    if (ids.isEmpty()) continue;
+    auto first = this->record(ids.first());
+    first.insert(QStringLiteral("count"), static_cast<int>(ids.size()));
+    batches << first;
+  }
+  return batches;
 }
 
 auto OperationLog::latest(const QString& surface) const -> int {
@@ -281,27 +344,34 @@ void OperationLog::changed(int id, const QList<int>& roles) {
 }
 
 void OperationLog::evict() {
-  // A batch counts, and goes, only once all of it has ended.
-  const auto over = [this](int batch) {
-    return std::none_of(
+  // A batch counts, and goes, only once all of it has ended. Looked up,
+  // not searched for each record: a batch may hold a thousand files.
+  QSet<int> going;
+  const auto over = [&going](int batch) { return !going.contains(batch); };
+  // The batch that ended last stays, however large: it is the one just
+  // finished, which its outputs and Retry still name -- by when it ended,
+  // not when it was asked for (a text may finish before a long batch asked
+  // for earlier).
+  const auto last_ended = [this]() {
+    const auto last = std::max_element(
         records_.begin(), records_.end(),
-        [batch](const auto& r) { return r.batch_id == batch && r.Active(); });
+        [](const auto& a, const auto& b) { return a.ended < b.ended; });
+    return last != records_.end() && last->ended > 0 ? last->batch_id : 0;
   };
   while (true) {
+    going.clear();
+    for (const auto& r : records_) {
+      if (r.Active()) going.insert(r.batch_id);
+    }
+    const auto kept = last_ended();
     int counted = 0;
-    int oldest = 0;  // the oldest batch that is over
+    int oldest = 0;  // the oldest batch that is over, and may go
     for (auto it = records_.rbegin(); it != records_.rend(); ++it) {
       if (!over(it->batch_id)) continue;
       ++counted;
-      if (oldest == 0) oldest = it->batch_id;
+      if (oldest == 0 && it->batch_id != kept) oldest = it->batch_id;
     }
     if (counted <= capacity_ || oldest == 0) return;
-    // The newest batch that is over stays, however large: it is the one
-    // just finished, which its outputs and Retry still name.
-    const auto newest =
-        std::find_if(records_.begin(), records_.end(),
-                     [&over](const auto& r) { return over(r.batch_id); });
-    if (newest != records_.end() && newest->batch_id == oldest) return;
     for (int row = rowCount() - 1; row >= 0; --row) {
       if (records_.at(row).batch_id != oldest) continue;
       beginRemoveRows({}, row, row);

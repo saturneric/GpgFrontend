@@ -57,8 +57,15 @@ OperationQueue::OperationQueue(PassphraseBroker* passphrases,
   if (lifecycle != nullptr) {
     // A prompt declined by going to the background ends its operation as
     // cancelled; the record says why.
-    connect(lifecycle, &AppLifecycle::SignalSuspended, this, [this]() {
-      if (running_.has_value()) suspended_while_running_ = true;
+    // Only one waiting at its prompt then: that prompt is declined, and
+    // the operation ends for it. One that asks later is not ended by it.
+    connect(lifecycle, &AppLifecycle::SignalSuspending, this, [this]() {
+      const auto* record =
+          running_.has_value() ? log_.Find(running_->id) : nullptr;
+      if (record != nullptr &&
+          record->phase == OperationPhase::kWAITING_PASSPHRASE) {
+        suspended_while_running_ = true;
+      }
     });
   }
 }
@@ -131,18 +138,26 @@ void OperationQueue::Complete(int id, OperationPhase phase,
                               const QList<int>& outputs,
                               const QString& reason) {
   if (!running_.has_value() || running_->id != id) return;
-  auto why = reason;
-  if (why.isEmpty() && phase == OperationPhase::kCANCELLED &&
-      suspended_while_running_) {
-    why = QStringLiteral("background");
-  }
+  const auto why = reason.isEmpty() ? EndReason(id, phase) : reason;
   running_.reset();
   suspended_while_running_ = false;
-  log_.SetFinished(id, phase, why, report, outputs);
+  // Once: a page that recorded the end itself (EndReason()) has said it.
+  if (const auto* record = log_.Find(id);
+      record != nullptr && record->Active()) {
+    log_.SetFinished(id, phase, why, report, outputs);
+  }
   emit SignalCurrentChanged();
   emit SignalFinished(id);
   start_next();
   busy_changed();
+}
+
+auto OperationQueue::EndReason(int id, OperationPhase phase) const -> QString {
+  if (phase == OperationPhase::kCANCELLED && running_.has_value() &&
+      running_->id == id && suspended_while_running_) {
+    return QStringLiteral("background");
+  }
+  return {};
 }
 
 auto OperationQueue::Cancel(int id, const QString& reason) -> bool {

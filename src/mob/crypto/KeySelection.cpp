@@ -77,7 +77,14 @@ auto SelectKeys(int channel, const QStringList& fingerprints) -> KeySelection {
       for (const auto& member : members) take(member);
       continue;
     }
-    auto key = GpgKeyRepository::GetInstance(channel).GetKeyPtr(fpr.toUpper());
+    // A subkey pinned for the operation ("<fingerprint>!", as the desktop's
+    // pickers hand one on) stands alone.
+    auto key =
+        fpr.endsWith(QLatin1Char('!'))
+            ? AbstractKeyRepository::GetInstance(channel).GetKey(fpr.toUpper())
+            : GpgAbstractKeyPtr(
+                  GpgKeyRepository::GetInstance(channel).GetKeyPtr(
+                      fpr.toUpper()));
     if (key != nullptr) {
       take(key);
     } else {
@@ -90,10 +97,10 @@ auto SelectKeys(int channel, const QStringList& fingerprints) -> KeySelection {
 auto MissingKeysOutcome(GpgOperation op, int channel,
                         const QStringList& missing, bool secret)
     -> GpgOperaOutcome {
-  const auto detail =
-      QCoreApplication::translate("GpgFrontend::Mobile::KeySelection",
-                                  "No longer in the keyring: %1")
-          .arg(missing.join(QStringLiteral(", ")));
+  // In the words the key lists use for a key that has gone, then which.
+  const auto detail = QStringLiteral("%1: %2").arg(
+      QCoreApplication::translate("Wording", "No longer in your keys"),
+      missing.join(QStringLiteral(", ")));
   return {MakeAbortedOpInfo(
               op,
               GFError::Application(secret ? GFErrorCode::kNO_SECRET_KEY
@@ -157,8 +164,7 @@ template <bool kWithOutput>
 auto AnalyseDecryptVerify(int channel, const GFError& err, const DataObjectPtr& data)
     -> GpgOperaOutcome {
   const bool unsigned_message =
-      detail::HoldsOperaResults<kWithOutput, GpgDecryptResult, GpgVerifyResult>(
-          data) &&
+      HoldsOperaResults<kWithOutput, GpgDecryptResult, GpgVerifyResult>(data) &&
       ExtractParams<GpgVerifyResult>(data, 1).GetSignature().isEmpty();
   if (!unsigned_message) {
     return AnalyseOperaOutcome<GpgDecryptResult, GpgDecryptResultAnalyse,

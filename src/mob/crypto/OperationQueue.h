@@ -112,6 +112,14 @@ class OperationQueue : public QObject {
   void Complete(int id, OperationPhase phase, const QVariantMap& report,
                 const QList<int>& outputs = {}, const QString& reason = {});
 
+  /**
+   * @brief Why the running operation @p id ended in @p phase when no engine
+   * says: "background" for one whose prompt was declined by leaving the
+   * application; empty otherwise. For a page that records the end before
+   * Complete() (OperationLog::SetFinished()), so the record says it at once.
+   */
+  [[nodiscard]] auto EndReason(int id, OperationPhase phase) const -> QString;
+
   /// Take the waiting operation @p id out of the queue, as cancelled;
   /// false when it is not waiting (running, ended or unknown).
   auto Cancel(int id, const QString& reason) -> bool;

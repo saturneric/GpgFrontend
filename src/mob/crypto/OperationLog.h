@@ -103,6 +103,9 @@ struct OperationRecord {
   QDateTime submitted;
   QDateTime started;
   QDateTime finished;
+  /// In which order it ended among this session's operations; 0 while
+  /// it has not.
+  quint64 ended = 0;
 
   /// Queued or running: not yet ended.
   [[nodiscard]] auto Active() const -> bool;
@@ -146,6 +149,7 @@ class OperationLog : public QAbstractListModel {
     kOutputsRole,
     kSubmittedRole,
     kFinishedRole,
+    kVerifyRole,  ///< a decryption that checked signatures too
   };
   Q_ENUM(Role)
 
@@ -194,6 +198,22 @@ class OperationLog : public QAbstractListModel {
   /// The records of batch @p batch_id, oldest first, as record() has them.
   [[nodiscard]] Q_INVOKABLE QVariantList batch(int batch_id) const;
 
+  /**
+   * @brief How the batch @p records ended, read as the desktop reads a
+   * report of several items (the shell's AggregateSeverity and
+   * AggregateHeadline over each one's outcome): {status, severity, headline,
+   * seal, cancelled}. An item the engine never reported on counts by how it
+   * ended: done as succeeded, failed as failed, stopped as cancelled; one
+   * still under way is not counted.
+   */
+  [[nodiscard]] Q_INVOKABLE QVariantMap summarize(
+      const QVariantList& records) const;
+
+  /// One record per batch, the batch's first (as record() has it, with its
+  /// batch's size as "count"), the batch started last first: the session's
+  /// history, as far as the log still keeps it.
+  [[nodiscard]] Q_INVOKABLE QVariantList recent() const;
+
   /// The newest operation; with @p surface ("text" or "files"), the newest
   /// of that page's; 0 when there is none.
   [[nodiscard]] Q_INVOKABLE int latest(const QString& surface = {}) const;
@@ -205,6 +225,7 @@ class OperationLog : public QAbstractListModel {
  private:
   std::deque<OperationRecord> records_;  ///< newest first
   int capacity_ = kDefaultCapacity;
+  quint64 ended_ = 0;  ///< the last OperationRecord::ended given
 
   [[nodiscard]] auto row_of(int id) const -> int;
   void changed(int id, const QList<int>& roles);

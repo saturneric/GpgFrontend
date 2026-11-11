@@ -67,19 +67,12 @@ auto ClassifyFileName(const QString& name) -> QString;
  * under another name is not looked into: a picture's first byte can pass for
  * a packet. Without the inspector (or with nothing read) the name decides.
  *
- * "message" (encrypted or signed data), "signature", "key", or empty.
  * Nothing is decrypted, and like ClassifyFileName() it is a label, never a
  * gate.
  */
-auto ClassifyFileHead(const QString& name, const QByteArray& head) -> QString;
-
-/// ClassifyFileHead() of the file at @p path (a local path or a content
-/// URI), reading no more than its first bytes.
-auto ClassifyFile(const QString& name, const QString& path) -> QString;
-
 /// What a file holds, and how that is known.
 struct FileKind {
-  /// As ClassifyFileHead() says.
+  /// "message" (encrypted or signed data), "signature", "key", or empty.
   QString kind;
   /// Its bytes said so (an armor header, a first packet), not its name.
   bool confirmed = false;
@@ -87,12 +80,27 @@ struct FileKind {
   bool refuted = false;
 };
 
-/// ClassifyFileHead(), saying whether the bytes or the name decided.
+/// What the file named @p name holds, by its first bytes @p head, and
+/// whether the bytes or the name decided (see above).
 auto ClassifyFileHeadOf(const QString& name, const QByteArray& head)
     -> FileKind;
 
-/// ClassifyFile(), saying whether the bytes or the name decided.
+/// ClassifyFileHeadOf() of the file at @p path (a local path or a content
+/// URI), reading no more than its first bytes.
 auto ClassifyFileOf(const QString& name, const QString& path) -> FileKind;
+
+/**
+ * @brief Whether the operation @p op ("encrypt", "decrypt", "sign",
+ * "verify", "encrypt_sign", "decrypt_verify", "symmetric") can run on text
+ * of the kind @p kind (ClassifyText()).
+ *
+ * Only an encrypted message is decrypted, and only a message or a
+ * cleartext signed text is verified (the text page has no detached
+ * signature to go with plain text); anything is encrypted or signed, an
+ * armored block too. As the Files page decides it for files
+ * (FileWorkspace::allowsEntries()).
+ */
+auto TextOperationAllowed(const QString& op, const QString& kind) -> bool;
 
 /// ClassifyText() for QML.
 class ContentKind : public QObject {
@@ -104,6 +112,9 @@ class ContentKind : public QObject {
   using QObject::QObject;
 
   [[nodiscard]] Q_INVOKABLE QString textKind(const QString& text) const;
+  /// TextOperationAllowed() for QML.
+  [[nodiscard]] Q_INVOKABLE bool allowsText(const QString& op,
+                                            const QString& kind) const;
 };
 
 }  // namespace GpgFrontend::Mobile

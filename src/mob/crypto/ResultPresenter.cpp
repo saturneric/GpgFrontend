@@ -29,6 +29,7 @@
 #include "crypto/ResultPresenter.h"
 
 #include "shell/present/InfoBoardReport.h"
+#include "shell/present/ReportSealPainter.h"
 #include "shell/result_analyse/InfoBoardCard.h"
 
 namespace GpgFrontend::Mobile {
@@ -261,6 +262,9 @@ auto PresentResult(const GpgOpResultInfo& info) -> QVariantMap {
       {QStringLiteral("severity"), SeverityId(AggregateSeverity(counts))},
       {QStringLiteral("outcome"), OutcomeId(outcome)},
       {QStringLiteral("headline"), HeadlineText(AggregateHeadline(counts))},
+      // The seal the desktop stamps a report with this headline.
+      {QStringLiteral("seal"),
+       ReportSealId(ReportSealKindFor(AggregateHeadline(counts)))},
       {QStringLiteral("operation"), info.operation},
       {QStringLiteral("description"), info.description},
       {QStringLiteral("engine"), info.engine},

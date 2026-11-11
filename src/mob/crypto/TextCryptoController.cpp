@@ -63,6 +63,10 @@ TextCryptoController::~TextCryptoController() {
     disconnect(queue, nullptr, this, nullptr);
     queue->ForgetOwner(this);
   }
+  // The text it held, plaintext among it, is not left to the allocator.
+  for (auto& kept : held_) WipeString(kept);
+  WipeString(output_);
+  WipeString(input_);
 }
 
 auto TextCryptoController::Busy() const -> bool { return busy_; }
@@ -324,9 +328,15 @@ void TextCryptoController::finish(const GpgOperaOutcome& outcome,
     return;
   }
   WipeString(output_);
-  output_ = outcome.output && !outcome.output->Empty()
-                ? QString::fromUtf8(outcome.output->ConvertToQByteArray())
-                : QString();
+  if (outcome.output && !outcome.output->Empty()) {
+    // The bytes on their way to a string are plaintext too: wiped once
+    // read (this copy is its own, so in place).
+    auto bytes = outcome.output->ConvertToQByteArray();
+    output_ = QString::fromUtf8(bytes);
+    SecureWipeMemory(bytes.data(), static_cast<size_t>(bytes.size()));
+  } else {
+    output_.clear();
+  }
   result_ = PresentResult(outcome.info);
   // Said by the operation and how it ended, never guessed from the text:
   // the core releases an output only when making it worked
@@ -346,20 +356,25 @@ void TextCryptoController::finish(const GpgOperaOutcome& outcome,
   running_id_ = 0;
   finished_id_ = id;
   auto* queue = id != 0 ? OperationQueue::Instance() : nullptr;
-  const auto phase =
-      EndedPhase(result_.value(QStringLiteral("cancelled")).toBool(),
-                 outcome.info.status >= 0);
+  // Done when it did what it was for: a decryption whose signature fails
+  // still decrypted (its text is shown, the signature's failure said).
+  const auto succeeded =
+      outcome.info.status >= 0 ||
+      (replaces_text_ && !output_.isEmpty() && outcome.info.OutputReleasable());
+  const auto phase = EndedPhase(
+      result_.value(QStringLiteral("cancelled")).toBool(), succeeded);
   // Recorded before it is announced, so a page that reads the record on
   // the signals below finds it ended.
   if (queue != nullptr) {
     if (!output_.isEmpty()) {
       queue->Log()->SetOutputVersion(id, TextVersion(output_));
     }
-    queue->Log()->SetFinished(id, phase, {}, result_, {});
+    queue->Log()->SetFinished(id, phase, queue->EndReason(id, phase), result_,
+                              {});
   }
   emit SignalOutputChanged();
   emit SignalBusyChanged();
-  emit SignalFinished(outcome.info.status >= 0);
+  emit SignalFinished(succeeded);
 
   // Last: the next operation in the queue starts here, and one submitted
   // from the signals above goes after this one.

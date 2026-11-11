@@ -31,6 +31,7 @@
 #include <QGuiApplication>
 #include <QJSEngine>
 #include <QWindow>
+#include <atomic>
 
 #include "core/function/CoreSignalStation.h"
 #include "core/function/openpgp/PassphraseService.h"
@@ -109,7 +110,21 @@ void PassphraseBroker::submit(const QString& passphrase) {
   answer_front(&passphrase);
 }
 
-void PassphraseBroker::cancel() { answer_front(nullptr); }
+namespace {
+std::atomic<int> g_declined{0};
+}  // namespace
+
+void PassphraseBroker::cancel() {
+  if (!pending_.empty()) ++g_declined;
+  answer_front(nullptr);
+}
+
+auto PassphraseBroker::Declined() -> int { return g_declined.load(); }
+
+void PassphraseBroker::SetSuspended(bool suspended) {
+  suspended_ = suspended;
+  if (suspended) CancelAll();
+}
 
 auto PassphraseBroker::entryProblem(const QString& passphrase,
                                     const QString& confirmation,
@@ -135,7 +150,10 @@ void PassphraseBroker::on_need(
     const QSharedPointer<GpgPassphraseContext>& context) {
   if (context == nullptr) return;
   pending_.push_back(context);
-  if (closed_) {
+  // Asked while the application is away: declined, as one on screen was
+  // when it left. Nobody is there to answer, and it would come up later
+  // for an operation whose moment has passed.
+  if (closed_ || suspended_) {
     answer_front(nullptr);
     return;
   }
