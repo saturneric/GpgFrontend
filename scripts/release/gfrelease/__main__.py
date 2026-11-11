@@ -25,8 +25,10 @@ Stores are rclone paths that already include the product root.
 
 Exit status: 0 when everything was done; 3 from the host commands when the
 round ran to its end but something was refused for what it is (named on
-stderr, and refused again until it changes); 1 for any other failure, which
-is worth running again.
+stderr, and refused again until it changes), and from trust update when
+something should be looked at (a next root or list that does not hold, or
+an expiry near); 1 for any other failure, which is worth running again, and
+from index --dry-run when it would refuse something.
 """
 
 from __future__ import annotations
@@ -50,8 +52,8 @@ import stage as stage_mod  # noqa: E402
 import trust  # noqa: E402
 import verify as verify_mod  # noqa: E402
 from common import (MINISIG, ROOT, Product, ReleaseError,  # noqa: E402
-                    atomic_write, load_json, locked, parse_iso, refs, run,
-                    utcnow)
+                    atomic_write, load_json, locked, parse_iso, policy_mod,
+                    refs, run, utcnow)
 from store import Store  # noqa: E402
 
 
@@ -95,7 +97,7 @@ def pub(path_or_key: str) -> str:
     return minisig.public_key_of(p) if p.is_file() else path_or_key
 
 
-def main(argv=None) -> int:
+def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(prog="gfrelease", description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     opt(ap, "product", "release/product.json of another product")
@@ -208,8 +210,11 @@ def main(argv=None) -> int:
     v.add_argument("--deep", action="store_true", help="download every artifact")
     opt(v, "min_days_left", "fail when the index expires sooner than this "
         "(a monitor's early warning that the signing host stopped)")
+    return ap
 
-    args = ap.parse_args(argv)
+
+def main(argv=None) -> int:
+    args = build_parser().parse_args(argv)
     if args.product and not args.policy:
         args.policy = str(Path(args.product).with_name("policy.toml"))
     rclone = args.rclone or "rclone"
@@ -354,9 +359,7 @@ def root_command(args, slug: str, root_dir: Path, keys_dir: Path) -> int:
         print(f"{args.file}: signed by {key_id}")
         return 0
     if args.action == "new":
-        root = trust.walk(trust.read_dir(root_dir), slug, steps=None)
-        if root is None:
-            raise ReleaseError(f"{root_dir}: no root to follow")
+        root = trust.newest_root(root_dir, slug)
         nxt = trust.renewed(root, trust.ROOT_LIFETIME)
         path = root_dir / layout.root_name(nxt["version"])
         write_new(path, trust.dump(nxt))
@@ -381,9 +384,7 @@ def outside_repository(path: str) -> Path:
 
 def index_keys_command(args, slug: str, root_dir: Path,
                        keys_dir: Path) -> int:
-    root = trust.walk(trust.read_dir(root_dir), slug, steps=None)
-    if root is None:
-        raise ReleaseError(f"{root_dir}: no root")
+    root = trust.newest_root(root_dir, slug)
     trust.check_unexpired(root, f"root {root['version']}")
     found = trust.versions(keys_dir)
     if not found:
@@ -407,15 +408,10 @@ def index_keys_command(args, slug: str, root_dir: Path,
     nxt = trust.renewed(current, trust.INDEX_KEYS_LIFETIME)
     new_key = None
     if args.action == "rotate":
-        secret = Path(args.secret_out).resolve()
-        if secret == ROOT or ROOT in secret.parents:
-            raise ReleaseError(f"{secret} is inside the repository")
-        if secret.exists():
-            raise ReleaseError(f"{secret} exists")
-        run(["minisign", "-G", "-W", "-s", secret, "-p",
-             secret.with_name(secret.name + ".pub")])
-        new_key = minisig.public_key_of(secret.with_name(secret.name + ".pub"))
-        nxt["keys"] = ({**current["keys"]} if args.keep_old else {}) |             {minisig.key_id(new_key): new_key}
+        secret = outside_repository(args.secret_out)
+        new_key = minisig.generate(secret)
+        nxt["keys"] = (dict(current["keys"]) if args.keep_old else {}) | \
+            {minisig.key_id(new_key): new_key}
     path = keys_dir / layout.index_keys_name(nxt["version"])
     write_new(path, trust.dump(nxt))
     try:
@@ -470,8 +466,7 @@ def trust_update(args, product: Product) -> int:
         read_keys, names = git_reader(Path(args.git_dir), "index-keys")
         root, keys, problems = trust.update(
             read_root, read_keys,
-            [int(n[:-5]) for n in names
-             if n.endswith(".json") and n[:-5].isdigit()],
+            policy_mod.numbered(names, policy_mod.INDEX_KEYS_FILE),
             product.root_dir, product.index_keys_dir, product.slug,
             product.root_sha256)
     report_trust(root, keys)
