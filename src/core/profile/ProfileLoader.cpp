@@ -32,6 +32,7 @@
 #include <QUuid>
 #include <optional>
 
+#include "core/GFConstants.h"
 #include "core/function/AESCryptoHelper.h"
 #include "core/function/SettingCatalog.h"
 #include "core/profile/ProfileMigration.h"
@@ -580,13 +581,21 @@ auto ProfileLoader::resolve_secret(AppKeyProtection protection, GFBuffer& pin,
     // A fresh profile that opted into a PIN before a key existed: collect it
     // once and use it to seal the key about to be generated.
     request.creating = true;
-    const auto answer = delegate_->AskAppKeyPin(request);
-    if (answer.action != AppKeyPinAnswer::Action::kUsePin) {
-      delegate_->Report({ProfileLoadFailure::kCANCELLED, key_path});
-      return false;
+    while (true) {
+      const auto answer = delegate_->AskAppKeyPin(request);
+      if (answer.action != AppKeyPinAnswer::Action::kUsePin) {
+        delegate_->Report({ProfileLoadFailure::kCANCELLED, key_path});
+        return false;
+      }
+      // Every interface asks for kMinSecretLength characters; one that
+      // sends fewer bytes than that is asked again, never taken.
+      if (answer.pin.Size() < static_cast<size_t>(kMinSecretLength)) {
+        ++request.failures;
+        continue;
+      }
+      pin = answer.pin;
+      return true;
     }
-    pin = answer.pin;
-    return true;
   }
 
   auto on_disk =
