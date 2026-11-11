@@ -386,6 +386,11 @@
         <source>Only the category goes: its keys stay, in the key list and in their other categories.</source>
         <translation>只會移除分類：金鑰會保留在金鑰清單及其所屬的其他分類中。</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/CategoryKeysPage.qml" line="1"/>
+        <source>%1 could not be taken out of the category.</source>
+        <translation>無法將 %1 移出該分類。</translation>
+    </message>
 </context>
 <context>
     <name>CategoryListSheet</name>
@@ -632,6 +637,16 @@
         <source>Quit</source>
         <translation>結束</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/ErrorPage.qml" line="1"/>
+        <source>Open the default profile</source>
+        <translation>開啟預設設定檔</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/ErrorPage.qml" line="1"/>
+        <source>GpgFrontend could not start again. Quit, then open it again: the default profile opens.</source>
+        <translation>GpgFrontend 無法重新啟動。請結束後再次開啟：將開啟預設設定檔。</translation>
+    </message>
 </context>
 <context>
     <name>FactsPage</name>
@@ -853,8 +868,8 @@
     </message>
     <message>
         <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="1"/>
-        <source>Extract to a folder…</source>
-        <translation>解壓到資料夾…</translation>
+        <source>Pick it again</source>
+        <translation>重新選擇</translation>
     </message>
 </context>
 <context>
@@ -1362,8 +1377,8 @@
     </message>
     <message>
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="946"/>
-        <source>A copy stays in GpgFrontend&apos;s private storage for up to 24 hours so the receiving app can read it. You can remove it sooner under Temporary shared files in Settings.</source>
-        <translation>副本會在 GpgFrontend 的私人儲存空間保留最多 24 小時，讓接收的應用程式可以讀取。你可以在「設定」的「暫存分享檔案」中提前移除。</translation>
+        <source>A copy stays in GpgFrontend&apos;s private storage for up to an hour so the receiving app can read it. You can remove it sooner under Temporary shared files in Settings.</source>
+        <translation>副本會在 GpgFrontend 的私人儲存空間保留最多 1 小時，讓接收的應用程式可以讀取。你可以在「設定」的「暫存分享檔案」中提前移除。</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="951"/>
@@ -1489,6 +1504,11 @@
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
         <source>Added as one item, with everything in it. Encrypting it makes one .tar.gpg archive.</source>
         <translation>作為一個項目加入，包含其中所有內容。加密後產生一個 .tar.gpg 封存檔。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
+        <source>Extract to a folder…</source>
+        <translation>解壓到資料夾…</translation>
     </message>
 </context>
 <context>
@@ -2820,13 +2840,13 @@
     </message>
     <message>
         <location filename="../../../../src/mob/model/ErrorWording.cpp" line="55"/>
-        <source>Incorrect passphrase. Please try again.</source>
-        <translation>通關片語不正確，請再試一次。</translation>
+        <source>The passphrase was wrong. Try again with the right one.</source>
+        <translation>通關片語錯誤。請使用正確的通關片語再試一次。</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/model/ErrorWording.cpp" line="60"/>
-        <source>No passphrase was given. Please try again.</source>
-        <translation>未提供通關片語，請再試一次。</translation>
+        <source>No passphrase was given, so the key could not be used.</source>
+        <translation>未提供通關片語，因此無法使用此金鑰。</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/model/ErrorWording.cpp" line="65"/>
@@ -2995,6 +3015,16 @@
         <source>This key database cannot be used here.</source>
         <translation>此金鑰資料庫無法在這裡使用。</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="1"/>
+        <source>Wait until the work under way is done, or stop it, then switch.</source>
+        <translation>請等待進行中的工作完成或將其停止，然後再切換。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyDatabasesController.cpp" line="1"/>
+        <source>A key database is still being opened.</source>
+        <translation>仍在開啟金鑰資料庫。</translation>
+    </message>
 </context>
 <context>
     <name>GpgFrontend::Mobile::KeyGenProfilesController</name>
@@ -3007,6 +3037,11 @@
         <location filename="../../../../src/mob/model/KeyGenProfilesController.cpp" line="275"/>
         <source>Choose the algorithms in full: this one cannot be made here.</source>
         <translation>請完整選擇演算法：此項無法在此建立。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyGenProfilesController.cpp" line="1"/>
+        <source>That profile is no longer there.</source>
+        <translation>該設定檔已不存在。</translation>
     </message>
 </context>
 <context>
@@ -3110,6 +3145,11 @@
         <location filename="../../../../src/mob/model/ProfilesController.cpp" line="436"/>
         <source>GpgFrontend could not start again. It opens this profile the next time it starts.</source>
         <translation>GpgFrontend 無法重新啟動。下次啟動時將開啟此設定檔。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/ProfilesController.cpp" line="1"/>
+        <source>Another profile package is still being written or read.</source>
+        <translation>另一個設定檔套件仍在寫入或讀取中。</translation>
     </message>
 </context>
 <context>
@@ -18950,6 +18990,30 @@ Open it in your browser?</source>
         <source>Updated %1 key(s).</source>
         <translation>已更新 %1 個金鑰。</translation>
     </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/components/ImportSheet.qml" line="1"/>
+        <source>Imported %n key(s).</source>
+        <translation>
+            <numerusform>已匯入 %n 把金鑰。</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/components/ImportSheet.qml" line="1"/>
+        <source>Updated %n key(s).</source>
+        <translation>
+            <numerusform>已更新 %n 把金鑰。</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/ImportSheet.qml" line="1"/>
+        <source>This file could not be opened. Pick it again, or save it to the device first.</source>
+        <translation>無法開啟此檔案。請重新選擇，或先將其儲存到裝置上。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/ImportSheet.qml" line="1"/>
+        <source>This file is too large to be a key file.</source>
+        <translation>此檔案太大，不可能是金鑰檔案。</translation>
+    </message>
 </context>
 <context>
     <name>KeyAlgoChooser</name>
@@ -19274,6 +19338,11 @@ Open it in your browser?</source>
         <translation>私鑰已儲存。</translation>
     </message>
     <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="72"/>
+        <source>Public key saved.</source>
+        <translation>公鑰已儲存。</translation>
+    </message>
+    <message>
         <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="210"/>
         <source>Owner</source>
         <translation>擁有者</translation>
@@ -19545,11 +19614,6 @@ Open it in your browser?</source>
         <translation>任何擁有此檔案及其通關片語的人都能讀取你的訊息，並以你的名義簽署。請將其存放在安全的地方，切勿與通關片語放在一起。</translation>
     </message>
     <message>
-        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="707"/>
-        <source>Choose where</source>
-        <translation>選擇位置</translation>
-    </message>
-    <message>
         <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="725"/>
         <source>Delete this key?</source>
         <translation>刪除此金鑰？</translation>
@@ -19618,6 +19682,11 @@ Open it in your browser?</source>
         <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="851"/>
         <source>Save as file</source>
         <translation>另存為檔案</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyDetailPage.qml" line="1"/>
+        <source>Back it up first (Back up secret key) if you may need it again.</source>
+        <translation>如果之後可能還需要，請先備份（備份私鑰）。</translation>
     </message>
 </context>
 <context>
@@ -19994,6 +20063,21 @@ Open it in your browser?</source>
         <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="226"/>
         <source>Only the group goes: its keys stay in the key list.</source>
         <translation>只會刪除群組：其中的金鑰仍留在金鑰清單中。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="1"/>
+        <source>%1 could not be taken out of the group.</source>
+        <translation>無法將 %1 移出該群組。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="1"/>
+        <source>The group could not be deleted.</source>
+        <translation>無法刪除該群組。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/KeyGroupPage.qml" line="1"/>
+        <source>It is also in %1, which will lose it.</source>
+        <translation>它也屬於 %1，這些群組將失去它。</translation>
     </message>
 </context>
 <context>
@@ -20696,6 +20780,11 @@ Open it in your browser?</source>
         <source>OK</source>
         <translation>確定</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/PassphraseSheet.qml" line="1"/>
+        <source>Leaving GpgFrontend now cancels this. Copy the passphrase first, or type it.</source>
+        <translation>現在離開 GpgFrontend 會取消此操作。請先複製密碼短語，或直接輸入。</translation>
+    </message>
 </context>
 <context>
     <name>PinSheet</name>
@@ -20758,6 +20847,13 @@ Open it in your browser?</source>
         <location filename="../../../../src/mob/qml/components/PinSheet.qml" line="78"/>
         <source>The two PINs are not the same.</source>
         <translation>兩次輸入的 PIN 不一致。</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/components/PinSheet.qml" line="1"/>
+        <source>Use at least %n characters.</source>
+        <translation>
+            <numerusform>請至少使用 %n 個字元。</numerusform>
+        </translation>
     </message>
 </context>
 <context>
@@ -20955,6 +21051,11 @@ Open it in your browser?</source>
         <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="216"/>
         <source>Open</source>
         <translation>開啟</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/ProfilesPage.qml" line="1"/>
+        <source>What is not saved goes: the text on the Text page, files made and not saved, and operations under way.</source>
+        <translation>未儲存的內容將遺失：文字頁上的文字、已產生但未儲存的檔案，以及進行中的操作。</translation>
     </message>
 </context>
 <context>
@@ -23939,6 +24040,16 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <source>Opening the profile was cancelled.</source>
         <translation>已取消開啟設定檔。</translation>
     </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="1"/>
+        <source>Use at most %1 characters.</source>
+        <translation>最多使用 %1 個字元。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="1"/>
+        <source>A profile with this name already exists.</source>
+        <translation>已有同名設定檔。</translation>
+    </message>
 </context>
 <context>
     <name>QWizardPage</name>
@@ -24003,6 +24114,11 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="84"/>
         <source>A revoked key can no longer be used to encrypt to you or to sign, and this cannot be undone. Unlike deleting, it tells others: share the key afterwards, so they learn of it.</source>
         <translation>已撤銷的金鑰不能再用於向您加密或簽署，且此操作無法復原。與刪除不同，它會告知他人：之後請分享該金鑰，讓他們知道。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/RevokeSubkeySheet.qml" line="1"/>
+        <source>Choose where</source>
+        <translation>選擇位置</translation>
     </message>
 </context>
 <context>
@@ -24463,6 +24579,16 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <source>Opening your profile…</source>
         <translation>正在開啟你的設定檔…</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/SplashPage.qml" line="1"/>
+        <source>Closing your profile…</source>
+        <translation>正在關閉設定檔…</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/SplashPage.qml" line="1"/>
+        <source>This is taking longer than usual. A large key database takes a while to read the first time.</source>
+        <translation>這比平常要久。較大的金鑰資料庫首次讀取需要一些時間。</translation>
+    </message>
 </context>
 <context>
     <name>StatusLine</name>
@@ -24627,6 +24753,21 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="448"/>
         <source>Show less</source>
         <translation>顯示更少</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="1"/>
+        <source>Put it in the text</source>
+        <translation>放入文字</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="1"/>
+        <source>Import the signer&apos;s key</source>
+        <translation>匯入簽署者的金鑰</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StatusSheet.qml" line="1"/>
+        <source>It was not signed: there was no signature to check.</source>
+        <translation>它沒有簽章：沒有可檢查的簽章。</translation>
     </message>
 </context>
 <context>
@@ -24939,6 +25080,26 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <location filename="../../../../src/mob/qml/TextPage.qml" line="235"/>
         <source>Done on an earlier text, so the result was not put in.</source>
         <translation>此操作針對的是先前的文字，因此未寫入結果。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="1"/>
+        <source>Share the decrypted text?</source>
+        <translation>分享已解密的文字？</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="1"/>
+        <source>The app you choose gets it as readable text, and keeps it as that app does. It is not encrypted any more.</source>
+        <translation>您選擇的應用程式會以可讀文字形式收到它，並依其自身方式保存。它不再是加密的。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="1"/>
+        <source>Only for a signed or encrypted message.</source>
+        <translation>僅適用於已簽署或已加密的訊息。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/TextPage.qml" line="1"/>
+        <source>Only for an encrypted message.</source>
+        <translation>僅適用於已加密的訊息。</translation>
     </message>
 </context>
 <context>
@@ -25762,6 +25923,41 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <source>%1 · by its name</source>
         <translation>%1 · 依名稱</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Made by a revoked key</source>
+        <translation>由已撤銷的金鑰簽署</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Made by an expired key</source>
+        <translation>由已過期的金鑰簽署</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Made by a key not allowed to sign</source>
+        <translation>由無權簽署的金鑰簽署</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Made by a key with problems</source>
+        <translation>由有問題的金鑰簽署</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>Done</source>
+        <translation>完成</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/crypto/WorkSelection.cpp" line="1"/>
+        <source>Its secret part is not on this device</source>
+        <translation>其私鑰部分不在此裝置上</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
+        <source>This cannot be decrypted because no matching secret key is available.</source>
+        <translation>無法解密，因為沒有相符的私鑰。</translation>
+    </message>
 </context>
 <context>
     <name>GpgFrontend::Mobile::KeyActionsController</name>
@@ -25774,6 +25970,11 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <location filename="../../../../src/mob/model/KeyActionsController.cpp" line="631"/>
         <source>The revocation could not be applied, so the key has not been revoked.</source>
         <translation>無法套用撤銷，因此金鑰未被撤銷。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/model/KeyActionsController.cpp" line="1"/>
+        <source>Another change is still under way. Try again once it is done.</source>
+        <translation>另一項變更仍在進行中。請在其完成後重試。</translation>
     </message>
 </context>
 <context>
@@ -25807,6 +26008,105 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <location filename="../../../../src/mob/files/FolderArchive.cpp" line="1"/>
         <source>A file could not be written there.</source>
         <translation>無法在那裡寫入檔案。</translation>
+    </message>
+</context>
+<context>
+    <name>GpgFrontend::Shell::RevocationReasons</name>
+    <message>
+        <location filename="../../../../src/shell/rules/RevocationReasons.cpp" line="1"/>
+        <source>No reason given</source>
+        <translation>未提供原因</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/rules/RevocationReasons.cpp" line="1"/>
+        <source>It may have been compromised</source>
+        <translation>可能已遭洩漏</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/rules/RevocationReasons.cpp" line="1"/>
+        <source>A newer subkey replaces it</source>
+        <translation>已由較新的子金鑰取代</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/rules/RevocationReasons.cpp" line="1"/>
+        <source>It is no longer used</source>
+        <translation>已不再使用</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/rules/RevocationReasons.cpp" line="1"/>
+        <source>The user ID is no longer valid</source>
+        <translation>使用者 ID 已不再有效</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/rules/RevocationReasons.cpp" line="1"/>
+        <source>A newer key replaces it</source>
+        <translation>已由較新的金鑰取代</translation>
+    </message>
+</context>
+<context>
+    <name>HistorySheet</name>
+    <message>
+        <location filename="../../../../src/mob/qml/components/HistorySheet.qml" line="1"/>
+        <source>Recent operations</source>
+        <translation>最近的操作</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/HistorySheet.qml" line="1"/>
+        <source>Text</source>
+        <translation>文字</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/HistorySheet.qml" line="1"/>
+        <source>Files</source>
+        <translation>檔案</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/HistorySheet.qml" line="1"/>
+        <source>Nothing was done yet since GpgFrontend started.</source>
+        <translation>自 GpgFrontend 啟動以來尚未執行任何操作。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/HistorySheet.qml" line="1"/>
+        <source>Kept only until GpgFrontend closes.</source>
+        <translation>僅保留到 GpgFrontend 關閉為止。</translation>
+    </message>
+</context>
+<context>
+    <name>SubkeyChoiceSheet</name>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SubkeyChoiceSheet.qml" line="1"/>
+        <source>Which subkey?</source>
+        <translation>使用哪個子金鑰？</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SubkeyChoiceSheet.qml" line="1"/>
+        <source>%1 has more than one subkey that can sign. Which one should sign this?</source>
+        <translation>%1 有多個可以簽署的子金鑰。應使用哪一個簽署？</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SubkeyChoiceSheet.qml" line="1"/>
+        <source>%1 has more than one subkey that can encrypt. Which one should this be encrypted to?</source>
+        <translation>%1 有多個可以加密的子金鑰。應加密給哪一個？</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SubkeyChoiceSheet.qml" line="1"/>
+        <source>Let GpgFrontend choose</source>
+        <translation>由 GpgFrontend 選擇</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SubkeyChoiceSheet.qml" line="1"/>
+        <source>made %1</source>
+        <translation>建立於 %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SubkeyChoiceSheet.qml" line="1"/>
+        <source>Cancel</source>
+        <translation>取消</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SubkeyChoiceSheet.qml" line="1"/>
+        <source>Continue</source>
+        <translation>繼續</translation>
     </message>
 </context>
 </TS>
