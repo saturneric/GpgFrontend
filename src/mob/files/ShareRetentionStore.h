@@ -76,6 +76,9 @@ class ShareRetentionStore {
  public:
   struct Policy {
     std::chrono::seconds keep{std::chrono::hours(24)};
+    /// A decrypted file: readable once encrypted, and kept no longer than
+    /// a receiving app plausibly needs to read it.
+    std::chrono::seconds keep_plaintext{std::chrono::hours(1)};
     qint64 max_bytes = 256LL * 1024 * 1024;
     int max_files = 32;
   };

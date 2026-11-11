@@ -29,7 +29,6 @@
 #include "files/FileWorkspace.h"
 
 #include <QCoreApplication>
-#include <QCryptographicHash>
 #include <QFile>
 #include <QFileInfo>
 #include <QJSEngine>
@@ -41,6 +40,7 @@
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "crypto/ContentKind.h"
+#include "crypto/FileCrypto.h"
 #include "crypto/OperationQueue.h"
 #include "crypto/ResultPresenter.h"
 #include "files/FileOperations.h"
@@ -106,8 +106,10 @@ FileWorkspace::FileWorkspace(OperationQueue* queue, AppLifecycle* lifecycle,
     : QAbstractListModel(parent), queue_(queue) {
   // A document can go away while the application is in the background.
   if (lifecycle != nullptr) {
+    // Off the interface thread: every picked document is opened again,
+    // and a cloud provider may fetch it first.
     connect(lifecycle, &AppLifecycle::SignalResumed, this,
-            &FileWorkspace::refreshAvailability);
+            &FileWorkspace::recheck_off_thread);
   }
   if (queue != nullptr) {
     connect(queue, &OperationQueue::SignalFinished, this,
@@ -118,6 +120,10 @@ FileWorkspace::FileWorkspace(OperationQueue* queue, AppLifecycle* lifecycle,
 // The outputs go with their entries (StagedFile); what still waits or runs
 // goes with the workspace, which hears nothing more of it.
 FileWorkspace::~FileWorkspace() {
+  // Nobody is left to hear how they went: a folder being packed, an
+  // archive being extracted into a picked folder, stop (and undo).
+  pack_stop_->store(true);
+  extract_stop_->store(true);
   // A hash under way stops at its next chunk; the pool waits for it.
   cancelHash();
   hash_pool_.waitForDone();
@@ -380,27 +386,6 @@ auto FileWorkspace::receiveFiles(const QList<QUrl>& urls) -> QVariantList {
   return ids;
 }
 
-auto FileWorkspace::allows(const QString& op, const QStringList& names) const
-    -> bool {
-  std::optional<Shell::FileOperation> kind;
-  if (op == QStringLiteral("encrypt") || op == QStringLiteral("encrypt_sign") ||
-      op == QStringLiteral("symmetric")) {
-    kind = Shell::FileOperation::kEncrypt;
-  } else if (op == QStringLiteral("sign")) {
-    kind = Shell::FileOperation::kSign;
-  } else if (op == QStringLiteral("decrypt") ||
-             op == QStringLiteral("decrypt_verify")) {
-    kind = Shell::FileOperation::kDecrypt;
-  } else if (op == QStringLiteral("verify")) {
-    kind = Shell::FileOperation::kVerify;
-  }
-  if (!kind) return false;
-
-  QList<Shell::FileOperand> operands;
-  for (const auto& name : names) operands.append({.name = name});
-  return Shell::FileOperationAllowed(*kind, operands);
-}
-
 auto FileWorkspace::allowsEntries(const QString& op,
                                   const QVariantList& entries) const -> bool {
   std::optional<Shell::FileOperation> kind;
@@ -427,11 +412,108 @@ auto FileWorkspace::allowsEntries(const QString& op,
   return Shell::FileOperationAllowed(*kind, operands);
 }
 
+auto FileWorkspace::readable_now(int id) const -> bool {
+  const auto* entry = find(id);
+  return entry != nullptr && entry->available && !is_running(id) &&
+         entry->state != QStringLiteral("queued") &&
+         entry->state != QStringLiteral("running") && entry->progress < 0;
+}
+
+auto FileWorkspace::pairFor(int id) const -> QVariantMap {
+  int signature = -1;
+  int original = -1;
+  QString signature_how;
+  QString original_how;
+  const auto answer = [&](bool unique, bool inline_signed) -> QVariantMap {
+    return {{QStringLiteral("signatureId"), signature},
+            {QStringLiteral("originalId"), original},
+            {QStringLiteral("signatureHow"), signature_how},
+            {QStringLiteral("originalHow"), original_how},
+            {QStringLiteral("unique"), unique},
+            {QStringLiteral("inline"), inline_signed}};
+  };
+  const auto* file = find(id);
+  if (file == nullptr) return answer(false, false);
+
+  // The data and its signature in one file, verified alone.
+  const auto as_inline = [&]() {
+    signature = id;
+    return answer(readable_now(id), true);
+  };
+  // Every file of one of @p names; two of one name ("name (2).ext") both,
+  // so which is meant is never taken as known.
+  const auto find_all = [this](const QStringList& names) {
+    QList<int> ids;
+    for (const auto& name : names) {
+      for (const auto& value : idsNamed(name)) {
+        if (!ids.contains(value.toInt())) ids << value.toInt();
+      }
+    }
+    return ids;
+  };
+
+  const auto match = Shell::MatchVerifyFile(file->name);
+  const auto made_sign = file->made_by == QStringLiteral("sign");
+  // What the desktop takes for one by its name (.gpg, .pgp).
+  if (!made_sign && match.role == Shell::VerifyFileRole::kCombined) {
+    return as_inline();
+  }
+  QList<int> found;
+  if (made_sign) {
+    signature = id;
+    if (find(file->source_id) != nullptr) {
+      original = file->source_id;
+      original_how = QStringLiteral("linked");
+    }
+  } else if (match.role == Shell::VerifyFileRole::kSignature) {
+    // A message in its first bytes (signed in the clear, or encrypted) is
+    // verified alone, whatever file is named like the data it would be a
+    // signature of.
+    if (file->content == QStringLiteral("message")) return as_inline();
+    signature = id;
+    found = find_all(match.partner_names);
+    if (!found.isEmpty()) {
+      original = found.first();
+      original_how = QStringLiteral("suggested");
+    }
+  } else {
+    original = id;
+    if (const auto made = signatureOf(id); made >= 0) {
+      signature = made;
+      signature_how = QStringLiteral("linked");
+    } else {
+      found = find_all(match.role == Shell::VerifyFileRole::kData
+                           ? match.partner_names
+                           : QStringList{file->name + QStringLiteral(".sig"),
+                                         file->name + QStringLiteral(".asc")});
+      if (!found.isEmpty()) {
+        signature = found.first();
+        signature_how = QStringLiteral("suggested");
+      }
+    }
+  }
+  const auto linked = signature_how == QStringLiteral("linked") ||
+                      original_how == QStringLiteral("linked");
+  const auto unique = signature >= 0 && original >= 0 &&
+                      signature != original && (linked || found.size() == 1) &&
+                      readable_now(signature) && readable_now(original);
+  return answer(unique, false);
+}
+
+auto FileWorkspace::readableUrl(int id) const -> QUrl {
+  const auto* entry = find(id);
+  if (entry == nullptr || entry->folder || !entry->available ||
+      entry->progress >= 0) {
+    return {};
+  }
+  return entry->url.isEmpty() ? QUrl::fromLocalFile(entry->file.Path())
+                              : entry->url;
+}
+
 auto FileWorkspace::isArchive(int id) const -> bool {
   const auto* entry = find(id);
   if (entry == nullptr || entry->folder || entry->progress >= 0) return false;
-  return LooksLikeTarArchive(entry->url.isEmpty() ? entry->file.Path()
-                                                  : LocalOrContent(entry->url));
+  return LooksLikeTarArchive(entry->ReadPath());
 }
 
 auto FileWorkspace::extract(int id, const QUrl& folder) -> bool {
@@ -444,14 +526,13 @@ auto FileWorkspace::extract(int id, const QUrl& folder) -> bool {
   }
   const auto was = Busy();
   extracting_ = id;
-  stop_ = std::make_shared<std::atomic_bool>(false);
+  extract_stop_ = std::make_shared<std::atomic_bool>(false);
   entry->activity = QStringLiteral("extracting");
   entry->progress = 0;
   changed(id, {kActivityRole, kProgressRole});
   busy_changed(was);
 
-  const auto archive =
-      entry->url.isEmpty() ? entry->file.Path() : LocalOrContent(entry->url);
+  const auto archive = entry->ReadPath();
   // The new folder is named as the archive, without ".tar".
   auto name = entry->name;
   if (name.endsWith(QStringLiteral(".tar"), Qt::CaseInsensitive)) {
@@ -464,10 +545,23 @@ auto FileWorkspace::extract(int id, const QUrl& folder) -> bool {
   QPointer<FileWorkspace> self(this);
   const auto report = progress_reporter(self, id);
   auto* task = new Thread::Task(
-      [archive, folder, name, staging_dir, outcome, stop = stop_,
+      [archive, folder, name, staging_dir, outcome, stop = extract_stop_,
        report](const DataObjectPtr&) -> int {
-        *outcome = ExtractArchiveToFolder(archive, folder, name, staging_dir,
+        // A picked document is a content:// URL, which the archive reader
+        // cannot open: copied in first, as an operation's input is.
+        auto readable = archive;
+        const auto copy = staging_dir + QStringLiteral(".tar");
+        if (archive.startsWith(QStringLiteral("content:"))) {
+          if (!CopyLimited(archive, copy, kMaxStagedInputSize)) {
+            outcome->reason = tr("The file could not be read.");
+            QDir().rmdir(QFileInfo(staging_dir).absolutePath());
+            return 0;
+          }
+          readable = copy;
+        }
+        *outcome = ExtractArchiveToFolder(readable, folder, name, staging_dir,
                                           kMaxStagedInputSize, *stop, report);
+        QFile::remove(copy);
         // The staging area's own directory for it.
         QDir().rmdir(QFileInfo(staging_dir).absolutePath());
         return 0;
@@ -517,9 +611,11 @@ void FileWorkspace::remove(const QVariantList& ids) {
     const auto id = value.toInt();
     if (is_running(id)) continue;
     // Still being copied in: the copy would recreate its file after it was
-    // removed, and nobody would remove that one.
+    // removed, and nobody would remove that one. Being copied out (saved,
+    // shared): the copy would find nothing to read.
     if (const auto* arriving = find(id);
-        arriving != nullptr && arriving->progress >= 0) {
+        arriving != nullptr &&
+        (arriving->progress >= 0 || arriving->reading > 0)) {
       continue;
     }
 
@@ -602,12 +698,30 @@ auto FileWorkspace::verify(int signature_id, int data_id) -> bool {
   return enqueue({signature_id}, job) != 0;
 }
 
-void FileWorkspace::cancelQueued() {
+void FileWorkspace::cancelQueued(int batch_id) {
   const auto was = Busy();
-  // A folder being packed, or an archive extracted: the engine has not
-  // started on it, so it can stop.
-  stop_->store(true);
-  const auto waiting = std::exchange(waiting_, {});
+  const auto of_batch = batch_id > 0 && queue_ != nullptr
+                            ? queue_->Log()->IdsOfBatch(batch_id)
+                            : QList<int>{};
+  const auto in_scope = [&](int op_id) {
+    return batch_id <= 0 || of_batch.contains(op_id);
+  };
+  // A folder being packed for the running operation has not reached the
+  // engine yet, so it can stop; an archive being extracted only when every
+  // batch is stopped (it belongs to none).
+  if (running_.has_value() && in_scope(running_->op_id)) {
+    pack_stop_->store(true);
+  }
+  if (batch_id <= 0) extract_stop_->store(true);
+  std::map<int, Job> waiting;
+  for (auto it = waiting_.begin(); it != waiting_.end();) {
+    if (in_scope(it->first)) {
+      waiting.insert(*it);
+      it = waiting_.erase(it);
+    } else {
+      ++it;
+    }
+  }
   for (const auto& [op_id, job] : waiting) {
     if (auto* entry = find(job.id); entry != nullptr) {
       entry->state = QStringLiteral("cancelled");
@@ -712,12 +826,13 @@ void FileWorkspace::saveAs(int id, const QUrl& url) {
     emit SignalSaved(id, false);
     return;
   }
-  const auto from =
-      entry->url.isEmpty() ? entry->file.Path() : LocalOrContent(entry->url);
+  const auto from = entry->ReadPath();
   QPointer<FileWorkspace> self(this);
   const auto saved_name = DisplayName(url);
+  reading(id, +1);
   CopyOffThread(from, LocalOrContent(url), std::numeric_limits<qint64>::max(),
                 this, [self, id, saved_name](bool saved) {
+                  self->reading(id, -1);
                   // The name the picker gave it, which may not be the one
                   // offered: a folder that has one already numbers it.
                   if (auto* entry = saved ? self->find(id) : nullptr;
@@ -759,25 +874,13 @@ void FileWorkspace::saveAll(const QVariantList& ids, const QUrl& folder,
       ++failed;
       continue;
     }
-    QUrl to;
-    if (names.contains(entry->name) && taken == QStringLiteral("skip")) {
+    const auto there = names.contains(entry->name);
+    if (there && taken == QStringLiteral("skip")) {
       ++skipped;
       continue;
     }
-    if (names.contains(entry->name) && taken == QStringLiteral("replace")) {
-      to = FindFolderDocument(folder, entry->name);
-    }
-    // As bytes: given a type, a provider may add the extension it prefers
-    // for it ("notes.txt.gpg.pgp").
-    if (to.isEmpty()) {
-      to = CreateFolderDocument(folder, entry->name,
-                                QStringLiteral("application/octet-stream"));
-    }
-    if (to.isEmpty()) {
-      ++failed;
-      continue;
-    }
-    saves.push_back({entry->id, to});
+    saves.push_back(
+        {entry->id, folder, there && taken == QStringLiteral("replace")});
   }
   save_next(std::move(saves), 0, 0, skipped, failed);
 }
@@ -790,21 +893,24 @@ void FileWorkspace::save_next(std::vector<Save> saves, size_t next, int saved,
   }
   const auto save = saves.at(next);
   const auto* entry = find(save.id);
-  if (entry == nullptr) {
+  // One at a time, the document made only when its turn comes: a file let
+  // go of in the meantime leaves no empty document behind.
+  if (entry == nullptr || !entry->available || entry->progress >= 0) {
     save_next(std::move(saves), next + 1, saved, skipped, failed + 1);
     return;
   }
-  const auto from =
-      entry->url.isEmpty() ? entry->file.Path() : LocalOrContent(entry->url);
   QPointer<FileWorkspace> self(this);
-  CopyOffThread(
-      from, LocalOrContent(save.to), std::numeric_limits<qint64>::max(), this,
+  reading(save.id, +1);
+  SaveIntoFolder(
+      entry->ReadPath(), save.folder, entry->name, save.replace, this,
       [self, saves = std::move(saves), next, saved, skipped,
-       failed](bool copied) mutable {
+       failed](const QUrl& where) mutable {
         const auto& save = saves.at(next);
+        self->reading(save.id, -1);
+        const auto copied = !where.isEmpty();
         if (auto* entry = copied ? self->find(save.id) : nullptr;
             entry != nullptr) {
-          entry->saved_name = DisplayName(save.to);
+          entry->saved_name = DisplayName(where);
           self->changed(save.id, {kSavedNameRole});
           emit self->SignalUnsavedChanged();
         }
@@ -841,9 +947,11 @@ void FileWorkspace::hand_off(int id, bool open) {
   const auto name = entry->name;
   const auto plaintext = entry->plaintext;
   const auto copy = staging->NewPath(name);
+  reading(id, +1);
   CopyOffThread(
       entry->file.Path(), copy, std::numeric_limits<qint64>::max(), this,
-      [report, id, name, plaintext, copy, open](bool copied) {
+      [self, report, id, name, plaintext, copy, open](bool copied) {
+        if (self != nullptr) self->reading(id, -1);
         auto* store = SharedFileStore();
         if (!copied || store == nullptr) {
           QFile::remove(copy);
@@ -907,6 +1015,58 @@ void FileWorkspace::refreshAvailability() {
       changed(entry->id, {kAvailableRole, kSizeRole});
     }
   }
+}
+
+void FileWorkspace::recheck_off_thread() {
+  struct Look {
+    int id;
+    QUrl url;
+    QString path;
+    bool available = false;
+    qint64 size = 0;
+  };
+  auto looks = QSharedPointer<std::vector<Look>>::create();
+  for (const auto& entry : entries_) {
+    if (entry->progress >= 0 && entry->origin == QStringLiteral("shared")) {
+      continue;
+    }
+    if (entry->folder) continue;
+    looks->push_back({entry->id, entry->url,
+                      entry->url.isEmpty() ? entry->file.Path() : QString(),
+                      false, entry->size});
+  }
+  if (looks->empty()) return;
+  QPointer<FileWorkspace> self(this);
+  auto* task = new Thread::Task(
+      [looks](const DataObjectPtr&) -> int {
+        for (auto& look : *looks) {
+          if (look.url.isEmpty()) {
+            look.available = QFile::exists(look.path);
+          } else {
+            const auto [available, size] = Probe(look.url);
+            look.available = available;
+            if (available) look.size = size;
+          }
+        }
+        return 0;
+      },
+      "mobile_recheck_files", TransferParams(),
+      [self, looks](int, const DataObjectPtr&) {
+        if (self == nullptr) return;
+        for (const auto& look : *looks) {
+          // Found again: what it is now, not what it was when looked at.
+          auto* entry = self->find(look.id);
+          if (entry == nullptr || entry->url != look.url) continue;
+          if (look.available != entry->available || look.size != entry->size) {
+            entry->available = look.available;
+            entry->size = look.size;
+            self->changed(entry->id, {kAvailableRole, kSizeRole});
+          }
+        }
+      });
+  Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_IO)
+      ->PostTask(task);
 }
 
 void FileWorkspace::setSelected(int id, bool selected) {
@@ -1061,38 +1221,21 @@ void FileWorkspace::hash(int id) {
     emit hashReady(id, {}, QStringLiteral("missing"));
     return;
   }
-  const auto path =
-      entry->url.isEmpty() ? entry->file.Path() : LocalOrContent(entry->url);
+  const auto path = entry->ReadPath();
   hash_pool_.setMaxThreadCount(1);
   QPointer<FileWorkspace> self(this);
   hash_pool_.start([self, id, path, ticket, current = hash_ticket_]() {
-    constexpr qint64 kChunk = 1 << 20;
-    QFile file(path);
-    QCryptographicHash hasher(QCryptographicHash::Sha256);
-    QString sha256;
-    QString error;
-    if (!file.open(QIODevice::ReadOnly)) {
-      error = QStringLiteral("unreadable");
-    } else {
-      while (!file.atEnd()) {
-        // Asked again, or no longer wanted: nothing to report.
-        if (current->load() != ticket) return;
-        const auto chunk = file.read(kChunk);
-        if (chunk.isEmpty() && file.error() != QFileDevice::NoError) {
-          error = QStringLiteral("unreadable");
-          break;
-        }
-        hasher.addData(chunk);
-      }
-      if (error.isEmpty())
-        sha256 = QString::fromLatin1(hasher.result().toHex());
-    }
-    if (current->load() != ticket) return;
+    // Asked again, or no longer wanted: nothing to report.
+    const auto wanted = [&current, ticket]() {
+      return current->load() == ticket;
+    };
+    const auto digest = Sha256OfFile(path, wanted);
+    if (!wanted()) return;
     QMetaObject::invokeMethod(
         QCoreApplication::instance(),
-        [self, id, sha256, error, ticket, current]() {
+        [self, id, digest, ticket, current]() {
           if (self == nullptr || current->load() != ticket) return;
-          emit self->hashReady(id, sha256, error);
+          emit self->hashReady(id, digest.sha256, digest.error);
         },
         Qt::QueuedConnection);
   });
@@ -1128,6 +1271,12 @@ auto FileWorkspace::before(const Entry& a, const Entry& b) const -> bool {
   // Newest first, also among equals.
   if (a.added != b.added) return a.added > b.added;
   return a.id > b.id;
+}
+
+void FileWorkspace::reading(int id, int change) {
+  if (auto* entry = find(id); entry != nullptr) {
+    entry->reading = std::max(0, entry->reading + change);
+  }
 }
 
 void FileWorkspace::insert(std::unique_ptr<Entry> entry) {
@@ -1174,7 +1323,9 @@ auto FileWorkspace::enqueue(const QVariantList& ids, Job job, int batch)
   int into = 0;
   for (const auto& value : ids) {
     auto* entry = find(value.toInt());
-    if (entry == nullptr || !entry->available ||
+    // Not one still arriving or being extracted: its copy would be taken
+    // half made, or its progress taken from under the extraction.
+    if (entry == nullptr || !entry->available || entry->progress >= 0 ||
         entry->state == QStringLiteral("queued") || is_running(entry->id)) {
       continue;
     }
@@ -1327,7 +1478,7 @@ void FileWorkspace::pack(const Entry& entry, StagedFile& into,
   const auto path = into.Path();
   const auto id = entry.id;
   const auto folder = entry.url;
-  stop_ = std::make_shared<std::atomic_bool>(false);
+  pack_stop_ = std::make_shared<std::atomic_bool>(false);
   if (auto* packing = find(id); packing != nullptr) {
     packing->activity = QStringLiteral("packing");
     changed(id, {kActivityRole});
@@ -1337,7 +1488,7 @@ void FileWorkspace::pack(const Entry& entry, StagedFile& into,
   QPointer<FileWorkspace> self(this);
   const auto report = progress_reporter(self, id);
   auto* task = new Thread::Task(
-      [folder, path, outcome, listed, stop = stop_,
+      [folder, path, outcome, listed, stop = pack_stop_,
        report](const DataObjectPtr&) -> int {
         const auto tree = FolderTreeOf(folder);
         *listed = tree.has_value();
@@ -1400,10 +1551,14 @@ void FileWorkspace::run(const Job& job, const QString& in,
 
   switch (job.op) {
     case Op::kEncrypt:
-      // A folder: its archive's name, as the desktop names one.
-      job_output_name_ = EncryptedName(entry != nullptr && entry->folder
-                                           ? name + QStringLiteral(".tar")
-                                           : name);
+      // A folder: its archive's name, as the desktop names one (a folder
+      // already called "x.tar" is not "x.tar.tar").
+      job_output_name_ =
+          entry != nullptr && entry->folder
+              ? QFileInfo(SetExtensionOfOutputFileForArchive(
+                              name, GpgOperation::kENCRYPT, false))
+                    .fileName()
+              : EncryptedName(name);
       break;
     case Op::kDecrypt:
       job_output_name_ = DecryptedName(name);
@@ -1452,8 +1607,9 @@ void FileWorkspace::fail(const QString& reason) {
   if (running_.has_value()) {
     switch (running_->op) {
       case Op::kEncrypt:
-        scope = running_->signer.isEmpty() ? GpgOperation::kENCRYPT
-                                           : GpgOperation::kENCRYPT_SIGN;
+        scope = running_->symmetric          ? GpgOperation::kSYMMETRIC_ENCRYPT
+                : running_->signer.isEmpty() ? GpgOperation::kENCRYPT
+                                             : GpgOperation::kENCRYPT_SIGN;
         break;
       case Op::kDecrypt:
         scope = running_->verify ? GpgOperation::kDECRYPT_VERIFY
@@ -1496,7 +1652,9 @@ void FileWorkspace::end(const QVariantMap& result, bool produces,
                       .size = output.exists() ? output.size() : 0,
                       .may_be_empty = job.op == Op::kDecrypt,
                   });
-  if (produces && !produced) succeeded = false;
+  // What it was for: an output kept is done, though a signature checked on
+  // the way failed (said in its report); none, and it was not.
+  if (produces) succeeded = produced;
 
   auto* source = find(job.id);
   if (source != nullptr) {
@@ -1534,7 +1692,9 @@ void FileWorkspace::end(const QVariantMap& result, bool produces,
   // Recorded before it is announced, so a page that reads the record on the
   // signal finds it ended.
   if (queue_ != nullptr) {
-    queue_->Log()->SetFinished(job.op_id, phase, {}, result, output_ids);
+    queue_->Log()->SetFinished(job.op_id, phase,
+                               queue_->EndReason(job.op_id, phase), result,
+                               output_ids);
   }
   emit SignalFinished(job.id, succeeded);
 

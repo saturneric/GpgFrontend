@@ -197,14 +197,10 @@ class FileWorkspace : public QAbstractListModel {
   Q_INVOKABLE void remove(const QVariantList& ids);
 
   /// Whether @p op ("encrypt", "encrypt_sign", "symmetric", "sign",
-  /// "decrypt", "decrypt_verify", "verify") can be done to files called
-  /// @p names, by the desktop's rule (Shell::FileOperationAllowed). Whether
-  /// they are free to take one is the page's.
-  [[nodiscard]] Q_INVOKABLE bool allows(const QString& op,
-                                        const QStringList& names) const;
-
-  /// allows(), for files and folders: @p entries as entry() gives them
-  /// ({name, isFolder}). A folder is only ever encrypted.
+  /// "decrypt", "decrypt_verify", "verify") can be done to @p entries, as
+  /// entry() gives them ({name, isFolder}), by the desktop's rule
+  /// (Shell::FileOperationAllowed). A folder is only ever encrypted.
+  /// Whether they are free to take one is the page's.
   [[nodiscard]] Q_INVOKABLE bool allowsEntries(
       const QString& op, const QVariantList& entries) const;
 
@@ -256,8 +252,32 @@ class FileWorkspace : public QAbstractListModel {
   /// file), verified alone. Whether it was queued, as decrypt().
   Q_INVOKABLE bool verify(int signature_id, int data_id = -1);
 
-  /// Drop what waits in the queue; the operation running goes on.
-  Q_INVOKABLE void cancelQueued();
+  /**
+   * @brief Which file is the signature and which the data, starting from
+   * the file @p id: what is known of it (a signature made here knows its
+   * file), else what the names suggest (the desktop's rule).
+   *
+   * {signatureId, originalId, signatureHow, originalHow ("linked",
+   * "suggested", ""), unique, inline}. unique: exactly one partner, known or
+   * the only name that matches, and both there to be read now -- never a
+   * judgement on the signature, which only verifying makes. inline: the
+   * data and its signature in one file, verified alone.
+   */
+  [[nodiscard]] Q_INVOKABLE QVariantMap pairFor(int id) const;
+
+  /// Where the file @p id can be read now: its document, or the copy here;
+  /// empty while it cannot (gone, still arriving, a folder).
+  [[nodiscard]] Q_INVOKABLE QUrl readableUrl(int id) const;
+
+  /**
+   * @brief Drop what waits in the queue, of the batch @p batch_id or (0)
+   * of every batch.
+   *
+   * The operation running goes on once the engine has it; a folder still
+   * being packed for it stops. With no batch, an archive being extracted
+   * stops too.
+   */
+  Q_INVOKABLE void cancelQueued(int batch_id = 0);
 
   /**
    * @brief Run the OperationQueue record @p op_id again, on the same file
@@ -398,6 +418,10 @@ class FileWorkspace : public QAbstractListModel {
   enum class Op { kEncrypt, kDecrypt, kSign, kVerify };
 
   struct Entry {
+    /// Where its bytes are read: its document, else its copy here.
+    [[nodiscard]] auto ReadPath() const -> QString {
+      return url.isEmpty() ? file.Path() : LocalOrContent(url);
+    }
     int id = 0;
     QString name;
     qint64 size = 0;
@@ -420,6 +444,9 @@ class FileWorkspace : public QAbstractListModel {
     /// Named as OpenPGP data, and its bytes say it is not.
     bool content_refuted = false;
     double progress = -1;
+    /// Copies out of it under way (a save, a share): its file stays until
+    /// they are done, though the copy may wait behind other work.
+    int reading = 0;
     /// A folder (url a picked document tree): packed when it is encrypted.
     bool folder = false;
     int file_count = 0;
@@ -451,9 +478,12 @@ class FileWorkspace : public QAbstractListModel {
   /// stopped: it was cancelled.
   QString stage_problem_;
   bool stage_stopped_ = false;
-  /// Stops what runs apart from the engine: packing a folder, extracting an
-  /// archive. A new one for each, so a late stop never reaches the next.
-  std::shared_ptr<std::atomic_bool> stop_ =
+  /// Stop what runs apart from the engine: packing a folder, extracting an
+  /// archive. One each, as both may run at once, and a new one for each
+  /// start, so a late stop never reaches the next.
+  std::shared_ptr<std::atomic_bool> pack_stop_ =
+      std::make_shared<std::atomic_bool>(false);
+  std::shared_ptr<std::atomic_bool> extract_stop_ =
       std::make_shared<std::atomic_bool>(false);
   /// The archive being extracted; -1 when none is.
   int extracting_ = -1;
@@ -490,13 +520,23 @@ class FileWorkspace : public QAbstractListModel {
       -> std::function<void(qint64, qint64)>;
   struct Save {
     int id = 0;
-    QUrl to;
+    /// The folder it goes into.
+    QUrl folder;
+    /// A file of its name is there, and is replaced once the copy is whole.
+    bool replace = false;
   };
   /// Hand the output @p id over: shared, or opened when @p open.
   void hand_off(int id, bool open);
   /// The next of @p saves, the ones before done; then SignalSavedAll.
   void save_next(std::vector<Save> saves, size_t next, int saved, int skipped,
                  int failed);
+  /// refreshAvailability(), looked at on the I/O runner (each return to
+  /// the foreground).
+  void recheck_off_thread();
+  /// There to be read now: not gone, not waiting or worked on, not arriving.
+  [[nodiscard]] auto readable_now(int id) const -> bool;
+  /// One more (+1) or one fewer (-1) copy out of the file @p id under way.
+  void reading(int id, int change);
   /// Report @p copied of @p total bytes of the file @p id copied in.
   void copying(int id, qint64 copied, qint64 total);
   void run(const Job& job, const QString& in, const QString& other);

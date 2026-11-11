@@ -88,7 +88,8 @@ auto ShareRetentionStore::Retain(const QString& staged, const QString& name,
 
   entry.plaintext = plaintext;
   entry.handed_off = now.toUTC();
-  entry.eligible = entry.handed_off.addSecs(policy_.keep.count());
+  entry.eligible = entry.handed_off.addSecs(
+      (plaintext ? policy_.keep_plaintext : policy_.keep).count());
   entry.size = QFileInfo(entry.path).size();
   entries_.append(entry);
 
