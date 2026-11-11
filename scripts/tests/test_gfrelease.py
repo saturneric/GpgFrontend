@@ -82,14 +82,29 @@ def keypair(directory: Path, name: str) -> tuple[Path, str]:
 TRUST_KEYS = Path(__file__).resolve().parent / "fixtures" / "trust" / "keys"
 
 
-def make_product(directory: Path, index_pubs, **host_policy) -> common.Product:
+def make_product(directory: Path, index_pubs, after=None,
+                 **host_policy) -> common.Product:
     """This product as release/product.json has it, published under a
     trust root of its own (fixtures/trust/keys: root keys a and b sign it,
-    g1 signs the index-keys list), which lists @p index_pubs and whose
-    host_policy is @p host_policy over a plain one."""
+    g1 signs the index-keys list) that lists @p index_pubs, and whose
+    host_policy is @p host_policy over a plain one. With @p after (a
+    product made so before), its trust goes on: the policy comes as the
+    next root, as it would in the real world, where a published root
+    never changes."""
     directory.mkdir(parents=True, exist_ok=True)
     for name in ("product.json", "policy.toml"):
         shutil.copy(common.ROOT / "release" / name, directory)
+    if after is not None:
+        shutil.copytree(after.root_dir, directory / "root")
+        shutil.copytree(after.index_keys_dir, directory / "index-keys")
+        product = common.Product(directory / "product.json",
+                                 directory / "policy.toml",
+                                 root_dir=directory / "root",
+                                 index_keys_dir=directory / "index-keys")
+        root = product.trust[0]
+        next_root(product, host_policy=dict(root["host_policy"],
+                                            **host_policy))
+        return product
     pub = {n: minisig.public_key_of(TRUST_KEYS / f"{n}.pub")
            for n in ("root-a", "root-b", "g1")}
     ids = {n: minisig.key_id(k) for n, k in pub.items()}
@@ -108,20 +123,39 @@ def make_product(directory: Path, index_pubs, **host_policy) -> common.Product:
                 keys={minisig.key_id(k): k for k in index_pubs})
     (directory / "root").mkdir(exist_ok=True)
     (directory / "index-keys").mkdir(exist_ok=True)
-    path = directory / "root" / layout.root_name(1)
-    path.write_bytes(trust.dump(root))
-    for name in ("root-a", "root-b"):
-        minisig.sign(TRUST_KEYS / f"{name}.key", path,
-                     layout.root_comment("gpgfrontend", 1),
-                     directory / "root" / layout.root_sig_name(1, ids[name]))
     path = directory / "index-keys" / layout.index_keys_name(1)
     path.write_bytes(trust.dump(keys))
     minisig.sign(TRUST_KEYS / "g1.key", path,
                  layout.index_keys_comment("gpgfrontend", 1))
-    return common.Product(directory / "product.json",
-                          directory / "policy.toml",
-                          root_dir=directory / "root",
-                          index_keys_dir=directory / "index-keys")
+    product = common.Product(directory / "product.json",
+                             directory / "policy.toml",
+                             root_dir=directory / "root",
+                             index_keys_dir=directory / "index-keys")
+    sign_root(product, root)
+    return product
+
+
+def sign_root(product: common.Product, doc: dict) -> None:
+    """@p doc as the next root of @p product's trust, signed by root keys
+    a and b."""
+    n = doc["version"]
+    path = product.root_dir / layout.root_name(n)
+    path.write_bytes(trust.dump(doc))
+    for name in ("root-a", "root-b"):
+        key_id = minisig.key_id(minisig.public_key_of(
+            TRUST_KEYS / f"{name}.pub"))
+        minisig.sign(TRUST_KEYS / f"{name}.key", path,
+                     layout.root_comment("gpgfrontend", n),
+                     product.root_dir / layout.root_sig_name(n, key_id))
+    product._trust = None  # read again
+
+
+def next_root(product: common.Product, **changes) -> dict:
+    """The next root of @p product's trust, with @p changes."""
+    doc = dict(trust.renewed(product.trust[0], trust.ROOT_LIFETIME),
+               **changes)
+    sign_root(product, doc)
+    return doc
 
 
 def trust_args(product: common.Product) -> list[str]:
@@ -257,7 +291,7 @@ class ChainTest(unittest.TestCase):
 
     def check(self, deep=True):
         return verify_mod.verify(self.product, self.update, self.builds,
-                                 index_keys=[self.idx_pub], deep=deep)
+                                 deep=deep)
 
     # --- the chain -----------------------------------------------------
 
@@ -706,8 +740,7 @@ class ChainTest(unittest.TestCase):
         other = make_product(self.tmp / "other", [self.idx_pub])
         other.slug = "demo"
         self.assert_refused(
-            lambda: verify_mod.verify(other, self.update, self.builds,
-                                      index_keys=[self.idx_pub]),
+            lambda: verify_mod.verify(other, self.update, self.builds),
             "is for 'gpgfrontend'|not 'demo'")
 
     def test_verify_rejects_the_wrong_key(self):
@@ -715,11 +748,13 @@ class ChainTest(unittest.TestCase):
         self.build()
         self.promote()
         self.index()
-        _, other = keypair(self.tmp / "keys", "other")
-        self.assert_refused(
-            lambda: verify_mod.verify(self.product, self.update, self.builds,
-                                      index_keys=[other]),
-            "no pinned key")
+        # Signed by a key the index-keys list does not hold.
+        secret, _ = keypair(self.tmp / "keys", "other")
+        path = self.tmp / "update" / self.slug / common.INDEX
+        index = json.loads(path.read_text())
+        minisig.sign(secret, path,
+                     layout.index_comment(self.slug, index["serial"]))
+        self.assert_refused(lambda: self.check(deep=False), "no pinned key")
 
     def test_a_store_that_cannot_be_read_is_an_error_not_an_absence(self):
         # A 403 or an unreachable endpoint must never read as "not there":
@@ -992,6 +1027,57 @@ class ChainTest(unittest.TestCase):
         self.assertIsNotNone(again)
         self.assertGreater(again["serial"], first["serial"])
         self.check()
+
+    def test_the_trust_an_index_names_goes_up_before_it(self):
+        order = []
+
+        class Recording(Store):
+            def put_file(self, local, path, immutable=True):
+                order.append(path)
+                super().put_file(local, path, immutable)
+
+        self.update = Recording(self.update.root)
+        mirror = Recording(str(self.tmp / "mirror" / self.slug))
+        self.commit()
+        self.build()
+        self.promote()
+        index = index_mod.publish(
+            self.product, self.builds, self.update, index_key=self.idx_key,
+            state_dir=self.state, git_dir=self.repo, cosign=str(self.cosign),
+            mirrors=[mirror], index_pub=[self.idx_pub])
+        self.assertEqual((index["root_version"],
+                          index["index_keys_version"]), (1, 1))
+        trust_paths = [path for _, path in index_mod.trust_files(self.product)]
+        self.assertEqual(len(trust_paths), 5)  # a root, 2 sigs, a list, 1
+        live = [i for i, p in enumerate(order) if p == common.INDEX]
+        self.assertEqual(len(live), 2)  # the update store, the mirror
+        for at in live:
+            for path in trust_paths:
+                self.assertIn(path, order[:at])
+        for store in (self.update, mirror):
+            for path in trust_paths:
+                self.assertTrue(store.exists(path), path)
+        self.check()
+
+    def test_verify_walks_to_the_root_an_index_names(self):
+        self.commit()
+        self.build()
+        self.promote()
+        # The host trusts root 2 and publishes under it; a reader of this
+        # tree's root 1 walks there through v1/root/ as a client would.
+        host = make_product(self.tmp / "host", [self.idx_pub])
+        next_root(host)
+        index_mod.publish(host, self.builds, self.update,
+                          index_key=self.idx_key, state_dir=self.state,
+                          git_dir=self.repo, cosign=str(self.cosign),
+                          index_pub=[self.idx_pub])
+        self.assertEqual(self.product.trust[0]["version"], 1)
+        self.assertEqual(self.check(deep=False)["serial"], 1)
+        # A root the index names, not published: a client gets nowhere.
+        (self.tmp / "update" / self.slug / "v1" / "root" /
+         "2.root.json").unlink()
+        self.assert_refused(lambda: self.check(deep=False),
+                            "names root 2")
 
     def test_a_mirror_that_differs_is_brought_back_in_line(self):
         mirror = Store(str(self.tmp / "mirror" / self.slug))
@@ -1630,7 +1716,8 @@ class StableTest(unittest.TestCase):
         """A product whose root pins @p fingerprints (and @p retired), with
         @p policy over this test's host policy, and a key file holding
         @p exported (by default every one of them)."""
-        product = make_product(directory, [self.idx_pub], **{
+        product = make_product(directory, [self.idx_pub],
+                               after=getattr(self, "product", None), **{
             "stable_pgp": {"fingerprints": list(fingerprints),
                            "fingerprints_retired": list(retired)},
             "authenticode_subject": SUBJECT,
@@ -1711,7 +1798,6 @@ class StableTest(unittest.TestCase):
 
     def check(self, deep=True):
         return verify_mod.verify(self.product, self.update, self.builds,
-                                 index_keys=[self.idx_pub],
                                  deep=deep)
 
     def assert_refused(self, fn, pattern):
@@ -1894,7 +1980,6 @@ class StableTest(unittest.TestCase):
         builds = verify_mod.HttpSource([f"{base}/builds/"],
                                        self.product.slug, str(ca))
         report = verify_mod.verify(self.product, update, builds,
-                                   index_keys=[self.idx_pub],
                                    deep=True)
         self.assertEqual([c["version"] for c in report["checked"]], ["2.3.0"])
         self.assertEqual(report["channels"]["stable"], "2.3.0")
@@ -2387,7 +2472,6 @@ class ImportTest(unittest.TestCase):
 
     def check(self):
         return verify_mod.verify(self.product, self.update, self.builds,
-                                 index_keys=[self.idx_pub],
                                  deep=True)
 
     LEGS = ("linux-x86_64.AppImage", "windows-x86_64.msi",
