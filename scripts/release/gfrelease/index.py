@@ -35,8 +35,8 @@ import minisig
 import openpgp
 import layout
 from common import (BUNDLE, DESCRIPTOR, INDEX, MINISIG, SCHEMA, SIG, SUMS,
-                    Problems, Product, ReleaseError, atomic_write,
-                    candidate_error, is_passing, canonical_json,
+                    Problems, Product, ReleaseError, ToolFailed,
+                    atomic_write, candidate_error, is_passing, canonical_json,
                     check_relpath, git_version, iso, load_json, locked,
                     notes_at, parse_iso, parse_manifest, parse_version, refs,
                     resolve_commit, sha256_bytes, sha256_file, tag_time,
@@ -174,15 +174,7 @@ def admit_nightly(product: Product, builds: Store, path: str, raw: bytes,
            a.get("transform") != "none" for a in d["artifacts"]):
         raise ReleaseError(f"{path}: a nightly is published as built")
 
-    build = tmp / v.filesafe
-    build.mkdir(parents=True, exist_ok=True)
-    builds.fetch_to(d["build"]["sums"], build / SUMS)
-    builds.fetch_to(d["build"]["bundle"], build / BUNDLE)
-    try:
-        rc.cosign_verify(build, product.identity(ref), d["commit"], cosign)
-    except (rc.CandidateError, rc.CandidateTimeout) as e:
-        raise candidate_error(path, e) from e
-    if parse_manifest((build / SUMS).read_bytes(), d["build"]["sums"]) != \
+    if _built(product, builds, d, ref, path, tmp / v.filesafe, cosign) != \
             descriptor.hashes(d):
         raise ReleaseError(f"{path}: artifacts differ from the signed manifest")
     if git_dir is None:
@@ -193,6 +185,21 @@ def admit_nightly(product: Product, builds: Store, path: str, raw: bytes,
                            f"{refs.branch_of(ref)} is {derived}, not "
                            f"{d['version']}")
     return d
+
+
+def _built(product: Product, builds: Store, d: dict, ref: str, path: str,
+           build: Path, cosign: str) -> dict[str, str]:
+    """{name: sha256} of what CI built for descriptor @p d (at @p path): its
+    build manifest, fetched into @p build, as Sigstore says CI signed it
+    for @p ref and the descriptor's commit."""
+    build.mkdir(parents=True, exist_ok=True)
+    builds.fetch_to(d["build"]["sums"], build / SUMS)
+    builds.fetch_to(d["build"]["bundle"], build / BUNDLE)
+    try:
+        rc.cosign_verify(build, product.identity(ref), d["commit"], cosign)
+    except (rc.CandidateError, rc.CandidateTimeout) as e:
+        raise candidate_error(path, e) from e
+    return parse_manifest((build / SUMS).read_bytes(), d["build"]["sums"])
 
 
 def release_notes(git_dir: Path, version: str) -> bytes | None:
@@ -309,7 +316,7 @@ def _admit_release(product: Product, builds: Store, path: str, raw: bytes,
     is appended to <version>.history.jsonl. A @p dry run writes nothing to
     the store, and records into a copy of the state directory."""
     version = d["version"]
-    tag = f"v{version}"
+    tag = refs.release_tag(version)
     record_path = state_dir / "admitted" / f"{version}.json"
     stale = _read_record(record_path)
     if stale is not None and stale.get("kind", kind) != kind:
@@ -456,7 +463,7 @@ def _check_stable(product: Product, builds: Store, d: dict, path: str, *,
     """Every check of a stable release; returns the maintainer signatures
     it rests on, by file name (and the manifest's). Retired keys and
     certificates count only when it is a @p recheck."""
-    version, tag = d["version"], f"v{d['version']}"
+    version, tag = d["version"], refs.release_tag(d["version"])
     signatures = {}
     work = tmp / version
     work.mkdir(parents=True, exist_ok=True)
@@ -490,15 +497,7 @@ def _check_stable(product: Product, builds: Store, d: dict, path: str, *,
                 a["sha256"])
 
     # What CI built, as Sigstore says: every file's build hash.
-    build = work / "build"
-    build.mkdir(exist_ok=True)
-    builds.fetch_to(d["build"]["sums"], build / SUMS)
-    builds.fetch_to(d["build"]["bundle"], build / BUNDLE)
-    try:
-        rc.cosign_verify(build, product.identity(d["ref"]), d["commit"], cosign)
-    except (rc.CandidateError, rc.CandidateTimeout) as e:
-        raise candidate_error(path, e) from e
-    built = parse_manifest((build / SUMS).read_bytes(), d["build"]["sums"])
+    built = _built(product, builds, d, d["ref"], path, work / "build", cosign)
     for a in d["artifacts"]:
         if built.get(a["name"]) != a.get("build_sha256"):
             raise ReleaseError(f"{a['name']}: not what CI built")
@@ -563,7 +562,7 @@ def admit_imported(product: Product, builds: Store, path: str, raw: bytes, *,
 
 def _check_imported_files(product: Product, builds: Store, d: dict, path: str,
                           *, git_dir: Path, tmp: Path, recheck: bool) -> dict:
-    version, tag = d["version"], f"v{d['version']}"
+    version, tag = d["version"], refs.release_tag(d["version"])
     try:
         tagged_commit(git_dir, tag, expect=d.get("commit"), version=version)
     except ReleaseError as e:
@@ -615,6 +614,11 @@ def _kept_builds(previous: dict | None, path: str) -> tuple[dict | None,
                      if descriptor.names_build(b) and b["descriptor"] == path][:1]
 
 
+def _newer(a: dict, b: dict | None) -> bool:
+    return b is None or \
+        parse_version(a["version"]) > parse_version(b["version"])
+
+
 def build(product: Product, builds: Store, *,
           git_dir: Path | None = None, state_dir: Path | None = None,
           cosign: str = "cosign", authenticode_ca: str | None = None,
@@ -634,142 +638,28 @@ def build(product: Product, builds: Store, *,
 
     withdrawn = {parse_version(w["version"])
                  for w in product.policy.get("withdrawn", [])}
-    nightly = None
-    betas: list[dict] = []
-    releases: dict[str, dict] = {}
     retention = product.data.get("nightly_retention_days")
     cutoff = utcnow() - dt.timedelta(days=retention) + NIGHTLY_MARGIN \
         if retention else None
 
-    def newer(a: dict, b: dict | None) -> bool:
-        return b is None or \
-            parse_version(a["version"]) > parse_version(b["version"])
-
     with tempfile.TemporaryDirectory(prefix="gfr-index-") as tmp:
-        promoted = builds.files(layout.NIGHTLY, include=f"*/{DESCRIPTOR}")
-        for rel in promoted:
-            path = f"{layout.NIGHTLY}/{rel}"
-            try:
-                raw = builds.read(path)
-                # Soon deleted by the bucket's lifecycle rule: never named,
-                # and not even checked (its files may be going already).
-                promoted_at = load_json(raw, path).get("promoted_at")
-                if cutoff is not None and isinstance(promoted_at, str):
-                    try:
-                        if parse_iso(promoted_at) < cutoff:
-                            continue
-                    except ReleaseError:
-                        pass  # admit_nightly refuses it
-                d = admit_nightly(product, builds, path, raw, Path(tmp),
-                                  git_dir=git_dir, cosign=cosign)
-            except ReleaseError as e:
-                refuse(path, e)
-                if not is_passing(e):
-                    continue
-                kept, kept_betas = _kept_builds(previous, path)
-                # Kept as listed, but never past what the policy says now.
-                if kept is not None and \
-                        parse_version(kept["version"]) not in withdrawn and \
-                        newer(kept, nightly):
-                    nightly = kept
-                betas += [b for b in kept_betas
-                          if parse_version(b["version"]) not in withdrawn]
-                continue
-            if parse_version(d["version"]) in withdrawn:
-                continue
-            listed = {"version": d["version"], "descriptor": path,
-                      "sha256": sha256_bytes(raw)}
-            # main's builds are the nightly channel; a release/X.Y branch's
-            # are the beta of that series (which one is chosen below, once
-            # the releases are known). admit_nightly admits no other ref.
-            if d["ref"] != refs.MAIN:
-                betas.append(listed)
-            elif newer(listed, nightly):
-                nightly = listed
+        nightly, betas, promoted = _admitted_builds(
+            product, builds, Path(tmp), git_dir=git_dir, cosign=cosign,
+            cutoff=cutoff, withdrawn=withdrawn, previous=previous,
+            refuse=refuse)
+        releases = _admitted_releases(
+            product, builds, Path(tmp), git_dir=git_dir, state_dir=state_dir,
+            cosign=cosign, authenticode_ca=authenticode_ca, dry=dry,
+            previous=previous, refuse=refuse)
 
-        published = (previous or {}).get("releases")
-        published = published if isinstance(published, dict) else {}
-        for rel in builds.files(layout.RELEASES, include=f"*/{DESCRIPTOR}"):
-            path = f"{layout.RELEASES}/{rel}"
-            if git_dir is None or state_dir is None:
-                raise ReleaseError("stable releases need --git-dir and "
-                                   "--state-dir to be admitted")
-            version = rel.split("/", 1)[0]
-            listed = isinstance(published.get(version), dict) and \
-                published[version].get("descriptor") == path
-            try:
-                raw = builds.read(path)
-                if load_json(raw, path).get("kind") == layout.KIND_IMPORTED:
-                    d, entry = admit_imported(product, builds, path, raw,
-                                              git_dir=git_dir,
-                                              state_dir=state_dir,
-                                              tmp=Path(tmp), dry=dry,
-                                              listed=listed)
-                else:
-                    d, entry = admit_stable(product, builds, path, raw,
-                                            git_dir=git_dir,
-                                            state_dir=state_dir,
-                                            cosign=cosign, tmp=Path(tmp),
-                                            authenticode_ca=authenticode_ca,
-                                            dry=dry, listed=listed)
-            except KeptListed as e:
-                refuse(path, e)
-                d, entry = e.d, e.entry
-            except ReleaseError as e:
-                refuse(path, e)
-                if not is_passing(e):
-                    continue
-                if listed:
-                    releases[version] = published[version]
-                continue
-            releases[d["version"]] = entry
-
-    series = {}
-    for key, entry in product.policy["series"].items():
-        series[key] = {k: entry.get(k) for k in ("status", "eol", "successor")}
-        series[key]["platforms"] = entry.get("platforms", {})
-        series[key]["latest"] = None
-        series[key]["beta"] = None
-        if series[key]["eol"] is not None:
-            series[key]["eol"] = str(series[key]["eol"])
-
-    # Each series' newest release; the stable channel is the newest release
-    # of the series users are meant to be on (stable, or mainline once its .0
-    # shipped and before the policy moved on). The nightly and beta channels
-    # are builds, never releases.
-    for version in sorted(releases, key=parse_version):
-        if parse_version(version) in withdrawn:
-            continue
-        key = parse_version(version).series
-        if key in series:
-            series[key]["latest"] = version
     if cutoff is not None and nightly is None and promoted:
         print(f"no main nightly promoted since {iso(cutoff)}: the nightly "
               "channel names none until main is built again", file=sys.stderr)
+    series = _series_table(product, releases, withdrawn)
     current = [s["latest"] for s in series.values()
                if s["status"] in policy_mod.CURRENT_STATUSES and s["latest"]]
     stable = max(current, key=parse_version) if current else None
-
-    # The beta of a series: its release branch's newest build, when users
-    # are meant to be on that series and the build is newer than its latest
-    # release. Admitted as a nightly is; a user opts in, and is only ever
-    # offered the beta of the series they run.
-    for b in betas:
-        v = parse_version(b["version"])
-        entry = series.get(v.series)
-        if entry is None or \
-                entry["status"] not in policy_mod.CURRENT_STATUSES or \
-                (entry["latest"] is not None and
-                 v <= parse_version(entry["latest"])):
-            continue
-        if newer(b, entry["beta"]):
-            entry["beta"] = b
-    # The newest of them all, where clients older than the per-series entry
-    # look for it.
-    beta = None
-    for entry in series.values():
-        if entry["beta"] is not None and newer(entry["beta"], beta):
-            beta = entry["beta"]
+    beta = _choose_betas(series, betas)
 
     root, keys = product.trust
     return {
@@ -790,31 +680,161 @@ def build(product: Product, builds: Store, *,
     }
 
 
-def published(update: Store) -> dict | None:
-    """The index in the update store as it stands, unverified: for showing,
-    never for deciding (trusted_published)."""
-    if not update.exists(INDEX):
-        return None
-    return load_json(update.read(INDEX), INDEX)
+def _admitted_builds(product: Product, builds: Store, tmp: Path, *,
+                     git_dir, cosign, cutoff, withdrawn, previous, refuse
+                     ) -> tuple[dict | None, list[dict], list[str]]:
+    """The newest admitted build of main (the nightly), every admitted
+    build of a release branch (a beta, chosen later), and every
+    descriptor promoted."""
+    nightly = None
+    betas: list[dict] = []
+    promoted = builds.files(layout.NIGHTLY, include=f"*/{DESCRIPTOR}")
+    for rel in promoted:
+        path = f"{layout.NIGHTLY}/{rel}"
+        try:
+            raw = builds.read(path)
+            # Soon deleted by the bucket's lifecycle rule: never named,
+            # and not even checked (its files may be going already).
+            promoted_at = load_json(raw, path).get("promoted_at")
+            if cutoff is not None and isinstance(promoted_at, str):
+                try:
+                    if parse_iso(promoted_at) < cutoff:
+                        continue
+                except ReleaseError:
+                    pass  # admit_nightly refuses it
+            d = admit_nightly(product, builds, path, raw, tmp,
+                              git_dir=git_dir, cosign=cosign)
+        except ReleaseError as e:
+            refuse(path, e)
+            if not is_passing(e):
+                continue
+            kept, kept_betas = _kept_builds(previous, path)
+            # Kept as listed, but never past what the policy says now.
+            if kept is not None and \
+                    parse_version(kept["version"]) not in withdrawn and \
+                    _newer(kept, nightly):
+                nightly = kept
+            betas += [b for b in kept_betas
+                      if parse_version(b["version"]) not in withdrawn]
+            continue
+        if parse_version(d["version"]) in withdrawn:
+            continue
+        listed = {"version": d["version"], "descriptor": path,
+                  "sha256": sha256_bytes(raw)}
+        # main's builds are the nightly channel; a release/X.Y branch's
+        # are the beta of that series (which one is chosen once the
+        # releases are known). admit_nightly admits no other ref.
+        if d["ref"] != refs.MAIN:
+            betas.append(listed)
+        elif _newer(listed, nightly):
+            nightly = listed
+    return nightly, betas, promoted
+
+
+def _admitted_releases(product: Product, builds: Store, tmp: Path, *,
+                       git_dir, state_dir, cosign, authenticode_ca, dry,
+                       previous, refuse) -> dict[str, dict]:
+    """{version: index entry} of every stable or imported release whose
+    maintainer signatures verify; one that could not be checked keeps its
+    entry from @p previous."""
+    releases: dict[str, dict] = {}
+    published = (previous or {}).get("releases")
+    published = published if isinstance(published, dict) else {}
+    for rel in builds.files(layout.RELEASES, include=f"*/{DESCRIPTOR}"):
+        path = f"{layout.RELEASES}/{rel}"
+        if git_dir is None or state_dir is None:
+            raise ReleaseError("stable releases need --git-dir and "
+                               "--state-dir to be admitted")
+        version = rel.split("/", 1)[0]
+        listed = isinstance(published.get(version), dict) and \
+            published[version].get("descriptor") == path
+        try:
+            raw = builds.read(path)
+            if load_json(raw, path).get("kind") == layout.KIND_IMPORTED:
+                d, entry = admit_imported(product, builds, path, raw,
+                                          git_dir=git_dir,
+                                          state_dir=state_dir, tmp=tmp,
+                                          dry=dry, listed=listed)
+            else:
+                d, entry = admit_stable(product, builds, path, raw,
+                                        git_dir=git_dir, state_dir=state_dir,
+                                        cosign=cosign, tmp=tmp,
+                                        authenticode_ca=authenticode_ca,
+                                        dry=dry, listed=listed)
+        except KeptListed as e:
+            refuse(path, e)
+            d, entry = e.d, e.entry
+        except ReleaseError as e:
+            refuse(path, e)
+            if is_passing(e) and listed:
+                releases[version] = published[version]
+            continue
+        releases[d["version"]] = entry
+    return releases
+
+
+def _series_table(product: Product, releases: dict[str, dict],
+                  withdrawn: set) -> dict[str, dict]:
+    """Each series as the policy states it, with its newest release that is
+    not withdrawn (latest); its beta is chosen later (_choose_betas)."""
+    series = {}
+    for key, entry in product.policy["series"].items():
+        series[key] = {k: entry.get(k) for k in ("status", "eol", "successor")}
+        series[key]["platforms"] = entry.get("platforms", {})
+        series[key]["latest"] = None
+        series[key]["beta"] = None
+        if series[key]["eol"] is not None:
+            series[key]["eol"] = str(series[key]["eol"])
+    # The stable channel is then the newest release of the series users are
+    # meant to be on (stable, or mainline once its .0 shipped and before the
+    # policy moved on). The nightly and beta channels are builds, never
+    # releases.
+    for version in sorted(releases, key=parse_version):
+        if parse_version(version) in withdrawn:
+            continue
+        key = parse_version(version).series
+        if key in series:
+            series[key]["latest"] = version
+    return series
+
+
+def _choose_betas(series: dict[str, dict], betas: list[dict]) -> dict | None:
+    """Sets each series' beta: its release branch's newest build, when users
+    are meant to be on that series and the build is newer than its latest
+    release. Admitted as a nightly is; a user opts in, and is only ever
+    offered the beta of the series they run. Returns the newest of them
+    all, where clients older than the per-series entry look for it."""
+    for b in betas:
+        v = parse_version(b["version"])
+        entry = series.get(v.series)
+        if entry is None or \
+                entry["status"] not in policy_mod.CURRENT_STATUSES or \
+                (entry["latest"] is not None and
+                 v <= parse_version(entry["latest"])):
+            continue
+        if _newer(b, entry["beta"]):
+            entry["beta"] = b
+    beta = None
+    for entry in series.values():
+        if entry["beta"] is not None and _newer(entry["beta"], beta):
+            beta = entry["beta"]
+    return beta
 
 
 def _published_pair(product: Product, update: Store, keys: list[str]
                     ) -> tuple[dict, bytes, bytes] | None:
-    """The published index, its bytes and its signature's, when a pinned
+    """The published index, its bytes and its signature's, when a listed
     index key signed exactly them for this product and the serial it
     states; None when there is none, or it is not one to believe (said on
-    stderr). A store that does not answer is StoreUnavailable, as ever:
-    that is not knowing, which is not the same."""
+    stderr). A store that does not answer (StoreUnavailable) or a minisign
+    that does not run (ToolFailed) raises, as ever: that is not knowing,
+    which is not the same, and taking it for "not ours" would build the
+    next index without what this one lists."""
     if not update.exists(INDEX):
         return None
     try:
         data, sig = update.read(INDEX), update.read(INDEX + MINISIG)
-        with tempfile.TemporaryDirectory(prefix="gfr-published-") as tmp:
-            local = Path(tmp) / "index.json"
-            local.write_bytes(data)
-            (Path(tmp) / "index.json.minisig").write_bytes(sig)
-            comment = minisig.verify(keys, local,
-                                     Path(tmp) / "index.json.minisig")
+        comment = minisig.verify_bytes(keys, data, sig, INDEX)
         index = load_json(data, INDEX)
         serial = index.get("serial")
         if not isinstance(serial, int) or isinstance(serial, bool) or \
@@ -823,7 +843,7 @@ def _published_pair(product: Product, update: Store, keys: list[str]
         if comment != layout.index_comment(product.slug, serial):
             raise ReleaseError(f"{INDEX}: signed as {comment!r}")
         parse_iso(index.get("expires"))
-    except StoreUnavailable:
+    except (StoreUnavailable, ToolFailed):
         raise
     except ReleaseError as e:
         print(f"the published index is not one this host signed, and is "
@@ -923,10 +943,15 @@ def trust_files(product: Product) -> list[tuple[Path, str]]:
     and the trusted index-keys list with its own. Published before any
     index that names them, never replaced (Store.put_file)."""
     root, keys = product.trust
+
+    def trusted(name: str) -> bool:
+        # Exactly a root or one key's signature on it: never a temporary
+        # file a crash left beside them (1.root.json.new).
+        m = policy_mod.ROOT_FILE.fullmatch(name) or \
+            policy_mod.ROOT_SIG_FILE.fullmatch(name)
+        return bool(m) and int(m.group(1)) <= root["version"]
     files = [(f, f"{layout.ROOT_DIR}/{f.name}")
-             for f in sorted(product.root_dir.glob("*.root.json*"))
-             if f.name.split(".")[0].isdigit() and
-             int(f.name.split(".")[0]) <= root["version"]]
+             for f in sorted(product.root_dir.iterdir()) if trusted(f.name)]
     name = layout.index_keys_name(keys["version"])
     return files + [(product.index_keys_dir / n,
                      f"{layout.INDEX_KEYS_DIR}/{n}")
