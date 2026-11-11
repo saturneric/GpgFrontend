@@ -95,7 +95,8 @@ class KeyCategoriesController : public QObject {
   categoriesOf(const QString& key_id) const;
 
   /// Put the key @p key_id in the category @p id, or take it out.
-  Q_INVOKABLE void setMember(const QString& id, const QString& key_id,
+  /// @return whether it changed (false when it already was so, or failed)
+  Q_INVOKABLE bool setMember(const QString& id, const QString& key_id,
                              bool member);
 
   /// Put all of @p key_ids into the category @p id (@p member), or take them

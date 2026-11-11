@@ -248,13 +248,15 @@ auto KeyCategoriesController::categoriesOf(const QString& key_id) const
   return ids;
 }
 
-void KeyCategoriesController::setMember(const QString& id,
-                                        const QString& key_id, bool member) {
-  if (!Ready()) return;
+auto KeyCategoriesController::setMember(const QString& id,
+                                        const QString& key_id, bool member)
+    -> bool {
+  if (!Ready()) return false;
   auto& repo = Repository();
   const auto done = member ? repo.AddKey2Category(id, key_id)
                            : repo.RemoveKeyFromCategory(id, key_id);
   if (done) changed();
+  return done;
 }
 
 auto KeyCategoriesController::setMembers(const QString& id,

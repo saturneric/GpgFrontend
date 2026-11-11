@@ -48,6 +48,7 @@
 #include "files/FileOperations.h"
 #include "files/StagingArea.h"
 #include "model/ChangeRelay.h"
+#include "shell/rules/ProfileNameRules.h"
 
 namespace GpgFrontend::Mobile {
 
@@ -55,9 +56,6 @@ namespace {
 
 /// The id the installed root goes by (ResolveProfileSelection()).
 constexpr auto kInstalledRootId = "classic";
-
-/// The longest profile name taken.
-constexpr int kMaxNameLength = 64;
 
 std::function<bool()> g_restarter;
 
@@ -71,16 +69,31 @@ auto ProfilesRoot() -> QString {
   return root.isEmpty() ? InstalledRoot() + "/profiles" : root;
 }
 
+auto ScratchDirectory() -> QString {
+  return QStandardPaths::writableLocation(QStandardPaths::CacheLocation) +
+         "/profile-packages";
+}
+
 /// Where packages are kept while they are written or read: never the
 /// profile's own folders, and gone once the work is done.
 auto ScratchFile(const QString& suffix) -> QString {
-  const auto dir =
-      QStandardPaths::writableLocation(QStandardPaths::CacheLocation) +
-      "/profile-packages";
+  const auto dir = ScratchDirectory();
   QDir().mkpath(dir);
   return dir + "/" + QUuid::createUuid().toString(QUuid::WithoutBraces) +
          suffix;
 }
+
+/// A package in the cache, removed once nothing holds it any more: the
+/// page that asked for it, or the work still writing or reading it. A page
+/// left half way leaves no package behind (one may hold a profile's keys).
+struct ScratchGuard {
+  QString path;
+  explicit ScratchGuard(QString file) : path(std::move(file)) {}
+  ScratchGuard(const ScratchGuard&) = delete;
+  auto operator=(const ScratchGuard&) -> ScratchGuard& = delete;
+  ~ScratchGuard() { QFile::remove(path); }
+};
+using Scratch = QSharedPointer<ScratchGuard>;
 
 /// Runs @p work on a worker (never the I/O runner, which the package code
 /// may not run on), then @p done here.
@@ -139,13 +152,14 @@ auto FreeName(const QString& name, const QStringList& names) -> QString {
 
 /// The import under way: the package's copy here, and what it said.
 struct ProfilesController::Pending {
-  QString package;  ///< the copy in the cache
+  Scratch scratch;  ///< the copy in the cache
+  QString package;  ///< its path
   bool sealed = false;
-
-  ~Pending() {
-    if (!package.isEmpty()) QFile::remove(package);
-  }
 };
+
+void ProfilesController::RemoveLeftPackages() {
+  QDir(ScratchDirectory()).removeRecursively();
+}
 
 ProfilesController::ProfilesController(QObject* parent) : QObject(parent) {
   // The default profile's name is a translated one.
@@ -189,15 +203,18 @@ auto ProfilesController::MinPassphraseLength() -> int {
 }
 
 QString ProfilesController::nameProblem(const QString& name) const {
-  const auto trimmed = name.trimmed();
-  if (trimmed.isEmpty()) return tr("Give the profile a name.");
-  if (trimmed.size() > kMaxNameLength) {
-    return tr("Use at most %1 characters.").arg(kMaxNameLength);
-  }
-  for (const auto& entry : Registry().profiles) {
-    if (ProfileName(entry).compare(trimmed, Qt::CaseInsensitive) == 0) {
+  QStringList taken;
+  for (const auto& entry : Registry().profiles) taken << ProfileName(entry);
+  switch (Shell::CheckProfileName(name, taken)) {
+    case Shell::ProfileNameProblem::kNone:
+      return {};
+    case Shell::ProfileNameProblem::kEmpty:
+      return tr("Give the profile a name.");
+    case Shell::ProfileNameProblem::kTooLong:
+      return tr("Use at most %1 characters.")
+          .arg(Shell::kMaxProfileNameLength);
+    case Shell::ProfileNameProblem::kTaken:
       return tr("A profile with this name already exists.");
-    }
   }
   return {};
 }
@@ -236,7 +253,12 @@ QString ProfilesController::exportFileName() const {
 }
 
 void ProfilesController::exportTo(const QUrl& url, const QString& passphrase) {
-  if (busy_ || !ProfileSession::Loaded()) return;
+  // Said, not dropped: the page waits for the answer.
+  if (busy_ || !ProfileSession::Loaded()) {
+    emit SignalExported(
+        false, tr("Another profile package is still being written or read."));
+    return;
+  }
   if (passphrase.size() < kMinSecretLength) {
     emit SignalExported(false, tr("Use a passphrase of at least %1 characters.")
                                    .arg(kMinSecretLength));
@@ -259,23 +281,24 @@ void ProfilesController::exportTo(const QUrl& url, const QString& passphrase) {
 
   set_busy(true);
   const auto written = request.dest_path;
+  // Held by each step: gone with the last one, whether or not this page
+  // is still there to hear how it went.
+  const auto scratch = Scratch::create(written);
   auto result = QSharedPointer<ProfilePackageWriteResult>::create();
   OffThread(
       this,
-      [request = std::move(request), result]() mutable {
+      [request = std::move(request), result, scratch]() mutable {
         *result = ExportProfilePackage(std::move(request));
       },
-      [this, result, written, url]() {
+      [this, result, written, url, scratch]() {
         if (!result->ok) {
-          QFile::remove(written);
           set_busy(false);
           emit SignalExported(false, result->error);
           return;
         }
         CopyOffThread(written, LocalOrContent(url),
                       std::numeric_limits<qint64>::max(), this,
-                      [this, written](bool copied) {
-                        QFile::remove(written);
+                      [this, scratch](bool copied) {
                         set_busy(false);
                         emit SignalExported(
                             copied, copied ? QString{}
@@ -286,14 +309,22 @@ void ProfilesController::exportTo(const QUrl& url, const QString& passphrase) {
 }
 
 void ProfilesController::importFrom(const QUrl& url) {
-  if (busy_ || !ProfileSession::Loaded()) return;
+  if (busy_ || !ProfileSession::Loaded()) {
+    emit SignalImported(
+        false, tr("Another profile package is still being written or read."),
+        {}, {});
+    return;
+  }
   pending_ = std::make_unique<Pending>();
   pending_->package = ScratchFile(QStringLiteral(".gfp"));
+  pending_->scratch = Scratch::create(pending_->package);
   set_busy(true);
   // Copied in first: a document may be read only for a while, and the
-  // package code reads a path.
+  // package code reads a path. The copy holds it too: a page left while it
+  // is written does not leave it behind.
   CopyOffThread(LocalOrContent(url), pending_->package,
-                std::numeric_limits<qint64>::max(), this, [this](bool copied) {
+                std::numeric_limits<qint64>::max(), this,
+                [this, scratch = pending_->scratch](bool copied) {
                   if (!copied || pending_ == nullptr) {
                     finish_import(false, tr("The file could not be read."));
                     return;
@@ -318,7 +349,12 @@ void ProfilesController::importFrom(const QUrl& url) {
 }
 
 void ProfilesController::importWith(const QString& passphrase) {
-  if (busy_ || pending_ == nullptr) return;
+  if (busy_ || pending_ == nullptr) {
+    emit SignalImported(
+        false, tr("Another profile package is still being written or read."),
+        {}, {});
+    return;
+  }
   set_busy(true);
   read_package(passphrase);
 }
@@ -338,6 +374,7 @@ void ProfilesController::read_package(const QString& passphrase) {
 
   const auto root = ProfilesRoot();
   const auto package = pending_->package;
+  const auto scratch = pending_->scratch;
   const auto staging = MakeProfilePackageScratchDir(root, "extract");
   if (staging.isEmpty()) {
     finish_import(false, tr("A temporary folder could not be made."));
@@ -347,7 +384,7 @@ void ProfilesController::read_package(const QString& passphrase) {
   auto outcome = QSharedPointer<Outcome>::create();
   OffThread(
       this,
-      [outcome, package, staging, root, taken = TakenNames(),
+      [outcome, package, scratch, staging, root, taken = TakenNames(),
        secret = GFBuffer(passphrase)]() {
         // Whatever happens, the extracted tree does not stay behind: it holds
         // the profile's key unprotected.
@@ -440,24 +477,33 @@ bool ProfilesController::switchTo(const QString& id) {
   return true;
 }
 
-void ProfilesController::ApplyChosenProfile(const QString& installed_root) {
+auto ProfilesController::ApplyChosenProfile(const QString& installed_root)
+    -> bool {
   QFile in(ChosenProfileFile(installed_root));
-  if (!in.open(QIODevice::ReadOnly)) return;
+  if (!in.open(QIODevice::ReadOnly)) return false;
   const auto id = QString::fromUtf8(in.read(256)).trimmed();
   in.close();
 
   if (id.isEmpty() || id == QLatin1StringView(kInstalledRootId)) {
     qunsetenv("GF_PROFILE");
-    return;
+    return false;
   }
   for (const auto& entry : ScanProfilesRoot(installed_root + "/profiles")) {
     if (entry.id == id) {
       qputenv("GF_PROFILE", id.toUtf8());
-      return;
+      return true;
     }
   }
   // Gone since: the default opens, and stays the choice.
   QFile::remove(in.fileName());
+  return false;
+}
+
+auto ProfilesController::OpenDefaultProfile(const QString& installed_root)
+    -> bool {
+  const auto file = ChosenProfileFile(installed_root);
+  if (QFile::exists(file) && !QFile::remove(file)) return false;
+  return g_restarter && g_restarter();
 }
 
 auto ProfilesController::ChosenProfileFile(const QString& installed_root)

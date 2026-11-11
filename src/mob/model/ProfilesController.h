@@ -105,8 +105,22 @@ class ProfilesController : public QObject {
    *
    * @param installed_root the installed data location, whose profiles
    * folder holds the profiles
+   * @return whether another profile than the default was named
    */
-  static void ApplyChosenProfile(const QString& installed_root);
+  static auto ApplyChosenProfile(const QString& installed_root) -> bool;
+
+  /**
+   * @brief Forget the profile chosen and start again with the default one.
+   *
+   * The way out when the chosen profile will not open: a phone has no
+   * command line to name another.
+   * @return false when the application could not start again
+   */
+  static auto OpenDefaultProfile(const QString& installed_root) -> bool;
+
+  /// Remove every package left in the cache by an earlier run (one ended
+  /// while a package was written or read); called once at start.
+  static void RemoveLeftPackages();
 
   /// Where the choice is kept, under @p installed_root.
   static auto ChosenProfileFile(const QString& installed_root) -> QString;

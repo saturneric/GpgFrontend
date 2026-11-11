@@ -116,8 +116,18 @@ auto RefusalOf(const Shell::KeyGenProfileState& state,
 
 }  // namespace
 
+auto KeyGenProfilesRelay() -> ChangeRelay& {
+  static ChangeRelay relay;
+  return relay;
+}
+
 KeyGenProfilesController::KeyGenProfilesController(QObject* parent)
     : QObject(parent) {
+  // Changed on another page: told here too.
+  connect(&KeyGenProfilesRelay(), &ChangeRelay::SignalChanged, this,
+          &KeyGenProfilesController::SignalProfilesChanged);
+  connect(&KeyGenProfilesRelay(), &ChangeRelay::SignalChanged, this,
+          &KeyGenProfilesController::SignalExpertModeChanged);
   // The built-in profiles' names are translated ones.
   connect(&LanguageRelay(), &ChangeRelay::SignalChanged, this,
           &KeyGenProfilesController::SignalProfilesChanged);
@@ -147,6 +157,8 @@ auto KeyGenProfilesController::Profiles() const -> QVariantList {
          RefusalOf(state, Shell::KeyGenProfileAction::kDelete)},
         {QStringLiteral("hideRefusal"),
          RefusalOf(state, Shell::KeyGenProfileAction::kToggleHidden)},
+        {QStringLiteral("defaultRefusal"),
+         RefusalOf(state, Shell::KeyGenProfileAction::kMakeDefault)},
         {QStringLiteral("primary"), AlgoRef(p.key_algo, p.key_algo_type)},
         {QStringLiteral("primarySub"),
          AlgoRef(p.key_sub_algo, p.key_sub_algo_type)},
@@ -296,19 +308,20 @@ auto KeyGenProfilesController::save(int index, const QVariantMap& profile)
   return {};
 }
 
-auto KeyGenProfilesController::remove(int index) -> bool {
+auto KeyGenProfilesController::remove(int index) -> QString {
   // Read afresh: another page may have changed them since.
   auto settings = LoadKeyGenSettings();
-  if (index < 0 || index >= settings.profiles.size()) return false;
+  if (index < 0 || index >= settings.profiles.size()) return gone();
   // The default stays until another is chosen, as on the desktop.
-  if (!RefusalOf(StateOf(settings.profiles.at(index), DefaultName(settings)),
-                 Shell::KeyGenProfileAction::kDelete)
-           .isEmpty()) {
-    return false;
+  if (auto why =
+          RefusalOf(StateOf(settings.profiles.at(index), DefaultName(settings)),
+                    Shell::KeyGenProfileAction::kDelete);
+      !why.isEmpty()) {
+    return why;
   }
   settings.profiles.removeAt(index);
   store(settings);
-  return true;
+  return {};
 }
 
 auto KeyGenProfilesController::ExpertMode() const -> bool {
@@ -319,7 +332,7 @@ auto KeyGenProfilesController::ExpertMode() const -> bool {
 void KeyGenProfilesController::SetExpertMode(bool on) {
   if (!ProfileSession::Loaded() || on == ExpertMode()) return;
   StoreKeyGenExpertMode(on);
-  emit SignalExpertModeChanged();
+  emit KeyGenProfilesRelay().SignalChanged();
 }
 
 void KeyGenProfilesController::move(int from, int to) {
@@ -334,12 +347,25 @@ void KeyGenProfilesController::move(int from, int to) {
   store(settings);
 }
 
-void KeyGenProfilesController::setDefault(int index) {
+auto KeyGenProfilesController::setDefault(int index) -> QString {
   // Read afresh: another page may have changed them since.
   auto settings = LoadKeyGenSettings();
-  if (index < 0 || index >= settings.profiles.size()) return;
+  if (index < 0 || index >= settings.profiles.size()) return gone();
+  // Not one hidden or that cannot be made here, as on the desktop: Quick
+  // Generate would pass it over for another without a word.
+  if (auto why =
+          RefusalOf(StateOf(settings.profiles.at(index), DefaultName(settings)),
+                    Shell::KeyGenProfileAction::kMakeDefault);
+      !why.isEmpty()) {
+    return why;
+  }
   settings.default_profile = settings.profiles.at(index).name;
   store(settings);
+  return {};
+}
+
+auto KeyGenProfilesController::gone() -> QString {
+  return tr("That profile is no longer there.");
 }
 
 void KeyGenProfilesController::restoreDefaults() {
@@ -353,7 +379,8 @@ void KeyGenProfilesController::reload() { emit SignalProfilesChanged(); }
 
 void KeyGenProfilesController::store(const KeyGenSO& settings) {
   StoreKeyGenSettings(settings);
-  emit SignalProfilesChanged();
+  // Every instance, this one among them.
+  emit KeyGenProfilesRelay().SignalChanged();
 }
 
 auto KeyGenProfilesController::InfoFromChoices(const QVariantMap& choices,

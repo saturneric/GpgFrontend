@@ -29,6 +29,7 @@
 #include "model/SettingsModel.h"
 
 #include <QQmlEngine>
+#include <type_traits>
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
@@ -392,10 +393,11 @@ bool SettingsModel::setValue(int row, const QVariant& value) {
     return false;
   }
 
-  // The editor's settings take only what is offered.
-  if (const auto& offer = items_.at(row);
-      offer.section == QLatin1String("editor") && !offer.custom &&
-      !offer.choices.contains(value)) {
+  // A setting with a list and no value of one's own takes only what is
+  // offered (the editor's, the passphrase times), as the page offers it.
+  if (const auto& offer = items_.at(row); !offer.custom &&
+                                          !offer.choices.isEmpty() &&
+                                          !offer.choices.contains(value)) {
     emit dataChanged(changed, changed, {kValueRole});
     return false;
   }
@@ -407,6 +409,12 @@ bool SettingsModel::setValue(int row, const QVariant& value) {
         [&settings, &value](const auto* setting) {
           using T = decltype(setting->Default());
           if (!value.canConvert<T>()) return false;
+          // "abc" converts to a number, 0: not a number at all.
+          if constexpr (std::is_integral_v<T> && !std::is_same_v<T, bool>) {
+            bool number = false;
+            value.toLongLong(&number);
+            if (!number) return false;
+          }
           setting->Write(settings, value.value<T>());
           return true;
         },

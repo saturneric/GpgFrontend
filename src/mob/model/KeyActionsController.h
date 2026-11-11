@@ -236,6 +236,11 @@ class KeyActionsController : public QObject {
  private:
   bool busy_ = false;
 
+ public:
+  /// Whether a key action is under way in any instance.
+  [[nodiscard]] static auto AnyRunning() -> bool;
+
+ private:
   auto begin() -> bool;
   void run(const QString& action, std::function<QVariantMap()> work);
 };

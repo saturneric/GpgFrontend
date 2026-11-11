@@ -35,6 +35,7 @@
 #include "core/model/GpgKeyGroup.h"
 #include "core/profile/ProfileSession.h"
 #include "core/utils/GpgUtils.h"
+#include "model/ChangeRelay.h"
 #include "model/KeyCategoriesController.h"
 #include "model/KeyListController.h"
 #include "shell/rules/KeyGroupRules.h"
@@ -50,9 +51,19 @@ auto Groups() -> KeyGroupRepository& {
 /// Groups live in the open profile's key database: none before.
 auto Ready() -> bool { return ProfileSession::Loaded(); }
 
+/// A group changed, on any page.
+auto GroupsRelay() -> ChangeRelay& {
+  static ChangeRelay relay;
+  return relay;
+}
+
 }  // namespace
 
 KeyGroupsController::KeyGroupsController(QObject* parent) : QObject(parent) {
+  connect(&GroupsRelay(), &ChangeRelay::SignalChanged, this, [this]() {
+    ++revision_;
+    emit SignalChanged();
+  });
   // Every change of the key list, a group's or a key's, is one here: a
   // member may have gone, or come.
   if (auto* keys = KeyListController::create(nullptr, nullptr);
@@ -185,16 +196,16 @@ auto KeyGroupsController::edit(const QString& id, const QString& name,
   return {};
 }
 
+auto KeyGroupsController::parentNames(const QString& id) const
+    -> QStringList {
+  if (!Ready()) return {};
+  return Shell::KeyGroupParentNames(UsableDefaultChannelHandle(), id);
+}
+
 auto KeyGroupsController::remove(const QString& id) -> bool {
-  if (!Ready() || !Groups().Remove(id)) return false;
-  // Gone from the categories it was put in too: a later group never
-  // inherits them by chance.
-  auto& categories =
-      KeyCategoryRepository::GetInstance(UsableDefaultChannelHandle());
-  for (const auto& category : categories.Fetch()) {
-    if (!category.builtin && category.key_ids.contains(id)) {
-      categories.RemoveKeyFromCategory(category.id, id);
-    }
+  // Out of its categories too (the shell's rule, as the desktop deletes).
+  if (!Ready() || !Shell::DeleteKeyGroup(UsableDefaultChannelHandle(), id)) {
+    return false;
   }
   // Their counts and member lists, wherever shown.
   KeyCategoriesController::NotifyChanged();
@@ -202,6 +213,11 @@ auto KeyGroupsController::remove(const QString& id) -> bool {
   return true;
 }
 
-void KeyGroupsController::changed() { KeyListController::Reload(); }
+void KeyGroupsController::changed() {
+  KeyListController::Reload();
+  // Every page's at once: while the key list is read again, Reload() leaves
+  // the list to that refresh, and a group's page would wait for it.
+  emit GroupsRelay().SignalChanged();
+}
 
 }  // namespace GpgFrontend::Mobile

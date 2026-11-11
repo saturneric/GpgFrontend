@@ -102,6 +102,10 @@ class KeyGroupsController : public QObject {
   /// Delete the group @p id; its keys are not touched.
   Q_INVOKABLE bool remove(const QString& id);
 
+  /// The names of the groups @p id is a member of: they lose it when it is
+  /// deleted.
+  [[nodiscard]] Q_INVOKABLE QStringList parentNames(const QString& id) const;
+
  signals:
   void SignalChanged();
 

@@ -121,6 +121,14 @@ class KeyRoleModel : public QIdentityProxyModel {
   [[nodiscard]] static auto StatusFacts(const GpgAbstractKey* key)
       -> QVariantMap;
 
+  /// Every role of the row at @p index, by its QML name: a key as the list
+  /// has it, what a key's details read (KeyFacts) wherever they are opened.
+  [[nodiscard]] static auto MapOf(const QModelIndex& index) -> QVariantMap;
+
+  /// MapOf() the row of the key or key group @p fingerprint; empty when
+  /// there is none.
+  [[nodiscard]] Q_INVOKABLE QVariantMap keyOf(const QString& fingerprint) const;
+
   [[nodiscard]] auto data(const QModelIndex& index, int role) const
       -> QVariant override;
   [[nodiscard]] auto setData(const QModelIndex& index, const QVariant& value,

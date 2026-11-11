@@ -171,10 +171,13 @@ auto KeyFilterModel::filterAcceptsRow(int source_row,
     return false;
   }
 
-  // The desktop's search: a pasted fingerprint matches in any grouping.
-  return KeySearchMatches({role(KeyRoleModel::kNameRole).toString(),
-                           role(KeyRoleModel::kEmailRole).toString(),
-                           role(KeyRoleModel::kKeyIdRole).toString()},
+  // The desktop's search: a pasted fingerprint matches in any grouping, and
+  // every user ID counts, a secondary one's address too.
+  auto fields = QStringList{role(KeyRoleModel::kNameRole).toString(),
+                            role(KeyRoleModel::kEmailRole).toString(),
+                            role(KeyRoleModel::kKeyIdRole).toString()};
+  fields << KeySearchUids(KeyRoleModel::KeyAt(index));
+  return KeySearchMatches(fields,
                           role(KeyRoleModel::kFingerprintRole).toString(),
                           search_text_.trimmed());
 }

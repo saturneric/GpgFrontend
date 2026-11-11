@@ -46,8 +46,9 @@ namespace GpgFrontend::Mobile {
  * Runs the core's KeyImportExportOperation on the GPG task runner and
  * reports {considered, imported (new keys), updated (keys already here that
  * gained something: a user ID, a subkey, a signature or revocation, the
- * secret part), unchanged, notImported, secretImported, fingerprints}, or an
- * empty map when nothing could be read.
+ * secret part), unchanged, notImported, secretImported, fingerprints}; or
+ * {problem: "unreadable" | "too_large"} when a file could not be read, and an
+ * empty map when what was read is no key data.
  */
 class KeyImportController : public QObject {
   Q_OBJECT
@@ -88,7 +89,15 @@ class KeyImportController : public QObject {
   bool busy_ = false;
   QVariantMap result_;
 
-  void run(std::function<std::optional<GFBuffer>()> read);
+  /// What was read, or why nothing was (a task's return code).
+  struct Read {
+    std::optional<GFBuffer> block;
+    int problem = 0;
+  };
+  static constexpr int kUnreadable = -1;
+  static constexpr int kTooLarge = -2;
+
+  void run(std::function<Read()> read);
 };
 
 }  // namespace GpgFrontend::Mobile

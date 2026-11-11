@@ -121,8 +121,12 @@ auto KeyRoleModel::data(const QModelIndex& index, int role) const -> QVariant {
       return key->IsRevoked();
     case kCreatedRole:
       return key->CreationTime();
-    case kExpiresRole:
-      return key->ExpirationTime();
+    case kExpiresRole: {
+      // The engines give 0 for "never": no date, as describe() has it.
+      const auto expires = key->ExpirationTime();
+      return expires.isValid() && expires.toSecsSinceEpoch() > 0 ? expires
+                                                                 : QDateTime();
+    }
     case kAlgorithmRole:
       return key->Algo();
     case kSecretStateRole:
@@ -214,6 +218,29 @@ auto KeyRoleModel::Capabilities(const GpgAbstractKey* key) -> QString {
   if (sign) letters += QLatin1Char('S');
   if (authenticate) letters += QLatin1Char('A');
   return letters;
+}
+
+auto KeyRoleModel::MapOf(const QModelIndex& index) -> QVariantMap {
+  QVariantMap map;
+  if (!index.isValid()) return map;
+  const auto names = index.model()->roleNames();
+  for (auto it = names.begin(); it != names.end(); ++it) {
+    if (it.key() < Qt::UserRole) continue;
+    map.insert(QString::fromLatin1(it.value()), index.data(it.key()));
+  }
+  return map;
+}
+
+auto KeyRoleModel::keyOf(const QString& fingerprint) const -> QVariantMap {
+  for (int row = 0; row < rowCount(); ++row) {
+    const auto at = index(row, 0);
+    if (at.data(kFingerprintRole)
+            .toString()
+            .compare(fingerprint, Qt::CaseInsensitive) == 0) {
+      return MapOf(at);
+    }
+  }
+  return {};
 }
 
 auto KeyRoleModel::roleNames() const -> QHash<int, QByteArray> {

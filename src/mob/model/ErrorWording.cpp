@@ -54,12 +54,14 @@ auto DescribeActionError(const GFError& err) -> QVariantMap {
       return said("bad_passphrase",
                   QCoreApplication::translate(
                       "GpgFrontend::Mobile::ErrorWording",
-                      "Incorrect passphrase. Please try again."));
+                      "The passphrase was wrong. Try again with the "
+                      "right one."));
     case GFErrorCode::kNO_PASSPHRASE:
       return said("no_passphrase",
                   QCoreApplication::translate(
                       "GpgFrontend::Mobile::ErrorWording",
-                      "No passphrase was given. Please try again."));
+                      "No passphrase was given, so the key could not be "
+                      "used."));
     case GFErrorCode::kINVALID_VALUE:
     case GFErrorCode::kINVALID_ARGUMENT:
       return said("invalid", QCoreApplication::translate(

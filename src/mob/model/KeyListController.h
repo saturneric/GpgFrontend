@@ -105,6 +105,15 @@ class KeyListController : public QObject {
   /// Re-read the key databases, then show what they hold. Needs a ready core.
   Q_INVOKABLE void refresh();
 
+  /// The reasons a revocation of @p target ("key", "subkey" or "uid") may
+  /// give, as [{code, text}], the desktop's list (Shell::RevocationReasonsFor).
+  [[nodiscard]] Q_INVOKABLE QVariantList
+  revocationReasons(const QString& target) const;
+
+  /// The reason first offered for @p target.
+  [[nodiscard]] Q_INVOKABLE int defaultRevocationReason(
+      const QString& target) const;
+
   /// Show the keys the core has read already, without reading the databases
   /// again: at the end of startup, when it has just read every one of them
   /// (a second read of a thousand keys took the phone a second). Nothing

@@ -53,4 +53,11 @@ class ChangeRelay : public QObject {
  */
 auto LanguageRelay() -> ChangeRelay&;
 
+/**
+ * @brief The key generation profiles changed (KeyGenProfilesController):
+ * every page's list of them, and Create a key's, reads them again, so an
+ * index one page holds is never another page's older one.
+ */
+auto KeyGenProfilesRelay() -> ChangeRelay&;
+
 }  // namespace GpgFrontend::Mobile

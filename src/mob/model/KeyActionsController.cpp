@@ -33,6 +33,7 @@
 #include <QPointer>
 #include <QTemporaryDir>
 #include <algorithm>
+#include <atomic>
 
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
@@ -53,10 +54,14 @@
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 #include "core/utils/MemoryUtils.h"
+#include "crypto/PassphraseBroker.h"
+#include "files/FileOperations.h"
 #include "files/StagingArea.h"
 #include "model/ChangeRelay.h"
 #include "model/ErrorWording.h"
+#include "model/KeyDescription.h"
 #include "model/KeyGenProfilesController.h"
+#include "model/KeyListController.h"
 #include "model/KeyRoleModel.h"
 #include "shell/rules/KeyExportRules.h"
 #include "shell/rules/KeyGenProfile.h"
@@ -100,19 +105,6 @@ auto SubkeyIndex(const GpgKey& key, const QString& subkey) -> int {
     }
   }
   return -1;
-}
-
-/// A date the engines give as 0 for "none".
-auto DateOrNone(const QDateTime& time) -> QDateTime {
-  return time.isValid() && time.toSecsSinceEpoch() > 0 ? time : QDateTime();
-}
-
-auto Usage(bool certify, bool encrypt, bool sign, bool authenticate)
-    -> QVariantMap {
-  return {{QStringLiteral("certify"), certify},
-          {QStringLiteral("encrypt"), encrypt},
-          {QStringLiteral("sign"), sign},
-          {QStringLiteral("authenticate"), authenticate}};
 }
 
 /// After a change to a key: read again, so what is shown is what is there.
@@ -170,6 +162,9 @@ KeyActionsController::KeyActionsController(QObject* parent) : QObject(parent) {
   // The profiles' and the validities' names are translated ones.
   connect(&LanguageRelay(), &ChangeRelay::SignalChanged, this,
           &KeyActionsController::SignalProfilesChanged);
+  // Changed in Settings: Create a key offers them as they are now.
+  connect(&KeyGenProfilesRelay(), &ChangeRelay::SignalChanged, this,
+          &KeyActionsController::SignalProfilesChanged);
 }
 
 auto KeyActionsController::Busy() const -> bool { return busy_; }
@@ -179,6 +174,9 @@ auto KeyActionsController::Profiles() const -> QVariantList {
   for (const auto& resolved : Offered()) {
     list.append(QVariantMap{
         {QStringLiteral("name"), KeyGenProfileDisplayName(resolved.profile)},
+        // Its name as stored, which says which it is: the shown one is a
+        // translation, and two may read the same.
+        {QStringLiteral("storedName"), resolved.profile.name},
         {QStringLiteral("description"),
          KeyGenProfileDisplayDescription(resolved.profile)},
     });
@@ -366,15 +364,11 @@ void KeyActionsController::exportSecret(const QString& fingerprint,
     if (armored.Empty()) {
       return Failure(GFError::Application(GFErrorCode::kNO_SECRET_KEY));
     }
-    QFile file(path);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate) ||
-        file.write(armored.Data(), static_cast<qint64>(armored.Size())) !=
-            static_cast<qint64>(armored.Size()) ||
-        !file.flush()) {
-      file.close();
+    // Whole or not at all: never a part that looks like a backup.
+    if (!WriteWhole(armored.Data(), static_cast<qint64>(armored.Size()),
+                    path)) {
       return Failure(GFError::Application(GFErrorCode::kIO));
     }
-    file.close();
     return {};
   });
 }
@@ -407,117 +401,7 @@ auto KeyActionsController::Validities() const -> QVariantList {
 
 auto KeyActionsController::describe(const QString& fingerprint) const
     -> QVariantMap {
-  const auto channel = UsableDefaultChannelHandle();
-  const auto key = FindGpgKey(channel, fingerprint);
-  if (key == nullptr || !key->IsGood()) return {};
-
-  QVariantList uids;
-  const auto key_uids = key->UIDs();
-  for (int i = 0; i < key_uids.size(); ++i) {
-    const auto& uid = key_uids.at(i);
-    uids.append(QVariantMap{
-        {QStringLiteral("uid"), uid.GetUID()},
-        {QStringLiteral("name"), uid.GetName()},
-        {QStringLiteral("email"), uid.GetEmail()},
-        {QStringLiteral("comment"), uid.GetComment()},
-        {QStringLiteral("primary"), i == 0},
-        {QStringLiteral("revoked"), uid.GetRevoked()},
-        {QStringLiteral("invalid"), uid.GetInvalid()},
-    });
-  }
-
-  QVariantList subkeys;
-  const auto key_subkeys = key->SubKeys();
-  for (int i = 0; i < key_subkeys.size(); ++i) {
-    const auto& sub = key_subkeys.at(i);
-    subkeys.append(QVariantMap{
-        {QStringLiteral("index"), i},
-        {QStringLiteral("primary"), i == 0},
-        {QStringLiteral("keyId"), sub.ID()},
-        {QStringLiteral("fingerprint"), sub.Fingerprint()},
-        {QStringLiteral("algorithm"), sub.PublicKeyAlgo()},
-        {QStringLiteral("algorithmDetail"), sub.Algo()},
-        {QStringLiteral("keySize"), sub.KeyLength()},
-        {QStringLiteral("usage"),
-         Usage(sub.IsHasCertCap(), sub.IsHasEncrCap(), sub.IsHasSignCap(),
-               sub.IsHasAuthCap())},
-        // This part's own, in GnuPG's letters, whether or not it is usable.
-        {QStringLiteral("capabilities"), GetUsagesByAbstractKey(&sub)},
-        {QStringLiteral("created"), sub.CreationTime()},
-        {QStringLiteral("expires"), DateOrNone(sub.ExpirationTime())},
-        {QStringLiteral("secret"), sub.IsSecretKey()},
-        {QStringLiteral("card"), sub.IsCardKey()},
-        {QStringLiteral("expired"), sub.IsExpired()},
-        {QStringLiteral("revoked"), sub.IsRevoked()},
-        {QStringLiteral("disabled"), sub.IsDisabled()},
-        {QStringLiteral("adsk"), sub.IsADSK()},
-    });
-  }
-
-  // What changes the key needs its secret primary key, as on the desktop;
-  // a revoked key is changed no more (the desktop hides those tabs): it is
-  // shared, backed up or deleted.
-  const auto own =
-      key->IsPrivateKey() && key->IsHasMasterKey() && !key->IsRevoked();
-  const auto can = QVariantMap{
-      {QStringLiteral("addSubkey"),
-       own && IsOpSupported<GenerateSubKeyTag>(channel)},
-      {QStringLiteral("setExpiration"),
-       own && IsOpSupported<SetExpireOpTag>(channel)},
-      {QStringLiteral("revokeSubkey"),
-       own && IsOpSupported<RevokeSubKeyOpTag>(channel)},
-      {QStringLiteral("deleteSubkey"),
-       own && IsOpSupported<DeleteSubKeyOpTag>(channel)},
-      {QStringLiteral("changePassphrase"),
-       own && IsOpSupported<ModifyKeyPassphraseOpTag>(channel)},
-      {QStringLiteral("revokeKey"),
-       own && IsOpSupported<GenerateRevCertOpTag>(channel) &&
-           IsOpSupported<ImportRevCertOpTag>(channel)},
-      {QStringLiteral("saveRevocation"),
-       own && IsOpSupported<GenerateRevCertOpTag>(channel)},
-      {QStringLiteral("addUid"), own && IsOpSupported<AddUserIdOpTag>(channel)},
-      {QStringLiteral("setPrimaryUid"),
-       own && IsOpSupported<SetPrimaryUserIdOpTag>(channel)},
-      {QStringLiteral("revokeUid"),
-       own && IsOpSupported<RevokeUserIdOpTag>(channel)},
-      {QStringLiteral("deleteUid"),
-       own && IsOpSupported<DeleteUserIdOpTag>(channel)},
-  };
-
-  // Its state as the key list says it, read now: the page shows it after a
-  // change rather than what the list said when it was opened.
-  auto described = KeyRoleModel::StatusFacts(key.get());
-  described.insert({
-      {QStringLiteral("name"), key->Name()},
-      {QStringLiteral("email"), key->Email()},
-      {QStringLiteral("comment"), key->Comment()},
-      {QStringLiteral("keyId"), key->ID()},
-      {QStringLiteral("fingerprint"), key->Fingerprint()},
-      {QStringLiteral("version"), key->KeyVersion()},
-      {QStringLiteral("algorithm"), key->PublicKeyAlgo()},
-      {QStringLiteral("algorithmDetail"), key->Algo()},
-      {QStringLiteral("keySize"), key->PrimaryKeyLength()},
-      {QStringLiteral("usage"),
-       Usage(key->IsHasActualCertCap(), key->IsHasActualEncrCap(),
-             key->IsHasActualSignCap(), key->IsHasActualAuthCap())},
-      {QStringLiteral("created"), key->CreationTime()},
-      {QStringLiteral("expires"), DateOrNone(key->ExpirationTime())},
-      {QStringLiteral("lastUpdate"), DateOrNone(key->LastUpdateTime())},
-      {QStringLiteral("hasSecret"), key->IsPrivateKey()},
-      {QStringLiteral("primarySecret"), key->IsHasMasterKey()},
-      // GnuPG's mark, as the key lists show it (sec, sec#, sec>, pub).
-      {QStringLiteral("secretState"), KeyRoleModel::SecretState(key.get())},
-      // What the key as a whole can do, as the key lists show it.
-      {QStringLiteral("capabilities"), KeyRoleModel::Capabilities(key.get())},
-      {QStringLiteral("cardKey"), key->IsHasCardKey()},
-      {QStringLiteral("expired"), key->IsExpired()},
-      {QStringLiteral("revoked"), key->IsRevoked()},
-      {QStringLiteral("disabled"), key->IsDisabled()},
-      {QStringLiteral("uids"), uids},
-      {QStringLiteral("subkeys"), subkeys},
-      {QStringLiteral("can"), can},
-  });
-  return described;
+  return DescribeKey(UsableDefaultChannelHandle(), fingerprint);
 }
 
 void KeyActionsController::addSubkey(const QString& fingerprint,
@@ -651,16 +535,10 @@ void KeyActionsController::saveRevocation(const QString& fingerprint,
     }
     const auto certificate = MakeRevocation(channel, key, reason, text);
     if (certificate.Empty()) return NoRevocation();
-    QFile file(path);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate) ||
-        file.write(certificate.Data(),
-                   static_cast<qint64>(certificate.Size())) !=
-            static_cast<qint64>(certificate.Size()) ||
-        !file.flush()) {
-      file.close();
+    if (!WriteWhole(certificate.Data(), static_cast<qint64>(certificate.Size()),
+                    path)) {
       return Failure(GFError::Application(GFErrorCode::kIO));
     }
-    file.close();
     return {};
   });
 }
@@ -785,6 +663,23 @@ void KeyActionsController::changePassphrase(const QString& fingerprint) {
   });
 }
 
+namespace {
+
+/// Key actions under way, in every instance: a key database is not
+/// switched under one (KeyDatabasesController).
+std::atomic<int> g_running{0};
+
+/// Whether @p action changes a key, rather than only writing it out.
+auto ChangesKeys(const QString& action) -> bool {
+  return action != QStringLiteral("export") &&
+         action != QStringLiteral("export_secret") &&
+         action != QStringLiteral("save_revocation");
+}
+
+}  // namespace
+
+auto KeyActionsController::AnyRunning() -> bool { return g_running.load() > 0; }
+
 auto KeyActionsController::begin() -> bool {
   if (busy_) return false;
   busy_ = true;
@@ -794,7 +689,20 @@ auto KeyActionsController::begin() -> bool {
 
 void KeyActionsController::run(const QString& action,
                                std::function<QVariantMap()> work) {
-  if (!begin()) return;
+  if (!begin()) {
+    // Said, not dropped: a sheet waits for this answer.
+    emit SignalFinished(
+        action, false,
+        {{QStringLiteral("error"),
+          tr("Another change is still under way. Try again once it is "
+             "done.")},
+         {QStringLiteral("reason"), QStringLiteral("busy")}});
+    return;
+  }
+  ++g_running;
+  // An engine call that only says it made nothing (a revocation) failed
+  // because the person declined its prompt, when they did meanwhile.
+  const auto declined = PassphraseBroker::Declined();
 
   auto detail = QSharedPointer<QVariantMap>::create();
   QPointer<KeyActionsController> self(this);
@@ -804,12 +712,22 @@ void KeyActionsController::run(const QString& action,
         return 0;
       },
       "mobile_key_" + action, TransferParams(),
-      [self, action, detail](int, const DataObjectPtr&) {
+      [self, action, detail, declined](int, const DataObjectPtr&) {
+        --g_running;
+        if (detail->value(QStringLiteral("reason")) ==
+                QStringLiteral("failed") &&
+            PassphraseBroker::Declined() > declined) {
+          detail->insert(QStringLiteral("reason"), QStringLiteral("cancelled"));
+        }
+        // The key list shows a change at once, from the keys the change
+        // read again (its database only): never a second read of every
+        // database. Here, not on the page: one left meanwhile still made it.
+        const auto ok = !detail->contains(QStringLiteral("error"));
+        if (ok && ChangesKeys(action)) KeyListController::Reload();
         if (self == nullptr) return;
         self->busy_ = false;
         emit self->SignalBusyChanged();
-        emit self->SignalFinished(
-            action, !detail->contains(QStringLiteral("error")), *detail);
+        emit self->SignalFinished(action, ok, *detail);
       });
 
   Thread::TaskRunnerGetter::GetInstance()

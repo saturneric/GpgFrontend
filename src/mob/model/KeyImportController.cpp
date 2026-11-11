@@ -40,7 +40,7 @@
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/IOUtils.h"
-#include "model/KeyListController.h"
+#include "shell/present/KeyImportStatus.h"
 
 namespace GpgFrontend::Mobile {
 
@@ -52,7 +52,7 @@ auto KeyImportController::Result() const -> QVariantMap { return result_; }
 
 void KeyImportController::importText(const QString& text) {
   const auto block = GFBuffer(text);
-  run([block]() { return std::optional<GFBuffer>(block); });
+  run([block]() { return Read{.block = block}; });
 }
 
 auto KeyImportController::importClipboard() -> bool {
@@ -68,21 +68,24 @@ auto KeyImportController::importClipboard() -> bool {
 void KeyImportController::importFile(const QUrl& url) {
   // A picked file is a content:// URI on Android, which QFile opens as is.
   const auto path = url.isLocalFile() ? url.toLocalFile() : url.toString();
-  run([path]() -> std::optional<GFBuffer> {
+  run([path]() -> Read {
     QFile file(path);
-    if (!file.open(QIODevice::ReadOnly)) return std::nullopt;
+    if (!file.open(QIODevice::ReadOnly)) return {.problem = kUnreadable};
     // Keys, not archives: anything this large is not a key file.
-    if (file.size() > kMaxKeyFileBytes) return std::nullopt;
+    if (file.size() > kMaxKeyFileBytes) return {.problem = kTooLarge};
     auto bytes = file.read(kMaxKeyFileBytes + 1);
-    if (bytes.size() > kMaxKeyFileBytes) return std::nullopt;
+    if (bytes.size() > kMaxKeyFileBytes) return {.problem = kTooLarge};
+    // A provider that opens but then fails to hand the bytes over.
+    if (bytes.isEmpty() && file.error() != QFileDevice::NoError) {
+      return {.problem = kUnreadable};
+    }
     GFBuffer block(bytes);
     bytes.fill('\0');
-    return block;
+    return {.block = block};
   });
 }
 
-void KeyImportController::run(
-    std::function<std::optional<GFBuffer>()> read) {
+void KeyImportController::run(std::function<Read()> read) {
   if (busy_) return;
   busy_ = true;
   emit SignalBusyChanged();
@@ -92,8 +95,10 @@ void KeyImportController::run(
 
   auto* task = new Thread::Task(
       [channel, read = std::move(read)](const DataObjectPtr& data) -> int {
-        const auto block = read();
-        if (!block) return -1;
+        const auto [block, problem] = read();
+        // Not read: why, for the person (a file that could not be opened is
+        // not one that holds no key).
+        if (!block) return problem;
         auto info =
             KeyImportExportOperation::GetInstance(channel).ImportKey(*block);
         data->Swap({info});
@@ -105,6 +110,11 @@ void KeyImportController::run(
 
         QVariantMap result;
         bool imported = false;
+        if (rtn == kUnreadable || rtn == kTooLarge) {
+          result = {{QStringLiteral("problem"),
+                     rtn == kTooLarge ? QStringLiteral("too_large")
+                                      : QStringLiteral("unreadable")}};
+        }
         if (rtn == 0 && data != nullptr &&
             data->Check<QSharedPointer<GpgImportInformation>>()) {
           const auto info =
@@ -112,14 +122,15 @@ void KeyImportController::run(
           if (info != nullptr) {
             QStringList fingerprints;
             // A key already here that the import added to: a user ID, a
-            // subkey, a signature (a revocation is one), its secret part.
-            // GnuPG's status bits, which both engines give.
-            constexpr int kNewKey = 1;
+            // subkey, a signature (a revocation is one), as the desktop's
+            // import report counts it. A secret part comes in its own count
+            // (secretImported): its status bit is set for one already here
+            // too.
             int updated = 0;
             for (const auto& key : info->imported_keys) {
               fingerprints << key.fpr;
-              if (key.import_status != 0 &&
-                  (key.import_status & kNewKey) == 0) {
+              if (Shell::KeyImportChangeOf(key.import_status) ==
+                  Shell::KeyImportChange::kUpdated) {
                 ++updated;
               }
             }

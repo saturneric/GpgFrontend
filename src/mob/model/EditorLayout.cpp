@@ -34,6 +34,8 @@
 #include <QQuickTextDocument>
 #include <QTextDocument>
 
+#include "shell/present/TextDirection.h"
+
 namespace GpgFrontend::Mobile {
 
 EditorLayout::EditorLayout(QObject* parent) : QObject(parent) {
@@ -107,18 +109,8 @@ auto EditorLayout::LeadingRight() const -> bool { return leading_right_; }
 auto EditorLayout::Overrides() const -> int { return overrides_; }
 
 auto EditorLayout::FirstStrong(QStringView text) -> Qt::LayoutDirection {
-  for (const auto c : text) {
-    switch (c.direction()) {
-      case QChar::DirL:
-        return Qt::LeftToRight;
-      case QChar::DirR:
-      case QChar::DirAL:
-        return Qt::RightToLeft;
-      default:
-        break;
-    }
-  }
-  return Qt::LayoutDirectionAuto;
+  // The desktop's rule, by code point (a script above the BMP counts).
+  return Shell::FirstStrongDirection(text).value_or(Qt::LayoutDirectionAuto);
 }
 
 auto EditorLayout::wanted_direction(Qt::LayoutDirection fallback)

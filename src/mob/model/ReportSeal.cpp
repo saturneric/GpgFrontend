@@ -34,20 +34,6 @@
 
 namespace GpgFrontend::Mobile {
 
-namespace {
-
-auto KindOf(const QString& kind) -> ReportSealKind {
-  if (kind == QStringLiteral("success")) return ReportSealKind::kSUCCESS;
-  if (kind == QStringLiteral("failure")) return ReportSealKind::kFAILURE;
-  if (kind == QStringLiteral("cancelled")) return ReportSealKind::kCANCELLED;
-  if (kind == QStringLiteral("information")) {
-    return ReportSealKind::kINFORMATION;
-  }
-  return ReportSealKind::kWARNING;
-}
-
-}  // namespace
-
 ReportSeal::ReportSeal(QQuickItem* parent) : QQuickPaintedItem(parent) {
   setAntialiasing(true);
   connect(this, &ReportSeal::SignalChanged, this, [this]() { update(); });
@@ -57,7 +43,7 @@ void ReportSeal::paint(QPainter* painter) {
   // Lettering and ornament need room; below this the seal keeps only its
   // contours and symbol (the desktop's 70 device pixels, in the page's own).
   constexpr double kDetailFrom = 56.0;
-  PaintReportSeal(*painter, QRectF(0.0, 0.0, width(), height()), KindOf(kind_),
+  PaintReportSeal(*painter, QRectF(0.0, 0.0, width(), height()), ReportSealKindFromId(kind_),
                   inscription_,
                   {accent_, text_, muted_, dark_, painter->font()},
                   height() >= kDetailFrom);

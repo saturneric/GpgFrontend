@@ -32,6 +32,10 @@
 
 #include <QObject>
 #include <QVariantList>
+#include <utility>
+
+class QQmlEngine;
+class QJSEngine;
 
 namespace GpgFrontend::Mobile {
 
@@ -47,10 +51,14 @@ namespace GpgFrontend::Mobile {
  * databases again on new channels (ApplyKeyDatabaseRuntime()), off the
  * interface thread. The key list follows on its own (AppServices listens for
  * the new runtime).
+ *
+ * One for the application in QML (a singleton), so a switch begun on the
+ * Keys page is seen under way in Settings; C++ may still make its own.
  */
 class KeyDatabasesController : public QObject {
   Q_OBJECT
   QML_ELEMENT
+  QML_SINGLETON
 
   /// [{id, name, path, current}], the databases open now.
   Q_PROPERTY(QVariantList databases READ Databases NOTIFY SignalChanged)
@@ -60,6 +68,10 @@ class KeyDatabasesController : public QObject {
 
  public:
   explicit KeyDatabasesController(QObject* parent = nullptr);
+
+  /// The application's one, made when QML first asks; it lives as long as
+  /// the application object.
+  static auto create(QQmlEngine*, QJSEngine*) -> KeyDatabasesController*;
 
   [[nodiscard]] auto Databases() const -> QVariantList;
   [[nodiscard]] auto CurrentName() const -> QString;
@@ -92,6 +104,15 @@ class KeyDatabasesController : public QObject {
 
   bool busy_ = false;
   bool creating_ = false;  ///< the running apply is for create()
+  /// The database create() made for the running apply: its id and folder.
+  std::pair<QString, QString> made_;
+
+  /// Why no switch now: operations or key changes under way; empty when
+  /// one may be made.
+  [[nodiscard]] static auto WorkUnderWay() -> QString;
+  /// After a database would not open: the one in use stays the choice,
+  /// and one made for it goes.
+  void keep_choice_in_use();
 };
 
 }  // namespace GpgFrontend::Mobile

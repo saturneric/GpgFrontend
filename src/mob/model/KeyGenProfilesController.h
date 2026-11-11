@@ -63,10 +63,14 @@ class KeyGenProfilesController : public QObject {
    */
   Q_PROPERTY(QVariantList profiles READ Profiles NOTIFY SignalProfilesChanged)
   /// What can be made as a primary key here: [{id, type, name,
-  /// postQuantum, canEncrypt, canSign, canAuthenticate}].
-  Q_PROPERTY(QVariantList primaryAlgos READ PrimaryAlgos CONSTANT)
+  /// postQuantum, canEncrypt, canSign, canAuthenticate}]. Read again with
+  /// the profiles: the names are translated, and "here" is the key
+  /// database in use.
+  Q_PROPERTY(
+      QVariantList primaryAlgos READ PrimaryAlgos NOTIFY SignalProfilesChanged)
   /// What can be made as a subkey here, as primaryAlgos.
-  Q_PROPERTY(QVariantList subkeyAlgos READ SubkeyAlgos CONSTANT)
+  Q_PROPERTY(
+      QVariantList subkeyAlgos READ SubkeyAlgos NOTIFY SignalProfilesChanged)
   /// Whether key and subkey creation open in Expert Mode; remembered, and
   /// the desktop's dialogs follow the same switch.
   Q_PROPERTY(bool expertMode READ ExpertMode WRITE SetExpertMode NOTIFY
@@ -115,15 +119,16 @@ class KeyGenProfilesController : public QObject {
 
   Q_INVOKABLE QString save(int index, const QVariantMap& profile);
 
-  /// Remove the profile at @p index; false when it is the default, which
-  /// stays until another is chosen.
-  Q_INVOKABLE bool remove(int index);
+  /// Remove the profile at @p index; why not ("" when it was removed): the
+  /// default stays until another is chosen. Every edit here answers so.
+  Q_INVOKABLE QString remove(int index);
 
   /// Move the profile at @p from to @p to: the order Create a key lists them.
   Q_INVOKABLE void move(int from, int to);
 
-  /// Make the profile at @p index the one Quick Generate uses.
-  Q_INVOKABLE void setDefault(int index);
+  /// Make the profile at @p index the one Quick Generate uses; why not (""
+  /// when it is).
+  Q_INVOKABLE QString setDefault(int index);
 
   /// Add back the built-in profiles that are missing; nothing is removed.
   Q_INVOKABLE void restoreDefaults();
@@ -147,6 +152,8 @@ class KeyGenProfilesController : public QObject {
   void SignalExpertModeChanged();
 
  private:
+  /// Why an edit of a profile that has gone did nothing.
+  static auto gone() -> QString;
   /// Write @p settings and tell the pages. Every change reads the stored
   /// settings first, so no page writes back a copy older than another's.
   void store(const KeyGenSO& settings);

@@ -33,7 +33,9 @@
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/KeyDatabaseRefresh.h"
+#include "model/KeyActionsController.h"
 #include "shell/models/GpgKeyTableModel.h"
+#include "shell/rules/RevocationReasons.h"
 
 namespace GpgFrontend::Mobile {
 
@@ -100,6 +102,32 @@ auto KeyListController::Error() const -> QString { return error_; }
 
 auto KeyListController::LoadedDatabase() const -> QString { return loaded_db_; }
 
+namespace {
+
+auto RevocationTargetOf(const QString& target) -> Shell::RevocationTarget {
+  if (target == QLatin1String("uid")) return Shell::RevocationTarget::kUserId;
+  if (target == QLatin1String("key")) return Shell::RevocationTarget::kKey;
+  return Shell::RevocationTarget::kSubkey;
+}
+
+}  // namespace
+
+auto KeyListController::revocationReasons(const QString& target) const
+    -> QVariantList {
+  QVariantList reasons;
+  for (const auto& reason :
+       Shell::RevocationReasonsFor(RevocationTargetOf(target))) {
+    reasons.append(QVariantMap{{QStringLiteral("code"), reason.code},
+                               {QStringLiteral("text"), reason.text}});
+  }
+  return reasons;
+}
+
+auto KeyListController::defaultRevocationReason(const QString& target) const
+    -> int {
+  return Shell::DefaultRevocationReason(RevocationTargetOf(target));
+}
+
 void KeyListController::refresh() {
   ++generation_;
   // Another database than the one shown: what is shown is not its keys.
@@ -139,6 +167,13 @@ void KeyListController::finish(int generation, bool timed_out) {
   if (generation != running_generation_ || !running_) return;
 
   if (timed_out) {
+    // A key change waiting at its passphrase holds the engine's one task
+    // thread, and the refresh is queued behind it: not slow, waiting for a
+    // person. Given as long again.
+    if (KeyActionsController::AnyRunning()) {
+      timeout_.start();
+      return;
+    }
     qWarning() << "the key database refresh did not report back within"
                << timeout_.interval() << "ms; showing what is loaded";
     timed_out_ = true;
@@ -192,7 +227,13 @@ void KeyListController::setRefreshing(bool refreshing) {
 }
 
 void KeyListController::Reload() {
-  if (g_instance == nullptr || g_instance->refreshing_) return;
+  if (g_instance == nullptr) return;
+  // A refresh under way may have read the keys before the change: it runs
+  // once more, and what it shows has it.
+  if (g_instance->refreshing_) {
+    if (g_instance->running_) g_instance->rerun_ = true;
+    return;
+  }
   const auto channel = UsableDefaultChannelHandle();
   g_instance->SetTable(MakeGpgKeyTableModel(channel));
   emit g_instance->SignalRefreshed();

@@ -28,7 +28,9 @@
 
 #include "model/KeyDatabasesController.h"
 
+#include <QCoreApplication>
 #include <QDir>
+#include <QJSEngine>
 #include <QPointer>
 #include <QSet>
 #include <algorithm>
@@ -45,7 +47,9 @@
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/GpgUtils.h"
+#include "crypto/OperationQueue.h"
 #include "model/ChangeRelay.h"
+#include "model/KeyActionsController.h"
 #include "shell/models/KeyDatabaseSettingsModel.h"
 #include "shell/rules/KeyDatabaseNames.h"
 
@@ -59,6 +63,16 @@ auto CurrentId() -> QString {
 }
 
 }  // namespace
+
+auto KeyDatabasesController::create(QQmlEngine*, QJSEngine*)
+    -> KeyDatabasesController* {
+  static QPointer<KeyDatabasesController> instance;
+  if (instance == nullptr) {
+    instance = new KeyDatabasesController(QCoreApplication::instance());
+  }
+  QJSEngine::setObjectOwnership(instance, QJSEngine::CppOwnership);
+  return instance;
+}
 
 KeyDatabasesController::KeyDatabasesController(QObject* parent)
     : QObject(parent) {
@@ -147,10 +161,30 @@ auto KeyDatabasesController::CurrentName() const -> QString {
 
 auto KeyDatabasesController::Busy() const -> bool { return busy_; }
 
+auto KeyDatabasesController::WorkUnderWay() -> QString {
+  // Each operation and key change picks its database when it runs: the
+  // rest of a batch would go to the other database.
+  const auto* queue = OperationQueue::Instance();
+  if ((queue != nullptr && queue->Busy()) ||
+      KeyActionsController::AnyRunning()) {
+    return tr(
+        "Wait until the work under way is done, or stop it, then "
+        "switch.");
+  }
+  return {};
+}
+
 void KeyDatabasesController::switchTo(const QString& id) {
-  if (busy_ || !ProfileSession::Loaded()) return;
+  if (busy_ || !ProfileSession::Loaded()) {
+    emit SignalSwitched(false, tr("A key database is still being opened."));
+    return;
+  }
   if (id == CurrentId()) {
     emit SignalSwitched(true, {});
+    return;
+  }
+  if (const auto busy = WorkUnderWay(); !busy.isEmpty()) {
+    emit SignalSwitched(false, busy);
     return;
   }
 
@@ -223,7 +257,14 @@ auto KeyDatabasesController::suggestName() const -> QString {
 }
 
 void KeyDatabasesController::create(const QString& name) {
-  if (busy_ || !ProfileSession::Loaded()) return;
+  if (busy_ || !ProfileSession::Loaded()) {
+    emit SignalCreated(false, tr("A key database is still being opened."));
+    return;
+  }
+  if (const auto busy = WorkUnderWay(); !busy.isEmpty()) {
+    emit SignalCreated(false, busy);
+    return;
+  }
   const auto trimmed = name.trimmed();
   if (const auto problem = nameProblem(trimmed); !problem.isEmpty()) {
     emit SignalCreated(false, problem);
@@ -284,7 +325,26 @@ void KeyDatabasesController::create(const QString& name) {
   }
 
   creating_ = true;
+  made_ = {info.id, path};
   apply(info.id);
+}
+
+void KeyDatabasesController::keep_choice_in_use() {
+  // Stored as it is in use: the next start opens that one, not the one
+  // that would not open. One made just now that would not open goes too.
+  SettingsObject so(QString::fromLatin1(kKeyDatabaseListObject));
+  if (so.LoadFailed()) return;
+  KeyDatabaseListSO list(so);
+  KeyDatabaseSettingsModel model;
+  model.Load(GetAllKeyDatabaseInfoBySettings(), list.default_database_id, {});
+  if (!made_.first.isEmpty()) {
+    model.managed.removeIf(
+        [this](const KeyDatabaseInfo& info) { return info.id == made_.first; });
+    QDir(made_.second).removeRecursively();
+  }
+  model.choice_id = CurrentId();
+  model.ApplyTo(list);
+  so.Store(list.ToJson());
 }
 
 void KeyDatabasesController::apply(const QString& id) {
@@ -307,6 +367,8 @@ void KeyDatabasesController::apply(const QString& id) {
         emit self->SignalChanged();
         // A database that would not open is passed over for another.
         const auto ok = CurrentId() == id;
+        if (!ok) self->keep_choice_in_use();
+        self->made_ = {};
         const auto error = ok ? QString{}
                            : result->errors.isEmpty()
                                ? tr("This key database could not be opened.")
