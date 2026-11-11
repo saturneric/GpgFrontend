@@ -29,28 +29,21 @@
 #include "files/FileOperations.h"
 
 #include <QCoreApplication>
+#include <QCryptographicHash>
 #include <QFile>
 #include <QFileInfo>
 #include <QPointer>
+#include <QSaveFile>
 #include <QUrl>
+#include <limits>
 
 #include "core/function/openpgp/ChannelHandle.h"
-#include "core/function/openpgp/FileCryptoOperation.h"
-#include "core/model/GpgDecryptResult.h"
-#include "core/model/GpgEncryptResult.h"
-#include "core/model/GpgSignResult.h"
-#include "core/model/GpgVerifyResult.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/GpgUtils.h"
-#include "crypto/KeySelection.h"
 #include "files/StagingArea.h"
+#include "plat/common/PlatformFolder.h"
 #include "plat/common/PlatformShare.h"
-#include "shell/result_analyse/GpgDecryptResultAnalyse.h"
-#include "shell/result_analyse/GpgEncryptResultAnalyse.h"
-#include "shell/result_analyse/GpgOperaOutcome.h"
-#include "shell/result_analyse/GpgSignResultAnalyse.h"
-#include "shell/result_analyse/GpgVerifyResultAnalyse.h"
 #include "shell/rules/FileNameRules.h"
 
 namespace GpgFrontend::Mobile {
@@ -60,24 +53,44 @@ namespace {
 StagingArea* g_staging = nullptr;
 ShareRetentionStore* g_retention = nullptr;
 
-/// Copy @p from to @p to in pieces, refusing more than @p limit bytes.
+}  // namespace
+
+namespace {
+
+auto IsDocument(const QString& to) -> bool {
+  return to.startsWith(QStringLiteral("content:"));
+}
+
+}  // namespace
+
 auto CopyLimited(const QString& from, const QString& to, qint64 limit,
-                 const CopyProgress& progress = {}) -> bool {
+                 const CopyProgress& progress) -> bool {
+  // A local file is written beside itself and put in its place only once
+  // whole: a copy that fails leaves what was there before as it was. A
+  // document (picked to be written, so made for this) is written where it
+  // is; one that fails is deleted, never left looking like the whole file.
+  const auto document = IsDocument(to);
   QFile in(from);
-  QFile out(to);
-  // Truncated: overwriting a longer document must not keep its tail, which a
-  // document provider does unless asked ("wt", not "w").
-  if (!in.open(QIODevice::ReadOnly) ||
-      !out.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+  if (!in.open(QIODevice::ReadOnly)) {
+    if (document) DeleteFolderDocument(QUrl(to));
     return false;
   }
-
-  // A copy that stops half way leaves nothing behind that looks like the
-  // whole file: a local one is removed, a document emptied.
-  const auto fail = [&out, &to]() {
-    out.resize(0);
-    out.close();
-    if (!to.startsWith(QStringLiteral("content:"))) QFile::remove(to);
+  QSaveFile local(to);
+  QFile direct(to);
+  QFileDevice& out = document ? static_cast<QFileDevice&>(direct) : local;
+  // Truncated: a longer document must not keep its tail, which a provider
+  // does unless asked ("wt", not "w").
+  if (!out.open(document ? QIODevice::WriteOnly | QIODevice::Truncate
+                         : QIODevice::WriteOnly)) {
+    return false;
+  }
+  const auto fail = [&]() {
+    if (document) {
+      direct.close();
+      DeleteFolderDocument(QUrl(to));
+    } else {
+      local.cancelWriting();
+    }
     return false;
   };
 
@@ -90,22 +103,30 @@ auto CopyLimited(const QString& from, const QString& to, qint64 limit,
     copied += chunk.size();
     if (copied > limit) return fail();
     if (out.write(chunk) != chunk.size()) return fail();
-    if (progress && total > kChunk) {
-      progress(copied, total);
-    }
+    if (progress && total > kChunk) progress(copied, total);
   }
-  return out.flush() || fail();
+  if (!document) return local.commit();
+  // A provider may only say a write failed once it is closed.
+  if (!direct.flush()) return fail();
+  direct.close();
+  return direct.error() == QFileDevice::NoError || fail();
 }
 
-/// @p done, unless @p context has gone in the meantime.
-auto Guarded(QObject* context, OutcomeCallback done) {
-  return [guard = QPointer<QObject>(context),
-          done = std::move(done)](const GpgOperaOutcome& outcome) {
-    if (guard != nullptr) done(outcome);
-  };
+auto WriteWhole(const char* data, qint64 size, const QString& to) -> bool {
+  const auto document = IsDocument(to);
+  if (!document) {
+    QSaveFile local(to);
+    return local.open(QIODevice::WriteOnly) &&
+           local.write(data, size) == size && local.commit();
+  }
+  QFile direct(to);
+  auto written = direct.open(QIODevice::WriteOnly | QIODevice::Truncate) &&
+                 direct.write(data, size) == size && direct.flush();
+  direct.close();
+  written = written && direct.error() == QFileDevice::NoError;
+  if (!written) DeleteFolderDocument(QUrl(to));
+  return written;
 }
-
-}  // namespace
 
 void SetFileStores(StagingArea* staging, ShareRetentionStore* retention) {
   g_staging = staging;
@@ -148,6 +169,55 @@ void CopyOffThread(const QString& from, const QString& to, qint64 limit,
       ->PostTask(task);
 }
 
+void SaveIntoFolder(const QString& from, const QUrl& folder,
+                    const QString& name, bool replace, QObject* context,
+                    std::function<void(const QUrl&)> done) {
+  const auto to = CreateFolderDocument(
+      folder, name, QStringLiteral("application/octet-stream"));
+  if (to.isEmpty()) {
+    done({});
+    return;
+  }
+  CopyOffThread(
+      from, LocalOrContent(to), std::numeric_limits<qint64>::max(), context,
+      [folder, name, replace, to, done = std::move(done)](bool copied) {
+        // Made for this copy, and nothing came of it.
+        if (!copied) {
+          DeleteFolderDocument(to);
+          done({});
+          return;
+        }
+        auto where = to;
+        if (replace) {
+          const auto old = FindFolderDocument(folder, name);
+          if (!old.isEmpty() && old != to && DeleteFolderDocument(old)) {
+            if (const auto renamed = RenameFolderDocument(to, name);
+                !renamed.isEmpty()) {
+              where = renamed;
+            }
+          }
+        }
+        done(where);
+      });
+}
+
+auto Sha256OfFile(const QString& path, const std::function<bool()>& wanted)
+    -> FileDigest {
+  constexpr qint64 kChunk = 1 << 20;
+  QFile file(path);
+  if (!file.open(QIODevice::ReadOnly)) return {{}, QStringLiteral("unreadable")};
+  QCryptographicHash hasher(QCryptographicHash::Sha256);
+  while (!file.atEnd()) {
+    if (wanted && !wanted()) return {};
+    const auto chunk = file.read(kChunk);
+    if (chunk.isEmpty() && file.error() != QFileDevice::NoError) {
+      return {{}, QStringLiteral("unreadable")};
+    }
+    hasher.addData(chunk);
+  }
+  return {QString::fromLatin1(hasher.result().toHex()), {}};
+}
+
 auto DisplayName(const QUrl& url) -> QString {
   // On Android, QFileInfo asks the document provider for its display name.
   auto name = QFileInfo(LocalOrContent(url)).fileName();
@@ -187,89 +257,6 @@ auto ShareOutcomeName(ShareOutcome outcome) -> QString {
       return QStringLiteral("unsupported");
   }
   return QStringLiteral("failed");
-}
-
-void EncryptStagedFile(const QString& in, const QString& out,
-                       const QStringList& recipients, const QString& signer,
-                       QObject* context, OutcomeCallback done) {
-  auto finish = Guarded(context, std::move(done));
-  const auto channel = UsableDefaultChannelHandle();
-  auto& opera = FileCryptoOperation::GetInstance(channel);
-
-  if (recipients.isEmpty()) {
-    opera.EncryptFileSymmetric(
-        in, false, out, [finish, channel](GFError err, DataObjectPtr data) {
-          finish(AnalyseEncrypt<false>(channel, err, data, {}, false));
-        });
-    return;
-  }
-
-  const auto selected = SelectEncryptKeys(channel, recipients, signer);
-  if (const auto* missing = std::get_if<GpgOperaOutcome>(&selected)) {
-    finish(*missing);
-    return;
-  }
-  const auto keys = std::get<EncryptKeys>(selected);
-  const auto signs = !keys.signers.isEmpty();
-  auto analysed = [finish, channel, keys, signs](GFError err,
-                                                 DataObjectPtr data) {
-    finish(AnalyseEncrypt<false>(channel, err, data, keys.recipients, signs));
-  };
-  if (signs) {
-    opera.EncryptSignFile(keys.recipients, keys.signers, in, false, out,
-                          std::move(analysed));
-  } else {
-    opera.EncryptFile(keys.recipients, in, false, out, std::move(analysed));
-  }
-}
-
-void DecryptStagedFile(const QString& in, const QString& out, bool verify,
-                       QObject* context, OutcomeCallback done) {
-  auto finish = Guarded(context, std::move(done));
-  const auto channel = UsableDefaultChannelHandle();
-  if (!verify) {
-    FileCryptoOperation::GetInstance(channel).DecryptFile(
-        in, out, [finish, channel](GFError err, DataObjectPtr data) {
-          finish(AnalyseDecrypt<false>(channel, err, data));
-        });
-    return;
-  }
-  FileCryptoOperation::GetInstance(channel).DecryptVerifyFile(
-      in, out, [finish, channel](GFError err, DataObjectPtr data) {
-        finish(AnalyseDecryptVerify<false>(channel, err, data));
-      });
-}
-
-void SignStagedFile(const QString& in, const QString& out,
-                    const QString& signer, QObject* context,
-                    OutcomeCallback done) {
-  auto finish = Guarded(context, std::move(done));
-  const auto channel = UsableDefaultChannelHandle();
-  const auto signers = SelectKeys(channel, {signer});
-  if (!signers.missing.isEmpty()) {
-    finish(MissingKeysOutcome(GpgOperation::kSIGN, channel, signers.missing,
-                              true));
-    return;
-  }
-  // Binary, as the desktop signs files: a .sig beside the file.
-  FileCryptoOperation::GetInstance(channel).SignFile(
-      signers.keys, in, false, out,
-      [finish, channel](GFError err, DataObjectPtr data) {
-        finish(AnalyseOperaOutcome<GpgSignResult, GpgSignResultAnalyse, false>(
-            channel, err, data));
-      });
-}
-
-void VerifyStagedFile(const QString& data, const QString& signature,
-                      QObject* context, OutcomeCallback done) {
-  auto finish = Guarded(context, std::move(done));
-  const auto channel = UsableDefaultChannelHandle();
-  FileCryptoOperation::GetInstance(channel).VerifyFile(
-      data, signature, [finish, channel](GFError err, DataObjectPtr result) {
-        finish(
-            AnalyseOperaOutcome<GpgVerifyResult, GpgVerifyResultAnalyse, false>(
-                channel, err, result));
-      });
 }
 
 }  // namespace GpgFrontend::Mobile

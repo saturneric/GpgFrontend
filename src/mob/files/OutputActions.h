@@ -28,8 +28,9 @@
 
 #pragma once
 
-#include <QObject>
 #include <QtQml/qqmlregistration.h>
+
+#include <QObject>
 #include <chrono>
 
 namespace GpgFrontend::Mobile {
@@ -78,6 +79,15 @@ class OutputActions : public QObject {
    */
   Q_INVOKABLE void shareFile(const QString& content, const QString& file_name,
                              const QString& mime_type);
+
+  /**
+   * @brief Write @p content to the place picked at @p url (a document on
+   * Android, a path elsewhere), replacing what is there.
+   *
+   * For content that is not secret (a public key). False when it could not
+   * be written whole; nothing half written is left (WriteWhole()).
+   */
+  Q_INVOKABLE bool saveFile(const QString& content, const QUrl& url);
 
   /// shareFile()'s first part, for tests: the file kept for sharing, or
   /// empty when it could not be written.

@@ -26,7 +26,7 @@
  *
  */
 
-#include "crypto/OutputActions.h"
+#include "files/OutputActions.h"
 
 #include <QFile>
 #include <QPointer>
@@ -39,24 +39,6 @@
 #include "plat/common/PlatformShare.h"
 
 namespace GpgFrontend::Mobile {
-
-namespace {
-
-auto OutcomeName(ShareOutcome outcome) -> QString {
-  switch (outcome) {
-    case ShareOutcome::kHandedOff:
-      return QStringLiteral("handed_off");
-    case ShareOutcome::kDismissed:
-      return QStringLiteral("dismissed");
-    case ShareOutcome::kFailed:
-      return QStringLiteral("failed");
-    case ShareOutcome::kUnsupported:
-      return QStringLiteral("unsupported");
-  }
-  return QStringLiteral("failed");
-}
-
-}  // namespace
 
 OutputActions::OutputActions(QObject* parent) : QObject(parent) {}
 
@@ -74,7 +56,7 @@ void OutputActions::share(const QString& text, const QString& title) {
   QPointer<OutputActions> self(this);
   ShareText(text, title, [self](const ShareResult& result) {
     if (self == nullptr) return;
-    emit self->SignalShared(OutcomeName(result.outcome));
+    emit self->SignalShared(ShareOutcomeName(result.outcome));
   });
 }
 
@@ -106,7 +88,7 @@ void OutputActions::shareFile(const QString& content, const QString& file_name,
                               const QString& mime_type) {
   const auto path = KeepForSharing(content.toUtf8(), file_name);
   if (path.isEmpty()) {
-    emit SignalShared(OutcomeName(ShareOutcome::kFailed));
+    emit SignalShared(ShareOutcomeName(ShareOutcome::kFailed));
     return;
   }
   QPointer<OutputActions> self(this);
@@ -114,8 +96,14 @@ void OutputActions::shareFile(const QString& content, const QString& file_name,
   // has read the file. The store lets it go when its time is up.
   ShareFile(path, mime_type, file_name, [self](const ShareResult& result) {
     if (self == nullptr) return;
-    emit self->SignalShared(OutcomeName(result.outcome));
+    emit self->SignalShared(ShareOutcomeName(result.outcome));
   });
+}
+
+auto OutputActions::saveFile(const QString& content, const QUrl& url) -> bool {
+  if (url.isEmpty()) return false;
+  const auto bytes = content.toUtf8();
+  return WriteWhole(bytes.constData(), bytes.size(), LocalOrContent(url));
 }
 
 }  // namespace GpgFrontend::Mobile

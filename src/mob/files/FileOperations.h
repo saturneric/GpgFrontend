@@ -33,7 +33,6 @@
 #include <functional>
 
 namespace GpgFrontend {
-struct GpgOperaOutcome;
 enum class ShareOutcome;
 }  // namespace GpgFrontend
 
@@ -45,8 +44,8 @@ class ShareRetentionStore;
 /**
  * @file FileOperations.h
  * @brief What the Files page does to one staged file, apart from which file
- * it is: copying in and out off the interface thread, the four engine
- * operations, and the names their outputs get.
+ * it is: copying in and out off the interface thread, and the names outputs
+ * get. The four engine operations on such a file are crypto/FileCrypto.h.
  *
  * Every operation runs on paths in the staging area, never on a picked
  * document: a content:// URL is not a path the engine can open. @p done is
@@ -55,8 +54,6 @@ class ShareRetentionStore;
 
 /// Where a staged copy may be at most this large.
 constexpr qint64 kMaxStagedInputSize = 2LL * 1024 * 1024 * 1024;
-
-using OutcomeCallback = std::function<void(const GpgOperaOutcome&)>;
 
 /// The staging area and the store the Files page uses (AppServices).
 void SetFileStores(StagingArea* staging, ShareRetentionStore* retention);
@@ -70,6 +67,23 @@ auto SharedFileStore() -> ShareRetentionStore*;
 /// How far a copy is: bytes copied, of how many (0 when not known).
 using CopyProgress = std::function<void(qint64 copied, qint64 total)>;
 
+/**
+ * @brief Copy @p from to @p to here, refusing more than @p limit bytes.
+ *
+ * Nothing that looks like the whole file is left by a copy that fails: a
+ * local file that was at @p to stays as it was, a document (content://) is
+ * deleted. @p progress hears each piece of a copy of more than one.
+ */
+auto CopyLimited(const QString& from, const QString& to, qint64 limit,
+                 const CopyProgress& progress = {}) -> bool;
+
+/**
+ * @brief Write @p size bytes at @p data to @p to, as CopyLimited() writes:
+ * whole, or not at all (a local file there stays as it was, a document is
+ * deleted).
+ */
+auto WriteWhole(const char* data, qint64 size, const QString& to) -> bool;
+
 /// Copy @p from to @p to on the I/O runner, refusing more than @p limit
 /// bytes; @p done gets whether it worked, on @p context's thread. A copy of
 /// more than one piece reports each piece to @p progress first, on the
@@ -77,6 +91,37 @@ using CopyProgress = std::function<void(qint64 copied, qint64 total)>;
 void CopyOffThread(const QString& from, const QString& to, qint64 limit,
                    QObject* context, std::function<void(bool)> done,
                    CopyProgress progress = {});
+
+/**
+ * @brief Save the file at @p from into @p folder as @p name, whole or not at
+ * all, on the I/O runner.
+ *
+ * Always a new document, made only now, as bytes (given a type, a provider
+ * may add the extension it prefers: "notes.txt.gpg.pgp"). A copy that fails
+ * leaves nothing behind. With @p replace, the document already named so goes
+ * only once the copy is whole, and the new one takes its name; should either
+ * step fail, both stay, the new one numbered.
+ *
+ * @p done gets the saved document, or an empty URL, on @p context's thread.
+ */
+void SaveIntoFolder(const QString& from, const QUrl& folder,
+                    const QString& name, bool replace, QObject* context,
+                    std::function<void(const QUrl&)> done);
+
+/// A file's SHA-256, or why there is none.
+struct FileDigest {
+  QString sha256;  ///< lowercase hex; empty when not worked out
+  QString error;   ///< "unreadable", or empty
+};
+
+/**
+ * @brief The SHA-256 of the file at @p path (a local path or a content
+ * URI), read a piece at a time on the calling thread. @p wanted is asked
+ * before each piece: once it says no, the reading stops and returns nothing
+ * (neither a digest nor an error).
+ */
+auto Sha256OfFile(const QString& path, const std::function<bool()>& wanted)
+    -> FileDigest;
 
 /// The name of the file a picker returned, as the picker shows it.
 auto DisplayName(const QUrl& url) -> QString;
@@ -92,26 +137,5 @@ auto SignatureName(const QString& name) -> QString;
 
 /// "handed_off", "dismissed", "failed" or "unsupported", as OutputActions.
 auto ShareOutcomeName(ShareOutcome outcome) -> QString;
-
-/// Encrypt @p in to @p recipients (fingerprints), signed by @p signer when
-/// given; to a passphrase with no recipients.
-void EncryptStagedFile(const QString& in, const QString& out,
-                       const QStringList& recipients, const QString& signer,
-                       QObject* context, OutcomeCallback done);
-
-/// Decrypt @p in; with @p verify, checking any signature inside too.
-void DecryptStagedFile(const QString& in, const QString& out, bool verify,
-                       QObject* context, OutcomeCallback done);
-
-/// Sign @p in with @p signer, writing a detached signature to @p out.
-void SignStagedFile(const QString& in, const QString& out,
-                    const QString& signer, QObject* context,
-                    OutcomeCallback done);
-
-/// Verify the detached signature @p signature over @p data; with no
-/// @p signature, @p data holds its signature inline (a signed or cleartext
-/// signed file).
-void VerifyStagedFile(const QString& data, const QString& signature,
-                      QObject* context, OutcomeCallback done);
 
 }  // namespace GpgFrontend::Mobile
