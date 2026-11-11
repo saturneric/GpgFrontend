@@ -2,8 +2,8 @@
 
 ## Supported Versions
 
-Only versions with a white check mark are currently being supported. Versions
-without it will no longer receive updates, including security fixes. This is
+Only versions marked "Yes" under Supported are currently being supported. Other
+versions will no longer receive updates, including security fixes. This is
 primarily due to my existing commitments to work and learning, leaving me with
 limited time to dedicate to this project. I sincerely apologize for any
 inconvenience this may cause. The situation may improve in the future. Hence,
@@ -13,29 +13,42 @@ The table below is generated from `release/policy.toml`; edit that file and
 run `scripts/release/policy.py render-security`, never the table itself.
 
 <!-- policy:versions:begin -->
-| Version | Status | Supported | Until |
-| ------- | ------ | --------- | ----- |
-| 2.3.x | In development: nightly builds | :white_check_mark: |  |
-| 2.2.x | Current release: bug and security fixes | :white_check_mark: |  |
-| 2.1.x | Security fixes only (the last series that builds with Qt5); move to 2.2.x | :white_check_mark: | 2027-12-31 |
-| 2.0.x | End of life; move to 2.2.x | :x: |  |
-| 1.x.x | End of life; move to 2.2.x | :x: |  |
+| Version | Status                                  | Supported | Until      |
+| ------- | --------------------------------------- | --------- | ---------- |
+| 2.3.x   | In development: nightly builds          | Yes       |            |
+| 2.2.x   | Current release: bug and security fixes | Yes       |            |
+| 2.1.x   | Security fixes only; move to 2.2.x      | Yes       | 2027-12-31 |
+| 2.0.x   | End of life; move to 2.2.x              | No        |            |
+| 1.x.x   | End of life; move to 2.2.x              | No        |            |
+
+2.1.x: the last series that builds with Qt5.
 <!-- policy:versions:end -->
 
 ## Verifying Downloads
 
 Which key signs which releases (generated from `release/policy.toml` and
-`release/product.json`):
+the signed trust root in `release/root/`):
 
 <!-- policy:keys:begin -->
-Releases from 2.1.5 on can be checked file by file:
+Releases from 2.1.5 on can be checked file by file.
 
-| Releases | Signed with | Verify with |
-| -------- | ----------- | ----------- |
-| Stable (vX.Y.Z) | OpenPGP, detached `.sig` per file, by the maintainer | `12F7E8858CF15BEC9975FF3C5CA3DA246843FD03` |
-| Nightly (main) and beta (release/X.Y) | Sigstore, on the build's manifest (`build/SHA256SUMS.txt.sigstore.json`) | the build workflow's identity, `https://github.com/saturneric/GpgFrontend/.github/workflows/build.yml@<ref>` |
+Stable releases (vX.Y.Z) are signed with OpenPGP, a detached `.sig` per file,
+by the maintainer's key:
 
-Check a stable download by hand with `gpg --verify FILE.sig FILE`, a nightly's or beta's manifest with `cosign verify-blob` and its files against that manifest. The application relies on the signed update index, which names each release's descriptor by its hash, and the descriptor each file's; a stable release is listed there only once its OpenPGP signatures have been checked. Windows installers of stable releases are also Authenticode-signed.
+    12F7E8858CF15BEC9975FF3C5CA3DA246843FD03
+
+Nightly builds (main) and betas (release/X.Y) are signed with Sigstore, on the
+build's manifest (`build/SHA256SUMS.txt.sigstore.json`), by the build
+workflow's identity:
+
+    https://github.com/saturneric/GpgFrontend/.github/workflows/build.yml@<ref>
+
+Check a stable download by hand with `gpg --verify FILE.sig FILE`, a nightly's
+or beta's manifest with `cosign verify-blob` and its files against that
+manifest. The application relies on the signed update index, which names each
+release's descriptor by its hash, and the descriptor each file's; a stable
+release is listed there only once its OpenPGP signatures have been checked.
+Windows installers of stable releases are also Authenticode-signed.
 <!-- policy:keys:end -->
 
 ## Platform & Library Support
@@ -83,7 +96,10 @@ From version v2.2.2 onwards, we no longer support macOS 14, as it will be soon
 discontinued by GitHub Action. Given its age and the anticipated discontinuation
 of support by Apple, it is wise to drop it.
 
-From version v2.2.3 onwards, we no longer support Qt5, as it consumes more time to maintain code for both Qt5 and Qt6, especially with the increasing adoption of Qt6. But version 2.1.x will still support Qt5, so if you want to use Qt5, please use version 2.1.x.
+From version v2.2.3 onwards, we no longer support Qt5, as it consumes more time
+to maintain code for both Qt5 and Qt6, especially with the increasing adoption
+of Qt6. But version 2.1.x will still support Qt5, so if you want to use Qt5,
+please use version 2.1.x.
 
 ## Reporting a Vulnerability
 
