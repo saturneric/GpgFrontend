@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "product": "gpgfrontend",
+  "version": 1,
+  "type": "root",
+  "expires": "2028-11-10T18:12:35Z",
+  "keys": {
+    "4E179325A34DCF45": "RWRFz02jJZMXTrXFOGZgNXWHJGD3i3Uj7iTuRLFp0FWPLtP9LClobwAy",
+    "27458E01B54EAF5D": "RWRdr061AY5FJ+nGky89VBbRc35f7QtOYsAPMx0dIOGoc9CYPUCraogs",
+    "4D875241843652E8": "RWToUjaEQVKHTTg27ziFY/2x6D+Pun8lud61gPXYVn/QcOAAOrglQOIe",
+    "9B09BDB5C65DAB85": "RWSFq13Gtb0JmyXkhObmyjayLkpi3CTT8INZNMDHnAx8a3J92Yn+fRXs"
+  },
+  "roles": {
+    "root": {
+      "keyids": [
+        "4E179325A34DCF45",
+        "27458E01B54EAF5D",
+        "4D875241843652E8"
+      ],
+      "threshold": 2
+    },
+    "index_list": {
+      "keyids": [
+        "9B09BDB5C65DAB85"
+      ],
+      "threshold": 1
+    }
+  },
+  "host_policy": {
+    "repository": "saturneric/GpgFrontend",
+    "workflow": ".github/workflows/build.yml",
+    "authenticode_subject": "CN=Open Source Developer Yu Hu,O=Open Source Developer,L=Karlsruhe,ST=Baden-Württemberg,C=DE",
+    "authenticode_subjects_retired": [],
+    "authenticode_timestamp": "required",
+    "stable_pgp": {
+      "fingerprints": [
+        "12F7E8858CF15BEC9975FF3C5CA3DA246843FD03"
+      ],
+      "fingerprints_retired": []
+    }
+  }
+}
