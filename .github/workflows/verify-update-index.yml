@@ -35,11 +35,15 @@ jobs:
             release
             cmake
 
+      # The one tool it needs, by the package scripts/release/tools.txt
+      # names for it.
       - name: Install minisign
         run: |
           set -euo pipefail
+          package="$(awk '$1 == "minisign" { print $2 }' scripts/release/tools.txt)"
+          test -n "$package"
           sudo apt-get update -q
-          sudo apt-get install -y -q minisign
+          sudo apt-get install -y -q "$package"
 
       - name: Verify The Published Index
         run: python3 scripts/release/gfrelease verify --min-days-left 3
