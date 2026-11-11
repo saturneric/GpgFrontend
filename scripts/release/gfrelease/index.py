@@ -771,8 +771,13 @@ def build(product: Product, builds: Store, *,
         if entry["beta"] is not None and newer(entry["beta"], beta):
             beta = entry["beta"]
 
+    root, keys = product.trust
     return {
         "schema": SCHEMA, "product": product.slug,
+        # Where a client finds what it needs to trust this index:
+        # v1/root/ up to this version, and this index-keys list.
+        "root_version": root["version"],
+        "index_keys_version": keys["version"],
         "series": series,
         "channels": {"stable": stable,
                      "beta": beta["version"] if beta else None,
@@ -914,15 +919,38 @@ def publish(product: Product, builds: Store, update: Store, *,
     return index
 
 
+def trust_files(product: Product) -> list[tuple[Path, str]]:
+    """The trust an index names, as (local file, path in the update
+    store): every root up to the trusted one with each of its signatures,
+    and the trusted index-keys list with its own. Published before any
+    index that names them, never replaced (Store.put_file)."""
+    root, keys = product.trust
+    files = [(f, f"{layout.ROOT_DIR}/{f.name}")
+             for f in sorted(product.root_dir.glob("*.root.json*"))
+             if f.name.split(".")[0].isdigit() and
+             int(f.name.split(".")[0]) <= root["version"]]
+    name = layout.index_keys_name(keys["version"])
+    return files + [(product.index_keys_dir / n,
+                     f"{layout.INDEX_KEYS_DIR}/{n}")
+                    for n in (name, name + MINISIG)]
+
+
+def _put_trust(store: Store, files: list[tuple[Path, str]]) -> None:
+    for local, path in files:
+        store.put_file(local, path)
+
+
 def _sync_mirrors(data: bytes, sig: bytes, mirrors: list[Store],
-                  problems: Problems) -> None:
-    """Each mirror holds the update store's index, byte for byte."""
+                  problems: Problems, trust: list[tuple[Path, str]]) -> None:
+    """Each mirror holds the update store's index, byte for byte, and the
+    trust it names."""
     for mirror in mirrors:
         try:
             if mirror.exists(INDEX) and mirror.read(INDEX) == data and \
                     mirror.exists(INDEX + MINISIG) and \
                     mirror.read(INDEX + MINISIG) == sig:
                 continue
+            _put_trust(mirror, trust)
             # As _sign_and_publish: the signature first.
             mirror.put_bytes(sig, INDEX + MINISIG, immutable=False)
             mirror.put_bytes(data, INDEX, immutable=False)
@@ -941,10 +969,11 @@ def _sign_and_publish(product: Product, content: dict, update: Store, *,
     before = _published_pair(product, update, keys)
     previous = before[0] if before else None
     now = utcnow()
+    trust = trust_files(product)
     if previous is not None and not force:
         same = {k: v for k, v in previous.items() if k not in VOLATILE} == content
         if same and parse_iso(previous["expires"]) - now > RESIGN_BEFORE:
-            _sync_mirrors(before[1], before[2], mirrors, problems)
+            _sync_mirrors(before[1], before[2], mirrors, problems, trust)
             return None
 
     state_dir.mkdir(parents=True, exist_ok=True)
@@ -993,6 +1022,8 @@ def _sign_and_publish(product: Product, content: dict, update: Store, *,
             store.put_file(sig, history + MINISIG)
 
         def go_live(store: Store) -> None:
+            # Never an index that names trust its store does not hold.
+            _put_trust(store, trust)
             store.put_file(sig, INDEX + MINISIG, immutable=False)
             store.put_file(local, INDEX, immutable=False)
 

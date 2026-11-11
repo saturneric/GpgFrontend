@@ -298,5 +298,135 @@ class TrustTest(unittest.TestCase):
                           "2.json.minisig"])
 
 
+@unittest.skipUnless(shutil.which("minisign") and shutil.which("git"),
+                     "needs minisign and git")
+class TrustUpdateTest(unittest.TestCase):
+    """The signing host's `gfrelease trust update`: main's trust files,
+    from a mirror, into its state."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp(prefix="gfr-trust-update-"))
+        self.repo = self.tmp / "repo"
+        self.state = self.tmp / "state"
+        (self.repo / "release").mkdir(parents=True)
+        self.git("init", "-q", "-b", "main")
+        self.anchor = common.sha256_file(FIXTURE / "root" / "1.root.json")
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def git(self, *args):
+        subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t",
+                        *args], cwd=self.repo, check=True,
+                       capture_output=True)
+
+    def main_has(self, roots=(1, 2, 3), lists=(1, 2), extra=None):
+        """main's release/root/ and release/index-keys/: these of the
+        fixture's, and @p extra {path: bytes}."""
+        for d in ("root", "index-keys"):
+            shutil.rmtree(self.repo / "release" / d, ignore_errors=True)
+            (self.repo / "release" / d).mkdir()
+        for f in (FIXTURE / "root").iterdir():
+            if int(f.name.split(".")[0]) in roots:
+                shutil.copy(f, self.repo / "release" / "root")
+        for f in (FIXTURE / "index-keys").iterdir():
+            if int(f.name.split(".")[0]) in lists:
+                shutil.copy(f, self.repo / "release" / "index-keys")
+        for path, data in (extra or {}).items():
+            (self.repo / "release" / path).write_bytes(data)
+        self.git("add", "-A", "release")
+        self.git("commit", "-q", "--allow-empty", "-m", "trust")
+
+    def update(self, anchor=None, now=None):
+        env = dict(os.environ, GFR_NOW=now) if now else None
+        return subprocess.run(
+            [sys.executable, str(GFRELEASE),
+             "--root-dir", str(self.state / "root"),
+             "--index-keys-dir", str(self.state / "index-keys"),
+             "--root-sha256", anchor or self.anchor,
+             "trust", "update", "--git-dir", str(self.repo),
+             "--state-dir", str(self.state)],
+            capture_output=True, text=True, env=env)
+
+    def trusted(self):
+        return trust.load_trust(self.state / "root",
+                                self.state / "index-keys", SLUG,
+                                self.anchor)
+
+    def test_the_first_start_takes_the_anchor_and_walks_on(self):
+        self.main_has()
+        out = self.update()
+        self.assertEqual(out.returncode, 0, out.stderr)
+        self.assertIn("root 3:", out.stdout)
+        root, keys = self.trusted()
+        self.assertEqual((root["version"], keys["version"]), (3, 2))
+
+    def test_another_first_root_than_the_anchor_is_refused(self):
+        self.main_has()
+        out = self.update(anchor="0" * 64)
+        self.assertEqual(out.returncode, 1)
+        self.assertIn("is not " + "0" * 64, out.stderr)
+        self.assertFalse((self.state / "root" / "1.root.json").exists())
+
+    def test_an_invalid_next_root_on_main_keeps_the_current_one(self):
+        self.main_has(roots=(1, 2), lists=(1,))
+        self.assertEqual(self.update().returncode, 0)
+        unsigned = (FIXTURE / "root" / "3.root.json").read_bytes()
+        self.main_has(roots=(1, 2), lists=(1,),
+                      extra={"root/3.root.json": unsigned})
+        out = self.update()
+        self.assertEqual(out.returncode, 3, out.stderr)
+        self.assertIn("root 2 stays trusted", out.stderr)
+        self.assertEqual(self.trusted()[0]["version"], 2)
+
+    def test_an_invalid_next_list_keeps_the_current_one(self):
+        self.main_has()
+        self.assertEqual(self.update().returncode, 0)
+        forged = json.loads((FIXTURE / "index-keys" / "2.json").read_text())
+        forged["version"] = 3
+        self.main_has(extra={"index-keys/3.json": trust.dump(forged)})
+        out = self.update()
+        self.assertEqual(out.returncode, 3, out.stderr)
+        self.assertIn("3.json: not signed by root 3's", out.stderr)
+        self.assertEqual(self.trusted()[1]["version"], 2)
+
+    def test_a_new_g_discards_the_list_and_its_floor(self):
+        # Root 2 still names g1: list 1 is taken.
+        self.main_has(roots=(1, 2), lists=(1,))
+        self.assertEqual(self.update().returncode, 0)
+        self.assertEqual(self.trusted()[1]["version"], 1)
+        # Root 3 names g2, and main has only g1's list: nothing to sign
+        # with any more.
+        self.main_has(roots=(1, 2, 3), lists=(1,))
+        out = self.update()
+        self.assertEqual(out.returncode, 1)
+        self.assertIn("no index-keys list that root 3's", out.stderr)
+        self.assertEqual(trust.versions(self.state / "index-keys"), [])
+        # g2's list 2.
+        self.main_has()
+        self.assertEqual(self.update().returncode, 0)
+        self.assertEqual(self.trusted()[1]["version"], 2)
+
+    def test_a_list_rolled_back_on_main_is_not_taken(self):
+        self.main_has()
+        self.assertEqual(self.update().returncode, 0)
+        self.main_has(lists=())
+        self.assertEqual(self.update().returncode, 0)
+        self.assertEqual(self.trusted()[1]["version"], 2)
+        floor = json.loads((self.state / "index-keys" /
+                            "floor.json").read_text())
+        self.assertEqual(floor["version"], 2)
+
+    def test_an_expiry_near_is_reported_and_one_past_stops(self):
+        self.main_has()
+        out = self.update(now="2099-12-10T00:00:00Z")
+        self.assertEqual(out.returncode, 3, out.stderr)
+        self.assertIn("index-keys 2 expires at", out.stderr)
+        self.assertIn("root 3 expires at", out.stderr)
+        out = self.update(now="2100-01-02T00:00:00Z")
+        self.assertEqual(out.returncode, 1)
+        self.assertIn("expired", out.stderr)
+
+
 if __name__ == "__main__":
     unittest.main()

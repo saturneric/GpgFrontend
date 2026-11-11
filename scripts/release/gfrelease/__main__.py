@@ -12,6 +12,7 @@
   python3 scripts/release/gfrelease verify [--deep]    over HTTPS (anyone)
   python3 scripts/release/gfrelease root new|sign|verify     the trust root
   python3 scripts/release/gfrelease index-keys renew|rotate  the index keys
+  python3 scripts/release/gfrelease trust update     main's trust, taken (host)
 
 The product (slug, mirror bases, artifact rules) comes from
 release/product.json, the series and withdrawals from release/policy.toml,
@@ -49,7 +50,8 @@ import stage as stage_mod  # noqa: E402
 import trust  # noqa: E402
 import verify as verify_mod  # noqa: E402
 from common import (MINISIG, ROOT, Product, ReleaseError,  # noqa: E402
-                    atomic_write, load_json, parse_iso, run, utcnow)
+                    atomic_write, load_json, locked, parse_iso, refs, run,
+                    utcnow)
 from store import Store  # noqa: E402
 
 
@@ -119,6 +121,13 @@ def main(argv=None) -> int:
                          "release/index-keys/, say when each expires")
     rv.add_argument("--from", dest="first", type=int, default=1,
                     help="trust this root on its own signatures, walk on")
+
+    t = sub.add_parser("trust", help="the signing host's trust")
+    tu = t.add_subparsers(dest="action", required=True).add_parser(
+        "update", help="take main's next roots and index-keys list into "
+        "--root-dir and --index-keys-dir, as far as they hold")
+    opt(tu, "git_dir", "this product's git mirror (may be bare)")
+    opt(tu, "state_dir", "where the lock lives")
 
     k = sub.add_parser("index-keys", help="the keys that may sign the index")
     ksub = k.add_subparsers(dest="action", required=True)
@@ -215,6 +224,8 @@ def main(argv=None) -> int:
         if args.command == "index-keys":
             return index_keys_command(args, product.slug, product.root_dir,
                                       product.index_keys_dir)
+        if args.command == "trust":
+            return trust_update(args, product)
 
         if args.command == "stage":
             need(args, "candidate", "staging", "ref", "commit", "version",
@@ -277,7 +288,6 @@ def main(argv=None) -> int:
                 update = verify_mod.HttpSource(bases["update"], product.slug, args.cafile)
                 builds = verify_mod.HttpSource(bases["builds"], product.slug, args.cafile)
             report = verify_mod.verify(product, update, builds,
-                                       index_keys=product.index_keys,
                                        deep=args.deep)
             print(json.dumps(report, indent=2))
             if args.min_days_left:
@@ -419,6 +429,39 @@ def index_keys_command(args, slug: str, root_dir: Path,
               " until both are done the host refuses to sign (the old "
               "index stays valid until it expires)")
     return 0
+
+
+def git_reader(git_dir: Path, directory: str):
+    """read() for trust.walk(): main's release/<directory>/, and the names
+    it holds. A mirror that cannot be read is an error, never "not
+    there"."""
+    prefix = f"release/{directory}/"
+    names = run(["git", "-C", git_dir, "ls-tree", "--name-only", refs.MAIN,
+                 "--", prefix]).stdout.split()
+
+    def read(name: str) -> bytes | None:
+        if prefix + name not in names:
+            return None
+        return run(["git", "-C", git_dir, "show",
+                    f"{refs.MAIN}:{prefix}{name}"], text=False).stdout
+    return read, [n[len(prefix):] for n in names]
+
+
+def trust_update(args, product: Product) -> int:
+    need(args, "git_dir", "state_dir", "root_dir", "index_keys_dir")
+    with locked(Path(args.state_dir)):
+        read_root, _ = git_reader(Path(args.git_dir), "root")
+        read_keys, names = git_reader(Path(args.git_dir), "index-keys")
+        root, keys, problems = trust.update(
+            read_root, read_keys,
+            [int(n[:-5]) for n in names
+             if n.endswith(".json") and n[:-5].isdigit()],
+            product.root_dir, product.index_keys_dir, product.slug,
+            product.root_sha256)
+    report_trust(root, keys)
+    for problem in problems:
+        print(f"gfrelease: {problem}", file=sys.stderr)
+    return host_mod.PARTIAL if problems else host_mod.DONE
 
 
 def host_round(args, product: Product, rclone: str) -> int:

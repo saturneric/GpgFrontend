@@ -34,6 +34,7 @@ import descriptor
 import layout
 import minisig
 import openpgp
+import trust
 from common import (INDEX, MINISIG, SCHEMA, SIG, SMALL_OBJECT_LIMIT, SUMS,
                     Product, ReleaseError, check_relpath, load_json,
                     parse_iso, parse_manifest, parse_version, policy_mod,
@@ -256,8 +257,42 @@ def check_mirrors(product: Product, update, index_keys: list[str],
     return seen
 
 
-def verify(product: Product, update, builds, *, index_keys: list[str],
-           deep: bool = False) -> dict:
+def _index_keys(product: Product, source, index: dict) -> list[str]:
+    """The keys a client would take @p index on: this tree's trust,
+    walked forward to the root and index-keys list the index names, read
+    from @p source as a client reads them. Both must be published there.
+    An index from before it named them is taken on this tree's trust."""
+    root, keys = product.trust
+    if "root_version" not in index and "index_keys_version" not in index:
+        return list(keys["keys"].values())
+
+    def read(path: str) -> bytes | None:
+        try:
+            return source.read(path)
+        except ReleaseError:
+            return None  # not there, as far as a client can tell
+    want = _typed(index.get("root_version"), int, "root_version")
+    if want > root["version"]:
+        root = trust.walk(lambda name: read(f"{layout.ROOT_DIR}/{name}"),
+                          product.slug, root, upto=want, steps=None)
+    published = read(f"{layout.ROOT_DIR}/{layout.root_name(want)}")
+    if root["version"] != want or published is None or \
+            trust.load(published, "root", trust.ROOT, product.slug) != root:
+        raise ReleaseError(f"the index names root {want}, which {source} "
+                           "does not lead to")
+    want = _typed(index.get("index_keys_version"), int, "index_keys_version")
+    path = f"{layout.INDEX_KEYS_DIR}/{layout.index_keys_name(want)}"
+    same_g = root["roles"]["index_list"] == \
+        product.trust[0]["roles"]["index_list"]
+    keys = trust.accept_index_keys(root, read(path) or b"",
+                                   read(path + MINISIG), product.slug, path,
+                                   keys["version"] if same_g else 0)
+    trust.check_unexpired(root, f"root {root['version']}")
+    trust.check_unexpired(keys, f"index-keys {keys['version']}")
+    return list(keys["keys"].values())
+
+
+def verify(product: Product, update, builds, *, deep: bool = False) -> dict:
     """Everything hangs off the signed index: the descriptors by their
     hashes, the files by the descriptors'. A stable or imported release's
     maintainer signatures are checked as well with @p deep, against the
@@ -266,6 +301,10 @@ def verify(product: Product, update, builds, *, index_keys: list[str],
     with tempfile.TemporaryDirectory(prefix="gfr-verify-") as tmp_name, \
             contextlib.ExitStack() as stack:
         tmp = Path(tmp_name)
+        # What the index names to be trusted with, before it is: the
+        # signature then decides.
+        index_keys = _index_keys(product, update,
+                                 load_json(update.read(INDEX), INDEX))
         data, comment = _signed(update, INDEX, index_keys, tmp)
         index = load_json(data, INDEX)
         check_index(product, index, comment)
