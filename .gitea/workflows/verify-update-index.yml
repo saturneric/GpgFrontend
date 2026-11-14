@@ -8,6 +8,9 @@
 # re-signs it after 7, so a near expiry means the host stopped, before any
 # client sees "Couldn't check for updates". It holds no secret and writes
 # nothing.
+#
+# It runs on Gitea, not GitHub. While .gitea/workflows exists, Gitea runs
+# only what is in it, so the check never runs twice.
 
 name: Verify Update Index
 
@@ -21,7 +24,7 @@ permissions:
 
 jobs:
   verify:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
       contents: read
