@@ -71,6 +71,8 @@ class BuildModeTest(unittest.TestCase):
                 self.assertEqual(out["publish_kind"], kind)
                 self.assertEqual(out["publishes"],
                                  "false" if kind == "none" else "true")
+                # Every build that publishes goes to Play too.
+                self.assertEqual(out["play_upload"], out["publishes"])
 
     def test_build_type(self):
         self.assertEqual(classify("pull_request", "refs/pull/7/merge")
@@ -114,11 +116,12 @@ class BuildModeTest(unittest.TestCase):
         nightly = classify("push", "refs/heads/main", SCREENSHOT_INPUT="true")
         self.assertIn("SCREENSHOT_MODE=ON", nightly["screenshot_cmake_flag"])
 
-    def test_play_gets_the_betas_and_the_finals(self):
-        # Never a main nightly; whether a build is newer than what the app
-        # holds is Play's to say (play_upload.py --only-if-newer).
+    def test_play_gets_the_nightlies_betas_and_finals(self):
+        # Each to the app of its android_package; whether a build is newer
+        # than what the app holds is Play's to say (play_upload.py
+        # --only-if-newer).
         for event, ref, expected in (
-                ("push", "refs/heads/main", "false"),
+                ("push", "refs/heads/main", "true"),
                 ("push", "refs/heads/release/2.3", "true"),
                 ("push", "refs/heads/release/2.2-fix", "false"),
                 ("push", "refs/tags/v2.4.0", "true"),
