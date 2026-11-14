@@ -13818,6 +13818,15 @@ Do you want to continue?</source>
         <source>The tab the text came from was closed, or no longer holds a text document.</source>
         <translation>Вкладка, из которой был взят текст, была закрыта или больше не содержит текстовый документ.</translation>
     </message>
+    <message numerus="yes">
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="967"/>
+        <source>Symmetric encryption of %n item(s) with one password</source>
+        <translation>
+            <numerusform>Симметричное шифрование %n элемента одним паролем</numerusform>
+            <numerusform>Симметричное шифрование %n элементов одним паролем</numerusform>
+            <numerusform>Симметричное шифрование %n элементов одним паролем</numerusform>
+        </translation>
+    </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1085"/>
         <source>Cannot read the data file &quot;%1&quot;: %2</source>

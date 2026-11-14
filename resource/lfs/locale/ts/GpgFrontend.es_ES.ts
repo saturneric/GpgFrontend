@@ -13813,6 +13813,14 @@ Solo se reemplazará después de que la operación se complete con éxito.
         <source>The tab the text came from was closed, or no longer holds a text document.</source>
         <translation>La pestaña de la que provenía el texto se cerró o ya no contiene un documento de texto.</translation>
     </message>
+    <message numerus="yes">
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="967"/>
+        <source>Symmetric encryption of %n item(s) with one password</source>
+        <translation>
+            <numerusform>Cifrado simétrico de %n elemento con una contraseña</numerusform>
+            <numerusform>Cifrado simétrico de %n elementos con una contraseña</numerusform>
+        </translation>
+    </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1085"/>
         <source>Cannot read the data file &quot;%1&quot;: %2</source>

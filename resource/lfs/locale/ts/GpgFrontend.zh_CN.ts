@@ -13766,6 +13766,13 @@ Do you want to continue?</source>
         <source>The tab the text came from was closed, or no longer holds a text document.</source>
         <translation>文本来源的标签页已关闭，或不再包含文本文档。</translation>
     </message>
+    <message numerus="yes">
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="967"/>
+        <source>Symmetric encryption of %n item(s) with one password</source>
+        <translation>
+            <numerusform>使用一个密码对 %n 个项目进行对称加密</numerusform>
+        </translation>
+    </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1085"/>
         <source>Cannot read the data file &quot;%1&quot;: %2</source>

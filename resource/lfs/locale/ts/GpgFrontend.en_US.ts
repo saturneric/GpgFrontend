@@ -11825,6 +11825,14 @@ Do you want to continue?</source>
         <source>Cannot Encrypt</source>
         <translation type="unfinished"></translation>
     </message>
+    <message numerus="yes">
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="967"/>
+        <source>Symmetric encryption of %n item(s) with one password</source>
+        <translation>
+            <numerusform>Symmetric encryption of %n item with one password</numerusform>
+            <numerusform>Symmetric encryption of %n items with one password</numerusform>
+        </translation>
+    </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1085"/>
         <source>Cannot read the data file &quot;%1&quot;: %2</source>

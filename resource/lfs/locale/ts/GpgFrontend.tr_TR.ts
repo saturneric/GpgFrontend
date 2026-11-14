@@ -13311,6 +13311,13 @@ Devam etmek istiyor musunuz?</translation>
         <source>The tab the text came from was closed, or no longer holds a text document.</source>
         <translation>Metnin geldiği sekme kapatıldı veya artık bir metin belgesi içermiyor.</translation>
     </message>
+    <message numerus="yes">
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="967"/>
+        <source>Symmetric encryption of %n item(s) with one password</source>
+        <translation>
+            <numerusform>%n öğenin tek parolayla simetrik şifrelenmesi</numerusform>
+        </translation>
+    </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1085"/>
         <source>Cannot read the data file &quot;%1&quot;: %2</source>

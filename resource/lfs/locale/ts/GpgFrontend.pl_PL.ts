@@ -13335,6 +13335,15 @@ Czy chcesz kontynuować?</translation>
         <source>The tab the text came from was closed, or no longer holds a text document.</source>
         <translation>Karta, z której pochodził tekst, została zamknięta lub nie zawiera już dokumentu tekstowego.</translation>
     </message>
+    <message numerus="yes">
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="967"/>
+        <source>Symmetric encryption of %n item(s) with one password</source>
+        <translation>
+            <numerusform>Szyfrowanie symetryczne %n elementu jednym hasłem</numerusform>
+            <numerusform>Szyfrowanie symetryczne %n elementów jednym hasłem</numerusform>
+            <numerusform>Szyfrowanie symetryczne %n elementów jednym hasłem</numerusform>
+        </translation>
+    </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1085"/>
         <source>Cannot read the data file &quot;%1&quot;: %2</source>

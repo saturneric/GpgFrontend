@@ -13800,6 +13800,14 @@ Si desidera continuare?</translation>
         <source>The tab the text came from was closed, or no longer holds a text document.</source>
         <translation>La scheda da cui proveniva il testo è stata chiusa o non contiene più un documento di testo.</translation>
     </message>
+    <message numerus="yes">
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="967"/>
+        <source>Symmetric encryption of %n item(s) with one password</source>
+        <translation>
+            <numerusform>Cifratura simmetrica di %n elemento con una password</numerusform>
+            <numerusform>Cifratura simmetrica di %n elementi con una password</numerusform>
+        </translation>
+    </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1085"/>
         <source>Cannot read the data file &quot;%1&quot;: %2</source>
