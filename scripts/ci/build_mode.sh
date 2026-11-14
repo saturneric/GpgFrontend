@@ -101,15 +101,16 @@ fi
 publishes="false"
 [[ "$publish_kind" != "none" ]] && publishes="true"
 
-# Google Play: the finals and the release/X.Y betas, both to the release app
-# (android_package, below). main's nightlies never go to Play; the nightly
-# application ships through the update channel alone. Play takes only a
-# versionCode above every one the app holds, so play-upload asks Play and
-# skips a build that is not (scripts/android/play_upload.py --only-if-newer:
-# a fix or beta of an older series, while the app already holds a newer one).
+# Google Play: every build that publishes, each to the app of its
+# android_package (below). The finals and the release/X.Y betas go to the
+# release app; main's nightlies go to the nightly app ("GpgFrontend Testing").
+# Play takes only a versionCode above every one the app holds, so play-upload
+# asks Play and skips a build that is not (scripts/android/play_upload.py
+# --only-if-newer: a fix or beta of an older series while the app already
+# holds a newer one, or a rerun).
 play_upload="false"
 case "$publish_kind" in
-  beta | final) play_upload="true" ;;
+  nightly-main | beta | final) play_upload="true" ;;
 esac
 
 # Stable release builds drop the "Testing" suffix from the app name; nightly

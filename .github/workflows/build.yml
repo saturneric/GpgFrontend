@@ -129,7 +129,8 @@ jobs:
       publish_kind: ${{ steps.mode.outputs.publish_kind }}
       publishes: ${{ steps.mode.outputs.publishes }}
       # Whether to upload to Google Play: the finals and the release/X.Y
-      # betas, to the release app, as scripts/ci/build_mode.sh decides.
+      # betas to the release app, main's nightlies to the nightly app, as
+      # scripts/ci/build_mode.sh decides.
       play_upload: ${{ steps.mode.outputs.play_upload }}
       # The Android application id: the release's, or the nightly's own.
       android_package: ${{ steps.mode.outputs.android_package }}
@@ -678,10 +679,11 @@ jobs:
   # Puts the arm64-v8a app bundle on Google Play's internal testing track,
   # rolled out to the testers at once, as soon as sign-android has signed it:
   # it does not wait for provenance, which guards the public update channel
-  # and not the testers. Nightlies never go to Play.
+  # and not the testers.
   #   - a version tag         -> named after the tag. Promoting it beyond the
   #     testers is done by hand in Play Console.
   #   - a push to release/X.Y -> a beta, named beta-<artifact version>.
+  #   - a push to main        -> a nightly, named nightly-<artifact version>.
   # arm64-v8a alone, as Play wants one bundle per release and phones are ARM;
   # x86_64 is on the update channel.
   #
@@ -689,32 +691,43 @@ jobs:
   # with the upload key, not the release key that signs the APKs: it is the
   # unsigned bundle from build-android, signed again for this one purpose.
   #
-  # Both go to com.bktus.gpgfrontend (android_package): a beta is built with
-  # the release identity. A build Play already holds a greater versionCode for
-  # (a fix or beta of an older series) is skipped with a notice, not failed
+  # Two apps, one per android_package. A final and a beta go to
+  # com.bktus.gpgfrontend: a beta is built with the release identity. A
+  # nightly goes to com.bktus.gpgfrontend.nightly ("GpgFrontend Testing"), an
+  # application of its own. Both apps share the upload key and the service
+  # account. A build Play already holds a greater versionCode for (a fix or
+  # beta of an older series, or a rerun) is skipped with a notice, not failed
   # (play_upload.py --only-if-newer).
   #
-  # Maintainer, once, before this can pass:
-  #   - create the app in Play Console, enable Play App Signing, and upload a
-  #     first bundle there by hand: the API cannot create an app;
+  # Both apps must have Play sign with the release key (ANDROID_KEYSTORE, as
+  # sign-android signs every APK): a phone then takes either app's updates
+  # from Play or from the update channel's APK alike. A Google-generated app
+  # signing key would make the two refuse to install over each other.
+  #
+  # Maintainer, once per app, before this can pass:
+  #   - create the app in Play Console and enable Play App Signing with the
+  #     release key as its app signing key: the release app by uploading it
+  #     (PEPK), the nightly app by "use the same key as another app" picking
+  #     the release app. Then upload a first bundle there by hand: the API
+  #     cannot create an app;
   #   - register the upload key's certificate as the app's upload key;
   #   - grant the Google Cloud service account in the environment below
   #     "Release to testing tracks" for the app.
-  # While the app has never been published, Play takes only draft releases:
+  # While an app has never been published, Play takes only draft releases:
   # pass --status draft until then.
   play-upload:
     needs: [setup, sign-android]
-    # The finals and the release/X.Y betas; never a main nightly, a base tag
-    # or a prerelease tag. build_mode.sh decides it (play_upload is only ever
-    # true for beta and final).
+    # The finals, the release/X.Y betas and main's nightlies; never a base
+    # tag, a prerelease tag or a pull request. build_mode.sh decides it
+    # (play_upload is true exactly when the run publishes).
     if: needs.setup.outputs.play_upload == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
       contents: read
     # The upload key and the service-account key live in this environment.
-    # Maintainer: configure its deployment rule to allow only `main` and tags
-    # matching `v[0-9]*.[0-9]*.[0-9]*`.
+    # Maintainer: configure its deployment rule to allow only `main`,
+    # `release/[0-9]*.[0-9]*` and tags matching `v[0-9]*.[0-9]*.[0-9]*`.
     environment: google-play
     steps:
       - name: Preflight Check Play Credentials
@@ -782,10 +795,10 @@ jobs:
           jarsigner -verify "$aab" | grep -x "jar verified."
           keytool -printcert -jarfile "$aab" | grep -E "^[[:space:]]*SHA256:"
 
-      # The ref was already checked by the job's `if:`: a release tag or a
-      # release/X.Y branch. A fix or beta of an older series may find the app
-      # holding a newer release, and is skipped then (--only-if-newer). The
-      # versionCode is the build number cmake/GitVersion.cmake
+      # The ref was already checked by the job's `if:`: a release tag, a
+      # release/X.Y branch or main. A fix or beta of an older series may find
+      # the app holding a newer release, and is skipped then (--only-if-newer).
+      # The versionCode is the build number cmake/GitVersion.cmake
       # derived; Play must not already hold one as great, or no phone updates.
       - name: Upload To The Internal Track
         env:
@@ -796,11 +809,15 @@ jobs:
           PUBLISH_KIND: ${{ needs.setup.outputs.publish_kind }}
         run: |
           set -euo pipefail
-          if [[ "$PUBLISH_KIND" == "final" ]]; then
-            name="$GITHUB_REF_NAME"
-          else
-            name="beta-${ARTIFACT_VERSION}"
-          fi
+          case "$PUBLISH_KIND" in
+            final) name="$GITHUB_REF_NAME" ;;
+            beta) name="beta-${ARTIFACT_VERSION}" ;;
+            nightly-main) name="nightly-${ARTIFACT_VERSION}" ;;
+            *)
+              echo "::error::no Play release for publish kind $PUBLISH_KIND" >&2
+              exit 1
+              ;;
+          esac
           python3 -I scripts/android/play_upload.py \
             --package "$ANDROID_PACKAGE" \
             --bundle "$RUNNER_TEMP/play/GpgFrontend-${ARTIFACT_VERSION}-android-arm64-v8a.aab" \

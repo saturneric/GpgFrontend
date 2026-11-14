@@ -306,11 +306,11 @@ class WorkflowTest(unittest.TestCase):
     def test_right_after_signing_without_the_approval_gate(self):
         self.assertRegex(self.job, r"(?m)^    needs: \[setup, sign-android\]$")
 
-    def test_release_tags_and_betas_only(self):
+    def test_what_build_mode_sends(self):
         # setup's classification (scripts/ci/build_mode.sh): the vX.Y.Z
-        # releases and the release/X.Y betas; never a main nightly, a base
-        # tag or a prerelease tag. test_build_mode.py holds play_upload to
-        # exactly that.
+        # releases, the release/X.Y betas and main's nightlies; never a base
+        # tag, a prerelease tag or a pull request. test_build_mode.py holds
+        # play_upload to exactly that.
         self.assertEqual(self.condition(),
                          "needs.setup.outputs.play_upload == 'true'")
 
@@ -318,10 +318,14 @@ class WorkflowTest(unittest.TestCase):
         self.assertIn("--track internal", self.job)
         self.assertNotIn("production", self.job)
         self.assertIn('--release-name "$name"', self.job)
-        final = self.job.index('if [[ "$PUBLISH_KIND" == "final" ]]; then')
-        other = self.job.index("else", final)
-        self.assertIn('name="$GITHUB_REF_NAME"', self.job[final:other])
-        self.assertIn('name="beta-${ARTIFACT_VERSION}"', self.job[other:])
+        self.assertIn('case "$PUBLISH_KIND" in', self.job)
+        for arm in ('final) name="$GITHUB_REF_NAME" ;;',
+                    'beta) name="beta-${ARTIFACT_VERSION}" ;;',
+                    'nightly-main) name="nightly-${ARTIFACT_VERSION}" ;;'):
+            self.assertIn(arm, self.job)
+        # Any other kind is a mistake upstream, never an unnamed release.
+        other = self.job.index("*)", self.job.index('case "$PUBLISH_KIND" in'))
+        self.assertIn("exit 1", self.job[other:self.job.index("esac", other)])
 
     def test_secrets_in_their_own_environment(self):
         self.assertRegex(self.job, r"(?m)^    environment: google-play$")
@@ -341,15 +345,15 @@ class WorkflowTest(unittest.TestCase):
         self.assertIn('--version-code "$BUILD_NUMBER"', self.job)
 
     def test_the_release_goes_to_its_app_only_if_newer(self):
-        # build_mode.sh names the app (android_package); a final or a beta
-        # may find it holding a newer release, and is skipped then. No main
-        # nightly arrives.
+        # build_mode.sh names the app (android_package): the release app
+        # for a final or a beta, the nightly app for a nightly. A final or a
+        # beta may find it holding a newer release, and a rerun its own
+        # build, and is skipped then.
         self.assertIn('--package "$ANDROID_PACKAGE"', self.job)
         self.assertIn("ANDROID_PACKAGE: ${{ needs.setup.outputs.android_package }}",
                       self.job)
         self.assertNotIn("--package com.bktus", self.job)
         self.assertIn("--only-if-newer", self.job)
-        self.assertNotIn("nightly-", self.job)
 
     def test_android_builds_and_checks_the_identity_it_is_given(self):
         build = jobs(WORKFLOW.read_text(encoding="utf-8"))["build-android"]
