@@ -28,6 +28,10 @@
 
 #pragma once
 
+#include <optional>
+
+#include "core/model/GFBuffer.h"
+
 namespace GpgFrontend::UI {
 
 /**
@@ -38,5 +42,21 @@ namespace GpgFrontend::UI {
  * when the window that started it has gone. Idempotent.
  */
 void GF_UI_EXPORT InstallPassphrasePromptHandler();
+
+/**
+ * @brief Ask the user for a new symmetric password, with confirmation, before
+ * an operation starts.
+ *
+ * Used when one password should serve several symmetric encryptions, so the
+ * engine does not ask for each of them.
+ *
+ * @param channel the key database the operation runs on
+ * @param info what the password is for, shown in the dialog
+ * @param parent
+ * @return the password, or nothing when the user declined
+ */
+auto GF_UI_EXPORT PromptNewSymmetricPassphrase(int channel, const QString& info,
+                                               QWidget* parent)
+    -> std::optional<GFBuffer>;
 
 }  // namespace GpgFrontend::UI

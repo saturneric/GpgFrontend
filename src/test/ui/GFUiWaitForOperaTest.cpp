@@ -149,4 +149,35 @@ TEST(GpgOperaContextHolderTest, ArrowAccessReachesTheOwnedBasement) {
   EXPECT_EQ(holder.operator->(), holder.Base().data());
 }
 
+// Symmetric file encryption asks for one password up front only when it
+// covers more than one item; with recipients there is no password to ask.
+TEST(GpgOperaContextTest, SharedSymmetricPassphraseOnlyForSeveralItems) {
+  using UI::WantsSharedSymmetricPassphrase;
+
+  UI::GpgOperaContextBasement none;
+  EXPECT_FALSE(WantsSharedSymmetricPassphrase(none));
+
+  UI::GpgOperaContextBasement one_file;
+  one_file.GetContextPath(0).append("/tmp/a.txt");
+  EXPECT_FALSE(WantsSharedSymmetricPassphrase(one_file));
+
+  UI::GpgOperaContextBasement one_folder;
+  one_folder.GetContextPath(1).append("/tmp/dir");
+  EXPECT_FALSE(WantsSharedSymmetricPassphrase(one_folder));
+
+  UI::GpgOperaContextBasement two_files;
+  two_files.GetContextPath(0) << "/tmp/a.txt" << "/tmp/b.txt";
+  EXPECT_TRUE(WantsSharedSymmetricPassphrase(two_files));
+
+  UI::GpgOperaContextBasement file_and_folder;
+  file_and_folder.GetContextPath(0).append("/tmp/a.txt");
+  file_and_folder.GetContextPath(1).append("/tmp/dir");
+  EXPECT_TRUE(WantsSharedSymmetricPassphrase(file_and_folder));
+
+  UI::GpgOperaContextBasement with_keys;
+  with_keys.GetContextPath(0) << "/tmp/a.txt" << "/tmp/b.txt";
+  with_keys.keys.append(GpgAbstractKeyPtr{});
+  EXPECT_FALSE(WantsSharedSymmetricPassphrase(with_keys));
+}
+
 }  // namespace GpgFrontend::Test

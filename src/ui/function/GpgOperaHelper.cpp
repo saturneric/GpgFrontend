@@ -579,7 +579,8 @@ auto GpgOperaHelper::BuildOperasFileEncrypt(
       [context, channel](const QString& path, const QString& o_path,
                          const auto& callback) {
         FileCryptoOperation::GetInstance(channel).EncryptFileSymmetric(
-            path, context->base->ascii, o_path, callback);
+            path, context->base->ascii, o_path,
+            context->base->symmetric_passphrase, callback);
       },
       [context, channel](const QString& path, const QString& o_path,
                          const auto& callback) {
@@ -596,7 +597,8 @@ auto GpgOperaHelper::BuildOperasDirectoryEncrypt(
       [context, channel](const QString& path, const QString& o_path,
                          const auto& callback) {
         FileCryptoOperation::GetInstance(channel).EncryptDirectorySymmetric(
-            path, context->base->ascii, o_path, callback);
+            path, context->base->ascii, o_path,
+            context->base->symmetric_passphrase, callback);
       },
       [context, channel](const QString& path, const QString& o_path,
                          const auto& callback) {

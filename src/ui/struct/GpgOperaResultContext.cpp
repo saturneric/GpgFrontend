@@ -35,6 +35,19 @@ namespace GpgFrontend::UI {
 GpgOperaContext::GpgOperaContext(QSharedPointer<GpgOperaContextBasement> base)
     : base(std::move(base)) {}
 
+auto WantsSharedSymmetricPassphrase(const GpgOperaContextBasement& base)
+    -> bool {
+  if (!base.keys.isEmpty()) return false;
+
+  // Category 0 holds the files, 1 the folders.
+  qsizetype items = 0;
+  for (const auto category : {0, 1}) {
+    const auto it = base.categories.constFind(category);
+    if (it != base.categories.constEnd()) items += it->paths.size();
+  }
+  return items > 1;
+}
+
 auto GpgOperaContextBasement::GetContextPath(int category) -> QStringList& {
   if (!categories.contains(category)) categories[category] = {};
   return categories[category].paths;

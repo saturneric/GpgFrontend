@@ -44,6 +44,7 @@
 #include "shell/rules/RecipientRules.h"
 #include "ui/dialog/KeysPicker.h"
 #include "ui/function/GpgOperaHelper.h"
+#include "ui/function/PassphrasePrompt.h"
 #include "ui/main_window/FileOperaOutcome.h"
 #include "ui/struct/GpgOperaResultContext.h"
 #include "ui/widgets/InfoBoardWidget.h"
@@ -954,6 +955,23 @@ void MainWindow::SlotFileEncrypt(const QStringList& paths, bool ascii) {
   QList<SafeOutputPath> safe_outputs;
   if (!stage_file_outputs(paths, kENCRYPT, *contexts.Base(), safe_outputs)) {
     return;
+  }
+
+  // Symmetric encryption of several items asks for one password here rather
+  // than once for every item. Asked before the database check below, so that
+  // check also covers the time spent typing.
+  if (WantsSharedSymmetricPassphrase(*contexts.Base())) {
+    const int count = static_cast<int>(paths.size());
+    auto passphrase = PromptNewSymmetricPassphrase(
+        channel,
+        tr("Symmetric encryption of %n item(s) with one password", nullptr,
+           count),
+        this);
+    if (!passphrase) {
+      RemoveSafeOutputWorkDirs(safe_outputs);
+      return;
+    }
+    contexts->symmetric_passphrase = *passphrase;
   }
 
   if (!same_key_database_helper(channel)) return;

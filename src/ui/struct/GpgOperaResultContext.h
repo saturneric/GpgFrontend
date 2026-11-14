@@ -56,6 +56,9 @@ struct GF_UI_EXPORT GpgOperaContextBasement {
   GpgAbstractKeyPtrList singer_keys;
   QStringList unknown_fprs;
   bool ascii;
+  // The password every symmetric encryption of a batch uses, asked for once
+  // up front; empty lets each operation ask for its own.
+  GFBuffer symmetric_passphrase;
 
   QMap<int, GpgOperaCategory> categories;
 
@@ -79,6 +82,17 @@ struct GpgOperaContext {
 auto GF_UI_EXPORT GetGpgOperaContextFromBasement(
     const QSharedPointer<GpgOperaContextBasement>& base, int category)
     -> QSharedPointer<GpgOperaContext>;
+
+/**
+ * @brief Whether the file encryption staged in base should ask for one
+ * symmetric password up front instead of one per item: it is symmetric (no
+ * recipients) and covers more than one file or folder.
+ *
+ * @param base
+ * @return true to ask once and set base.symmetric_passphrase
+ */
+auto GF_UI_EXPORT
+WantsSharedSymmetricPassphrase(const GpgOperaContextBasement& base) -> bool;
 
 /**
  * @brief Owns a basement and guarantees its opera cycle is broken.

@@ -87,4 +87,21 @@ void InstallPassphrasePromptHandler() {
       });
 }
 
+auto PromptNewSymmetricPassphrase(int channel, const QString& info,
+                                  QWidget* parent) -> std::optional<GFBuffer> {
+  auto context = QSharedPointer<GpgPassphraseContext>::create(channel, nullptr);
+  context->SetPassphraseInfo(info);
+  context->SetAskForNew(true);
+  context->SetShouldConfirm(true);
+
+  PassphraseDialog dialog(context, parent);
+
+  std::optional<GFBuffer> answer;
+  if (dialog.exec() == QDialog::Accepted) answer = dialog.Passphrase();
+
+  dialog.Clear();  // Clear the passphrase from memory as soon as possible
+  if (answer && answer->Empty()) return std::nullopt;
+  return answer;
+}
+
 }  // namespace GpgFrontend::UI
