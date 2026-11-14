@@ -121,6 +121,37 @@ class GF_CORE_EXPORT FileCryptoOperation
       -> std::tuple<GFError, DataObjectPtr>;
 
   /**
+   * @brief Encrypt a file symmetrically with a password given up front
+   * (async).
+   *
+   * Lets a batch ask for its password once instead of once per file.
+   *
+   * @param in_path path to the plaintext file
+   * @param ascii if true, produce ASCII-armored output
+   * @param out_path destination path for the ciphertext file
+   * @param passphrase the password to encrypt with; empty asks for one as the
+   * overload without it does
+   * @param cb callback invoked on completion
+   */
+  void EncryptFileSymmetric(const QString& in_path, bool ascii,
+                            const QString& out_path, const GFBuffer& passphrase,
+                            const GFOperationCallback& cb);
+
+  /**
+   * @brief Encrypt a file symmetrically with a password given up front (sync).
+   *
+   * @param in_path path to the plaintext file
+   * @param ascii if true, produce ASCII-armored output
+   * @param out_path destination path for the ciphertext file
+   * @param passphrase the password to encrypt with; empty asks for one
+   * @return tuple of (GFError, DataObjectPtr)
+   */
+  auto EncryptFileSymmetricSync(const QString& in_path, bool ascii,
+                                const QString& out_path,
+                                const GFBuffer& passphrase)
+      -> std::tuple<GFError, DataObjectPtr>;
+
+  /**
    * @brief Pack and encrypt a directory symmetrically (async).
    *
    * @param in_path path to the source directory
@@ -130,6 +161,21 @@ class GF_CORE_EXPORT FileCryptoOperation
    */
   void EncryptDirectorySymmetric(const QString& in_path, bool ascii,
                                  const QString& out_path,
+                                 const GFOperationCallback& cb);
+
+  /**
+   * @brief Pack and encrypt a directory symmetrically with a password given
+   * up front (async).
+   *
+   * @param in_path path to the source directory
+   * @param ascii if true, produce ASCII-armored output
+   * @param out_path destination path for the encrypted archive
+   * @param passphrase the password to encrypt with; empty asks for one
+   * @param cb callback invoked on completion
+   */
+  void EncryptDirectorySymmetric(const QString& in_path, bool ascii,
+                                 const QString& out_path,
+                                 const GFBuffer& passphrase,
                                  const GFOperationCallback& cb);
 
   /**

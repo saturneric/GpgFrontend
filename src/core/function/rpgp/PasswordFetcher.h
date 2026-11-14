@@ -60,4 +60,29 @@ GF_CORE_EXPORT void SetChannelPasswordFetcher(int channel,
  */
 GF_CORE_EXPORT void ClearRpgpPasswordCache();
 
+/**
+ * @brief Answers the RPGP engine's request for a new symmetric password on the
+ * calling thread from a passphrase given up front, for as long as it lives.
+ *
+ * The engine asks for the password synchronously on the thread that called
+ * into it, so holding this around one symmetric encryption call hands it the
+ * passphrase without a prompt. Only a request for a new password with no key
+ * behind it is answered: the passphrase never unlocks a key. It is consulted
+ * before the channel's PasswordFetcher and the interactive prompt.
+ *
+ * The passphrase is referenced, not copied; it must outlive the scope.
+ */
+class GF_CORE_EXPORT ScopedSymmetricPassphrase {
+ public:
+  explicit ScopedSymmetricPassphrase(const GFBuffer& passphrase);
+  ~ScopedSymmetricPassphrase();
+
+  ScopedSymmetricPassphrase(const ScopedSymmetricPassphrase&) = delete;
+  auto operator=(const ScopedSymmetricPassphrase&)
+      -> ScopedSymmetricPassphrase& = delete;
+
+ private:
+  const GFBuffer* previous_;
+};
+
 }  // namespace GpgFrontend

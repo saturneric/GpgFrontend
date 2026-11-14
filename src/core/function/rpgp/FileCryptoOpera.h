@@ -192,11 +192,13 @@ auto DecryptVerifyArchiveRpgpImpl(OpenPGPContext& ctx, const QString& in_path,
  * @param in_path
  * @param ascii
  * @param out_path
+ * @param passphrase the password to encrypt with; empty asks for one as usual
  * @param data_object
  * @return GpgError
  */
 auto EncryptSymmetricFileRpgpImpl(OpenPGPContext& ctx_, const QString& in_path,
                                   bool ascii, const QString& out_path,
+                                  const GFBuffer& passphrase,
                                   const DataObjectPtr& data_object) -> GFError;
 
 /**
@@ -206,11 +208,13 @@ auto EncryptSymmetricFileRpgpImpl(OpenPGPContext& ctx_, const QString& in_path,
  * @param in_path
  * @param ascii
  * @param out_path
+ * @param passphrase the password to encrypt with; empty asks for one as usual
  * @param cb
  * @return GpgError
  */
 auto EncryptSymmetricDirRpgpImpl(OpenPGPContext& ctx_, const QString& in_path,
                                  bool ascii, const QString& out_path,
+                                 const GFBuffer& passphrase,
                                  const GFOperationCallback& cb) -> GFError;
 
 }  // namespace GpgFrontend

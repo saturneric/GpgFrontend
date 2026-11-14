@@ -146,12 +146,71 @@ auto EncryptFromArchive(OpenPGPContext& ctx, const QString& in_path,
   });
   return GPG_ERR_NO_ERROR;  // The actual result will be delivered via callback
 }
+
+/**
+ * @brief Answers gpg's passphrase inquiries on one gpgme context from a
+ * passphrase given up front, for as long as it lives.
+ *
+ * The context is switched to loopback so gpg asks us rather than the agent's
+ * pinentry, and both the pinentry mode and the callback are put back when the
+ * guard dies. The contexts handed out by GpgContext belong to the calling
+ * thread, whose operations run one after another, so no other operation sees
+ * the passphrase.
+ */
+class ScopedLoopbackPassphrase {
+ public:
+  ScopedLoopbackPassphrase(gpgme_ctx_t ctx, const GFBuffer& passphrase)
+      : ctx_(ctx),
+        passphrase_(passphrase),
+        prev_mode_(gpgme_get_pinentry_mode(ctx)) {
+    gpgme_get_passphrase_cb(ctx_, &prev_cb_, &prev_hook_);
+    ok_ = CheckGpgError(gpgme_set_pinentry_mode(
+              ctx_, GPGME_PINENTRY_MODE_LOOPBACK)) == GPG_ERR_NO_ERROR;
+    if (ok_) gpgme_set_passphrase_cb(ctx_, &Answer, this);
+  }
+
+  ~ScopedLoopbackPassphrase() {
+    gpgme_set_passphrase_cb(ctx_, prev_cb_, prev_hook_);
+    gpgme_set_pinentry_mode(ctx_, prev_mode_);
+  }
+
+  ScopedLoopbackPassphrase(const ScopedLoopbackPassphrase&) = delete;
+  auto operator=(const ScopedLoopbackPassphrase&)
+      -> ScopedLoopbackPassphrase& = delete;
+
+  [[nodiscard]] auto Ok() const -> bool { return ok_; }
+
+ private:
+  gpgme_ctx_t ctx_;
+  const GFBuffer& passphrase_;
+  gpgme_pinentry_mode_t prev_mode_;
+  gpgme_passphrase_cb_t prev_cb_ = nullptr;
+  void* prev_hook_ = nullptr;
+  bool ok_ = false;
+
+  static auto Answer(void* hook, const char* /*uid_hint*/,
+                     const char* /*passphrase_info*/, int prev_was_bad, int fd)
+      -> gpgme_error_t {
+    // The passphrase is all we have; asking again would only loop.
+    if (prev_was_bad != 0) return GPG_ERR_CANCELED;
+
+    const auto& passphrase =
+        static_cast<ScopedLoopbackPassphrase*>(hook)->passphrase_;
+    if (gpgme_io_writen(fd, passphrase.Data(), passphrase.Size()) != 0 ||
+        gpgme_io_writen(fd, "\n", 1) != 0) {
+      return GPG_ERR_CANCELED;
+    }
+    return GPG_ERR_NO_ERROR;
+  }
+};
+
 }  // namespace
 
 auto EncryptFileGpgDataImpl(OpenPGPContext& ctx_,
                             const GpgAbstractKeyPtrList& keys, GpgData& data_in,
                             bool ascii, GpgData& data_out,
-                            const DataObjectPtr& data_object) -> GpgError {
+                            const DataObjectPtr& data_object,
+                            const GFBuffer& passphrase = {}) -> GpgError {
   if (const auto data_err = DataError(data_in, data_out);
       data_err != GPG_ERR_NO_ERROR) {
     data_object->Swap({GpgEncryptResult(GFEncryptResult{})});
@@ -176,6 +235,15 @@ auto EncryptFileGpgDataImpl(OpenPGPContext& ctx_,
   gpg_recipients.push_back(nullptr);
 
   auto* ctx = ascii ? g_ctx.DefaultContext() : g_ctx.BinaryContext();
+
+  std::optional<ScopedLoopbackPassphrase> loopback;
+  if (!passphrase.Empty()) {
+    loopback.emplace(ctx, passphrase);
+    if (!loopback->Ok()) {
+      data_object->Swap({GpgEncryptResult(GFEncryptResult{})});
+      return GPG_ERR_NOT_SUPPORTED;
+    }
+  }
 
   auto err = CheckGpgError(
       gpgme_op_encrypt(ctx, keys.isEmpty() ? nullptr : gpg_recipients.data(),
@@ -213,21 +281,28 @@ auto EncryptDirGnuPGImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
 
 auto EncryptSymmetricFileGnuPGImpl(OpenPGPContext& ctx_, const QString& in_path,
                                    bool ascii, const QString& out_path,
+                                   const GFBuffer& passphrase,
                                    const DataObjectPtr& data_object)
     -> GpgError {
-  return EncryptFileGnuPGImpl(ctx_, {}, in_path, ascii, out_path, data_object);
+  GpgData data_in(in_path, true);
+  GpgData data_out(out_path, false);
+
+  return EncryptFileGpgDataImpl(ctx_, {}, data_in, ascii, data_out, data_object,
+                                passphrase);
 }
 
 auto EncryptSymmetricDirGnuPGImpl(OpenPGPContext& ctx, const QString& in_path,
                                   bool ascii, const QString& out_path,
+                                  const GFBuffer& passphrase,
                                   const GFOperationCallback& cb) -> GpgError {
   return EncryptFromArchive(
       ctx, in_path, cb,
-      [ascii, out_path](OpenPGPContext& c, GpgData& data_in,
-                        const DataObjectPtr& data_object) -> GpgError {
+      [ascii, out_path, passphrase](
+          OpenPGPContext& c, GpgData& data_in,
+          const DataObjectPtr& data_object) -> GpgError {
         GpgData data_out(out_path, false);
         return EncryptFileGpgDataImpl(c, {}, data_in, ascii, data_out,
-                                      data_object);
+                                      data_object, passphrase);
       },
       "gpgme_op_encrypt_symmetric",
       {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});

@@ -68,32 +68,38 @@ auto EncryptDirGnuPGImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
     -> GpgError;
 
 /**
- * @brief
+ * @brief Encrypt a file symmetrically.
  *
  * @param ctx_
  * @param in_path
  * @param ascii
  * @param out_path
+ * @param passphrase the password to encrypt with; empty asks through the
+ * agent's pinentry as usual
  * @param data_object
  * @return GpgError
  */
 auto EncryptSymmetricFileGnuPGImpl(OpenPGPContext& ctx_, const QString& in_path,
                                    bool ascii, const QString& out_path,
+                                   const GFBuffer& passphrase,
                                    const DataObjectPtr& data_object)
     -> GpgError;
 
 /**
- * @brief
+ * @brief Pack and encrypt a directory symmetrically.
  *
  * @param ctx
  * @param in_path
  * @param ascii
  * @param out_path
+ * @param passphrase the password to encrypt with; empty asks through the
+ * agent's pinentry as usual
  * @param cb
  * @return GpgError
  */
 auto EncryptSymmetricDirGnuPGImpl(OpenPGPContext& ctx, const QString& in_path,
                                   bool ascii, const QString& out_path,
+                                  const GFBuffer& passphrase,
                                   const GFOperationCallback& cb) -> GpgError;
 
 /**

@@ -41,7 +41,36 @@ namespace GpgFrontend {
 namespace {
 std::mutex g_fetcher_mutex;
 std::unordered_map<int, PasswordFetcher> g_channel_fetchers;
+
+/// Set by ScopedSymmetricPassphrase for the calling thread.
+thread_local const GFBuffer* t_symmetric_passphrase = nullptr;
+
+/**
+ * @brief Copy a password into secure memory for the engine.
+ *
+ * Length-delimited buffer: Rust reads exactly Size() bytes and frees it via
+ * gfc_secure_free_buffer(ptr, len); no NUL terminator is needed or implied.
+ */
+auto HandOutPassword(const GFBuffer& password, uint8_t** out_pwd,
+                     Rust::GfrPasswordFetchStatus* out_status) -> int {
+  auto* c_pwd = reinterpret_cast<uint8_t*>(SMAMalloc(password.Size()));
+  std::memcpy(c_pwd, password.Data(), password.Size());
+  *out_pwd = c_pwd;
+  if (out_status != nullptr) {
+    *out_status = Rust::GfrPasswordFetchStatus::Provided;
+  }
+  return static_cast<int>(password.Size());
+}
 }  // namespace
+
+ScopedSymmetricPassphrase::ScopedSymmetricPassphrase(const GFBuffer& passphrase)
+    : previous_(t_symmetric_passphrase) {
+  t_symmetric_passphrase = &passphrase;
+}
+
+ScopedSymmetricPassphrase::~ScopedSymmetricPassphrase() {
+  t_symmetric_passphrase = previous_;
+}
 
 void SetChannelPasswordFetcher(int channel, PasswordFetcher fetcher) {
   std::lock_guard<std::mutex> lock(g_fetcher_mutex);
@@ -115,6 +144,13 @@ auto FetchPasswordCallback(int channel, Rust::GfrPassphraseState state,
       .should_confirm = state.should_confirm,
   };
 
+  // A passphrase given up front for this symmetric encryption answers its
+  // request for a new password, and nothing else.
+  if (t_symmetric_passphrase != nullptr && !t_symmetric_passphrase->Empty() &&
+      pp_state.fpr.isEmpty() && pp_state.ask_for_new) {
+    return HandOutPassword(*t_symmetric_passphrase, out_pwd, out_status);
+  }
+
   // A programmatic fetcher (e.g. a cached or test-supplied passphrase) takes
   // precedence over prompting the user. A non-empty result is always a provided
   // passphrase; an empty one falls through to the interactive prompt below.
@@ -139,16 +175,7 @@ auto FetchPasswordCallback(int channel, Rust::GfrPassphraseState state,
   }
 
   if (!result_pwd.Empty()) {
-    // Length-delimited buffer: Rust reads exactly Size() bytes and frees it via
-    // gfc_secure_free_buffer(ptr, len) — no NUL terminator is needed or
-    // implied.
-    auto* c_pwd = reinterpret_cast<uint8_t*>(SMAMalloc(result_pwd.Size()));
-    std::memcpy(c_pwd, result_pwd.Data(), result_pwd.Size());
-    *out_pwd = c_pwd;
-    if (out_status != nullptr) {
-      *out_status = Rust::GfrPasswordFetchStatus::Provided;
-    }
-    return static_cast<int>(result_pwd.Size());
+    return HandOutPassword(result_pwd, out_pwd, out_status);
   }
 
   PassphraseRequestStatus request_status = PassphraseRequestStatus::kFailed;
@@ -167,16 +194,7 @@ auto FetchPasswordCallback(int channel, Rust::GfrPassphraseState state,
     return 0;
   }
 
-  // Length-delimited buffer: Rust reads exactly Size() bytes and frees it via
-  // gfc_secure_free_buffer(ptr, len) — no NUL terminator is needed or implied.
-  auto* c_pwd = reinterpret_cast<uint8_t*>(SMAMalloc(result_pwd.Size()));
-  std::memcpy(c_pwd, result_pwd.Data(), result_pwd.Size());
-
-  *out_pwd = c_pwd;
-  if (out_status != nullptr) {
-    *out_status = Rust::GfrPasswordFetchStatus::Provided;
-  }
-  return static_cast<int>(result_pwd.Size());
+  return HandOutPassword(result_pwd, out_pwd, out_status);
 }
 
 }  // namespace GpgFrontend

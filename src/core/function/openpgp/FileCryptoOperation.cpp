@@ -149,23 +149,45 @@ void FileCryptoOperation::EncryptFileSymmetric(const QString& in_path,
                                                bool ascii,
                                                const QString& out_path,
                                                const GFOperationCallback& cb) {
+  EncryptFileSymmetric(in_path, ascii, out_path, GFBuffer{}, cb);
+}
+
+void FileCryptoOperation::EncryptFileSymmetric(const QString& in_path,
+                                               bool ascii,
+                                               const QString& out_path,
+                                               const GFBuffer& passphrase,
+                                               const GFOperationCallback& cb) {
   RunRegisteredAsync<FileEncryptSymmetricOpTag>(ctx_, cb, in_path, ascii,
-                                                out_path);
+                                                out_path, passphrase);
 }
 
 auto FileCryptoOperation::EncryptFileSymmetricSync(const QString& in_path,
                                                    bool ascii,
                                                    const QString& out_path)
     -> std::tuple<GFError, DataObjectPtr> {
+  return EncryptFileSymmetricSync(in_path, ascii, out_path, GFBuffer{});
+}
+
+auto FileCryptoOperation::EncryptFileSymmetricSync(const QString& in_path,
+                                                   bool ascii,
+                                                   const QString& out_path,
+                                                   const GFBuffer& passphrase)
+    -> std::tuple<GFError, DataObjectPtr> {
   return RunRegisteredSync<FileEncryptSymmetricOpTag>(ctx_, in_path, ascii,
-                                                      out_path);
+                                                      out_path, passphrase);
 }
 
 void FileCryptoOperation::EncryptDirectorySymmetric(
     const QString& in_path, bool ascii, const QString& out_path,
     const GFOperationCallback& cb) {
+  EncryptDirectorySymmetric(in_path, ascii, out_path, GFBuffer{}, cb);
+}
+
+void FileCryptoOperation::EncryptDirectorySymmetric(
+    const QString& in_path, bool ascii, const QString& out_path,
+    const GFBuffer& passphrase, const GFOperationCallback& cb) {
   RunRegisteredForward<DirEncryptSymmetricOpTag>(ctx_, in_path, ascii, out_path,
-                                                 cb);
+                                                 passphrase, cb);
 }
 
 }  // namespace GpgFrontend

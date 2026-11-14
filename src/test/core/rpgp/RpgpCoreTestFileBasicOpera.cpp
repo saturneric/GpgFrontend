@@ -32,6 +32,7 @@
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyGenerationOperation.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
+#include "core/function/rpgp/PasswordFetcher.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
 #include "core/model/GpgKeyGenerateInfo.h"
@@ -107,6 +108,102 @@ TEST_F(RpgpCoreTest, CoreFileEncryptDecryptBinaryTest) {
   const auto [read_success, out_buffer] = ReadFileGFBuffer(decrypt_output_file);
   ASSERT_TRUE(read_success);
   ASSERT_EQ(buffer, out_buffer);
+}
+
+// A batch asks for its symmetric password once and hands it to every file and
+// folder; the engine must then not ask again for any of them.
+TEST_F(RpgpCoreTest, CoreFileEncryptSymmetricGivenPassphraseTest) {
+  const GFBuffer passphrase(QString("batch-pass"));
+  std::atomic<int> asked{0};
+  // Put the suite's fetcher back however the test ends; this one refers to a
+  // local.
+  struct RestoreFetcher {
+    ~RestoreFetcher() {
+      SetChannelPasswordFetcher(kRpgpChannelForUnitTest,
+                                [](const PassphraseState&) -> GFBuffer {
+                                  return GFBuffer(QString("123456"));
+                                });
+    }
+  } restore_fetcher;
+  SetChannelPasswordFetcher(kRpgpChannelForUnitTest,
+                            [&](const PassphraseState&) -> GFBuffer {
+                              asked++;
+                              return GFBuffer(QString("batch-pass"));
+                            });
+
+  auto& opera = FileCryptoOperation::GetInstance(kRpgpChannelForUnitTest);
+
+  const auto buffer_a = GFBuffer(QString("Batch file A"));
+  const auto buffer_b = GFBuffer(QString("Batch file B"));
+  const auto input_a = CreateTempFileAndWriteData(buffer_a);
+  const auto input_b = CreateTempFileAndWriteData(buffer_b);
+  const auto output_a = GetTempFilePath();
+  const auto output_b = GetTempFilePath();
+
+  auto [err_a, data_a] =
+      opera.EncryptFileSymmetricSync(input_a, true, output_a, passphrase);
+  ASSERT_TRUE(err_a.Ok());
+  auto [err_b, data_b] =
+      opera.EncryptFileSymmetricSync(input_b, false, output_b, passphrase);
+  ASSERT_TRUE(err_b.Ok());
+
+  QTemporaryDir work_dir;
+  ASSERT_TRUE(work_dir.isValid());
+  const QString src_dir = work_dir.path() + "/src";
+  ASSERT_TRUE(QDir().mkpath(src_dir));
+  {
+    QFile f(src_dir + "/C.txt");
+    ASSERT_TRUE(f.open(QIODevice::WriteOnly));
+    f.write("Batch folder C");
+  }
+  const QString archive_path = work_dir.path() + "/src.tar.gpg";
+  bool dir_done = false;
+  GFError dir_err = GFError::Application(GFErrorCode::kGENERAL);
+  opera.EncryptDirectorySymmetric(src_dir, false, archive_path, passphrase,
+                                  [&](GFError err, const DataObjectPtr&) {
+                                    dir_err = err;
+                                    dir_done = true;
+                                  });
+  WAIT_FOR_TRUE(dir_done, 10000);
+  ASSERT_TRUE(dir_err.Ok());
+
+  EXPECT_EQ(asked.load(), 0);
+
+  // Each output opens with the given password, served by the fetcher.
+  for (const auto& [cipher, plain] :
+       {std::pair{output_a, buffer_a}, std::pair{output_b, buffer_b}}) {
+    const auto decrypted = GetTempFilePath();
+    auto [err, data] = opera.DecryptFileSync(cipher, decrypted);
+    ASSERT_TRUE(err.Ok());
+    const auto [read_success, out_buffer] = ReadFileGFBuffer(decrypted);
+    ASSERT_TRUE(read_success);
+    EXPECT_EQ(plain, out_buffer);
+  }
+
+  const QString out_dir = work_dir.path() + "/out";
+  ASSERT_TRUE(QDir().mkpath(out_dir));
+  bool archive_done = false;
+  GFError archive_err = GFError::Application(GFErrorCode::kGENERAL);
+  opera.DecryptArchive(archive_path, out_dir,
+                       [&](GFError err, const DataObjectPtr&) {
+                         archive_err = err;
+                         archive_done = true;
+                       });
+  WAIT_FOR_TRUE(archive_done, 10000);
+  ASSERT_TRUE(archive_err.Ok());
+  {
+    QFile f(out_dir + "/C.txt");
+    ASSERT_TRUE(f.open(QIODevice::ReadOnly));
+    EXPECT_EQ(f.readAll(), QByteArray("Batch folder C"));
+  }
+
+  // The given password does not outlive its operation: the next one without
+  // it asks again.
+  asked = 0;
+  auto [err_c, data_c] =
+      opera.EncryptFileSymmetricSync(input_a, true, GetTempFilePath());
+  ASSERT_TRUE(err_c.Ok());
+  EXPECT_EQ(asked.load(), 1);
 }
 
 TEST_F(RpgpCoreTest, CoreFileEncryptSymmetricDecryptTest) {

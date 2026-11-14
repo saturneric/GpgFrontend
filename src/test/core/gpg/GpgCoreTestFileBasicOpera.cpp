@@ -27,6 +27,8 @@
  */
 
 #include "GpgCoreTest.h"
+#include "GpgFrontendTest.h"
+#include "core/function/gpg/GpgContext.h"
 #include "core/function/openpgp/FileCryptoOperation.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/model/DataObject.h"
@@ -38,6 +40,127 @@
 #include "core/utils/IOUtils.h"
 
 namespace GpgFrontend::Test {
+
+namespace {
+
+std::atomic<int> g_fixture_prompts{0};
+
+auto WritePassphrase(int fd, const QByteArray& passphrase) -> gpgme_error_t {
+  const auto line = passphrase + "\n";
+  return gpgme_io_writen(fd, line.constData(), line.size()) == 0
+             ? GPG_ERR_NO_ERROR
+             : GPG_ERR_CANCELED;
+}
+
+/// Answers as the suite's own callback does, and counts the prompts.
+auto CountingFixturePassphraseCb(void*, const char*, const char*, int, int fd)
+    -> gpgme_error_t {
+  g_fixture_prompts++;
+  return WritePassphrase(fd, "abcdefg");
+}
+
+auto BatchPassphraseCb(void*, const char*, const char*, int, int fd)
+    -> gpgme_error_t {
+  return WritePassphrase(fd, "batch-pass");
+}
+
+void SetTestPassphraseCb(gpgme_passphrase_cb_t cb) {
+  auto& ctx = GpgCtx(OpenPGPContext::GetInstance(kGpgChannelForUnitTest));
+  ctx.SetPassphraseCb(ctx.DefaultContext(), cb);
+  ctx.SetPassphraseCb(ctx.BinaryContext(), cb);
+}
+
+}  // namespace
+
+// A batch asks for its symmetric password once and hands it to every file and
+// folder: gpg must take it from there, not from the context's own callback
+// (pinentry in the application), and the context must be left as it was.
+TEST_F(GpgCoreTest, CoreFileEncryptSymmetricGivenPassphraseTest) {
+  // Put a callback that answers like the suite's back however the test ends.
+  struct RestoreCb {
+    ~RestoreCb() { SetTestPassphraseCb(CountingFixturePassphraseCb); }
+  } restore_cb;
+
+  SetTestPassphraseCb(CountingFixturePassphraseCb);
+  g_fixture_prompts = 0;
+
+  const GFBuffer passphrase(QString("batch-pass"));
+  auto& opera = FileCryptoOperation::GetInstance();
+
+  const auto buffer_a = GFBuffer(QString("Batch file A"));
+  const auto buffer_b = GFBuffer(QString("Batch file B"));
+  const auto input_a = CreateTempFileAndWriteData(buffer_a);
+  const auto input_b = CreateTempFileAndWriteData(buffer_b);
+  const auto output_a = GetTempFilePath();
+  const auto output_b = GetTempFilePath();
+
+  auto [err_a, data_a] =
+      opera.EncryptFileSymmetricSync(input_a, true, output_a, passphrase);
+  ASSERT_TRUE(err_a.Ok());
+  auto [err_b, data_b] =
+      opera.EncryptFileSymmetricSync(input_b, false, output_b, passphrase);
+  ASSERT_TRUE(err_b.Ok());
+
+  QTemporaryDir work_dir;
+  ASSERT_TRUE(work_dir.isValid());
+  const QString src_dir = work_dir.path() + "/src";
+  ASSERT_TRUE(QDir().mkpath(src_dir));
+  {
+    QFile f(src_dir + "/C.txt");
+    ASSERT_TRUE(f.open(QIODevice::WriteOnly));
+    f.write("Batch folder C");
+  }
+  const QString archive_path = work_dir.path() + "/src.tar.gpg";
+  bool dir_done = false;
+  GFError dir_err = GFError::Application(GFErrorCode::kGENERAL);
+  opera.EncryptDirectorySymmetric(src_dir, false, archive_path, passphrase,
+                                  [&](GFError err, const DataObjectPtr&) {
+                                    dir_err = err;
+                                    dir_done = true;
+                                  });
+  WAIT_FOR_TRUE(dir_done, 10000);
+  ASSERT_TRUE(dir_err.Ok());
+
+  EXPECT_EQ(g_fixture_prompts.load(), 0);
+
+  // Each output opens with the given password.
+  SetTestPassphraseCb(BatchPassphraseCb);
+  for (const auto& [cipher, plain] :
+       {std::pair{output_a, buffer_a}, std::pair{output_b, buffer_b}}) {
+    const auto decrypted = GetTempFilePath();
+    auto [err, data] = opera.DecryptFileSync(cipher, decrypted);
+    ASSERT_TRUE(err.Ok());
+    const auto [read_success, out_buffer] = ReadFileGFBuffer(decrypted);
+    ASSERT_TRUE(read_success);
+    EXPECT_EQ(plain, out_buffer);
+  }
+
+  const QString out_dir = work_dir.path() + "/out";
+  ASSERT_TRUE(QDir().mkpath(out_dir));
+  bool archive_done = false;
+  GFError archive_err = GFError::Application(GFErrorCode::kGENERAL);
+  opera.DecryptArchive(archive_path, out_dir,
+                       [&](GFError err, const DataObjectPtr&) {
+                         archive_err = err;
+                         archive_done = true;
+                       });
+  WAIT_FOR_TRUE(archive_done, 10000);
+  ASSERT_TRUE(archive_err.Ok());
+  {
+    QFile f(out_dir + "/C.txt");
+    ASSERT_TRUE(f.open(QIODevice::ReadOnly));
+    EXPECT_EQ(f.readAll(), QByteArray("Batch folder C"));
+  }
+
+  // The context's own callback is back: the next encryption without a given
+  // password asks it.
+  SetTestPassphraseCb(CountingFixturePassphraseCb);
+  g_fixture_prompts = 0;
+  auto [err_c, data_c] =
+      opera.EncryptFileSymmetricSync(input_a, true, GetTempFilePath());
+  ASSERT_TRUE(err_c.Ok());
+  EXPECT_GE(g_fixture_prompts.load(), 1);
+}
 
 TEST_F(GpgCoreTest, CoreFileEncryptDecrTest) {
   auto encrypt_key = GpgKeyRepository::GetInstance().GetPubkeyPtr(

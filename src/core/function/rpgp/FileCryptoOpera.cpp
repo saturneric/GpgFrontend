@@ -31,6 +31,7 @@
 #include "core/GFCoreRust.h"
 #include "core/function/rpgp/EncryptSignAttribution.h"
 #include "core/function/rpgp/KeyStorage.h"
+#include "core/function/rpgp/PasswordFetcher.h"
 #include "core/function/rpgp/ResultHandler.h"
 #include "core/function/rpgp/RustEngineCallback.h"
 #include "core/model/GpgDecryptResult.h"
@@ -532,6 +533,7 @@ auto DecryptVerifyArchiveRpgpImpl(OpenPGPContext& ctx, const QString& in_path,
 
 auto EncryptSymmetricFileRpgpImpl(OpenPGPContext& ctx_, const QString& in_path,
                                   bool ascii, const QString& out_path,
+                                  const GFBuffer& passphrase,
                                   const DataObjectPtr& data_object) -> GFError {
   auto in_file_path_utf8 = in_path.toUtf8();
   auto out_file_path_utf8 = out_path.toUtf8();
@@ -539,6 +541,10 @@ auto EncryptSymmetricFileRpgpImpl(OpenPGPContext& ctx_, const QString& in_path,
   Rust::GfrStatus status;
   Rust::GfrEncryptResultC encrypt_result;
   memset(&encrypt_result, 0, sizeof(encrypt_result));
+
+  // The engine asks for the password on this thread, inside the call below.
+  std::optional<ScopedSymmetricPassphrase> given;
+  if (!passphrase.Empty()) given.emplace(passphrase);
 
   auto is_directory = QFileInfo(in_path).isDir();
   if (is_directory) {
@@ -567,15 +573,16 @@ auto EncryptSymmetricFileRpgpImpl(OpenPGPContext& ctx_, const QString& in_path,
 
 auto EncryptSymmetricDirRpgpImpl(OpenPGPContext& ctx, const QString& in_path,
                                  bool ascii, const QString& out_path,
+                                 const GFBuffer& passphrase,
                                  const GFOperationCallback& cb) -> GFError {
-  RunGpgOperaAsync(ctx.GetChannel(),
-                   [ctx_ptr = &ctx, in_path, ascii,
-                    out_path](const DataObjectPtr& data_object) -> GFError {
-                     return EncryptSymmetricFileRpgpImpl(
-                         *ctx_ptr, in_path, ascii, out_path, data_object);
-                   },
-                   cb, "rpgp_op_encrypt_symmetric_dir",
-                   {{OpenPGPEngine::kRPGP, "0.1.0"}});
+  RunGpgOperaAsync(
+      ctx.GetChannel(),
+      [ctx_ptr = &ctx, in_path, ascii, out_path,
+       passphrase](const DataObjectPtr& data_object) -> GFError {
+        return EncryptSymmetricFileRpgpImpl(*ctx_ptr, in_path, ascii, out_path,
+                                            passphrase, data_object);
+      },
+      cb, "rpgp_op_encrypt_symmetric_dir", {{OpenPGPEngine::kRPGP, "0.1.0"}});
 
   return GFError{};  // The actual result will be delivered via callback
 }
