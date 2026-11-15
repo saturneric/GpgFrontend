@@ -360,6 +360,18 @@ Page {
         id: history
     }
 
+    // Away from the application as long as Settings allows: decrypted text
+    // goes, Undo included; what was typed by hand stays.
+    Connections {
+        target: AppLifecycle
+        function onSignalWipeSensitiveText() { page.wipeSensitive() }
+    }
+
+    // Decrypted text goes; text typed by hand is not touched.
+    function wipeSensitive() {
+        if (crypto.sensitive) wipe()
+    }
+
     // What runs the operations; a test puts a stand-in here.
     property var crypto: engine
 

@@ -3707,6 +3707,16 @@ Una traducción simplificada sería aludir exclusivamente al término &apos;huel
         <source>Keep it out of screenshots, screen recordings and recent apps.</source>
         <translation>Mantenerla fuera de capturas de pantalla, grabaciones de pantalla y aplicaciones recientes.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="308"/>
+        <source>Clear decrypted text</source>
+        <translation>Borrar el texto descifrado</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="309"/>
+        <source>After how long in the background decrypted text is cleared.</source>
+        <translation>Tras cuánto tiempo en segundo plano se borra el texto descifrado.</translation>
+    </message>
 </context>
 <context>
     <name>GpgFrontend::Shell::EncryptBlockReason</name>
@@ -24365,6 +24375,16 @@ Deshaga esos cambios o elija Cancelar para descartar todo lo que cambió en este
         <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
         <source>Right</source>
         <translation>Derecha</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="55"/>
+        <source>Never</source>
+        <translation>Nunca</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="56"/>
+        <source>At once</source>
+        <translation>Al instante</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="30"/>

@@ -3668,6 +3668,16 @@
         <source>Keep it out of screenshots, screen recordings and recent apps.</source>
         <translation>Ekran görüntülerinden, ekran kayıtlarından ve son uygulamalardan uzak tut.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="308"/>
+        <source>Clear decrypted text</source>
+        <translation>Şifresi çözülen metni temizle</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="309"/>
+        <source>After how long in the background decrypted text is cleared.</source>
+        <translation>Arka planda ne kadar süre sonra şifresi çözülen metnin temizleneceği.</translation>
+    </message>
 </context>
 <context>
     <name>GpgFrontend::Shell::EncryptBlockReason</name>
@@ -22586,6 +22596,16 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
         <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
         <source>Right</source>
         <translation>Sağ</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="55"/>
+        <source>Never</source>
+        <translation>Asla</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="56"/>
+        <source>At once</source>
+        <translation>Hemen</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="30"/>

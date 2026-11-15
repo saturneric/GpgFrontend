@@ -26,10 +26,13 @@
  *
  */
 
+#include <QScopeGuard>
 #include <QSignalSpy>
 #include <future>
 
 #include "MobileTest.h"
+#include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "lifecycle/AppLifecycle.h"
 #include "startup/InteractionBridge.h"
 
@@ -63,6 +66,61 @@ TEST(AppLifecycleTest, GoingToTheBackgroundForgetsSecrets) {
   lifecycle.OnApplicationStateChanged(Qt::ApplicationActive);
   EXPECT_FALSE(lifecycle.IsSuspended());
   EXPECT_EQ(resumed.count(), 1);
+}
+
+// Decrypted text goes once the application was away as long as Settings
+// says: at once when going, otherwise told on the return; never, if asked.
+TEST(AppLifecycleTest, DecryptedTextIsClearedAfterTheTimeAway) {
+  const auto forget = qScopeGuard([]() {
+    auto settings = GetSettings();
+    settings.remove(SettingItems::kClearTextInBackground.Key());
+  });
+  const auto set = [](int seconds) {
+    auto settings = GetSettings();
+    SettingItems::kClearTextInBackground.Write(settings, seconds);
+  };
+
+  InteractionBridge bridge(nullptr);
+  AppLifecycle lifecycle(&bridge);
+  qint64 now = 1'000'000;
+  lifecycle.SetClock([&now]() { return now; });
+  QSignalSpy wiped(&lifecycle, &AppLifecycle::SignalWipeSensitiveText);
+  const auto away = [&lifecycle, &now](qint64 ms) {
+    lifecycle.OnApplicationStateChanged(Qt::ApplicationSuspended);
+    now += ms;
+    lifecycle.OnApplicationStateChanged(Qt::ApplicationActive);
+  };
+
+  // The default: five minutes.
+  EXPECT_EQ(AppLifecycle::ClearTextAfter(), 300);
+  away(299'999);
+  EXPECT_EQ(wiped.count(), 0);
+  away(300'000);
+  EXPECT_EQ(wiped.count(), 1);
+
+  // A clock that went back counts as long enough.
+  away(-60'000);
+  EXPECT_EQ(wiped.count(), 2);
+
+  // At once: when going, not again on the return.
+  set(0);
+  lifecycle.OnApplicationStateChanged(Qt::ApplicationSuspended);
+  EXPECT_EQ(wiped.count(), 3);
+  now += 10'000'000;
+  lifecycle.OnApplicationStateChanged(Qt::ApplicationActive);
+  EXPECT_EQ(wiped.count(), 3);
+
+  // Never.
+  set(-1);
+  away(10'000'000);
+  EXPECT_EQ(wiped.count(), 3);
+
+  // Inactive (a notification shade) is not away at all.
+  set(60);
+  lifecycle.OnApplicationStateChanged(Qt::ApplicationInactive);
+  now += 120'000;
+  lifecycle.OnApplicationStateChanged(Qt::ApplicationActive);
+  EXPECT_EQ(wiped.count(), 3);
 }
 
 TEST(AppLifecycleTest, AQuestionWaitingForAnAnswerSurvivesTheBackground) {

@@ -3696,6 +3696,16 @@
         <source>Keep it out of screenshots, screen recordings and recent apps.</source>
         <translation>Nie pokazuj jej na zrzutach ekranu, nagraniach ekranu ani w ostatnich aplikacjach.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="308"/>
+        <source>Clear decrypted text</source>
+        <translation>Czyść odszyfrowany tekst</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="309"/>
+        <source>After how long in the background decrypted text is cleared.</source>
+        <translation>Po jakim czasie w tle odszyfrowany tekst jest czyszczony.</translation>
+    </message>
 </context>
 <context>
     <name>GpgFrontend::Shell::EncryptBlockReason</name>
@@ -23231,6 +23241,16 @@ Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone 
         <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="1"/>
         <source>Right</source>
         <translation>Do prawej</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="55"/>
+        <source>Never</source>
+        <translation>Nigdy</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="56"/>
+        <source>At once</source>
+        <translation>Od razu</translation>
     </message>
     <message>
         <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="30"/>

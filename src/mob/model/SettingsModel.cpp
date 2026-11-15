@@ -165,6 +165,12 @@ auto SettingsModel::Offered() -> QList<Offer> {
        passphrases,
        {30, 60, 120, 300}},
       {&SettingItems::kProtectTextScreen, {}, passphrases, {}},
+      // Never, at once, or after a while away.
+      {&SettingItems::kClearTextInBackground,
+       QStringLiteral("background"),
+       passphrases,
+       {-1, 0, 60, 300, 900},
+       false},
       {&SettingItems::kExpiringSoonDays,
        QStringLiteral("days"),
        QStringLiteral("keys"),

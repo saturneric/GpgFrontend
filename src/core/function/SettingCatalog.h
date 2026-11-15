@@ -298,6 +298,19 @@ inline constexpr BoolSetting kProtectTextScreen{
          "Keep it out of screenshots, screen recordings and recent apps.")},
     true};
 
+/// How long the phone may be in the background before decrypted text on its
+/// Text page is cleared, in seconds: 0 at once, -1 never. Text the person
+/// typed is never cleared.
+inline constexpr IntSetting kClearTextInBackground{
+    {.key = "mobile/clear_text_in_background",
+     .group = kSECURITY,
+     .title =
+         QT_TRANSLATE_NOOP("GpgFrontend::SettingItem", "Clear decrypted text"),
+     .description = QT_TRANSLATE_NOOP(
+         "GpgFrontend::SettingItem",
+         "After how long in the background decrypted text is cleared.")},
+    300};
+
 /// The typeface of the phone's text editor: "system", "mono", "sans" or
 /// "serif". Only the editor's: the rest of the app keeps the system's.
 inline constexpr StringSetting kEditorFont{
@@ -577,7 +590,7 @@ inline constexpr StateSetting kLastOperation{.key = "mobile/last_operation",
 /// Every entry above. A setting missing from here is invisible to every
 /// policy that walks the catalog, so a new entry is added in both places;
 /// SettingCatalogTest checks that each key appears once.
-inline constexpr std::array<const SettingMeta *, 62> kAll = {
+inline constexpr std::array<const SettingMeta *, 63> kAll = {
     &kDefaultEngine,
     &kUseCustomGnuPGInstallPath,
     &kCustomGnuPGInstallPath,
@@ -603,6 +616,7 @@ inline constexpr std::array<const SettingMeta *, 62> kAll = {
     &kDefaultDecryptOperation,
     &kFolderArchiveFormat,
     &kProtectTextScreen,
+    &kClearTextInBackground,
     &kUndoableOperations,
     &kRestoreTextEditorPage,
     &kDefaultWorkspaceAs,

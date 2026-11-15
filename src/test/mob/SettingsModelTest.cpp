@@ -202,6 +202,25 @@ TEST(SettingsModelTest, TheTextPageIsProtectedUntilTurnedOff) {
   });
 }
 
+// Decrypted text goes after five minutes away unless chosen otherwise:
+// never, at once, or after another of the times offered.
+TEST(SettingsModelTest, DecryptedTextIsClearedAfterAChosenTimeAway) {
+  RunOnMainThread([]() {
+    SettingsModel model;
+    const auto row = static_cast<int>(
+        Keys(model).indexOf(SettingItems::kClearTextInBackground.Key()));
+    ASSERT_GE(row, 0);
+    const auto index = model.index(row);
+    EXPECT_EQ(model.data(index, SettingsModel::kSectionRole), "passphrases");
+    EXPECT_EQ(model.data(index, SettingsModel::kUnitRole), "background");
+    EXPECT_EQ(model.data(index, SettingsModel::kValueRole), 300);
+    EXPECT_FALSE(model.setValue(row, 42));
+    ASSERT_TRUE(model.setValue(row, -1));
+    EXPECT_EQ(SettingItems::kClearTextInBackground.Read(GetSettings()), -1);
+    ASSERT_TRUE(model.setValue(row, 300));
+  });
+}
+
 // A folder is packed into a ZIP unless TAR is chosen; nothing else is taken.
 TEST(SettingsModelTest, AFolderArchiveIsZipOrTar) {
   RunOnMainThread([]() {

@@ -51,6 +51,11 @@ BottomSheet {
             }
         }
         if (unit === "days") return qsTr("%n day(s)", "", amount)
+        if (unit === "background") {
+            if (amount < 0) return qsTr("Never")
+            if (amount === 0) return qsTr("At once")
+            return describe(amount, "seconds")
+        }
         if (unit !== "seconds") return String(amount)
         // A prompt that waits as long as it takes.
         if (amount === 0) return qsTr("No limit")

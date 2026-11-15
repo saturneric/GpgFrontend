@@ -28,10 +28,14 @@
 
 #include "lifecycle/AppLifecycle.h"
 
+#include <QDateTime>
 #include <QGuiApplication>
 #include <QJSEngine>
 
+#include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/function/rpgp/PasswordFetcher.h"
+#include "core/profile/ProfileSession.h"
 #include "crypto/PassphraseBroker.h"
 #include "plat/common/PlatformClipboard.h"
 #include "plat/common/PlatformDisplay.h"
@@ -48,7 +52,12 @@ QPointer<AppLifecycle> g_instance;
 
 AppLifecycle::AppLifecycle(InteractionBridge* bridge,
                            PassphraseBroker* passphrases, QObject* parent)
-    : QObject(parent), bridge_(bridge), passphrases_(passphrases) {
+    : QObject(parent),
+      bridge_(bridge),
+      passphrases_(passphrases),
+      // The wall clock rather than a monotonic one, which stops while the
+      // phone sleeps: a time that went back counts as long enough.
+      now_([]() { return QDateTime::currentMSecsSinceEpoch(); }) {
   if (auto* app = qobject_cast<QGuiApplication*>(QCoreApplication::instance());
       app != nullptr) {
     connect(app, &QGuiApplication::applicationStateChanged, this,
@@ -58,6 +67,17 @@ AppLifecycle::AppLifecycle(InteractionBridge* bridge,
 }
 
 auto AppLifecycle::FontScale() const -> qreal { return font_scale_; }
+
+void AppLifecycle::SetClock(std::function<qint64()> now) {
+  now_ = std::move(now);
+}
+
+auto AppLifecycle::ClearTextAfter() -> int {
+  if (!ProfileSession::Loaded()) {
+    return SettingItems::kClearTextInBackground.Default();
+  }
+  return SettingItems::kClearTextInBackground.Read(GetSettings());
+}
 
 auto AppLifecycle::toBackground() -> bool { return SendToBackground(); }
 
@@ -91,6 +111,9 @@ void AppLifecycle::OnApplicationStateChanged(Qt::ApplicationState state) {
     if (passphrases_ != nullptr) passphrases_->SetSuspended(true);
     ClearRpgpPasswordCache();
     bridge_->WipeSecretInputs();
+    suspended_at_ = now_();
+    clear_text_after_ = ClearTextAfter();
+    if (clear_text_after_ == 0) emit SignalWipeSensitiveText();
 
     emit SignalSuspendedChanged();
     emit SignalSuspended();
@@ -102,6 +125,15 @@ void AppLifecycle::OnApplicationStateChanged(Qt::ApplicationState state) {
     if (passphrases_ != nullptr) passphrases_->SetSuspended(false);
     // A sensitive copy's timer did not run in the background.
     ExpireSensitiveCopy();
+    // Nor did any timer for decrypted text: whether it stayed away too long
+    // is told now, before the text is seen again.
+    if (clear_text_after_ > 0) {
+      const auto now = now_();
+      if (now < suspended_at_ ||
+          now - suspended_at_ >= qint64{clear_text_after_} * 1000) {
+        emit SignalWipeSensitiveText();
+      }
+    }
     read_font_scale();
     emit SignalSuspendedChanged();
     emit SignalResumed();

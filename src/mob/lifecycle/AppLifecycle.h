@@ -32,6 +32,7 @@
 
 #include <QObject>
 #include <QPointer>
+#include <functional>
 
 class QQmlEngine;
 class QJSEngine;
@@ -53,6 +54,10 @@ class PassphraseBroker;
  * finishes on its own once the application is back. A question still waiting
  * for an answer (a PIN at startup) stays; nothing destructive is answered on
  * anyone's behalf.
+ *
+ * Decrypted text is cleared (SignalWipeSensitiveText) once the application
+ * has been in the background as long as Settings says: at once, when going;
+ * otherwise on the return, as nothing runs in between.
  *
  * Inactive -- a notification shade, a permission dialog -- changes nothing.
  */
@@ -89,6 +94,13 @@ class AppLifecycle : public QObject {
   [[nodiscard]] auto IsSuspended() const -> bool;
   [[nodiscard]] auto FontScale() const -> qreal;
 
+  /// What the time is, in milliseconds since the epoch; for tests.
+  void SetClock(std::function<qint64()> now);
+
+  /// How long in the background before decrypted text is cleared, in
+  /// seconds, as Settings says: 0 at once, below 0 never.
+  [[nodiscard]] static auto ClearTextAfter() -> int;
+
  signals:
   void SignalSuspendedChanged();
   void SignalFontScaleChanged();
@@ -99,12 +111,20 @@ class AppLifecycle : public QObject {
   void SignalSuspended();
   /// Back in the foreground.
   void SignalResumed();
+  /// Decrypted text on screen is to be cleared: the application was in the
+  /// background as long as Settings allows. Text typed by hand stays.
+  void SignalWipeSensitiveText();
 
  private:
   InteractionBridge* bridge_;
   PassphraseBroker* passphrases_;
   bool suspended_ = false;
   qreal font_scale_ = 1.0;
+  std::function<qint64()> now_;
+  /// When the application went to the background, and how long it may stay
+  /// before decrypted text goes (as Settings said then; below 0 never).
+  qint64 suspended_at_ = 0;
+  int clear_text_after_ = -1;
 
   void read_font_scale();
 };

@@ -210,6 +210,21 @@ Item {
             verify(text.screenGuard.active)
         }
 
+        // Away too long: decrypted text goes, Undo included; text typed by
+        // hand is never cleared.
+        function test_only_decrypted_text_is_cleared_in_the_background() {
+            type("my own draft")
+            text.wipeSensitive()
+            compare(text.editor.text, "my own draft")
+            compare(fake.clears, 0)
+
+            fake.sensitive = true
+            text.wipeSensitive()
+            compare(text.editor.text, "")
+            compare(fake.clears, 1)
+            verify(!text.editor.canUndo)
+        }
+
         function test_one_editor_and_no_status_badges() {
             for (const gone of ["resultViews", "textKind", "textHistory",
                                 "editTools", "actionDock"])
