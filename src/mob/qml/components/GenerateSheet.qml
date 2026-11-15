@@ -267,10 +267,15 @@ BottomSheet {
         id: problem
     }
 
-    BusyIndicator {
+    // Made only while it can be seen. Quick key runs with this sheet closed,
+    // and a BusyIndicator switched on and off out of sight kept the window
+    // drawing frame after frame for good: every tap then waited for a frame.
+    Loader {
+        objectName: "generateBusy"
         Layout.alignment: Qt.AlignHCenter
-        running: actions.busy
-        visible: running
+        active: actions.busy && sheet.opened
+        visible: active
+        sourceComponent: BusyIndicator {}
     }
 
     footer: [

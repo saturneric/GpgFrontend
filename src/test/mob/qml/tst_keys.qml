@@ -540,6 +540,29 @@ Item {
             verify(maker.working)
         }
 
+        // The sheet's progress exists only while it can be seen: Quick key
+        // runs with the sheet closed, and an indicator switched on and off
+        // out of sight kept the window drawing frames for good.
+        function test_no_hidden_progress_while_a_quick_key_is_made() {
+            const busy = findByName(maker.contentItem, "generateBusy")
+            verify(busy !== null)
+            maker.quick()
+            fakeMaker.busy = true
+            verify(!maker.opened)
+            verify(!busy.active)
+            fakeMaker.busy = false
+            maker.finished("generate", false, {"reason": "cancelled"})
+
+            maker.begin()
+            tryVerify(() => maker.opened)
+            fakeMaker.busy = true
+            verify(busy.active)
+            fakeMaker.busy = false
+            verify(!busy.active)
+            maker.close()
+            tryVerify(() => !maker.visible)
+        }
+
         // A user ID is made as the desktop makes it: a name is required, an
         // email only if wanted, a comment too; what is wrong is said under
         // the field it is in, and a name not typed yet is not yet wrong.

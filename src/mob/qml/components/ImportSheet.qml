@@ -118,10 +118,15 @@ BottomSheet {
         visible: text.length > 0
     }
 
-    BusyIndicator {
+    // Made only while it can be seen: an import goes on when the sheet is
+    // put away, and a BusyIndicator switched off out of sight kept the window
+    // drawing frame after frame for good (as GenerateSheet's did).
+    Loader {
+        objectName: "importBusy"
         Layout.alignment: Qt.AlignHCenter
-        running: importer.busy
-        visible: running
+        active: importer.busy && sheet.opened
+        visible: active
+        sourceComponent: BusyIndicator {}
     }
 
     // No Close of its own: Back, a tap beside it or pulling it down put it
