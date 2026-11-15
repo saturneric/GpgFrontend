@@ -374,21 +374,40 @@ auto ArchiveWriteCallback(struct archive *, void *client_data,
 }
 
 /**
- * @brief Tell a write handle which container to emit.
+ * @brief Tell a write handle which container to emit, and how to compress it.
  *
  * The pax hdrcharset option is deliberately not applied to zip: it is a pax
- * extended-header setting, and a zip whose entry names are anything but UTF-8
- * cannot be keyed by a manifest.
+ * extended-header setting. A zip says its names are UTF-8 with its own option
+ * instead, so a module manifest can key its entries and any unzip tool shows
+ * a folder's non-ASCII names as they were.
  */
 void ApplyArchiveFormat(struct archive *archive,
-                        GpgFrontend::ArchiveFormat format) {
+                        GpgFrontend::ArchiveFormat format,
+                        GpgFrontend::ArchiveCompression compression) {
+  using GpgFrontend::ArchiveCompression;
+
+  if (compression == ArchiveCompression::kGZIP) {
+    archive_write_add_filter_gzip(archive);
+  } else {
+    archive_write_add_filter_none(archive);
+  }
+
   if (format == GpgFrontend::ArchiveFormat::kZIP) {
     archive_write_set_format_zip(archive);
-    // Store-only. The container is already the compression boundary for a
-    // module package, and an entry the writer deflates is one more thing
-    // standing between a signed digest and the bytes on disk.
-    archive_write_set_format_option(archive, "zip", "compression", "store");
+    // Store-only unless asked. The container is already the compression
+    // boundary for a module package, and an entry the writer deflates is one
+    // more thing standing between a signed digest and the bytes on disk.
+    archive_write_set_format_option(
+        archive, "zip", "compression",
+        compression == ArchiveCompression::kDEFLATE ? "deflate" : "store");
+    // Without a converter (no iconv on the phone) this is refused, and the
+    // writer falls back to the locale's charset, which is UTF-8 there anyway.
+    archive_write_set_format_option(archive, "zip", "hdrcharset", "UTF-8");
     return;
+  }
+
+  if (compression == ArchiveCompression::kDEFLATE) {
+    FLOG_W("deflate applies to zip entries only; writing uncompressed");
   }
   archive_write_set_format_pax_restricted(archive);
   archive_write_set_format_option(archive, "pax", "hdrcharset", "BINARY");
@@ -411,12 +430,7 @@ auto ArchiveFileOperator::NewArchive2DataExchangerSync(
       const auto base_path = QDir(QDir(target_directory).absolutePath());
 
       auto *archive = archive_write_new();
-      if (compression == ArchiveCompression::kGZIP) {
-        archive_write_add_filter_gzip(archive);
-      } else {
-        archive_write_add_filter_none(archive);
-      }
-      ApplyArchiveFormat(archive, format);
+      ApplyArchiveFormat(archive, format, compression);
 
       archive_write_open(archive, exchanger.get(), nullptr,
                          ArchiveWriteCallback, ArchiveCloseWriteCallback);
@@ -608,12 +622,7 @@ auto ArchiveFileOperator::NewArchiveFromMembersSync(
     const QSharedPointer<GFDataExchanger> &exchanger,
     ArchiveCompression compression, ArchiveFormat format) -> GFOperaStatus {
   auto *archive = archive_write_new();
-  if (compression == ArchiveCompression::kGZIP) {
-    archive_write_add_filter_gzip(archive);
-  } else {
-    archive_write_add_filter_none(archive);
-  }
-  ApplyArchiveFormat(archive, format);
+  ApplyArchiveFormat(archive, format, compression);
 
   // A handle whose open failed still accepts headers and silently discards
   // them, so leaving this unchecked produces an empty archive and calls it a

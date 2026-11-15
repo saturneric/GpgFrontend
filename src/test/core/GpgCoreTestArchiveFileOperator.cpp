@@ -396,8 +396,7 @@ TEST(ArchiveFileOperatorTest, ExtractsIntoADestinationReachedThroughASymlink) {
   const auto extract_error =
       GpgFrontend::ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
           back, linked_root + "/out",
-          GpgFrontend::ArchiveExtractPolicy::Strict(), {}, {}, {},
-          &reason);
+          GpgFrontend::ArchiveExtractPolicy::Strict(), {}, {}, {}, &reason);
   feeder.join();
 
   ASSERT_EQ(extract_error, 0) << reason.toStdString();
@@ -902,8 +901,9 @@ namespace {
 
 /// Build an archive in memory from bytes in hand, in the given format.
 auto PackMembers(const QList<QPair<QString, QByteArray>>& members,
-                 GpgFrontend::ArchiveFormat format, const QString& out_path)
-    -> bool {
+                 GpgFrontend::ArchiveFormat format, const QString& out_path,
+                 GpgFrontend::ArchiveCompression compression =
+                     GpgFrontend::ArchiveCompression::kNONE) -> bool {
   QFile out(out_path);
   if (!out.open(QIODevice::WriteOnly)) return false;
 
@@ -919,7 +919,7 @@ auto PackMembers(const QList<QPair<QString, QByteArray>>& members,
           entry.bytes = GpgFrontend::GFBuffer(m.second);
           return true;
         },
-        exchanger, GpgFrontend::ArchiveCompression::kNONE, format);
+        exchanger, compression, format);
   });
 
   QByteArray chunk(64 * 1024, Qt::Uninitialized);
@@ -970,13 +970,100 @@ TEST(ArchiveZipTest, RoundTripsThroughTheZipContainer) {
   EXPECT_EQ(back.value("b/two.bin"), QByteArray(1024, '\x7f'));
 }
 
+namespace {
+
+/// Every entry of @p archive, claimed so nothing is written to disk.
+auto ReadAllMembers(const QString& archive) -> QMap<QString, QByteArray> {
+  QMap<QString, QByteArray> back;
+  QTemporaryDir nowhere;
+  if (!nowhere.isValid()) return back;
+  const auto error =
+      GpgFrontend::ArchiveFileOperator::ExtractArchiveFromFileSync(
+          archive, nowhere.path(),
+          GpgFrontend::ArchiveExtractPolicy::Permissive(),
+          [](const QString&) { return true; },
+          [&](const QString& path, const GpgFrontend::GFBuffer& bytes) {
+            back.insert(path, bytes.ConvertToQByteArray());
+            return true;
+          });
+  if (error != 0) back.clear();
+  return back;
+}
+
+}  // namespace
+
+TEST(ArchiveZipTest, DeflatedEntriesRoundTripAndAreSmaller) {
+  // The phone hands its folders out as zips anyone can open, so they are
+  // deflated the way every zip tool expects rather than stored.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto stored = dir.path() + "/stored.zip";
+  const auto deflated = dir.path() + "/deflated.zip";
+  const QByteArray text = QByteArray("the same line again\n").repeated(4096);
+  const QList<QPair<QString, QByteArray>> members{
+      {"notes/a.txt", text}, {"notes/b.bin", QByteArray(8192, '\0')}};
+
+  ASSERT_TRUE(PackMembers(members, GpgFrontend::ArchiveFormat::kZIP, stored));
+  ASSERT_TRUE(PackMembers(members, GpgFrontend::ArchiveFormat::kZIP, deflated,
+                          GpgFrontend::ArchiveCompression::kDEFLATE));
+
+  // libarchive pads its output to 10 KiB blocks, so the ratio is modest.
+  EXPECT_LT(QFileInfo(deflated).size() * 4, QFileInfo(stored).size());
+
+  const auto back = ReadAllMembers(deflated);
+  EXPECT_EQ(back.value("notes/a.txt"), text);
+  EXPECT_EQ(back.value("notes/b.bin"), QByteArray(8192, '\0'));
+}
+
+TEST(ArchiveZipTest, NonAsciiNamesAreWrittenAsUtf8) {
+  // A zip that does not set the UTF-8 flag (general purpose bit 11) has its
+  // names read as CP437 by most unzip tools: a folder of "Lebenslauf_Müller"
+  // would come back garbled.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto zip = dir.path() + "/names.zip";
+  const auto name = QStringLiteral("Bilder/Grüße_写真.txt");
+
+  ASSERT_TRUE(PackMembers({{name, QByteArray("hello")}},
+                          GpgFrontend::ArchiveFormat::kZIP, zip,
+                          GpgFrontend::ArchiveCompression::kDEFLATE));
+
+  QFile probe(zip);
+  ASSERT_TRUE(probe.open(QIODevice::ReadOnly));
+  const auto head = probe.read(30 + name.toUtf8().size());
+  probe.close();
+  ASSERT_TRUE(head.startsWith("PK\x03\x04"));
+  const auto flags =
+      static_cast<quint8>(head.at(6)) | (static_cast<quint8>(head.at(7)) << 8);
+  EXPECT_NE(flags & 0x0800, 0) << "the UTF-8 name flag is not set";
+  EXPECT_EQ(head.mid(30), name.toUtf8());
+
+  EXPECT_EQ(ReadAllMembers(zip).value(name), QByteArray("hello"));
+}
+
+TEST(ArchiveZipTest, DeflateAsksNothingOfATar) {
+  // Deflate belongs to zip entries; a pax archive asked for it is written
+  // plain rather than refused, and still reads back.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto tar = dir.path() + "/plain.tar";
+  ASSERT_TRUE(PackMembers({{"a.txt", QByteArray("plain")}},
+                          GpgFrontend::ArchiveFormat::kPAX_RESTRICTED, tar,
+                          GpgFrontend::ArchiveCompression::kDEFLATE));
+
+  QFile probe(tar);
+  ASSERT_TRUE(probe.open(QIODevice::ReadOnly));
+  EXPECT_EQ(probe.read(512).mid(257, 5), QByteArray("ustar"));
+  probe.close();
+  EXPECT_EQ(ReadAllMembers(tar).value("a.txt"), QByteArray("plain"));
+}
+
 TEST(ArchiveZipTest, ExtractFromFileReportsAnUnreadablePath) {
   QString reason;
   const auto error =
       GpgFrontend::ArchiveFileOperator::ExtractArchiveFromFileSync(
           "/nonexistent/nowhere.zip", QDir::tempPath(),
-          GpgFrontend::ArchiveExtractPolicy::Permissive(), {}, {}, {},
-          &reason);
+          GpgFrontend::ArchiveExtractPolicy::Permissive(), {}, {}, {}, &reason);
   EXPECT_NE(error, 0U);
   EXPECT_FALSE(reason.isEmpty());
 }

@@ -46,6 +46,10 @@ namespace GpgFrontend {
 enum class ArchiveCompression {
   kNONE,  ///< store only, the historical behaviour
   kGZIP,  ///< gzip filter, used by profile packages
+  /// Each zip entry deflated on its own, the way every zip tool reads it.
+  /// Only a zip has entries to deflate: with any other format nothing is
+  /// compressed.
+  kDEFLATE,
 };
 
 /**
@@ -61,7 +65,7 @@ enum class ArchiveCompression {
  */
 enum class ArchiveFormat {
   kPAX_RESTRICTED,  ///< the historical behaviour, used by profile packages
-  kZIP,             ///< zip, used by module packages
+  kZIP,  ///< zip, used by module packages and the phone's folder archives
 };
 
 /**
