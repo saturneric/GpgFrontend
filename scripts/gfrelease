@@ -1,0 +1,9 @@
+#!/bin/sh
+# Copyright (C) 2021-2026 Saturneric <eric@bktus.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# The release tooling (scripts/release/gfrelease), from anywhere:
+#   scripts/gfrelease --help
+# A symlink to this script (say, in ~/.local/bin) works too.
+here="$(dirname "$(readlink -f "$0" 2>/dev/null || echo "$0")")"
+exec python3 -I "$here/release/gfrelease" "$@"
