@@ -26,6 +26,7 @@ import policy as policy_mod  # noqa: E402
 import refs  # noqa: E402
 import release_candidate as rc  # noqa: E402
 import semver  # noqa: E402
+import ui  # noqa: E402
 
 SCHEMA = 1
 DESCRIPTOR = "release.json"
@@ -236,6 +237,7 @@ def run(cmd, **kw) -> subprocess.CompletedProcess:
         # in a forged signature, a file name): never a UnicodeDecodeError.
         kw.setdefault("encoding", "utf-8")
         kw.setdefault("errors", "replace")
+    ui.tool_started(cmd)
     try:
         return subprocess.run([str(c) for c in cmd], **kw)
     except subprocess.CalledProcessError as e:

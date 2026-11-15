@@ -18,6 +18,7 @@ import tempfile
 import threading
 from pathlib import Path
 
+import ui
 from common import (SMALL_OBJECT_LIMIT, TOOL_TIMEOUT, ReleaseError,
                     ToolTimeout, check_relpath, run, sha256_file)
 
@@ -128,6 +129,7 @@ class Store:
         (an S3 ETag is not one for a multipart upload) is trusted for it."""
         h = hashlib.sha256()
         with tempfile.TemporaryFile() as err:
+            ui.tool_started([self.rclone, "cat", self._at(path)])
             try:
                 proc = subprocess.Popen([self.rclone, "cat", self._at(path)],
                                         stdout=subprocess.PIPE, stderr=err)

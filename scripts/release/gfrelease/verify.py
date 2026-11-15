@@ -375,6 +375,20 @@ def _check_entry(product: Product, builds, entry: dict,
             "artifacts": len(d["artifacts"])}
 
 
+def read_index(product: Product, update) -> dict:
+    """The published index, once its signature verifies with a key of the
+    index-keys list it names (trusted through the root) and it checks out
+    as a client checks it (check_index)."""
+    # What the index names to be trusted with, before it is: the
+    # signature then decides.
+    index_keys = _index_keys(product, update,
+                             load_json(update.read(INDEX), INDEX))
+    data, comment = _signed(update, INDEX, index_keys)
+    index = load_json(data, INDEX)
+    check_index(product, index, comment)
+    return index
+
+
 def verify(product: Product, update, builds, *, deep: bool = False) -> dict:
     """Everything hangs off the signed index: the descriptors by their
     hashes, the files by the descriptors'. A stable or imported release's
@@ -384,13 +398,7 @@ def verify(product: Product, update, builds, *, deep: bool = False) -> dict:
     with tempfile.TemporaryDirectory(prefix="gfr-verify-") as tmp_name, \
             contextlib.ExitStack() as stack:
         tmp = Path(tmp_name)
-        # What the index names to be trusted with, before it is: the
-        # signature then decides.
-        index_keys = _index_keys(product, update,
-                                 load_json(update.read(INDEX), INDEX))
-        data, comment = _signed(update, INDEX, index_keys)
-        index = load_json(data, INDEX)
-        check_index(product, index, comment)
+        index = read_index(product, update)
         report = {"product": product.slug, "serial": index["serial"],
                   "expires": index["expires"], "channels": index["channels"],
                   "checked": []}

@@ -26,11 +26,11 @@ offline signing stage.
 from __future__ import annotations
 
 import shutil
-import sys
 import tempfile
 from pathlib import Path
 
 import layout
+import ui
 from common import (BUNDLE, SCHEMA, STAGED, SUMS, Problems, Product,
                     ReleaseError, ToolFailed, canonical_json, git_version,
                     iso, parse_version, refs, sha256_file, utcnow,
@@ -203,9 +203,9 @@ def promote(product: Product, staging: Store, builds: Store, *,
             # pushed at vX.Y.Z): the stable release, which only the offline
             # stage publishes. Not a nightly, and not a failure either.
             if parse_version(staged["version"]).is_final:
-                print(f"{prefix}: {staged['version']} is a final version, "
-                      "published as the stable release, never as a nightly",
-                      file=sys.stderr)
+                ui.warn(f"{prefix}: {staged['version']} is a final "
+                        "version, published as the stable release, never as "
+                        "a nightly")
                 continue
             try:
                 dest = final_prefix(staged)
