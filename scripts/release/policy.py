@@ -288,21 +288,17 @@ def check_product(product: dict) -> None:
         if rule.get("kind") not in kinds:
             errors.append(f"{where}.kind {rule.get('kind')!r} is not one of "
                           "artifact_kinds")
-    retention = product.get("nightly_retention_days")
-    if retention is not None and (not isinstance(retention, int) or
-                                  isinstance(retention, bool) or
-                                  retention <= NIGHTLY_MARGIN_DAYS):
-        errors.append("nightly_retention_days must be a whole number of days "
-                      f"above the {NIGHTLY_MARGIN_DAYS}-day margin")
+    if "nightly_retention_days" in product:
+        # Never silently ignored: what replaced it lives elsewhere.
+        errors.append("nightly_retention_days is gone: the signing host "
+                      "keeps the newest nightlies (Release-Server's "
+                      "GFR_NIGHTLY_KEEP)")
     if errors:
         raise PolicyError("\n".join(errors))
 
 
-# How long a signed index is valid, and how long before the bucket deletes a
-# nightly the index stops naming it: longer than an index lives, so no
-# index a client still accepts ever names a nightly that is gone.
+# How long a signed index is valid.
 INDEX_LIFETIME_DAYS = 14
-NIGHTLY_MARGIN_DAYS = INDEX_LIFETIME_DAYS + 1
 
 
 def mainline(policy: dict) -> str:

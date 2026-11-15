@@ -138,7 +138,11 @@ export GFR_STAGING="$dir/staging" GFR_BUILDS="$dir/www/builds/$slug" \
   GFR_UPDATE="$dir/www/update/$slug" GFR_STATE_DIR="$dir/state" \
   GFR_GIT_DIR="$top" GFR_COSIGN="$dir/cosign" \
   GFR_INDEX_KEY="$dir/keys/index.key" GFR_INDEX_PUB="$dir/keys/index.pub"
-"${gfr[@]}" run
+# What the Release-Server container runs: promote, then index, then a
+# read-back of what was published.
+"${gfr[@]}" promote
+"${gfr[@]}" index
+"${gfr[@]}" verify --update "$GFR_UPDATE" --builds "$GFR_BUILDS" > /dev/null
 
 echo "== the mirror, over HTTPS"
 python3 - "$dir" "$port" > "$dir/server.log" 2>&1 <<'PY' &

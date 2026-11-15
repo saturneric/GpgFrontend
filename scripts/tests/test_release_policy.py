@@ -220,17 +220,14 @@ class PolicyCheckTest(unittest.TestCase):
         with self.assertRaisesRegex(policy.PolicyError, "lacks flavor"):
             policy.check_product(product)
 
-    def test_nightly_retention_outlasts_the_margin(self):
-        # Longer than an index lives (14 days) and the margin after it.
-        for bad in (7, 15, 0, "30", True):
-            product = policy.load_product()
-            product["nightly_retention_days"] = bad
-            with self.subTest(bad=bad), \
-                    self.assertRaisesRegex(policy.PolicyError, "retention"):
-                policy.check_product(product)
+    def test_nightly_retention_is_no_longer_read(self):
+        # The signing host keeps the newest nightlies now: a product that
+        # still says how long is told so, never silently ignored.
         product = policy.load_product()
-        product["nightly_retention_days"] = policy.NIGHTLY_MARGIN_DAYS + 1
-        policy.check_product(product)
+        self.assertNotIn("nightly_retention_days", product)
+        product["nightly_retention_days"] = 30
+        with self.assertRaisesRegex(policy.PolicyError, "GFR_NIGHTLY_KEEP"):
+            policy.check_product(product)
 
     def test_what_identifies_the_build_and_names_its_files_is_checked(self):
         for field, bad in (("artifact_prefix", ""), ("artifact_prefix", "a/b"),
