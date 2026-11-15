@@ -1651,8 +1651,8 @@ mod verify_tests {
     }
 
     /// A genuine v4 signature of type `typ` by `fixture`'s primary key, made
-    /// the way rPGP's verifier hashes that type: Standalone (0x02) and
-    /// Timestamp (0x40) hash one octet of the supplied data.
+    /// over just one octet of the document, the way rPGP before 0.21.1
+    /// hashed Standalone (0x02) and Timestamp (0x40) signatures.
     fn non_document_signature(fixture: &keys::Fixture, typ: SignatureType, first: u8) -> Signature {
         use pgp::types::{KeyDetails, SigningKey};
         let primary = &fixture.secret.primary_key;
@@ -1674,17 +1674,18 @@ mod verify_tests {
     fn only_binary_and_text_signatures_can_vouch_for_a_document() {
         // RFC 9580 §5.2.1: 0x00 and 0x01 are the signatures "of a document".
         // A standalone (0x02) or timestamp (0x40) signature does not cover
-        // the document at all, yet rPGP's `Signature::verify` hashes only
-        // the first octet of the data for them: one such signature would
-        // "verify" every file that starts with the same byte.
+        // the document at all. Before 0.21.1, rPGP's `Signature::verify`
+        // hashed only the first octet of the data for them: one such
+        // signature would "verify" every file that starts with the same
+        // byte. rPGP now rejects them too; GF's own gate stays regardless.
         let fixture = &keys::V4_SIGN;
         let document = b"Pay the bearer 1000 EUR\n";
         for typ in [SignatureType::Standalone, SignatureType::Timestamp] {
             let sig = non_document_signature(fixture, typ, document[0]);
             assert!(
                 sig.verify(fixture.secret.primary_key.public_key(), &document[..])
-                    .is_ok(),
-                "precondition: rPGP accepts the {typ:?} signature over the document"
+                    .is_err(),
+                "rPGP rejects the {typ:?} signature over the document"
             );
             let packet = pgp::ser::Serialize::to_bytes(&pgp::packet::Packet::from(sig)).unwrap();
             let res = verify_detached(document, &packet, Some(&fixture.public_armored));
