@@ -38,9 +38,15 @@
  *   Tracks allocations and wipes memory on free when the application secure
  *   level is >= 1; below that it is plain malloc and free, untracked.
  * - Secure (SMASecMalloc / SMASecRealloc / SMASecFree): for secrets. Always
- *   tracked and **always wiped on release, at every secure level**. Above
- *   level 2 it additionally uses libsodium guarded memory (sodium_malloc /
- *   sodium_free), which locks the pages against swap.
+ *   tracked and **always wiped on release, at every secure level**. At level
+ *   2 and above it additionally uses libsodium guarded memory (sodium_malloc /
+ *   sodium_free): guard pages on both sides, and the pages locked against
+ *   swap where the system allows it.
+ *
+ * The level is the application's GFSecureLevel, which a profile's settings
+ * decide. Mounting the profile already allocates, so the allocator starts at
+ * level 0 and takes the level up from SMASetSecureLevel() on: blocks made
+ * before keep how they were made, and are released accordingly.
  *
  * The wipe is a property of the secure tier rather than of the caller, so a
  * secret does not depend on every release site remembering to zero it, nor on
@@ -123,5 +129,19 @@ auto GF_CORE_EXPORT SMASecRealloc(void* ptr, size_t size) -> void*;
  * @param ptr pointer to the block to free, or nullptr (no-op)
  */
 void GF_CORE_EXPORT SMASecFree(void* ptr);
+
+/**
+ * @brief Allocate at secure level @p level from now on.
+ *
+ * Called once the application's GFSecureLevel is known. Blocks allocated
+ * before stay as they were made and are released accordingly, so this is
+ * safe at any time and from any thread.
+ */
+void GF_CORE_EXPORT SMASetSecureLevel(int level);
+
+/**
+ * @brief Whether @p ptr, from SMASecMalloc, lives in libsodium guarded memory.
+ */
+auto GF_CORE_EXPORT SMASecIsGuarded(void* ptr) -> bool;
 
 }  // namespace GpgFrontend

@@ -30,6 +30,7 @@
 
 #include "core/GFCoreLog.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SecureMemoryAllocator.h"
 #include "core/function/SettingCatalog.h"
 #include "core/profile/Profile.h"
 #include "core/profile/ProfileLoader.h"
@@ -90,10 +91,15 @@ void BootContext::load_env_conf_set_properties() {
     return ResolveLayeredValue(pinned, user.value(user_key), fallback);
   };
 
-  property("GFSecureLevel", resolve(SettingItems::kSecureLevel.deployment_key,
-                                    SettingItems::kSecureLevel.key,
-                                    SettingItems::kSecureLevel.Default())
-                                .toInt());
+  const auto resolved_secure_level =
+      resolve(SettingItems::kSecureLevel.deployment_key,
+              SettingItems::kSecureLevel.key,
+              SettingItems::kSecureLevel.Default())
+          .toInt();
+  property("GFSecureLevel", resolved_secure_level);
+  // Mounting the profile already allocated, at level 0: the allocator takes
+  // the level up from here on.
+  SMASetSecureLevel(resolved_secure_level);
 
   // How the key file is protected at rest used to live in two settings keys:
   // os_secret_store for the credential store, and secure_level >= 3 for a PIN.
