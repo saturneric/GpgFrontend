@@ -72,6 +72,13 @@ void RegisterSystemSecretStoreUnavailable(QString reason) {
 
 auto GetSystemSecretStore() -> SystemSecretStore* { return g_store.get(); }
 
+auto SystemSecretStore::ReadDetailed(const QString& account)
+    -> SecretReadResult {
+  auto secret = Read(account);
+  if (!secret) return {SecretReadStatus::kABSENT, {}, LastError()};
+  return {SecretReadStatus::kOK, std::move(secret), {}};
+}
+
 auto SystemSecretStoreUnavailableReason() -> QString {
   // A backend that later registers makes any earlier reason stale, and a stale
   // explanation on screen is worse than none.

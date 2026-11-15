@@ -18600,6 +18600,21 @@ Open it in your browser?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../../../../src/shell/present/ProfileLoadErrorText.cpp" line="196"/>
+        <source>Credential Store Unavailable</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/present/ProfileLoadErrorText.cpp" line="188"/>
+        <source>The secret that opens this profile&apos;s key is kept in the system credential store, which could not be reached. Nothing has been lost.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/present/ProfileLoadErrorText.cpp" line="193"/>
+        <source>Make sure the credential store is available and unlocked, then start the application again.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../../../../src/shell/present/ProfileLoadErrorText.cpp" line="57"/>
         <location filename="../../../../src/shell/present/ProfileLoadErrorText.cpp" line="183"/>
         <source>Please check your storage and permissions.</source>

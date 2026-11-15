@@ -182,6 +182,21 @@ auto DescribeProfileLoadError(const ProfileLoadError& error)
                   .arg(error.detail) +
               "\n" + QObject::tr("Please check your storage and permissions.")};
 
+    case ProfileLoadFailure::kKEY_STORE_LOCKED: {
+      // Not the lost-key case: the store did not answer, which says nothing
+      // about whether the secret is still in it. So no word of resetting.
+      auto text = QObject::tr(
+          "The secret that opens this profile's key is kept in the system "
+          "credential store, which could not be reached. Nothing has been "
+          "lost.");
+      if (!error.detail.isEmpty()) text += "\n\n" + error.detail;
+      text += "\n\n" + QObject::tr(
+                           "Make sure the credential store is available and "
+                           "unlocked, then start the application again.");
+      return ProfileLoadErrorText{QObject::tr("Credential Store Unavailable"),
+                                  text};
+    }
+
     case ProfileLoadFailure::kKEY_LOCKED_OUT:
       // The offer to reset was already made and declined; quitting leaves the
       // key intact so the keychain can be unlocked and the start retried.

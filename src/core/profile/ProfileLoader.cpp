@@ -181,6 +181,31 @@ auto ProfileLoader::ResolveAppKeyProtection(
   return AppKeyProtection::kNONE;
 }
 
+auto ProfileLoader::ActionForWrapStatus(AppKeyWrapStatus status)
+    -> AppKeyWrapAction {
+  switch (status) {
+    case AppKeyWrapStatus::kNOT_WRAPPED:
+    case AppKeyWrapStatus::kWRAPPED:
+    case AppKeyWrapStatus::kJUST_ENABLED:
+    case AppKeyWrapStatus::kJUST_DISABLED:
+      return AppKeyWrapAction::kPROCEED;
+    case AppKeyWrapStatus::kSTORE_UNAVAILABLE:
+      return AppKeyWrapAction::kPROCEED_UNPROTECTED;
+    case AppKeyWrapStatus::kSTORE_LOCKED:
+      return AppKeyWrapAction::kASK_RETRY;
+    case AppKeyWrapStatus::kLOCKED_OUT:
+      return AppKeyWrapAction::kOFFER_RESET;
+    case AppKeyWrapStatus::kIO_FAILED:
+      return AppKeyWrapAction::kFAIL;
+  }
+  return AppKeyWrapAction::kFAIL;
+}
+
+auto ProfileLoaderDelegate::AskRetryLockedStore(
+    const AppKeyStoreLockedRequest& /*request*/) -> bool {
+  return false;
+}
+
 ProfileLoader::ProfileLoader(QSharedPointer<Profile> profile,
                              ProfileLoaderDelegate* delegate)
     : profile_(std::move(profile)), delegate_(delegate) {
@@ -528,47 +553,62 @@ auto ProfileLoader::resolve_secret(AppKeyProtection protection, GFBuffer& pin,
   }
 
   if (protection != AppKeyProtection::kPIN) {
-    const auto result = ProfileSecureKeyManager::ResolveWrapSecret(
-        key_path, GetSystemSecretStore(),
-        protection == AppKeyProtection::kKEYCHAIN, CurrentWrapAccount());
+    AppKeyStoreLockedRequest locked;
+    while (true) {
+      const auto result = ProfileSecureKeyManager::ResolveWrapSecret(
+          key_path, GetSystemSecretStore(),
+          protection == AppKeyProtection::kKEYCHAIN, CurrentWrapAccount());
 
-    switch (result.status) {
-      case AppKeyWrapStatus::kNOT_WRAPPED:
-      case AppKeyWrapStatus::kWRAPPED:
-      case AppKeyWrapStatus::kJUST_ENABLED:
-      case AppKeyWrapStatus::kJUST_DISABLED:
-        wrap = result.secret;
-        return true;
+      switch (ActionForWrapStatus(result.status)) {
+        case AppKeyWrapAction::kPROCEED:
+          wrap = result.secret;
+          return true;
 
-      case AppKeyWrapStatus::kSTORE_UNAVAILABLE: {
-        // Turn the preference back off rather than retrying, and failing, at
-        // every launch. The key stays exactly as it was, just unprotected.
-        turn_protection_off();
-        delegate_->Note(ProfileLoadNotice::kKEYCHAIN_UNAVAILABLE,
-                        result.detail);
-        return true;
-      }
+        case AppKeyWrapAction::kPROCEED_UNPROTECTED:
+          // Turn the preference back off rather than retrying, and failing, at
+          // every launch. The key stays exactly as it was, just unprotected.
+          turn_protection_off();
+          delegate_->Note(ProfileLoadNotice::kKEYCHAIN_UNAVAILABLE,
+                          result.detail);
+          return true;
 
-      case AppKeyWrapStatus::kIO_FAILED:
-        delegate_->Report({ProfileLoadFailure::kKEY_IO_FAILED, result.detail});
-        return false;
-
-      case AppKeyWrapStatus::kLOCKED_OUT:
-        // Never reset on the user's behalf: resetting is unrecoverable, whereas
-        // quitting costs nothing and lets them unlock the keychain and retry.
-        if (!delegate_->ConfirmKeyReset(
-                ProfileKeyResetReason::kKEYCHAIN_SECRET_LOST)) {
+        case AppKeyWrapAction::kASK_RETRY:
+          // The store could not answer, which says nothing about whether the
+          // secret is still there. A reset is never offered from here: it
+          // would destroy a key that unlocking the device opens.
+          locked.device_locked = result.device_locked;
+          locked.detail = result.detail;
+          if (delegate_->AskRetryLockedStore(locked)) {
+            ++locked.attempts;
+            continue;
+          }
           delegate_->Report(
-              {ProfileLoadFailure::kKEY_LOCKED_OUT, key_path, result.detail});
+              {ProfileLoadFailure::kKEY_STORE_LOCKED, key_path, result.detail});
           return false;
-        }
-        if (!reset_key_storage()) {
-          delegate_->Report({ProfileLoadFailure::kKEY_IO_FAILED, key_path});
+
+        case AppKeyWrapAction::kFAIL:
+          delegate_->Report(
+              {ProfileLoadFailure::kKEY_IO_FAILED, result.detail});
           return false;
-        }
-        return true;
+
+        case AppKeyWrapAction::kOFFER_RESET:
+          // Never reset on the user's behalf: resetting is unrecoverable,
+          // whereas quitting costs nothing and lets them unlock the keychain
+          // and retry.
+          if (!delegate_->ConfirmKeyReset(
+                  ProfileKeyResetReason::kKEYCHAIN_SECRET_LOST)) {
+            delegate_->Report(
+                {ProfileLoadFailure::kKEY_LOCKED_OUT, key_path, result.detail});
+            return false;
+          }
+          if (!reset_key_storage()) {
+            delegate_->Report({ProfileLoadFailure::kKEY_IO_FAILED, key_path});
+            return false;
+          }
+          return true;
+      }
+      return false;
     }
-    return false;
   }
 
   // A PIN: trial-unseal it here rather than leaving it to the key loader,

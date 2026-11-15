@@ -177,11 +177,17 @@ auto ProfileSecureKeyManager::ResolveWrapSecret(const QString& key_path,
   if (!wrapped && !intent_enabled) return {AppKeyWrapStatus::kNOT_WRAPPED};
 
   if (wrapped) {
+    // No backend at all is not evidence that the secret is gone: a build or a
+    // library that failed to load this time leaves the entry where it was.
+    // Offering a reset here would destroy a key that the next start, with the
+    // backend back, opens without trouble.
     if (store == nullptr) {
-      return {AppKeyWrapStatus::kLOCKED_OUT, {}, backend};
+      LOG_W() << "app secure key is protected but no secret store is "
+                 "installed";
+      return {AppKeyWrapStatus::kSTORE_LOCKED, {}, backend};
     }
 
-    auto secret = store->Read(account);
+    auto read = store->ReadDetailed(account);
 
     // An empty read does not mean the entry is gone. A keyring that has not
     // been opened since boot answers a lookup with nothing rather than with a
@@ -194,15 +200,36 @@ auto ProfileSecureKeyManager::ResolveWrapSecret(const QString& key_path,
     // loop. Only when the unlock succeeded, too: Read() overwrites the store's
     // recorded reason on every call and a missing entry records nothing, so a
     // second read after a declined prompt would replace the explanation with
-    // silence, which is the state this is meant to end.
-    if (!secret && store->Unlock()) secret = store->Read(account);
+    // silence, which is the state this is meant to end. And only for an
+    // absent entry: a store that already said it is locked or not answering
+    // has said what an unlock prompt would find out.
+    if (read.status == SecretReadStatus::kABSENT && store->Unlock()) {
+      read = store->ReadDetailed(account);
+    }
 
-    if (!secret) {
+    if (read.Temporary()) {
+      const bool device_locked = read.status == SecretReadStatus::kLOCKED;
+      LOG_W() << "app secure key is protected and the secret store cannot "
+                 "answer right now, backend:"
+              << backend << "device locked:" << device_locked
+              << "reason:" << read.detail;
+      AppKeyWrapResult result{AppKeyWrapStatus::kSTORE_LOCKED,
+                              {},
+                              read.detail.isEmpty() ? backend : read.detail};
+      result.device_locked = device_locked;
+      return result;
+    }
+
+    if (read.status != SecretReadStatus::kOK || !read.secret) {
       LOG_W() << "app secure key is protected but its secret is unavailable, "
                  "backend:"
-              << backend << "reason:" << store->LastError();
+              << backend
+              << "corrupt:" << (read.status == SecretReadStatus::kCORRUPT)
+              << "reason:" << read.detail;
       return {AppKeyWrapStatus::kLOCKED_OUT, {}, backend};
     }
+
+    auto secret = std::move(read.secret);
 
     // Not retried through Unlock(): a secret came back, so the store is open
     // and unlocking again would prompt for nothing. This is a mismatch between

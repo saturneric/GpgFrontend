@@ -21778,6 +21778,21 @@ Aprirlo nel browser?</translation>
         <translation>Impossibile leggere o riscrivere la chiave di sicurezza dell&apos;applicazione in %1.</translation>
     </message>
     <message>
+        <location filename="../../../../src/shell/present/ProfileLoadErrorText.cpp" line="196"/>
+        <source>Credential Store Unavailable</source>
+        <translation>Archivio credenziali non disponibile</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/present/ProfileLoadErrorText.cpp" line="188"/>
+        <source>The secret that opens this profile&apos;s key is kept in the system credential store, which could not be reached. Nothing has been lost.</source>
+        <translation>Il segreto che apre la chiave di questo profilo è conservato nell&apos;archivio credenziali del sistema, che non è stato possibile raggiungere. Non è andato perso nulla.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/present/ProfileLoadErrorText.cpp" line="193"/>
+        <source>Make sure the credential store is available and unlocked, then start the application again.</source>
+        <translation>Assicurati che l&apos;archivio credenziali sia disponibile e sbloccato, quindi riavvia l&apos;applicazione.</translation>
+    </message>
+    <message>
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="245"/>
         <source>Secure Key Missing</source>
         <translation>Chiave di sicurezza mancante</translation>

@@ -49,4 +49,20 @@ TEST(ProfileLoadErrorTest, EveryFailureButBackingOutIsPutIntoWords) {
   EXPECT_TRUE(text->text.contains(QDir::toNativeSeparators(open.subject)));
 }
 
+// A store that would not answer is not a lost key: the words say so, carry the
+// platform's reason, and never speak of resetting anything.
+TEST(ProfileLoadErrorTest, AnUnreachableStoreIsNotDescribedAsALostKey) {
+  ProfileLoadError locked;
+  locked.failure = ProfileLoadFailure::kKEY_STORE_LOCKED;
+  locked.subject = QStringLiteral("/profiles/work/secure/app.key");
+  locked.detail = QStringLiteral("store said: locked");
+
+  const auto text = DescribeProfileLoadError(locked);
+  ASSERT_TRUE(text.has_value());
+  EXPECT_FALSE(text->title.isEmpty());
+  EXPECT_TRUE(text->text.contains(locked.detail));
+  EXPECT_FALSE(text->text.contains(QStringLiteral("reset"),
+                                   Qt::CaseInsensitive));
+}
+
 }  // namespace GpgFrontend::Test

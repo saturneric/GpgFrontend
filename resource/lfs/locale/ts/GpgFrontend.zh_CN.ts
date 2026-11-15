@@ -21722,6 +21722,21 @@ Open it in your browser?</source>
         <translation>无法读取或重写位于 %1 的应用安全密钥。</translation>
     </message>
     <message>
+        <location filename="../../../../src/shell/present/ProfileLoadErrorText.cpp" line="196"/>
+        <source>Credential Store Unavailable</source>
+        <translation>凭据存储不可用</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/present/ProfileLoadErrorText.cpp" line="188"/>
+        <source>The secret that opens this profile&apos;s key is kept in the system credential store, which could not be reached. Nothing has been lost.</source>
+        <translation>打开此配置文件密钥的机密保存在系统凭据存储中，但无法访问该存储。没有丢失任何数据。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/present/ProfileLoadErrorText.cpp" line="193"/>
+        <source>Make sure the credential store is available and unlocked, then start the application again.</source>
+        <translation>请确保凭据存储可用且已解锁，然后重新启动应用程序。</translation>
+    </message>
+    <message>
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="245"/>
         <source>Secure Key Missing</source>
         <translation>安全密钥缺失</translation>

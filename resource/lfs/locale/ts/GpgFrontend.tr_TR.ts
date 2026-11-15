@@ -21528,6 +21528,21 @@ Bağlantı panonuza kopyalandı:
         <translation>%1 konumundaki uygulama güvenli anahtarı okunamadı veya yeniden yazılamadı.</translation>
     </message>
     <message>
+        <location filename="../../../../src/shell/present/ProfileLoadErrorText.cpp" line="196"/>
+        <source>Credential Store Unavailable</source>
+        <translation>Kimlik bilgisi deposu kullanılamıyor</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/present/ProfileLoadErrorText.cpp" line="188"/>
+        <source>The secret that opens this profile&apos;s key is kept in the system credential store, which could not be reached. Nothing has been lost.</source>
+        <translation>Bu profilin anahtarını açan gizli bilgi, sistemin kimlik bilgisi deposunda tutuluyor ve bu depoya ulaşılamadı. Hiçbir şey kaybolmadı.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/present/ProfileLoadErrorText.cpp" line="193"/>
+        <source>Make sure the credential store is available and unlocked, then start the application again.</source>
+        <translation>Lütfen kimlik bilgisi deposunun kullanılabilir ve kilidinin açık olduğundan emin olun, ardından uygulamayı yeniden başlatın.</translation>
+    </message>
+    <message>
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="282"/>
         <source>System Keychain Unavailable</source>
         <translation>Sistem anahtar zinciri kullanılamıyor</translation>

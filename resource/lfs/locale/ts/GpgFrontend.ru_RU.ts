@@ -21808,6 +21808,21 @@ Open it in your browser?</source>
         <translation>Не удалось прочитать или перезаписать безопасный ключ приложения: %1</translation>
     </message>
     <message>
+        <location filename="../../../../src/shell/present/ProfileLoadErrorText.cpp" line="196"/>
+        <source>Credential Store Unavailable</source>
+        <translation>Хранилище учётных данных недоступно</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/present/ProfileLoadErrorText.cpp" line="188"/>
+        <source>The secret that opens this profile&apos;s key is kept in the system credential store, which could not be reached. Nothing has been lost.</source>
+        <translation>Секрет, открывающий ключ этого профиля, хранится в системном хранилище учётных данных, к которому не удалось обратиться. Ничего не потеряно.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/present/ProfileLoadErrorText.cpp" line="193"/>
+        <source>Make sure the credential store is available and unlocked, then start the application again.</source>
+        <translation>Убедитесь, что хранилище учётных данных доступно и разблокировано, затем снова запустите приложение.</translation>
+    </message>
+    <message>
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="245"/>
         <source>Secure Key Missing</source>
         <translation>Безопасный ключ отсутствует</translation>

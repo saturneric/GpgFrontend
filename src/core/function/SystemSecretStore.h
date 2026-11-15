@@ -52,6 +52,50 @@ auto GF_CORE_EXPORT SystemSecretService() -> const char*;
 constexpr auto kAppKeyWrapAccount = "app-key-wrap";
 
 /**
+ * @brief What a read from the credential store found.
+ *
+ * An empty read used to be the only answer, and it meant "gone" to everyone
+ * above. But a store can be unable to answer for a while and still hold the
+ * entry intact -- a device that is locked, a keystore service that has not come
+ * up -- and treating that as gone offers the user a reset that destroys data
+ * for a problem an unlock would have solved.
+ */
+enum class SecretReadStatus : std::uint8_t {
+  kOK,       ///< the secret was returned
+  kABSENT,   ///< no entry: never written, or the key opening it is gone
+  kCORRUPT,  ///< an entry exists but does not authenticate
+  /// The entry may well exist but cannot be used until the user unlocks the
+  /// device. Temporary, and the user can end it.
+  kLOCKED,
+  /// The store is not answering right now, for a reason it could not name.
+  /// Temporary as far as anyone can tell; never evidence that the entry is
+  /// gone.
+  kUNAVAILABLE,
+};
+
+/**
+ * @brief Result of SystemSecretStore::ReadDetailed().
+ */
+struct GF_CORE_EXPORT SecretReadResult {
+  SecretReadStatus status = SecretReadStatus::kABSENT;
+
+  /// The secret; set exactly when status is kOK.
+  GFBufferOrNone secret;
+
+  /// The platform's own wording of what went wrong, untranslated.
+  QString detail;
+
+  /**
+   * @brief Whether the failure is one that may end without anything being
+   * lost, so that nobody should be offered a reset over it.
+   */
+  [[nodiscard]] auto Temporary() const -> bool {
+    return status == SecretReadStatus::kLOCKED ||
+           status == SecretReadStatus::kUNAVAILABLE;
+  }
+};
+
+/**
  * @brief A credential store provided by the operating system.
  *
  * Implementations live in src/plat and register themselves at startup.
@@ -142,6 +186,19 @@ class GF_CORE_EXPORT SystemSecretStore {
    * @return the secret, or empty when absent or unreadable
    */
   virtual auto Read(const QString& account) -> GFBufferOrNone = 0;
+
+  /**
+   * @brief Read a secret, and say why when there is none.
+   *
+   * Read() cannot tell an entry that is gone from a store that cannot answer
+   * right now, and only the first of those justifies offering a reset. A
+   * backend that can tell them apart overrides this; the default knows only
+   * what Read() says, so an empty read is kABSENT, as it always was.
+   *
+   * @param account account name within the service
+   * @return the outcome, with the secret when it is kOK
+   */
+  virtual auto ReadDetailed(const QString& account) -> SecretReadResult;
 
   /**
    * @brief Write a secret, replacing any existing entry.

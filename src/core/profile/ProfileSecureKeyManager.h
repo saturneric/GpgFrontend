@@ -190,6 +190,10 @@ enum class AppKeyWrapStatus : std::uint8_t {
   kSTORE_UNAVAILABLE,  ///< protection was requested but no store could be used
   kLOCKED_OUT,  ///< key file is encrypted but the secret is unrecoverable
   kIO_FAILED,   ///< the key file could not be read or rewritten
+  /// Key file is encrypted and the store cannot answer right now: a locked
+  /// device, a store that is not responding, or no backend at all. The secret
+  /// may be intact, so this must never lead to a reset; it ends by retrying.
+  kSTORE_LOCKED,
 };
 
 /**
@@ -204,10 +208,15 @@ struct GF_CORE_EXPORT AppKeyWrapResult {
   /// Backend name or cause, for the log and any dialog.
   QString detail;
 
+  /// For kSTORE_LOCKED: whether unlocking the device is what will end it, as
+  /// opposed to a store that is not answering for some other reason.
+  bool device_locked = false;
+
   /// True when startup can proceed, whether or not protection was applied.
   [[nodiscard]] auto Usable() const -> bool {
     return status != AppKeyWrapStatus::kLOCKED_OUT &&
-           status != AppKeyWrapStatus::kIO_FAILED;
+           status != AppKeyWrapStatus::kIO_FAILED &&
+           status != AppKeyWrapStatus::kSTORE_LOCKED;
   }
 };
 

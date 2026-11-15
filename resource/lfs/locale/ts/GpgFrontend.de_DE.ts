@@ -21766,6 +21766,21 @@ Im Browser öffnen?</translation>
         <translation>Der Anwendungssicherheitsschlüssel unter %1 konnte nicht gelesen oder neu geschrieben werden.</translation>
     </message>
     <message>
+        <location filename="../../../../src/shell/present/ProfileLoadErrorText.cpp" line="196"/>
+        <source>Credential Store Unavailable</source>
+        <translation>Anmeldedatenspeicher nicht verfügbar</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/present/ProfileLoadErrorText.cpp" line="188"/>
+        <source>The secret that opens this profile&apos;s key is kept in the system credential store, which could not be reached. Nothing has been lost.</source>
+        <translation>Das Geheimnis, das den Schlüssel dieses Profils öffnet, liegt im Anmeldedatenspeicher des Systems, der nicht erreicht werden konnte. Es ist nichts verloren gegangen.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/shell/present/ProfileLoadErrorText.cpp" line="193"/>
+        <source>Make sure the credential store is available and unlocked, then start the application again.</source>
+        <translation>Stellen Sie sicher, dass der Anmeldedatenspeicher verfügbar und entsperrt ist, und starten Sie die Anwendung dann erneut.</translation>
+    </message>
+    <message>
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="245"/>
         <source>Secure Key Missing</source>
         <translation>Sicherer Schlüssel fehlt</translation>

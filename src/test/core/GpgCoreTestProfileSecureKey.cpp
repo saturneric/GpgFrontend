@@ -79,6 +79,17 @@ class FakeSecretStore final : public SystemSecretStore {
     return entries.value(account);
   }
 
+  /// A scripted outcome stands in for what the platform said; without one,
+  /// the default ReadDetailed() derives it from Read(), as every desktop
+  /// backend does.
+  auto ReadDetailed(const QString& account) -> SecretReadResult override {
+    if (scripted_status && *scripted_status != SecretReadStatus::kOK) {
+      ++read_calls;
+      return {*scripted_status, std::nullopt, u"scripted"_s};
+    }
+    return SystemSecretStore::ReadDetailed(account);
+  }
+
   [[nodiscard]] auto Unlock() -> bool override {
     ++unlock_calls;
 
@@ -134,6 +145,9 @@ class FakeSecretStore final : public SystemSecretStore {
 
   int unlock_calls = 0;
   int read_calls = 0;
+
+  /// What ReadDetailed() reports instead of looking, when set and not kOK.
+  std::optional<SecretReadStatus> scripted_status;
 
   QString last_error;
 };
@@ -1156,6 +1170,186 @@ TEST(AppSecureKeyWrapTest, LostSecretReportsLockedOutWithoutTouchingFile) {
   EXPECT_EQ(result.status, AppKeyWrapStatus::kLOCKED_OUT);
   // Destroying the only copy of the key here would be unrecoverable.
   EXPECT_EQ(file.Read(), wrapped_bytes);
+}
+
+namespace {
+
+/**
+ * Seals a key with @p store and returns what is on disk, for the tests below
+ * that start from a protected key file.
+ */
+auto SealWith(const ScopedKeyFile& file, FakeSecretStore& store) -> GFBuffer {
+  EXPECT_EQ(
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true)
+          .status,
+      AppKeyWrapStatus::kJUST_ENABLED);
+  return file.Read();
+}
+
+}  // namespace
+
+/**
+ * A locked device holds the secret back for as long as it stays locked, and no
+ * longer. Reporting that as a lost secret leads to the offer of a reset, which
+ * destroys a profile that unlocking would have opened.
+ */
+TEST(AppSecureKeyWrapTest, LockedDeviceAsksToRetryNotToReset) {
+  ScopedKeyFile file(SampleKey());
+  FakeSecretStore store;
+  const auto sealed = SealWith(file, store);
+
+  store.scripted_status = SecretReadStatus::kLOCKED;
+  const auto result =
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kSTORE_LOCKED);
+  EXPECT_TRUE(result.device_locked);
+  EXPECT_FALSE(result.Usable());
+  EXPECT_EQ(file.Read(), sealed);
+  // The store already said what an unlock prompt would find out.
+  EXPECT_EQ(store.unlock_calls, 0);
+}
+
+TEST(AppSecureKeyWrapTest, UnresponsiveStoreAsksToRetryNotToReset) {
+  ScopedKeyFile file(SampleKey());
+  FakeSecretStore store;
+  const auto sealed = SealWith(file, store);
+
+  store.scripted_status = SecretReadStatus::kUNAVAILABLE;
+  const auto result =
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kSTORE_LOCKED);
+  EXPECT_FALSE(result.device_locked);
+  EXPECT_EQ(file.Read(), sealed);
+  EXPECT_EQ(store.unlock_calls, 0);
+}
+
+/**
+ * No backend at all -- a library that failed to load this time, a build without
+ * one -- says nothing about whether the secret is still in the store.
+ */
+TEST(AppSecureKeyWrapTest, SealedKeyWithNoBackendAsksToRetry) {
+  ScopedKeyFile file(SampleKey());
+  FakeSecretStore store;
+  const auto sealed = SealWith(file, store);
+
+  const auto result =
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), nullptr, true);
+
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kSTORE_LOCKED);
+  EXPECT_EQ(file.Read(), sealed);
+}
+
+TEST(AppSecureKeyWrapTest, LockedStoreOpensOnceUnlocked) {
+  ScopedKeyFile file(SampleKey());
+  FakeSecretStore store;
+  SealWith(file, store);
+  const auto secret = store.entries.value(kAppKeyWrapAccount);
+
+  store.scripted_status = SecretReadStatus::kLOCKED;
+  ASSERT_EQ(
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true)
+          .status,
+      AppKeyWrapStatus::kSTORE_LOCKED);
+
+  // The user unlocked the device and tapped Retry.
+  store.scripted_status.reset();
+  const auto result =
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kWRAPPED);
+  EXPECT_EQ(result.secret, secret);
+}
+
+/**
+ * Turning protection off needs the secret just as much, so a locked store
+ * leaves the sealed file alone rather than reporting it lost.
+ */
+TEST(AppSecureKeyWrapTest, DisablingWithALockedStoreKeepsTheFileSealed) {
+  ScopedKeyFile file(SampleKey());
+  FakeSecretStore store;
+  const auto sealed = SealWith(file, store);
+
+  store.scripted_status = SecretReadStatus::kLOCKED;
+  const auto result =
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, false);
+
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kSTORE_LOCKED);
+  EXPECT_EQ(file.Read(), sealed);
+  EXPECT_TRUE(store.entries.contains(kAppKeyWrapAccount));
+}
+
+/// An entry that is there but does not authenticate is as lost as no entry.
+TEST(AppSecureKeyWrapTest, CorruptEntryReportsLockedOut) {
+  ScopedKeyFile file(SampleKey());
+  FakeSecretStore store;
+  const auto sealed = SealWith(file, store);
+
+  store.scripted_status = SecretReadStatus::kCORRUPT;
+  const auto result =
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kLOCKED_OUT);
+  EXPECT_EQ(file.Read(), sealed);
+}
+
+TEST(AppSecureKeyWrapTest, AbsentEntryReportsLockedOutAfterOneUnlock) {
+  ScopedKeyFile file(SampleKey());
+  FakeSecretStore store;
+  const auto sealed = SealWith(file, store);
+
+  store.scripted_status = SecretReadStatus::kABSENT;
+  store.unlockable = false;
+  const auto result =
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kLOCKED_OUT);
+  EXPECT_EQ(store.unlock_calls, 1);
+  EXPECT_EQ(file.Read(), sealed);
+}
+
+/**
+ * The rule the loader lives by: only a secret that is really gone leads to the
+ * offer of a reset. A store that cannot answer leads to a retry.
+ */
+TEST(AppSecureKeyWrapTest, LoaderActionForEveryWrapStatus) {
+  EXPECT_EQ(ProfileLoader::ActionForWrapStatus(AppKeyWrapStatus::kNOT_WRAPPED),
+            AppKeyWrapAction::kPROCEED);
+  EXPECT_EQ(ProfileLoader::ActionForWrapStatus(AppKeyWrapStatus::kWRAPPED),
+            AppKeyWrapAction::kPROCEED);
+  EXPECT_EQ(ProfileLoader::ActionForWrapStatus(AppKeyWrapStatus::kJUST_ENABLED),
+            AppKeyWrapAction::kPROCEED);
+  EXPECT_EQ(
+      ProfileLoader::ActionForWrapStatus(AppKeyWrapStatus::kJUST_DISABLED),
+      AppKeyWrapAction::kPROCEED);
+  EXPECT_EQ(
+      ProfileLoader::ActionForWrapStatus(AppKeyWrapStatus::kSTORE_UNAVAILABLE),
+      AppKeyWrapAction::kPROCEED_UNPROTECTED);
+  EXPECT_EQ(ProfileLoader::ActionForWrapStatus(AppKeyWrapStatus::kSTORE_LOCKED),
+            AppKeyWrapAction::kASK_RETRY);
+  EXPECT_EQ(ProfileLoader::ActionForWrapStatus(AppKeyWrapStatus::kLOCKED_OUT),
+            AppKeyWrapAction::kOFFER_RESET);
+  EXPECT_EQ(ProfileLoader::ActionForWrapStatus(AppKeyWrapStatus::kIO_FAILED),
+            AppKeyWrapAction::kFAIL);
+}
+
+/// Desktop backends know only what Read() says, and keep meaning what it did.
+TEST(AppSecureKeyWrapTest, DefaultReadDetailedFollowsRead) {
+  FakeSecretStore store;
+  store.entries.insert(u"present"_s, GFBuffer(QByteArray(32, '\x11')));
+  store.last_error = u"no such entry"_s;
+
+  const auto found = store.ReadDetailed(u"present"_s);
+  EXPECT_EQ(found.status, SecretReadStatus::kOK);
+  ASSERT_TRUE(found.secret.has_value());
+  EXPECT_EQ(*found.secret, GFBuffer(QByteArray(32, '\x11')));
+
+  store.locked = true;
+  const auto missing = store.ReadDetailed(u"present"_s);
+  EXPECT_EQ(missing.status, SecretReadStatus::kABSENT);
+  EXPECT_FALSE(missing.secret.has_value());
+  EXPECT_FALSE(missing.Temporary());
 }
 
 /**

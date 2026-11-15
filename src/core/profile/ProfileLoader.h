@@ -67,6 +67,9 @@ enum class ProfileLoadFailure : std::uint8_t {
   kKEY_GENERATE_FAILED,  ///< no usable random source produced a key
   kKEY_LOCKED_OUT,       ///< the secret that opens the key is unrecoverable
   kKEY_IO_FAILED,        ///< the key file could not be read or rewritten
+  /// The credential store holding the secret could not answer, and the user
+  /// chose not to retry. Nothing is lost: a later start may well open it.
+  kKEY_STORE_LOCKED,
 };
 
 /**
@@ -124,6 +127,36 @@ struct GF_CORE_EXPORT AppKeyPinRequest {
   int failures = 0;
 
   QString key_path;
+};
+
+/**
+ * @brief Why the loader is waiting on the credential store.
+ *
+ * The key file is sealed and the store that holds its secret cannot answer
+ * right now. The secret may be perfectly intact, so the only offers this may
+ * carry are to try again or to stop -- never to reset.
+ */
+struct GF_CORE_EXPORT AppKeyStoreLockedRequest {
+  /// True when the store said the device is locked, so unlocking it is what
+  /// the user should do before retrying.
+  bool device_locked = false;
+
+  /// How many retries have already failed this start.
+  int attempts = 0;
+
+  /// Backend name or the platform's own wording, untranslated.
+  QString detail;
+};
+
+/**
+ * @brief What the loader does with each outcome of resolving the wrap secret.
+ */
+enum class AppKeyWrapAction : std::uint8_t {
+  kPROCEED,              ///< use the resolved secret, or none
+  kPROCEED_UNPROTECTED,  ///< go on with the key as it is, and say so
+  kASK_RETRY,            ///< the store may answer later: offer a retry
+  kOFFER_RESET,          ///< the secret is gone: only a reset gets past it
+  kFAIL,                 ///< nothing to offer; report and stop
 };
 
 /**
@@ -204,6 +237,23 @@ class GF_CORE_EXPORT ProfileLoaderDelegate {
    * @return true to reset
    */
   virtual auto ConfirmKeyReset(ProfileKeyResetReason reason) -> bool = 0;
+
+  /**
+   * @brief Ask whether to try the credential store again.
+   *
+   * The key file is sealed and the store cannot answer: typically a device
+   * that is locked. Unlike ConfirmKeyReset() nothing is at stake, so the only
+   * choices are to retry -- after the user has unlocked, say -- or to stop.
+   *
+   * Not pure: a delegate that cannot ask a human stops, which costs nothing,
+   * and the platforms whose stores never answer this way need not implement
+   * it.
+   *
+   * @param request why the store could not answer
+   * @return true to try again, false to stop
+   */
+  virtual auto AskRetryLockedStore(const AppKeyStoreLockedRequest &request)
+      -> bool;
 
   /**
    * @brief Report the failure that is about to stop startup.
@@ -371,6 +421,18 @@ class GF_CORE_EXPORT ProfileLoader {
                                       const QVariant &user_secure_level,
                                       const QVariant &user_os_secret_store)
       -> AppKeyProtection;
+
+  /**
+   * @brief What the loader does with one outcome of resolving the wrap secret.
+   *
+   * Pure, so the one rule that matters most can be tested without opening a
+   * profile: a store that cannot answer leads to a retry, and only a secret
+   * that is really gone leads to the offer of a reset.
+   *
+   * @param status the outcome of ProfileSecureKeyManager::ResolveWrapSecret()
+   * @return what to do
+   */
+  static auto ActionForWrapStatus(AppKeyWrapStatus status) -> AppKeyWrapAction;
 
  private:
   /// Acquire the lock, asking the delegate whether to force it open.
