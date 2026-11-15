@@ -231,15 +231,22 @@ def cosign_verify(directory, identity, sha, cosign):
         str(directory / MANIFEST),
     ]
     try:
-        status = subprocess.run(cmd, timeout=COSIGN_TIMEOUT).returncode
+        # Captured: its "Verified OK" says nothing the exit status does
+        # not, and whoever reads this tool's stderr takes it for a
+        # problem. What it says when it refuses goes into the error.
+        out = subprocess.run(cmd, timeout=COSIGN_TIMEOUT,
+                             capture_output=True, encoding="utf-8",
+                             errors="replace")
     except FileNotFoundError:
         raise CandidateError(f"{cosign} is not installed")
     except subprocess.TimeoutExpired:
         raise CandidateTimeout(f"{cosign} did not finish within "
                                f"{COSIGN_TIMEOUT} s")
-    if status != 0:
+    if out.returncode != 0:
+        said = (out.stderr or out.stdout or "").strip().splitlines()
         raise CandidateError(f"{BUNDLE} does not verify {MANIFEST} "
-                             f"as {identity} at {sha}")
+                             f"as {identity} at {sha}"
+                             + (f" (cosign: {said[-1][:300]})" if said else ""))
 
 
 def parse_manifest(data):
