@@ -64,6 +64,17 @@ Alert {
                                       + "instead lets the application start, but everything it "
                                       + "previously encrypted becomes permanently unreadable.")
                       : sheet.request.reason === "keychain_secret_lost"
+                        && Qt.platform.os === "android"
+                      // No keychain to unlock here: the key is gone from the
+                      // device's secure storage, and a package exported
+                      // earlier is the only copy left.
+                      ? qsTr("The key that opens this profile is no longer in this "
+                             + "device's secure storage.") + "\n\n"
+                        + qsTr("Resetting the key lets the application start, but "
+                               + "everything it previously encrypted becomes permanently "
+                               + "unreadable. If you exported this profile as a package, "
+                               + "you can import it after resetting.")
+                      : sheet.request.reason === "keychain_secret_lost"
                       ? qsTranslate("QObject", "The application key is protected by a secret "
                                     + "kept in the system keychain, and that secret "
                                     + "could not be read.") + "\n\n"

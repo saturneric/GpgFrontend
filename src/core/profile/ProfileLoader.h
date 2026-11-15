@@ -414,13 +414,11 @@ class GF_CORE_EXPORT ProfileLoader {
    * @param user_os_secret_store user advanced/os_secret_store
    * @return the winning mode, before the portability rule is applied
    */
-  static auto ResolveAppKeyProtection(const QVariant &env_protection,
-                                      const QVariant &env_secure_level,
-                                      const QVariant &env_os_secret_store,
-                                      const QVariant &user_protection,
-                                      const QVariant &user_secure_level,
-                                      const QVariant &user_os_secret_store)
-      -> AppKeyProtection;
+  static auto ResolveAppKeyProtection(
+      const QVariant &env_protection, const QVariant &env_secure_level,
+      const QVariant &env_os_secret_store, const QVariant &user_protection,
+      const QVariant &user_secure_level, const QVariant &user_os_secret_store,
+      AppKeyProtection fallback = AppKeyProtection::kNONE) -> AppKeyProtection;
 
   /**
    * @brief What the loader does with one outcome of resolving the wrap secret.
@@ -457,11 +455,12 @@ class GF_CORE_EXPORT ProfileLoader {
   auto resolve_secret(AppKeyProtection protection, GFBuffer &pin,
                       GFBuffer &wrap) -> bool;
 
-  /// Discard the key material and drop the protection back to none.
+  /// Discard the key material and drop the protection back to the default.
   auto reset_key_storage() -> bool;
 
-  /// Record that the key file is unprotected this run, in the stored setting
-  /// and in the property that says what is in effect.
+  /// Record that the key file is unprotected this run, in the property that
+  /// says what is in effect, and put the stored setting back to the
+  /// platform's default (Platform::DefaultAppKeyProtection()).
   void turn_protection_off();
 
   QSharedPointer<Profile> profile_;

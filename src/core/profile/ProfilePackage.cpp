@@ -60,6 +60,7 @@
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 #include "core/utils/MemoryUtils.h"
+#include "plat/common/PlatformEnv.h"
 #include "plat/common/PlatformFs.h"
 
 namespace GpgFrontend {
@@ -1586,10 +1587,13 @@ auto AdoptExtractedProfile(const QString &staging_dir,
 
   // The application key inside a package is unprotected — the package's own
   // passphrase is what protected it — and the machine that wrote it may well
-  // have recorded "keychain", which here would only strand the profile.
+  // have recorded "keychain", which here would only strand the profile. So it
+  // takes this platform's default instead: "none" on the desktop, and on
+  // Android the device keystore, which seals the plaintext key on first open.
   const auto settings_path = profile_root + "/config/config.ini";
   QSettings settings(settings_path, QSettings::IniFormat);
-  SettingItems::kAppKeyProtection.Write(settings, u"none"_s);
+  SettingItems::kAppKeyProtection.Write(
+      settings, AppKeyProtectionToString(Platform::DefaultAppKeyProtection()));
   settings.sync();
 
   return {};

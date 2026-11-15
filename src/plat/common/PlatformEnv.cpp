@@ -28,6 +28,20 @@
 
 #include "plat/common/PlatformEnv.h"
 
+#include "core/profile/ProfileSecureKeyManager.h"
+
+namespace GpgFrontend::Platform {
+
+auto DefaultAppKeyProtection() -> AppKeyProtection {
+#ifdef Q_OS_ANDROID
+  return AppKeyProtection::kKEYCHAIN;
+#else
+  return AppKeyProtection::kNONE;
+#endif
+}
+
+}  // namespace GpgFrontend::Platform
+
 #ifndef APPLE_SANDBOX
 
 namespace GpgFrontend::Platform {

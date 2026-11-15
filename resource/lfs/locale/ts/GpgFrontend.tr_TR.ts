@@ -548,6 +548,16 @@
         <source>Reset key</source>
         <translation>Anahtarı sıfırla</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/ConfirmSheet.qml" line="71"/>
+        <source>The key that opens this profile is no longer in this device&apos;s secure storage.</source>
+        <translation>Bu profili açan anahtar artık bu cihazın güvenli depolamasında değil.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/ConfirmSheet.qml" line="73"/>
+        <source>Resetting the key lets the application start, but everything it previously encrypted becomes permanently unreadable. If you exported this profile as a package, you can import it after resetting.</source>
+        <translation>Anahtarı sıfırlamak uygulamanın başlamasını sağlar, ancak daha önce onunla şifrelenen her şey kalıcı olarak okunamaz hale gelir. Bu profili paket olarak dışa aktardıysanız, sıfırladıktan sonra içe aktarabilirsiniz.</translation>
+    </message>
 </context>
 <context>
     <name>DetachedVerifySheet</name>

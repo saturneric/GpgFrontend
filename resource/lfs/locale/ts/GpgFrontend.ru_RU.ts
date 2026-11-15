@@ -550,6 +550,16 @@
         <source>Reset key</source>
         <translation>Сбросить ключ</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/ConfirmSheet.qml" line="71"/>
+        <source>The key that opens this profile is no longer in this device&apos;s secure storage.</source>
+        <translation>Ключа, открывающего этот профиль, больше нет в защищённом хранилище этого устройства.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/ConfirmSheet.qml" line="73"/>
+        <source>Resetting the key lets the application start, but everything it previously encrypted becomes permanently unreadable. If you exported this profile as a package, you can import it after resetting.</source>
+        <translation>После сброса ключа приложение запустится, но всё, что было им зашифровано, станет навсегда недоступным. Если вы экспортировали этот профиль как пакет, его можно импортировать после сброса.</translation>
+    </message>
 </context>
 <context>
     <name>DetachedVerifySheet</name>

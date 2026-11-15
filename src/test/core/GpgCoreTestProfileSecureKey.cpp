@@ -38,6 +38,7 @@
 #include "core/profile/ProfileLoader.h"
 #include "core/profile/ProfileSecureKeyManager.h"
 #include "core/profile/ProfileSession.h"
+#include "plat/common/PlatformEnv.h"
 #if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
 #include "plat/common/LibSecretSearchPath.h"
 #endif
@@ -1350,6 +1351,11 @@ TEST(AppSecureKeyWrapTest, DefaultReadDetailedFollowsRead) {
   EXPECT_EQ(missing.status, SecretReadStatus::kABSENT);
   EXPECT_FALSE(missing.secret.has_value());
   EXPECT_FALSE(missing.Temporary());
+}
+
+/// The desktop opts into the credential store; nothing turns it on unasked.
+TEST(AppSecureKeyWrapTest, DesktopDefaultIsNoProtection) {
+  EXPECT_EQ(Platform::DefaultAppKeyProtection(), AppKeyProtection::kNONE);
 }
 
 /**

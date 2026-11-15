@@ -40,6 +40,7 @@
 #include "core/profile/ProfileSession.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
+#include "plat/common/PlatformEnv.h"
 
 namespace {
 
@@ -112,7 +113,8 @@ void BootContext::load_env_conf_set_properties() {
       env_value("OSSecretStore"),
       user.value(SettingItems::kAppKeyProtection.key),
       user.value(SettingItems::kSecureLevel.key),
-      user.value(SettingItems::kOSSecretStore.key));
+      user.value(SettingItems::kOSSecretStore.key),
+      Platform::DefaultAppKeyProtection());
 
   // Any pinned key that could have decided the protection pins it, so the
   // Advanced tab shows it read-only rather than accepting an edit that would

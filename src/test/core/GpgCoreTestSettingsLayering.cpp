@@ -147,6 +147,38 @@ TEST(AppKeyProtectionSettingsTest, NothingSetMeansNoProtection) {
             AppKeyProtection::kNONE);
 }
 
+/**
+ * The platform default (the device keystore on Android) is what an unset
+ * ladder resolves to, and only that: anything a layer says about the
+ * protection, legacy keys included, still decides it.
+ */
+TEST(AppKeyProtectionSettingsTest, FallbackAppliesOnlyWhenNothingIsSet) {
+  const auto keychain = AppKeyProtection::kKEYCHAIN;
+  EXPECT_EQ(ProfileLoader::ResolveAppKeyProtection(
+                kUnset, kUnset, kUnset, kUnset, kUnset, kUnset, keychain),
+            AppKeyProtection::kKEYCHAIN);
+
+  EXPECT_EQ(
+      ProfileLoader::ResolveAppKeyProtection(
+          kUnset, kUnset, kUnset, QVariant("none"), kUnset, kUnset, keychain),
+      AppKeyProtection::kNONE);
+  EXPECT_EQ(
+      ProfileLoader::ResolveAppKeyProtection(kUnset, kUnset, kUnset, kUnset,
+                                             kUnset, QVariant(false), keychain),
+      AppKeyProtection::kNONE);
+  EXPECT_EQ(ProfileLoader::ResolveAppKeyProtection(
+                kUnset, kUnset, kUnset, kUnset, QVariant(3), kUnset, keychain),
+            AppKeyProtection::kPIN);
+  EXPECT_EQ(
+      ProfileLoader::ResolveAppKeyProtection(QVariant("none"), kUnset, kUnset,
+                                             kUnset, kUnset, kUnset, keychain),
+      AppKeyProtection::kNONE);
+  // Memory-hardening levels say nothing about the key file.
+  EXPECT_EQ(ProfileLoader::ResolveAppKeyProtection(
+                kUnset, kUnset, kUnset, kUnset, QVariant(2), kUnset, keychain),
+            AppKeyProtection::kKEYCHAIN);
+}
+
 TEST(AppKeyProtectionSettingsTest, EnvProtectionWinsOverEverything) {
   // A pinned key is a deployment override: whatever it says about the
   // protection beats every legacy key and every user choice.

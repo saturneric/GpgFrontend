@@ -48,6 +48,7 @@
 #include "core/profile/ProfilePackage.h"
 #include "core/profile/ProfileSecureKeyManager.h"
 #include "core/utils/BuildInfoUtils.h"
+#include "plat/common/PlatformEnv.h"
 
 namespace GpgFrontend::Test {
 
@@ -1379,8 +1380,11 @@ TEST(ProfileAdoptionTest, AnImportedProfileGetsAFreshIdentity) {
   EXPECT_EQ(marker->display_name, "Copy");
 
   // the key inside a package is unprotected, and the machine that wrote it may
-  // have recorded a keychain that does not exist here
+  // have recorded a keychain that does not exist here: it takes this
+  // platform's default, which on the desktop is "none"
   QSettings settings(imported + "/config/config.ini", QSettings::IniFormat);
+  EXPECT_EQ(settings.value("advanced/app_key_protection").toString(),
+            AppKeyProtectionToString(Platform::DefaultAppKeyProtection()));
   EXPECT_EQ(settings.value("advanced/app_key_protection").toString(), "none");
 }
 

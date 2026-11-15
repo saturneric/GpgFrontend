@@ -548,6 +548,16 @@
         <source>Reset key</source>
         <translation>重置密钥</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/ConfirmSheet.qml" line="71"/>
+        <source>The key that opens this profile is no longer in this device&apos;s secure storage.</source>
+        <translation>打开此配置文件的密钥已不在此设备的安全存储中。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/ConfirmSheet.qml" line="73"/>
+        <source>Resetting the key lets the application start, but everything it previously encrypted becomes permanently unreadable. If you exported this profile as a package, you can import it after resetting.</source>
+        <translation>重置密钥可让应用启动，但之前用它加密的所有内容都将永久无法读取。如果你曾将此配置文件导出为软件包，可以在重置后将其导入。</translation>
+    </message>
 </context>
 <context>
     <name>DetachedVerifySheet</name>

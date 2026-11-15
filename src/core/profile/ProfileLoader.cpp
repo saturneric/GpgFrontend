@@ -38,6 +38,7 @@
 #include "core/profile/ProfileMigration.h"
 #include "core/profile/ProfilePackage.h"
 #include "core/utils/BuildInfoUtils.h"
+#include "plat/common/PlatformEnv.h"
 
 namespace {
 
@@ -141,8 +142,8 @@ auto ProfileLoader::ApplyProfilePortabilityRule(AppKeyProtection resolved,
 auto ProfileLoader::ResolveAppKeyProtection(
     const QVariant& env_protection, const QVariant& env_secure_level,
     const QVariant& env_os_secret_store, const QVariant& user_protection,
-    const QVariant& user_secure_level, const QVariant& user_os_secret_store)
-    -> AppKeyProtection {
+    const QVariant& user_secure_level, const QVariant& user_os_secret_store,
+    AppKeyProtection fallback) -> AppKeyProtection {
   // Each layer is tried in full — its own key, then the two keys it replaced —
   // before falling through, so a marker that says anything at all about the
   // protection always beats a user setting that says something else.
@@ -178,7 +179,7 @@ auto ProfileLoader::ResolveAppKeyProtection(
   if (layer(user_protection, user_secure_level, user_os_secret_store, result)) {
     return result;
   }
-  return AppKeyProtection::kNONE;
+  return fallback;
 }
 
 auto ProfileLoader::ActionForWrapStatus(AppKeyWrapStatus status)
@@ -482,9 +483,14 @@ void ProfileLoader::stamp_marker() {
 }
 
 void ProfileLoader::turn_protection_off() {
+  // Back to the platform's default rather than to "none". On the desktop they
+  // are the same thing. Where the default is the device keystore there is no
+  // setting to turn protection back on, so a "none" written here would hold for
+  // good over one start the store could not serve, or one reset; the default
+  // has the next start try again, and seal the key once the store answers.
   auto settings = session_->Settings();
   SettingItems::kAppKeyProtection.Write(
-      settings, AppKeyProtectionToString(AppKeyProtection::kNONE));
+      settings, AppKeyProtectionToString(Platform::DefaultAppKeyProtection()));
   settings.sync();
 
   // The stored setting is only half of it: the Advanced tab, the About dialog
