@@ -30,9 +30,9 @@
 
 // Platforms with a credential store provide their own backend; this keeps the
 // application linkable everywhere else, with the feature simply unavailable.
-// Android defines Q_OS_LINUX too, and has no backend yet.
-#if (!defined(Q_OS_LINUX) || defined(Q_OS_ANDROID)) && \
-    !defined(Q_OS_FREEBSD) && !defined(Q_OS_MACOS) && !defined(Q_OS_WINDOWS)
+// Android defines Q_OS_LINUX too, and has its own (AndroidSecretStore.cpp).
+#if !defined(Q_OS_LINUX) && !defined(Q_OS_FREEBSD) && !defined(Q_OS_MACOS) && \
+    !defined(Q_OS_WINDOWS)
 
 #include "core/function/SystemSecretStore.h"
 #include "plat/common/PlatformSecretStore.h"

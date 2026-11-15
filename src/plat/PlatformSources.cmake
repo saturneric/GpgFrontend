@@ -95,12 +95,14 @@ elseif(APPLE)
   list(APPEND GF_PLATFORM_APP_SOURCES
     ${GF_PLATFORM_DIR}/macos/MacSecretStore.cpp)
 elseif(ANDROID)
-  # The Linux filesystem helpers hold on Android's kernel; fscrypt, libsecret
-  # and the desktop credential store do not apply. The secret store stays the
-  # stub until a Keystore backend exists.
+  # The Linux filesystem helpers hold on Android's kernel; fscrypt and
+  # libsecret do not apply. The credential store is the Android Keystore,
+  # through SecretStoreBridge.java.
   list(APPEND GF_PLATFORM_CORE_SOURCES
     ${GF_PLATFORM_DIR}/unix/UnixFs.cpp
     ${GF_PLATFORM_DIR}/linux/LinuxFs.cpp)
+  list(APPEND GF_PLATFORM_APP_SOURCES
+    ${GF_PLATFORM_DIR}/android/AndroidSecretStore.cpp)
   list(APPEND GF_PLATFORM_MOBILE_SOURCES
     ${GF_PLATFORM_DIR}/android/AndroidPlatform.cpp)
 else()
