@@ -19,14 +19,15 @@ promotion failed. Each step ends in one of three ways, its exit status:
 
 What it prints on stdout is read by that caller too: "promoted <version>
 (<n> files)" for each build promoted, and "index unchanged" or a line
-starting "published serial". Every problem goes to stderr, the first line
-naming the first one.
+starting "published serial"; with --json, one document saying the same
+(promoted, published, unchanged, problems, status). Every problem goes to
+stderr, each line starting "error:", the first naming the first one.
 """
 
 from __future__ import annotations
 
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import index as index_mod
@@ -53,6 +54,9 @@ class Host:
     index_pub: list[str] | None = None
     cosign: str = "cosign"
     authenticode_ca: str | None = None
+    # What the last step did, for --json: promoted, published (or
+    # unchanged) and the problems.
+    report: dict = field(default_factory=dict)
 
     def dry_run(self) -> dict:
         return index_mod.dry_run(
@@ -75,6 +79,8 @@ class Host:
         and every problem on stderr. Returns DONE, PARTIAL or FAILED."""
         problems: list[str] = []
         status = DONE
+        self.report = {"promoted": [], "published": None, "unchanged": None,
+                       "problems": problems}
 
         def problem(text: str, again: bool) -> None:
             """@p again: running again as things are may help."""
@@ -93,7 +99,7 @@ class Host:
             # Whatever ends the step, even an error no step expected: what
             # was refused before it is named.
             for text in problems:
-                print(f"gfrelease: {text}", file=sys.stderr)
+                print(f"error: {text}", file=sys.stderr)
         return status
 
     def _promote(self, problem) -> None:
@@ -108,6 +114,8 @@ class Host:
             done = []
             problem(f"promote: {e}", True)
         for d in done:
+            self.report["promoted"].append(
+                {"version": d["version"], "files": len(d["artifacts"])})
             print(f"promoted {d['version']} ({len(d['artifacts'])} files)")
 
     def _index(self, force: bool, problem) -> None:
@@ -121,10 +129,14 @@ class Host:
         except index_mod.IndexIncomplete as e:
             index = e.index
             problem(str(e), e.passing)
+        self.report["unchanged"] = index is None
         if index is None:
             print(UNCHANGED)
         else:
             channels = index["channels"]
+            self.report["published"] = {
+                "serial": index["serial"], "channels": channels,
+                "expires": index["expires"]}
             print(f"{PUBLISHED} {index['serial']}, stable "
                   f"{channels['stable']}, beta {channels['beta']}, nightly "
                   f"{channels['nightly']}, expires {index['expires']}")

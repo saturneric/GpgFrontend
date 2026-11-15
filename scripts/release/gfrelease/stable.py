@@ -118,7 +118,13 @@ class Stage:
         atomic_write(self.state_path,
                      json.dumps(self.state, indent=1, sort_keys=True))
 
-    def run(self, redo: str | None = None) -> dict | None:
+    def run(self, redo: str | None = None, *, until: str | None = None,
+            on_step=None) -> dict | None:
+        """Every step not done yet, in order; returns the descriptor once
+        published. @p until: stop after that step (a dry run stops after
+        verify, before anything is signed). @p on_step(step, number,
+        done_before): called before each step, e.g. to show progress or
+        ask before the upload; raising stops the stage there, resumably."""
         if self._conflict:
             raise ReleaseError(self._conflict)
         if redo:
@@ -139,12 +145,16 @@ class Stage:
                 self.state.pop("key", None)
                 self.key = self.requested_key or self.product.signing_key
                 self._check_signing_key()
-        for step in STEPS:
-            if step in self.state["done"]:
-                continue
-            getattr(self, f"_{step}")()
-            self.state["done"].append(step)
-            self._save()
+        for number, step in enumerate(STEPS, 1):
+            done_before = step in self.state["done"]
+            if on_step:
+                on_step(step, number, done_before)
+            if not done_before:
+                getattr(self, f"_{step}")()
+                self.state["done"].append(step)
+                self._save()
+            if step == until:
+                return None
         return self.state.get("descriptor")
 
     def _notes(self, ref: str) -> tuple[bytes, str]:

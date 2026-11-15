@@ -25,7 +25,6 @@ import datetime as dt
 import json
 import os
 import shutil
-import sys
 import tempfile
 from pathlib import Path
 
@@ -34,6 +33,7 @@ import descriptor
 import minisig
 import openpgp
 import layout
+import ui
 from common import (BUNDLE, DESCRIPTOR, INDEX, MINISIG, SCHEMA, SIG, SUMS,
                     Problems, Product, ReleaseError, ToolFailed,
                     atomic_write, candidate_error, is_passing, canonical_json,
@@ -368,10 +368,10 @@ def _admit_release(product: Product, builds: Store, path: str, raw: bytes,
                     f"{tag}: the notes main has for it are not signed and "
                     f"uploaded yet (gfrelease stable {version} --notes-only): "
                     f"{e}") from e
-            print(f"{version}: listed "
-                  f"{'with its admitted notes' if previous_notes else 'without notes'}"
-                  f"; main's are not signed and uploaded yet (gfrelease "
-                  f"stable {version} --notes-only)", file=sys.stderr)
+            ui.warn(f"{version}: listed "
+                    f"{'with its admitted notes' if previous_notes else 'without notes'}"
+                    f"; main's are not signed and uploaded yet (gfrelease "
+                    f"stable {version} --notes-only)")
         except ReleaseError as e:
             if previous_notes is None:
                 raise
@@ -826,8 +826,8 @@ def _published_pair(product: Product, update: Store, keys: list[str]
     except (StoreUnavailable, ToolFailed):
         raise
     except ReleaseError as e:
-        print(f"the published index is not one this host signed, and is "
-              f"replaced: {e}", file=sys.stderr)
+        ui.warn(f"the published index is not one this host signed, and is "
+                f"replaced: {e}")
         return None
     return index, data, sig
 
