@@ -67,7 +67,10 @@ FAKE_COSIGN = textwrap.dedent("""\
                   "issuer": opt("--certificate-oidc-issuer"),
                   "sha": opt("--certificate-github-workflow-sha"),
                   "blob": blob_sha}}
-        sys.exit(0 if claims == wanted else "fake cosign: verification failed")
+        if claims != wanted:
+            sys.exit("fake cosign: verification failed")
+        print("Verified OK", file=sys.stderr)  # as cosign says it
+        sys.exit(0)
 
     sys.exit("fake cosign: unknown command " + cmd)
     """)
@@ -236,6 +239,24 @@ class IdentityTest(TreeCase):
         self.tree.stage()
         self.tree.sign(sha="f" * 40)
         self.assertRejected(self.tree.verify, "does not verify")
+
+    def test_cosign_says_why_and_nothing_when_it_verifies(self):
+        self.tree.signed_candidate()
+        self.assertRejected(
+            lambda: self.tree.verify(identity=IDENTITY + "x"),
+            r"\(cosign: fake cosign: verification failed\)")
+        # Its "Verified OK" on stderr never reaches this tool's: the
+        # signing host logs that stderr as warnings.
+        with tempfile.TemporaryFile("w+") as err:
+            saved = os.dup(2)
+            os.dup2(err.fileno(), 2)
+            try:
+                self.tree.verify()
+            finally:
+                os.dup2(saved, 2)
+                os.close(saved)
+            err.seek(0)
+            self.assertNotIn("Verified OK", err.read())
 
     def test_verifier_expects_other_identity(self):
         self.tree.signed_candidate()
