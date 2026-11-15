@@ -4,8 +4,8 @@
 
 main's builds are the nightly channel, a release/X.Y branch's the beta of
 its series; no other branch is promoted. For each branch, only its newest
-staged build is (a burst of pushes costs one promotion; older candidates
-expire in staging). Before anything is signed:
+staged build is (a burst of pushes costs one promotion; the signing host
+deletes older candidates). Before anything is signed:
 
   1. its Sigstore bundle must name this product's build workflow at exactly
      the ref and commit staged.json claims (scripts/release_candidate.py);

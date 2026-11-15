@@ -5,7 +5,6 @@
   python3 scripts/release/gfrelease stage   --candidate DIR --ref REF ...  (CI)
   python3 scripts/release/gfrelease promote                               (host)
   python3 scripts/release/gfrelease index [--force]                       (host)
-  python3 scripts/release/gfrelease run                 promote, then index (host)
   python3 scripts/release/gfrelease stable 2.3.0   the offline stable stage (you)
   python3 scripts/release/gfrelease import 2.2.4   a release from GitHub Releases
   python3 scripts/release/gfrelease resign              a new serial and expiry
@@ -176,7 +175,7 @@ def build_parser() -> argparse.ArgumentParser:
                     help="after the release: sign and upload main's notes")
 
     host = []
-    for name in ("promote", "index", "run", "resign"):
+    for name in ("promote", "index", "resign"):
         p = sub.add_parser(name)
         host.append(p)
         opt(p, "staging", "the staging store")
@@ -188,7 +187,6 @@ def build_parser() -> argparse.ArgumentParser:
         opt(p, "state_dir", "where the serial and the lock live")
         opt(p, "cosign", "the cosign binary")
         opt(p, "authenticode_ca", "CA file for Authenticode (a rehearsal's)")
-        flag(p, "fetch", "git fetch the repository mirror first")
         flag(p, "force", "publish even if nothing changed")
         if name == "index":
             flag(p, "dry_run", "decide everything, write nothing: what "
@@ -476,19 +474,14 @@ def trust_update(args, product: Product) -> int:
 
 
 def host_round(args, product: Product, rclone: str) -> int:
-    """promote, index, run and resign: the signing host's commands."""
+    """promote, index and resign: the signing host's commands."""
     need(args, "builds", "state_dir")
     command = args.command
-    promotes = command in ("promote", "run")
-    indexes = command in ("index", "run", "resign")
     dry = getattr(args, "dry_run", False)
-    if indexes:
-        need(args, "update", *(() if dry else ("index_key",)), "index_pub")
-    if promotes:
+    if command == "promote":
         need(args, "staging", "git_dir")
-    if args.fetch:
-        need(args, "git_dir")
-    if indexes:
+    else:
+        need(args, "update", *(() if dry else ("index_key",)), "index_pub")
         product.check_host_keys(pub(args.index_pub))
 
     def store(root):
@@ -505,13 +498,12 @@ def host_round(args, product: Product, rclone: str) -> int:
         index_pub=product.index_keys,
         cosign=args.cosign or "cosign", authenticode_ca=args.authenticode_ca)
     if dry:
-        if args.fetch:
-            host.fetch()
         report = host.dry_run()
         print(json.dumps(report, indent=2))
         return host_mod.FAILED if report["refused"] else host_mod.DONE
-    return host.round(promote=promotes, index=indexes, fetch=args.fetch,
-                      force=args.force or command == "resign")
+    if command == "promote":
+        return host.promote()
+    return host.index(force=args.force or command == "resign")
 
 
 if __name__ == "__main__":

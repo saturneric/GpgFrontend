@@ -1,23 +1,26 @@
 # Copyright (C) 2021-2026 Saturneric <eric@bktus.com>
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""A round of the signing host: promote, then index, then read back.
+"""The signing host's two steps, each a command: promote, and index
+(resign is index --force).
 
-The steps are independent on purpose. Whatever stops promotion, the index
-is still built (and kept from expiring) from what is already published; and
-whatever stops the index, every candidate that could not be promoted is
-still named. A round ends in one of three ways, which is all its caller
-(the Release-Server container) needs to know:
+Which step runs when, in what order, how often, and what is done about
+the stores besides (pruning, mirroring) is for whoever runs the host: the
+Release-Server container. It runs promote, then index, then a read-back
+`gfrelease verify` of anything published, and builds the index even when
+promotion failed. Each step ends in one of three ways, its exit status:
 
   DONE     everything asked for was done.
-  PARTIAL  the round ran to its end, but something was refused for what it
-           is (a candidate that does not verify, a release with a bad
+  PARTIAL  it ran to its end, but something was refused for what it is (a
+           candidate that does not verify, a release with a bad
            signature). Running again changes nothing until it does.
   FAILED   something could not be done or asked (a store that did not
            answer, a tool that did not finish, a signature that could not
            be made). Worth running again as it is.
 
-What a round prints on stdout is read by that caller too: "index unchanged",
-or a line starting "published serial".
+What it prints on stdout is read by that caller too: "promoted <version>
+(<n> files)" for each build promoted, and "index unchanged" or a line
+starting "published serial". Every problem goes to stderr, the first line
+naming the first one.
 """
 
 from __future__ import annotations
@@ -28,8 +31,7 @@ from pathlib import Path
 
 import index as index_mod
 import promote as promote_mod
-import verify as verify_mod
-from common import Product, ReleaseError, locked, run
+from common import Product, ReleaseError, locked
 from store import Store
 
 DONE, FAILED, PARTIAL = 0, 1, 3
@@ -52,12 +54,6 @@ class Host:
     cosign: str = "cosign"
     authenticode_ca: str | None = None
 
-    def fetch(self) -> None:
-        """The repository mirror brought up to date: the version promote
-        derives and the notes and tags index admits are all read from it."""
-        run(["git", "-C", self.git_dir, "fetch", "--quiet", "--prune",
-             "--tags", "origin"])
-
     def dry_run(self) -> dict:
         return index_mod.dry_run(
             self.product, self.builds, self.update,
@@ -65,11 +61,18 @@ class Host:
             git_dir=self.git_dir, cosign=self.cosign,
             authenticode_ca=self.authenticode_ca, index_pub=self.index_pub)
 
-    def round(self, *, promote: bool, index: bool, force: bool = False,
-              fetch: bool = False) -> int:
-        """Runs the steps asked for under the host's lock; prints what was
-        done on stdout and every problem on stderr. Returns DONE, PARTIAL
-        or FAILED."""
+    def promote(self) -> int:
+        """Every branch's newest staged build that verifies, promoted."""
+        return self._step(self._promote)
+
+    def index(self, force: bool = False) -> int:
+        """The index built, and published when it says something new (or
+        with @p force: a re-sign)."""
+        return self._step(lambda problem: self._index(force, problem))
+
+    def _step(self, step) -> int:
+        """@p step under the host's lock; prints what was done on stdout
+        and every problem on stderr. Returns DONE, PARTIAL or FAILED."""
         problems: list[str] = []
         status = DONE
 
@@ -82,17 +85,12 @@ class Host:
 
         try:
             with locked(self.state_dir):
-                if fetch:
-                    self.fetch()
-                if promote:
-                    self._promote(problem)
-                if index:
-                    self._index(force, problem)
+                step(problem)
         except ReleaseError as e:
             # Not one thing refused among others: the step did not happen.
             problem(str(e), True)
         finally:
-            # Whatever ends the round, even an error no step expected: what
+            # Whatever ends the step, even an error no step expected: what
             # was refused before it is named.
             for text in problems:
                 print(f"gfrelease: {text}", file=sys.stderr)
@@ -107,8 +105,6 @@ class Host:
             done = e.done
             problem(str(e), e.passing)
         except (ReleaseError, OSError) as e:
-            # Whatever stopped promotion, the index is still built (and
-            # kept from expiring) from what is already there.
             done = []
             problem(f"promote: {e}", True)
         for d in done:
@@ -128,8 +124,6 @@ class Host:
         if index is None:
             print(UNCHANGED)
         else:
-            # Read back what was published, as a client would see it.
-            verify_mod.verify(self.product, self.update, self.builds)
             channels = index["channels"]
             print(f"{PUBLISHED} {index['serial']}, stable "
                   f"{channels['stable']}, beta {channels['beta']}, nightly "

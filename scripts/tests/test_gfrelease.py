@@ -17,6 +17,7 @@ import fnmatch
 import io
 import json
 import os
+import re
 import shutil
 import stat
 import subprocess
@@ -521,9 +522,14 @@ class ChainTest(unittest.TestCase):
             index_pub=[self.idx_pub], **kw)
 
     def round(self, host: host_mod.Host | None = None):
+        """promote, then index: what the Release-Server container runs,
+        and the worse of the two."""
+        host = host or self.host()
         out, err = io.StringIO(), io.StringIO()
         with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
-            status = (host or self.host()).round(promote=True, index=True)
+            statuses = {host.promote(), host.index()}
+        status = next((s for s in (host_mod.FAILED, host_mod.PARTIAL)
+                       if s in statuses), host_mod.DONE)
         return status, out.getvalue(), err.getvalue()
 
     def test_a_round_says_done_partial_or_failed(self):
@@ -607,7 +613,7 @@ class ChainTest(unittest.TestCase):
         finally:
             index_mod.admit_nightly = saved
 
-    def test_the_cli_exits_with_the_rounds_status(self):
+    def test_the_cli_exits_with_the_steps_status(self):
         self.commit()
         prefix, _ = self.build()
         staged = json.loads(self.staging.read(f"{prefix}/{common.STAGED}"))
@@ -616,7 +622,7 @@ class ChainTest(unittest.TestCase):
         out, err = io.StringIO(), io.StringIO()
         with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
             status = self.cli().main([
-                *trust_args(self.product), "run",
+                *trust_args(self.product), "promote",
                 "--staging", self.staging.root, "--builds", self.builds.root,
                 "--update", self.update.root, "--git-dir", str(self.repo),
                 "--state-dir", str(self.state),
@@ -624,20 +630,59 @@ class ChainTest(unittest.TestCase):
                 "--cosign", str(self.cosign)])
         self.assertEqual(status, host_mod.PARTIAL, err.getvalue())
 
-    def test_the_signing_host_lists_what_index_reads(self):
-        """The Release-Server container tells whether anything changed by
-        listing these paths, and runs gfrelease only when something did:
-        whatever index and promote read must be under one of them."""
+    def test_what_the_signing_host_reads_is_held(self):
+        """The Release-Server container reads gfrelease's published layout,
+        formats and command line, never its code: it tells whether
+        anything changed by listing paths (whatever index and promote read
+        must be under one of them), keeps the stores tidy from the
+        descriptors, staged.json files and the index, and runs the steps
+        by their exit status and output. Changing any of this changes
+        that repository too."""
         listed = ("branches/**/staged.json", "/releases/**", "/notes/**",
                   "/nightly/*/release.json")
-        self.assertEqual(layout.BRANCHES, "branches")
-        self.assertEqual(common.STAGED, "staged.json")
-        self.assertEqual(common.DESCRIPTOR, "release.json")
+        self.assertEqual((layout.BRANCHES, layout.TAGS, layout.NIGHTLY,
+                          layout.RELEASES), ("branches", "tags", "nightly",
+                                             "releases"))
+        self.assertEqual((common.STAGED, common.DESCRIPTOR, common.INDEX),
+                         ("staged.json", "release.json", "v1/index.json"))
+        self.assertEqual(layout.nightly_dir("2.3.0-alpha.1+gabc"),
+                         "nightly/2.3.0-alpha.1-gabc")
+        self.assertEqual(layout.staged_tag("2.3.0"), "tags/2.3.0")
+        self.assertEqual(layout.commit_marker("a" * 40), "commits/" + "a" * 40)
         for path in (layout.release_dir("2.3.0") + "/x",
                      layout.notes_path("2.3.0", "a" * 64),
                      layout.descriptor_of(layout.nightly_dir("2.3.0-alpha.1"))):
             self.assertTrue(any(fnmatch.fnmatch("/" + path, pattern.replace(
                 "**", "*")) for pattern in listed), path)
+        for name in ("ROOT_DIR", "INDEX_KEYS_DIR"):
+            self.assertTrue(getattr(layout, name).startswith("v1/"), name)
+        self.assertEqual(layout.history_path(7).rsplit("/", 1)[0],
+                         "v1/history")
+
+        self.commit()
+        prefix, version = self.build()
+        staged = json.loads(self.staging.read(f"{prefix}/{common.STAGED}"))
+        self.assertLessEqual({"ref", "version", "commit", "filesafe"},
+                             set(staged))
+        status, out, _ = self.round()
+        self.assertEqual(status, host_mod.DONE)
+        self.assertIn(f"promoted {version} (3 files)", out)
+        index = published(self.update)
+        d = json.loads(self.builds.read(index["nightly"]["descriptor"]))
+        self.assertEqual((d["kind"], d["ref"], d["version"]),
+                         ("nightly", "refs/heads/main", version))
+        self.assertRegex(d["commit"], "^[0-9a-f]{40}$")
+        common.parse_iso(d["promoted_at"])
+        self.assertEqual(index["nightly"]["sha256"],
+                         common.sha256_bytes(self.builds.read(
+                             index["nightly"]["descriptor"])))
+        for field in ("expires", "nightly", "beta", "series", "releases"):
+            self.assertIn(field, index)
+        self.assertRegex(out, rf"{host_mod.PUBLISHED} 1, stable None, beta "
+                         rf"None, nightly {re.escape(version)}, expires \S+")
+        self.assertEqual(self.round()[1].strip(), host_mod.UNCHANGED)
+        self.assertEqual((host_mod.DONE, host_mod.FAILED, host_mod.PARTIAL),
+                         (0, 1, 3))
 
     # --- refusals ------------------------------------------------------
 
@@ -845,40 +890,30 @@ class ChainTest(unittest.TestCase):
         os.environ["GFR_NOW"] = when
         self.addCleanup(os.environ.pop, "GFR_NOW", None)
 
-    def test_a_nightly_about_to_expire_is_never_named(self):
-        # 30-day retention: named while the index it is in (14 days) cannot
-        # outlive the nightly, never after.
+    def test_an_old_nightly_stays_named(self):
+        # Which promoted builds stay in the store is the signing host's
+        # (it never deletes one the live index names): the index names
+        # main's newest admitted build, however old.
         self.at("2026-11-01T00:00:00Z")
         self.commit()
         _, version = self.build()
         self.promote()
         self.assertEqual(self.index()["channels"]["nightly"], version)
-        self.at("2026-11-15T00:00:00Z")
+        self.at("2027-03-01T00:00:00Z")
         self.assertEqual(self.index(force=True)["channels"]["nightly"],
                          version)
-        self.at("2026-11-17T00:00:00Z")
-        err = io.StringIO()
-        with contextlib.redirect_stderr(err):
-            index = self.index(force=True)
-        self.assertIsNone(index["channels"]["nightly"])
-        self.assertIsNone(index["nightly"])
-        self.assertIn("no main nightly promoted since", err.getvalue())
-        self.assertGreater(
-            common.parse_iso(index["expires"]) + index_mod.NIGHTLY_MARGIN
-            - index_mod.LIFETIME, common.parse_iso(index["generated_at"]))
 
-    def test_a_nightly_the_bucket_is_deleting_is_no_refusal(self):
+    def test_an_unchanged_index_is_re_signed_only_when_asked(self):
+        # When to re-sign is the signing host's: index publishes what is
+        # new, resign (index --force) pushes the expiry out.
         self.at("2026-11-01T00:00:00Z")
         self.commit()
         self.build()
-        (d,) = self.promote()
-        self.index()
-        # The lifecycle rule has started on it: its manifest is gone.
-        self.at("2026-11-29T00:00:00Z")
-        (self.tmp / "builds" / self.slug / d["build"]["sums"]).unlink()
-        with contextlib.redirect_stderr(io.StringIO()):
-            index = self.index(force=True)
-        self.assertIsNone(index["nightly"])
+        self.promote()
+        first = self.index()
+        self.at("2026-11-12T00:00:00Z")
+        self.assertIsNone(self.index())
+        self.assertEqual(self.index(force=True)["serial"], first["serial"] + 1)
 
     def test_a_rerun_workflow_stages_again(self):
         commit = self.commit()
@@ -1049,7 +1084,7 @@ class ChainTest(unittest.TestCase):
                             "names root 2")
 
     def test_a_candidate_that_cannot_be_read_still_lets_the_index_go(self):
-        # A candidate the staging lifecycle deleted while it was being
+        # A candidate the signing host deleted while it was being
         # fetched (or a disk that filled up): an OSError, no verdict on it.
         self.commit()
         _, version = self.build()
