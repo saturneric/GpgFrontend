@@ -944,6 +944,123 @@ class ChainTest(unittest.TestCase):
         spec.loader.exec_module(cli)
         return cli
 
+    # --- the command line: views, --json --------------------------------
+
+    def run_cli(self, *args):
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            status = self.cli().main([*trust_args(self.product), *args])
+        return status, out.getvalue(), err.getvalue()
+
+    def host_args(self):
+        return ["--staging", self.staging.root, "--builds", self.builds.root,
+                "--update", self.update.root, "--git-dir", str(self.repo),
+                "--state-dir", str(self.state),
+                "--index-key", str(self.idx_key), "--index-pub", self.idx_pub,
+                "--cosign", str(self.cosign)]
+
+    def test_the_host_steps_report_as_json(self):
+        self.commit()
+        _, version = self.build()
+        status, out, _ = self.run_cli("--json", "promote", *self.host_args())
+        self.assertEqual(status, host_mod.DONE)
+        self.assertEqual(json.loads(out)["promoted"],
+                         [{"version": version, "files": 3}])
+        status, out, _ = self.run_cli("index", "--json", *self.host_args())
+        report = json.loads(out)
+        self.assertEqual((report["status"], report["unchanged"]),
+                         ("done", False))
+        self.assertEqual(report["published"]["serial"], 1)
+        self.assertEqual(report["published"]["channels"]["nightly"], version)
+        report = json.loads(self.run_cli("--json", "index",
+                                         *self.host_args())[1])
+        self.assertTrue(report["unchanged"])
+
+    def test_status_follows_a_nightly_through_the_chain(self):
+        self.commit()
+        _, version = self.build()
+        stores = ["--update", self.update.root, "--builds", self.builds.root,
+                  "--staging", self.staging.root]
+
+        def status():
+            code, out, err = self.run_cli("status", version, "--json",
+                                          *stores)
+            self.assertEqual(code, 0, err)
+            view = json.loads(out)
+            return {f["step"]: f["state"] for f in view["facts"]}, \
+                view["next"]
+
+        facts, nxt = status()
+        self.assertEqual((facts["staged by CI"], facts["promoted"]),
+                         ("yes", "no"))
+        self.assertIn("promote", nxt)
+        self.promote()
+        facts, nxt = status()
+        self.assertEqual((facts["promoted"], facts["listed"]), ("yes", "no"))
+        self.assertIn("next index", nxt)
+        self.index()
+        facts, nxt = status()
+        self.assertEqual(facts["listed"], "yes")
+        self.assertIsNone(nxt)
+        code, out, _ = self.run_cli("status", version, *stores)
+        self.assertIn("✓ listed  (nightly)", out)
+        self.assertNotIn("next:", out)
+
+    def test_show_reads_the_index_as_a_client_does(self):
+        self.commit()
+        _, version = self.build()
+        self.promote()
+        self.index()
+        code, out, err = self.run_cli("show", "--update", self.update.root)
+        self.assertEqual(code, 0, err)
+        self.assertIn("update index, serial 1", out)
+        self.assertRegex(out, rf"nightly +{re.escape(version)}")
+        view = json.loads(self.run_cli("show", "--json", "--update",
+                                       self.update.root)[1])
+        self.assertEqual(view["serial"], 1)
+        self.assertGreater(view["days_left"], 13)
+        # Signed by a key the trusted list does not hold: shown nothing.
+        (self.tmp / "update" / self.slug / "v1" / "index.json").write_text(
+            "{}")
+        code, _, err = self.run_cli("show", "--update", self.update.root)
+        self.assertEqual(code, 1)
+        self.assertIn("error:", err)
+
+    def test_root_status_counts_signatures_against_both_thresholds(self):
+        code, out, err = self.run_cli("trust", "root", "new")
+        self.assertEqual(code, 0, err)
+        self.assertIn("next: ", out)
+        code, out, _ = self.run_cli("--json", "trust", "root", "status")
+        view = json.loads(out)
+        self.assertEqual(view["version"], 2)
+        self.assertFalse(view["complete"])
+        self.assertEqual([len(g["signed"]) for g in view["groups"]], [0, 0])
+        code, out, _ = self.run_cli("trust", "root", "status")
+        self.assertIn("0 of", out)
+        self.assertIn("more of root 1 root keys", out)
+        keys = Path(__file__).resolve().parent / "fixtures" / "trust" / "keys"
+        path = self.product.root_dir / "2.root.json"
+        code, out, err = self.run_cli("trust", "root", "sign", str(path),
+                                      "-s", str(keys / "root-a.key"))
+        self.assertEqual(code, 0, err)
+        view = json.loads(self.run_cli("--json", "trust", "root",
+                                       "status")[1])
+        self.assertEqual([len(g["signed"]) for g in view["groups"]], [1, 1])
+
+    def test_doctor_names_what_is_missing(self):
+        code, out, _ = self.run_cli(
+            "doctor", "--for", "ci", "--cosign", str(self.tmp / "nothing"),
+            "--staging", self.staging.root)
+        self.assertEqual(code, 1)
+        self.assertIn("✗ tool cosign: not found", out)
+        self.assertIn("fix: install cosign", out)
+        self.assertRegex(out, "✓ store staging")
+        code, out, _ = self.run_cli("doctor", "--for", "ci", "--json",
+                                    "--cosign", str(self.cosign),
+                                    "--staging", self.staging.root)
+        self.assertEqual(code, 0, out)
+        self.assertTrue(all(c["ok"] for c in json.loads(out)["checks"]))
+
     def test_a_host_with_keys_clients_do_not_pin_refuses_to_run(self):
         _, other = keypair(self.tmp / "keys", "other")
         listed = make_product(self.tmp / "other", [other])
@@ -1862,6 +1979,53 @@ class StableTest(unittest.TestCase):
         # Not retired but dropped: it signed nothing that counts any more.
         pin("/CN=GpgFrontend New Signing/O=Rehearsal/C=DE", [])
         self.assert_refused(self.index, "signed by")
+
+    def stable_cli(self, *extra, tty=False, answer=""):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("gfr_cli",
+                                                      GFR / "__main__.py")
+        cli = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(cli)
+        args = [*trust_args(self.product), "stable", "2.3.0",
+                "--work", str(self.tmp / "work"),
+                "--staging", self.staging.root, "--builds", self.builds.root,
+                "--git-dir", str(self.repo), "--cosign", str(self.cosign),
+                "--gnupghome", str(self.gnupg),
+                "--authenticode-cert", str(self.cert),
+                "--authenticode-key", str(self.cert_key),
+                "--authenticode-ca", str(self.cert), *extra]
+        out, err = io.StringIO(), io.StringIO()
+        with mock.patch.object(sys.stdin, "isatty", return_value=tty), \
+                mock.patch("builtins.input", return_value=answer), \
+                contextlib.redirect_stdout(out), \
+                contextlib.redirect_stderr(err):
+            status = cli.main(args)
+        return status, out.getvalue(), err.getvalue()
+
+    def test_the_stable_stage_shows_its_steps_and_asks_before_the_upload(self):
+        self.tag()
+        self.build()
+        published = self.tmp / "builds" / self.product.slug / "releases" / \
+            "2.3.0" / "release.json"
+        # A dry run: fetched and verified, nothing signed or uploaded.
+        status, out, err = self.stable_cli("--dry-run")
+        self.assertEqual(status, 0, err)
+        self.assertIn("[2/5] verify", out)
+        self.assertNotIn("[3/5]", out)
+        self.assertIn("nothing signed or uploaded", out)
+        self.assertFalse(published.exists())
+        # On a terminal, a "no" stops before the upload, resumably.
+        status, out, err = self.stable_cli(tty=True, answer="n")
+        self.assertEqual(status, 1)
+        self.assertIn("[1/5] fetch (done before)", out)
+        self.assertIn("stopped before the upload", err)
+        self.assertFalse(published.exists())
+        # Not on a terminal (CI, a script), or with --yes: no question.
+        status, out, err = self.stable_cli()
+        self.assertEqual(status, 0, err)
+        self.assertIn("[5/5] upload", out)
+        self.assertIn("next: the signing host lists it", out)
+        self.assertTrue(published.exists())
 
     def test_a_stable_release_goes_from_tag_to_a_verified_index(self):
         self.tag()
