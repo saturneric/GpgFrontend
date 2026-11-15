@@ -48,6 +48,7 @@
 #include "boot/Initialize.h"
 #include "core/GFCoreLog.h"
 #include "core/utils/BuildInfoUtils.h"
+#include "plat/common/PlatformHardening.h"
 
 #ifdef Q_OS_ANDROID
 #include <sys/system_properties.h>
@@ -79,6 +80,10 @@ auto RequestedLogLevel() -> QString {
 
 auto main(int argc, char* argv[]) -> int {
   using namespace GpgFrontend;
+
+  // Before any key or passphrase is in memory: no other process of this user
+  // attaches to it or reads it, and no crash writes it to a core file.
+  HardenProcess();
 
   QGuiApplication app(argc, argv);
   // The desktop's names: the same profile layout, the same GF_PROFILE.

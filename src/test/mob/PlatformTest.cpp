@@ -35,10 +35,18 @@
 #include <QUrl>
 #include <atomic>
 
+#if defined(Q_OS_LINUX) || defined(Q_OS_ANDROID)
+#include <sys/prctl.h>
+#include <sys/resource.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#endif
+
 #include "MobileTest.h"
 #include "files/OutputActions.h"
 #include "lifecycle/SecureWindowGuard.h"
 #include "plat/common/PlatformClipboard.h"
+#include "plat/common/PlatformHardening.h"
 #include "plat/common/PlatformPrivacy.h"
 #include "plat/common/PlatformShare.h"
 
@@ -291,6 +299,47 @@ TEST(PlatformStubTest, AGuardHoldsTheWindowOnlyWhileActive) {
     EXPECT_EQ(changed.count(), 2);
   });
 }
+
+#if defined(Q_OS_LINUX) || defined(Q_OS_ANDROID)
+// Hardened, the process can no longer be attached to or dumped by another of
+// the same user. Done in a child: the test process itself stays debuggable.
+TEST(ProcessHardeningTest, AHardenedProcessIsNotDumpable) {
+  const auto child = fork();
+  ASSERT_GE(child, 0);
+  if (child == 0) {
+    const auto done = ApplyProcessHardening();
+    rlimit core{1, 1};
+    getrlimit(RLIMIT_CORE, &core);
+    const bool ok = done.not_dumpable && done.no_core_dumps &&
+                    prctl(PR_GET_DUMPABLE, 0, 0, 0, 0) == 0 &&
+                    core.rlim_cur == 0 && core.rlim_max == 0;
+    _exit(ok ? 0 : 1);
+  }
+  int status = -1;
+  ASSERT_EQ(waitpid(child, &status, 0), child);
+  ASSERT_TRUE(WIFEXITED(status));
+  EXPECT_EQ(WEXITSTATUS(status), 0);
+}
+
+// A debug build is left alone, so a debugger can still attach to it.
+TEST(ProcessHardeningTest, OnlyAReleaseBuildIsHardened) {
+  const auto child = fork();
+  ASSERT_GE(child, 0);
+  if (child == 0) {
+    const auto done = HardenProcess();
+    const auto dumpable = prctl(PR_GET_DUMPABLE, 0, 0, 0, 0);
+#ifdef QT_NO_DEBUG
+    _exit(done.not_dumpable && dumpable == 0 ? 0 : 1);
+#else
+    _exit(!done.not_dumpable && !done.no_core_dumps && dumpable == 1 ? 0 : 1);
+#endif
+  }
+  int status = -1;
+  ASSERT_EQ(waitpid(child, &status, 0), child);
+  ASSERT_TRUE(WIFEXITED(status));
+  EXPECT_EQ(WEXITSTATUS(status), 0);
+}
+#endif
 
 TEST(SensitiveClipboardTest, ExpiresWhenItsTimeIsUp) {
   // Read back on the interface thread before the timer can run there.
