@@ -85,6 +85,9 @@ class AppServices {
   static auto StagingRoot() -> QString;
   /// Where the store keeps its record.
   static auto RetentionIndexFile() -> QString;
+  /// Where the open profile keeps the Files page's files between runs: in
+  /// its workspace area.
+  static auto KeptFilesRoot() -> QString;
 };
 
 }  // namespace GpgFrontend::Mobile

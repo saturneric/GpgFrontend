@@ -47,6 +47,7 @@
 #include "files/FileFilterModel.h"
 #include "files/FileOperations.h"
 #include "files/FileWorkspace.h"
+#include "files/KeptStore.h"
 #include "files/ShareInbox.h"
 #include "files/ShareRetentionStore.h"
 #include "files/StagingArea.h"
@@ -1367,6 +1368,190 @@ TEST_F(FileWorkspaceTest, AFilesTypeSaysHowItIsKnown) {
   Do([&](auto* f) { signature = f->signatureOf(source); });
   ASSERT_GE(signature, 0) << Errors(source);
   EXPECT_EQ(type(signature), Kind("signature", true));
+}
+
+// What was made and what was shared stay for the next run, in the
+// profile's store, until removed; a picked document is only a reference and
+// is not listed again.
+TEST_F(FileWorkspaceTest, KeptFilesAreListedAgainOnTheNextRun) {
+  const auto root = dir_.filePath("kept");
+  Do([&](auto* f) { f->OpenKept(root); });
+
+  const QByteArray content = "kept between runs\n";
+  const auto source = Add(content);
+  Do([&](auto* f) { f->encrypt({source}, {fred_}); });
+  Finish();
+  const auto encrypted = OutputOf(source);
+  ASSERT_GE(encrypted, 0) << Errors(source);
+  EXPECT_TRUE(Entry(encrypted).value("kept").toBool());
+  QString made_path;
+  Do([&](auto* f) { made_path = f->readableUrl(encrypted).toLocalFile(); });
+  EXPECT_TRUE(made_path.startsWith(root + "/")) << made_path.toStdString();
+  const auto made_bytes = ReadFile(made_path);
+  ASSERT_FALSE(made_bytes.isEmpty());
+
+  const auto shared_path = dir_.filePath("shared.txt");
+  WriteFile(shared_path, "from another app");
+  int shared = -1;
+  Do([&](auto* f) {
+    shared =
+        f->receiveFiles({QUrl::fromLocalFile(shared_path)}).value(0).toInt();
+  });
+  ASSERT_TRUE(WaitFor(
+      [&]() { return Entry(shared).value("available").toBool(); }, 30000));
+  EXPECT_TRUE(Entry(shared).value("kept").toBool());
+  // Kept: not one that goes with the session, though not saved either.
+  Do([](auto* f) {
+    EXPECT_EQ(f->UnsavedCount(), 1);
+    EXPECT_EQ(f->TemporaryCount(), 0);
+  });
+
+  // The application ends and starts again.
+  RunOnMainThread([&]() {
+    delete files_;
+    files_ = NewWorkspace();
+    files_->OpenKept(root);
+  });
+  EXPECT_TRUE(QFile::exists(made_path));
+  ASSERT_EQ(Count(), 2);
+  QMap<QString, QVariantMap> listed;
+  RunOnMainThread([&]() {
+    for (int row = 0; row < files_->rowCount(); ++row) {
+      const auto entry = files_->entry(files_->idAt(row));
+      listed.insert(entry.value("name").toString(), entry);
+    }
+  });
+  ASSERT_TRUE(listed.contains("notes.txt.gpg"));
+  ASSERT_TRUE(listed.contains("shared.txt"));
+  const auto again = listed.value("notes.txt.gpg");
+  EXPECT_EQ(again.value("origin").toString(), "made");
+  EXPECT_EQ(again.value("kind").toString(), "output");
+  EXPECT_EQ(again.value("operation").toString(), "encrypt");
+  EXPECT_EQ(again.value("phase").toString(), "done");
+  EXPECT_TRUE(again.value("kept").toBool());
+  EXPECT_EQ(listed.value("shared.txt").value("origin").toString(), "shared");
+  const auto kept_id = again.value("fileId").toInt();
+  QString path_again;
+  Do([&](auto* f) { path_again = f->readableUrl(kept_id).toLocalFile(); });
+  EXPECT_EQ(ReadFile(path_again), made_bytes);
+  // Still what it was: it decrypts.
+  Do([&](auto* f) { f->decrypt({kept_id}); });
+  Finish();
+  const auto decrypted = OutputOf(kept_id);
+  ASSERT_GE(decrypted, 0) << Errors(kept_id);
+  EXPECT_EQ(SaveAndRead(decrypted, "back.txt"), content);
+
+  // Removed, it is deleted, and not listed on the next run.
+  Do([&](auto* f) { f->remove({kept_id}); });
+  EXPECT_FALSE(QFile::exists(path_again));
+  RunOnMainThread([&]() {
+    delete files_;
+    files_ = NewWorkspace();
+    files_->OpenKept(root);
+  });
+  // The file decrypted from it stays, and remembers where it was saved.
+  QMap<QString, QString> saved_as;
+  RunOnMainThread([&]() {
+    for (int row = 0; row < files_->rowCount(); ++row) {
+      const auto entry = files_->entry(files_->idAt(row));
+      saved_as.insert(entry.value("name").toString(),
+                      entry.value("savedName").toString());
+    }
+  });
+  EXPECT_EQ(saved_as.keys(), (QStringList{"notes.txt", "shared.txt"}));
+  EXPECT_EQ(saved_as.value("notes.txt"), "back.txt");
+}
+
+// Settings keeps no files: what an earlier run kept goes at the next start,
+// and new files are staged as they always were.
+TEST_F(FileWorkspaceTest, NothingIsKeptWhenSettingsSayNo) {
+  const auto root = dir_.filePath("kept");
+  {
+    GpgFrontend::Mobile::KeptStore store(root);
+    WriteFile(store.NewPath("old.txt"), "old");
+    ASSERT_TRUE(store.Save({}));
+  }
+  RunOnMainThread([]() {
+    auto settings = GetSettings();
+    SettingItems::kKeepFiles.Write(settings, false);
+  });
+  const auto forget = qScopeGuard([]() {
+    RunOnMainThread([]() {
+      auto settings = GetSettings();
+      settings.remove(SettingItems::kKeepFiles.Key());
+    });
+  });
+
+  Do([&](auto* f) { f->OpenKept(root); });
+  EXPECT_FALSE(QDir(root).exists());
+
+  const auto source = Add("staged as before");
+  Do([&](auto* f) { f->encrypt({source}, {fred_}); });
+  Finish();
+  const auto encrypted = OutputOf(source);
+  ASSERT_GE(encrypted, 0) << Errors(source);
+  EXPECT_FALSE(Entry(encrypted).value("kept").toBool());
+  Do([](auto* f) { EXPECT_EQ(f->TemporaryCount(), 1); });
+  EXPECT_FALSE(QDir(root).exists());
+}
+
+// The store's index is what it holds: a record whose file is gone is
+// dropped, a folder no record names is removed, and a broken index keeps
+// nothing.
+TEST(KeptStoreTest, TheIndexIsWhatTheStoreHolds) {
+  using GpgFrontend::Mobile::KeptRecord;
+  using GpgFrontend::Mobile::KeptStore;
+  QTemporaryDir dir;
+  const auto root = dir.filePath("store");
+  KeptStore store(root);
+
+  const auto kept = store.NewPath("a.txt");
+  WriteFile(kept, "a");
+  const auto gone = store.NewPath("b.txt");
+  WriteFile(gone, "b");
+  const auto orphan = store.NewPath("c.txt");
+  WriteFile(orphan, "c");
+  const QDir base(root);
+  ASSERT_TRUE(store.Save({
+      KeptRecord{.path = base.relativeFilePath(kept),
+                 .name = "a.txt",
+                 .origin = "made",
+                 .operation = "encrypt",
+                 .plaintext = true,
+                 .added = QDateTime::currentDateTimeUtc()},
+      KeptRecord{.path = base.relativeFilePath(gone),
+                 .name = "b.txt",
+                 .origin = "shared"},
+      // One that would leave the store is never followed.
+      KeptRecord{.path = "../outside.txt", .name = "outside.txt"},
+  }));
+  QFile::remove(gone);
+
+  const auto records = store.Load();
+  ASSERT_EQ(records.size(), 1);
+  EXPECT_EQ(records.first().name, "a.txt");
+  EXPECT_EQ(records.first().operation, "encrypt");
+  EXPECT_TRUE(records.first().plaintext);
+  EXPECT_TRUE(QFile::exists(kept));
+  EXPECT_FALSE(QFile::exists(orphan));
+  EXPECT_FALSE(QDir(QFileInfo(gone).absolutePath()).exists());
+
+  // Adopted: moved in, the original gone.
+  const auto outside = dir.filePath("made.bin");
+  WriteFile(outside, "made");
+  const auto adopted = store.Adopt(outside, "made.bin");
+  ASSERT_FALSE(adopted.isEmpty());
+  EXPECT_FALSE(QFile::exists(outside));
+  EXPECT_EQ(ReadFile(adopted), QByteArray("made"));
+
+  // An index that cannot be read keeps nothing.
+  QFile index(root + "/index.json");
+  ASSERT_TRUE(index.open(QIODevice::WriteOnly));
+  index.write("{ not json");
+  index.close();
+  EXPECT_TRUE(store.Load().isEmpty());
+  EXPECT_FALSE(QFile::exists(kept));
+  EXPECT_FALSE(QFile::exists(adopted));
 }
 
 TEST_F(FileWorkspaceTest, ASharedFileIsCopiedInAndIsTheApplicationsOwn) {

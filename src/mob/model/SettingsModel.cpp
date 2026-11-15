@@ -194,6 +194,8 @@ auto SettingsModel::Offered() -> QList<Offer> {
        QStringLiteral("operations"),
        {},
        false},
+      // Whether the Files page's files outlive the application.
+      {&SettingItems::kKeepFiles, {}, QStringLiteral("storage"), {}},
       // What a folder is packed into before it is encrypted.
       {&SettingItems::kFolderArchiveFormat,
        QStringLiteral("archive"),

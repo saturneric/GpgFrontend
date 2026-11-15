@@ -66,6 +66,7 @@ qt_add_library(gf_mob_lib STATIC
   crypto/FileCrypto.cpp
   crypto/WorkSelection.cpp
   files/StagingArea.cpp
+  files/KeptStore.cpp
   files/ShareRetentionStore.cpp
   files/FileOperations.cpp
   files/FileFilterModel.cpp

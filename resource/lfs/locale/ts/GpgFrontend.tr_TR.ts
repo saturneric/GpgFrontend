@@ -876,6 +876,16 @@
         <source>Encrypting it packs everything in it, as it is then, into one archive: %1. The folder itself is not changed.</source>
         <translation>Şifrelemek, içindeki her şeyi o anki haliyle tek bir arşive paketler: %1. Klasörün kendisi değişmez.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="302"/>
+        <source>A copy another app shared. Kept in the app until you remove it.</source>
+        <translation>Başka bir uygulamanın paylaştığı kopya. Siz kaldırana kadar uygulamada tutulur.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="304"/>
+        <source>Kept in the app until you remove it.</source>
+        <translation>Siz kaldırana kadar uygulamada tutulur.</translation>
+    </message>
 </context>
 <context>
     <name>FilesPage</name>
@@ -3677,6 +3687,16 @@
         <location filename="../../../../src/core/function/SettingCatalog.h" line="309"/>
         <source>After how long in the background decrypted text is cleared.</source>
         <translation>Arka planda ne kadar süre sonra şifresi çözülen metnin temizleneceği.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="319"/>
+        <source>Keep files after closing</source>
+        <translation>Kapattıktan sonra dosyaları sakla</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="321"/>
+        <source>Files made or received stay in the app&apos;s private storage, decrypted ones too, until you remove them.</source>
+        <translation>Oluşturulan veya alınan dosyalar, şifresi çözülenler de dahil, siz kaldırana kadar uygulamanın özel depolama alanında kalır.</translation>
     </message>
 </context>
 <context>

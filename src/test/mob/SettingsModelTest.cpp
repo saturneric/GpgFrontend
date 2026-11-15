@@ -202,6 +202,24 @@ TEST(SettingsModelTest, TheTextPageIsProtectedUntilTurnedOff) {
   });
 }
 
+// The Files page's files outlive the application unless turned off, and
+// Settings shows it with what it stores.
+TEST(SettingsModelTest, FilesAreKeptUntilTurnedOff) {
+  RunOnMainThread([]() {
+    SettingsModel model;
+    const auto row =
+        static_cast<int>(Keys(model).indexOf(SettingItems::kKeepFiles.Key()));
+    ASSERT_GE(row, 0);
+    const auto index = model.index(row);
+    EXPECT_EQ(model.data(index, SettingsModel::kTypeRole), "bool");
+    EXPECT_EQ(model.data(index, SettingsModel::kSectionRole), "storage");
+    EXPECT_EQ(model.data(index, SettingsModel::kValueRole), true);
+    ASSERT_TRUE(model.setValue(row, false));
+    EXPECT_FALSE(SettingItems::kKeepFiles.Read(GetSettings()));
+    ASSERT_TRUE(model.setValue(row, true));
+  });
+}
+
 // Decrypted text goes after five minutes away unless chosen otherwise:
 // never, at once, or after another of the times offered.
 TEST(SettingsModelTest, DecryptedTextIsClearedAfterAChosenTimeAway) {

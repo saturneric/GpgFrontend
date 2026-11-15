@@ -263,6 +263,10 @@ Page {
                 text: qsTr("Storage")
             }
 
+            SettingRows {
+                section: "storage"
+            }
+
             ListRow {
                 objectName: "clearSharedFiles"
                 Layout.fillWidth: true

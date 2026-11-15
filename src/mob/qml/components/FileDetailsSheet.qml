@@ -28,8 +28,10 @@ BottomSheet {
     readonly property bool isOutput: file.kind === "output"
     // A folder added as one item: no hash, encrypted as one archive.
     readonly property bool isFolder: file.isFolder === true
+    // Made here, not saved, and gone with the app (not kept between runs).
     readonly property bool temporary: file.origin === "made"
                                       && (file.savedName || "").length === 0
+                                      && file.kept !== true
     readonly property bool hashing: sha256.length === 0 && hashError.length === 0
     // Still being copied in (a shared file): hashed once it is all here, as
     // a hash of part of it would be shown as the file's.
@@ -288,14 +290,20 @@ BottomSheet {
         objectName: "fileTemporary"
         Layout.fillWidth: true
         visible: sheet.temporary || sheet.file.origin === "shared"
+                 || sheet.file.kept === true
         wrapMode: Text.Wrap
         color: sheet.temporary ? Theme.warning : Material.secondaryTextColor
         font.pixelSize: Theme.secondarySize
         text: sheet.temporary
               ? qsTr("Temporary, not saved. It is deleted when you remove it "
                      + "or close the app. Save it to keep it.")
-              : qsTr("A copy another app shared. It is deleted when you remove "
-                     + "it or close the app.")
+              : sheet.file.kept === true
+                ? (sheet.file.origin === "shared"
+                   ? qsTr("A copy another app shared. Kept in the app until "
+                          + "you remove it.")
+                   : qsTr("Kept in the app until you remove it."))
+                : qsTr("A copy another app shared. It is deleted when you "
+                       + "remove it or close the app.")
     }
 
     Label {

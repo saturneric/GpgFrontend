@@ -880,6 +880,16 @@
         <source>Encrypting it packs everything in it, as it is then, into one archive: %1. The folder itself is not changed.</source>
         <translation>Zaszyfrowanie pakuje całą zawartość, w jej ówczesnym stanie, do jednego archiwum: %1. Sam folder pozostaje bez zmian.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="302"/>
+        <source>A copy another app shared. Kept in the app until you remove it.</source>
+        <translation>Kopia udostępniona przez inną aplikację. Pozostaje w aplikacji, dopóki jej nie usuniesz.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="304"/>
+        <source>Kept in the app until you remove it.</source>
+        <translation>Pozostaje w aplikacji, dopóki go nie usuniesz.</translation>
+    </message>
 </context>
 <context>
     <name>FilesPage</name>
@@ -3705,6 +3715,16 @@
         <location filename="../../../../src/core/function/SettingCatalog.h" line="309"/>
         <source>After how long in the background decrypted text is cleared.</source>
         <translation>Po jakim czasie w tle odszyfrowany tekst jest czyszczony.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="319"/>
+        <source>Keep files after closing</source>
+        <translation>Zachowuj pliki po zamknięciu</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="321"/>
+        <source>Files made or received stay in the app&apos;s private storage, decrypted ones too, until you remove them.</source>
+        <translation>Pliki utworzone lub otrzymane pozostają w prywatnej pamięci aplikacji, także odszyfrowane, dopóki ich nie usuniesz.</translation>
     </message>
 </context>
 <context>

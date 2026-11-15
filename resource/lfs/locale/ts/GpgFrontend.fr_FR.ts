@@ -878,6 +878,16 @@
         <source>Encrypting it packs everything in it, as it is then, into one archive: %1. The folder itself is not changed.</source>
         <translation>Le chiffrer emballe tout son contenu, tel qu’il est alors, dans une archive : %1. Le dossier lui-même n’est pas modifié.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="302"/>
+        <source>A copy another app shared. Kept in the app until you remove it.</source>
+        <translation>Une copie partagée par une autre application. Conservée dans l&apos;application jusqu&apos;à ce que vous la retiriez.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="304"/>
+        <source>Kept in the app until you remove it.</source>
+        <translation>Conservé dans l&apos;application jusqu&apos;à ce que vous le retiriez.</translation>
+    </message>
 </context>
 <context>
     <name>FilesPage</name>
@@ -3695,6 +3705,16 @@
         <location filename="../../../../src/core/function/SettingCatalog.h" line="309"/>
         <source>After how long in the background decrypted text is cleared.</source>
         <translation>Après combien de temps en arrière-plan le texte déchiffré est effacé.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="319"/>
+        <source>Keep files after closing</source>
+        <translation>Conserver les fichiers après la fermeture</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="321"/>
+        <source>Files made or received stay in the app&apos;s private storage, decrypted ones too, until you remove them.</source>
+        <translation>Les fichiers créés ou reçus restent dans le stockage privé de l&apos;application, y compris les fichiers déchiffrés, jusqu&apos;à ce que vous les retiriez.</translation>
     </message>
 </context>
 <context>

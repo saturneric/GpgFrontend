@@ -43,6 +43,7 @@
 #include <optional>
 #include <vector>
 
+#include "files/KeptStore.h"
 #include "files/StagingArea.h"
 
 namespace GpgFrontend {
@@ -66,11 +67,13 @@ class OperationQueue;
  *
  * An added file is a reference to the document the picker returned; it is
  * never copied for keeping, changed or deleted, and removing it from the
- * workspace only forgets it. What an operation makes is the application's
- * own: a file in this session's staging area, deleted when it is removed,
- * when the workspace goes, or -- after a crash -- by the next start's
- * orphan cleanup. Nothing about the workspace is written anywhere else: it
- * lasts as long as the session.
+ * workspace only forgets it, and it is not listed again after a restart.
+ * What an operation makes, and a copy of what another application shared,
+ * is the application's own. Once OpenKept() named the profile's store and
+ * Settings keeps files (the default), it is moved there and listed again on
+ * the next start, until it is removed. Otherwise it is a file in this
+ * session's staging area, deleted when it is removed, when the workspace
+ * goes, or -- after a crash -- by the next start's orphan cleanup.
  *
  * Operations run one at a time, in their turn in the application's
  * OperationQueue (one record each; a batch shares its first one's id). Each
@@ -91,6 +94,8 @@ class FileWorkspace : public QAbstractListModel {
       QString sortKey READ SortKey WRITE SetSortKey NOTIFY SignalSortChanged)
   Q_PROPERTY(bool canShare READ CanShare CONSTANT)
   Q_PROPERTY(int unsavedCount READ UnsavedCount NOTIFY SignalUnsavedChanged)
+  /// Of those not saved, the ones that go with the session: not kept.
+  Q_PROPERTY(int temporaryCount READ TemporaryCount NOTIFY SignalUnsavedChanged)
 
  public:
   enum Role : int {
@@ -137,6 +142,8 @@ class FileWorkspace : public QAbstractListModel {
     /// "packing" (a folder, before it is encrypted), "extracting" (an
     /// archive, into a folder); empty otherwise.
     kActivityRole,
+    /// Kept between runs (the KeptStore), not gone with the session.
+    kKeptRole,
   };
   Q_ENUM(Role)
 
@@ -151,6 +158,18 @@ class FileWorkspace : public QAbstractListModel {
   static auto create(QQmlEngine*, QJSEngine*) -> FileWorkspace*;
   /// The application's workspace; null before and after AppServices.
   static auto Instance() -> FileWorkspace*;
+
+  /**
+   * @brief Keep files in @p root from now on, and list again what it kept.
+   *
+   * Called once the profile is open. Where Settings keeps no files, what
+   * @p root holds is deleted instead and nothing is kept.
+   */
+  void OpenKept(const QString& root);
+
+  /// Whether Settings keeps the files made or received after the
+  /// application ends.
+  [[nodiscard]] static auto KeepsFiles() -> bool;
 
   [[nodiscard]] auto rowCount(const QModelIndex& parent = {}) const
       -> int override;
@@ -386,6 +405,7 @@ class FileWorkspace : public QAbstractListModel {
 
   /// How many files made here were never saved: they go with the session.
   [[nodiscard]] auto UnsavedCount() const -> int;
+  [[nodiscard]] auto TemporaryCount() const -> int;
 
  signals:
   void SignalBusyChanged();
@@ -451,6 +471,8 @@ class FileWorkspace : public QAbstractListModel {
     /// Copies out of it under way (a save, a share): its file stays until
     /// they are done, though the copy may wait behind other work.
     int reading = 0;
+    /// Its file is in the KeptStore: it stays when the workspace goes.
+    bool kept = false;
     /// A folder (url a picked document tree): packed when it is encrypted.
     bool folder = false;
     int file_count = 0;
@@ -471,6 +493,9 @@ class FileWorkspace : public QAbstractListModel {
 
   QPointer<OperationQueue> queue_;
   std::vector<std::unique_ptr<Entry>> entries_;
+  /// Where files are kept between runs; null until OpenKept(), and while
+  /// Settings keeps none.
+  std::unique_ptr<KeptStore> kept_;
   /// Waiting in the OperationQueue, by record id.
   std::map<int, Job> waiting_;
   std::optional<Job> running_;
@@ -554,6 +579,10 @@ class FileWorkspace : public QAbstractListModel {
   /// @p name, or with " (2)", " (3)" ... before its last extension when the
   /// list already has a file of that name.
   [[nodiscard]] auto unique_name(const QString& name) const -> QString;
+  /// Whether a new file goes into the KeptStore.
+  [[nodiscard]] auto keeping() const -> bool;
+  /// Write the KeptStore's index: the kept files as they are now.
+  void save_kept();
   void busy_changed(bool was);
 };
 

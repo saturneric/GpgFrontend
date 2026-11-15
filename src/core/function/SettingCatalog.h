@@ -311,6 +311,19 @@ inline constexpr IntSetting kClearTextInBackground{
          "After how long in the background decrypted text is cleared.")},
     300};
 
+/// Whether the files the phone's Files page made or received stay after the
+/// application ends, in the profile's own storage. Off, they go with it.
+inline constexpr BoolSetting kKeepFiles{
+    {.key = "mobile/keep_files",
+     .group = kBEHAVIOUR,
+     .title = QT_TRANSLATE_NOOP("GpgFrontend::SettingItem",
+                                "Keep files after closing"),
+     .description = QT_TRANSLATE_NOOP(
+         "GpgFrontend::SettingItem",
+         "Files made or received stay in the app's private storage, decrypted "
+         "ones too, until you remove them.")},
+    true};
+
 /// The typeface of the phone's text editor: "system", "mono", "sans" or
 /// "serif". Only the editor's: the rest of the app keeps the system's.
 inline constexpr StringSetting kEditorFont{
@@ -590,7 +603,7 @@ inline constexpr StateSetting kLastOperation{.key = "mobile/last_operation",
 /// Every entry above. A setting missing from here is invisible to every
 /// policy that walks the catalog, so a new entry is added in both places;
 /// SettingCatalogTest checks that each key appears once.
-inline constexpr std::array<const SettingMeta *, 63> kAll = {
+inline constexpr std::array<const SettingMeta *, 64> kAll = {
     &kDefaultEngine,
     &kUseCustomGnuPGInstallPath,
     &kCustomGnuPGInstallPath,
@@ -617,6 +630,7 @@ inline constexpr std::array<const SettingMeta *, 63> kAll = {
     &kFolderArchiveFormat,
     &kProtectTextScreen,
     &kClearTextInBackground,
+    &kKeepFiles,
     &kUndoableOperations,
     &kRestoreTextEditorPage,
     &kDefaultWorkspaceAs,

@@ -878,6 +878,16 @@
         <source>Encrypting it packs everything in it, as it is then, into one archive: %1. The folder itself is not changed.</source>
         <translation>Al cifrarla se empaqueta todo su contenido, tal como esté entonces, en un archivo: %1. La carpeta no se modifica.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="302"/>
+        <source>A copy another app shared. Kept in the app until you remove it.</source>
+        <translation>Una copia compartida por otra aplicación. Se conserva en la aplicación hasta que la quites.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="304"/>
+        <source>Kept in the app until you remove it.</source>
+        <translation>Se conserva en la aplicación hasta que lo quites.</translation>
+    </message>
 </context>
 <context>
     <name>FilesPage</name>
@@ -3716,6 +3726,16 @@ Una traducción simplificada sería aludir exclusivamente al término &apos;huel
         <location filename="../../../../src/core/function/SettingCatalog.h" line="309"/>
         <source>After how long in the background decrypted text is cleared.</source>
         <translation>Tras cuánto tiempo en segundo plano se borra el texto descifrado.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="319"/>
+        <source>Keep files after closing</source>
+        <translation>Conservar los archivos al cerrar</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="321"/>
+        <source>Files made or received stay in the app&apos;s private storage, decrypted ones too, until you remove them.</source>
+        <translation>Los archivos creados o recibidos permanecen en el almacenamiento privado de la aplicación, también los descifrados, hasta que los quites.</translation>
     </message>
 </context>
 <context>

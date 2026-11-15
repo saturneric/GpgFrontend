@@ -34,6 +34,8 @@ Page {
         ? qsTr("Finish or cancel the passphrase prompt first.") : ""
     // Outputs made here and not saved: gone with the session.
     readonly property int unsaved: files.unsavedCount
+    // Of those, the ones that go when the app closes (not kept).
+    readonly property int temporary: files.temporaryCount
     readonly property FileWorkspace workspace: FileWorkspace
     readonly property bool selecting: files.selectedCount > 0
     // The files chosen, read again whenever the choice or a file changes.
@@ -329,11 +331,15 @@ Page {
     }
 
     // The files made here and never saved, in the list's order.
-    function unsavedIds() {
+    // Made here and not saved; only those that go with the app when
+    // @p temporaryOnly (not kept between runs).
+    function unsavedIds(temporaryOnly) {
         const ids = []
         for (let row = 0; row < files.count; ++row) {
             const file = files.entry(files.idAt(row))
-            if (file.origin === "made" && file.savedName.length === 0) ids.push(file.fileId)
+            if (file.origin === "made" && file.savedName.length === 0
+                    && !(temporaryOnly && file.kept))
+                ids.push(file.fileId)
         }
         return ids
     }
@@ -634,12 +640,13 @@ Page {
             }
         }
 
-        // What is made here goes with the session unless it is saved.
+        // What is made here and not kept goes with the session unless it is
+        // saved.
         Pane {
             objectName: "unsavedBanner"
             Layout.fillWidth: true
             // Also while choosing: the list under it never moves for that.
-            visible: page.unsaved > 0
+            visible: page.temporary > 0
             padding: 8
             leftPadding: Theme.gap
 
@@ -665,7 +672,7 @@ Page {
                     // A plural: languages count more forms than two.
                     text: qsTr("%n temporary file(s) not saved yet. Deleted "
                                + "when removed from the list or when the app "
-                               + "closes.", "", page.unsaved)
+                               + "closes.", "", page.temporary)
                 }
 
                 Button {
@@ -673,11 +680,11 @@ Page {
                     flat: true
                     topInset: 0
                     bottomInset: 0
-                    text: page.unsaved === 1 ? qsTr("Save") : qsTr("Save all")
+                    text: page.temporary === 1 ? qsTr("Save") : qsTr("Save all")
                     // One file is saved as one is everywhere else (a place
                     // and a name); several, into a folder.
                     onClicked: {
-                        const ids = page.unsavedIds()
+                        const ids = page.unsavedIds(true)
                         if (ids.length === 1) page.saveAs(ids[0])
                         else page.saveToFolder(ids)
                     }

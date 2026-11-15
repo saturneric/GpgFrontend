@@ -876,6 +876,16 @@
         <source>Encrypting it packs everything in it, as it is then, into one archive: %1. The folder itself is not changed.</source>
         <translation>加密时会将其中所有内容按当时的状态打包为一个归档：%1。文件夹本身不会改变。</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="302"/>
+        <source>A copy another app shared. Kept in the app until you remove it.</source>
+        <translation>其他应用分享的副本。保留在应用中，直到你将其移除。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="304"/>
+        <source>Kept in the app until you remove it.</source>
+        <translation>保留在应用中，直到你将其移除。</translation>
+    </message>
 </context>
 <context>
     <name>FilesPage</name>
@@ -3681,6 +3691,16 @@
         <location filename="../../../../src/core/function/SettingCatalog.h" line="309"/>
         <source>After how long in the background decrypted text is cleared.</source>
         <translation>在后台多久之后清除解密后的文本。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="319"/>
+        <source>Keep files after closing</source>
+        <translation>关闭后保留文件</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="321"/>
+        <source>Files made or received stay in the app&apos;s private storage, decrypted ones too, until you remove them.</source>
+        <translation>创建或接收的文件（包括解密后的文件）会保留在应用的私有存储中，直到你将其移除。</translation>
     </message>
 </context>
 <context>

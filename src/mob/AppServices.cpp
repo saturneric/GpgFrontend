@@ -32,6 +32,7 @@
 
 #include "core/function/CoreSignalStation.h"
 #include "core/function/openpgp/ChannelHandle.h"
+#include "core/profile/ProfileSession.h"
 #include "files/FileOperations.h"
 #include "model/KeyCategoriesController.h"
 #include "model/ProfilesController.h"
@@ -59,6 +60,20 @@ auto AppServices::StagingRoot() -> QString {
 auto AppServices::RetentionIndexFile() -> QString {
   return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) +
          QStringLiteral("/share-retention.json");
+}
+
+auto AppServices::KeptFilesRoot() -> QString {
+  auto workspace = ProfileSession::Loaded()
+                       ? ProfileSession::Instance().Accessor().PathOf(
+                             ProfileArea::kWorkspace)
+                       : QString();
+  // A storage that names no folder for it: the application's own.
+  if (workspace.isEmpty()) {
+    workspace =
+        QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) +
+        QStringLiteral("/workspace");
+  }
+  return workspace + QStringLiteral("/files");
 }
 
 AppServices::AppServices(QSharedPointer<BootContext> ctx)
@@ -94,6 +109,10 @@ AppServices::AppServices(QSharedPointer<BootContext> ctx)
   // is shown as it is, not read a second time.
   QObject::connect(&startup, &StartupController::SignalReady, &keys,
                    &KeyListController::ShowLoaded);
+  // The profile is open: the files it kept from the last run are listed
+  // again, and new ones are kept with them.
+  QObject::connect(&startup, &StartupController::SignalReady, &files,
+                   [this]() { files.OpenKept(KeptFilesRoot()); });
   // The first listing of a profile's keys; later ones the selection hears
   // from the list itself.
   QObject::connect(

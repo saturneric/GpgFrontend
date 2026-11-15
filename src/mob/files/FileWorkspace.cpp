@@ -29,6 +29,7 @@
 #include "files/FileWorkspace.h"
 
 #include <QCoreApplication>
+#include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QJSEngine>
@@ -130,6 +131,10 @@ FileWorkspace::FileWorkspace(OperationQueue* queue, AppLifecycle* lifecycle,
 // The outputs go with their entries (StagedFile); what still waits or runs
 // goes with the workspace, which hears nothing more of it.
 FileWorkspace::~FileWorkspace() {
+  // A kept file outlives the workspace: its entry goes, its file stays.
+  for (auto& entry : entries_) {
+    if (entry->kept) entry->file.Release();
+  }
   // Nobody is left to hear how they went: a folder being packed, an
   // archive being extracted into a picked folder, stop (and undo).
   pack_stop_->store(true);
@@ -140,6 +145,78 @@ FileWorkspace::~FileWorkspace() {
   if (queue_ != nullptr) {
     disconnect(queue_, nullptr, this, nullptr);
     queue_->ForgetOwner(this);
+  }
+}
+
+auto FileWorkspace::KeepsFiles() -> bool {
+  if (!ProfileSession::Loaded()) return SettingItems::kKeepFiles.Default();
+  return SettingItems::kKeepFiles.Read(GetSettings());
+}
+
+void FileWorkspace::OpenKept(const QString& root) {
+  if (root.isEmpty()) return;
+  // Already open there: listed once.
+  if (kept_ != nullptr && kept_->Root() == QDir::cleanPath(root)) return;
+  KeptStore store(root);
+  if (!KeepsFiles()) {
+    // Kept by an earlier run, when Settings still kept files: they go now,
+    // as staged ones always did.
+    store.Clear();
+    kept_.reset();
+    return;
+  }
+  kept_ = std::make_unique<KeptStore>(root);
+  for (const auto& record : kept_->Load()) {
+    auto entry = std::make_unique<Entry>();
+    entry->id = next_id_++;
+    entry->name = unique_name(record.name);
+    entry->origin = record.origin == QStringLiteral("shared")
+                        ? QStringLiteral("shared")
+                        : QStringLiteral("made");
+    entry->file = StagedFile(kept_->Root() + QLatin1Char('/') + record.path);
+    entry->kept = true;
+    entry->size = QFileInfo(entry->file.Path()).size();
+    SetContent(*entry, ClassifyFileOf(entry->name, entry->file.Path()));
+    entry->plaintext = record.plaintext;
+    entry->operation = record.operation;
+    entry->made_by = record.made_by;
+    entry->saved_name = record.saved_name;
+    entry->result = record.result;
+    entry->added =
+        record.added.isValid() ? record.added : QDateTime::currentDateTimeUtc();
+    if (entry->origin == QStringLiteral("made")) {
+      entry->state = QStringLiteral("done");
+    }
+    insert(std::move(entry));
+  }
+  emit SignalUnsavedChanged();
+}
+
+auto FileWorkspace::keeping() const -> bool {
+  return kept_ != nullptr && KeepsFiles();
+}
+
+void FileWorkspace::save_kept() {
+  if (kept_ == nullptr) return;
+  QList<KeptRecord> records;
+  const QDir root(kept_->Root());
+  for (const auto& entry : entries_) {
+    // One still arriving is recorded once it has: until then it is nobody's.
+    if (!entry->kept || entry->file.Empty() || entry->progress >= 0) continue;
+    records << KeptRecord{
+        .path = root.relativeFilePath(entry->file.Path()),
+        .name = entry->name,
+        .origin = entry->origin,
+        .operation = entry->operation,
+        .made_by = entry->made_by,
+        .plaintext = entry->plaintext,
+        .saved_name = entry->saved_name,
+        .added = entry->added,
+        .result = entry->result,
+    };
+  }
+  if (!kept_->Save(records)) {
+    qWarning() << "the kept files' index could not be written";
   }
 }
 
@@ -169,7 +246,7 @@ auto FileWorkspace::roleNames() const -> QHash<int, QByteArray> {
       {kSavedNameRole, "savedName"}, {kOriginRole, "origin"},
       {kContentRole, "content"},     {kProgressRole, "progress"},
       {kFolderRole, "isFolder"},     {kFileCountRole, "fileCount"},
-      {kActivityRole, "activity"},
+      {kActivityRole, "activity"},   {kKeptRole, "kept"},
   };
 }
 
@@ -218,6 +295,8 @@ auto FileWorkspace::data(const QModelIndex& index, int role) const -> QVariant {
       return entry.file_count;
     case kActivityRole:
       return entry.activity;
+    case kKeptRole:
+      return entry.kept;
     default:
       return {};
   }
@@ -363,7 +442,9 @@ auto FileWorkspace::receiveFiles(const QList<QUrl>& urls) -> QVariantList {
     SetContent(*entry, FileKind{ClassifyFileName(entry->name)});
     entry->available = false;
     entry->progress = 0;
-    entry->file = StagedFile(staging->NewPath(entry->name));
+    entry->kept = keeping();
+    entry->file = StagedFile(entry->kept ? kept_->NewPath(entry->name)
+                                         : staging->NewPath(entry->name));
     entry->added = QDateTime::currentDateTimeUtc();
     const auto id = entry->id;
     const auto name = entry->name;
@@ -388,6 +469,7 @@ auto FileWorkspace::receiveFiles(const QList<QUrl>& urls) -> QVariantList {
           SetContent(*entry, ClassifyFileOf(entry->name, path));
           self->changed(
               id, {kAvailableRole, kProgressRole, kSizeRole, kContentRole});
+          if (entry->kept) self->save_kept();
         },
         [self, id](qint64 copied, qint64 total) {
           self->copying(id, copied, total);
@@ -627,6 +709,7 @@ auto FileWorkspace::verifyMatch(const QString& name) const -> QVariantMap {
 void FileWorkspace::remove(const QVariantList& ids) {
   const auto was = Busy();
   bool selection = false;
+  bool kept = false;
   for (const auto& value : ids) {
     const auto id = value.toInt();
     if (is_running(id)) continue;
@@ -659,12 +742,14 @@ void FileWorkspace::remove(const QVariantList& ids) {
     const auto row = row_of(id);
     if (row < 0) continue;
     selection = selection || entries_.at(row)->selected;
+    kept = kept || entries_.at(row)->kept;
     beginRemoveRows({}, row, row);
-    // An output's file is deleted with it; an added document is only
-    // forgotten.
+    // An output's file is deleted with it, a kept one too; an added
+    // document is only forgotten.
     entries_.erase(entries_.begin() + row);
     endRemoveRows();
   }
+  if (kept) save_kept();
   emit SignalCountChanged();
   emit SignalUnsavedChanged();
   if (selection) emit SignalSelectionChanged();
@@ -860,6 +945,7 @@ void FileWorkspace::saveAs(int id, const QUrl& url) {
                     entry->saved_name = saved_name;
                     self->changed(id, {kSavedNameRole});
                     emit self->SignalUnsavedChanged();
+                    if (entry->kept) self->save_kept();
                   }
                   emit self->SignalSaved(id, saved);
                 });
@@ -933,6 +1019,7 @@ void FileWorkspace::save_next(std::vector<Save> saves, size_t next, int saved,
           entry->saved_name = DisplayName(where);
           self->changed(save.id, {kSavedNameRole});
           emit self->SignalUnsavedChanged();
+          if (entry->kept) self->save_kept();
         }
         self->save_next(std::move(saves), next + 1, saved + (copied ? 1 : 0),
                         skipped, failed + (copied ? 0 : 1));
@@ -1233,6 +1320,14 @@ auto FileWorkspace::UnsavedCount() const -> int {
       std::count_if(entries_.begin(), entries_.end(), [](const auto& entry) {
         return entry->origin == QStringLiteral("made") &&
                entry->saved_name.isEmpty();
+      }));
+}
+
+auto FileWorkspace::TemporaryCount() const -> int {
+  return static_cast<int>(
+      std::count_if(entries_.begin(), entries_.end(), [](const auto& entry) {
+        return entry->origin == QStringLiteral("made") &&
+               entry->saved_name.isEmpty() && !entry->kept;
       }));
 }
 
@@ -1697,7 +1792,17 @@ void FileWorkspace::end(const QVariantMap& result, bool produces,
     output->name = unique_name(job_output_name_);
     output->origin = QStringLiteral("made");
     output->size = QFileInfo(job_output_.Path()).size();
-    output->file = std::move(job_output_);
+    // Kept: moved out of the staging area into the profile's store. Where
+    // that fails it stays staged, as it would have without keeping.
+    if (keeping()) {
+      const auto kept_path = kept_->Adopt(job_output_.Path(), output->name);
+      if (!kept_path.isEmpty()) {
+        job_output_.Release();
+        output->file = StagedFile(kept_path);
+        output->kept = true;
+      }
+    }
+    if (!output->kept) output->file = std::move(job_output_);
     SetContent(*output, ClassifyFileOf(output->name, output->file.Path()));
     output->plaintext = job.op == Op::kDecrypt;
     output->source_id = job.id;
@@ -1706,7 +1811,9 @@ void FileWorkspace::end(const QVariantMap& result, bool produces,
     output->state = QStringLiteral("done");
     output->result = result;
     output->added = QDateTime::currentDateTimeUtc();
+    const auto kept = output->kept;
     insert(std::move(output));
+    if (kept) save_kept();
   } else {
     job_output_.Reset();
   }
