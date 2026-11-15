@@ -47,11 +47,6 @@ import policy as policy_mod  # noqa: E402  (scripts/release/, via common)
 import release_candidate as rc  # noqa: E402  (scripts/, on the path via common)
 
 LIFETIME = dt.timedelta(days=policy_mod.INDEX_LIFETIME_DAYS)
-RESIGN_BEFORE = dt.timedelta(days=7)
-# How long before the bucket's lifecycle rule deletes a nightly the index
-# stops naming it: longer than an index lives, so a client never holds a
-# valid index that sends it to a descriptor that is gone.
-NIGHTLY_MARGIN = dt.timedelta(days=policy_mod.NIGHTLY_MARGIN_DAYS)
 VOLATILE = ("serial", "generated_at", "expires")
 # How many used serials a host that lost its state steps over before it
 # concludes the history is not its own.
@@ -638,23 +633,15 @@ def build(product: Product, builds: Store, *,
 
     withdrawn = {parse_version(w["version"])
                  for w in product.policy.get("withdrawn", [])}
-    retention = product.data.get("nightly_retention_days")
-    cutoff = utcnow() - dt.timedelta(days=retention) + NIGHTLY_MARGIN \
-        if retention else None
-
     with tempfile.TemporaryDirectory(prefix="gfr-index-") as tmp:
-        nightly, betas, promoted = _admitted_builds(
+        nightly, betas = _admitted_builds(
             product, builds, Path(tmp), git_dir=git_dir, cosign=cosign,
-            cutoff=cutoff, withdrawn=withdrawn, previous=previous,
-            refuse=refuse)
+            withdrawn=withdrawn, previous=previous, refuse=refuse)
         releases = _admitted_releases(
             product, builds, Path(tmp), git_dir=git_dir, state_dir=state_dir,
             cosign=cosign, authenticode_ca=authenticode_ca, dry=dry,
             previous=previous, refuse=refuse)
 
-    if cutoff is not None and nightly is None and promoted:
-        print(f"no main nightly promoted since {iso(cutoff)}: the nightly "
-              "channel names none until main is built again", file=sys.stderr)
     series = _series_table(product, releases, withdrawn)
     current = [s["latest"] for s in series.values()
                if s["status"] in policy_mod.CURRENT_STATUSES and s["latest"]]
@@ -681,11 +668,13 @@ def build(product: Product, builds: Store, *,
 
 
 def _admitted_builds(product: Product, builds: Store, tmp: Path, *,
-                     git_dir, cosign, cutoff, withdrawn, previous, refuse
-                     ) -> tuple[dict | None, list[dict], list[str]]:
-    """The newest admitted build of main (the nightly), every admitted
-    build of a release branch (a beta, chosen later), and every
-    descriptor promoted."""
+                     git_dir, cosign, withdrawn, previous, refuse
+                     ) -> tuple[dict | None, list[dict]]:
+    """The newest admitted build of main (the nightly), and every admitted
+    build of a release branch (a beta, chosen later). Which promoted
+    builds are kept in the store, and for how long, is the signing host's
+    (the Release-Server container's housekeeping): it never deletes one
+    the live index names."""
     nightly = None
     betas: list[dict] = []
     promoted = builds.files(layout.NIGHTLY, include=f"*/{DESCRIPTOR}")
@@ -693,15 +682,6 @@ def _admitted_builds(product: Product, builds: Store, tmp: Path, *,
         path = f"{layout.NIGHTLY}/{rel}"
         try:
             raw = builds.read(path)
-            # Soon deleted by the bucket's lifecycle rule: never named,
-            # and not even checked (its files may be going already).
-            promoted_at = load_json(raw, path).get("promoted_at")
-            if cutoff is not None and isinstance(promoted_at, str):
-                try:
-                    if parse_iso(promoted_at) < cutoff:
-                        continue
-                except ReleaseError:
-                    pass  # admit_nightly refuses it
             d = admit_nightly(product, builds, path, raw, tmp,
                               git_dir=git_dir, cosign=cosign)
         except ReleaseError as e:
@@ -728,7 +708,7 @@ def _admitted_builds(product: Product, builds: Store, tmp: Path, *,
             betas.append(listed)
         elif _newer(listed, nightly):
             nightly = listed
-    return nightly, betas, promoted
+    return nightly, betas
 
 
 def _admitted_releases(product: Product, builds: Store, tmp: Path, *,
@@ -918,7 +898,8 @@ def publish(product: Product, builds: Store, update: Store, *,
             git_dir: Path | None = None, cosign: str = "cosign",
             authenticode_ca: str | None = None) -> dict | None:
     """Builds, signs and publishes the index; None when it would say nothing
-    new, is not near expiry and is whole where it is published. Raises
+    new and is whole where it is published (when to re-sign it, @p force,
+    is for whoever runs the host). Raises
     IndexIncomplete, after publishing, when any release was refused.
     @p index_pub: the index keys clients take.
     Only a published index one of them signed is believed, and nothing is
@@ -976,7 +957,7 @@ def _sign_and_publish(product: Product, content: dict, update: Store, *,
     trust = trust_files(product)
     if previous is not None and not force:
         same = {k: v for k, v in previous.items() if k not in VOLATILE} == content
-        if same and parse_iso(previous["expires"]) - now > RESIGN_BEFORE:
+        if same:
             return None
 
     state_dir.mkdir(parents=True, exist_ok=True)

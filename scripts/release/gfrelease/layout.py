@@ -29,10 +29,14 @@ The update store:
 The trust files come from GpgFrontend's release/root/ and
 release/index-keys/, spelled the same (trust.py).
 
-The signing host's container (the Release-Server repository) lists
-branches/**/staged.json, releases/**, notes/** and nightly/*/release.json to
-tell whether anything changed; scripts/tests/test_gfrelease.py holds these
-names to what it lists.
+The signing host's container (the Release-Server repository) reads these
+names and nothing of this code: it lists branches/**/staged.json,
+releases/**, notes/** and nightly/*/release.json to tell whether anything
+changed, and keeps the stores tidy (deletes main's older nightlies, staged
+candidates no one needs and directories without a descriptor; mirrors v1/)
+from the descriptors, staged.json files and the index as published.
+scripts/tests/test_gfrelease.py holds the names and fields it reads to
+these (test_what_the_signing_host_reads_is_held).
 """
 
 from __future__ import annotations
