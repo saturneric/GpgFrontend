@@ -172,6 +172,36 @@ TEST(SettingsModelTest, ExtraOperationsAreOffOnlyUntilTurnedOn) {
   });
 }
 
+// The Text page keeps out of screenshots unless turned off here, and every
+// page hears of the change.
+TEST(SettingsModelTest, TheTextPageIsProtectedUntilTurnedOff) {
+  RunOnMainThread([]() {
+    SettingsModel settings_page;
+    SettingsModel text_page;
+    int heard = 0;
+    QObject::connect(&text_page, &SettingsModel::SignalPrivacyChanged,
+                     [&heard]() { ++heard; });
+    EXPECT_TRUE(SettingsModel::ProtectTextScreen());
+
+    const auto row = static_cast<int>(
+        Keys(settings_page).indexOf(SettingItems::kProtectTextScreen.Key()));
+    ASSERT_GE(row, 0);
+    const auto index = settings_page.index(row);
+    EXPECT_EQ(settings_page.data(index, SettingsModel::kTypeRole), "bool");
+    EXPECT_EQ(settings_page.data(index, SettingsModel::kSectionRole),
+              "passphrases");
+    EXPECT_EQ(settings_page.data(index, SettingsModel::kValueRole), true);
+
+    ASSERT_TRUE(settings_page.setValue(row, false));
+    EXPECT_EQ(heard, 1);
+    EXPECT_FALSE(text_page.ProtectTextScreen());
+
+    ASSERT_TRUE(settings_page.setValue(row, true));
+    EXPECT_EQ(heard, 2);
+    EXPECT_TRUE(SettingsModel::ProtectTextScreen());
+  });
+}
+
 // A folder is packed into a ZIP unless TAR is chosen; nothing else is taken.
 TEST(SettingsModelTest, AFolderArchiveIsZipOrTar) {
   RunOnMainThread([]() {

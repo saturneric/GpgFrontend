@@ -3662,6 +3662,16 @@
         <source>What an encrypted folder is packed into: ZIP opens on any phone.</source>
         <translation>加密文件夹时打包成的格式：ZIP 在任何手机上都能打开。</translation>
     </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="295"/>
+        <source>Protect the Text page</source>
+        <translation>保护文本页面</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="296"/>
+        <source>Keep it out of screenshots, screen recordings and recent apps.</source>
+        <translation>不出现在截图、录屏和最近使用的应用中。</translation>
+    </message>
 </context>
 <context>
     <name>GpgFrontend::Shell::EncryptBlockReason</name>

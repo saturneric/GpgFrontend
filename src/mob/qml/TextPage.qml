@@ -28,6 +28,9 @@ Page {
     // The sheets the working pages share; null where none is (tests).
     property SheetHost sheets: null
 
+    // What keeps the page out of screenshots (a QObject, not in the item tree).
+    readonly property alias screenGuard: screenGuard
+
     // What the page last said in passing (a pop-up, not in the item tree).
     readonly property alias notice: notice
     readonly property alias editor: editor
@@ -342,6 +345,15 @@ Page {
     // in Settings.
     SettingsModel {
         id: prefs
+    }
+
+    // While the page is shown, as Settings asks: out of screenshots, screen
+    // recordings and the recent-apps preview. Counted with the scopes of
+    // decrypted text and passphrase prompts, so none undoes another.
+    SecureWindowGuard {
+        id: screenGuard
+        objectName: "textScreenGuard"
+        active: page.visible && prefs.protectTextScreen
     }
 
     EditorHistory {

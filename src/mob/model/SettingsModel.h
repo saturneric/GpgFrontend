@@ -78,6 +78,10 @@ class SettingsModel : public QAbstractListModel {
   /// direction ("auto", "ltr", "rtl"), alignment ("auto", "left",
   /// "right")}. The same for every page, whichever model changed it.
   Q_PROPERTY(QVariantMap editor READ Editor NOTIFY SignalEditorChanged)
+  /// Whether the Text page keeps itself out of screenshots while shown, as
+  /// set here. The same for every page, whichever model changed it.
+  Q_PROPERTY(
+      bool protectTextScreen READ ProtectTextScreen NOTIFY SignalPrivacyChanged)
   /// The languages there is a catalog for: [{code, name}], the system's
   /// own first (code ""), then by name, as the desktop offers them.
   Q_PROPERTY(QVariantList languages READ Languages NOTIFY SignalLanguageChanged)
@@ -140,6 +144,7 @@ class SettingsModel : public QAbstractListModel {
   [[nodiscard]] static auto Editor() -> QVariantMap;
   [[nodiscard]] static auto DefaultEncrypt() -> QString;
   [[nodiscard]] static auto DefaultDecrypt() -> QString;
+  [[nodiscard]] static auto ProtectTextScreen() -> bool;
 
   [[nodiscard]] auto Languages() const -> QVariantList;
   [[nodiscard]] static auto Language() -> QString;
@@ -150,6 +155,7 @@ class SettingsModel : public QAbstractListModel {
   void SignalOperationsChanged();
   void SignalLanguageChanged();
   void SignalEditorChanged();
+  void SignalPrivacyChanged();
 
  private:
   QList<Offer> items_;

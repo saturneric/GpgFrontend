@@ -285,6 +285,19 @@ inline constexpr StringSetting kFolderArchiveFormat{
          "What an encrypted folder is packed into: ZIP opens on any phone.")},
     "zip"};
 
+/// Whether the phone keeps its Text page out of screenshots, screen
+/// recordings and the recent-apps preview while it is shown. Decrypted text
+/// and passphrase prompts are kept out whatever this says.
+inline constexpr BoolSetting kProtectTextScreen{
+    {.key = "mobile/protect_text_screen",
+     .group = kSECURITY,
+     .title =
+         QT_TRANSLATE_NOOP("GpgFrontend::SettingItem", "Protect the Text page"),
+     .description = QT_TRANSLATE_NOOP(
+         "GpgFrontend::SettingItem",
+         "Keep it out of screenshots, screen recordings and recent apps.")},
+    true};
+
 /// The typeface of the phone's text editor: "system", "mono", "sans" or
 /// "serif". Only the editor's: the rest of the app keeps the system's.
 inline constexpr StringSetting kEditorFont{
@@ -564,7 +577,7 @@ inline constexpr StateSetting kLastOperation{.key = "mobile/last_operation",
 /// Every entry above. A setting missing from here is invisible to every
 /// policy that walks the catalog, so a new entry is added in both places;
 /// SettingCatalogTest checks that each key appears once.
-inline constexpr std::array<const SettingMeta *, 61> kAll = {
+inline constexpr std::array<const SettingMeta *, 62> kAll = {
     &kDefaultEngine,
     &kUseCustomGnuPGInstallPath,
     &kCustomGnuPGInstallPath,
@@ -589,6 +602,7 @@ inline constexpr std::array<const SettingMeta *, 61> kAll = {
     &kDefaultEncryptOperation,
     &kDefaultDecryptOperation,
     &kFolderArchiveFormat,
+    &kProtectTextScreen,
     &kUndoableOperations,
     &kRestoreTextEditorPage,
     &kDefaultWorkspaceAs,

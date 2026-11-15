@@ -3686,6 +3686,16 @@
         <source>What an encrypted folder is packed into: ZIP opens on any phone.</source>
         <translation>Do czego pakowany jest zaszyfrowany folder: ZIP otworzy się na każdym telefonie.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="295"/>
+        <source>Protect the Text page</source>
+        <translation>Chroń stronę Tekst</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="296"/>
+        <source>Keep it out of screenshots, screen recordings and recent apps.</source>
+        <translation>Nie pokazuj jej na zrzutach ekranu, nagraniach ekranu ani w ostatnich aplikacjach.</translation>
+    </message>
 </context>
 <context>
     <name>GpgFrontend::Shell::EncryptBlockReason</name>

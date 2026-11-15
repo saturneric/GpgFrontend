@@ -200,6 +200,16 @@ Item {
             tryVerify(() => !menu.visible)
         }
 
+        // Shown, the page is out of screenshots (Settings' default); hidden
+        // (another tab), it lets them be taken again.
+        function test_the_page_keeps_out_of_screenshots_while_shown() {
+            verify(text.screenGuard.active)
+            text.visible = false
+            verify(!text.screenGuard.active)
+            text.visible = true
+            verify(text.screenGuard.active)
+        }
+
         function test_one_editor_and_no_status_badges() {
             for (const gone of ["resultViews", "textKind", "textHistory",
                                 "editTools", "actionDock"])

@@ -3697,6 +3697,16 @@ Una traducción simplificada sería aludir exclusivamente al término &apos;huel
         <source>What an encrypted folder is packed into: ZIP opens on any phone.</source>
         <translation>En qué se empaqueta una carpeta cifrada: ZIP se abre en cualquier teléfono.</translation>
     </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="295"/>
+        <source>Protect the Text page</source>
+        <translation>Proteger la página de texto</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="296"/>
+        <source>Keep it out of screenshots, screen recordings and recent apps.</source>
+        <translation>Mantenerla fuera de capturas de pantalla, grabaciones de pantalla y aplicaciones recientes.</translation>
+    </message>
 </context>
 <context>
     <name>GpgFrontend::Shell::EncryptBlockReason</name>

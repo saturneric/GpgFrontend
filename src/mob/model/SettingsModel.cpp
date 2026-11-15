@@ -85,6 +85,12 @@ auto EditorRelay() -> ChangeRelay& {
   return relay;
 }
 
+/// Tells every model that what the pages keep out of screenshots changed.
+auto PrivacyRelay() -> ChangeRelay& {
+  static ChangeRelay relay;
+  return relay;
+}
+
 auto IsEditorSetting(const SettingMeta* meta) -> bool {
   return meta == &SettingItems::kEditorFont ||
          meta == &SettingItems::kEditorFontSize ||
@@ -158,6 +164,7 @@ auto SettingsModel::Offered() -> QList<Offer> {
        seconds,
        passphrases,
        {30, 60, 120, 300}},
+      {&SettingItems::kProtectTextScreen, {}, passphrases, {}},
       {&SettingItems::kExpiringSoonDays,
        QStringLiteral("days"),
        QStringLiteral("keys"),
@@ -223,6 +230,8 @@ SettingsModel::SettingsModel(QObject* parent) : QAbstractListModel(parent) {
   });
   connect(&EditorRelay(), &ChangeRelay::SignalChanged, this,
           &SettingsModel::SignalEditorChanged);
+  connect(&PrivacyRelay(), &ChangeRelay::SignalChanged, this,
+          &SettingsModel::SignalPrivacyChanged);
   // Its titles, descriptions and choices are translated as they are read.
   connect(&LanguageRelay(), &ChangeRelay::SignalChanged, this, [this]() {
     if (rowCount() > 0) emit dataChanged(index(0), index(rowCount() - 1));
@@ -276,6 +285,14 @@ auto SettingsModel::DefaultDecrypt() -> QString {
   const auto chosen =
       SettingItems::kDefaultDecryptOperation.Read(GetSettings());
   return DecryptChoices().contains(chosen) ? chosen : QStringLiteral("decrypt");
+}
+
+auto SettingsModel::ProtectTextScreen() -> bool {
+  // Before a profile is open (and in tests without one): the default.
+  if (!ProfileSession::Loaded()) {
+    return SettingItems::kProtectTextScreen.Default();
+  }
+  return SettingItems::kProtectTextScreen.Read(GetSettings());
 }
 
 auto SettingsModel::Editor() -> QVariantMap {
@@ -442,6 +459,9 @@ bool SettingsModel::setValue(int row, const QVariant& value) {
   emit dataChanged(changed, changed, {kValueRole});
   if (IsOperationSetting(meta)) emit OperationsRelay().SignalChanged();
   if (IsEditorSetting(meta)) emit EditorRelay().SignalChanged();
+  if (meta == &SettingItems::kProtectTextScreen) {
+    emit PrivacyRelay().SignalChanged();
+  }
   // Which keys are about to lapse is read as the list is: the list again,
   // its "Expiring soon" category too, at once.
   if (meta == &SettingItems::kExpiringSoonDays) KeyListController::Reload();
