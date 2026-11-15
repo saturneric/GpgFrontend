@@ -274,6 +274,17 @@ inline constexpr StringSetting kDefaultDecryptOperation{
                                       "What the Decrypt button does.")},
     "decrypt"};
 
+/// What the phone packs a folder into before encrypting it: "zip" (opens on
+/// any phone) or "tar" (as the desktop packs one).
+inline constexpr StringSetting kFolderArchiveFormat{
+    {.key = "mobile/folder_archive_format",
+     .group = kBEHAVIOUR,
+     .title = QT_TRANSLATE_NOOP("GpgFrontend::SettingItem", "Folder archive"),
+     .description = QT_TRANSLATE_NOOP(
+         "GpgFrontend::SettingItem",
+         "What an encrypted folder is packed into: ZIP opens on any phone.")},
+    "zip"};
+
 /// The typeface of the phone's text editor: "system", "mono", "sans" or
 /// "serif". Only the editor's: the rest of the app keeps the system's.
 inline constexpr StringSetting kEditorFont{
@@ -553,7 +564,7 @@ inline constexpr StateSetting kLastOperation{.key = "mobile/last_operation",
 /// Every entry above. A setting missing from here is invisible to every
 /// policy that walks the catalog, so a new entry is added in both places;
 /// SettingCatalogTest checks that each key appears once.
-inline constexpr std::array<const SettingMeta *, 60> kAll = {
+inline constexpr std::array<const SettingMeta *, 61> kAll = {
     &kDefaultEngine,
     &kUseCustomGnuPGInstallPath,
     &kCustomGnuPGInstallPath,
@@ -577,6 +588,7 @@ inline constexpr std::array<const SettingMeta *, 60> kAll = {
     &kShowSymmetricEncrypt,
     &kDefaultEncryptOperation,
     &kDefaultDecryptOperation,
+    &kFolderArchiveFormat,
     &kUndoableOperations,
     &kRestoreTextEditorPage,
     &kDefaultWorkspaceAs,

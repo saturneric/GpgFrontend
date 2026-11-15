@@ -797,8 +797,10 @@ Page {
             symbol: "folder"
             symbolColor: Material.accentColor
             text: qsTr("A folder")
+            // Read as the sheet opens: Settings may have changed the format.
             detail: qsTr("Added as one item, with everything in it. Encrypting "
-                         + "it makes one .tar.gpg archive.")
+                         + "it makes one %1 archive.")
+                    .arg(addSheet.visible ? files.folderOutputName("") : "")
             onClicked: {
                 addSheet.close()
                 if (page.prompting) notice.show(page.pickerBlocked)
@@ -1116,7 +1118,7 @@ Page {
         property int target: -1
         readonly property var file: target >= 0 ? files.entry(target) : ({})
         readonly property bool isOutput: file.kind === "output"
-        // A TAR archive (a folder decrypted, say), offered to extract;
+        // A ZIP or TAR archive (a folder decrypted, say), offered to extract;
         // never extracted by itself.
         property bool isArchive: false
 

@@ -42,7 +42,12 @@ namespace GpgFrontend::Test::Mobile {
 
 using GpgFrontend::Mobile::ArchivePaths;
 using GpgFrontend::Mobile::ExtractArchiveToFolder;
+using GpgFrontend::Mobile::FolderArchiveFormat;
+using GpgFrontend::Mobile::FolderArchiveFormatNamed;
+using GpgFrontend::Mobile::FolderArchiveSuffix;
+using GpgFrontend::Mobile::LooksLikeFolderArchive;
 using GpgFrontend::Mobile::LooksLikeTarArchive;
+using GpgFrontend::Mobile::LooksLikeZipArchive;
 using GpgFrontend::Mobile::PackFolderTree;
 
 namespace {
@@ -58,9 +63,10 @@ auto Node(const QString& path, bool folder = false) -> FolderNode {
   return {path, QUrl(), folder, 0};
 }
 
-/// A TAR archive at @p path whose one entry is named @p name, as a hostile
-/// one would be: written as given, nothing checked.
-void HostileArchive(const QString& path, const QString& name) {
+/// An archive at @p path whose one entry is named @p name, as a hostile
+/// one would be: written as given, nothing checked. TAR unless @p format says.
+void HostileArchive(const QString& path, const QString& name,
+                    ArchiveFormat format = ArchiveFormat::kPAX_RESTRICTED) {
   QFile out(path);
   ASSERT_TRUE(out.open(QIODevice::WriteOnly));
   bool given = false;
@@ -75,7 +81,7 @@ void HostileArchive(const QString& path, const QString& name) {
       [&out](const char* data, qint64 size) {
         return out.write(data, size) == size;
       },
-      ArchiveCompression::kNONE);
+      ArchiveCompression::kNONE, format);
   ASSERT_EQ(status, 0);
 }
 
@@ -113,7 +119,8 @@ TEST(FolderArchiveTest, AStoppedOrPartialPackLeavesNothing) {
   const auto to = dir.filePath("out.tar");
 
   std::atomic_bool stop{true};
-  auto result = PackFolderTree(*tree, to, 1 << 20, stop);
+  auto result =
+      PackFolderTree(*tree, to, FolderArchiveFormat::kTar, 1 << 20, stop);
   EXPECT_FALSE(result.ok);
   EXPECT_TRUE(result.cancelled);
   EXPECT_FALSE(QFile::exists(to));
@@ -121,18 +128,19 @@ TEST(FolderArchiveTest, AStoppedOrPartialPackLeavesNothing) {
   auto partial = *tree;
   partial.truncated = true;
   stop = false;
-  result = PackFolderTree(partial, to, 1 << 20, stop);
+  result =
+      PackFolderTree(partial, to, FolderArchiveFormat::kTar, 1 << 20, stop);
   EXPECT_FALSE(result.ok);
   EXPECT_TRUE(result.too_large);
   EXPECT_FALSE(QFile::exists(to));
 
   // More than it may come to: refused, nothing kept.
-  result = PackFolderTree(*tree, to, 100, stop);
+  result = PackFolderTree(*tree, to, FolderArchiveFormat::kTar, 100, stop);
   EXPECT_FALSE(result.ok);
   EXPECT_TRUE(result.too_large);
   EXPECT_FALSE(QFile::exists(to));
 
-  result = PackFolderTree(*tree, to, 1 << 20, stop);
+  result = PackFolderTree(*tree, to, FolderArchiveFormat::kTar, 1 << 20, stop);
   EXPECT_TRUE(result.ok);
   EXPECT_TRUE(LooksLikeTarArchive(to));
 }
@@ -145,18 +153,21 @@ TEST(FolderArchiveTest, AnUnsafeArchiveExtractsNothing) {
   ASSERT_TRUE(QDir().mkpath(dir.filePath("dest")));
   std::atomic_bool stop{false};
 
-  for (const auto* name :
-       {"../escaped.txt", "/abs/escaped.txt", "a/../../escaped.txt"}) {
-    const auto archive = dir.filePath("hostile.tar");
-    HostileArchive(archive, QString::fromLatin1(name));
-    const auto staging = dir.filePath("staging");
-    const auto result = ExtractArchiveToFolder(archive, destination, "out",
-                                               staging, 1 << 20, stop);
-    EXPECT_FALSE(result.ok) << name;
-    EXPECT_FALSE(result.reason.isEmpty()) << name;
-    EXPECT_TRUE(QDir(dir.filePath("dest")).isEmpty()) << name;
-    EXPECT_FALSE(QFile::exists(dir.filePath("escaped.txt"))) << name;
-    EXPECT_FALSE(QFile::exists(staging)) << name;
+  for (const auto format :
+       {ArchiveFormat::kPAX_RESTRICTED, ArchiveFormat::kZIP}) {
+    for (const auto* name :
+         {"../escaped.txt", "/abs/escaped.txt", "a/../../escaped.txt"}) {
+      const auto archive = dir.filePath("hostile.archive");
+      HostileArchive(archive, QString::fromLatin1(name), format);
+      const auto staging = dir.filePath("staging");
+      const auto result = ExtractArchiveToFolder(archive, destination, "out",
+                                                 staging, 1 << 20, stop);
+      EXPECT_FALSE(result.ok) << name;
+      EXPECT_FALSE(result.reason.isEmpty()) << name;
+      EXPECT_TRUE(QDir(dir.filePath("dest")).isEmpty()) << name;
+      EXPECT_FALSE(QFile::exists(dir.filePath("escaped.txt"))) << name;
+      EXPECT_FALSE(QFile::exists(staging)) << name;
+    }
   }
 
   // A link, made by the system's tar where there is one.
@@ -188,6 +199,65 @@ TEST(FolderArchiveTest, OnlyATarHeaderMakesAnArchive) {
   // A real one, under any name.
   HostileArchive(dir.filePath("real.bin"), "fine.txt");
   EXPECT_TRUE(LooksLikeTarArchive(dir.filePath("real.bin")));
+}
+
+// The phone packs a folder into a ZIP by default: deflated, names as they
+// were, empty folders kept, and it extracts back to the same tree.
+TEST(FolderArchiveTest, AFolderPacksIntoAZipThatExtractsBack) {
+  QTemporaryDir dir;
+  Write(dir.filePath("in/notes/a.txt"),
+        QByteArray("same line\n").repeated(500));
+  Write(dir.filePath("in/Grüße/写真.txt"), "unicode");
+  ASSERT_TRUE(QDir().mkpath(dir.filePath("in/empty")));
+  const auto tree = FolderTreeOf(QUrl::fromLocalFile(dir.filePath("in")));
+  ASSERT_TRUE(tree.has_value());
+
+  const auto zip = dir.filePath("out.zip");
+  std::atomic_bool stop{false};
+  const auto packed =
+      PackFolderTree(*tree, zip, FolderArchiveFormat::kZip, 1 << 20, stop);
+  ASSERT_TRUE(packed.ok);
+  EXPECT_TRUE(LooksLikeZipArchive(zip));
+  EXPECT_FALSE(LooksLikeTarArchive(zip));
+  EXPECT_TRUE(LooksLikeFolderArchive(zip));
+  // Deflated: the repeated text takes far less than its 5000 bytes.
+  EXPECT_LT(QFileInfo(zip).size(), 5000 + 10240);
+
+  ASSERT_TRUE(QDir().mkpath(dir.filePath("dest")));
+  const auto result =
+      ExtractArchiveToFolder(zip, QUrl::fromLocalFile(dir.filePath("dest")),
+                             "in", dir.filePath("staging"), 1 << 20, stop);
+  ASSERT_TRUE(result.ok) << result.reason.toStdString();
+  EXPECT_EQ(result.files, 2);
+  QFile back(dir.filePath("dest/in/Grüße/写真.txt"));
+  ASSERT_TRUE(back.open(QIODevice::ReadOnly));
+  EXPECT_EQ(back.readAll(), QByteArray("unicode"));
+  EXPECT_TRUE(QDir(dir.filePath("dest/in/empty")).exists());
+}
+
+// Only the start of a zip makes one: a local file header, or the end record
+// of an empty one.
+TEST(FolderArchiveTest, OnlyAZipHeaderMakesAZip) {
+  QTemporaryDir dir;
+  Write(dir.filePath("fake.zip"), "PK but nothing else");
+  Write(dir.filePath("empty.bin"),
+        QByteArray("PK\x05\x06", 4) + QByteArray(18, '\0'));
+  EXPECT_FALSE(LooksLikeZipArchive(dir.filePath("fake.zip")));
+  EXPECT_FALSE(LooksLikeZipArchive(dir.filePath("missing.zip")));
+  EXPECT_TRUE(LooksLikeZipArchive(dir.filePath("empty.bin")));
+  HostileArchive(dir.filePath("real.bin"), "fine.txt", ArchiveFormat::kZIP);
+  EXPECT_TRUE(LooksLikeZipArchive(dir.filePath("real.bin")));
+  EXPECT_TRUE(LooksLikeFolderArchive(dir.filePath("real.bin")));
+}
+
+// What Settings stores names the format; anything unknown is ZIP.
+TEST(FolderArchiveTest, AFormatIsKnownByItsName) {
+  EXPECT_EQ(FolderArchiveFormatNamed("tar"), FolderArchiveFormat::kTar);
+  EXPECT_EQ(FolderArchiveFormatNamed("TAR"), FolderArchiveFormat::kTar);
+  EXPECT_EQ(FolderArchiveFormatNamed("zip"), FolderArchiveFormat::kZip);
+  EXPECT_EQ(FolderArchiveFormatNamed("rar"), FolderArchiveFormat::kZip);
+  EXPECT_EQ(FolderArchiveSuffix(FolderArchiveFormat::kZip), "zip");
+  EXPECT_EQ(FolderArchiveSuffix(FolderArchiveFormat::kTar), "tar");
 }
 
 // A folder's tree, as the desktop lists one: a folder before what is in it,

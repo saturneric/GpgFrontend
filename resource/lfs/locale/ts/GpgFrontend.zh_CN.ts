@@ -871,6 +871,11 @@
         <source>Pick it again</source>
         <translation>重新选择</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="283"/>
+        <source>Encrypting it packs everything in it, as it is then, into one archive: %1. The folder itself is not changed.</source>
+        <translation>加密时会将其中所有内容按当时的状态打包为一个归档：%1。文件夹本身不会改变。</translation>
+    </message>
 </context>
 <context>
     <name>FilesPage</name>
@@ -1509,6 +1514,11 @@
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
         <source>Extract to a folder…</source>
         <translation>解压到文件夹…</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="847"/>
+        <source>Added as one item, with everything in it. Encrypting it makes one %1 archive.</source>
+        <translation>作为一个项目添加，包含其中所有内容。加密后生成一个 %1 归档。</translation>
     </message>
 </context>
 <context>
@@ -3641,6 +3651,16 @@
         <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
         <source>Which side lines start at. Automatic follows the text direction.</source>
         <translation>文字行从哪一侧开始。“自动”跟随文字方向。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="282"/>
+        <source>Folder archive</source>
+        <translation>文件夹归档</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="283"/>
+        <source>What an encrypted folder is packed into: ZIP opens on any phone.</source>
+        <translation>加密文件夹时打包成的格式：ZIP 在任何手机上都能打开。</translation>
     </message>
 </context>
 <context>
@@ -24266,6 +24286,16 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <source>Right</source>
         <translation>右对齐</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="30"/>
+        <source>TAR</source>
+        <translation>TAR</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="30"/>
+        <source>ZIP</source>
+        <translation>ZIP</translation>
+    </message>
 </context>
 <context>
     <name>SettingsPage</name>
@@ -25963,6 +25993,11 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
         <source>This cannot be decrypted because no matching secret key is available.</source>
         <translation>无法解密，因为没有匹配的私钥。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="31"/>
+        <source>ZIP archive</source>
+        <translation>ZIP 归档</translation>
     </message>
 </context>
 <context>

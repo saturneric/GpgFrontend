@@ -181,6 +181,12 @@ auto SettingsModel::Offered() -> QList<Offer> {
        QStringLiteral("operations"),
        {},
        false},
+      // What a folder is packed into before it is encrypted.
+      {&SettingItems::kFolderArchiveFormat,
+       QStringLiteral("archive"),
+       QStringLiteral("operations"),
+       {QStringLiteral("zip"), QStringLiteral("tar")},
+       false},
       // How the Text page's editor shows text: only what is offered.
       {&SettingItems::kEditorFont,
        QStringLiteral("font"),

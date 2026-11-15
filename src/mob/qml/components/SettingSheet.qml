@@ -27,6 +27,7 @@ BottomSheet {
     // no "(s)" is ever shown.
     function describe(amount, unit) {
         if (unit === "operation") return Wording.operationLabel(amount)
+        if (unit === "archive") return amount === "tar" ? qsTr("TAR") : qsTr("ZIP")
         if (unit === "font") {
             switch (amount) {
             case "mono": return qsTr("Monospace")

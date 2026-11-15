@@ -173,11 +173,11 @@ class FileWorkspace : public QAbstractListModel {
    * @brief Add @p folder (a picked folder: on Android a document tree) as
    * one item, read where it is, not copied.
    *
-   * Encrypting it packs it and all under it, as it is then, into one TAR
-   * archive, encrypted to "<name>.tar.gpg"; nothing else is done to a
-   * folder. Walked away from the interface thread to count what it holds;
-   * folderAdded() says how it went. A folder already here is not added
-   * twice.
+   * Encrypting it packs it and all under it, as it is then, into one ZIP
+   * (or, as Settings chooses, TAR) archive, encrypted to "<name>.zip.gpg";
+   * nothing else is done to a folder. Walked away from the interface thread to
+   * count what it holds; folderAdded() says how it went. A folder already here
+   * is not added twice.
    */
   Q_INVOKABLE void addFolder(const QUrl& folder);
 
@@ -204,14 +204,18 @@ class FileWorkspace : public QAbstractListModel {
   [[nodiscard]] Q_INVOKABLE bool allowsEntries(
       const QString& op, const QVariantList& entries) const;
 
-  /// Whether the file @p id starts as a TAR archive does (a folder
+  /// Whether the file @p id starts as a ZIP or TAR archive does (a folder
   /// decrypted, say): its name is not taken for it. Extracting still checks
   /// every entry.
   [[nodiscard]] Q_INVOKABLE bool isArchive(int id) const;
 
+  /// What encrypting the folder @p name makes, as Settings chooses its
+  /// archive ("Photos.zip.gpg"); for no name, the ending alone (".zip.gpg").
+  [[nodiscard]] Q_INVOKABLE QString folderOutputName(const QString& name) const;
+
   /**
-   * @brief Extract the TAR archive @p id into a new folder in @p folder (a
-   * picked folder), named after the archive.
+   * @brief Extract the ZIP or TAR archive @p id into a new folder in @p folder
+   * (a picked folder), named after the archive.
    *
    * Only when asked: an archive is never extracted by itself. Checked whole
    * before anything is written there (no links, no paths that leave it, no
@@ -512,7 +516,7 @@ class FileWorkspace : public QAbstractListModel {
   void dropped(int op_id);
   void stage(const Entry& entry, StagedFile& into,
              std::function<void(bool, const QString&)> done);
-  /// stage() of a folder: packed into one TAR archive in the staging area.
+  /// stage() of a folder: packed into one archive in the staging area.
   void pack(const Entry& entry, StagedFile& into,
             std::function<void(bool, const QString&)> done);
   /// How far work on another thread is, shown on the file @p id.

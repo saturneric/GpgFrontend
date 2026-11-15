@@ -41,9 +41,9 @@ namespace GpgFrontend::Mobile {
 
 /**
  * @file FolderArchive.h
- * @brief A picked folder as one TAR archive, and a TAR archive back into a
- * picked folder: what encrypting a folder and extracting a decrypted one do
- * besides the engine's work.
+ * @brief A picked folder as one ZIP or TAR archive, and such an archive back
+ * into a picked folder: what encrypting a folder and extracting a decrypted
+ * one do besides the engine's work.
  *
  * Both run on the calling thread, which is never the interface's, and both
  * stream: no archive and no file is held in memory whole. A folder is packed
@@ -52,6 +52,19 @@ namespace GpgFrontend::Mobile {
  * then copied into the destination, so a refused archive writes nothing
  * there and a copy that fails half way is taken back.
  */
+
+/// The container a folder is packed into. ZIP is what a phone opens without
+/// help; TAR is what the desktop writes.
+enum class FolderArchiveFormat {
+  kZip,  ///< entries deflated, names UTF-8
+  kTar,  ///< pax, uncompressed
+};
+
+/// The extension of an archive in @p format, without its dot: "zip", "tar".
+auto FolderArchiveSuffix(FolderArchiveFormat format) -> QString;
+
+/// The format named @p name ("zip" or "tar"); ZIP for anything else.
+auto FolderArchiveFormatNamed(const QString& name) -> FolderArchiveFormat;
 
 /// How far packing or copying is: bytes done, of how many (0 when unknown).
 using ArchiveProgress = std::function<void(qint64 done, qint64 total)>;
@@ -74,12 +87,13 @@ struct FolderPackResult {
   bool too_large = false;
 };
 
-/// Pack @p tree into the TAR archive @p to, refusing more than @p limit
-/// bytes; @p stop ends it at the next piece. Every file is read through what
-/// its URL opens (a content URI on Android); a file that cannot be read fails
-/// the whole archive, never leaves it out. Empty folders are kept. @p to is
-/// removed unless it is ok.
-auto PackFolderTree(const FolderTree& tree, const QString& to, qint64 limit,
+/// Pack @p tree into the archive @p to, in @p format, refusing more than
+/// @p limit bytes; @p stop ends it at the next piece. Every file is read
+/// through what its URL opens (a content URI on Android); a file that cannot
+/// be read fails the whole archive, never leaves it out. Empty folders are
+/// kept. @p to is removed unless it is ok.
+auto PackFolderTree(const FolderTree& tree, const QString& to,
+                    FolderArchiveFormat format, qint64 limit,
                     const std::atomic_bool& stop,
                     const ArchiveProgress& progress = {}) -> FolderPackResult;
 
@@ -87,6 +101,14 @@ auto PackFolderTree(const FolderTree& tree, const QString& to, qint64 limit,
 /// whose checksum adds up. A first look, not a promise: extracting still
 /// checks every entry.
 auto LooksLikeTarArchive(const QString& path) -> bool;
+
+/// Whether the file at @p path starts as a ZIP archive does: a local file
+/// header, or the end record alone of an empty one. A first look as above.
+auto LooksLikeZipArchive(const QString& path) -> bool;
+
+/// Whether the file at @p path looks like an archive extracting can open:
+/// TAR or ZIP.
+auto LooksLikeFolderArchive(const QString& path) -> bool;
 
 /// What extracting an archive came to.
 struct FolderExtractResult {
@@ -99,8 +121,8 @@ struct FolderExtractResult {
   int files = 0;
 };
 
-/// Extract the TAR archive @p archive into a new folder named @p name (or
-/// numbered, when taken) in the picked folder @p destination. The archive
+/// Extract the archive @p archive (TAR or ZIP) into a new folder named @p name
+/// (or numbered, when taken) in the picked folder @p destination. The archive
 /// is first extracted into @p staging_dir (a path that does not exist yet),
 /// refusing links, devices, paths that leave it, names twice or differing
 /// only by case, and more than @p limit bytes; only an archive that passes

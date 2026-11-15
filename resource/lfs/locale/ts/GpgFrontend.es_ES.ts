@@ -873,6 +873,11 @@
         <source>Pick it again</source>
         <translation>Volver a elegirlo</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="283"/>
+        <source>Encrypting it packs everything in it, as it is then, into one archive: %1. The folder itself is not changed.</source>
+        <translation>Al cifrarla se empaqueta todo su contenido, tal como esté entonces, en un archivo: %1. La carpeta no se modifica.</translation>
+    </message>
 </context>
 <context>
     <name>FilesPage</name>
@@ -1521,6 +1526,11 @@
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
         <source>Extract to a folder…</source>
         <translation>Extraer en una carpeta…</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="847"/>
+        <source>Added as one item, with everything in it. Encrypting it makes one %1 archive.</source>
+        <translation>Se añade como un solo elemento, con todo su contenido. Al cifrarla se crea un archivo %1.</translation>
     </message>
 </context>
 <context>
@@ -3676,6 +3686,16 @@ Una traducción simplificada sería aludir exclusivamente al término &apos;huel
         <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
         <source>Which side lines start at. Automatic follows the text direction.</source>
         <translation>En qué lado empiezan las líneas. Automático sigue la dirección del texto.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="282"/>
+        <source>Folder archive</source>
+        <translation>Archivo de carpeta</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="283"/>
+        <source>What an encrypted folder is packed into: ZIP opens on any phone.</source>
+        <translation>En qué se empaqueta una carpeta cifrada: ZIP se abre en cualquier teléfono.</translation>
     </message>
 </context>
 <context>
@@ -24336,6 +24356,16 @@ Deshaga esos cambios o elija Cancelar para descartar todo lo que cambió en este
         <source>Right</source>
         <translation>Derecha</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="30"/>
+        <source>TAR</source>
+        <translation>TAR</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="30"/>
+        <source>ZIP</source>
+        <translation>ZIP</translation>
+    </message>
 </context>
 <context>
     <name>SettingsPage</name>
@@ -26036,6 +26066,11 @@ Deshaga esos cambios o elija Cancelar para descartar todo lo que cambió en este
         <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
         <source>This cannot be decrypted because no matching secret key is available.</source>
         <translation>No se puede descifrar porque no hay ninguna clave secreta correspondiente.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="31"/>
+        <source>ZIP archive</source>
+        <translation>Archivo ZIP</translation>
     </message>
 </context>
 <context>

@@ -871,6 +871,11 @@
         <source>Pick it again</source>
         <translation>Yeniden seç</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="283"/>
+        <source>Encrypting it packs everything in it, as it is then, into one archive: %1. The folder itself is not changed.</source>
+        <translation>Şifrelemek, içindeki her şeyi o anki haliyle tek bir arşive paketler: %1. Klasörün kendisi değişmez.</translation>
+    </message>
 </context>
 <context>
     <name>FilesPage</name>
@@ -1509,6 +1514,11 @@
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
         <source>Extract to a folder…</source>
         <translation>Bir klasöre çıkar…</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="847"/>
+        <source>Added as one item, with everything in it. Encrypting it makes one %1 archive.</source>
+        <translation>İçindekilerle birlikte tek öğe olarak eklenir. Şifrelemek tek bir %1 arşivi oluşturur.</translation>
     </message>
 </context>
 <context>
@@ -3637,6 +3647,16 @@
         <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
         <source>Which side lines start at. Automatic follows the text direction.</source>
         <translation>Satırların hangi taraftan başladığı. Otomatik, metin yönünü izler.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="282"/>
+        <source>Folder archive</source>
+        <translation>Klasör arşivi</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="283"/>
+        <source>What an encrypted folder is packed into: ZIP opens on any phone.</source>
+        <translation>Şifrelenen bir klasörün paketlendiği biçim: ZIP her telefonda açılır.</translation>
     </message>
 </context>
 <context>
@@ -22557,6 +22577,16 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
         <source>Right</source>
         <translation>Sağ</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="30"/>
+        <source>TAR</source>
+        <translation>TAR</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="30"/>
+        <source>ZIP</source>
+        <translation>ZIP</translation>
+    </message>
 </context>
 <context>
     <name>SettingsPage</name>
@@ -24254,6 +24284,11 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
         <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
         <source>This cannot be decrypted because no matching secret key is available.</source>
         <translation>Eşleşen bir gizli anahtar olmadığından bu çözülemiyor.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="31"/>
+        <source>ZIP archive</source>
+        <translation>ZIP arşivi</translation>
     </message>
 </context>
 <context>

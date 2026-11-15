@@ -279,8 +279,9 @@ BottomSheet {
         color: Material.secondaryTextColor
         font.pixelSize: Theme.secondarySize
         text: qsTr("Encrypting it packs everything in it, as it is then, into "
-                   + "one archive: %1.tar.gpg. The folder itself is not changed.")
-              .arg(sheet.file.name || "")
+                   + "one archive: %1. The folder itself is not changed.")
+              .arg(sheet.workspace && sheet.isFolder
+                   ? sheet.workspace.folderOutputName(sheet.file.name || "") : "")
     }
 
     Label {

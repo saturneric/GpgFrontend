@@ -124,7 +124,19 @@ auto ArchivePaths(const QList<FolderNode>& nodes)
   return paths;
 }
 
-auto PackFolderTree(const FolderTree& tree, const QString& to, qint64 limit,
+auto FolderArchiveSuffix(FolderArchiveFormat format) -> QString {
+  return format == FolderArchiveFormat::kTar ? QStringLiteral("tar")
+                                             : QStringLiteral("zip");
+}
+
+auto FolderArchiveFormatNamed(const QString& name) -> FolderArchiveFormat {
+  return name.compare(QLatin1String("tar"), Qt::CaseInsensitive) == 0
+             ? FolderArchiveFormat::kTar
+             : FolderArchiveFormat::kZip;
+}
+
+auto PackFolderTree(const FolderTree& tree, const QString& to,
+                    FolderArchiveFormat format, qint64 limit,
                     const std::atomic_bool& stop,
                     const ArchiveProgress& progress) -> FolderPackResult {
   FolderPackResult result;
@@ -183,8 +195,11 @@ auto PackFolderTree(const FolderTree& tree, const QString& to, qint64 limit,
     return true;
   };
 
+  const auto zip = format == FolderArchiveFormat::kZip;
   const auto status = ArchiveFileOperator::NewArchiveFromMembersToSink(
-      provide, keep, ArchiveCompression::kNONE);
+      provide, keep,
+      zip ? ArchiveCompression::kDEFLATE : ArchiveCompression::kNONE,
+      zip ? ArchiveFormat::kZIP : ArchiveFormat::kPAX_RESTRICTED);
   result.cancelled = stop.load();
   result.unreadable = unreadable;
   result.ok = status == 0 && kept && !result.cancelled &&
@@ -218,6 +233,20 @@ auto LooksLikeTarArchive(const QString& path) -> bool {
     sum_signed += static_cast<signed char>(byte);
   }
   return stored == sum_unsigned || stored == sum_signed;
+}
+
+auto LooksLikeZipArchive(const QString& path) -> bool {
+  QFile file(path);
+  if (!file.open(QIODevice::ReadOnly)) return false;
+  const auto head = file.read(4);
+  // A local file header starts every zip with an entry; an empty one is its
+  // end of central directory record alone.
+  return head == QByteArrayLiteral("PK\x03\x04") ||
+         head == QByteArrayLiteral("PK\x05\x06");
+}
+
+auto LooksLikeFolderArchive(const QString& path) -> bool {
+  return LooksLikeZipArchive(path) || LooksLikeTarArchive(path);
 }
 
 auto ExtractArchiveToFolder(const QString& archive, const QUrl& destination,

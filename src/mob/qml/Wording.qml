@@ -28,6 +28,7 @@ QtObject {
         case "key": name = qsTr("OpenPGP key"); break
         case "armored": name = qsTr("ASCII-armored OpenPGP data"); break
         case "tar": name = qsTr("TAR archive"); break
+        case "zip": name = qsTr("ZIP archive"); break
         case "folder": return qsTr("Folder")
         case "not_openpgp": return qsTr("Not OpenPGP data, whatever its name says")
         case "archive":

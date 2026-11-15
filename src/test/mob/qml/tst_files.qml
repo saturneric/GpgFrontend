@@ -73,6 +73,9 @@ Item {
             tryVerify(() => sheet.opened)
             verify(findByName(sheet.contentItem, "addPickFiles").visible)
             verify(findByName(sheet.contentItem, "addPickFolder").visible)
+            // One item, with everything in it: said where it is picked, with
+            // the archive it makes (ZIP unless Settings says TAR).
+            verify(findByName(sheet.contentItem, "addPickFolder").detail.indexOf(".zip.gpg") > 0)
             sheet.close()
             tryVerify(() => !sheet.visible)
 
@@ -82,8 +85,6 @@ Item {
             compare(files.notice.text, "This folder could not be read.")
             files.folderAdded(-1, "too_large")
             verify(files.notice.text.indexOf("too many") > 0)
-            // One item, with everything in it: said where it is picked.
-            verify(findByName(sheet.contentItem, "addPickFolder").detail.indexOf(".tar.gpg") > 0)
         }
 
         // Nothing started says why, as it is: a file that cannot be

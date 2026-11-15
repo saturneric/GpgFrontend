@@ -85,6 +85,7 @@ TEST(TranslationsTest, EveryPageStringIsTranslated) {
       QStringLiteral("GpgFrontend"), QStringLiteral("SHA-256"),
       QStringLiteral("PIN"),         QStringLiteral("%1 kB"),
       QStringLiteral("%1 MB"),       QStringLiteral("%1 GB"),
+      QStringLiteral("ZIP"),         QStringLiteral("TAR"),
   };
   // One literal, closed at once: no "a" + "b", no plural's comment.
   static const QRegularExpression kLiteral(

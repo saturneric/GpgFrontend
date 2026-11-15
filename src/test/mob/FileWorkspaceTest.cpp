@@ -33,12 +33,15 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QMap>
+#include <QScopeGuard>
 #include <QSignalSpy>
 #include <QStandardPaths>
 #include <QTemporaryDir>
 #include <array>
 
 #include "MobileCryptoTest.h"
+#include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/function/rpgp/PasswordFetcher.h"
 #include "crypto/TextCryptoController.h"
 #include "files/FileFilterModel.h"
@@ -691,10 +694,10 @@ TEST_F(FileWorkspaceTest, AFolderIsOneItem) {
   EXPECT_FALSE(decrypt);
 }
 
-// A folder whose name ends in .tar already is not named ".tar.tar".
-TEST_F(FileWorkspaceTest, AFolderCalledTarIsNotNamedTwice) {
+// A folder whose name ends in .zip already is not named ".zip.zip".
+TEST_F(FileWorkspaceTest, AFolderCalledZipIsNotNamedTwice) {
   QTemporaryDir parent;
-  const auto root = parent.filePath("backup.tar");
+  const auto root = parent.filePath("backup.zip");
   ASSERT_TRUE(QDir().mkpath(root));
   WriteFile(root + "/README", "read me");
   int folder = -1;
@@ -716,12 +719,71 @@ TEST_F(FileWorkspaceTest, AFolderCalledTarIsNotNamedTwice) {
   Finish();
   const auto encrypted = OutputOf(folder);
   ASSERT_GE(encrypted, 0) << Errors(folder);
-  EXPECT_EQ(Entry(encrypted).value("name").toString(), "backup.tar.gpg");
+  EXPECT_EQ(Entry(encrypted).value("name").toString(), "backup.zip.gpg");
 }
 
-// A folder encrypted is one .tar.gpg of all in it, nested and empty folders
-// too; decrypted, it is a TAR archive, which goes back into a folder only
-// when asked, the same tree, file for file.
+// With TAR chosen in Settings, a folder is packed as the desktop packs one,
+// named so, and still extracts back here.
+TEST_F(FileWorkspaceTest, AFolderIsATarWhenSettingsSaySo) {
+  RunOnMainThread([]() {
+    auto settings = GetSettings();
+    SettingItems::kFolderArchiveFormat.Write(settings, QStringLiteral("tar"));
+  });
+  // The choice goes again however the test ends.
+  const auto forget = qScopeGuard([]() {
+    RunOnMainThread([]() {
+      auto settings = GetSettings();
+      settings.remove(SettingItems::kFolderArchiveFormat.Key());
+    });
+  });
+  QTemporaryDir parent;
+  const auto root = parent.filePath("Old");
+  ASSERT_TRUE(QDir().mkpath(root));
+  WriteFile(root + "/README", "read me");
+  int folder = -1;
+  QString shown;
+  RunOnMainThread([&]() {
+    shown = files_->folderOutputName("Old");
+    QObject::connect(
+        files_, &FileWorkspace::folderAdded, files_,
+        [&folder](int id, const QString&) { folder = id; },
+        Qt::SingleShotConnection);
+    files_->addFolder(QUrl::fromLocalFile(root));
+  });
+  EXPECT_EQ(shown, "Old.tar.gpg");
+  ASSERT_TRUE(WaitFor(
+      [&folder]() {
+        int id = -1;
+        RunOnMainThread([&]() { id = folder; });
+        return id >= 0;
+      },
+      10000));
+  Do([&](auto* f) { f->encrypt({folder}, {fred_}); });
+  Finish();
+  const auto encrypted = OutputOf(folder);
+  ASSERT_GE(encrypted, 0) << Errors(folder);
+  EXPECT_EQ(Entry(encrypted).value("name").toString(), "Old.tar.gpg");
+
+  Do([&](auto* f) { f->decrypt({encrypted}); });
+  Finish();
+  const auto decrypted = OutputOf(encrypted);
+  ASSERT_GE(decrypted, 0) << Errors(encrypted);
+  EXPECT_EQ(Entry(decrypted).value("name").toString(), "Old.tar");
+  bool archive = false;
+  QVariantMap type;
+  Do([&](auto* f) {
+    archive = f->isArchive(decrypted);
+    type = f->typeOf(decrypted);
+    shown = f->folderOutputName("");
+  });
+  EXPECT_TRUE(archive);
+  EXPECT_EQ(type.value("kind").toString(), "tar");
+  EXPECT_EQ(shown, ".tar.gpg");
+}
+
+// A folder encrypted is one .zip.gpg of all in it, nested and empty folders
+// too; decrypted, it is a ZIP archive any phone opens, which goes back into
+// a folder here only when asked, the same tree, file for file.
 TEST_F(FileWorkspaceTest, AFolderEncryptsToOneArchiveThatExtractsBack) {
   QTemporaryDir parent;
   const auto root = parent.filePath("Project");
@@ -756,11 +818,11 @@ TEST_F(FileWorkspaceTest, AFolderEncryptsToOneArchiveThatExtractsBack) {
   Finish();
   const auto encrypted = OutputOf(folder);
   ASSERT_GE(encrypted, 0) << Errors(folder);
-  EXPECT_EQ(Entry(encrypted).value("name").toString(), "Project.tar.gpg");
+  EXPECT_EQ(Entry(encrypted).value("name").toString(), "Project.zip.gpg");
   EXPECT_EQ(State(folder), "done");
   // Nothing of the packing is left behind but the encrypted archive.
   for (const auto& staged : StagedFiles()) {
-    EXPECT_FALSE(staged.endsWith(".tar")) << staged.toStdString();
+    EXPECT_FALSE(staged.endsWith(".zip")) << staged.toStdString();
   }
   QVariantMap type;
   Do([&](auto* f) { type = f->typeOf(encrypted); });
@@ -771,12 +833,19 @@ TEST_F(FileWorkspaceTest, AFolderEncryptsToOneArchiveThatExtractsBack) {
   Finish();
   const auto decrypted = OutputOf(encrypted);
   ASSERT_GE(decrypted, 0) << Errors(encrypted);
-  EXPECT_EQ(Entry(decrypted).value("name").toString(), "Project.tar");
+  EXPECT_EQ(Entry(decrypted).value("name").toString(), "Project.zip");
   bool archive = false;
   Do([&](auto* f) { archive = f->isArchive(decrypted); });
   EXPECT_TRUE(archive);
+  QFile zip;
+  Do([&](auto* f) {
+    zip.setFileName(f->readableUrl(decrypted).toLocalFile());
+  });
+  ASSERT_TRUE(zip.open(QIODevice::ReadOnly));
+  EXPECT_EQ(zip.read(4), QByteArray("PK\x03\x04", 4));
+  zip.close();
   Do([&](auto* f) { type = f->typeOf(decrypted); });
-  EXPECT_EQ(type.value("kind").toString(), "tar");
+  EXPECT_EQ(type.value("kind").toString(), "zip");
   EXPECT_TRUE(type.value("verified").toBool());
 
   QTemporaryDir destination;
@@ -1275,6 +1344,9 @@ TEST_F(FileWorkspaceTest, AFilesTypeSaysHowItIsKnown) {
   EXPECT_EQ(type(Add("not even OpenPGP", "photos.tar.gpg")),
             Kind("archive", false));
   EXPECT_EQ(type(Add("plain", "photos.tar")), Kind("tar", false));
+  EXPECT_EQ(type(Add("not even OpenPGP", "photos.zip.gpg")),
+            Kind("archive", false));
+  EXPECT_EQ(type(Add("plain", "photos.zip")), Kind("zip", false));
   // Anything else: its type by its name, never verified.
   const auto pdf = Add("%PDF-1.7", "paper.pdf");
   QVariantMap map;

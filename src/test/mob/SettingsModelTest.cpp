@@ -172,6 +172,27 @@ TEST(SettingsModelTest, ExtraOperationsAreOffOnlyUntilTurnedOn) {
   });
 }
 
+// A folder is packed into a ZIP unless TAR is chosen; nothing else is taken.
+TEST(SettingsModelTest, AFolderArchiveIsZipOrTar) {
+  RunOnMainThread([]() {
+    SettingsModel model;
+    const auto row = static_cast<int>(
+        Keys(model).indexOf(SettingItems::kFolderArchiveFormat.Key()));
+    ASSERT_GE(row, 0);
+    const auto index = model.index(row);
+    EXPECT_EQ(model.data(index, SettingsModel::kTypeRole), "string");
+    EXPECT_EQ(model.data(index, SettingsModel::kSectionRole), "operations");
+    EXPECT_EQ(model.data(index, SettingsModel::kChoicesRole),
+              QVariant(QVariantList{"zip", "tar"}));
+    EXPECT_EQ(model.data(index, SettingsModel::kValueRole), "zip");
+
+    EXPECT_FALSE(model.setValue(row, QStringLiteral("rar")));
+    ASSERT_TRUE(model.setValue(row, QStringLiteral("tar")));
+    EXPECT_EQ(SettingItems::kFolderArchiveFormat.Read(GetSettings()), "tar");
+    ASSERT_TRUE(model.setValue(row, QStringLiteral("zip")));
+  });
+}
+
 // What the Encrypt and Decrypt buttons do, as the desktop's toolbar
 // defaults: chosen among what is turned on, and never one turned off.
 TEST(SettingsModelTest, AButtonDoesWhatIsChosenAmongWhatIsOffered) {

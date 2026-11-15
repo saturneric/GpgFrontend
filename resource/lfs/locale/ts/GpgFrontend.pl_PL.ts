@@ -875,6 +875,11 @@
         <source>Pick it again</source>
         <translation>Wybierz go ponownie</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/FileDetailsSheet.qml" line="283"/>
+        <source>Encrypting it packs everything in it, as it is then, into one archive: %1. The folder itself is not changed.</source>
+        <translation>Zaszyfrowanie pakuje całą zawartość, w jej ówczesnym stanie, do jednego archiwum: %1. Sam folder pozostaje bez zmian.</translation>
+    </message>
 </context>
 <context>
     <name>FilesPage</name>
@@ -1533,6 +1538,11 @@
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="1"/>
         <source>Extract to a folder…</source>
         <translation>Wypakuj do folderu…</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="847"/>
+        <source>Added as one item, with everything in it. Encrypting it makes one %1 archive.</source>
+        <translation>Dodawany jako jeden element z całą zawartością. Zaszyfrowanie tworzy jedno archiwum %1.</translation>
     </message>
 </context>
 <context>
@@ -3665,6 +3675,16 @@
         <location filename="../../../../src/core/function/SettingCatalog.h" line="1"/>
         <source>Which side lines start at. Automatic follows the text direction.</source>
         <translation>Po której stronie zaczynają się wiersze. Automatycznie według kierunku tekstu.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="282"/>
+        <source>Folder archive</source>
+        <translation>Archiwum folderu</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/SettingCatalog.h" line="283"/>
+        <source>What an encrypted folder is packed into: ZIP opens on any phone.</source>
+        <translation>Do czego pakowany jest zaszyfrowany folder: ZIP otworzy się na każdym telefonie.</translation>
     </message>
 </context>
 <context>
@@ -23202,6 +23222,16 @@ Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone 
         <source>Right</source>
         <translation>Do prawej</translation>
     </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="30"/>
+        <source>TAR</source>
+        <translation>TAR</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/SettingSheet.qml" line="30"/>
+        <source>ZIP</source>
+        <translation>ZIP</translation>
+    </message>
 </context>
 <context>
     <name>SettingsPage</name>
@@ -24905,6 +24935,11 @@ Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone 
         <location filename="../../../../src/mob/qml/Wording.qml" line="1"/>
         <source>This cannot be decrypted because no matching secret key is available.</source>
         <translation>Nie można tego odszyfrować, ponieważ brak pasującego klucza prywatnego.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/Wording.qml" line="31"/>
+        <source>ZIP archive</source>
+        <translation>Archiwum ZIP</translation>
     </message>
 </context>
 <context>

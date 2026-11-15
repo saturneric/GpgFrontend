@@ -37,6 +37,9 @@
 #include <QRegularExpression>
 #include <algorithm>
 
+#include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
+#include "core/profile/ProfileSession.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "crypto/ContentKind.h"
@@ -71,6 +74,13 @@ auto OpNames() -> const QStringList& {
 }
 
 auto OpName(int op) -> QString { return OpNames().value(op); }
+
+/// What a folder is packed into, as Settings chooses: ZIP unless TAR is.
+auto ChosenFolderArchiveFormat() -> FolderArchiveFormat {
+  if (!ProfileSession::Loaded()) return FolderArchiveFormat::kZip;
+  return FolderArchiveFormatNamed(
+      SettingItems::kFolderArchiveFormat.Read(GetSettings()));
+}
 
 /// How large the document at @p url is, and whether it can be read at all.
 auto Probe(const QUrl& url) -> std::pair<bool, qint64> {
@@ -513,7 +523,15 @@ auto FileWorkspace::readableUrl(int id) const -> QUrl {
 auto FileWorkspace::isArchive(int id) const -> bool {
   const auto* entry = find(id);
   if (entry == nullptr || entry->folder || entry->progress >= 0) return false;
-  return LooksLikeTarArchive(entry->ReadPath());
+  return LooksLikeFolderArchive(entry->ReadPath());
+}
+
+auto FileWorkspace::folderOutputName(const QString& name) const -> QString {
+  const auto suffix = FolderArchiveSuffix(ChosenFolderArchiveFormat());
+  if (name.isEmpty()) return QStringLiteral(".%1.gpg").arg(suffix);
+  return QFileInfo(SetExtensionOfOutputFileForArchive(
+                       name, GpgOperation::kENCRYPT, false, suffix))
+      .fileName();
 }
 
 auto FileWorkspace::extract(int id, const QUrl& folder) -> bool {
@@ -533,9 +551,10 @@ auto FileWorkspace::extract(int id, const QUrl& folder) -> bool {
   busy_changed(was);
 
   const auto archive = entry->ReadPath();
-  // The new folder is named as the archive, without ".tar".
+  // The new folder is named as the archive, without ".zip" or ".tar".
   auto name = entry->name;
-  if (name.endsWith(QStringLiteral(".tar"), Qt::CaseInsensitive)) {
+  if (name.endsWith(QStringLiteral(".tar"), Qt::CaseInsensitive) ||
+      name.endsWith(QStringLiteral(".zip"), Qt::CaseInsensitive)) {
     name.chop(4);
   } else if (const auto dot = name.lastIndexOf(QLatin1Char('.')); dot > 0) {
     name.truncate(dot);
@@ -550,7 +569,8 @@ auto FileWorkspace::extract(int id, const QUrl& folder) -> bool {
         // A picked document is a content:// URL, which the archive reader
         // cannot open: copied in first, as an operation's input is.
         auto readable = archive;
-        const auto copy = staging_dir + QStringLiteral(".tar");
+        // Told apart by its bytes, so its name needs no suffix.
+        const auto copy = staging_dir + QStringLiteral(".archive");
         if (archive.startsWith(QStringLiteral("content:"))) {
           if (!CopyLimited(archive, copy, kMaxStagedInputSize)) {
             outcome->reason = tr("The file could not be read.");
@@ -1149,10 +1169,12 @@ auto FileWorkspace::typeOf(int id) const -> QVariantMap {
     }
   } else if (entry->content_refuted) {
     kind = QStringLiteral("not_openpgp");
-  } else if (info.suffix().toLower() == QStringLiteral("tar")) {
-    kind = QStringLiteral("tar");
-    // Its first block reads as a TAR header: its bytes say so, though
-    // extracting still checks every entry.
+  } else if (const auto suffix = info.suffix().toLower();
+             suffix == QStringLiteral("tar") ||
+             suffix == QStringLiteral("zip")) {
+    kind = suffix;
+    // Its first bytes read as an archive's: they say so, though extracting
+    // still checks every entry.
     verified = isArchive(id);
   } else {
     const auto type = QMimeDatabase().mimeTypeForFile(
@@ -1473,8 +1495,9 @@ void FileWorkspace::pack(const Entry& entry, StagedFile& into,
                          std::function<void(bool, const QString&)> done) {
   // Packed into the staging area as it is now, then encrypted as any file:
   // memory holds a piece at a time, the disk the archive and its encryption.
-  into = StagedFile(
-      FileStagingArea()->NewPath(entry.name + QStringLiteral(".tar")));
+  const auto format = ChosenFolderArchiveFormat();
+  into = StagedFile(FileStagingArea()->NewPath(entry.name + QLatin1Char('.') +
+                                               FolderArchiveSuffix(format)));
   const auto path = into.Path();
   const auto id = entry.id;
   const auto folder = entry.url;
@@ -1488,13 +1511,13 @@ void FileWorkspace::pack(const Entry& entry, StagedFile& into,
   QPointer<FileWorkspace> self(this);
   const auto report = progress_reporter(self, id);
   auto* task = new Thread::Task(
-      [folder, path, outcome, listed, stop = pack_stop_,
+      [folder, path, format, outcome, listed, stop = pack_stop_,
        report](const DataObjectPtr&) -> int {
         const auto tree = FolderTreeOf(folder);
         *listed = tree.has_value();
         if (tree) {
-          *outcome =
-              PackFolderTree(*tree, path, kMaxStagedInputSize, *stop, report);
+          *outcome = PackFolderTree(*tree, path, format, kMaxStagedInputSize,
+                                    *stop, report);
         }
         return 0;
       },
@@ -1551,12 +1574,13 @@ void FileWorkspace::run(const Job& job, const QString& in,
 
   switch (job.op) {
     case Op::kEncrypt:
-      // A folder: its archive's name, as the desktop names one (a folder
-      // already called "x.tar" is not "x.tar.tar").
+      // A folder: its archive's name, as pack() made it (a folder already
+      // called "x.zip" is not "x.zip.zip").
       job_output_name_ =
           entry != nullptr && entry->folder
               ? QFileInfo(SetExtensionOfOutputFileForArchive(
-                              name, GpgOperation::kENCRYPT, false))
+                              name, GpgOperation::kENCRYPT, false,
+                              QFileInfo(in).suffix().toLower()))
                     .fileName()
               : EncryptedName(name);
       break;
