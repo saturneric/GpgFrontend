@@ -52,6 +52,8 @@ class MobileProfileLoaderDelegate : public ProfileLoaderDelegate {
 
   auto AskAppKeyPin(const AppKeyPinRequest& request)
       -> AppKeyPinAnswer override;
+  auto AskRetryLockedStore(const AppKeyStoreLockedRequest& request)
+      -> bool override;
   auto ConfirmForceUnlock(const ProfileLockResult& held) -> bool override;
   auto ConfirmKeyReset(ProfileKeyResetReason reason) -> bool override;
   void Report(const ProfileLoadError& error) override;

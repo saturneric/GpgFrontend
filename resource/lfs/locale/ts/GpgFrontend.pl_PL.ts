@@ -23839,6 +23839,44 @@ Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone 
     </message>
 </context>
 <context>
+    <name>StoreLockedSheet</name>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StoreLockedSheet.qml" line="22"/>
+        <source>Unlock your device</source>
+        <translation>Odblokuj urządzenie</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StoreLockedSheet.qml" line="22"/>
+        <source>Storage not responding</source>
+        <translation>Magazyn nie odpowiada</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StoreLockedSheet.qml" line="49"/>
+        <source>The key that opens this profile is in the device&apos;s secure storage, which can only be used while the device is unlocked. Unlock your device, then tap Retry.</source>
+        <translation>Klucz otwierający ten profil znajduje się w bezpiecznym magazynie urządzenia, którego można używać tylko przy odblokowanym urządzeniu. Odblokuj urządzenie, a następnie dotknij Ponów.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StoreLockedSheet.qml" line="52"/>
+        <source>The key that opens this profile is in the device&apos;s secure storage, which is not responding right now. Tap Retry, or quit and try again later.</source>
+        <translation>Klucz otwierający ten profil znajduje się w bezpiecznym magazynie urządzenia, który w tej chwili nie odpowiada. Dotknij Ponów albo zakończ i spróbuj ponownie później.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StoreLockedSheet.qml" line="55"/>
+        <source>Nothing has been lost.</source>
+        <translation>Nic nie zostało utracone.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StoreLockedSheet.qml" line="71"/>
+        <source>Retry</source>
+        <translation>Ponów</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StoreLockedSheet.qml" line="79"/>
+        <source>Quit</source>
+        <translation>Zakończ</translation>
+    </message>
+</context>
+<context>
     <name>SubkeySheet</name>
     <message>
         <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="39"/>

@@ -116,4 +116,6 @@ ApplicationWindow {
     PassphraseSheet {}
 
     ConfirmSheet {}
+
+    StoreLockedSheet {}
 }

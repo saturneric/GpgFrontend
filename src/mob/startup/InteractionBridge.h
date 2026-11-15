@@ -75,9 +75,10 @@ class InteractionBridge : public QObject {
   [[nodiscard]] static auto MinPinLength() -> int;
 
   enum class Kind {
-    kAPP_KEY_PIN,          ///< {creating, failures} -> {action, pin}
-    kCONFIRM_KEY_RESET,    ///< {reason} -> bool
-    kCONFIRM_FORCE_UNLOCK  ///< {pid, host, application} -> bool
+    kAPP_KEY_PIN,           ///< {creating, failures} -> {action, pin}
+    kCONFIRM_KEY_RESET,     ///< {reason} -> bool
+    kCONFIRM_FORCE_UNLOCK,  ///< {pid, host, application} -> bool
+    kSTORE_LOCKED           ///< {device_locked, attempts} -> bool (retry)
   };
   Q_ENUM(Kind)
 

@@ -82,6 +82,18 @@ auto MobileProfileLoaderDelegate::AskAppKeyPin(const AppKeyPinRequest& request)
   return answer;
 }
 
+auto MobileProfileLoaderDelegate::AskRetryLockedStore(
+    const AppKeyStoreLockedRequest& request) -> bool {
+  // Retry or quit, never reset: the store did not answer, which says nothing
+  // about whether the secret is still in it. A cancelled question (the
+  // application closing) reads as quit.
+  return bridge_
+      ->Ask(InteractionBridge::Kind::kSTORE_LOCKED,
+            {{QStringLiteral("device_locked"), request.device_locked},
+             {QStringLiteral("attempts"), request.attempts}})
+      .toBool();
+}
+
 auto MobileProfileLoaderDelegate::ConfirmForceUnlock(
     const ProfileLockResult& held) -> bool {
   // Always asked: a "yes" here is a force. A holder that has gone by then is

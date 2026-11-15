@@ -21400,6 +21400,44 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
     </message>
 </context>
 <context>
+    <name>StoreLockedSheet</name>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StoreLockedSheet.qml" line="22"/>
+        <source>Unlock your device</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StoreLockedSheet.qml" line="22"/>
+        <source>Storage not responding</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StoreLockedSheet.qml" line="49"/>
+        <source>The key that opens this profile is in the device&apos;s secure storage, which can only be used while the device is unlocked. Unlock your device, then tap Retry.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StoreLockedSheet.qml" line="52"/>
+        <source>The key that opens this profile is in the device&apos;s secure storage, which is not responding right now. Tap Retry, or quit and try again later.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StoreLockedSheet.qml" line="55"/>
+        <source>Nothing has been lost.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StoreLockedSheet.qml" line="71"/>
+        <source>Retry</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/components/StoreLockedSheet.qml" line="79"/>
+        <source>Quit</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>SubkeySheet</name>
     <message>
         <location filename="../../../../src/mob/qml/components/SubkeySheet.qml" line="39"/>

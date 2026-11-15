@@ -120,6 +120,7 @@ qt_add_qml_module(gf_mob_lib
     qml/components/KeyRow.qml
     qml/components/PinSheet.qml
     qml/components/ConfirmSheet.qml
+    qml/components/StoreLockedSheet.qml
     qml/components/PassphraseSheet.qml
     qml/components/ImportSheet.qml
     qml/components/OpenDialog.qml

@@ -156,4 +156,40 @@ TEST(MobileProfileLoaderDelegateTest, AForgottenPinIsResetOnlyWhenConfirmed) {
   }
 }
 
+/**
+ * A locked device holds the key back only until it is unlocked, so the one
+ * question is whether to try again. It is never a reset: nothing in it may
+ * reach the question that destroys the profile.
+ */
+TEST(MobileProfileLoaderDelegateTest, ALockedStoreIsRetriedNeverReset) {
+  InteractionBridge bridge(nullptr);
+  MobileProfileLoaderDelegate delegate(&bridge);
+
+  for (const bool retry : {true, false}) {
+    auto answered = std::async(std::launch::async, [&]() {
+      return delegate.AskRetryLockedStore(
+          {.device_locked = true, .attempts = 2, .detail = "locked"});
+    });
+    ASSERT_TRUE(WaitFor([&bridge]() { return !bridge.Current().isEmpty(); }));
+    const auto question = bridge.Current();
+    EXPECT_EQ(question.value("kind").toString(), "store_locked");
+    EXPECT_TRUE(question.value("device_locked").toBool());
+    EXPECT_EQ(question.value("attempts").toInt(), 2);
+    if (retry) {
+      bridge.answer(question.value("id").toInt(), true);
+    } else {
+      bridge.decline(question.value("id").toInt());
+    }
+    EXPECT_EQ(answered.get(), retry);
+  }
+
+  // Cancelled by a shutdown: stop, which costs nothing.
+  auto cancelled = std::async(
+      std::launch::async, [&]() { return delegate.AskRetryLockedStore({}); });
+  ASSERT_TRUE(WaitFor([&bridge]() { return !bridge.Current().isEmpty(); }));
+  EXPECT_NE(bridge.Current().value("kind").toString(), "confirm_key_reset");
+  bridge.CancelAll();
+  EXPECT_FALSE(cancelled.get());
+}
+
 }  // namespace GpgFrontend::Test::Mobile

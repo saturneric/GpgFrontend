@@ -49,6 +49,8 @@ auto KindName(InteractionBridge::Kind kind) -> QString {
       return QStringLiteral("confirm_key_reset");
     case InteractionBridge::Kind::kCONFIRM_FORCE_UNLOCK:
       return QStringLiteral("confirm_force_unlock");
+    case InteractionBridge::Kind::kSTORE_LOCKED:
+      return QStringLiteral("store_locked");
   }
   return {};
 }
