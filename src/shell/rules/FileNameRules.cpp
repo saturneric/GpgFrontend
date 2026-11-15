@@ -98,8 +98,9 @@ auto IsOpenPGPSignatureFile(const QFileInfo& info) -> bool {
 }
 
 auto IsOpenPGPArchiveFile(const QFileInfo& info) -> bool {
-  return IsOpenPGPMessageFile(info) &&
-         QFileInfo(info.completeBaseName()).suffix().toLower() == u"tar"_s;
+  if (!IsOpenPGPMessageFile(info)) return false;
+  const auto inner = QFileInfo(info.completeBaseName()).suffix().toLower();
+  return inner == u"tar"_s || inner == u"zip"_s;
 }
 
 auto SetExtensionOfOutputFile(const QString& path, GpgOperation opera,
@@ -146,7 +147,8 @@ auto SetExtensionOfOutputFile(const QString& path, GpgOperation opera,
 }
 
 auto SetExtensionOfOutputFileForArchive(const QString& path, GpgOperation opera,
-                                        bool ascii) -> QString {
+                                        bool ascii, QStringView archive_suffix)
+    -> QString {
   const QFileInfo file_info(path);
   const auto input_path = file_info.absoluteFilePath();
 
@@ -154,9 +156,10 @@ auto SetExtensionOfOutputFileForArchive(const QString& path, GpgOperation opera,
     case kENCRYPT:
     case kENCRYPT_SIGN: {
       QString out_path = input_path;
+      const auto suffix = u"."_s + archive_suffix.toString();
 
-      if (!file_info.fileName().endsWith(u".tar"_s, Qt::CaseInsensitive)) {
-        out_path += u".tar"_s;
+      if (!file_info.fileName().endsWith(suffix, Qt::CaseInsensitive)) {
+        out_path += suffix;
       }
 
       out_path += ascii ? u".asc"_s : u".gpg"_s;

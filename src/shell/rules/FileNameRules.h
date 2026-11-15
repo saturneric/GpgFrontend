@@ -70,10 +70,10 @@ auto GF_SHELL_EXPORT IsOpenPGPSignatureFile(const QFileInfo& info) -> bool;
 
 /**
  * @brief Whether the entry is named as an encrypted folder archive, as
- * encrypting a folder names one: .tar.gpg, .tar.pgp or .tar.asc.
+ * encrypting a folder names one: .tar or .zip, then .gpg, .pgp or .asc.
  *
  * A name only: it says neither that the data is OpenPGP nor that what it
- * decrypts to is a TAR archive.
+ * decrypts to is an archive.
  *
  * @param info entry to inspect
  */
@@ -98,10 +98,13 @@ auto GF_SHELL_EXPORT SetExtensionOfOutputFile(const QString& path,
  * @param path input file path
  * @param opera GPG operation type
  * @param ascii true if ASCII-armored output is requested
+ * @param archive_suffix the archive's own extension when encrypting, without
+ * the dot: "tar" (the desktop's) or "zip" (the phone's, when chosen). A
+ * folder already named with it does not get it twice.
  * @return output file path with the correct archive extension
  */
-auto GF_SHELL_EXPORT SetExtensionOfOutputFileForArchive(const QString& path,
-                                                        GpgOperation opera,
-                                                        bool ascii) -> QString;
+auto GF_SHELL_EXPORT SetExtensionOfOutputFileForArchive(
+    const QString& path, GpgOperation opera, bool ascii,
+    QStringView archive_suffix = u"tar") -> QString;
 
 }  // namespace GpgFrontend

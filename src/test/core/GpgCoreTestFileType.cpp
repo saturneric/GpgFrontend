@@ -50,18 +50,38 @@ TEST(FileTypeUtilsTest, ADetachedSignatureIsRelatedButNotAMessage) {
   EXPECT_FALSE(IsOpenPGPMessageFile(sig));
 }
 
-// A folder encrypted is named <folder>.tar.gpg: an archive by its name,
-// whatever else is in the name; a plain .tar or .gpg is not one.
+// A folder encrypted is named <folder>.tar.gpg, or <folder>.zip.gpg on the
+// phone: an archive by its name, whatever else is in the name; a plain .tar,
+// .zip or .gpg is not one.
 TEST(FileTypeUtilsTest, AnEncryptedArchiveIsKnownByItsName) {
-  for (const auto* n :
-       {"photos.tar.gpg", "Photos 2026.TAR.PGP", "a.b.tar.asc"}) {
+  for (const auto* n : {"photos.tar.gpg", "Photos 2026.TAR.PGP", "a.b.tar.asc",
+                        "photos.zip.gpg", "Photos.ZIP.asc"}) {
     EXPECT_TRUE(IsOpenPGPArchiveFile(QFileInfo(n))) << n;
     EXPECT_TRUE(IsOpenPGPMessageFile(QFileInfo(n))) << n;
   }
-  for (const auto* n :
-       {"photos.tar", "photos.gpg", "tar.gpg", "x.tar.sig", "x.tar.gz.gpg"}) {
+  for (const auto* n : {"photos.tar", "photos.zip", "photos.gpg", "tar.gpg",
+                        "zip.gpg", "x.tar.sig", "x.tar.gz.gpg"}) {
     EXPECT_FALSE(IsOpenPGPArchiveFile(QFileInfo(n))) << n;
   }
+}
+
+// An encrypted folder is named for its archive: TAR unless the caller asks
+// for ZIP, and a folder already named so does not get the suffix twice.
+TEST(FileTypeUtilsTest, AnEncryptedFolderIsNamedForItsArchive) {
+  const auto name = [](const QString& path, bool ascii, QStringView suffix) {
+    return QFileInfo(SetExtensionOfOutputFileForArchive(path, kENCRYPT, ascii,
+                                                        suffix))
+        .fileName();
+  };
+  EXPECT_EQ(QFileInfo(SetExtensionOfOutputFileForArchive("/d/Photos", kENCRYPT,
+                                                         false))
+                .fileName(),
+            "Photos.tar.gpg");
+  EXPECT_EQ(name("/d/Photos", false, u"zip"), "Photos.zip.gpg");
+  EXPECT_EQ(name("/d/Photos", true, u"zip"), "Photos.zip.asc");
+  EXPECT_EQ(name("/d/backup.ZIP", false, u"zip"), "backup.ZIP.gpg");
+  EXPECT_EQ(name("/d/backup.tar", false, u"zip"), "backup.tar.zip.gpg");
+  EXPECT_EQ(name("/d/backup.tar", false, u"tar"), "backup.tar.gpg");
 }
 
 TEST(FileTypeUtilsTest, PlainFilesMatchNothing) {
