@@ -326,13 +326,21 @@ class FileWorkspace : public QAbstractListModel {
   /// reported by SignalSaved. The file stays here.
   Q_INVOKABLE void saveAs(int id, const QUrl& url);
 
-  /// Hand the output @p id to another application; reported by
-  /// SignalShared. The output stays here.
+  /// Hand the file @p id (any file, not a folder) to another application;
+  /// reported by SignalShared. The file stays here.
   Q_INVOKABLE void share(int id);
 
-  /// Open the output @p id in another application the person picks, as
+  /// Open the file @p id in another application the person picks, as
   /// share() hands it over; reported by SignalOpened.
   Q_INVOKABLE void openWith(int id);
+
+  /// Hand the files among @p ids to another application in one share
+  /// sheet; folders and files still arriving are left out. Reported by
+  /// SignalSharedAll. The files stay here.
+  Q_INVOKABLE void shareAll(const QVariantList& ids);
+
+  /// How many of @p ids share() and shareAll() can hand over.
+  [[nodiscard]] Q_INVOKABLE int shareableCount(const QVariantList& ids) const;
 
   /**
    * @brief Work out the SHA-256 of the file @p id, off the interface thread;
@@ -419,6 +427,10 @@ class FileWorkspace : public QAbstractListModel {
   /// "handed_off", "dismissed", "failed" or "unsupported", as OutputActions.
   void SignalShared(int id, const QString& outcome);
   void SignalSaved(int id, bool succeeded);
+  /// shareAll(): as SignalShared says ("handed_off", "dismissed",
+  /// "failed", "unsupported"), with how many files went into the sheet and
+  /// how many were left out.
+  void SignalSharedAll(const QString& outcome, int shared, int skipped);
   /// openWith() @p id: as SignalShared says.
   void SignalOpened(int id, const QString& outcome);
   /// saveAll() is done: how many were saved, skipped, could not be saved.
@@ -579,6 +591,8 @@ class FileWorkspace : public QAbstractListModel {
   /// @p name, or with " (2)", " (3)" ... before its last extension when the
   /// list already has a file of that name.
   [[nodiscard]] auto unique_name(const QString& name) const -> QString;
+  /// Whether share() can hand @p entry over: a file, all here.
+  [[nodiscard]] auto shareable(const Entry& entry) const -> bool;
   /// Whether a new file goes into the KeptStore.
   [[nodiscard]] auto keeping() const -> bool;
   /// Write the KeptStore's index: the kept files as they are now.

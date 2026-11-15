@@ -91,6 +91,17 @@ void ShareFile(const QString& path, const QString& mime_type,
                const QString& title, ShareCallback done);
 
 /**
+ * @brief Share the files at @p paths, each under SharedFilesRoot(), in one
+ * share sheet, as @p mime_type (their common type, or any type);
+ * @p done is called once, on the interface thread.
+ *
+ * The receiving application is granted read access to those files, until
+ * RevokeSharedFile() of each.
+ */
+void ShareFiles(const QStringList& paths, const QString& mime_type,
+                const QString& title, ShareCallback done);
+
+/**
  * @brief Open the file at @p path, which is under SharedFilesRoot(), in an
  * application the person picks, as ShareFile() hands it over: the same
  * grant, the same report (a target chosen, or not).
@@ -100,6 +111,19 @@ void OpenFile(const QString& path, const QString& mime_type,
 
 /// Withdraw every grant to read @p path. Harmless when there was none.
 void RevokeSharedFile(const QString& path);
+
+#if !defined(Q_OS_ANDROID)
+/// What a test puts in place of a share sheet where the platform has none:
+/// it is handed the files (@p open: to open one, not share) and answers
+/// through @p done.
+using StubShareSheet =
+    std::function<void(const QStringList& paths, const QString& mime_type,
+                       bool open, ShareCallback done)>;
+
+/// Use @p sheet for files from now on; an empty one takes it away. While one
+/// is set, CanShare() is true. Tests only.
+void SetStubShareSheet(StubShareSheet sheet);
+#endif
 
 /**
  * @brief The open share requests and their one completion each.

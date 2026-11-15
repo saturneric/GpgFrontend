@@ -1538,9 +1538,37 @@
         <translation>Extraer en una carpeta…</translation>
     </message>
     <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="417"/>
+        <source>Folders cannot be shared. Choose files.</source>
+        <translation>Las carpetas no se pueden compartir. Elige archivos.</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="434"/>
+        <source>Shared. %n item(s) could not be included.</source>
+        <translation>
+            <numerusform>Compartido. No se pudo incluir %n elemento.</numerusform>
+            <numerusform>Compartido. No se pudieron incluir %n elementos.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="435"/>
+        <source>Shared.</source>
+        <translation>Compartido.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="439"/>
+        <source>These files could not be shared. Save them instead.</source>
+        <translation>No se pudieron compartir estos archivos. Guárdalos en su lugar.</translation>
+    </message>
+    <message>
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="847"/>
         <source>Added as one item, with everything in it. Encrypting it makes one %1 archive.</source>
         <translation>Se añade como un solo elemento, con todo su contenido. Al cifrarla se crea un archivo %1.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1257"/>
+        <source>Share decrypted files?</source>
+        <translation>¿Compartir los archivos descifrados?</translation>
     </message>
 </context>
 <context>

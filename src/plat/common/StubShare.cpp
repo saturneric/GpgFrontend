@@ -36,7 +36,30 @@
 
 namespace GpgFrontend {
 
-auto CanShare() -> bool { return false; }
+namespace {
+
+auto Sheet() -> StubShareSheet& {
+  static StubShareSheet sheet;
+  return sheet;
+}
+
+/// The test's sheet, else what a platform without one says.
+void HandOver(const QStringList& paths, const QString& mime_type, bool open,
+              ShareCallback done) {
+  if (auto sheet = Sheet(); sheet) {
+    sheet(paths, mime_type, open, std::move(done));
+    return;
+  }
+  QTimer::singleShot(0, [done = std::move(done)]() {
+    if (done) done(ShareResult{ShareOutcome::kUnsupported, false, {}});
+  });
+}
+
+}  // namespace
+
+void SetStubShareSheet(StubShareSheet sheet) { Sheet() = std::move(sheet); }
+
+auto CanShare() -> bool { return static_cast<bool>(Sheet()); }
 
 void ShareText(const QString&, const QString&, ShareCallback done) {
   QTimer::singleShot(0, [done = std::move(done)]() {
@@ -44,18 +67,19 @@ void ShareText(const QString&, const QString&, ShareCallback done) {
   });
 }
 
-void ShareFile(const QString&, const QString&, const QString&,
+void ShareFile(const QString& path, const QString& mime_type, const QString&,
                ShareCallback done) {
-  QTimer::singleShot(0, [done = std::move(done)]() {
-    if (done) done(ShareResult{ShareOutcome::kUnsupported, false, {}});
-  });
+  HandOver({path}, mime_type, false, std::move(done));
 }
 
-void OpenFile(const QString&, const QString&, const QString&,
+void ShareFiles(const QStringList& paths, const QString& mime_type,
+                const QString&, ShareCallback done) {
+  HandOver(paths, mime_type, false, std::move(done));
+}
+
+void OpenFile(const QString& path, const QString& mime_type, const QString&,
               ShareCallback done) {
-  QTimer::singleShot(0, [done = std::move(done)]() {
-    if (done) done(ShareResult{ShareOutcome::kUnsupported, false, {}});
-  });
+  HandOver({path}, mime_type, true, std::move(done));
 }
 
 void RevokeSharedFile(const QString&) {}

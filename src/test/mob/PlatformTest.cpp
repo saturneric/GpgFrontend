@@ -257,6 +257,34 @@ TEST(PlatformStubTest, SharingIsReportedUnsupported) {
   EXPECT_NE(ClipboardText(), "ciphertext");
 }
 
+// No share sheet here unless a test puts one in: files are refused as
+// unsupported, and with one, handed to it as given.
+TEST(PlatformStubTest, FilesGoToTheStubSheetOnlyWhenOneIsSet) {
+  EXPECT_FALSE(CanShare());
+  RunOnMainThread([]() {
+    ShareOutcome refused = ShareOutcome::kHandedOff;
+    ShareFiles({"/a", "/b"}, "*/*", {},
+               [&refused](const ShareResult& r) { refused = r.outcome; });
+    QCoreApplication::processEvents();
+    EXPECT_EQ(refused, ShareOutcome::kUnsupported);
+
+    QStringList given;
+    SetStubShareSheet([&given](const QStringList& paths, const QString&, bool,
+                               ShareCallback done) {
+      given = paths;
+      done(ShareResult{ShareOutcome::kHandedOff, true, {}});
+    });
+    EXPECT_TRUE(CanShare());
+    ShareOutcome handed = ShareOutcome::kFailed;
+    ShareFiles({"/a", "/b"}, "*/*", {},
+               [&handed](const ShareResult& r) { handed = r.outcome; });
+    EXPECT_EQ(handed, ShareOutcome::kHandedOff);
+    EXPECT_EQ(given, (QStringList{"/a", "/b"}));
+    SetStubShareSheet({});
+    EXPECT_FALSE(CanShare());
+  });
+}
+
 TEST(PlatformStubTest, NoWindowIsSecuredWhereThePlatformCannot) {
   EXPECT_FALSE(CanSecureWindow());
   // Harmless, with or without a window.

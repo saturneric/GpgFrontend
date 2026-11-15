@@ -1526,9 +1526,36 @@
         <translation>解压到文件夹…</translation>
     </message>
     <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="417"/>
+        <source>Folders cannot be shared. Choose files.</source>
+        <translation>无法分享文件夹。请选择文件。</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="434"/>
+        <source>Shared. %n item(s) could not be included.</source>
+        <translation>
+            <numerusform>已分享。有 %n 个项目未能包含在内。</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="435"/>
+        <source>Shared.</source>
+        <translation>已分享。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="439"/>
+        <source>These files could not be shared. Save them instead.</source>
+        <translation>这些文件无法分享。请改为保存。</translation>
+    </message>
+    <message>
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="847"/>
         <source>Added as one item, with everything in it. Encrypting it makes one %1 archive.</source>
         <translation>作为一个项目添加，包含其中所有内容。加密后生成一个 %1 归档。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1257"/>
+        <source>Share decrypted files?</source>
+        <translation>分享解密后的文件？</translation>
     </message>
 </context>
 <context>

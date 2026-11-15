@@ -140,6 +140,33 @@ public final class PlatformBridge {
     }
 
     /**
+     * Show the share sheet for several files under <cache>/share at once.
+     * The receiver is granted read access to those files only, until
+     * revokeFile() of each.
+     */
+    public static boolean shareFiles(Activity activity, String[] paths,
+                                     String mime, String title, int request) {
+        try {
+            if (paths.length == 0) return false;
+            ArrayList<Uri> uris = new ArrayList<>();
+            for (String path : paths) uris.add(uriFor(activity, path));
+            Intent send = new Intent(Intent.ACTION_SEND_MULTIPLE);
+            send.setType(mime);
+            send.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+            // ClipData carries the grant for every file through the chooser.
+            ClipData clip = ClipData.newRawUri("", uris.get(0));
+            for (int i = 1; i < uris.size(); ++i) {
+                clip.addItem(new ClipData.Item(uris.get(i)));
+            }
+            send.setClipData(clip);
+            send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            return showChooser(activity, send, title, request);
+        } catch (RuntimeException e) {
+            return false;
+        }
+    }
+
+    /**
      * Open one file under <cache>/share in an application the person picks,
      * granted read access as shareFile() grants it.
      */

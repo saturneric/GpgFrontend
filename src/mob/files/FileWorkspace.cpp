@@ -36,6 +36,7 @@
 #include <QMimeDatabase>
 #include <QPointer>
 #include <QRegularExpression>
+#include <QSet>
 #include <algorithm>
 
 #include "core/function/GlobalSettingStation.h"
@@ -1042,21 +1043,20 @@ void FileWorkspace::hand_off(int id, bool open) {
   }
   const auto* entry = find(id);
   auto* staging = FileStagingArea();
-  if (entry == nullptr || !entry->url.isEmpty() || entry->file.Empty() ||
-      !entry->available || entry->progress >= 0 || staging == nullptr ||
+  if (entry == nullptr || !shareable(*entry) || staging == nullptr ||
       SharedFileStore() == nullptr) {
     report(id, QStringLiteral("failed"));
     return;
   }
 
-  // The store takes a copy, so the output stays here whatever becomes of
-  // the share.
+  // The store takes a copy, so the file stays here whatever becomes of the
+  // share; a picked document's own URI is never handed on.
   const auto name = entry->name;
   const auto plaintext = entry->plaintext;
   const auto copy = staging->NewPath(name);
   reading(id, +1);
   CopyOffThread(
-      entry->file.Path(), copy, std::numeric_limits<qint64>::max(), this,
+      entry->ReadPath(), copy, std::numeric_limits<qint64>::max(), this,
       [self, report, id, name, plaintext, copy, open](bool copied) {
         if (self != nullptr) self->reading(id, -1);
         auto* store = SharedFileStore();
@@ -1097,6 +1097,127 @@ void FileWorkspace::hand_off(int id, bool open) {
               report(id, ShareOutcomeName(result.outcome));
             });
       });
+}
+
+auto FileWorkspace::shareable(const Entry& entry) const -> bool {
+  // A folder is not one file; one still arriving is not all here yet.
+  return !entry.folder && entry.available && entry.progress < 0 &&
+         (!entry.url.isEmpty() || !entry.file.Empty());
+}
+
+auto FileWorkspace::shareableCount(const QVariantList& ids) const -> int {
+  int count = 0;
+  for (const auto& value : ids) {
+    const auto* entry = find(value.toInt());
+    if (entry != nullptr && shareable(*entry)) ++count;
+  }
+  return count;
+}
+
+void FileWorkspace::shareAll(const QVariantList& ids) {
+  if (!GpgFrontend::CanShare()) {
+    emit SignalSharedAll(QStringLiteral("unsupported"), 0,
+                         static_cast<int>(ids.size()));
+    return;
+  }
+  struct Item {
+    int id = 0;
+    QString name;
+    bool plaintext = false;
+    QString from;
+    QString copy;
+    bool copied = false;
+  };
+  auto* staging = FileStagingArea();
+  auto items = QSharedPointer<QList<Item>>::create();
+  int skipped = 0;
+  for (const auto& value : ids) {
+    const auto* entry = find(value.toInt());
+    if (entry == nullptr || !shareable(*entry) || staging == nullptr) {
+      ++skipped;
+      continue;
+    }
+    items->append({entry->id, entry->name, entry->plaintext, entry->ReadPath(),
+                   staging->NewPath(entry->name)});
+  }
+  if (items->isEmpty() || SharedFileStore() == nullptr) {
+    emit SignalSharedAll(QStringLiteral("failed"), 0, skipped);
+    return;
+  }
+
+  // Copied off the interface thread, one after another (a picked document
+  // may be fetched by its provider first), then handed over in one sheet.
+  for (const auto& item : *items) reading(item.id, +1);
+  QPointer<FileWorkspace> self(this);
+  auto* task = new Thread::Task(
+      [items](const DataObjectPtr&) -> int {
+        for (auto& item : *items) {
+          item.copied = CopyLimited(item.from, item.copy,
+                                    std::numeric_limits<qint64>::max());
+        }
+        return 0;
+      },
+      "mobile_share_files", TransferParams(),
+      [self, items, skipped](int, const DataObjectPtr&) {
+        if (self != nullptr) {
+          for (const auto& item : *items) self->reading(item.id, -1);
+        }
+        auto* store = SharedFileStore();
+        const auto now = QDateTime::currentDateTimeUtc();
+        if (store != nullptr) store->Cleanup(now);
+        QStringList paths;
+        QStringList retained_ids;
+        QSet<QString> mimes;
+        int missed = skipped;
+        for (const auto& item : *items) {
+          const auto retained =
+              item.copied && store != nullptr
+                  ? store->Retain(item.copy, item.name, item.plaintext, now)
+                  : std::nullopt;
+          if (!retained) {
+            QFile::remove(item.copy);
+            ++missed;
+            continue;
+          }
+          paths << retained->path;
+          retained_ids << retained->id;
+          mimes.insert(QMimeDatabase().mimeTypeForFile(retained->path).name());
+        }
+        if (paths.isEmpty()) {
+          if (self != nullptr) {
+            emit self->SignalSharedAll(QStringLiteral("failed"), 0, missed);
+          }
+          return;
+        }
+        // One type for all, or any: a receiver filters by it.
+        const auto mime =
+            mimes.size() == 1 ? *mimes.cbegin() : QStringLiteral("*/*");
+        const auto count = static_cast<int>(paths.size());
+        ShareFiles(
+            paths, mime, {},
+            [self, retained_ids, count, missed](const ShareResult& result) {
+              const auto shown = result.outcome != ShareOutcome::kFailed &&
+                                 result.outcome != ShareOutcome::kUnsupported;
+              // Shown to no one: nothing needs keeping for a receiver.
+              if (!shown) {
+                auto* store = SharedFileStore();
+                auto* staging = FileStagingArea();
+                for (const auto& retained_id : retained_ids) {
+                  if (store == nullptr || staging == nullptr) break;
+                  StagedFile back(
+                      staging->NewPath(QStringLiteral("withdrawn")));
+                  store->Withdraw(retained_id, back.Path());
+                }
+              }
+              if (self != nullptr) {
+                emit self->SignalSharedAll(ShareOutcomeName(result.outcome),
+                                           shown ? count : 0, missed);
+              }
+            });
+      });
+  Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_IO)
+      ->PostTask(task);
 }
 
 void FileWorkspace::refreshAvailability() {

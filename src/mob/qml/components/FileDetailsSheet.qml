@@ -323,11 +323,15 @@ BottomSheet {
         Layout.fillWidth: true
         Layout.topMargin: 4
         spacing: Theme.gapSmall
-        visible: sheet.isOutput
+        // Any file can be shared or opened elsewhere; a folder is not one.
+        visible: !sheet.isFolder
 
         ActionButton {
             objectName: "detailsSave"
             Layout.fillWidth: true
+            // The application's own copies; a picked document is already
+            // where it was saved.
+            visible: sheet.isOutput || sheet.file.origin === "shared"
             kind: sheet.temporary ? "primary" : "secondary"
             text: qsTr("Save as")
             icon.source: Theme.icon("save")

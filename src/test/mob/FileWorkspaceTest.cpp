@@ -52,6 +52,7 @@
 #include "files/ShareRetentionStore.h"
 #include "files/StagingArea.h"
 #include "lifecycle/AppLifecycle.h"
+#include "plat/common/PlatformShare.h"
 
 namespace GpgFrontend::Test::Mobile {
 
@@ -382,6 +383,143 @@ TEST_F(FileWorkspaceTest, WithoutAShareSheetTheOutputStays) {
   });
   EXPECT_EQ(outcome, "unsupported");
   EXPECT_EQ(Entry(output).value("kind").toString(), "output");
+  RunOnMainThread([&retained]() {
+    EXPECT_EQ(SharedFileStore()->Entries().size(), retained);
+  });
+}
+
+// Any file goes to another app, a picked document as well as an output, one
+// at a time or several in one share sheet; a folder does not. What goes is a
+// copy in the shared files' store, never the document's own URI.
+TEST_F(FileWorkspaceTest, AnyFileCanBeSharedAndSeveralAtOnce) {
+  struct Sheet {
+    QList<QStringList> paths;
+    QStringList mimes;
+    ShareOutcome answer = ShareOutcome::kHandedOff;
+  };
+  auto sheet = std::make_shared<Sheet>();
+  RunOnMainThread([sheet]() {
+    SetStubShareSheet([sheet](const QStringList& paths, const QString& mime,
+                              bool, ShareCallback done) {
+      sheet->paths << paths;
+      sheet->mimes << mime;
+      done(ShareResult{
+          sheet->answer, sheet->answer == ShareOutcome::kHandedOff, {}});
+    });
+  });
+  const auto unset =
+      qScopeGuard([]() { RunOnMainThread([]() { SetStubShareSheet({}); }); });
+
+  const auto picked = Add("a picked document", "picked.txt");
+  const auto source = Add("to encrypt", "made.txt");
+  Do([&](auto* f) { f->encrypt({source}, {fred_}); });
+  Finish();
+  const auto output = OutputOf(source);
+  ASSERT_GE(output, 0) << Errors(source);
+  QTemporaryDir parent;
+  const auto root = parent.filePath("Folder");
+  ASSERT_TRUE(QDir().mkpath(root));
+  WriteFile(root + "/inside.txt", "inside");
+  int folder = -1;
+  RunOnMainThread([&]() {
+    QObject::connect(
+        files_, &FileWorkspace::folderAdded, files_,
+        [&folder](int id, const QString&) { folder = id; },
+        Qt::SingleShotConnection);
+    files_->addFolder(QUrl::fromLocalFile(root));
+  });
+  ASSERT_TRUE(WaitFor(
+      [&folder]() {
+        int id = -1;
+        RunOnMainThread([&]() { id = folder; });
+        return id >= 0;
+      },
+      10000));
+
+  // One picked document: a copy in the store, not the document itself.
+  QString outcome;
+  RunOnMainThread([&]() {
+    QObject::connect(
+        files_, &FileWorkspace::SignalShared, files_,
+        [&outcome](int, const QString& o) { outcome = o; },
+        Qt::SingleShotConnection);
+    files_->share(picked);
+  });
+  ASSERT_TRUE(WaitFor(
+      [&]() {
+        QString o;
+        RunOnMainThread([&]() { o = outcome; });
+        return !o.isEmpty();
+      },
+      10000));
+  EXPECT_EQ(outcome, "handed_off");
+  ASSERT_EQ(sheet->paths.size(), 1);
+  ASSERT_EQ(sheet->paths.first().size(), 1);
+  const auto handed = sheet->paths.first().first();
+  EXPECT_TRUE(handed.startsWith(SharedFilesRoot())) << handed.toStdString();
+  EXPECT_EQ(ReadFile(handed), QByteArray("a picked document"));
+  EXPECT_TRUE(QFile::exists(dir_.filePath("picked.txt")));
+
+  // A folder is not one file.
+  int shareable = -1;
+  Do([&](auto* f) {
+    shareable = f->shareableCount({picked, output, folder});
+    QObject::connect(
+        f, &FileWorkspace::SignalShared, f,
+        [&outcome](int, const QString& o) { outcome = o; },
+        Qt::SingleShotConnection);
+    f->share(folder);
+  });
+  EXPECT_EQ(shareable, 2);
+  EXPECT_EQ(outcome, "failed");
+
+  // Several at once, in one sheet; the folder left out and said so.
+  QVariantList all;
+  RunOnMainThread([&]() {
+    QObject::connect(
+        files_, &FileWorkspace::SignalSharedAll, files_,
+        [&all](const QString& o, int shared, int skipped) {
+          all = {o, shared, skipped};
+        },
+        Qt::SingleShotConnection);
+    files_->shareAll({picked, output, folder});
+  });
+  ASSERT_TRUE(WaitFor(
+      [&]() {
+        bool done = false;
+        RunOnMainThread([&]() { done = !all.isEmpty(); });
+        return done;
+      },
+      10000));
+  EXPECT_EQ(all, (QVariantList{"handed_off", 2, 1}));
+  ASSERT_EQ(sheet->paths.size(), 2);
+  EXPECT_EQ(sheet->paths.last().size(), 2);
+  // Two types: the sheet is told any.
+  EXPECT_EQ(sheet->mimes.last(), "*/*");
+
+  // A sheet that could not be shown keeps nothing in the store.
+  qsizetype retained = 0;
+  RunOnMainThread(
+      [&retained]() { retained = SharedFileStore()->Entries().size(); });
+  sheet->answer = ShareOutcome::kFailed;
+  RunOnMainThread([&]() {
+    all.clear();
+    QObject::connect(
+        files_, &FileWorkspace::SignalSharedAll, files_,
+        [&all](const QString& o, int shared, int skipped) {
+          all = {o, shared, skipped};
+        },
+        Qt::SingleShotConnection);
+    files_->shareAll({picked, output});
+  });
+  ASSERT_TRUE(WaitFor(
+      [&]() {
+        bool done = false;
+        RunOnMainThread([&]() { done = !all.isEmpty(); });
+        return done;
+      },
+      10000));
+  EXPECT_EQ(all, (QVariantList{"failed", 0, 0}));
   RunOnMainThread([&retained]() {
     EXPECT_EQ(SharedFileStore()->Entries().size(), retained);
   });

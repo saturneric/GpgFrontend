@@ -411,6 +411,35 @@ Page {
     }
 
     // "Shared." only when a target was chosen; a dismissal says nothing.
+    // The chosen files, in one share sheet; a folder cannot go along.
+    function shareSelected(ids) {
+        if (files.shareableCount(ids) === 0) {
+            notice.show(qsTr("Folders cannot be shared. Choose files."))
+            return
+        }
+        if (ids.some(id => files.entry(id).plaintext === true)) {
+            plaintextNotice.target = -1
+            plaintextNotice.targets = ids
+            plaintextNotice.opening = false
+            plaintextNotice.open()
+        } else {
+            files.shareAll(ids)
+        }
+    }
+
+    function filesShared(outcome, shared, skipped) {
+        if (outcome === "handed_off") {
+            files.clearSelection()
+            notice.show(skipped > 0
+                        ? qsTr("Shared. %n item(s) could not be included.", "", skipped)
+                        : qsTr("Shared."))
+        } else if (outcome === "dismissed") {
+            notice.show("")
+        } else {
+            notice.show(qsTr("These files could not be shared. Save them instead."))
+        }
+    }
+
     function shared(outcome) {
         notice.showShared(outcome, qsTr("This file could not be shared. "
                                         + "Save it instead."))
@@ -575,6 +604,14 @@ Page {
             }
 
             BarButton {
+                objectName: "shareSelected"
+                visible: page.selecting && files.canShare
+                text: qsTr("Share")
+                icon.source: Theme.icon("share")
+                onClicked: page.shareSelected(files.selectedIds())
+            }
+
+            BarButton {
                 objectName: "removeSelected"
                 visible: page.selecting
                 text: qsTr("Remove from list")
@@ -733,6 +770,7 @@ Page {
     // page.
     Component.onCompleted: {
         files.SignalShared.connect(page.fileShared)
+        files.SignalSharedAll.connect(page.filesShared)
         files.SignalReceiveFailed.connect(page.fileNotReceived)
         files.SignalOpened.connect(page.fileOpened)
         files.SignalSavedAll.connect(page.savedAll)
@@ -740,6 +778,7 @@ Page {
     }
     Component.onDestruction: {
         files.SignalShared.disconnect(page.fileShared)
+        files.SignalSharedAll.disconnect(page.filesShared)
         files.SignalReceiveFailed.disconnect(page.fileNotReceived)
         files.SignalOpened.disconnect(page.fileOpened)
         files.SignalSavedAll.disconnect(page.savedAll)
@@ -1125,6 +1164,10 @@ Page {
         property int target: -1
         readonly property var file: target >= 0 ? files.entry(target) : ({})
         readonly property bool isOutput: file.kind === "output"
+        // The application's own copy: made here, or shared from another app.
+        readonly property bool isOwn: isOutput || file.origin === "shared"
+        // Any file can go to another app; a folder is not one file.
+        readonly property bool canHandOver: files.canShare && file.isFolder !== true
         // A ZIP or TAR archive (a folder decrypted, say), offered to extract;
         // never extracted by itself.
         property bool isArchive: false
@@ -1162,21 +1205,24 @@ Page {
         }
 
         MenuItem {
+            objectName: "rowSaveAs"
             text: qsTr("Save as")
-            height: rowMenu.isOutput ? implicitHeight : 0
-            visible: rowMenu.isOutput
+            height: rowMenu.isOwn ? implicitHeight : 0
+            visible: rowMenu.isOwn
             onTriggered: page.saveAs(rowMenu.target)
         }
         MenuItem {
+            objectName: "rowShare"
             text: qsTr("Share")
-            height: rowMenu.isOutput && files.canShare ? implicitHeight : 0
-            visible: rowMenu.isOutput && files.canShare
+            height: rowMenu.canHandOver ? implicitHeight : 0
+            visible: rowMenu.canHandOver
             onTriggered: page.share(rowMenu.target)
         }
         MenuItem {
+            objectName: "rowOpenWith"
             text: qsTr("Open with…")
-            height: rowMenu.isOutput && files.canShare ? implicitHeight : 0
-            visible: rowMenu.isOutput && files.canShare
+            height: rowMenu.canHandOver ? implicitHeight : 0
+            visible: rowMenu.canHandOver
             onTriggered: page.openWith(rowMenu.target)
         }
         MenuItem {
@@ -1201,12 +1247,15 @@ Page {
         id: plaintextNotice
 
         property int target: -1
+        // Several, in one share sheet (shareSelected()); then not target.
+        property var targets: []
         // Opened in another app, not shared.
         property bool opening: false
 
         objectName: "plaintextNotice"
         title: opening ? qsTr("Open the decrypted file in another app?")
-                       : qsTr("Share the decrypted file?")
+                       : targets.length > 0 ? qsTr("Share decrypted files?")
+                                            : qsTr("Share the decrypted file?")
 
         message: qsTr("A copy stays in GpgFrontend's private storage for "
                    + "up to an hour so the receiving app can read it. "
@@ -1215,7 +1264,13 @@ Page {
 
         acceptText: opening ? qsTr("Open") : qsTr("Share")
 
-        onAccepted: opening ? files.openWith(target) : files.share(target)
+        onAccepted: {
+            if (targets.length > 0) files.shareAll(targets)
+            else if (opening) files.openWith(target)
+            else files.share(target)
+            targets = []
+        }
+        onRejected: targets = []
     }
 
     // Removing a file made here and not saved deletes it.

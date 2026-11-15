@@ -153,6 +153,33 @@ void ShareFile(const QString& path, const QString& mime_type,
   if (!shown) session.Failed(request, QStringLiteral("no share sheet"));
 }
 
+void ShareFiles(const QStringList& paths, const QString& mime_type,
+                const QString& title, ShareCallback done) {
+  RegisterNatives();
+  auto& session = ShareSession::Instance();
+  const auto request = session.Begin(std::move(done));
+
+  QJniEnvironment env;
+  auto* strings = env.findClass("java/lang/String");
+  auto* array =
+      env->NewObjectArray(static_cast<jsize>(paths.size()), strings, nullptr);
+  for (qsizetype i = 0; i < paths.size(); ++i) {
+    const auto path = QJniObject::fromString(paths.at(i));
+    env->SetObjectArrayElement(array, static_cast<jsize>(i),
+                               path.object<jstring>());
+  }
+  const auto shown = QJniObject::callStaticMethod<jboolean>(
+      kBridge, "shareFiles",
+      "(Landroid/app/Activity;[Ljava/lang/String;Ljava/lang/String;"
+      "Ljava/lang/String;I)Z",
+      Activity().object(), array,
+      QJniObject::fromString(mime_type).object<jstring>(),
+      QJniObject::fromString(title).object<jstring>(),
+      static_cast<jint>(request));
+  env->DeleteLocalRef(array);
+  if (!shown) session.Failed(request, QStringLiteral("no share sheet"));
+}
+
 void OpenFile(const QString& path, const QString& mime_type,
               const QString& title, ShareCallback done) {
   RegisterNatives();

@@ -1550,9 +1550,38 @@
         <translation>Wypakuj do folderu…</translation>
     </message>
     <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="417"/>
+        <source>Folders cannot be shared. Choose files.</source>
+        <translation>Folderów nie można udostępniać. Wybierz pliki.</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="434"/>
+        <source>Shared. %n item(s) could not be included.</source>
+        <translation>
+            <numerusform>Udostępniono. Nie udało się dołączyć %n elementu.</numerusform>
+            <numerusform>Udostępniono. Nie udało się dołączyć %n elementów.</numerusform>
+            <numerusform>Udostępniono. Nie udało się dołączyć %n elementów.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="435"/>
+        <source>Shared.</source>
+        <translation>Udostępniono.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="439"/>
+        <source>These files could not be shared. Save them instead.</source>
+        <translation>Nie udało się udostępnić tych plików. Zamiast tego zapisz je.</translation>
+    </message>
+    <message>
         <location filename="../../../../src/mob/qml/FilesPage.qml" line="847"/>
         <source>Added as one item, with everything in it. Encrypting it makes one %1 archive.</source>
         <translation>Dodawany jako jeden element z całą zawartością. Zaszyfrowanie tworzy jedno archiwum %1.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/FilesPage.qml" line="1257"/>
+        <source>Share decrypted files?</source>
+        <translation>Udostępnić odszyfrowane pliki?</translation>
     </message>
 </context>
 <context>
