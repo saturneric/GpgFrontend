@@ -72,6 +72,16 @@ TEST(SettingsPolicyTest, EveryPolicyNamesOnlyCatalogSettings) {
   }
 }
 
+// A phone is easier to read memory from than a desktop: its secrets live in
+// guarded memory (secure level 2: guard pages, locked against swap).
+TEST(SettingsPolicyTest, ThePhoneGuardsItsSecretsInMemory) {
+  QFile file(QStringLiteral(GF_TEST_SOURCE_DIR) +
+             "/resource/settings_policy/android.json");
+  ASSERT_TRUE(file.open(QIODevice::ReadOnly));
+  const auto defaults = ParseSettingsPolicy(file.readAll());
+  EXPECT_EQ(defaults.value(SettingItems::kSecureLevel.key).toInt(), 2);
+}
+
 TEST(SettingsPolicyTest, AnUnknownSettingOrValueIsLeftOut) {
   const auto defaults = ParseSettingsPolicy(
       R"({"defaults": {"no/such_setting": 1,

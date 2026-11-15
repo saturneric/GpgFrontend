@@ -1,5 +1,6 @@
 {
   "defaults": {
+    "advanced/secure_level": 2,
     "engine/argon2_s2k_profile": "low_memory",
     "network/auto_import_missing_key": false
   }
