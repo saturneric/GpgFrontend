@@ -35,6 +35,7 @@
 #include <QMutex>
 #include <QMutexLocker>
 #include <algorithm>
+#include <atomic>
 #include <cstdlib>
 #include <cstring>
 #include <optional>
@@ -101,6 +102,9 @@ class SecureMemoryAllocator {
   auto SecReallocate(void* ptr, size_t size) -> void*;
   void SecDeallocate(void* ptr);
 
+  void SetSecureLevel(int level);
+  auto IsGuarded(void* ptr) -> bool;
+
  private:
   explicit SecureMemoryAllocator(int secure_level);
 
@@ -110,15 +114,21 @@ class SecureMemoryAllocator {
   auto take_info(void* ptr) -> std::optional<AllocationInfo>;
   auto take_info_if_tracked(void* ptr) -> std::optional<AllocationInfo>;
   static void report_invalid_free(void* ptr);
+  /// Whether a pointer this does not track may be a plain malloc of its own
+  /// rather than a foreign or double-freed one.
+  auto may_be_untracked() const -> bool;
 
  private:
-  int secure_level_ = 0;
+  std::atomic<int> secure_level_ = 0;
+  /// The normal tier ran untracked (below level 1) at some point, so blocks
+  /// from then are plain malloc ones the registry never saw.
+  std::atomic<bool> ran_untracked_ = false;
   QMutex mutex_;
   QHash<void*, AllocationInfo> allocated_;
 };
 
 SecureMemoryAllocator::SecureMemoryAllocator(int secure_level)
-    : secure_level_(secure_level) {
+    : secure_level_(secure_level), ran_untracked_(secure_level < 1) {
   if (!EnsureSodiumInit()) {
     FLOG_F("sodium_init failed");
   }
@@ -161,6 +171,21 @@ void SecureMemoryAllocator::report_invalid_free(void* ptr) {
 #endif
 }
 
+auto SecureMemoryAllocator::may_be_untracked() const -> bool {
+  return secure_level_.load() < 1 || ran_untracked_.load();
+}
+
+void SecureMemoryAllocator::SetSecureLevel(int level) {
+  if (level < 1) ran_untracked_ = true;
+  secure_level_ = level;
+}
+
+auto SecureMemoryAllocator::IsGuarded(void* ptr) -> bool {
+  QMutexLocker locker(&mutex_);
+  const auto it = allocated_.constFind(ptr);
+  return it != allocated_.cend() && it->guarded;
+}
+
 auto SecureMemoryAllocator::take_info(void* ptr)
     -> std::optional<AllocationInfo> {
   if (ptr == nullptr) return {};
@@ -197,7 +222,8 @@ auto SecureMemoryAllocator::Reallocate(void* ptr, size_t size) -> void* {
   // copy it into a new block and hand the old one back to the heap intact.
   auto info = take_info_if_tracked(ptr);
   if (!info) {
-    if (secure_level_ < 1) return std::realloc(ptr, size);
+    // A plain block from before the level rose stays plain.
+    if (may_be_untracked()) return std::realloc(ptr, size);
 
     report_invalid_free(ptr);
     return nullptr;
@@ -238,7 +264,7 @@ void SecureMemoryAllocator::Deallocate(void* ptr) {
   // SMAFree must still be wiped, and must still leave the registry.
   auto info = take_info_if_tracked(ptr);
   if (!info) {
-    if (secure_level_ < 1) {
+    if (may_be_untracked()) {
       std::free(ptr);
       return;
     }
@@ -376,6 +402,14 @@ auto SMASecRealloc(void* ptr, size_t size) -> void* {
 
 void SMASecFree(void* ptr) {
   SecureMemoryAllocator::GetInstance()->SecDeallocate(ptr);
+}
+
+void SMASetSecureLevel(int level) {
+  SecureMemoryAllocator::GetInstance()->SetSecureLevel(level);
+}
+
+auto SMASecIsGuarded(void* ptr) -> bool {
+  return SecureMemoryAllocator::GetInstance()->IsGuarded(ptr);
 }
 
 }  // namespace GpgFrontend

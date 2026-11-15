@@ -26,6 +26,7 @@
  *
  */
 
+#include <QScopeGuard>
 #include <array>
 #include <cstring>
 
@@ -33,6 +34,7 @@
 #include "core/function/AESCryptoHelper.h"
 #include "core/function/GFBufferFactory.h"
 #include "core/function/PassphraseGenerator.h"
+#include "core/function/SecureMemoryAllocator.h"
 #include "core/function/SecureRandomGenerator.h"
 #include "core/utils/MemoryUtils.h"
 
@@ -181,6 +183,52 @@ TEST(SecureMemoryAllocatorTest, SecureMemoryCanBeReleasedThroughSMAFree) {
   ASSERT_NE(ptr, nullptr);
 
   SMAFree(ptr);
+}
+
+// The level is known only once a profile is mounted, and mounting already
+// allocates: the allocator takes the level up later, and what it made before
+// is still released the way it was made.
+TEST(SecureMemoryAllocatorTest, TheSecureLevelIsTakenUpLater) {
+  const auto applied = qApp->property("GFSecureLevel").toInt();
+  const auto restore = qScopeGuard([applied]() { SMASetSecureLevel(applied); });
+
+  SMASetSecureLevel(2);
+  void* guarded = SMASecMalloc(64);
+  ASSERT_NE(guarded, nullptr);
+  EXPECT_TRUE(SMASecIsGuarded(guarded));
+
+  SMASetSecureLevel(0);
+  void* plain = SMASecMalloc(64);
+  ASSERT_NE(plain, nullptr);
+  EXPECT_FALSE(SMASecIsGuarded(plain));
+
+  // Released as made: the guarded one through sodium_free though the level
+  // is 0 now, the plain one wiped and freed though it is 2 again.
+  SMASecFree(guarded);
+  SMASetSecureLevel(2);
+  SMASecFree(plain);
+}
+
+TEST(SecureMemoryAllocatorTest, APlainBlockFromBeforeARiseIsStillReleased) {
+  const auto applied = qApp->property("GFSecureLevel").toInt();
+  const auto restore = qScopeGuard([applied]() { SMASetSecureLevel(applied); });
+
+  SMASetSecureLevel(0);
+  void* before = SMAMalloc(32);
+  ASSERT_NE(before, nullptr);
+  std::memset(before, 0x5A, 32);
+
+  // Untracked when made; neither a realloc nor a free of it after the level
+  // rose is taken for a foreign pointer.
+  SMASetSecureLevel(1);
+  before = SMARealloc(before, 64);
+  ASSERT_NE(before, nullptr);
+  EXPECT_EQ(static_cast<unsigned char*>(before)[31], 0x5A);
+  SMAFree(before);
+
+  void* after = SMAMalloc(16);
+  ASSERT_NE(after, nullptr);
+  SMAFree(after);
 }
 
 TEST(SecureMemoryAllocatorTest, ParallelAllocAndFree) {
