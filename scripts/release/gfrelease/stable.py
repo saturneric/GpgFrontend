@@ -49,7 +49,6 @@ built it, and the stage checks that before the upload.
 
 from __future__ import annotations
 
-import json
 import shutil
 import tempfile
 from pathlib import Path
@@ -136,8 +135,7 @@ class Stage:
         # Whole or not at all, and on disk before the next step starts: a
         # machine that loses power mid-release resumes, it never signs
         # again what it already sent.
-        atomic_write(self.state_path,
-                     json.dumps(self.state, indent=1, sort_keys=True))
+        atomic_write(self.state_path, canonical_json(self.state))
 
     def run(self, redo: str | None = None, *, until: str | None = None,
             on_step=None) -> dict | None:
