@@ -15,6 +15,7 @@ agent play no part.
 from __future__ import annotations
 
 import os
+import shutil
 import tempfile
 from pathlib import Path
 
@@ -177,10 +178,12 @@ class Keyring:
         """A signed annotated tag, by a pinned maintainer key."""
         # gpg itself, and nothing the user's or the system's git config says
         # (a minimum trust level, another program): the pinning below
-        # decides.
+        # decides. The gpg this tooling runs everywhere else, by its path:
+        # Git for Windows would find the one it ships first, which cannot
+        # read this home.
         env = dict(os.environ, GNUPGHOME=self.home,
                    GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_NOSYSTEM="1")
-        out = run(["git", "-c", "gpg.program=gpg",
+        out = run(["git", "-c", f"gpg.program={shutil.which('gpg') or 'gpg'}",
                    "-c", "gpg.minTrustLevel=undefined", "-C", git_dir,
                    "verify-tag", "--raw", tag], env=env, check=False)
         # git also refuses what gpg judged acceptable here (a tag a key made

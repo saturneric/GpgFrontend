@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import contextlib
 import datetime as dt
-import fcntl
 import hashlib
 import json
 import os
@@ -14,6 +13,14 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+
+# The maintainer's stage also runs on Windows, where the Authenticode token's
+# own software is; the signing host and CI are Linux.
+WINDOWS = os.name == "nt"
+if WINDOWS:
+    import msvcrt
+else:
+    import fcntl
 
 HERE = Path(__file__).resolve().parent
 RELEASE_DIR = HERE.parent
@@ -404,14 +411,23 @@ def locked(state_dir: Path, shared: bool = False):
 
     The lock is this host's only. The maintainer's `stable` and `import`
     and CI's `stage` write the stores from other machines, each under paths
-    of its own (releases/<version>/, branches/, tags/)."""
+    of its own (releases/<version>/, branches/, tags/).
+
+    Windows has no shared lock on a byte range through msvcrt: a reader
+    there is refused like a second writer, rather than made to wait."""
     state_dir = Path(state_dir)
     state_dir.mkdir(parents=True, exist_ok=True)
     with open(state_dir / "lock", "a") as f:
         try:
-            fcntl.flock(f, fcntl.LOCK_SH if shared
-                        else fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError:
+            if WINDOWS:
+                # A range is locked from the file's position: always byte 0,
+                # which need not exist. Released when the file closes.
+                f.seek(0)
+                msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
+            else:
+                fcntl.flock(f, fcntl.LOCK_SH if shared
+                            else fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except (BlockingIOError, PermissionError):
             raise ReleaseError(f"another run holds {state_dir / 'lock'}")
         yield
 

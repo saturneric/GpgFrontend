@@ -8,3 +8,6 @@ VERSION export-subst
 release/root/** -text
 release/index-keys/** -text
 scripts/tests/fixtures/trust/** -text
+
+# cmd.exe reads its scripts with CRLF line ends, wherever they were checked out.
+*.cmd text eol=crlf

@@ -78,7 +78,7 @@ def _packages() -> dict[str, str]:
     found = {}
     try:
         text = (Path(__file__).resolve().parent.parent /
-                "tools.txt").read_text()
+                "tools.txt").read_text("utf-8")
     except OSError:
         return found
     for line in text.splitlines():
@@ -88,8 +88,28 @@ def _packages() -> dict[str, str]:
     return found
 
 
+# The same tools on Windows, where the maintainer's stage also runs: what
+# winget calls them.
+WINGET = {"git": "Git.Git", "gpg": "GnuPG.Gpg4win", "gpgconf": "GnuPG.Gpg4win",
+          "rclone": "Rclone.Rclone", "cosign": "Sigstore.Cosign",
+          "cmake": "Kitware.CMake", "minisign": "jedisct1.minisign"}
+
+
 def install_hint(command: str) -> str:
     name = Path(command).name
+    if os.name == "nt":
+        if name.lower().endswith(".exe"):
+            name = name[:-4]
+        if name == "signtool":
+            return ("install the Windows SDK's signing tools, or point "
+                    "--signtool at signtool.exe")
+        if name == "cosign":
+            # winget installs it under the name of its release file.
+            return ("install cosign: winget install Sigstore.Cosign, and "
+                    "set cosign = \"cosign-windows-amd64\" in gfrelease.toml")
+        package = WINGET.get(name)
+        return f"install it: winget install {package}" if package else \
+            f"install {name}, or point gfrelease at it"
     if name == "cosign":
         return ("install cosign: https://docs.sigstore.dev/cosign/"
                 "system_config/installation/")
@@ -108,7 +128,8 @@ HINTS: list[tuple[re.Pattern, object]] = [
      "what is (RCLONE_CONFIG names the file)"),
     (re.compile(r"another run holds (\S+)"),
      lambda m: "another gfrelease command of this host is running; wait "
-               f"for it (`fuser {m.group(1)}` shows which)"),
+               "for it" + ("" if os.name == "nt" else
+                           f" (`fuser {m.group(1)}` shows which)")),
     (re.compile(r"No secret key|secret key not available|"
                 r"is not a current pinned maintainer", re.I),
      "check `gpg --list-secret-keys` (and --gnupghome): the key must be a "
