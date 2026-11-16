@@ -17,17 +17,24 @@ only through this, run by hand:
                twice; the time stamps are the one network call      (TSA)
   pgp          a detached .sig for every final file, a final SHA256SUMS.txt
                and its .sig, and the release notes the tag carries, signed
-  upload       everything to releases/<version>/ and notes/, the descriptor
-               last                                                 (network)
+  upload       everything to the staging store, under signed/ as it is to
+               lie in the builds store (releases/<version>/ and notes/),
+               the descriptor last                                  (network)
 
-After the release, `--notes-only` signs and uploads main's copy of the notes
-(a typo fixed there); the host then publishes it in place of the old one.
+That is where this machine's part ends, and all it may write: the signing
+host receives what was handed over (promote.py), checks every signature
+again as it does for the index, and only then copies it to the builds
+store, which it alone writes.
+
+After the release, `--notes-only` signs and hands over main's copy of the
+notes (a typo fixed there); the host then publishes it in place of the old
+one.
 
 Each step records itself in <work>/<version>/state.json and is skipped once
 done, so a run interrupted anywhere (a token unplugged, a connection lost)
 resumes where it stopped; `--redo STEP` runs that step and every one after it
 again (a signing step only until the upload has begun). The signing host
-then checks every signature again on its next round and lists it: the
+receives it on its next round, checks every signature again and lists it: the
 application relies on the signed index, which names the descriptor by its
 hash, and the descriptor every file's; the `.sig` files are for checking by
 hand.
@@ -63,7 +70,7 @@ STEPS = ("fetch", "verify", "authenticode", "pgp", "upload")
 
 class Stage:
     def __init__(self, product: Product, version: str, work: Path, *,
-                 staging: Store | None = None, builds: Store | None = None,
+                 staging: Store | None = None,
                  git_dir: Path | None = None, cosign: str = "cosign",
                  key: str | None = None, gnupghome: str | None = None,
                  signer: authenticode.Signer | None = None,
@@ -76,7 +83,9 @@ class Stage:
         self.version = str(v)
         self.tag = refs.release_tag(self.version)
         self.dir = Path(work) / self.version
-        self.staging, self.builds = staging, builds
+        self.staging = staging
+        # Where everything signed here is handed to the host.
+        self.outbox = staging.sub(layout.SIGNED) if staging else None
         self.git_dir, self.cosign = git_dir, cosign
         self.requested_key = (key or "").upper()
         self.gnupghome = gnupghome
@@ -186,17 +195,18 @@ class Stage:
         return local
 
     def publish_notes(self, ref: str = "refs/heads/main") -> str:
-        """Signs and uploads the notes @p ref has for this release; returns
-        their hash. Content-addressed, so the old notes stay where they are
-        and nothing published is ever replaced."""
-        self._need("key", "git_dir", "builds")
+        """Signs and hands over the notes @p ref has for this release;
+        returns their hash. Content-addressed, so the old notes stay where
+        they are and nothing published is ever replaced."""
+        self._need("key", "git_dir", "staging")
         data, digest = self._notes(ref)
         remote = layout.notes_path(self.version, digest)
-        # Signed and uploaded already (the tag's notes, unchanged on main):
-        # nothing to do. Signing again would only make a .sig of other
-        # bytes, which can never replace the published one.
-        if self.builds.exists(remote) and self.builds.exists(remote + SIG) \
-                and self.builds.sha256(remote) == digest:
+        # Signed and handed over already (the tag's notes, unchanged on
+        # main, still waiting for the host): nothing to do. Once the host
+        # has them, another .sig of the same notes is one it leaves aside:
+        # the published one is never replaced.
+        if self.outbox.exists(remote) and self.outbox.exists(remote + SIG) \
+                and self.outbox.sha256(remote) == digest:
             return digest
         # New notes are signed by a current maintainer, whoever signed the
         # release itself.
@@ -208,7 +218,7 @@ class Stage:
         with openpgp.Keyring.of(self.product) as ring:
             ring.verify(local, local.with_name(local.name + SIG))
         for suffix in ("", SIG):
-            self.builds.put_file(local.with_name(local.name + suffix),
+            self.outbox.put_file(local.with_name(local.name + suffix),
                                  remote + suffix)
         return digest
 
@@ -372,7 +382,7 @@ class Stage:
                         notes_dir / f"{digest}.md{SIG}")
 
     def _upload(self) -> None:
-        self._need("builds")
+        self._need("staging")
         files, p = self.state["build"]["files"], self.prefix
         # Fixed before anything is sent: a resumed upload makes the same
         # descriptor, byte for byte, as the one it may already have sent.
@@ -382,8 +392,8 @@ class Stage:
         artifacts = []
         for name in sorted(files):
             info = files[name]
-            self.builds.put_file(self.final_dir / name, f"{p}/{name}")
-            self.builds.put_file(self.final_dir / (name + SIG),
+            self.outbox.put_file(self.final_dir / name, f"{p}/{name}")
+            self.outbox.put_file(self.final_dir / (name + SIG),
                                  f"{p}/{name}{SIG}")
             artifacts.append({
                 k: info[k] for k in ("os", "arch", "kind", "flavor", "min_os",
@@ -391,16 +401,16 @@ class Stage:
                 if k in info} | {
                 "name": name, "size": (self.final_dir / name).stat().st_size,
                 "path": f"{p}/{name}", "sig": f"{p}/{name}{SIG}"})
-        self.builds.put_file(self.final_dir / SUMS, f"{p}/{SUMS}")
-        self.builds.put_file(self.final_dir / (SUMS + SIG),
+        self.outbox.put_file(self.final_dir / SUMS, f"{p}/{SUMS}")
+        self.outbox.put_file(self.final_dir / (SUMS + SIG),
                              f"{p}/{SUMS}{SIG}")
         build = self.dir / "build"
-        self.builds.put_file(build / SUMS, f"{p}/build/{SUMS}")
-        self.builds.put_file(build / BUNDLE, f"{p}/build/{BUNDLE}")
+        self.outbox.put_file(build / SUMS, f"{p}/build/{SUMS}")
+        self.outbox.put_file(build / BUNDLE, f"{p}/build/{BUNDLE}")
 
         digest = self.state["notes_sha256"]
         for suffix in ("", SIG):
-            self.builds.put_file(self.dir / "notes" / f"{digest}.md{suffix}",
+            self.outbox.put_file(self.dir / "notes" / f"{digest}.md{suffix}",
                                  layout.notes_path(self.version, digest)
                                  + suffix)
 
@@ -420,6 +430,6 @@ class Stage:
             "artifacts": artifacts,
         }
         # Last: a descriptor only ever names objects that are already there.
-        self.builds.put_bytes(canonical_json(descriptor),
+        self.outbox.put_bytes(canonical_json(descriptor),
                               layout.descriptor_of(p))
         self.state["descriptor"] = descriptor

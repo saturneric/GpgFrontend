@@ -12,11 +12,13 @@ an imported release rests on, and nothing is signed again:
   2. each signature checked against the pinned maintainer keys, and kept
      exactly as it is;
   3. the tag resolved in a clone, and git asked which version it is;
-  4. everything uploaded to releases/<version>/, the descriptor last.
+  4. everything handed to the signing host: uploaded to the staging
+     store, under signed/releases/<version>/, the descriptor last.
 
-The signing host admits an imported release by checking every file against
-its `.sig` itself (index.admit_imported), once. Nothing here needs a secret
-key: it runs wherever the token for the artifact store is. Releases before
+The signing host receives an imported release (promote.py) and admits it by
+checking every file against its `.sig` itself (index.admit_imported).
+Nothing here needs a secret key: it runs wherever a token that writes the
+staging store is. Releases before
 policy `signing.legacy_unsigned_before` were signed with keys no longer
 pinned and are not imported.
 """
@@ -86,7 +88,7 @@ class GitHubSource:
 
 class Import:
     def __init__(self, product: Product, version: str, work: Path, *,
-                 builds: Store | None, git_dir: Path,
+                 staging: Store | None, git_dir: Path,
                  source: GitHubSource | None = None):
         v = parse_version(version)
         if not v.is_release:
@@ -100,7 +102,9 @@ class Import:
         self.tag = refs.release_tag(self.version)
         self.dir = Path(work) / self.version
         self.dir.mkdir(parents=True, exist_ok=True)
-        self.builds, self.git_dir = builds, git_dir
+        # Where it is handed to the host; None only downloads and checks.
+        self.outbox = staging.sub(layout.SIGNED) if staging else None
+        self.git_dir = git_dir
         self.source = source or GitHubSource(product.repository)
         self.skipped: list[str] = []
 
@@ -173,9 +177,9 @@ class Import:
         p = self.prefix
         for name in sorted(files):
             info = files[name]
-            if self.builds is not None:
-                self.builds.put_file(self.dir / name, f"{p}/{name}")
-                self.builds.put_file(self.dir / (name + SIG),
+            if self.outbox is not None:
+                self.outbox.put_file(self.dir / name, f"{p}/{name}")
+                self.outbox.put_file(self.dir / (name + SIG),
                                      f"{p}/{name}{SIG}")
             artifacts.append({
                 k: info[k] for k in ("os", "arch", "kind", "flavor", "min_os",
@@ -202,14 +206,14 @@ class Import:
         local = self.dir / DESCRIPTOR
         previous = None
         remote = layout.descriptor_of(p)
-        if self.builds is not None and self.builds.exists(remote):
-            previous = load_json(self.builds.read(remote), remote)
+        if self.outbox is not None and self.outbox.exists(remote):
+            previous = load_json(self.outbox.read(remote), remote)
         elif local.is_file():
             previous = load_json(local.read_bytes(), str(local))
         if previous and previous.get("imported_at"):
             descriptor["imported_at"] = previous["imported_at"]
         atomic_write(local, canonical_json(descriptor))
-        if self.builds is not None:
+        if self.outbox is not None:
             # Last: a descriptor only ever names objects already there.
-            self.builds.put_bytes(canonical_json(descriptor), remote)
+            self.outbox.put_bytes(canonical_json(descriptor), remote)
         return descriptor

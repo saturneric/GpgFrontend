@@ -1,7 +1,10 @@
 # Copyright (C) 2021-2026 Saturneric <eric@bktus.com>
 # SPDX-License-Identifier: GPL-3.0-or-later
 """The signing host's two steps, each a command: promote, and index
-(resign is index --force).
+(resign is index --force). promote is everything that brings something
+from the staging store to the builds store, which only the host writes:
+the branch builds CI staged, and the releases and notes a maintainer
+handed over.
 
 Which step runs when, in what order, how often, and what is done about
 the stores besides (pruning, mirroring) is for whoever runs the host: the
@@ -18,9 +21,11 @@ promotion failed. Each step ends in one of three ways, its exit status:
            be made). Worth running again as it is.
 
 What it prints on stdout is read by that caller too: "promoted <version>
-(<n> files)" for each build promoted, and "index unchanged" or a line
+(<n> files)" for each build promoted, "received <version> (<n> files)" for
+each release a maintainer handed over, and "index unchanged" or a line
 starting "published serial"; with --json, one document saying the same
-(promoted, published, unchanged, problems, status). Every problem goes to
+(promoted, received, published, unchanged, problems, status). Every
+problem goes to
 stderr, each line starting "error:", the first naming the first one.
 """
 
@@ -79,8 +84,8 @@ class Host:
         and every problem on stderr. Returns DONE, PARTIAL or FAILED."""
         problems: list[str] = []
         status = DONE
-        self.report = {"promoted": [], "published": None, "unchanged": None,
-                       "problems": problems}
+        self.report = {"promoted": [], "received": [], "published": None,
+                       "unchanged": None, "problems": problems}
 
         def problem(text: str, again: bool) -> None:
             """@p again: running again as things are may help."""
@@ -117,6 +122,23 @@ class Host:
             self.report["promoted"].append(
                 {"version": d["version"], "files": len(d["artifacts"])})
             print(f"promoted {d['version']} ({len(d['artifacts'])} files)")
+        # Whatever became of the branch builds: what a maintainer handed
+        # over is received all the same.
+        try:
+            done = promote_mod.receive(
+                self.product, self.staging, self.builds,
+                git_dir=self.git_dir, state_dir=self.state_dir,
+                cosign=self.cosign, authenticode_ca=self.authenticode_ca)
+        except promote_mod.ReceiveIncomplete as e:
+            done = e.done
+            problem(str(e), e.passing)
+        except (ReleaseError, OSError) as e:
+            done = []
+            problem(f"receive: {e}", True)
+        for d in done:
+            self.report["received"].append(
+                {"version": d["version"], "files": len(d["artifacts"])})
+            print(f"received {d['version']} ({len(d['artifacts'])} files)")
 
     def _index(self, force: bool, problem) -> None:
         try:

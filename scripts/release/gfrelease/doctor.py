@@ -45,7 +45,9 @@ WINDOWS_TOOLS = {
                    "minisign", "signtool"),
 }
 STORES = {
-    "maintainer": ("staging", "builds"),
+    # All a maintainer's machine reads and writes: the host alone writes
+    # the builds store.
+    "maintainer": ("staging",),
     "ci": ("staging",),
     "host": ("staging", "builds", "update"),
 }
