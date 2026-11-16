@@ -128,11 +128,12 @@ class Doctor:
                        "(gfrelease trust root verify)")
             return
         for doc, what, soon, renew in (
-                (root, f"root {root['version']}", 60, "trust root new"),
-                (keys, f"index-keys {keys['version']}", 30,
-                 "trust keys renew")):
+                (root, f"root {root['version']}", trust.ROOT_WARN_DAYS,
+                 "trust root new"),
+                (keys, f"index-keys {keys['version']}",
+                 trust.INDEX_KEYS_WARN_DAYS, "trust keys renew")):
             left = trust.days_left(doc)
-            self.check(what, left > soon,
+            self.check(what, left >= soon,
                        f"expires {doc['expires']}, in {left:.0f} days",
                        f"renew it: gfrelease {renew}")
 

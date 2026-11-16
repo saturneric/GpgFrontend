@@ -108,37 +108,29 @@ class Host:
         return status
 
     def _promote(self, problem) -> None:
-        try:
-            done = promote_mod.promote(
-                self.product, self.staging, self.builds,
-                git_dir=self.git_dir, cosign=self.cosign)
-        except promote_mod.PromoteIncomplete as e:
-            done = e.done
-            problem(str(e), e.passing)
-        except (ReleaseError, OSError) as e:
-            done = []
-            problem(f"promote: {e}", True)
-        for d in done:
-            self.report["promoted"].append(
-                {"version": d["version"], "files": len(d["artifacts"])})
-            print(f"promoted {d['version']} ({len(d['artifacts'])} files)")
-        # Whatever became of the branch builds: what a maintainer handed
-        # over is received all the same.
-        try:
-            done = promote_mod.receive(
-                self.product, self.staging, self.builds,
-                git_dir=self.git_dir, state_dir=self.state_dir,
-                cosign=self.cosign, authenticode_ca=self.authenticode_ca)
-        except promote_mod.ReceiveIncomplete as e:
-            done = e.done
-            problem(str(e), e.passing)
-        except (ReleaseError, OSError) as e:
-            done = []
-            problem(f"receive: {e}", True)
-        for d in done:
-            self.report["received"].append(
-                {"version": d["version"], "files": len(d["artifacts"])})
-            print(f"received {d['version']} ({len(d['artifacts'])} files)")
+        # The branch builds, then what a maintainer handed over: received
+        # whatever became of the builds.
+        for name, what, step in (
+                ("promote", "promoted", lambda: promote_mod.promote(
+                    self.product, self.staging, self.builds,
+                    git_dir=self.git_dir, cosign=self.cosign)),
+                ("receive", "received", lambda: promote_mod.receive(
+                    self.product, self.staging, self.builds,
+                    git_dir=self.git_dir, state_dir=self.state_dir,
+                    cosign=self.cosign,
+                    authenticode_ca=self.authenticode_ca))):
+            try:
+                done = step()
+            except promote_mod.PromoteIncomplete as e:  # ReceiveIncomplete too
+                done = e.done
+                problem(str(e), e.passing)
+            except (ReleaseError, OSError) as e:
+                done = []
+                problem(f"{name}: {e}", True)
+            for d in done:
+                self.report[what].append(
+                    {"version": d["version"], "files": len(d["artifacts"])})
+                print(f"{what} {d['version']} ({len(d['artifacts'])} files)")
 
     def _index(self, force: bool, problem) -> None:
         try:

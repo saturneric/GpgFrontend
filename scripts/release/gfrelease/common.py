@@ -265,6 +265,27 @@ def run(cmd, **kw) -> subprocess.CompletedProcess:
         raise ToolFailed(f"{cmd[0]} cannot be run: {e}") from e
 
 
+def run_with_secret(cmd: list, secret: bytes,
+                    **kw) -> subprocess.CompletedProcess:
+    """run() of @p cmd, where an item "{secret}" is the path of a pipe
+    holding @p secret: never on a command line or on disk, and a key given
+    as <(...) (read once) works. Not on Windows, which has no such path."""
+    if WINDOWS:
+        raise ReleaseError(f"{Path(str(cmd[0])).name} takes a secret through "
+                           "a pipe Windows cannot name")
+    r, w = os.pipe()
+    try:
+        os.write(w, secret)  # a key or a PIN: never fills the pipe
+        os.close(w)
+        w = -1
+        return run([f"/dev/fd/{r}" if c == "{secret}" else c for c in cmd],
+                   pass_fds=(r,), **kw)
+    finally:
+        os.close(r)
+        if w >= 0:
+            os.close(w)
+
+
 class Product:
     """release/product.json, the policy of the tree it sits in, and the
     trust it is published under: the root and the index-keys list

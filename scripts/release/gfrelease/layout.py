@@ -53,7 +53,7 @@ these (test_what_the_signing_host_reads_is_held).
 
 from __future__ import annotations
 
-from common import DESCRIPTOR, parse_version
+from common import BUNDLE, DESCRIPTOR, SUMS, parse_version
 
 BRANCHES = "branches"
 TAGS = "tags"
@@ -90,6 +90,16 @@ def release_dir(version: str) -> str:
 
 def descriptor_of(directory: str) -> str:
     return f"{directory}/{DESCRIPTOR}"
+
+
+def build_sums(directory: str) -> str:
+    """CI's signed manifest of a release or build in @p directory."""
+    return f"{directory}/build/{SUMS}"
+
+
+def build_bundle(directory: str) -> str:
+    """Its Sigstore bundle."""
+    return f"{directory}/build/{BUNDLE}"
 
 
 def notes_path(version: str, digest: str) -> str:
