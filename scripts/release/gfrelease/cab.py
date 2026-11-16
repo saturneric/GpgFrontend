@@ -55,7 +55,16 @@ def _block_sum(packed: bytes, uncompressed: int) -> int:
 
 
 def read(raw: bytes, where: str = "cabinet") -> list[Entry]:
-    """Every file in @p raw, in the order the cabinet lists them."""
+    """Every file in @p raw, in the order the cabinet lists them. One that
+    is cut short or malformed anywhere is a ReleaseError, never another
+    exception: what is read comes from a package others may have made."""
+    try:
+        return _read(raw, where)
+    except (struct.error, ValueError, IndexError, UnicodeDecodeError) as e:
+        raise ReleaseError(f"{where}: cut short or malformed ({e})") from e
+
+
+def _read(raw: bytes, where: str) -> list[Entry]:
     def bad(why: str) -> ReleaseError:
         return ReleaseError(f"{where}: {why}")
 
@@ -106,9 +115,14 @@ def read(raw: bytes, where: str = "cabinet") -> list[Entry]:
                     raise bad(f"folder {i} block {b} is not MSZIP")
                 # Each block is one deflate stream; its window may reach
                 # back into the blocks before it.
+                # Never more than a block holds: a block that would unpack
+                # past it is refused before it is held in memory.
                 d = zlib.decompressobj(-15, zdict=bytes(out[-BLOCK:]))
                 try:
-                    plain = d.decompress(packed[2:]) + d.flush()
+                    plain = d.decompress(packed[2:], BLOCK)
+                    if d.unconsumed_tail or not d.eof:
+                        raise bad(f"folder {i} block {b} unpacks to more "
+                                  f"than {BLOCK} bytes, or not at all")
                 except zlib.error as e:
                     raise bad(f"folder {i} block {b}: {e}") from e
             if len(plain) != plain_len:

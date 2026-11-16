@@ -631,7 +631,10 @@ def certificate_subject(der: bytes) -> list[tuple[str, str]]:
     rdns = []
     for _, rdn in _elements(fields[4][1]):
         for _, pair in _elements(rdn):
-            (_, oid), (kind, value) = _elements(pair)[:2]
+            parts = _elements(pair)
+            if len(parts) != 2:
+                raise ReleaseError("a certificate that is not DER")
+            (_, oid), (kind, value) = parts
             name = _oid(oid)
             try:
                 text = value.decode(_STRINGS[kind])
