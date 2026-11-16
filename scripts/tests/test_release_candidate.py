@@ -160,15 +160,20 @@ class TreeCase(unittest.TestCase):
 
 class ChainTest(TreeCase):
 
-    def test_whole_chain_publishes_exactly_n_plus_three(self):
+    def test_whole_chain_publishes_exactly_n_plus_two(self):
         self.tree.signed_candidate()
         published = [p.name for p in self.tree.verify()]
 
         deliverables = sorted(n for f in DEFAULT_LEGS.values() for n in f)
-        self.assertEqual(
-            published,
-            sorted(deliverables + [rc.RECORDS]) + [rc.MANIFEST, rc.BUNDLE])
-        self.assertEqual(len(published), len(deliverables) + 3)
+        self.assertEqual(published, deliverables + [rc.MANIFEST, rc.BUNDLE])
+
+    def test_nothing_about_the_builds_is_published(self):
+        self.tree.signed_candidate()
+        self.assertNotIn("build-records.json",
+                         {p.name for p in self.tree.candidate.iterdir()})
+        self.assertNotIn(
+            "build-records.json",
+            (self.tree.candidate / rc.MANIFEST).read_text())
 
     def test_manifest_is_sha256sum_compatible(self):
         self.tree.signed_candidate()
@@ -284,11 +289,6 @@ class BytesTest(TreeCase):
         path.write_bytes(bytes(data))
         self.assertRejected(self.tree.verify, "sha256 does not match")
 
-    def test_modified_records(self):
-        path = self.c / rc.RECORDS
-        path.write_text(path.read_text().replace("2.2.0", "9.9.9"))
-        self.assertRejected(self.tree.verify, "sha256 does not match")
-
     def _edit_manifest(self, edit):
         path = self.c / rc.MANIFEST
         path.write_bytes(edit(path.read_bytes()))
@@ -342,10 +342,6 @@ class SetTest(TreeCase):
     def test_extra_build_info_never_published(self):
         (self.c / "build-info.json").write_text("{}")
         self.assertRejected(self.tree.verify, r"unlisted \['build-info.json'\]")
-
-    def test_missing_records(self):
-        (self.c / rc.RECORDS).unlink()
-        self.assertRejected(self.tree.verify, r"missing \['build-records.json'\]")
 
     def test_missing_bundle(self):
         (self.c / rc.BUNDLE).unlink()
@@ -416,21 +412,22 @@ class NamesTest(TreeCase):
 
     def test_refused_input_writes_nothing(self):
         self.tree.add_leg("a", {"GpgFrontend-a": b"x"})
-        self.tree.add_leg("b", {"build-records.json": b"x"})
+        self.tree.add_leg("b", {"build-info.json": b"x"})
         self.assertRejected(self.tree.stage, "reserved")
         self.assertFalse(self.tree.candidate.exists())
 
     def test_manifest_parser(self):
         good = "a" * 64
+        a = "GpgFrontend-a"
         cases = {
-            "duplicate": f"{good}  {rc.RECORDS}\n{good}  {rc.RECORDS}\n",
-            "malformed line": f"{good} {rc.RECORDS}\n",
-            "carriage return": f"{good}  {rc.RECORDS}\r\n",
-            "trailing newline": f"{good}  {rc.RECORDS}",
-            "unsafe name": f"{good}  {rc.RECORDS}\n{good}  ../x\n",
-            "lists 'SHA256SUMS.txt'": f"{good}  {rc.RECORDS}\n{good}  SHA256SUMS.txt\n",
-            "does not cover": f"{good}  GpgFrontend-a\n",
-            "malformed line ": f"{good.upper()}  {rc.RECORDS}\n",
+            "duplicate": f"{good}  {a}\n{good}  {a}\n",
+            "malformed line": f"{good} {a}\n",
+            "carriage return": f"{good}  {a}\r\n",
+            "trailing newline": f"{good}  {a}",
+            "unsafe name": f"{good}  {a}\n{good}  ../x\n",
+            "lists 'SHA256SUMS.txt'": f"{good}  {a}\n{good}  SHA256SUMS.txt\n",
+            "lists 'build-info.json'": f"{good}  build-info.json\n",
+            "malformed line ": f"{good.upper()}  {a}\n",
         }
         for why, text in cases.items():
             with self.subTest(why=why):
@@ -438,10 +435,10 @@ class NamesTest(TreeCase):
                                     re.escape(why.strip()))
 
 
-# ----------------------------------------------------------- legs, records
+# -------------------------------------------------------------------- legs
 
 
-class RecordsTest(TreeCase):
+class LegsTest(TreeCase):
 
     def test_deliverable_without_build_info(self):
         self.tree.add_leg("a", {"GpgFrontend-a": b"x"}, info=False)
@@ -487,77 +484,6 @@ class RecordsTest(TreeCase):
         self.tree.add_leg("a", {"GpgFrontend-a": b"x"}, info=info)
         self.assertRejected(self.tree.stage, r"missing \['build_id'\]")
 
-    def test_duplicate_legs_in_aggregate(self):
-        r = rc.make_record("a", build_info(), ["GpgFrontend-a"])
-        self.assertRejected(lambda: rc.build_aggregate([r, dict(r)]),
-                            "duplicate build records")
-
-    def test_versions_are_pinned(self):
-        # Changing what a record means is a schema bump, and changing the
-        # container is a format bump. Neither happens by accident.
-        self.tree.signed_candidate()
-        doc = json.loads((self.tree.candidate / rc.RECORDS).read_text())
-        self.assertEqual(doc["format"], "gpgfrontend-build-records")
-        self.assertEqual(doc["format_version"], 1)
-        self.assertEqual({r["schema"] for r in doc["records"]}, {4})
-        for record in doc["records"]:
-            self.assertEqual(
-                set(record), {"schema", "leg", "product", "modules", "artifacts"})
-            self.assertTrue(all(isinstance(n, str) for n in record["artifacts"]))
-
-    def test_records_describe_each_leg(self):
-        self.tree.signed_candidate()
-        doc = json.loads((self.tree.candidate / rc.RECORDS).read_text())
-        self.assertEqual(
-            {r["leg"]: r["artifacts"] for r in doc["records"]},
-            {leg: sorted(files) for leg, files in DEFAULT_LEGS.items()})
-
-    def _resign_records(self, edit):
-        """Tamper with the records AND re-sign, so only check_records stands."""
-        self.tree.signed_candidate()
-        c = self.tree.candidate
-        doc = json.loads((c / rc.RECORDS).read_text())
-        edit(doc)
-        (c / rc.RECORDS).write_text(rc.dump_json(doc))
-        hashes = rc.parse_manifest((c / rc.MANIFEST).read_bytes())
-        hashes[rc.RECORDS] = rc.digest(c / rc.RECORDS)
-        (c / rc.MANIFEST).write_text(rc.render_manifest(hashes))
-        self.tree.sign()
-
-    def test_signed_records_missing_a_name(self):
-        self._resign_records(lambda d: d["records"][0]["artifacts"].pop())
-        self.assertRejected(self.tree.verify, "unrecorded")
-
-    def test_signed_records_name_claimed_twice(self):
-        def edit(d):
-            d["records"][1]["artifacts"].append(d["records"][0]["artifacts"][0])
-        self._resign_records(edit)
-        self.assertRejected(self.tree.verify, "claimed by")
-
-    def test_signed_records_duplicate_leg(self):
-        def edit(d):
-            d["records"].append(dict(d["records"][0], artifacts=[]))
-        self._resign_records(edit)
-        self.assertRejected(self.tree.verify, "duplicate leg")
-
-    def test_signed_records_wrong_schema(self):
-        self._resign_records(lambda d: d["records"][0].update(schema=3))
-        self.assertRejected(self.tree.verify, "record schema")
-
-    def test_signed_records_wrong_format(self):
-        self._resign_records(lambda d: d.update(format_version=2))
-        self.assertRejected(self.tree.verify, "unexpected format")
-
-    def test_signed_records_not_json(self):
-        self.tree.signed_candidate()
-        c = self.tree.candidate
-        (c / rc.RECORDS).write_text("{")
-        hashes = rc.parse_manifest((c / rc.MANIFEST).read_bytes())
-        hashes[rc.RECORDS] = rc.digest(c / rc.RECORDS)
-        (c / rc.MANIFEST).write_text(rc.render_manifest(hashes))
-        self.tree.sign()
-        self.assertRejected(self.tree.verify, "malformed")
-
 
 # ------------------------------------------------------------- determinism
 
@@ -582,20 +508,10 @@ class DeterminismTest(unittest.TestCase):
             rng.shuffle(legs)
             self.assertEqual(self._stage(legs), baseline)
 
-    def test_aggregate_order_does_not_matter(self):
-        records = [rc.make_record(leg, build_info(), list(reversed(sorted(f))))
-                   for leg, f in self.LEGS.items()]
-        baseline = rc.dump_json(rc.build_aggregate(records))
-        rng = random.Random(99)
-        for _ in range(5):
-            rng.shuffle(records)
-            self.assertEqual(rc.dump_json(rc.build_aggregate(records)), baseline)
-
     def test_output_is_lf_only(self):
         out = self._stage(list(self.LEGS))
-        for name in (rc.MANIFEST, rc.RECORDS):
-            self.assertNotIn(b"\r", out[name])
-            self.assertTrue(out[name].endswith(b"\n"))
+        self.assertNotIn(b"\r", out[rc.MANIFEST])
+        self.assertTrue(out[rc.MANIFEST].endswith(b"\n"))
 
 
 # ---------------------------------------------------------------- workflow
@@ -617,9 +533,21 @@ def permissions(job_text):
 
 
 def upload_names(text):
+    """Every upload-artifact name, whole: `${{ matrix.os }}` has spaces in it."""
     return re.findall(
         r"uses: actions/upload-artifact@\S+.*\n\s+with:\n(?:\s+#.*\n)*"
-        r"\s+name: (\S+)", text)
+        r"\s+name: (.+?)\s*$", text, re.M)
+
+
+def called_workflows(text):
+    """The text of every local reusable workflow `text` calls.
+
+    A deliverable a called workflow uploads (sign-apple.yml's dmg) belongs to
+    this run as much as one uploaded here.
+    """
+    paths = sorted(set(re.findall(r"^\s+uses: \./(\.github/workflows/\S+\.yml)\s*$",
+                                  text, re.M)))
+    return [(SCRIPTS.parent / p).read_text(encoding="utf-8") for p in paths]
 
 
 def normalize(expr):
@@ -632,6 +560,9 @@ class WorkflowTest(unittest.TestCase):
     def setUpClass(cls):
         cls.text = WORKFLOW.read_text(encoding="utf-8")
         cls.jobs = jobs(cls.text)
+        cls.called = called_workflows(cls.text)
+        # Everything a run of this workflow can upload.
+        cls.run_text = "\n".join([cls.text, *cls.called])
 
     def code(self, job):
         """A job's text without comments, so prose cannot satisfy a check."""
@@ -653,7 +584,8 @@ class WorkflowTest(unittest.TestCase):
     def test_provenance_signs_after_every_platform_check(self):
         needs = re.search(r"^    needs: \[(.*)\]", self.jobs["provenance"], re.M)
         self.assertEqual({n.strip() for n in needs.group(1).split(",")},
-                         {"build", "sign-macos", "macos-smoke"})
+                         {"build-linux", "build-windows", "sign-macos",
+                          "macos-smoke", "sign-android"})
 
     def test_release_depends_only_on_the_candidate(self):
         self.assertRegex(self.jobs["release"], r"(?m)^    needs: \[provenance\]$")
@@ -665,7 +597,7 @@ class WorkflowTest(unittest.TestCase):
                       self.code("provenance"))
 
     def test_candidate_uploaded_once_never_overwritten(self):
-        self.assertEqual(upload_names(self.text).count("release-candidate"), 1)
+        self.assertEqual(upload_names(self.run_text).count("release-candidate"), 1)
         self.assertNotRegex(self.code("provenance"), r"overwrite:\s*true")
         self.assertNotIn("upload-artifact", self.code("release"))
 
@@ -690,7 +622,7 @@ class WorkflowTest(unittest.TestCase):
                         release.index("gh release delete"))
 
     def test_every_deliverable_has_build_info_with_the_same_key(self):
-        names = [normalize(n) for n in upload_names(self.text)]
+        names = [normalize(n) for n in upload_names(self.run_text)]
         deliverables = {n[len("gpgfrontend-"):] for n in names
                         if n.startswith("gpgfrontend-")}
         infos = {n[len("buildinfo-"):] for n in names
@@ -701,9 +633,22 @@ class WorkflowTest(unittest.TestCase):
     def test_no_upload_collides_with_release_patterns(self):
         # provenance downloads gpgfrontend-* and buildinfo-*. Any other upload
         # in those namespaces would be pulled into the release.
-        for name in upload_names(self.text):
+        for name in upload_names(self.run_text):
             if name.startswith(("gpgfrontend-", "buildinfo-")):
                 self.assertIn("${{", name)
+
+
+    def test_signing_secrets_never_inherited(self):
+        # sign-apple.yml reads its secrets from its own environment. Handing
+        # it the caller's would put every repository secret within reach of
+        # the job that signs.
+        self.assertTrue(self.called)
+        self.assertNotRegex(self.text, r"(?m)^\s+secrets:\s*inherit")
+
+    def test_build_info_names_are_whole(self):
+        # The pairing above is only a check if it sees whole names.
+        for name in upload_names(self.run_text):
+            self.assertEqual(name.count("${{"), name.count("}}"), name)
 
 
 if __name__ == "__main__":

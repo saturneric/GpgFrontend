@@ -9,11 +9,11 @@ The release is one invariant:
                            -> immutable release candidate
                            -> verify-only publication
 
-`stage` runs in the provenance job. It takes the final artifacts of every leg
-and the build info that describes them, and writes a candidate directory:
+`stage` runs in the provenance job. It takes the final artifacts of every leg,
+checks each against the build info that describes it, and writes a candidate
+directory:
 
   <deliverables>        every file of every `gpgfrontend-<leg>` artifact
-  build-records.json    which leg produced which file, and from what build
   SHA256SUMS.txt        the canonical release set: every file above, hashed
 
 The provenance job then signs SHA256SUMS.txt, once, and uploads the directory
@@ -21,16 +21,18 @@ as the `release-candidate` artifact. Nothing writes to it after that.
 
 `verify` runs in the release job, over the downloaded candidate, and is the
 whole publication gate: the Sigstore identity, then the manifest, then exact
-set equality between the manifest and the directory, then every hash, then
-the records. It prints the verified file list for the publish step, so what
+set equality between the manifest and the directory, then every hash. It
+prints the verified file list for the publish step, so what
 is published is what was verified and not whatever a glob finds.
 
 ## One authority per fact
 
   the bytes          SHA256SUMS.txt, and only there
-  which leg made it  build-records.json (names, never hashes)
   the pairing        the artifact name: `gpgfrontend-<leg>` and
                      `buildinfo-<leg>` share <leg> exactly
+
+Which leg made which file is never published: the release carries the
+downloads, their manifest and its signature, and nothing about the builds.
 
 Nothing here knows a platform, an architecture or a package format. A new
 build leg only has to upload those two artifacts.
@@ -57,12 +59,11 @@ from pathlib import Path
 
 MANIFEST = "SHA256SUMS.txt"
 BUNDLE = "SHA256SUMS.txt.sigstore.json"
-RECORDS = "build-records.json"
 BUILD_INFO = "build-info.json"
 
 # Provenance names. A deliverable may never take one: it would shadow, or be
 # shadowed by, the file that describes it.
-RESERVED = frozenset({MANIFEST, BUNDLE, RECORDS, BUILD_INFO})
+RESERVED = frozenset({MANIFEST, BUNDLE, BUILD_INFO})
 
 SAFE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+-]*$")
 MANIFEST_LINE = re.compile(r"^([0-9a-f]{64})  (\S+)$")
@@ -71,13 +72,6 @@ DELIVERABLE_PREFIX = "gpgfrontend-"
 BUILD_INFO_PREFIX = "buildinfo-"
 
 ISSUER = "https://token.actions.githubusercontent.com"
-
-# The aggregate is a container with its own version. Each record inside keeps
-# its own `schema`: 4 is the first without per-file hashes, which live in the
-# manifest alone.
-RECORDS_FORMAT = "gpgfrontend-build-records"
-RECORDS_FORMAT_VERSION = 1
-RECORD_SCHEMA = 4
 
 
 class CandidateError(Exception):
@@ -90,11 +84,6 @@ def digest(path):
         for chunk in iter(lambda: f.read(1 << 20), b""):
             h.update(chunk)
     return h.hexdigest()
-
-
-def dump_json(value):
-    """Deterministic: sorted keys, fixed separators, one trailing newline."""
-    return json.dumps(value, indent=2, sort_keys=True) + "\n"
 
 
 def regular_files(directory):
@@ -159,42 +148,12 @@ def load_build_info(info_dir):
     return info
 
 
-def make_record(leg, info, names):
+def check_build_info(leg, info):
+    """A leg's build info names the build, so the leg really finished."""
     missing = sorted({"project_version", "build_id", "host_os", "modules"}
                      - set(info))
     if missing:
         raise CandidateError(f"{BUILD_INFO_PREFIX}{leg}: missing {missing}")
-    return {
-        "schema": RECORD_SCHEMA,
-        "leg": leg,
-        "product": {
-            "version": info["project_version"],
-            "build_id": info["build_id"],
-            "os": info["host_os"],
-        },
-        "modules": info["modules"],
-        "artifacts": sorted(names),
-    }
-
-
-def build_aggregate(records):
-    """The build-records.json document. Order of `records` does not matter."""
-    legs = [r["leg"] for r in records]
-    duplicates = sorted({leg for leg in legs if legs.count(leg) > 1})
-    if duplicates:
-        raise CandidateError(f"duplicate build records for {duplicates}")
-
-    ordered = []
-    for record in sorted(records, key=lambda r: r["leg"]):
-        record = dict(record)
-        record["artifacts"] = sorted(record["artifacts"])
-        ordered.append(record)
-
-    return {
-        "format": RECORDS_FORMAT,
-        "format_version": RECORDS_FORMAT_VERSION,
-        "records": ordered,
-    }
 
 
 def render_manifest(hashes):
@@ -207,11 +166,10 @@ def stage(artifacts_root, out):
     # leaves no half-built candidate behind.
     legs = collect_legs(artifacts_root)
 
-    records, sources = [], {}
-    owner = {}
+    sources, owner = {}, {}
     for leg in sorted(legs):
         deliverable_dir, info_dir = legs[leg]
-        info = load_build_info(info_dir)
+        check_build_info(leg, load_build_info(info_dir))
 
         files = regular_files(deliverable_dir)
         if not files:
@@ -225,9 +183,6 @@ def stage(artifacts_root, out):
             owner[name] = leg
             sources[name] = files[name]
 
-        records.append(make_record(leg, info, files))
-    aggregate = dump_json(build_aggregate(records))
-
     try:
         out.mkdir(parents=True)
     except FileExistsError:
@@ -238,9 +193,6 @@ def stage(artifacts_root, out):
     for name in sorted(sources):
         shutil.copyfile(sources[name], out / name)
         hashes[name] = digest(out / name)
-
-    (out / RECORDS).write_text(aggregate, encoding="utf-8", newline="\n")
-    hashes[RECORDS] = digest(out / RECORDS)
 
     (out / MANIFEST).write_text(render_manifest(hashes),
                                 encoding="utf-8", newline="\n")
@@ -294,48 +246,12 @@ def parse_manifest(data):
         sha, name = match.groups()
         if not SAFE_NAME.match(name):
             raise CandidateError(f"{MANIFEST}:{number}: unsafe name {name!r}")
-        if name in RESERVED and name != RECORDS:
+        if name in RESERVED:
             raise CandidateError(f"{MANIFEST}:{number}: lists {name!r}")
         if name in entries:
             raise CandidateError(f"{MANIFEST}:{number}: duplicate {name!r}")
         entries[name] = sha
-
-    if RECORDS not in entries:
-        raise CandidateError(f"{MANIFEST}: does not cover {RECORDS}")
     return entries
-
-
-def check_records(document, deliverables):
-    """The records say which leg produced each deliverable, exactly once."""
-    if not isinstance(document, dict) or \
-       document.get("format") != RECORDS_FORMAT or \
-       document.get("format_version") != RECORDS_FORMAT_VERSION:
-        raise CandidateError(f"{RECORDS}: unexpected format")
-
-    records = document.get("records")
-    if not isinstance(records, list) or not records:
-        raise CandidateError(f"{RECORDS}: no records")
-
-    legs, claimed = set(), {}
-    for record in records:
-        if record.get("schema") != RECORD_SCHEMA:
-            raise CandidateError(f"{RECORDS}: unexpected record schema")
-        leg = record.get("leg")
-        if leg in legs:
-            raise CandidateError(f"{RECORDS}: duplicate leg {leg!r}")
-        legs.add(leg)
-        for name in record.get("artifacts", []):
-            if name in claimed:
-                raise CandidateError(
-                    f"{RECORDS}: {name!r} claimed by {claimed[name]} and {leg}")
-            claimed[name] = leg
-
-    if set(claimed) != deliverables:
-        missing = sorted(deliverables - set(claimed))
-        extra = sorted(set(claimed) - deliverables)
-        raise CandidateError(
-            f"{RECORDS} disagrees with {MANIFEST}: "
-            f"unrecorded {missing}, not in manifest {extra}")
 
 
 def verify(directory, identity, sha, cosign="cosign"):
@@ -361,13 +277,6 @@ def verify(directory, identity, sha, cosign="cosign"):
     for name in sorted(entries):
         if digest(directory / name) != entries[name]:
             raise CandidateError(f"{name}: sha256 does not match {MANIFEST}")
-
-    # 5. The records, now that their bytes are the signed ones.
-    try:
-        with (directory / RECORDS).open(encoding="utf-8") as f:
-            check_records(json.load(f), set(entries) - {RECORDS})
-    except (ValueError, AttributeError, TypeError) as e:
-        raise CandidateError(f"{RECORDS}: malformed ({e})")
 
     return [directory / name for name in sorted(entries)] + \
         [directory / MANIFEST, directory / BUNDLE]
