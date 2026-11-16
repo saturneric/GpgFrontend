@@ -66,7 +66,7 @@ TEMPLATE = """\
 # authenticode_cert = "pkcs11:..."
 # authenticode_key = "pkcs11:..."
 # pkcs11_module = "/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so"
-# timestamp_url = "http://timestamp.digicert.com"
+# timestamp_url = "http://time.certum.pl/,http://timestamp.digicert.com"
 
 [host]
 # state_dir = "~/.local/state/gfrelease"

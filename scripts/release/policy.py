@@ -326,6 +326,27 @@ def check_product(product: dict) -> None:
         errors.append("bases.update lists more than the one update store")
     if "notes_link_hosts" in product:
         strings(product["notes_link_hosts"], "notes_link_hosts")
+    # Which programs inside a Windows package are Authenticode-signed:
+    # extensions, and folders whose programs stay as their upstream built
+    # them (gfrelease's authenticode.py).
+    if "authenticode" in product:
+        rule = table(product["authenticode"], "authenticode")
+        for e in strings(rule.get("sign_inside", []),
+                         "authenticode.sign_inside"):
+            if not re.fullmatch(r"\.[A-Za-z0-9]+", e):
+                errors.append(f"authenticode.sign_inside: {e!r} is not a "
+                              "file extension")
+        if not rule.get("sign_inside"):
+            errors.append("authenticode.sign_inside is empty")
+        for d in (strings(rule["leave_unsigned"], "authenticode."
+                          "leave_unsigned")
+                  if "leave_unsigned" in rule else []):
+            if "/" in d or "\\" in d or d in (".", ".."):
+                errors.append(f"authenticode.leave_unsigned: {d!r} is not a "
+                              "folder name")
+        unknown = set(rule) - {"sign_inside", "leave_unsigned"}
+        if unknown:
+            errors.append(f"authenticode: unknown {sorted(unknown)}")
     # Every published file is classified by these rules (gfrelease refuses
     # one none matches): each must compile, and name a kind clients know.
     kinds = strings(product.get("artifact_kinds", []), "artifact_kinds")
