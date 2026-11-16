@@ -193,7 +193,11 @@ def status(product: Product, version: str, *, update, builds, staging=None,
         fact("stable stage", YES if "upload" in done else
              (f"{len(done)}/{len(stable_mod.STEPS)}" if stage else UNKNOWN),
              ", ".join(done) if stage else "not run on this machine")
-        uploaded = fact("uploaded", _exists(
+        handed = fact("handed over", _exists(
+            staging.sub(layout.SIGNED) if hasattr(staging, "sub") else None,
+            layout.descriptor_of(layout.release_dir(version))),
+            "" if staging else "no --staging")
+        uploaded = fact("received by the host", _exists(
             builds, layout.descriptor_of(layout.release_dir(version))))
         listed = UNKNOWN if index is None else \
             (YES if version in index["releases"] else NO)
@@ -203,11 +207,11 @@ def status(product: Product, version: str, *, update, builds, staging=None,
              (index_problem or ""))
         if listed == YES:
             nxt = None
-        elif uploaded == YES:
-            nxt = ("wait for the signing host's next round (it admits a "
-                   "release within minutes), then `gfrelease status "
+        elif uploaded == YES or handed == YES:
+            nxt = ("wait for the signing host's next round (it receives and "
+                   "admits a release within minutes), then `gfrelease status "
                    f"{version}` again")
-        elif stage and done:
+        elif stage and len(done) < len(stable_mod.STEPS):
             following = next(s for s in stable_mod.STEPS if s not in done)
             nxt = f"gfrelease stable {version} (resumes at {following})"
         elif staged == YES:
@@ -215,6 +219,11 @@ def status(product: Product, version: str, *, update, builds, staging=None,
         elif tagged == NO:
             nxt = (f"tag {refs.release_tag(version)} (signed) and push it: "
                    "CI builds and stages it")
+        elif UNKNOWN in (staged, handed):
+            # Not known is never "not there": say what would tell.
+            nxt = ("give the staging store (--staging, GFR_STAGING, or "
+                   "[stores] staging in gfrelease.toml) to see whether CI "
+                   "staged it and whether it was handed over")
         else:
             nxt = ("wait for CI to stage the tag's build (the Build "
                    "workflow of the tag)")
