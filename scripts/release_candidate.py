@@ -19,8 +19,9 @@ directory:
 The provenance job then signs SHA256SUMS.txt, once, and uploads the directory
 as the `release-candidate` artifact. Nothing writes to it after that.
 
-`verify` runs on the signing host (scripts/release/gfrelease promote), over
-the staged candidate, and is the whole publication gate: the Sigstore
+verify(), called by gfrelease on the signing host (promote) and in the
+maintainer's stable stage, over the staged candidate, is the whole
+publication gate: the Sigstore
 identity, then the manifest, then exact set equality between the manifest
 and the directory, then every hash. It returns the verified file list, so
 what is published is what was verified and not whatever a glob finds.
@@ -43,14 +44,11 @@ published; the name is reserved so it cannot be, even by accident.
 Stdlib only: the provenance and release runners install nothing for this.
 
 usage: release_candidate.py stage --artifacts DIR --out DIR
-       release_candidate.py verify --dir DIR --identity ID --sha SHA
-                                   [--cosign PATH] [--github-output FILE]
 """
 
 import argparse
 import hashlib
 import json
-import os
 import re
 import shutil
 import subprocess
@@ -315,34 +313,12 @@ def main(argv=None):
     p.add_argument("--artifacts", required=True, type=Path)
     p.add_argument("--out", required=True, type=Path)
 
-    p = sub.add_parser("verify", help="verify the release candidate")
-    p.add_argument("--dir", required=True, type=Path)
-    p.add_argument("--identity", required=True)
-    p.add_argument("--sha", required=True)
-    p.add_argument("--cosign", default="cosign")
-    p.add_argument("--github-output", type=Path,
-                   help="append the verified file list as output `files`")
-
     args = parser.parse_args(argv)
     try:
-        if args.command == "stage":
-            stage(args.artifacts, args.out)
-            return 0
-
-        files = verify(args.dir, args.identity, args.sha, args.cosign)
+        stage(args.artifacts, args.out)
     except CandidateError as e:
         print(f"release_candidate: {e}", file=sys.stderr)
         return 1
-
-    print(f"verified {len(files)} file(s):")
-    for path in files:
-        print(f"  {path.name}")
-    if args.github_output:
-        with args.github_output.open("a", encoding="utf-8") as f:
-            f.write("files<<EOF_RELEASE_FILES\n")
-            for path in files:
-                f.write(f"{os.path.abspath(path)}\n")
-            f.write("EOF_RELEASE_FILES\n")
     return 0
 
 

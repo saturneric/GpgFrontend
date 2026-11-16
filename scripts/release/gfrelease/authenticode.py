@@ -40,7 +40,7 @@ A signer signs files where they are, as many as it is given at once
 for every program of a release, and once more for the packages. So a
 package is opened (open_package(): its programs laid out as files), the
 programs are signed, and it is closed again around them (close_package());
-sign_package() is the three in a row for one package.
+the stable stage does that for every package at once (stable.py).
 """
 
 from __future__ import annotations
@@ -432,27 +432,6 @@ def close_package(opened: Opened, dst: Path) -> list[str]:
     else:
         shutil.copyfile(opened.src, dst)
     return sorted(signed)
-
-
-def sign_package(src: Path, dst: Path, info: dict, signer,
-                 rules: Rules, progress=None) -> list[str]:
-    """@p src signed as plan() says, written to @p dst; returns the paths
-    signed inside. @p progress(done, total, path) follows the programs."""
-    with tempfile.TemporaryDirectory(prefix="gfr-sign-") as tmp:
-        opened = open_package(src, info, rules, Path(tmp))
-        paths = {file: path for path, file in opened.programs.items()}
-        done = []
-
-        def on_done(file: Path) -> None:
-            done.append(file)
-            if progress:
-                progress(len(done), len(paths), paths[file])
-
-        signer.sign_files(list(paths), on_done)
-        signed = close_package(opened, dst)
-    if opened.outside:
-        signer.sign_files([dst])
-    return signed
 
 
 def unchanged_apart_from(build: Path, final: Path, info: dict,

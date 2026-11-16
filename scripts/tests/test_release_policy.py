@@ -391,7 +391,7 @@ class SecurityRenderTest(unittest.TestCase):
 
 
     def test_an_unsigned_draft_root_is_not_shown(self):
-        # `gfrelease root new` writes the next root before anyone signed
+        # `gfrelease trust root new` writes the next root before anyone signed
         # it: SECURITY.md keeps showing the newest one that is signed.
         with tempfile.TemporaryDirectory() as tmp:
             roots = Path(tmp) / "root"

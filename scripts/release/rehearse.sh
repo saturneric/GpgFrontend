@@ -59,8 +59,8 @@ base="https://localhost:${port}"
 echo "== the product, pointed at the rehearsal mirror, and its trust"
 repo=saturneric/GpgFrontend
 workflow=.github/workflows/build.yml
-# Root 1 and index-keys list 1 by hand: `gfrelease root new` and
-# `index-keys renew` only ever follow one there is.
+# Root 1 and index-keys list 1 by hand: `gfrelease trust root new` and
+# `trust keys renew` only ever follow one there is.
 python3 -I - "$here/gfrelease" "$top/release/product.json" "$dir" "$base" \
   "$repo" "$workflow" <<'PY'
 import json, sys
@@ -96,9 +96,10 @@ prefix="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["artif
 export GFR_PRODUCT="$dir/product.json" GFR_POLICY="$dir/policy.toml" \
   GFR_ROOT_DIR="$dir/trust/root" GFR_INDEX_KEYS_DIR="$dir/trust/index-keys"
 for key in root-a root-b; do
-  "${gfr[@]}" root sign "$dir/trust/root/1.root.json" -s "$dir/keys/$key.key"
+  "${gfr[@]}" trust root sign "$dir/trust/root/1.root.json" \
+    -s "$dir/keys/$key.key"
 done
-"${gfr[@]}" root verify
+"${gfr[@]}" trust root verify
 
 echo "== CI: a candidate of HEAD, signed for main, staged"
 commit="$(git -C "$top" rev-parse HEAD)"

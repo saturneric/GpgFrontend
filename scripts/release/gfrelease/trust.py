@@ -148,10 +148,12 @@ def signers(data: bytes, sigs: dict, keys: dict, comment: str) -> set:
     return found
 
 
-def _accept_root(trusted: dict | None, data: bytes, read_sig, slug: str,
-                 what: str, first: int) -> tuple[dict, set]:
-    """accept_root(), and the ids of every root key whose signature on it
-    verified."""
+def accept_root(trusted: dict | None, data: bytes, read_sig, slug: str,
+                what: str, first: int = 1) -> tuple[dict, set]:
+    """The root in @p data, when it may follow @p trusted (None: it is root
+    @p first, trusted on its own signatures), and the ids of every root key
+    whose signature on it verified. @p read_sig(key_id) is that key's
+    signature on it, or None."""
     root = load(data, what, ROOT_KIND, slug)
     want = trusted["version"] + 1 if trusted else first
     if root["version"] != want:
@@ -170,14 +172,6 @@ def _accept_root(trusted: dict | None, data: bytes, read_sig, slug: str,
                                "needed")
         verified |= found
     return root, verified
-
-
-def accept_root(trusted: dict | None, data: bytes, read_sig, slug: str,
-                what: str, first: int = 1) -> dict:
-    """The root in @p data, when it may follow @p trusted (None: it is root
-    @p first, trusted on its own signatures). @p read_sig(key_id) is that
-    key's signature on it, or None."""
-    return _accept_root(trusted, data, read_sig, slug, what, first)[0]
 
 
 def walk(read, slug: str, trusted: dict | None = None, *,
@@ -209,7 +203,7 @@ def walk(read, slug: str, trusted: dict | None = None, *,
             if key_id not in sigs:
                 sigs[key_id] = read(layout.root_sig_name(n, key_id))
             return sigs[key_id]
-        trusted, verified = _accept_root(trusted, data, read_sig, slug, name,
+        trusted, verified = accept_root(trusted, data, read_sig, slug, name,
                                          first)
         if keep:
             keep(n, data, {k: sigs[k] for k in sorted(verified)})
@@ -232,9 +226,8 @@ def accept_index_keys(root: dict, data: bytes, sig: bytes | None,
     return keys
 
 
-def days_left(doc: dict, now: dt.datetime | None = None) -> float:
-    return (parse_iso(doc["expires"]) - (now or utcnow())) / \
-        dt.timedelta(days=1)
+def days_left(doc: dict) -> float:
+    return (parse_iso(doc["expires"]) - utcnow()) / dt.timedelta(days=1)
 
 
 def check_unexpired(doc: dict, what: str,
@@ -270,8 +263,7 @@ def newest_root(root_dir: Path, slug: str, anchor: str | None = None,
     return root
 
 
-def newest_index_keys(index_keys_dir: Path, root: dict, slug: str,
-                      floor: int = 0) -> dict:
+def newest_index_keys(index_keys_dir: Path, root: dict, slug: str) -> dict:
     """The newest index-keys list in @p index_keys_dir, signed by @p root's
     G."""
     found = versions(index_keys_dir)
@@ -280,7 +272,7 @@ def newest_index_keys(index_keys_dir: Path, root: dict, slug: str,
     name = layout.index_keys_name(found[-1])
     read = read_dir(index_keys_dir)
     return accept_index_keys(root, read(name), read(name + MINISIG), slug,
-                             name, floor)
+                             name)
 
 
 def load_trust(root_dir: Path, index_keys_dir: Path, slug: str,
@@ -293,13 +285,12 @@ def load_trust(root_dir: Path, index_keys_dir: Path, slug: str,
     return root, newest_index_keys(index_keys_dir, root, slug)
 
 
-def renewed(doc: dict, lifetime: dt.timedelta,
-            now: dt.datetime | None = None) -> dict:
+def renewed(doc: dict, lifetime: dt.timedelta) -> dict:
     """@p doc as its next version: the same, one higher, expiring
     @p lifetime from now."""
     nxt = copy.deepcopy(doc)
     nxt["version"] = doc["version"] + 1
-    nxt["expires"] = iso((now or utcnow()) + lifetime)
+    nxt["expires"] = iso(utcnow() + lifetime)
     return nxt
 
 
