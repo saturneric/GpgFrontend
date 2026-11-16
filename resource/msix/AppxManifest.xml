@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The manifest of the sideload MSIX of a stable release. No CI job builds
+  that package: the offline stage makes it from the release's signed MSI
+  (scripts/release/gfrelease/msix.py), which lays the MSI's files under
+  VFS\AppData\GpgFrontend, where the MSI installs them, and fills in the two
+  fields in braces:
+
+    {publisher}  the subject of the Authenticode certificate, as Windows
+                 spells it: a package installs only when the two are equal
+    {version}    the release's X.Y.Z and a fourth part, 0
+
+  The identity is the one every sideload package since 2.2.1 carries, so a
+  new one updates the one installed. The logos it names lie in no folder
+  here: make_logos.ps1 beside this file draws them from the application's
+  icon, in the scales Windows asks for, each time a package is made, and
+  makepri then writes resources.pri, which maps a logo's name to them.
+-->
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+         xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+         xmlns:uap2="http://schemas.microsoft.com/appx/manifest/uap/windows10/2"
+         xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+         xmlns:uap10="http://schemas.microsoft.com/appx/manifest/uap/windows10/10"
+         xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+         IgnorableNamespaces="uap uap2 uap3 uap10 rescap">
+  <Identity Name="com.bktus.GpgFrontend" Publisher="{publisher}" Version="{version}" ProcessorArchitecture="x64" />
+  <Properties>
+    <DisplayName>GpgFrontend</DisplayName>
+    <PublisherDisplayName>Saturneric</PublisherDisplayName>
+    <Description>A modern, cross-platform OpenPGP tool with a dual-engine core: switch freely between battle-tested GnuPG and a memory-safe Rust rPGP backend. Makes encryption, signing, and key management simple and trustworthy.</Description>
+    <Logo>Assets\StoreLogo.png</Logo>
+    <uap10:PackageIntegrity>
+      <uap10:Content Enforcement="on" />
+    </uap10:PackageIntegrity>
+  </Properties>
+  <Resources>
+    <Resource Language="en-us" />
+  </Resources>
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.22000.1" />
+  </Dependencies>
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+  <Applications>
+    <Application Id="GPGFRONTEND" Executable="VFS\AppData\GpgFrontend\bin\GpgFrontend.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements BackgroundColor="transparent" DisplayName="GpgFrontend" Description="GpgFrontend"
+                          Square150x150Logo="Assets\GPGFRONTEND-Square150x150Logo.png"
+                          Square44x44Logo="Assets\GPGFRONTEND-Square44x44Logo.png">
+        <uap:DefaultTile Wide310x150Logo="Assets\GPGFRONTEND-Wide310x150Logo.png"
+                         Square310x310Logo="Assets\GPGFRONTEND-Square310x310Logo.png"
+                         Square71x71Logo="Assets\GPGFRONTEND-Square71x71Logo.png" />
+      </uap:VisualElements>
+      <Extensions>
+        <!-- The .gfp association, as the MSI's registry rows make it. -->
+        <uap3:Extension Category="windows.fileTypeAssociation">
+          <uap3:FileTypeAssociation Name="gfp">
+            <uap:SupportedFileTypes>
+              <uap:FileType>.gfp</uap:FileType>
+            </uap:SupportedFileTypes>
+            <uap:Logo>Assets\gfp.png</uap:Logo>
+            <uap2:SupportedVerbs>
+              <uap3:Verb Id="open" Parameters="&quot;%1&quot;">open</uap3:Verb>
+            </uap2:SupportedVerbs>
+          </uap3:FileTypeAssociation>
+        </uap3:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+</Package>

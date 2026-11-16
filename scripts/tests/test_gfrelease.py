@@ -22,12 +22,13 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent.parent
-GFR = ROOT / "scripts" / "release" / "gfrelease"
+GFR =ROOT / "scripts" / "release" / "gfrelease"
 sys.path.insert(0, str(GFR))
 sys.path.insert(0, str(ROOT / "scripts" / "tests"))
 
@@ -46,7 +47,8 @@ from store import Store, StoreUnavailable  # noqa: E402
 from test_authenticode import build_msi, build_zip, pe_bytes  # noqa: E402
 from test_release_candidate import FAKE_COSIGN  # noqa: E402
 from trustutil import (SigningCertificate, git_env, keypair,  # noqa: E402
-                       signing_tools, stand_in, tools, write_root)
+                       msix_resources, packs_msix, signing_tools, stand_in,
+                       tools, write_root)
 
 
 TOOLS = tools("minisign", "rclone", "git", "cmake")
@@ -1663,6 +1665,7 @@ if __name__ == "__main__":
 # --------------------------------------------------------------- stable
 
 import authenticode  # noqa: E402
+import msix as msix_mod  # noqa: E402
 import stable as stable_mod  # noqa: E402
 
 
@@ -2020,6 +2023,9 @@ class StableTest(unittest.TestCase):
         self.certificate = SigningCertificate(self.tmp)
         self.addCleanup(self.certificate.close)
         self.cert, self.subject = self.certificate.ca, self.certificate.subject
+        # The MSIX the stage makes of the test MSI, wherever this runs.
+        packs_msix(self)
+        msix_resources(self, self.tmp, "T/app.exe")
         self.fpr = self.new_key("Test Maintainer <maintainer@example.org>")
         keys = self.tmp / "keys"
         keys.mkdir()
@@ -2263,10 +2269,16 @@ class StableTest(unittest.TestCase):
         d = self.stage().run()
 
         # The MSI and the portable zip signed (inside, and the MSI itself),
-        # everything else published as built.
+        # an MSIX made from the MSI, everything else published as built.
         windows = {a["kind"]: a for a in d["artifacts"]
                    if a["os"] == "windows"}
-        self.assertEqual(set(windows), {"msi", "zip"})
+        self.assertEqual(set(windows), {"msi", "msix", "zip"})
+        made = windows.pop("msix")
+        self.assertEqual(made["name"],
+                         "GpgFrontend-2.3.0-windows-x86_64.msix")
+        self.assertEqual((made["transform"], made["from"]),
+                         ("msix", windows["msi"]["name"]))
+        self.assertNotIn("build_sha256", made)
         for a in windows.values():
             self.assertEqual(a["transform"], "authenticode")
             self.assertNotEqual(a["sha256"], a["build_sha256"])
@@ -2284,6 +2296,17 @@ class StableTest(unittest.TestCase):
                             pe_bytes("app"))
         self.assertEqual(d["signing"], {"scheme": "openpgp",
                                         "fingerprint": self.fpr})
+        # The package holds the MSI's files, its signed program among
+        # them, where the MSI installs them.
+        installed = authenticode.contents(final / windows["msi"]["name"],
+                                          windows["msi"])
+        package = msix_mod.contents(final / made["name"])
+        self.assertEqual({p[len("VFS/"):]: data for p, data in package.items()
+                          if p.startswith("VFS/")}, installed)
+        self.assertNotEqual(installed["T/app.exe"], pe_bytes("app"))
+        self.assertIn(b'Version="2.3.0.0"', package["AppxManifest.xml"])
+        self.assertIn(msix_mod.publisher(self.subject).encode(),
+                      package["AppxManifest.xml"])
 
         index = self.index()
         self.assertEqual(index["channels"]["stable"], "2.3.0")
@@ -2291,7 +2314,7 @@ class StableTest(unittest.TestCase):
         entry = index["releases"]["2.3.0"]
         self.assertTrue(entry["notes"].startswith("notes/2.3.0/"))
         report = self.check()
-        self.assertIn({"version": "2.3.0", "kind": "stable", "artifacts": 4},
+        self.assertIn({"version": "2.3.0", "kind": "stable", "artifacts": 5},
                       report["checked"])
 
     def test_a_resumed_upload_sends_the_same_descriptor(self):
@@ -2777,7 +2800,14 @@ class StableTest(unittest.TestCase):
         self.addCleanup(other.close)
         stage = self.stage(signer=other.signer(),
                            authenticode_ca=str(other.ca))
-        self.assert_refused(stage.run, "not '" + re.escape(self.subject))
+        # Windows refuses to sign the MSIX with it at all: the package
+        # names the pinned subject as its publisher.
+        self.assert_refused(stage.run, "the certificate its manifest names"
+                            if os.name == "nt" else
+                            "not '" + re.escape(self.subject))
+        with mock.patch.object(msix_mod, "available", lambda: False):
+            self.assert_refused(lambda: stage.run(redo="authenticode"),
+                                "not '" + re.escape(self.subject))
 
     def test_a_prerelease_never_goes_through_the_offline_stage(self):
         self.assert_refused(lambda: self.stage("2.3.0-rc.1"), "final releases")
@@ -2873,10 +2903,10 @@ class StableTest(unittest.TestCase):
             status = host.promote()
         # 2.3.0 is received, whatever else lies there.
         self.assertEqual(status, host_mod.PARTIAL, err.getvalue())
-        self.assertIn("received 2.3.0 (4 files)", out.getvalue())
+        self.assertIn("received 2.3.0 (5 files)", out.getvalue())
         self.assertIn("signed/releases/2.3.1/release.json", err.getvalue())
         self.assertEqual(host.report["received"],
-                         [{"version": "2.3.0", "files": 4}])
+                         [{"version": "2.3.0", "files": 5}])
         self.assertEqual(self.builds.read(path), common.canonical_json(d))
         # Exactly what the descriptor and the notes name, nothing else.
         self.assertNotIn("2.3.0/stray.bin", self.builds.files("releases"))
@@ -2885,12 +2915,13 @@ class StableTest(unittest.TestCase):
         self.assertIn("2.3.0", self.index()["releases"])
         shutil.rmtree(handed / "releases" / "2.3.1")
 
-        # Received already: nothing to do, and never replaced.
+        # Received already: nothing to do, and what is handed over for it
+        # afterwards takes its place only if it is admitted too.
         self.assertEqual(self.receive(), [])
         descriptor.write_bytes(common.canonical_json(
-            dict(d, released_at="2030-01-01T00:00:00Z")))
+            dict(d, commit="0" * 40)))
         with self.assertRaisesRegex(promote_mod.ReceiveIncomplete,
-                                    "never replaced"):
+                                    "not received"):
             self.receive()
         self.assertEqual(self.builds.read(path), common.canonical_json(d))
 
@@ -2909,6 +2940,130 @@ class StableTest(unittest.TestCase):
         self.assertTrue(caught.exception.passing)
         self.assertEqual(self.builds.files("releases"), [])
         self.assertEqual([d["version"] for d in self.receive()], ["2.3.0"])
+
+    def without_msix(self):
+        """A release made where no package is packed, received and
+        listed: its descriptor."""
+        self.tag()
+        self.build()
+        with mock.patch.object(msix_mod, "available", lambda: False):
+            d = self.stage().run()
+            self.assert_refused(self.stage().add_msix, "only on Windows")
+        self.assertNotIn("msix", {a["kind"] for a in d["artifacts"]})
+        self.index()
+        return d
+
+    def test_a_release_handed_over_without_its_msix_gains_it(self):
+        before = self.without_msix()
+        published = self.tree()
+        # The host's housekeeping removes what it has received.
+        handed = self.tmp / "staging" / "signed" / "releases" / "2.3.0"
+        shutil.rmtree(handed)
+
+        # Only what is new is handed over.
+        after = self.stage(received=False).add_msix()
+        name = "GpgFrontend-2.3.0-windows-x86_64.msix"
+        self.assertEqual(
+            sorted(p.name for p in handed.iterdir()),
+            sorted([name, name + ".sig", common.SUMS, common.SUMS + ".sig",
+                    "release.json"]))
+        self.assertEqual([a for a in after["artifacts"] if a["name"] != name],
+                         before["artifacts"])
+        self.assertEqual(dict(after, artifacts=[]), dict(before, artifacts=[]))
+
+        # And only that is written: the package, and the manifest and the
+        # descriptor that list it.
+        self.assertEqual([len(d["artifacts"]) for d in self.receive()], [5])
+        path = "releases/2.3.0/release.json"
+        self.assertEqual(self.builds.read(path), common.canonical_json(after))
+        tree = self.tree()
+        self.assertEqual(
+            {p for p in published if tree[p] != published[p]},
+            {path, f"releases/2.3.0/{common.SUMS}",
+             f"releases/2.3.0/{common.SUMS}.sig"})
+        self.assertEqual(set(tree) - set(published),
+                         {f"releases/2.3.0/{name}",
+                          f"releases/2.3.0/{name}.sig"})
+        entry = self.index()["releases"]["2.3.0"]
+        self.assertEqual(entry["sha256"],
+                         common.sha256_bytes(common.canonical_json(after)))
+        self.assertIn(name, entry["signatures"])
+        self.assertIn({"version": "2.3.0", "kind": "stable", "artifacts": 5},
+                      self.check()["checked"])
+
+        # Once more: nothing is made again, nothing received again.
+        self.assertEqual(self.stage(received=False).add_msix(), after)
+        self.assertEqual(self.receive(), [])
+
+    def test_a_published_release_changes_only_to_what_is_admitted(self):
+        before = self.without_msix()
+        earlier = {name: self.builds.read(f"releases/2.3.0/{name}")
+                   for name in (common.SUMS, common.SUMS + ".sig")}
+        time.sleep(1.1)  # a signature's time is in seconds
+        after = self.stage(received=False).add_msix()
+        handed = self.tmp / "staging" / "signed" / "releases" / "2.3.0"
+        path = "releases/2.3.0/release.json"
+        package = next(a for a in after["artifacts"] if a["kind"] == "msix")
+
+        def refused(why, descriptor=after):
+            (handed / "release.json").chmod(0o644)
+            (handed / "release.json").write_bytes(
+                common.canonical_json(descriptor))
+            with self.assertRaisesRegex(promote_mod.ReceiveIncomplete, why):
+                self.receive()
+            self.assertEqual(self.builds.read(path),
+                             common.canonical_json(before))
+            self.assertFalse(self.builds.exists(package["path"]))
+
+        files = after["artifacts"]
+        # A file the signed manifest lists, taken away or said to be
+        # another.
+        refused("differ from the signed manifest",
+                dict(after, artifacts=[a for a in files
+                                       if a["kind"] != "zip"]))
+        refused("differ from the signed manifest",
+                dict(after, artifacts=[dict(a, sha256="0" * 64)
+                                       if a["kind"] == "zip" else a
+                                       for a in files]))
+        # A file that is neither CI's nor an MSIX made from its MSI.
+        refused("not what CI built",
+                dict(after, artifacts=[dict(a, transform="none")
+                                       if a is package else a
+                                       for a in files]))
+        refused("not an MSIX made from",
+                dict(after, artifacts=[
+                    dict(a, **{"from": "GpgFrontend-2.3.0-windows-x86_64"
+                               "-portable.zip"})
+                    if a is package else a for a in files]))
+        # Other bytes than the ones signed.
+        target = handed / package["name"]
+        signed = target.read_bytes()
+        target.chmod(0o644)
+        target.write_bytes(signed + b"more")
+        refused("not received")
+        target.write_bytes(signed)
+
+        (handed / "release.json").write_bytes(common.canonical_json(after))
+        self.assertEqual([d["version"] for d in self.receive()], ["2.3.0"])
+        self.assertEqual(self.builds.read(path), common.canonical_json(after))
+        self.index()
+
+        # What it was before, handed over again: its manifest's signature
+        # is older than the one admitted since, and nothing comes back.
+        for name, data in earlier.items():
+            (handed / name).chmod(0o644)
+            (handed / name).write_bytes(data)
+        (handed / "release.json").write_bytes(common.canonical_json(before))
+        with self.assertRaisesRegex(promote_mod.ReceiveIncomplete, "replay"):
+            self.receive()
+        self.assertEqual(self.builds.read(path), common.canonical_json(after))
+
+    def test_an_msix_is_made_only_after_the_release_is_handed_over(self):
+        self.tag()
+        self.build()
+        stage = self.stage(received=False)
+        stage.run(until="pgp")
+        self.assert_refused(stage.add_msix, "not handed over yet")
 
     def test_notes_handed_over_are_received_when_a_maintainer_signed_them(
             self):
@@ -2949,11 +3104,12 @@ class StableTest(unittest.TestCase):
         signer.sign_files = recording
         self.stage(signer=signer, on_signed=lambda *a: seen.append(a)).run(
             until="authenticode")
-        self.assertEqual(rounds, [[".exe", ".exe"], [".msi"]])
+        self.assertEqual(rounds, [[".exe", ".exe"], [".msi", ".msix"]])
         msi = "GpgFrontend-2.3.0-windows-x86_64.msi"
         portable = "GpgFrontend-2.3.0-windows-x86_64-portable.zip"
         self.assertEqual(seen, [(portable, 1, 1, "GpgFrontend/bin/app.exe"),
-                                (msi, 1, 1, "T/app.exe"), (msi, 1, 1, None)])
+                                (msi, 1, 1, "T/app.exe"), (msi, 1, 1, None),
+                                (msi + "x", 1, 1, None)])
 
     def test_the_host_needs_the_notes(self):
         self.tag()

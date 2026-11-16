@@ -42,6 +42,11 @@ TOOLS = {
 }
 # On Windows signtool signs, and Windows Installer itself opens an MSI.
 ON_WINDOWS = {"osslsigncode": "signtool", "msiinfo": None, "msibuild": None}
+# On Windows the maintainer's stage also packs the MSIX (msix.py), with
+# the Windows SDK's makepri and makeappx; its tools are found where it
+# installs them when they are not on PATH.
+WINDOWS_ONLY = {"maintainer": ("makepri", "makeappx")}
+SDK_TOOLS = ("signtool", "makepri", "makeappx")
 STORES = {
     # All a maintainer's machine reads and writes: the host alone writes
     # the builds store.
@@ -76,16 +81,18 @@ class Doctor:
     def tools(self) -> None:
         tools = [ON_WINDOWS.get(n, n) if WINDOWS else n
                  for n in TOOLS[self.role]]
+        if WINDOWS:
+            tools += WINDOWS_ONLY.get(self.role, ())
         for name in filter(None, tools):
             command = {"rclone": self.args.rclone,
                        "cosign": self.args.cosign,
                        "signtool": getattr(self.args, "signtool", None),
                        }.get(name) or name
             path = shutil.which(command)
-            if name == "signtool":
+            if name in SDK_TOOLS:
                 try:
-                    path = authenticode.find_signtool(
-                        "" if command == name else command)
+                    path = authenticode.find_sdk_tool(
+                        name, "" if command == name else command)
                 except ReleaseError:
                     path = None
             fix = ui.install_hint(name)
