@@ -38,6 +38,11 @@ class StoreUnavailable(ReleaseError):
     passing = True  # common.is_passing: the next run may well be answered
 
 
+class NotFound(ReleaseError):
+    """The store answered: there is no such object. An answer, unlike
+    StoreUnavailable."""
+
+
 class Store:
     def __init__(self, root: str, rclone: str = "rclone"):
         if not root:
@@ -89,14 +94,14 @@ class Store:
                                    f"answered something else ({e})") from e
 
     def _get(self, args: list, what: str):
-        """An rclone read: not found is an answer (a ReleaseError), any
-        other failure is StoreUnavailable."""
+        """An rclone read: not found is an answer (NotFound), any other
+        failure is StoreUnavailable."""
         out = self._rclone(*args, text=False)
         if out.returncode == 0:
             return out
         detail = out.stderr.decode("utf-8", "replace").strip()
         if out.returncode in _NOT_FOUND:
-            raise ReleaseError(f"{what}: not found ({detail})")
+            raise NotFound(f"{what}: not found ({detail})")
         raise StoreUnavailable(f"reading {what}: {detail}")
 
     def read(self, path: str) -> bytes:
@@ -114,8 +119,8 @@ class Store:
         """Everything under @p prefix, into @p local."""
         out = self._rclone("copy", self._at(prefix), str(local))
         if out.returncode in _NOT_FOUND:
-            raise ReleaseError(f"{self._at(prefix)}: not found "
-                               f"({out.stderr.strip()})")
+            raise NotFound(f"{self._at(prefix)}: not found "
+                           f"({out.stderr.strip()})")
         if out.returncode != 0:
             raise StoreUnavailable(f"reading {self._at(prefix)}: "
                                    f"{out.stderr.strip()}")

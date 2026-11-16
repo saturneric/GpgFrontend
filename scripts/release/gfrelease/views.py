@@ -25,6 +25,7 @@ import layout
 import stable as stable_mod
 import trust
 import verify as verify_mod
+from store import NotFound
 from common import (DESCRIPTOR, STAGED, Product, ReleaseError, parse_iso,
                     parse_version, refs, run, utcnow)
 
@@ -43,13 +44,11 @@ def _live_index(product: Product, update) -> tuple[dict | None, str | None]:
     None published yet is an index that lists nothing."""
     try:
         return verify_mod.read_index(product, update), None
+    except NotFound:
+        return {"releases": {}, "channels": {}, "series": {}}, \
+            "no index published yet"
     except ReleaseError as e:
-        text = str(e)
-        if text.endswith("not found") or ": not found (" in text or \
-                "HTTP Error 404" in text:
-            return {"releases": {}, "channels": {}, "series": {}}, \
-                "no index published yet"
-        return None, text
+        return None, str(e)
 
 
 def _version_of(entry) -> str | None:
@@ -146,8 +145,10 @@ def _exists(source, path: str) -> str:
     try:
         source.read(path)
         return YES
-    except ReleaseError as e:
-        return NO if "404" in str(e) else UNKNOWN
+    except NotFound:
+        return NO
+    except ReleaseError:
+        return UNKNOWN
 
 
 def _tagged(git_dir, version: str) -> str:

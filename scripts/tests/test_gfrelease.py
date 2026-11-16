@@ -19,7 +19,6 @@ import json
 import os
 import re
 import shutil
-import stat
 import subprocess
 import sys
 import tempfile
@@ -2798,6 +2797,22 @@ class StableTest(unittest.TestCase):
                                     "never replaced"):
             self.receive()
         self.assertEqual(self.builds.read(path), common.canonical_json(d))
+
+    def test_notes_that_could_not_be_read_are_not_taken_for_none(self):
+        self.tag()
+        self.build()
+        self.stage(received=False).run()
+        down = Store(self.staging.root,
+                     flaky_rclone(self.tmp, "signed/notes", "copy"))
+        with self.assertRaises(promote_mod.ReceiveIncomplete) as caught:
+            promote_mod.receive(self.product, down, self.builds,
+                                git_dir=self.repo, state_dir=self.state,
+                                cosign=str(self.cosign),
+                                authenticode_ca=str(self.cert))
+        # Worth trying again, and nothing was received in the meantime.
+        self.assertTrue(caught.exception.passing)
+        self.assertEqual(self.builds.files("releases"), [])
+        self.assertEqual([d["version"] for d in self.receive()], ["2.3.0"])
 
     def test_notes_handed_over_are_received_when_a_maintainer_signed_them(
             self):
