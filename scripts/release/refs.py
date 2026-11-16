@@ -3,10 +3,13 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """The git refs the release model knows, spelled once.
 
-Three kinds of ref publish builds, and each feeds one channel:
+Four kinds of ref publish builds, and each feeds one channel:
 
   refs/heads/main          the nightly channel
   refs/heads/release/X.Y   the beta channel of series X.Y
+  refs/tags/vX.Y.0-rc.N    a release candidate of series X.Y, before its
+                           first release: a prerelease, published as a beta
+                           is (semver.RC_TAG)
   refs/tags/vX.Y.Z         a stable release (semver.RELEASE_TAG)
 
 Nothing else is ever staged, promoted, signed or listed. CI decides the same
@@ -19,7 +22,7 @@ from __future__ import annotations
 
 import re
 
-from semver import RELEASE_TAG
+from semver import RC_TAG, RELEASE_TAG
 
 HEADS = "refs/heads/"
 TAGS = "refs/tags/"
@@ -68,6 +71,24 @@ def publishes_builds(ref: str) -> bool:
 
 def is_release_tag(tag: str) -> bool:
     return RELEASE_TAG.fullmatch(tag) is not None
+
+
+def is_rc_tag(tag: str) -> bool:
+    """vX.Y.0-rc.N: a release candidate's tag."""
+    return RC_TAG.fullmatch(tag) is not None
+
+
+def rc_series(ref: str) -> str:
+    """"X.Y" for refs/tags/vX.Y.0-rc.N, "" for any other ref."""
+    m = RC_TAG.fullmatch(tag_of(ref))
+    return f"{m.group(1)}.{m.group(2)}" if m else ""
+
+
+def promotes(ref: str) -> bool:
+    """A ref whose builds the signing host promotes: main, a release branch,
+    or a release candidate's tag. A release tag passes through the offline
+    stage instead."""
+    return publishes_builds(ref) or bool(rc_series(ref))
 
 
 def release_tag(version: str) -> str:

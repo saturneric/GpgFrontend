@@ -10,6 +10,8 @@
 #             its releases are the stable channel. Several may be stable at
 #             once (an older one keeps its fixes for a while); a stable
 #             series is never sent anywhere, whatever successor it names.
+#             Until its X.Y.0 is out, the index lists it as a prerelease,
+#             with its newest release candidate (vX.Y.0-rc.N) as one.
 #             Builds of release/X.Y (of a stable or the mainline series) are
 #             that series' beta, offered to users who opt in.
 #   legacy    an older series that still gets security fixes until `eol`.
@@ -22,8 +24,9 @@
 # Clients before 2.2.5 follow one step only: point each successor at a
 # stable series directly where possible (policy.py check warns otherwise).
 #
-# When X.Y.0 ships: X.Y becomes stable and X.(Y+1) is added as mainline, in
-# the same PR that cuts release/X.Y (scripts/release/cut.sh). The series before becomes legacy
+# When X.Y.0-rc.1 is tagged (or X.Y.0, without a candidate): X.Y becomes
+# stable and X.(Y+1) is added as mainline, in the same PR that cuts
+# release/X.Y (scripts/release/cut.sh). The series before becomes legacy
 # (with an eol date and a successor) when its fixes are to stop; until then
 # it stays stable beside X.Y.
 #

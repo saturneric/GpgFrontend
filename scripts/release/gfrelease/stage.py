@@ -21,10 +21,15 @@ from store import Store
 
 
 def staging_prefix(ref: str, filesafe: str) -> str:
-    """Where a build of @p ref is staged; only main, a release branch and a
-    release tag publish builds (refs.py)."""
+    """Where a build of @p ref is staged; only main, a release branch, a
+    release candidate's tag and a release tag publish builds (refs.py). A
+    release candidate is staged beside its series' betas: the signing host
+    promotes it as it does them."""
     if refs.publishes_builds(ref):
         return layout.staged_branch(refs.branch_of(ref), filesafe)
+    if refs.rc_series(ref):
+        return layout.staged_branch(
+            refs.release_branch(refs.rc_series(ref)), filesafe)
     if refs.is_release_tag(refs.tag_of(ref)):
         return layout.staged_tag(filesafe)
     raise ReleaseError(f"{ref} does not publish builds")

@@ -582,7 +582,7 @@ def cmd_verify(ctx) -> int:
     ui.info(f"index serial {report['serial']} of {report['product']} "
             f"verifies; expires {report['expires']} (in "
             f"{left.total_seconds() / 86400:.1f} days)")
-    for name in ("stable", "beta", "nightly"):
+    for name in ("stable", "beta", "prerelease", "nightly"):
         ui.info(f"  {name:<8} {report['channels'].get(name) or '-'}")
     ui.info(f"checked {len(report['checked'])}"
             f"{' deeply' if args.deep else ''}:")
@@ -1037,7 +1037,7 @@ def cmd_host(ctx) -> int:
 
 def render_dry_run(report: dict) -> None:
     ui.info("would list:")
-    for name in ("stable", "beta", "nightly"):
+    for name in ("stable", "beta", "prerelease", "nightly"):
         ui.info(f"  {name:<8} {report['channels'].get(name) or '-'}")
     for key, version in sorted(report.get("betas", {}).items()):
         ui.info(f"  beta of {key}: {version}")

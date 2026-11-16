@@ -469,7 +469,21 @@ class CheckOrderTest(unittest.TestCase):
             # A base tag is no release and needs none; nor is a prerelease.
             self.assertEqual(check_order.check_tag("v2.4.0-alpha.0", repo), [])
             self.assertEqual(check_order.check_tag("v2.4.0-beta.1", repo), [])
-            self.assertEqual(check_order.check_tag("v2.4.0-rc.1", repo), [])
+
+    def test_a_release_candidate_only_comes_before_its_release(self):
+        tags = [semver.parse("2.3.4"), semver.parse("2.4.0")]
+        self.assertEqual(check_order.check_rc_tag("v2.5.0-rc.1", tags), [])
+        problems = check_order.check_rc_tag("v2.4.0-rc.3", tags)
+        self.assertTrue(problems)
+        self.assertIn("already has the release 2.4.0", problems[0])
+        # An rc of a patch is no candidate at all: nothing publishes it.
+        self.assertFalse(refs.is_rc_tag("v2.4.1-rc.1"))
+        self.assertTrue(refs.is_rc_tag("v2.4.0-rc.12"))
+        self.assertEqual(refs.rc_series("refs/tags/v2.4.0-rc.1"), "2.4")
+        self.assertTrue(refs.promotes("refs/tags/v2.4.0-rc.1"))
+        self.assertFalse(refs.promotes("refs/tags/v2.4.0"))
+        self.assertTrue(semver.parse("2.4.0-rc.2").is_release_candidate)
+        self.assertFalse(semver.parse("2.4.0-rc.2.dev.1").is_release_candidate)
 
     def test_other_refs_are_not_checked(self):
         for ref in ("feature/x", "release/2.2-fix", "release/2.2/x"):
@@ -574,6 +588,29 @@ class CutTest(unittest.TestCase):
                 policy.mainline(policy.load_policy(
                     self.repo / "release" / "policy.toml")))
             self.assertEqual(problems, [], ref)
+
+    def test_cut_at_the_first_release_candidate(self):
+        # The candidate is tagged on main; release/2.3 is cut there, and 2.2
+        # may stay stable beside it while it still gets fixes.
+        self.git("tag", "-d", "v2.3.0")
+        self.git("tag", "v2.3.0-rc.1")
+        p = self.flipped()
+        p["series"]["2.2"] = {"status": "stable", "branch": "release/2.2",
+                              "platforms": {"macos": "15.0"}}
+        self.write_policy(p)
+        out = self.cut("2.3", "--no-sign")
+        self.assertEqual(out.returncode, 0, out.stderr)
+        self.assertEqual(self.git("rev-parse", "release/2.3"),
+                         self.git("rev-parse", "v2.3.0-rc.1^{commit}"))
+        self.git("checkout", "-q", "release/2.3")
+        self.assertEqual(gitversion.derive(self.repo, ref="release/2.3"),
+                         "2.3.0-rc.1")
+        self.git("commit", "-q", "--allow-empty", "-m", "fix")
+        after = gitversion.derive(self.repo, ref="release/2.3")
+        self.assertTrue(after.startswith("2.3.0-rc.1.dev.1+g"), after)
+        self.assertEqual(check_order.check(
+            after, "release/2.3", check_order.release_tags(self.repo),
+            "2.4"), [])
 
     def test_refuses_twice(self):
         self.write_policy(self.flipped())
