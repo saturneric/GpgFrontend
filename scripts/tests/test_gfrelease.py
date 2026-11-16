@@ -43,6 +43,7 @@ import stage as stage_mod  # noqa: E402
 import trust  # noqa: E402
 import verify as verify_mod  # noqa: E402
 from store import Store, StoreUnavailable  # noqa: E402
+from test_authenticode import build_msi, build_zip, pe_bytes  # noqa: E402
 from test_release_candidate import FAKE_COSIGN  # noqa: E402
 from trustutil import git_env, keypair, tools, write_root  # noqa: E402
 
@@ -1823,22 +1824,7 @@ class AuthenticodeSubjectTest(unittest.TestCase):
                 self.rdns(bad)
 
 STABLE_TOOLS = TOOLS and tools("gpg", "gpgconf", "osslsigncode", "wixl",
-                              "openssl")
-WXS = """<?xml version="1.0" encoding="utf-8"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Id="*" Name="Test" Language="1033" Version="2.3.0" Manufacturer="T"
-           UpgradeCode="12345678-1234-1234-1234-123456789012">
-    <Package InstallerVersion="200" Compressed="yes"/>
-    <Media Id="1" Cabinet="t.cab" EmbedCab="yes"/>
-    <Directory Id="TARGETDIR" Name="SourceDir">
-      <Directory Id="ProgramFilesFolder"><Directory Id="D" Name="T">
-        <Component Id="C" Guid="12345678-1234-1234-1234-123456789013">
-          <File Id="F" Source="payload.txt"/></Component>
-      </Directory></Directory></Directory>
-    <Feature Id="M" Level="1"><ComponentRef Id="C"/></Feature>
-  </Product>
-</Wix>
-"""
+                              "openssl", "msiinfo", "msibuild")
 SUBJECT = "/CN=GpgFrontend Test Signing/O=Rehearsal/C=DE"
 
 
@@ -1947,11 +1933,11 @@ class StableTest(unittest.TestCase):
         commit = self.git("rev-parse", "HEAD")
         cand = self.tmp / f"cand-{version}"
         cand.mkdir()
-        (self.tmp / "payload.txt").write_text("payload\n")
-        (self.tmp / "t.wxs").write_text(WXS)
-        subprocess.run(["wixl", "-o", cand / f"GpgFrontend-{version}-windows-x86_64.msi",
-                        self.tmp / "t.wxs"], cwd=self.tmp, check=True,
-                       capture_output=True)
+        # A program to sign inside each Windows package, and one of GnuPG's
+        # that stays as it is.
+        build_msi(self.tmp, cand / f"GpgFrontend-{version}-windows-x86_64.msi")
+        build_zip(self.tmp,
+                  cand / f"GpgFrontend-{version}-windows-x86_64-portable.zip")
         for leg in ("linux-x86_64.AppImage", "macos-15.dmg"):
             (cand / f"GpgFrontend-{version}-{leg}").write_bytes(
                 leg.encode() * 200)
@@ -2071,13 +2057,26 @@ class StableTest(unittest.TestCase):
         self.build()
         d = self.stage().run()
 
-        msi = next(a for a in d["artifacts"] if a["kind"] == "msi")
-        self.assertEqual(msi["transform"], "authenticode")
-        self.assertNotEqual(msi["sha256"], msi["build_sha256"])
+        # The MSI and the portable zip signed (inside, and the MSI itself),
+        # everything else published as built.
+        windows = {a["kind"]: a for a in d["artifacts"]
+                   if a["os"] == "windows"}
+        self.assertEqual(set(windows), {"msi", "zip"})
+        for a in windows.values():
+            self.assertEqual(a["transform"], "authenticode")
+            self.assertNotEqual(a["sha256"], a["build_sha256"])
         for a in d["artifacts"]:
-            if a["kind"] != "msi":
+            if a["os"] != "windows":
                 self.assertEqual(a["sha256"], a["build_sha256"])
+                self.assertEqual(a["transform"], "none")
             self.assertTrue(a["sig"].endswith(".sig"))
+        final = self.tmp / "work" / "2.3.0" / "final"
+        portable = authenticode.contents(final / windows["zip"]["name"],
+                                         windows["zip"])
+        self.assertEqual(portable["GpgFrontend/gnupg/bin/gpg.exe"],
+                         pe_bytes("gpg"))
+        self.assertNotEqual(portable["GpgFrontend/bin/app.exe"],
+                            pe_bytes("app"))
         self.assertEqual(d["signing"], {"scheme": "openpgp",
                                         "fingerprint": self.fpr})
 
@@ -2087,7 +2086,7 @@ class StableTest(unittest.TestCase):
         entry = index["releases"]["2.3.0"]
         self.assertTrue(entry["notes"].startswith("notes/2.3.0/"))
         report = self.check()
-        self.assertIn({"version": "2.3.0", "kind": "stable", "artifacts": 3},
+        self.assertIn({"version": "2.3.0", "kind": "stable", "artifacts": 4},
                       report["checked"])
 
     def test_a_resumed_upload_sends_the_same_descriptor(self):

@@ -21,6 +21,10 @@
     "aab"
   ],
   "artifact_prefix": "GpgFrontend-",
+  "authenticode": {
+    "sign_inside": [".exe", ".dll"],
+    "leave_unsigned": ["gnupg"]
+  },
   "artifacts": [
     {
       "match": "^(?:qt6-)?linux-(?P<arch>x86_64|aarch64)\\.AppImage$",

@@ -21,6 +21,7 @@ import argparse
 import contextlib
 import datetime as dt
 import difflib
+import getpass
 import io
 import os
 import re
@@ -76,7 +77,8 @@ OPTIONS = {
     "authenticode_cert": ("certificate file, or PKCS#11 URI", "CERT"),
     "authenticode_key": ("key file, or PKCS#11 URI", "KEY"),
     "pkcs11_module": ("the token's PKCS#11 module", "FILE"),
-    "timestamp_url": ("RFC 3161 time-stamping service", "URL"),
+    "timestamp_url": ("RFC 3161 time-stamping services, comma-separated, "
+                      "tried in turn", "URL[,URL...]"),
     "cafile": ("CA bundle for the HTTPS bases", "FILE"),
     "candidate": ("the verified candidate directory", "DIR"),
     "ref": ("full git ref", "REF"),
@@ -709,16 +711,23 @@ def cmd_stable(ctx) -> int:
     args, product = ctx.args, ctx.product
     signer = None
     if args.authenticode_cert and args.authenticode_key:
+        token = bool(args.pkcs11_module)
         signer = authenticode.Signer(
             args.authenticode_cert, args.authenticode_key,
-            args.pkcs11_module or "", args.timestamp_url or "")
+            args.pkcs11_module or "", args.timestamp_url or "",
+            # One PIN for every program signed, asked at the first.
+            ask_pin=(lambda: getpass.getpass(
+                "PIN of the Authenticode token (empty: the token asks): "))
+            if token and sys.stdin.isatty() else None)
     stage = stable_mod.Stage(
         product, args.version, Path(args.work),
         staging=ctx.store(args.staging), builds=ctx.store(args.builds),
         git_dir=Path(args.git_dir) if args.git_dir else None,
         cosign=args.cosign or "cosign", key=args.key,
         gnupghome=args.gnupghome, signer=signer,
-        authenticode_ca=args.authenticode_ca)
+        authenticode_ca=args.authenticode_ca,
+        on_signed=lambda name, n, total, path:
+        ui.info(f"  {name}: [{n}/{total}] {path}"))
     if args.notes_only:
         digest = stage.publish_notes()
         ctx.result = {"version": args.version, "notes": digest}
