@@ -67,7 +67,8 @@ def show(product: Product, update) -> dict:
         series[key] = {"status": entry.get("status"),
                        "eol": entry.get("eol"),
                        "latest": entry.get("latest"),
-                       "beta": _version_of(entry.get("beta"))}
+                       "beta": _version_of(entry.get("beta")),
+                       "rc": _version_of(entry.get("rc"))}
     return {
         "product": product.slug,
         "serial": index["serial"],
@@ -107,6 +108,8 @@ def render_show(view: dict) -> list[str]:
             parts.append(f"latest {s['latest']}")
         if s["beta"]:
             parts.append(f"beta {s['beta']}")
+        if s.get("rc"):
+            parts.append(f"rc {s['rc']}")
         if s["eol"]:
             parts.append(f"eol {s['eol']}")
         lines.append("  ".join(parts).rstrip())
@@ -246,6 +249,7 @@ def status(product: Product, version: str, *, update, builds, staging=None,
             named["nightly"] = _version_of(index.get("nightly"))
             for key, s in index.get("series", {}).items():
                 named[f"beta of {key}"] = _version_of(s.get("beta"))
+                named[f"release candidate of {key}"] = _version_of(s.get("rc"))
         on = [k for k, value in named.items() if value == version]
         listed = fact("listed", UNKNOWN if index is None else
                       (YES if on else NO),

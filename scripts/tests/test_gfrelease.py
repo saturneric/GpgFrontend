@@ -374,6 +374,48 @@ class ChainTest(unittest.TestCase):
         self.assertIsNone(index["channels"]["beta"])  # a candidate, no beta
         self.check()
 
+    def test_a_tampered_release_candidate_is_caught(self):
+        self.commit()
+        _, nightly = self.build()
+        self.git("checkout", "-q", "-b", "release/2.3")
+        self.git("tag", "v2.3.0-rc.1")
+        self.build(ref="refs/tags/v2.3.0-rc.1")
+        self.promote()
+        index = self.index()
+        report = self.check()
+        self.assertIn("2.3.0-rc.1", [c["version"] for c in report["checked"]])
+
+        def refused(pattern, change):
+            tampered = json.loads(json.dumps(index))
+            change(tampered)
+            self.resign(tampered)
+            self.assert_refused(self.check, pattern)
+
+        def at(path, value):
+            def change(doc):
+                *parents, last = path
+                for key in parents:
+                    doc = doc[key]
+                doc[last] = value
+            return change
+
+        rc = index["series"]["2.3"]["rc"]
+        refused("channels.prerelease", at(("channels", "prerelease"), "2.3.0-rc.9"))
+        refused("prerelease exactly", at(("series", "2.3", "prerelease"), False))
+        refused("prerelease exactly", at(("series", "2.2", "prerelease"), True))
+        refused("series 2.3 offers", at(("series", "2.3", "latest"), "2.2.4"))
+        refused("not a release candidate", at(("series", "2.3", "status"), "legacy"))
+        refused("does not name a build", at(("series", "2.3", "rc"), "2.3.0-rc.1"))
+        refused("not the newest", lambda d: (d.update(prerelease=None),
+                                             d["channels"].update(prerelease=None)))
+        refused("as its rc", lambda d: (d["series"]["2.2"].update(rc=rc, prerelease=True),
+                                        d["series"]["2.3"].update(rc=None, prerelease=False)))
+        # The nightly's descriptor, listed as the candidate: not its tag's.
+        alpha = dict(index["nightly"])
+        refused("not a release candidate|built from",
+                at(("series", "2.3", "rc"), alpha))
+        self.assertTrue(nightly.startswith("2.3.0-alpha"))
+
     def test_a_candidate_off_its_branch_or_after_its_release_is_refused(self):
         self.commit()
         self.git("tag", "v2.3.0-rc.1")  # on main: no release/2.3 yet
@@ -1103,6 +1145,25 @@ class ChainTest(unittest.TestCase):
         code, out, _ = self.run_cli("status", version, *stores)
         self.assertIn("✓ listed  (nightly)", out)
         self.assertNotIn("next:", out)
+
+    def test_status_and_show_name_a_release_candidate(self):
+        self.commit()
+        self.git("checkout", "-q", "-b", "release/2.3")
+        self.git("tag", "v2.3.0-rc.1")
+        self.build(ref="refs/tags/v2.3.0-rc.1")
+        self.promote()
+        self.index()
+        stores = ["--update", self.update.root, "--builds", self.builds.root]
+        code, out, err = self.run_cli("status", "2.3.0-rc.1", "--json",
+                                      *stores)
+        self.assertEqual(code, 0, err)
+        view = json.loads(out)
+        listed = next(f for f in view["facts"] if f["step"] == "listed")
+        self.assertEqual(listed["state"], "yes")
+        self.assertIn("release candidate of 2.3", listed["detail"])
+        code, out, err = self.run_cli("show", "--update", self.update.root)
+        self.assertEqual(code, 0, err)
+        self.assertIn("rc 2.3.0-rc.1", out)
 
     def test_show_reads_the_index_as_a_client_does(self):
         self.commit()

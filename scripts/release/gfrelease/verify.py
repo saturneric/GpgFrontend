@@ -152,7 +152,7 @@ def check_index(product: Product, index: dict, comment: str) -> None:
     for version in _typed(index.get("channels"), dict, "channels").values():
         if version is not None:
             _typed(version, str, "channels")
-    for name in ("nightly", "beta"):
+    for name in ("nightly", "beta", "prerelease"):
         if index.get(name) is not None and \
                 not descriptor.names_build(index[name]):
             raise ReleaseError(f"the index's {name} does not name a build")
@@ -163,9 +163,14 @@ def check_index(product: Product, index: dict, comment: str) -> None:
             _typed(entry.get(field), str, f"release {version}'s {field}")
     for key, entry in _typed(index.get("series"), dict, "series").items():
         _typed(entry, dict, f"series {key}")
-        if entry.get("beta") is not None and \
-                not descriptor.names_build(entry["beta"]):
-            raise ReleaseError(f"series {key}'s beta does not name a build")
+        for name in ("beta", "rc"):
+            if entry.get(name) is not None and \
+                    not descriptor.names_build(entry[name]):
+                raise ReleaseError(f"series {key}'s {name} does not name a "
+                                   "build")
+        if not isinstance(entry.get("prerelease", False), bool):
+            raise ReleaseError(f"the index's series {key}'s prerelease has "
+                               "the wrong type")
         if entry.get("latest") is not None:
             _typed(entry["latest"], str, f"series {key}'s latest")
     for w in _typed(index.get("withdrawn", []), list, "withdrawn"):
@@ -178,10 +183,7 @@ def _check_channels(index: dict) -> list[tuple[str, dict]]:
     to check, each with the release branch it must have been built from."""
     releases, channels = index["releases"], index["channels"]
     series = index["series"]
-    nightly, beta = index.get("nightly") or {}, index.get("beta") or {}
-    if channels.get("beta") != beta.get("version"):
-        raise ReleaseError(f"channels.beta {channels.get('beta')} is not "
-                           "the listed beta")
+    nightly = index.get("nightly") or {}
     if channels.get("stable") is not None and \
             channels["stable"] not in releases:
         raise ReleaseError(f"channels.stable {channels['stable']} is not "
@@ -221,25 +223,49 @@ def _check_channels(index: dict) -> list[tuple[str, dict]]:
                                "latest release")
         return refs.HEADS + refs.release_branch(v.series), b
 
-    betas = []
+    def candidate(b: dict, key: str) -> tuple[str, dict]:
+        """A release candidate is X.Y.0-rc.N of a series users are meant
+        to move to and that has no release yet (index._choose_rcs): built
+        from its own tag."""
+        v = parse_version(b["version"], f"series {key}")
+        entry = series[key]
+        if not v.is_release_candidate or \
+                entry.get("status") not in policy_mod.CURRENT_STATUSES or \
+                entry.get("latest") is not None or v in withdrawn:
+            raise ReleaseError(f"series {key} offers {b['version']}, which "
+                               "is not a release candidate it may offer")
+        return refs.release_tag_ref(b["version"]), b
+
+    def newest(name: str, found: list[tuple[str, dict]]) -> None:
+        """The listed one is the newest of the series' (clients older than
+        the per-series entries look there), and is listed when any is."""
+        listed = index.get(name) or {}
+        if channels.get(name) != listed.get("version"):
+            raise ReleaseError(f"channels.{name} {channels.get(name)} is not "
+                               f"the listed {name}")
+        best = max((b for _, b in found),
+                   key=lambda b: parse_version(b["version"]), default=None)
+        if (listed or None) != best:
+            raise ReleaseError(f"the listed {name} is not the newest of the "
+                               f"series' ({name})")
+
+    betas, rcs = [], []
     for key, entry in series.items():
-        if entry.get("beta") is None:
-            continue
-        if parse_version(entry["beta"]["version"],
-                         f"series {key}").series != key:
-            raise ReleaseError(f"series {key} offers "
-                               f"{entry['beta']['version']} as its beta")
-        betas.append(offered(entry["beta"], f"series {key}"))
-    if beta:
-        # The newest of the series' betas, for clients that predate them.
-        newest = max((b for _, b in betas),
-                     key=lambda b: parse_version(b["version"]), default=None)
-        if beta != newest:
-            raise ReleaseError(f"the listed beta {beta['version']} is not "
-                               "the newest of the series' betas")
-    elif betas:
-        raise ReleaseError("a series offers a beta the index does not list")
-    return betas
+        for name, out in (("beta", betas), ("rc", rcs)):
+            b = entry.get(name)
+            if b is None:
+                continue
+            if parse_version(b["version"], f"series {key}").series != key:
+                raise ReleaseError(f"series {key} offers {b['version']} as "
+                                   f"its {name}")
+            out.append(offered(b, f"series {key}") if name == "beta"
+                       else candidate(b, key))
+        if bool(entry.get("rc")) != entry.get("prerelease", False):
+            raise ReleaseError(f"series {key} is a prerelease exactly when "
+                               "it offers a release candidate")
+    newest("beta", betas)
+    newest("prerelease", rcs)
+    return betas + rcs
 
 
 def _index_keys(product: Product, source, index: dict) -> list[str]:
