@@ -462,6 +462,18 @@ def _signed(sig: dict, sha256: str) -> dict:
             "created": sig["created"]}
 
 
+def _verified_artifact(ring: openpgp.Keyring, builds: Store, a: dict,
+                       work: Path) -> dict:
+    """The descriptor's file @p a, fetched into @p work: exactly the bytes
+    it names, with a pinned maintainer's signature beside it. Returns that
+    signature (_signed)."""
+    local = builds.fetch_to(a["path"], work / a["name"])
+    if sha256_file(local) != a["sha256"]:
+        raise ReleaseError(f"{a['name']}: not the published bytes")
+    sig = builds.fetch_to(a["sig"], work / (a["name"] + SIG))
+    return _signed(ring.verify_signature(local, sig), a["sha256"])
+
+
 def _check_stable(product: Product, builds: Store, d: dict, path: str, *,
                   git_dir: Path, cosign: str, tmp: Path,
                   authenticode_ca: str | None, recheck: bool) -> dict:
@@ -494,12 +506,7 @@ def _check_stable(product: Product, builds: Store, d: dict, path: str, *,
         # Every file's own signature, as published beside it: a release
         # with one missing or invalid is not listed.
         for a in d["artifacts"]:
-            local = builds.fetch_to(a["path"], work / a["name"])
-            if sha256_file(local) != a["sha256"]:
-                raise ReleaseError(f"{a['name']}: not the published bytes")
-            signatures[a["name"]] = _signed(ring.verify_signature(
-                local, builds.fetch_to(a["sig"], work / (a["name"] + SIG))),
-                a["sha256"])
+            signatures[a["name"]] = _verified_artifact(ring, builds, a, work)
 
     # What CI built, as Sigstore says: every file's build hash.
     built = _built(product, builds, d, d["ref"], path, work / "build", cosign)
@@ -582,12 +589,7 @@ def _check_imported_files(product: Product, builds: Store, d: dict, path: str,
     signatures = {}
     with openpgp.Keyring.of(product, retired=recheck) as ring:
         for a in d["artifacts"]:
-            local = builds.fetch_to(a["path"], work / a["name"])
-            sig = builds.fetch_to(a["sig"], work / (a["name"] + SIG))
-            if sha256_file(local) != a["sha256"]:
-                raise ReleaseError(f"{a['name']}: not the descriptor's bytes")
-            signatures[a["name"]] = _signed(ring.verify_signature(local, sig),
-                                            a["sha256"])
+            signatures[a["name"]] = _verified_artifact(ring, builds, a, work)
     return signatures
 
 

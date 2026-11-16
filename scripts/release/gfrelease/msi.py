@@ -410,11 +410,11 @@ class Payload:
         if again.files() != expected:
             raise ReleaseError(f"{out.name}: the rewritten payload does not "
                                "read back as written")
+        stored = {h["File_"]: tuple(int(h[f"HashPart{i}"])
+                                    for i in range(1, 5))
+                  for h in table(out, "MsiFileHash")}
         for key in changed.keys() & self.hashed:
-            row = next(h for h in table(out, "MsiFileHash")
-                       if h["File_"] == key)
-            if tuple(int(row[f"HashPart{i}"]) for i in range(1, 5)) != \
-                    hash_parts(changed[key]):
+            if stored.get(key) != hash_parts(changed[key]):
                 raise ReleaseError(f"{out.name}: {self.paths[key]}'s "
                                    "MsiFileHash did not take")
         sizes = {f["File"]: int(f["FileSize"]) for f in table(out, "File")}

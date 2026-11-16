@@ -414,10 +414,10 @@ class Stage:
         self.outbox.put_file(self.final_dir / (SUMS + SIG),
                              f"{p}/{SUMS}{SIG}")
         build = self.dir / "build"
-        self.outbox.put_file(build / SUMS, f"{p}/build/{SUMS}")
-        self.outbox.put_file(build / BUNDLE, f"{p}/build/{BUNDLE}")
+        self.outbox.put_file(build / SUMS, layout.build_sums(p))
+        self.outbox.put_file(build / BUNDLE, layout.build_bundle(p))
 
-        if left_out:
+        if left_out >= 1e6:
             ui.info(f"  {left_out / 1e6:.1f} MB not uploaded: the host takes "
                     f"the files signing left as they were from {staged}/")
 
@@ -438,8 +438,8 @@ class Stage:
             "built_at": b["built_at"], "released_at": self.state["released_at"],
             "signing": {"scheme": layout.SCHEME_OPENPGP,
                         "fingerprint": self.key},
-            "build": {"sums": f"{p}/build/{SUMS}",
-                      "bundle": f"{p}/build/{BUNDLE}",
+            "build": {"sums": layout.build_sums(p),
+                      "bundle": layout.build_bundle(p),
                       "identity": b["identity"]},
             "sums": f"{p}/{SUMS}", "sums_sig": f"{p}/{SUMS}{SIG}",
             "artifacts": artifacts,

@@ -19,11 +19,10 @@ a copy of the key on disk.
 from __future__ import annotations
 
 import base64
-import os
 import tempfile
 from pathlib import Path
 
-from common import MINISIG, WINDOWS, ReleaseError, run
+from common import MINISIG, ReleaseError, run, run_with_secret
 
 
 def _id(raw: bytes) -> str:
@@ -67,21 +66,9 @@ def sign(secret_key: Path, file: Path, trusted_comment: str,
     if "\n" in trusted_comment:
         raise ReleaseError("a trusted comment is one line")
     sig = sig or file.with_name(file.name + MINISIG)
-    if WINDOWS:
-        raise ReleaseError("minisign signs on Linux only: the key reaches it "
-                           "through a pipe Windows cannot name")
-    secret = Path(secret_key).read_bytes()
-    r, w = os.pipe()
-    try:
-        os.write(w, secret)  # a key is a few hundred bytes: never blocks
-        os.close(w)
-        w = None
-        run(["minisign", "-S", "-s", f"/dev/fd/{r}", "-m", file, "-x", sig,
-             "-t", trusted_comment], pass_fds=(r,), capture_output=False)
-    finally:
-        os.close(r)
-        if w is not None:
-            os.close(w)
+    run_with_secret(["minisign", "-S", "-s", "{secret}", "-m", file,
+                     "-x", sig, "-t", trusted_comment],
+                    Path(secret_key).read_bytes(), capture_output=False)
     return sig
 
 

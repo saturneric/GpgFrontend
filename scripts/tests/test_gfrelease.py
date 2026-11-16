@@ -3160,7 +3160,7 @@ class ImportTest(unittest.TestCase):
         stored = (self.tmp / "builds" / self.product.slug / "releases" /
                   "2.2.4" / "GpgFrontend-2.2.4-macos-15.dmg")
         stored.write_bytes(b"replaced")
-        self.assert_refused(self.index, "not the descriptor's bytes")
+        self.assert_refused(self.index, "not the published bytes")
 
     def test_the_host_refuses_a_moved_tag(self):
         self.publish_on_github("2.2.4", self.LEGS)

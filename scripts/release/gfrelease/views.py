@@ -26,7 +26,9 @@ import stable as stable_mod
 import trust
 import verify as verify_mod
 from store import NotFound
+from stage import read_staged
 from common import (DESCRIPTOR, STAGED, Product, ReleaseError, parse_iso,
+                    policy_mod, resolve_commit,
                     parse_version, refs, run, utcnow)
 
 YES, NO, UNKNOWN = "yes", "no", "unknown"
@@ -51,6 +53,14 @@ def _live_index(product: Product, update) -> tuple[dict | None, str | None]:
         return None, str(e)
 
 
+CHANNELS = ("stable", "beta", "prerelease", "nightly")
+
+
+def channel_lines(channels: dict) -> list[str]:
+    """One line per channel: its name and what it offers, or "-"."""
+    return [f"  {name:<10} {channels.get(name) or '-'}" for name in CHANNELS]
+
+
 def _version_of(entry) -> str | None:
     return entry.get("version") if isinstance(entry, dict) else None
 
@@ -61,8 +71,7 @@ def show(product: Product, update) -> dict:
     index = verify_mod.read_index(product, update)
     series = {}
     for key, entry in sorted(index.get("series", {}).items(),
-                             key=lambda kv: [int(p) for p in
-                                             kv[0].split(".")],
+                             key=lambda kv: policy_mod.series_order(kv[0]),
                              reverse=True):
         series[key] = {"status": entry.get("status"),
                        "eol": entry.get("eol"),
@@ -99,8 +108,7 @@ def render_show(view: dict) -> list[str]:
         "",
         "channels",
     ]
-    for name in ("stable", "beta", "prerelease", "nightly"):
-        lines.append(f"  {name:<8} {view['channels'].get(name) or '-'}")
+    lines += channel_lines(view["channels"])
     lines += ["", "series"]
     for key, s in view["series"].items():
         parts = [f"  {key:<6} {s['status'] or '-':<10}"]
@@ -158,11 +166,10 @@ def _tagged(git_dir, version: str) -> str:
     if not git_dir:
         return UNKNOWN
     try:
-        out = run(["git", "-C", git_dir, "rev-parse", "-q", "--verify",
-                   f"refs/tags/{refs.release_tag(version)}"], check=False)
+        found = resolve_commit(Path(git_dir), refs.release_tag_ref(version))
     except ReleaseError:
-        return UNKNOWN
-    return YES if out.returncode == 0 else NO
+        return UNKNOWN  # a repository that cannot be asked: not "no"
+    return YES if found else NO
 
 
 def _stage_state(work, version: str) -> dict | None:
@@ -292,9 +299,9 @@ def overview(product: Product, *, update, builds=None, staging=None) -> dict:
         for path in staging.files(layout.BRANCHES, include=f"*/*/{STAGED}"):
             branch = path.split("/")[0]
             try:
-                staged = json.loads(staging.read(f"{layout.BRANCHES}/{path}"))
-                v = parse_version(staged["version"])
-            except (ReleaseError, ValueError, KeyError, TypeError):
+                v = parse_version(read_staged(staging.read(
+                    f"{layout.BRANCHES}/{path}"))["version"])
+            except ReleaseError:
                 continue
             if branch not in newest or v > parse_version(newest[branch]):
                 newest[branch] = str(v)
@@ -311,8 +318,7 @@ def render_overview(view: dict) -> list[str]:
     if view["channels"] is None:
         lines.append(f"  unknown: {view['index_problem']}")
     else:
-        for name in ("stable", "beta", "prerelease", "nightly"):
-            lines.append(f"  {name:<8} {view['channels'].get(name) or '-'}")
+        lines += channel_lines(view["channels"])
     if view["branches"]:
         lines += ["", "staged (each branch's newest)"]
         for branch, b in view["branches"].items():
@@ -327,12 +333,12 @@ def root_status(root_dir: Path, slug: str) -> dict:
     """The newest root file in @p root_dir, trusted or still collecting
     signatures: which root keys signed it, against the thresholds of the
     root before it and its own."""
-    names = sorted(Path(root_dir).glob("*.root.json"),
-                   key=lambda p: int(p.name.split(".")[0])
-                   if p.name.split(".")[0].isdigit() else -1)
-    if not names:
+    found = policy_mod.numbered((p.name for p in Path(root_dir).iterdir()),
+                                policy_mod.ROOT_FILE) \
+        if Path(root_dir).is_dir() else []
+    if not found:
         raise ReleaseError(f"{root_dir}: no root")
-    path = names[-1]
+    path = Path(root_dir) / layout.root_name(found[-1])
     read = trust.read_dir(root_dir)
     data = path.read_bytes()
     doc = trust.load(data, path.name, trust.ROOT_KIND, slug)
@@ -383,7 +389,7 @@ def root_status_next(view: dict) -> str | None:
         return (f"commit {view['file']} and its signatures; the signing "
                 "host takes it on its next round")
     if view["complete"]:
-        if view["days_left"] < 60:
+        if view["days_left"] < trust.ROOT_WARN_DAYS:
             return ("renew it: gfrelease trust root new (gfrelease help "
                     "root-ceremony)")
         return None

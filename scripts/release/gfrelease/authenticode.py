@@ -59,7 +59,7 @@ from typing import Callable
 from pathlib import Path, PurePosixPath
 
 import msi
-from common import WINDOWS, ReleaseError, ToolFailed, run
+from common import WINDOWS, ReleaseError, ToolFailed, run, run_with_secret
 
 # Signing goes through the time-stamping services in turn: one being
 # slow or rate-limited costs a retry, not the release. Only that is
@@ -167,17 +167,8 @@ class Signer:
                                "Windows cannot name; sign by the "
                                "certificate's thumbprint there "
                                "(authenticode_thumbprint)")
-        r, w = os.pipe()
-        try:
-            os.write(w, self.pin.encode() + b"\n")
-            os.close(w)
-            w = -1
-            run(cmd + ["-readpass", f"/dev/fd/{r}", "-in", src, "-out", dst],
-                pass_fds=(r,))
-        finally:
-            os.close(r)
-            if w >= 0:
-                os.close(w)
+        run_with_secret(cmd + ["-readpass", "{secret}", "-in", src,
+                               "-out", dst], self.pin.encode() + b"\n")
 
     def sign(self, src: Path, dst: Path) -> None:
         urls = self.timestamps
@@ -460,15 +451,12 @@ def verify_package(file: Path, info: dict, subject: str | list[str],
         verify(file, subject, cafile, require_timestamp)
     if not inside:
         return 0
-    programs = {p: d for p, d in contents(file, info).items()
-                if rules.wants(p)}
     with tempfile.TemporaryDirectory(prefix="gfr-verify-") as tmp:
-        files = []
-        for n, (path, data) in enumerate(sorted(programs.items())):
-            local = Path(tmp) / f"{n:04d}{PurePosixPath(path).suffix}"
-            local.write_bytes(data)
-            files.append((local, f"{file.name}: {path}"))
-        _verify(files, subject, cafile, require_timestamp)
+        # Laid out as the stage signed them.
+        programs = open_package(file, info, rules, Path(tmp)).programs
+        _verify([(local, f"{file.name}: {path}")
+                 for path, local in programs.items()],
+                subject, cafile, require_timestamp)
     return len(programs)
 
 

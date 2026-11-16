@@ -555,12 +555,12 @@ def main(argv=None) -> int:
 
 # --- the commands ------------------------------------------------------------
 
-def sources(ctx, update_name="update", builds_name="builds"):
+def sources(ctx):
     """The update and builds stores, or the HTTPS bases a client reads."""
     args, product = ctx.args, ctx.product
     bases = product.data["bases"]
-    update = getattr(args, update_name, None)
-    builds = getattr(args, builds_name, None)
+    update = getattr(args, "update", None)
+    builds = getattr(args, "builds", None)
     cafile = getattr(args, "cafile", None)
     return (Store(update, ctx.rclone) if update else
             verify_mod.HttpSource(bases["update"], product.slug, cafile),
@@ -581,8 +581,8 @@ def cmd_verify(ctx) -> int:
     ui.info(f"index serial {report['serial']} of {report['product']} "
             f"verifies; expires {report['expires']} (in "
             f"{left.total_seconds() / 86400:.1f} days)")
-    for name in ("stable", "beta", "prerelease", "nightly"):
-        ui.info(f"  {name:<8} {report['channels'].get(name) or '-'}")
+    for line in views.channel_lines(report["channels"]):
+        ui.info(line)
     ui.info(f"checked {len(report['checked'])}"
             f"{' deeply' if args.deep else ''}:")
     for c in report["checked"]:
@@ -854,10 +854,10 @@ def report_trust(root: dict, keys: dict) -> None:
 
 def trust_next(root: dict, keys: dict) -> None:
     """A next: line when the root or the list should be renewed soon."""
-    if trust.days_left(root) < 60:
+    if trust.days_left(root) < trust.ROOT_WARN_DAYS:
         ui.next_step("renew the root: gfrelease trust root new (gfrelease "
                      "help root-ceremony)")
-    elif trust.days_left(keys) < 30:
+    elif trust.days_left(keys) < trust.INDEX_KEYS_WARN_DAYS:
         ui.next_step("renew the index-keys list: gfrelease trust keys renew")
 
 
@@ -1059,8 +1059,8 @@ def cmd_host(ctx) -> int:
 
 def render_dry_run(report: dict) -> None:
     ui.info("would list:")
-    for name in ("stable", "beta", "prerelease", "nightly"):
-        ui.info(f"  {name:<8} {report['channels'].get(name) or '-'}")
+    for line in views.channel_lines(report["channels"]):
+        ui.info(line)
     for key, version in sorted(report.get("betas", {}).items()):
         ui.info(f"  beta of {key}: {version}")
     ui.info(f"  releases {', '.join(report['releases']) or '-'}")
