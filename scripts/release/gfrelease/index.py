@@ -514,13 +514,17 @@ def _check_stable(product: Product, builds: Store, d: dict, path: str, *,
         elif a.get("transform") == "authenticode":
             # Downloaded and hashed above, with its signature. The current
             # certificate, or on a recheck one it replaced: a release stays
-            # admitted however often it is checked again.
-            authenticode.verify(work / a["name"],
-                                product.authenticode_subjects if recheck
-                                else [product.authenticode_subject],
-                                authenticode_ca,
-                                require_timestamp=product
-                                .authenticode_timestamp_required)
+            # admitted however often it is checked again. The package and
+            # every program inside it the product's rule names.
+            if not any(authenticode.plan(a)):
+                raise ReleaseError(f"{a['name']}: a {a['kind']} is never "
+                                   "Authenticode-signed")
+            authenticode.verify_package(
+                work / a["name"], a,
+                product.authenticode_subjects if recheck
+                else [product.authenticode_subject],
+                authenticode_ca, authenticode.Rules.of(product),
+                require_timestamp=product.authenticode_timestamp_required)
         else:
             raise ReleaseError(f"{a['name']}: unknown transform "
                                f"{a.get('transform')!r}")

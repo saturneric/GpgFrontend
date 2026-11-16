@@ -28,9 +28,10 @@ from common import ReleaseError, run
 ROLES = ("maintainer", "ci", "host")
 TOOLS = {
     "maintainer": ("git", "gpg", "rclone", "cosign", "minisign",
-                   "osslsigncode"),
+                   "osslsigncode", "msiinfo", "msibuild"),
     "ci": ("git", "rclone", "cosign"),
-    "host": ("git", "gpg", "rclone", "cosign", "minisign", "osslsigncode"),
+    "host": ("git", "gpg", "rclone", "cosign", "minisign", "osslsigncode",
+             "msiinfo"),
 }
 STORES = {
     "maintainer": ("staging", "builds"),

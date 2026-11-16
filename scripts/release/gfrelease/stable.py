@@ -10,8 +10,10 @@ only through this, run by hand:
                product's workflow at exactly that tag and commit, every file
                matches the signed manifest, the tag is signed by a maintainer
                key and points at that commit, and git calls it that version
-  authenticode the Windows installers, with the certificate on its token;
-               the time stamp is the one network call               (TSA)
+  authenticode the Windows packages, inside and out, with the certificate
+               on its token (its PIN asked once): every program in the MSI
+               and the portable zip, then the MSI itself; the time stamps
+               are the one network call                             (TSA)
   pgp          a detached .sig for every final file, a final SHA256SUMS.txt
                and its .sig, and the release notes the tag carries, signed
   upload       everything to releases/<version>/ and notes/, the descriptor
@@ -32,6 +34,9 @@ hand.
 Authenticode changes the bytes it signs. The descriptor keeps both hashes:
 `build_sha256`, which the CI's signed manifest covers, and `sha256`, of the
 file as published, with `transform: authenticode` saying why they differ.
+Which programs inside a package are signed is product.json's
+`authenticode` rule (authenticode.py); everything else in it stays as CI
+built it, and the stage checks that before the upload.
 """
 
 from __future__ import annotations
@@ -41,8 +46,8 @@ import shutil
 from pathlib import Path
 
 import authenticode
-import openpgp
 import layout
+import openpgp
 from common import (BUNDLE, SCHEMA, SIG, STAGED, SUMS, Product, ReleaseError,
                     atomic_write, canonical_json, iso, load_json, notes_at,
                     parse_version, refs, render_manifest, sha256_bytes,
@@ -60,7 +65,7 @@ class Stage:
                  git_dir: Path | None = None, cosign: str = "cosign",
                  key: str | None = None, gnupghome: str | None = None,
                  signer: authenticode.Signer | None = None,
-                 authenticode_ca: str | None = None):
+                 authenticode_ca: str | None = None, on_signed=None):
         v = parse_version(version)
         if not v.is_release:
             raise ReleaseError(f"{version}: the offline stage is for final "
@@ -75,6 +80,9 @@ class Stage:
         self.gnupghome = gnupghome
         self.signer = signer
         self.authenticode_ca = authenticode_ca
+        # on_signed(file, done, total, path): each program signed inside a
+        # package, for whoever shows the progress.
+        self.on_signed = on_signed
         self.dir.mkdir(parents=True, exist_ok=True)
         self.state_path = self.dir / "state.json"
         self.state = (load_json(self.state_path.read_text(),
@@ -260,7 +268,7 @@ class Stage:
                       for n in files}}
 
     def _authenticode(self) -> None:
-        if self.signer is not None and not self.signer.timestamp_url and \
+        if self.signer is not None and not self.signer.timestamps and \
                 self.product.authenticode_timestamp_required:
             # Without a time stamp the signature dies with the certificate:
             # every later check of the release would refuse it.
@@ -270,18 +278,27 @@ class Stage:
         if self.final_dir.exists():
             shutil.rmtree(self.final_dir)
         self.final_dir.mkdir()
+        rules = authenticode.Rules.of(self.product)
         files = self.state["build"]["files"]
         for name, info in sorted(files.items()):
-            if info["kind"] in authenticode.SIGNED_KINDS:
+            if any(authenticode.plan(info)):
                 if self.signer is None:
                     raise ReleaseError(f"{name} needs an Authenticode signer "
                                        "(--authenticode-cert/-key)")
-                self.signer.sign(build / name, self.final_dir / name)
-                authenticode.verify(self.final_dir / name,
-                                    self.product.authenticode_subject,
-                                    self.authenticode_ca,
-                                    require_timestamp=self.product
-                                    .authenticode_timestamp_required)
+                signed = authenticode.sign_package(
+                    build / name, self.final_dir / name, info, self.signer,
+                    rules, progress=None if self.on_signed is None else
+                    lambda n, total, path, name=name:
+                    self.on_signed(name, n, total, path))
+                # Checked as the signing host will, before anything leaves.
+                authenticode.unchanged_apart_from(build / name,
+                                                  self.final_dir / name,
+                                                  info, signed)
+                authenticode.verify_package(
+                    self.final_dir / name, info,
+                    self.product.authenticode_subject, self.authenticode_ca,
+                    rules, require_timestamp=self.product
+                    .authenticode_timestamp_required)
                 info["transform"] = "authenticode"
             else:
                 shutil.copy2(build / name, self.final_dir / name)
