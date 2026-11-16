@@ -92,7 +92,12 @@ class Problems(list):
     passing = False
 
     def note(self, where: str, error: Exception) -> None:
-        self.append(f"{where}: {error}")
+        text = str(error)
+        # Most errors name their place already: never twice.
+        head, sep, rest = text.partition(": ")
+        if sep and (head == where or where.endswith("/" + head)):
+            text = rest
+        self.append(f"{where}: {text}")
         if is_passing(error):
             self.passing = True
 
@@ -432,17 +437,44 @@ def locked(state_dir: Path, shared: bool = False):
         yield
 
 
-def git_version(git_dir: Path, commit: str, ref: str) -> str:
+def git_version(git_dir: Path, commit: str, ref: str,
+                exclude: tuple[str, ...] = ()) -> str:
     """Which version a commit is, asked of git through the one derivation the
-    build itself uses, never taken from what the build claims."""
-    try:
-        return gitversion.derive(git_dir, ref=ref, rev=commit)
-    except subprocess.CalledProcessError as e:
-        raise ToolFailed(f"cmake failed: {(e.stderr or '').strip()}") from e
-    except subprocess.TimeoutExpired as e:
-        raise ToolTimeout(f"cmake did not finish within {e.timeout} s") from e
-    except FileNotFoundError as e:
-        raise ToolFailed("cmake is not installed") from e
+    build itself uses, never taken from what the build claims; with
+    @p exclude, as git called it before those tags were made."""
+    return run(gitversion.command(git_dir, ref=ref, rev=commit,
+                                  exclude=exclude),
+               timeout=gitversion.TIMEOUT).stdout.strip()
+
+
+# How many tags made after a build check_git_version() looks past.
+_LATER_TAGS = 4
+
+
+def check_git_version(git_dir: Path, commit: str, ref: str, branch: str,
+                      claimed: str, where: str) -> str:
+    """@p claimed, once git calls @p commit, built from @p ref, on @p branch
+    that: now, or before tags made after it was built. A build is named
+    when it is made; tagging its commit (or one before it) later renames it
+    in git's eyes, never what was built. Its own tag (a candidate's) is
+    never looked past. Anything else is refused with what git says it is."""
+    own = refs.tag_of(ref)
+    derived = git_version(git_dir, commit, branch)
+    found, excluded = derived, []
+    for _ in range(_LATER_TAGS):
+        if found == claimed:
+            return claimed
+        out = run(["git", "-C", git_dir, "describe", "--tags", "--abbrev=0",
+                   "--match=v[0-9]*.[0-9]*.[0-9]*",
+                   *(f"--exclude={t}" for t in excluded), commit],
+                  check=False)
+        tag = out.stdout.strip()
+        if out.returncode != 0 or not tag or tag == own:
+            break
+        excluded.append(tag)
+        found = git_version(git_dir, commit, branch, tuple(excluded))
+    raise ReleaseError(f"{where}: git says {commit[:12]} on {branch} is "
+                       f"{derived}, not {claimed}")
 
 
 def resolve_commit(git_dir: Path, rev: str) -> str | None:

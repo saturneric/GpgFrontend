@@ -31,6 +31,8 @@
 # GPGFRONTEND_VERSION_REV=<commit> asks about that commit instead of the work
 # tree, and the repository may then be bare: how the release tooling learns,
 # from git and not from what a build claims, which version a commit is.
+# GPGFRONTEND_VERSION_EXCLUDE=<tag>[;<tag>...] leaves those tags out: what
+# git called the commit before they were made.
 #
 # Rules (SemVer 2.0.0):
 #   on a tag vX.Y.Z[-beta.N|-rc.N]       -> the tag without "v"
@@ -289,10 +291,17 @@ function(gf_git_version source_dir)
   elseif(EXISTS "${source_dir}/.git")
     set(_has_git TRUE)
   endif()
+  # GPGFRONTEND_VERSION_EXCLUDE=<tag>[;<tag>...]: those tags left out, so the
+  # release tooling can ask what git called a commit before they were made.
+  set(_exclude_args "")
+  foreach(_excluded IN LISTS GPGFRONTEND_VERSION_EXCLUDE)
+    list(APPEND _exclude_args "--exclude=${_excluded}")
+  endforeach()
   if(GIT_EXECUTABLE AND _has_git)
     execute_process(
       COMMAND "${GIT_EXECUTABLE}" describe --tags --long --abbrev=12
-              ${_dirty_arg} "--match=v[0-9]*.[0-9]*.[0-9]*" ${_rev}
+              ${_dirty_arg} "--match=v[0-9]*.[0-9]*.[0-9]*" ${_exclude_args}
+              ${_rev}
       WORKING_DIRECTORY "${source_dir}"
       OUTPUT_VARIABLE _describe
       OUTPUT_STRIP_TRAILING_WHITESPACE

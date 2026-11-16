@@ -392,6 +392,62 @@ class ChainTest(unittest.TestCase):
             self.promote()
         self.assertIn("has been released already", str(e.exception))
 
+    def test_a_build_tagged_after_it_was_promoted_stays_listed(self):
+        """Tagging v2.2.5 on the commit release/2.2's newest build was made
+        of renames that commit in git's eyes, never the build: it stays the
+        beta, named as it was built, until the release itself is listed."""
+        self.git("checkout", "-q", "-b", "release/2.2", "v2.2.4")
+        self.commit()
+        _, version = self.build(ref="refs/heads/release/2.2")
+        self.promote()
+        self.index()
+        for annotated in (False, True):
+            with self.subTest(annotated=annotated):
+                self.git("tag", "-f", *(["-a", "-m", "2.2.5"] if annotated
+                                        else []), "v2.2.5")
+                index = self.index(force=True)
+                self.assertEqual(index["channels"]["beta"], version)
+                self.check()
+
+    def test_a_build_whose_ancestor_was_tagged_later_stays_listed(self):
+        self.git("checkout", "-q", "-b", "release/2.2", "v2.2.4")
+        self.commit()
+        self.commit()
+        _, version = self.build(ref="refs/heads/release/2.2")
+        self.promote()
+        self.git("tag", "v2.2.5", "HEAD~1")
+        self.assertEqual(self.index()["channels"]["beta"], version)
+        self.check()
+
+    def test_a_candidate_tagged_as_its_release_stays_listed(self):
+        self.commit()
+        self.git("checkout", "-q", "-b", "release/2.3")
+        self.git("tag", "v2.3.0-rc.1")
+        self.build(ref="refs/tags/v2.3.0-rc.1")
+        self.promote()
+        self.git("tag", "v2.3.0")
+        self.assertEqual(self.index()["channels"]["prerelease"], "2.3.0-rc.1")
+        self.check()
+
+    def test_a_build_tagged_before_promotion_is_promoted_as_built(self):
+        self.git("checkout", "-q", "-b", "release/2.2", "v2.2.4")
+        self.commit()
+        _, version = self.build(ref="refs/heads/release/2.2")
+        self.git("tag", "v2.2.5")
+        self.assertEqual([d["version"] for d in self.promote()], [version])
+
+    def test_a_name_git_never_gave_is_refused_on_a_tagged_commit(self):
+        self.git("checkout", "-q", "-b", "release/2.2", "v2.2.4")
+        self.commit()
+        self.git("tag", "v2.2.5")
+        self.commit()
+        self.build(ref="refs/heads/release/2.2", claim="2.2.6-alpha.7+gabc")
+        with self.assertRaises(promote_mod.PromoteIncomplete) as e:
+            self.promote()
+        self.assertIn("git says", str(e.exception))
+        # Named once: the path is not repeated.
+        self.assertEqual(str(e.exception).count("branches/release-2.2/"), 1)
+
     def test_a_tampered_beta_entry_is_caught(self):
         self.git("checkout", "-q", "-b", "release/2.2", "v2.2.4")
         self.commit()
