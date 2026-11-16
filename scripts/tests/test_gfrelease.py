@@ -2153,6 +2153,18 @@ class StableTest(unittest.TestCase):
         self.assertFalse(published.exists())
         self.assertTrue(self.staging.exists(
             "signed/releases/2.3.0/release.json"))
+        # Every step done, nothing received yet: status says so.
+        view = views.status(self.product, "2.3.0", update=self.update,
+                            builds=self.builds, staging=self.staging,
+                            work=self.tmp / "work", git_dir=self.repo)
+        facts = {f["step"]: f["state"] for f in view["facts"]}
+        self.assertEqual((facts["handed over"],
+                          facts["received by the host"]), ("yes", "no"))
+        self.assertIn("next round", view["next"])
+        # Without the staging store nothing is concluded from it.
+        view = views.status(self.product, "2.3.0", update=self.update,
+                            builds=self.builds, git_dir=self.repo)
+        self.assertIn("give the staging store", view["next"])
         self.assertEqual([d["version"] for d in self.receive()], ["2.3.0"])
         self.assertTrue(published.exists())
 
