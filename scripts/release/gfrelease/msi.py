@@ -316,6 +316,16 @@ class Payload:
 
     @classmethod
     def read(cls, msi: Path) -> "Payload":
+        """The payload of @p msi; one whose tables lack what a payload is
+        read from is a ReleaseError, never another exception."""
+        try:
+            return cls._read(msi)
+        except (KeyError, ValueError) as e:
+            raise ReleaseError(f"{msi.name}: its tables are not an "
+                               f"installer's ({type(e).__name__}: {e})") from e
+
+    @classmethod
+    def _read(cls, msi: Path) -> "Payload":
         media = [m for m in table(msi, "Media") if m.get("Cabinet")]
         if len(media) != 1:
             raise ReleaseError(f"{msi.name}: {len(media)} cabinets in its "

@@ -18,6 +18,7 @@ import sys
 import tempfile
 import unittest
 import zipfile
+import zlib
 from pathlib import Path
 from unittest import mock
 
@@ -141,6 +142,34 @@ class CabTest(unittest.TestCase):
         with self.assertRaisesRegex(common.ReleaseError, "not a cabinet"):
             cab.read(b"PK\3\4" + bytes(40))
 
+    def test_a_cabinet_cut_anywhere_is_a_refusal(self):
+        raw = cab.write([cab.Entry("a", b"hello" * 100),
+                         cab.Entry("b", b"world")])
+        for end in range(len(raw)):
+            # The size in the header is what is held, so every cut reaches
+            # the parser rather than stopping at the size check.
+            cut = bytearray(raw[:end])
+            if len(cut) >= 12:
+                struct.pack_into("<I", cut, 8, len(cut))
+            with self.subTest(end=end), \
+                    self.assertRaises(common.ReleaseError):
+                cab.read(bytes(cut))
+
+    def test_a_block_that_unpacks_past_its_size_is_refused(self):
+        plain = bytes(cab.BLOCK + 1000)
+        c = zlib.compressobj(9, zlib.DEFLATED, -15)
+        packed = b"CK" + c.compress(plain) + c.flush()
+        block = struct.pack("<IHH", 0, len(packed), cab.BLOCK) + packed
+        name = b"a\0"
+        files_at, data_at = 36 + 8, 36 + 8 + 16 + len(name)
+        raw = struct.pack("<4sIIIIIBBHHHHH", cab.SIGNATURE, 0,
+                          data_at + len(block), 0, files_at, 0, 3, 1, 1, 1,
+                          0, 0, 0) + \
+            struct.pack("<IHH", data_at, 1, cab.COMPRESS_MSZIP) + \
+            struct.pack("<IIHHHH", cab.BLOCK, 0, 0, 0, 0, 0x20) + name + block
+        with self.assertRaisesRegex(common.ReleaseError, "more than"):
+            cab.read(raw)
+
     def test_the_checksum_is_the_cabinet_one(self):
         # Words XORed, the tail's first byte most significant.
         self.assertEqual(cab.checksum(b"\1\0\0\0\2\0\0\0"), 3)
@@ -222,8 +251,14 @@ class CertificateTest(unittest.TestCase):
 
     def test_what_is_no_certificate_is_refused(self):
         whole = self.certificate(("CN", 12, b"a"))
+        # A subject's attribute that is its type alone.
+        lone = self.der(0x30, self.der(0x02, b"\x01"), self.der(0x30),
+                        self.der(0x30), self.der(0x30),
+                        self.der(0x30, self.der(0x31, self.der(
+                            0x30, self.der(0x06, b"\x55\x04\x03")))))
         for bad in (b"", b"\x30", whole[:-40], b"\x30\x03\x02\x01\x01",
-                    self.certificate(("CN", 4, b"a"))):
+                    self.certificate(("CN", 4, b"a")),
+                    self.der(0x30, lone)):
             with self.assertRaises(common.ReleaseError):
                 authenticode.certificate_subject(bad)
 
@@ -515,6 +550,14 @@ class PackageTest(unittest.TestCase):
         (self.tmp / "not.msi").write_bytes(b"not an MSI")
         with self.assertRaises(common.ReleaseError):
             msi.Payload.read(self.tmp / "not.msi")
+        # Tables without the columns a payload is read from.
+        table = msi.table
+        with mock.patch.object(msi, "table", lambda m, name: [
+                {k: v for k, v in row.items() if k != "Component_"}
+                for row in table(m, name)]), \
+                self.assertRaisesRegex(common.ReleaseError, "not an "
+                                       "installer's"):
+            msi.Payload.read(src)
 
     def test_a_portable_zip_is_signed_inside(self):
         src = build_zip(self.tmp, self.tmp / "portable.zip")
