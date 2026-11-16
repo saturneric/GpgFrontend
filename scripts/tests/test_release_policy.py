@@ -170,6 +170,65 @@ class PolicyCheckTest(unittest.TestCase):
         p["series"]["2.2"]["branch"] = "main"
         self.assert_refused(p, "mainline series must be newer")
 
+    def test_two_stable_series_may_be_supported_at_once(self):
+        p = copy.deepcopy(POLICY)
+        p["series"]["2.4"] = p["series"].pop("2.3")
+        p["series"]["2.3"] = {"status": "stable", "branch": "release/2.3",
+                              "platforms": {"macos": "15.0"}}
+        self.assertEqual(policy.check_policy(p, TODAY), [])
+        # The mainline must still be newer than every one of them.
+        p["series"]["2.4"]["status"] = "stable"
+        p["series"]["2.4"]["branch"] = "release/2.4"
+        p["series"]["2.5"] = {"status": "mainline", "branch": "main",
+                              "platforms": {}}
+        self.assertEqual(policy.check_policy(p, TODAY), [])
+        p["series"]["2.2"]["status"] = "mainline"
+        p["series"]["2.2"]["branch"] = "main"
+        del p["series"]["2.5"]
+        self.assert_refused(p, "newer than every stable one")
+
+    def test_successor_chain_reaches_a_stable_series(self):
+        p = copy.deepcopy(POLICY)
+        p["series"]["2.2"] = {"status": "legacy", "branch": "release/2.2",
+                              "eol": "2027-12-31", "successor": "2.3",
+                              "platforms": {"macos": "15.0"}}
+        p["series"]["2.3"] = {"status": "stable", "branch": "release/2.3",
+                              "platforms": {"macos": "15.0"}}
+        # 2.1 still names 2.2, now legacy: the chain goes on to 2.3. Old
+        # clients follow one step only, so it is a warning, not an error.
+        warnings = policy.check_policy(p, TODAY)
+        self.assertTrue(any('"2.1": successor 2.2 is not a stable' in w
+                            for w in warnings), warnings)
+        self.assertEqual(policy.successor_chain(p["series"], "2.1"),
+                         ["2.2", "2.3"])
+        self.assertEqual(policy.successor_chain(p["series"], "1"),
+                         ["2.2", "2.3"])
+        # SECURITY.md names where the chain ends.
+        self.assertIn("move to 2.3.x", policy.render_versions(p))
+
+    def test_successor_chain_loop_is_refused(self):
+        p = copy.deepcopy(POLICY)
+        p["series"]["2.2"] = {"status": "legacy", "branch": "release/2.2",
+                              "eol": "2027-12-31", "successor": "2.1",
+                              "platforms": {}}
+        p["series"]["2.3"]["status"] = "stable"
+        p["series"]["2.3"]["branch"] = "release/2.3"
+        self.assert_refused(p, "successor 2.1 is not newer")
+
+    def test_successor_chain_ending_at_an_old_line_is_refused(self):
+        p = copy.deepcopy(POLICY)
+        p["series"]["2.1"]["successor"] = "1"
+        self.assert_refused(p, "successor 1 is not newer")
+        p = copy.deepcopy(POLICY)
+        p["series"]["2.0"] = {"status": "eol", "successor": "2.1"}
+        p["series"]["2.1"] = {"status": "eol", "successor": "2.0"}
+        self.assert_refused(p, "is not newer")
+
+    def test_successor_chain_ending_at_mainline_is_refused(self):
+        p = copy.deepcopy(POLICY)
+        p["series"]["2.1"]["successor"] = "2.3"
+        self.assert_refused(p, "ends at 2.3, not at a stable series")
+
     def test_legacy_needs_eol_and_successor(self):
         p = copy.deepcopy(POLICY)
         del p["series"]["2.1"]["eol"]

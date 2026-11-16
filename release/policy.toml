@@ -6,17 +6,26 @@
 # status:
 #   mainline  the series under development on main; no final X.Y.0 yet
 #             (its builds are nightlies). At most one.
-#   stable    the newest series that has a final release; fixes go to
-#             release/X.Y. Exactly one once anything has been released.
+#   stable    a series cut from main that still gets fixes on release/X.Y:
+#             its releases are the stable channel. Several may be stable at
+#             once (an older one keeps its fixes for a while); a stable
+#             series is never sent anywhere, whatever successor it names.
 #             Builds of release/X.Y (of a stable or the mainline series) are
-#             that series' beta, offered to users who opt in; its releases
-#             are the stable channel.
+#             that series' beta, offered to users who opt in.
 #   legacy    an older series that still gets security fixes until `eol`.
-#   eol       no fixes. Its users are pointed at `successor`.
+#             Its users are offered the series its successor chain ends at.
+#   eol       no fixes, and nothing from its own branch. Its users are
+#             offered the series its `successor` chain ends at.
 #
-# When X.Y.0 ships: X.Y becomes stable, the old stable becomes legacy (with an
-# eol date), and X.(Y+1) is added as mainline, in the same PR that cuts
-# release/X.Y (scripts/release/cut.sh).
+# A successor chain (legacy or eol series to their successors, on through
+# those that are legacy or eol themselves) must end at a stable series.
+# Clients before 2.2.5 follow one step only: point each successor at a
+# stable series directly where possible (policy.py check warns otherwise).
+#
+# When X.Y.0 ships: X.Y becomes stable and X.(Y+1) is added as mainline, in
+# the same PR that cuts release/X.Y (scripts/release/cut.sh). The series before becomes legacy
+# (with an eol date and a successor) when its fixes are to stop; until then
+# it stays stable beside X.Y.
 #
 # platforms: the oldest system a series' builds run on. Required for the
 # series users can be sent to (mainline and stable): an update or a successor

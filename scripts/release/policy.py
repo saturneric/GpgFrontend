@@ -104,6 +104,31 @@ def series_order(key: str) -> tuple[int, int]:
     return (int(m.group(1)), int(m.group(2) or -1))
 
 
+def successor_chain(series: dict, key: str) -> list[str]:
+    """The series a legacy or eol @p key's users are sent through, in
+    order: its successor, followed on while that is itself legacy or eol, as
+    clients from 2.2.5 on walk it. Stops before a series not listed, one
+    already in the chain, or one not newer than the last; the last entry is
+    where the chain ends."""
+    chain: list[str] = []
+    seen = {key}
+    current = key
+    while True:
+        entry = series.get(current)
+        nxt = entry.get("successor") if isinstance(entry, dict) else None
+        if not isinstance(nxt, str) or nxt not in series or nxt in seen or \
+                not SERIES_KEY.fullmatch(nxt) or \
+                series_order(nxt) <= series_order(current):
+            return chain
+        chain.append(nxt)
+        seen.add(nxt)
+        nxt_entry = series[nxt]
+        if not isinstance(nxt_entry, dict) or \
+                nxt_entry.get("status") not in ("legacy", "eol"):
+            return chain
+        current = nxt
+
+
 def check_policy(policy: dict, today: dt.date | None = None) -> list[str]:
     """Raises PolicyError on a broken policy; returns warnings."""
     errors: list[str] = []
@@ -189,18 +214,55 @@ def check_policy(policy: dict, today: dt.date | None = None) -> list[str]:
     if len(by_status["mainline"]) > 1:
         errors.append("more than one mainline series: "
                       + ", ".join(by_status["mainline"]))
-    if len(by_status["stable"]) > 1:
-        errors.append("more than one stable series: "
-                      + ", ".join(by_status["stable"]))
-    if by_status["stable"] and by_status["mainline"]:
-        if series_order(by_status["mainline"][0]) <= series_order(by_status["stable"][0]):
-            errors.append("the mainline series must be newer than the stable one")
-    if by_status["stable"]:
-        stable = series_order(by_status["stable"][0])
+    # Several series may be stable at once: an older one keeps its fixes
+    # until the maintainer moves it to legacy.
+    stables = sorted(by_status["stable"], key=series_order)
+    if stables and by_status["mainline"]:
+        if series_order(by_status["mainline"][0]) <= series_order(stables[-1]):
+            errors.append("the mainline series must be newer than every "
+                          "stable one")
+    if stables:
+        newest = series_order(stables[-1])
         for key in by_status["legacy"] + by_status["eol"]:
-            if series_order(key) >= stable:
+            if series_order(key) >= newest:
                 errors.append(f'series."{key}": an older line cannot be newer '
-                              "than the stable series")
+                              "than the newest stable series")
+
+    # Where each old line's users are sent: the whole chain of successors
+    # must end at a stable series (or the mainline, before anything is
+    # stable). Clients before 2.2.5 follow one step only, so a successor
+    # that is not stable itself still works there only once it is updated.
+    ends = set(stables) or set(by_status["mainline"])
+    for key in by_status["legacy"] + by_status["eol"]:
+        successor = series[key].get("successor")
+        if not isinstance(successor, str) or successor not in series:
+            continue  # said above
+        where = f'series."{key}"'
+        if not SERIES_KEY.fullmatch(successor) or \
+                series_order(successor) <= series_order(key):
+            errors.append(f"{where}: its successor {successor} is not newer")
+            continue
+        chain = successor_chain(series, key)
+        last = chain[-1] if chain else successor
+        last_entry = series.get(last, {})
+        last_status = last_entry.get("status") \
+            if isinstance(last_entry, dict) else None
+        if last_status in ("legacy", "eol"):
+            # The walk stopped on an old line: a loop or a step back after it.
+            nxt = last_entry.get("successor")
+            errors.append(f"{where}: its successor chain "
+                          f"({' -> '.join([key, *chain])}) stops at {last}, "
+                          f"whose successor {nxt} "
+                          + ("loops back" if nxt in [key, *chain]
+                             else "is not newer"))
+        elif last not in ends:
+            errors.append(f"{where}: its successor chain "
+                          f"({' -> '.join([key, *chain])}) ends at {last}, "
+                          "not at a stable series")
+        elif successor not in ends:
+            warnings.append(f"{where}: successor {successor} is not a stable "
+                            f"series (the chain ends at {last}); clients "
+                            "before 2.2.5 follow one step only")
 
     withdrawn = policy.get("withdrawn", [])
     if not isinstance(withdrawn, list):
@@ -351,7 +413,9 @@ def render_versions(policy: dict) -> str:
         entry = series[key]
         status = describe[entry["status"]]
         if entry["status"] in ("legacy", "eol"):
-            status += f"; move to {_label(entry['successor'])}"
+            # Where its users end up: the whole chain, as clients walk it.
+            chain = successor_chain(series, key)
+            status += f"; move to {_label(chain[-1] if chain else entry['successor'])}"
         if entry.get("note"):
             # Below the table: in a cell it would make every row as wide.
             notes.append(f"{_label(key)}: {entry['note']}.")
