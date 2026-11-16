@@ -142,6 +142,64 @@ def signing_tools() -> bool:
         return False
 
 
+def msix_resources(test, directory: Path, program: str) -> Path:
+    """resource/msix/ as @p test needs it, and used for as long as it
+    runs: the manifest starting @p program (a path inside the test's MSI)
+    instead of GpgFrontend's own."""
+    import msix
+    from unittest import mock
+    out = Path(directory) / "msix-resources"
+    shutil.copytree(msix.RESOURCES, out)
+    manifest = out / msix.MANIFEST
+    text = manifest.read_text("utf-8")
+    ours = 'Executable="VFS\\AppData\\GpgFrontend\\bin\\GpgFrontend.exe"'
+    assert ours in text
+    manifest.write_text(text.replace(
+        ours, 'Executable="VFS\\%s"' % program.replace("/", "\\")), "utf-8")
+    patch = mock.patch.object(msix, "RESOURCES", out)
+    patch.start()
+    test.addCleanup(patch.stop)
+    return out
+
+
+def pack_as_a_zip(tree: Path, files: dict, out: Path,
+                  resources: Path | None = None) -> None:
+    """What msix._pack makes, as far as anything but Windows reads it: the
+    tree and the files in a zip, with the two parts a signer looks for."""
+    import zipfile
+    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
+        for file in sorted(p for p in tree.rglob("*") if p.is_file()):
+            z.write(file, file.relative_to(tree).as_posix())
+        for path, data in files.items():
+            z.writestr(f"VFS/{path}", data)
+        z.writestr("AppxBlockMap.xml", '<?xml version="1.0" encoding="UTF-8" '
+                   'standalone="no"?><BlockMap xmlns="http://schemas.'
+                   'microsoft.com/appx/2010/blockmap" HashMethod="http://'
+                   'www.w3.org/2001/04/xmlenc#sha256"></BlockMap>')
+        z.writestr("[Content_Types].xml", '<?xml version="1.0" encoding='
+                   '"UTF-8" standalone="yes"?><Types xmlns="http://schemas.'
+                   'openxmlformats.org/package/2006/content-types"><Default '
+                   'Extension="xml" ContentType="application/vnd.ms-appx.'
+                   'manifest+xml"/><Override PartName="/AppxBlockMap.xml" '
+                   'ContentType="application/vnd.ms-appx.blockmap+xml"/>'
+                   '</Types>')
+
+
+def packs_msix(test) -> None:
+    """An MSIX is packed by the Windows SDK. Elsewhere @p test gets one
+    that is a package to everything it is checked with there (osslsigncode
+    signs and verifies it), so the same release is made on every platform."""
+    if WINDOWS:
+        return
+    import msix
+    from unittest import mock
+    for name, value in (("available", lambda: True),
+                        ("_pack", pack_as_a_zip)):
+        patch = mock.patch.object(msix, name, value)
+        patch.start()
+        test.addCleanup(patch.stop)
+
+
 # A code-signing certificate that signs itself, made in the user's store
 # (where signtool finds its key) and gone again after the test. One left
 # behind by a run that was killed expires in two days, and is removed here

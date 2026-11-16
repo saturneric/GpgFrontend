@@ -385,6 +385,10 @@ def build_parser(settings=None) -> argparse.ArgumentParser:
                    help="run this step, and every one after it, again")
     p.add_argument("--notes-only", action="store_true",
                    help="after the release: sign and upload main's notes")
+    p.add_argument("--msix", action="store_true",
+                   help="after the release: make the MSIX of one handed "
+                   "over without it, from its signed MSI, and hand over "
+                   "only that")
     p.add_argument("--dry-run", action="store_true",
                    help="fetch and verify only: nothing signed or uploaded")
     p.add_argument("-y", "--yes", action="store_true",
@@ -742,6 +746,15 @@ def cmd_stable(ctx) -> int:
         ui.next_step(f"the signing host publishes them on its next round "
                      f"(`gfrelease status {args.version}`)")
         return 0
+    if args.msix:
+        descriptor = stage.add_msix()
+        added = [a["name"] for a in descriptor["artifacts"]
+                 if a["transform"] == "msix"]
+        ctx.result = {"version": args.version, "added": added}
+        ui.info(f"{args.version}: {', '.join(added)} handed over")
+        ui.next_step(f"the signing host adds it to the release on its next "
+                     f"round (`gfrelease status {args.version}`)")
+        return 0
 
     total = len(stable_mod.STEPS)
     ask = not args.yes and not ui.JSON and sys.stdin.isatty() and \
@@ -778,6 +791,10 @@ def cmd_stable(ctx) -> int:
     elif descriptor:
         ui.info(f"{args.version}: handed to the signing host as "
                 f"{descriptor['sums'].rsplit('/', 1)[0]}")
+        kinds = {a["kind"] for a in descriptor["artifacts"]}
+        if "msi" in kinds and "msix" not in kinds:
+            ui.info(f"{args.version}: without an MSIX, which only Windows "
+                    f"packs (there: gfrelease stable {args.version} --msix)")
         ui.next_step(f"the signing host receives and lists it on its next "
                      f"round: `gfrelease status {args.version}`")
     else:

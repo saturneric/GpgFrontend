@@ -32,6 +32,7 @@ from pathlib import Path
 import authenticode
 import descriptor
 import minisig
+import msix
 import openpgp
 import layout
 import ui
@@ -423,7 +424,8 @@ def admit_stable(product: Product, builds: Store, path: str, raw: bytes, *,
     """A stable release is listed only with everything the offline stage
     promises (scripts/release/gfrelease/stable.py), checked again here: the
     maintainer's signed tag and manifest, what CI built, the Authenticode
-    signatures, and signed notes.
+    signatures, that an MSIX made from the MSI holds only the MSI's files,
+    and signed notes.
 
     Returns the descriptor and its index entry. What was checked is recorded
     under the state directory (_admit_release): checking an installer means
@@ -510,8 +512,30 @@ def _check_stable(product: Product, builds: Store, d: dict, path: str, *,
 
     # What CI built, as Sigstore says: every file's build hash.
     built = _built(product, builds, d, d["ref"], path, work / "build", cosign)
+    by_name = {a["name"]: a for a in d["artifacts"]}
     for a in d["artifacts"]:
-        if built.get(a["name"]) != a.get("build_sha256"):
+        if a.get("transform") == "msix":
+            # Made by the offline stage from the release's MSI (msix.py):
+            # CI built no such file, and what stands in for a build hash is
+            # that the package holds that MSI's files and no others. The
+            # MSI is checked as any file is, in its own turn.
+            source = by_name.get(a.get("from"))
+            if a["kind"] != "msix" or "build_sha256" in a or \
+                    a["name"] in built or source is None or \
+                    source["kind"] != "msi" or \
+                    source.get("transform") != "authenticode":
+                raise ReleaseError(f"{a['name']}: not an MSIX made from "
+                                   "this release's signed MSI")
+            authenticode.verify_package(
+                work / a["name"], a,
+                product.authenticode_subjects if recheck
+                else [product.authenticode_subject],
+                authenticode_ca, authenticode.Rules.of(product),
+                require_timestamp=product.authenticode_timestamp_required)
+            msix.check_derived(work / a["name"], work / source["name"])
+            continue
+        if not isinstance(a.get("build_sha256"), str) or \
+                built.get(a["name"]) != a["build_sha256"]:
             raise ReleaseError(f"{a['name']}: not what CI built")
         if a.get("transform") == "none":
             if a["sha256"] != a["build_sha256"]:

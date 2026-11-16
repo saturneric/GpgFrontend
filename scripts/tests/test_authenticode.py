@@ -21,6 +21,7 @@ import zipfile
 import zlib
 from pathlib import Path
 from unittest import mock
+from xml.etree import ElementTree
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "scripts" / "release" / "gfrelease"))
@@ -31,8 +32,10 @@ import authenticode  # noqa: E402
 import cab  # noqa: E402
 import common  # noqa: E402
 import msi  # noqa: E402
+import msix  # noqa: E402
 import policy  # noqa: E402
-from trustutil import SigningCertificate, signing_tools  # noqa: E402
+from trustutil import (SigningCertificate, pack_as_a_zip,  # noqa: E402
+                       signing_tools)
 
 
 def pe_bytes(tag: str = "") -> bytes:
@@ -475,6 +478,47 @@ class OsslsigncodeTest(unittest.TestCase):
         self.assertEqual([f.name for f in self.tmp.iterdir()], ["in"])
 
 
+class MsixTest(unittest.TestCase):
+    """What an MSIX is made with (gfrelease's msix.py and resource/msix/);
+    one made and signed is among the stable stage's tests."""
+
+    def test_a_publisher_is_the_subject_as_windows_spells_it(self):
+        self.assertEqual(
+            msix.publisher("/C=DE/ST=Baden-W\\xC3\\xBCrttemberg/L=Karlsruhe"
+                           "/O=Open Source Developer/CN=Open Source "
+                           "Developer Yu Hu"),
+            "CN=Open Source Developer Yu Hu, O=Open Source Developer, "
+            "L=Karlsruhe, S=Baden-Württemberg, C=DE")
+        # The other way a pin is written, and a value Windows quotes.
+        self.assertEqual(msix.publisher("CN=A\\, Inc.,O=B,C=DE"),
+                         'CN="A, Inc.", O=B, C=DE')
+        with self.assertRaisesRegex(common.ReleaseError, "UID"):
+            msix.publisher("/UID=1/CN=a")
+
+    def test_the_manifest_takes_the_version_and_the_publisher(self):
+        text = msix.manifest(msix.RESOURCES, "2.3.0", "/C=DE/O=A & B/CN=T")
+        self.assertIn('Version="2.3.0.0"', text)
+        self.assertIn('Publisher="CN=T, O=A &amp; B, C=DE"', text)
+        self.assertNotIn('"{', text)
+        package = ElementTree.fromstring(text)
+        # Every logo it names is one make_logos.ps1 draws.
+        logos = [value for element in package.iter()
+                 for name, value in element.attrib.items()
+                 if name.endswith("Logo")]
+        logos += [e.text for e in package.iter() if e.tag.endswith("}Logo")]
+        self.assertGreaterEqual(len(logos), 7)
+        drawn = (msix.RESOURCES / msix.LOGOS).read_text("utf-8")
+        for logo in logos:
+            name = logo.rsplit("\\", 1)[1][:-len(".png")]
+            self.assertIn(f"'{name}'", drawn)
+        with self.assertRaisesRegex(common.ReleaseError, "final release"):
+            msix.manifest(msix.RESOURCES, "2.3.0-rc.1", "/CN=T")
+
+    def test_an_msix_is_named_after_its_msi(self):
+        self.assertEqual(msix.name_for("GpgFrontend-2.3.0-windows-x86_64.msi"),
+                         "GpgFrontend-2.3.0-windows-x86_64.msix")
+
+
 PACKAGE_TOOLS = signing_tools()
 
 
@@ -641,6 +685,35 @@ class PackageTest(unittest.TestCase):
                             {"GpgFrontend/payload.txt": b"changed\n"})
         with self.assertRaisesRegex(common.ReleaseError, "payload.txt"):
             authenticode.unchanged_apart_from(src, tampered, ZIP, signed)
+
+    def test_an_msix_holds_the_files_of_its_msi_and_no_others(self):
+        # A package as anything but Windows reads it: a zip. What it is
+        # checked for is the same wherever it was packed.
+        tree = self.tmp / "tree"
+        tree.mkdir()
+        (tree / msix.MANIFEST).write_text("<Package/>")
+        (tree / "Assets").mkdir()
+        (tree / "Assets" / "Logo.scale-100.png").write_bytes(b"png")
+        files = authenticode.contents(FIXTURE_MSI, MSI)
+
+        def refused(why, files=files):
+            out = self.tmp / "refused.msix"
+            pack_as_a_zip(tree, files, out)
+            with self.assertRaisesRegex(common.ReleaseError, why):
+                msix.check_derived(out, FIXTURE_MSI)
+
+        package = self.tmp / "test.msix"
+        pack_as_a_zip(tree, files, package)
+        msix.check_derived(package, FIXTURE_MSI)
+        self.assertEqual(msix.contents(package)["VFS/T/app.exe"],
+                         files["T/app.exe"])
+        refused("T/app.exe is not the one in", files | {"T/app.exe": b"MZ"})
+        refused("does not hold the files .*T/more.dll",
+                files | {"T/more.dll": b"MZ"})
+        refused("does not hold the files .*T/payload.txt",
+                {p: d for p, d in files.items() if p != "T/payload.txt"})
+        (tree / "run.cmd").write_text("rem")
+        refused("holds run.cmd")
 
     @unittest.skipIf(os.name == "nt", "osslsigncode's PIN, where it signs")
     def test_the_pin_reaches_osslsigncode_through_a_pipe(self):

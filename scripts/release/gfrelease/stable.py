@@ -14,7 +14,9 @@ only through this, run by hand:
                on its token: first every program in every MSI and
                portable zip, then the packages themselves, so a token
                that asks its PIN for each run of the signing tool asks
-               twice; the time stamps are the one network call      (TSA)
+               twice; the time stamps are the one network call      (TSA).
+               Between the two, on Windows, the MSI's sideload MSIX is
+               made from it (msix.py), and signed with the packages
   pgp          a detached .sig for every final file, a final SHA256SUMS.txt
                and its .sig, and the release notes the tag carries, signed
   upload       everything to the staging store, under signed/ as it is to
@@ -28,7 +30,10 @@ store, which it alone writes.
 
 After the release, `--notes-only` signs and hands over main's copy of the
 notes (a typo fixed there); the host then publishes it in place of the old
-one.
+one. And `--msix` makes the MSIX of a release that was handed over without
+one, and hands over only that: the package, its signature, the manifest
+that now lists it and the descriptor. The host takes everything else from
+what it has published, and adds the package to the release.
 
 Each step records itself in <work>/<version>/state.json and is skipped once
 done, so a run interrupted anywhere (a token unplugged, a connection lost)
@@ -42,6 +47,8 @@ hand.
 Authenticode changes the bytes it signs. The descriptor keeps both hashes:
 `build_sha256`, which the CI's signed manifest covers, and `sha256`, of the
 file as published, with `transform: authenticode` saying why they differ.
+An MSIX made here has no build hash: its `transform` is `msix` and `from`
+names the MSI it was made from, whose files are all it holds.
 Which programs inside a package are signed is product.json's
 `authenticode` rule (authenticode.py); everything else in it stays as CI
 built it, and the stage checks that before the upload.
@@ -55,6 +62,7 @@ from pathlib import Path
 
 import authenticode
 import layout
+import msix
 import openpgp
 import ui
 from common import (BUNDLE, SCHEMA, SIG, STAGED, SUMS, Product, ReleaseError,
@@ -292,6 +300,9 @@ class Stage:
         self.final_dir.mkdir()
         rules = authenticode.Rules.of(self.product)
         files = self.state["build"]["files"]
+        # What this step made before, it makes again.
+        for name in [n for n, info in files.items() if not _built(info)]:
+            del files[name]
         packages = {name: info for name, info in sorted(files.items())
                     if any(authenticode.plan(info))}
         if packages and self.signer is None:
@@ -315,8 +326,10 @@ class Stage:
             for name, o in opened.items():
                 signed[name] = authenticode.close_package(
                     o, self.final_dir / name)
+        made = self._make_msix()
         self._sign({self.final_dir / name: (name, None)
-                    for name, o in opened.items() if o.outside})
+                    for name in sorted([n for n, o in opened.items()
+                                        if o.outside] + list(made))})
 
         for name, info in packages.items():
             # Checked as the signing host will, before anything leaves.
@@ -329,8 +342,49 @@ class Stage:
                 rules, require_timestamp=self.product
                 .authenticode_timestamp_required)
             info["transform"] = "authenticode"
+        for name, source in made.items():
+            self._check_msix(name, source)
         for name, info in files.items():
             info["sha256"] = sha256_file(self.final_dir / name)
+
+    def _make_msix(self) -> dict[str, str]:
+        """The MSIX of every MSI CI built none for, written to final/ from
+        the MSI there (the programs inside it signed already), not signed
+        itself yet; returns {its name: the MSI's}. Where no package can be
+        packed, none is made."""
+        files, made = self.state["build"]["files"], {}
+        if not msix.available():
+            return made
+        for name, info in sorted(files.items()):
+            target = msix.name_for(name)
+            if info["kind"] != "msi" or not _built(info) or target in files:
+                continue
+            try:
+                described = self.product.classify(target, self.version)
+            except ReleaseError:
+                continue  # an MSI of a flavour that has no MSIX
+            if self.signer is None:
+                raise ReleaseError(f"{target} needs an Authenticode signer "
+                                   "(--authenticode-cert/-key, or "
+                                   "--authenticode-thumbprint)")
+            msix.build(self.final_dir / name, self.final_dir / target,
+                       version=self.version,
+                       subject=self.product.authenticode_subject)
+            made[target] = name
+        for target, name in made.items():
+            files[target] = {**self.product.classify(target, self.version),
+                             "transform": "msix", "from": name}
+        return made
+
+    def _check_msix(self, name: str, source: str) -> None:
+        """The signed package @p name, checked as the signing host will:
+        its signature, and that it holds @p source's files and no others."""
+        authenticode.verify_package(
+            self.final_dir / name, self.state["build"]["files"][name],
+            self.product.authenticode_subject, self.authenticode_ca,
+            authenticode.Rules.of(self.product),
+            require_timestamp=self.product.authenticode_timestamp_required)
+        msix.check_derived(self.final_dir / name, self.final_dir / source)
 
     def _sign(self, what: dict[Path, tuple[str, str | None]]) -> None:
         """Signs the files of @p what in one call, each a (package, path
@@ -350,6 +404,18 @@ class Stage:
 
         self.signer.sign_files(list(what), on_done)
 
+    def _sign_files(self, names: list[str]) -> None:
+        """A detached signature for each of @p names in final/, and the
+        manifest of everything there written and signed again."""
+        files = self.state["build"]["files"]
+        for name in [*names, SUMS]:
+            (self.final_dir / (name + SIG)).unlink(missing_ok=True)
+        for name in names:
+            openpgp.sign(self.final_dir / name, self.key, self.gnupghome)
+        atomic_write(self.final_dir / SUMS, render_manifest(
+            {n: files[n]["sha256"] for n in files}))
+        openpgp.sign(self.final_dir / SUMS, self.key, self.gnupghome)
+
     def _pgp(self) -> None:
         self._need("key", "git_dir")
         self._check_signing_key()
@@ -357,11 +423,7 @@ class Stage:
         files = self.state["build"]["files"]
         for stale in self.final_dir.glob("*.sig"):
             stale.unlink()
-        for name in sorted(files):
-            openpgp.sign(self.final_dir / name, self.key, self.gnupghome)
-        atomic_write(self.final_dir / SUMS, render_manifest(
-            {n: files[n]["sha256"] for n in files}))
-        openpgp.sign(self.final_dir / SUMS, self.key, self.gnupghome)
+        self._sign_files(sorted(files))
 
         # The notes the tag carries, reviewed before it was made.
         notes_dir = self.dir / "notes"
@@ -388,7 +450,6 @@ class Stage:
         self.state["upload_started"] = True
         self.state.setdefault("released_at", iso(utcnow()))
         self._save()
-        artifacts = []
         staged = layout.staged_tag(self.version)
         left_out = 0
         for name in sorted(files):
@@ -404,12 +465,6 @@ class Stage:
                 left_out += (self.final_dir / name).stat().st_size
             else:
                 self.outbox.put_file(self.final_dir / name, f"{p}/{name}")
-            artifacts.append({
-                k: info[k] for k in ("os", "arch", "kind", "flavor", "min_os",
-                                     "sha256", "build_sha256", "transform")
-                if k in info} | {
-                "name": name, "size": (self.final_dir / name).stat().st_size,
-                "path": f"{p}/{name}", "sig": f"{p}/{name}{SIG}"})
         self.outbox.put_file(self.final_dir / SUMS, f"{p}/{SUMS}")
         self.outbox.put_file(self.final_dir / (SUMS + SIG),
                              f"{p}/{SUMS}{SIG}")
@@ -429,8 +484,25 @@ class Stage:
                                  layout.notes_path(self.version, digest)
                                  + suffix)
 
+        descriptor = self._descriptor()
+        # Last: a descriptor only ever names objects that are already there.
+        self.outbox.put_bytes(canonical_json(descriptor),
+                              layout.descriptor_of(p))
+        self.state["descriptor"] = descriptor
+
+    def _descriptor(self) -> dict:
+        """The release as the stage's record has it: every file in final/,
+        and when it was first handed over."""
+        files, p = self.state["build"]["files"], self.prefix
+        artifacts = [{
+            k: info[k] for k in ("os", "arch", "kind", "flavor", "min_os",
+                                 "sha256", "build_sha256", "transform", "from")
+            if k in info} | {
+            "name": name, "size": (self.final_dir / name).stat().st_size,
+            "path": f"{p}/{name}", "sig": f"{p}/{name}{SIG}"}
+            for name, info in sorted(files.items())]
         b = self.state["build"]
-        descriptor = {
+        return {
             "schema": SCHEMA, "product": self.product.slug,
             "kind": layout.KIND_STABLE,
             "version": self.version, "series": parse_version(self.version).series,
@@ -444,7 +516,61 @@ class Stage:
             "sums": f"{p}/{SUMS}", "sums_sig": f"{p}/{SUMS}{SIG}",
             "artifacts": artifacts,
         }
-        # Last: a descriptor only ever names objects that are already there.
-        self.outbox.put_bytes(canonical_json(descriptor),
-                              layout.descriptor_of(p))
+
+    def add_msix(self) -> dict:
+        """For a release handed over without its MSIX (made before the
+        stage made one, or where none can be packed): makes it from the
+        signed MSI in final/, signs it, lists it in a manifest signed
+        anew, and hands over only what that changes. The host adds it to
+        the release it has published (promote.py); one it has not received
+        yet, it receives with it. Returns the descriptor."""
+        if self._conflict:
+            raise ReleaseError(self._conflict)
+        if "upload" not in self.state["done"]:
+            raise ReleaseError(f"{self.version} is not handed over yet: the "
+                               "stage itself makes its MSIX (gfrelease "
+                               f"stable {self.version})")
+        self._need("key", "staging")
+        files, p = self.state["build"]["files"], self.prefix
+        if not msix.available() and all(_built(i) for i in files.values()):
+            raise ReleaseError("an MSIX is packed by the Windows SDK's "
+                               "makeappx: only on Windows")
+        made = self._make_msix()
+        if made:
+            self._sign({self.final_dir / name: (name, None) for name in made})
+            for name, source in made.items():
+                self._check_msix(name, source)
+                files[name]["sha256"] = sha256_file(self.final_dir / name)
+            self._sign_files(sorted(made))
+            with openpgp.Keyring.of(self.product) as ring:
+                for name in [*sorted(made), SUMS]:
+                    ring.verify(self.final_dir / name,
+                                self.final_dir / (name + SIG))
+            # On disk before anything is sent: a run stopped here sends
+            # these files, it never makes others.
+            self._save()
+        added = sorted(n for n, info in files.items() if not _built(info))
+        if not added:
+            raise ReleaseError(f"{self.version} has no MSI an MSIX is made "
+                               "of")
+        # What was handed over before may still lie there, and is replaced:
+        # nothing in the staging store counts until the host has checked it.
+        for name in [*added, SUMS]:
+            for suffix in (SIG, ""):
+                self.outbox.put_file(self.final_dir / (name + suffix),
+                                     f"{p}/{name}{suffix}", immutable=False)
+        descriptor = self._descriptor()
+        with tempfile.TemporaryDirectory(prefix="gfr-msix-") as tmp:
+            local = Path(tmp) / "release.json"
+            local.write_bytes(canonical_json(descriptor))
+            self.outbox.put_file(local, layout.descriptor_of(p),
+                                 immutable=False)
         self.state["descriptor"] = descriptor
+        self._save()
+        return descriptor
+
+
+def _built(info: dict) -> bool:
+    """Whether a file of the stage's record is one CI built, rather than
+    one made here from another."""
+    return "build_sha256" in info

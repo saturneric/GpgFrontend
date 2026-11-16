@@ -103,6 +103,9 @@ def install_hint(command: str) -> str:
         if name == "signtool":
             return ("install the Windows SDK's signing tools, or point "
                     "--signtool at signtool.exe")
+        if name in ("makeappx", "makepri"):
+            return (f"install the Windows SDK, which brings {name}.exe, or "
+                    "put it on PATH")
         if name == "cosign":
             # winget installs it under the name of its release file.
             return ("install cosign: winget install Sigstore.Cosign, and "

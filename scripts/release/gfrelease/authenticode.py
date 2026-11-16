@@ -80,6 +80,9 @@ _SIGNTOOL_TSA = re.compile(r"timestamp server|0x80072[0-9a-f]{3}", re.I)
 _SIGNTOOL_CARD = re.compile(r"0x8010[0-9a-f]{4}|0x8009[0-9a-f]{4}|"
                             r"0x800704c7|0xc0000225|\bPIN\b|smart ?card",
                             re.I)
+# What it says of a package whose manifest names another publisher than the
+# certificate's subject (ERROR_BAD_FORMAT, and no word of why).
+_SIGNTOOL_PUBLISHER = re.compile(r"0x8007000b", re.I)
 # One signtool run asks for the PIN and waits for it: long enough to find
 # the card, not for ever behind a dialog nobody sees.
 SIGNTOOL_TIMEOUT = 1800
@@ -200,12 +203,18 @@ class Signer:
 def find_signtool(explicit: str = "") -> str:
     """signtool.exe: the one named, else the one on PATH, else the newest
     Windows SDK's, its x64 build before its x86 one."""
+    return find_sdk_tool("signtool", explicit)
+
+
+def find_sdk_tool(name: str, explicit: str = "") -> str:
+    """A tool of the Windows SDK (signtool, makeappx, makepri), found as
+    find_signtool() says."""
     if explicit:
         found = shutil.which(explicit)
         if found is None:
-            raise ReleaseError(f"signtool {explicit} is not there")
+            raise ReleaseError(f"{name} {explicit} is not there")
         return found
-    found = shutil.which("signtool")
+    found = shutil.which(name)
     if found:
         return found
     roots = [Path(base) / "Windows Kits" / "10" / "bin"
@@ -221,10 +230,10 @@ def find_signtool(explicit: str = "") -> str:
         arch = tool.parent.name.lower()
         return version, {"x64": 2, "x86": 1}.get(arch, 0)
 
-    tools = [t for root in roots for t in root.glob("*/*/signtool.exe")]
+    tools = [t for root in roots for t in root.glob(f"*/*/{name}.exe")]
     if not tools:
         raise ReleaseError(
-            "signtool is not installed: it was looked for on PATH and under "
+            f"{name} is not installed: it was looked for on PATH and under "
             f"{', '.join(str(r) for r in roots) or 'no Windows SDK folder'}")
     return str(max(tools, key=rank))
 
@@ -322,6 +331,11 @@ class SigntoolSigner:
                     not _SIGNTOOL_TSA.search(said) or \
                     _SIGNTOOL_CARD.search(said):
                 detail = "\n".join(said.splitlines()[-8:])
+                if _SIGNTOOL_PUBLISHER.search(said) and any(
+                        f.suffix.lower() == ".msix" for f in left):
+                    detail += ("\nan MSIX is signed only by the certificate "
+                               "its manifest names as publisher: the subject "
+                               "the trust root pins")
                 raise ToolFailed(f"signtool failed: {detail}")
             time.sleep(RETRY_DELAY)
 

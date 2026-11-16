@@ -11,7 +11,7 @@ from common import ReleaseError, refs
 _STRINGS = ("product", "kind", "version", "ref", "commit", "sums", "sums_sig",
             "promoted_at", "built_at")
 _ARTIFACT_STRINGS = ("name", "path", "sig", "sha256", "build_sha256",
-                     "transform", "os", "arch", "kind", "flavor")
+                     "transform", "from", "os", "arch", "kind", "flavor")
 
 
 def _str_map(value) -> bool:
