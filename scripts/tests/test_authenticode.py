@@ -107,6 +107,29 @@ def build_zip(directory: Path, out: Path) -> Path:
 
 
 RULES = authenticode.Rules((".exe", ".dll"), ("gnupg",))
+def sign_package(src: Path, dst: Path, info: dict, signer,
+                 rules: authenticode.Rules, progress=None) -> list[str]:
+    """@p src signed as plan() says, written to @p dst, as the stable
+    stage signs it (open, sign the programs, close, sign the package);
+    returns the paths signed inside. @p progress(done, total, path)
+    follows the programs."""
+    with tempfile.TemporaryDirectory(prefix="gfr-sign-") as tmp:
+        opened = authenticode.open_package(src, info, rules, Path(tmp))
+        paths = {file: path for path, file in opened.programs.items()}
+        done = []
+
+        def on_done(file: Path) -> None:
+            done.append(file)
+            if progress:
+                progress(len(done), len(paths), paths[file])
+
+        signer.sign_files(list(paths), on_done)
+        signed = authenticode.close_package(opened, dst)
+    if opened.outside:
+        signer.sign_files([dst])
+    return signed
+
+
 MSI = {"kind": "msi", "os": "windows"}
 ZIP = {"kind": "zip", "os": "windows"}
 
@@ -493,7 +516,7 @@ class PackageTest(unittest.TestCase):
         src = build_msi(self.tmp, self.tmp / "unsigned.msi")
         dst = self.tmp / "signed.msi"
         seen = []
-        signed = authenticode.sign_package(
+        signed = sign_package(
             src, dst, MSI, self.signer, RULES,
             progress=lambda n, total, path: seen.append((n, total, path)))
         self.assertEqual(signed, ["T/app.exe"])
@@ -562,7 +585,7 @@ class PackageTest(unittest.TestCase):
     def test_a_portable_zip_is_signed_inside(self):
         src = build_zip(self.tmp, self.tmp / "portable.zip")
         dst = self.tmp / "signed.zip"
-        signed = authenticode.sign_package(src, dst, ZIP, self.signer, RULES)
+        signed = sign_package(src, dst, ZIP, self.signer, RULES)
         self.assertEqual(signed, ["GpgFrontend/bin/app.exe"])
         authenticode.unchanged_apart_from(src, dst, ZIP, signed)
         self.assertEqual(self.verify(dst, ZIP), 1)
@@ -612,7 +635,7 @@ class PackageTest(unittest.TestCase):
     def test_a_change_beyond_the_signed_programs_is_refused(self):
         src = build_zip(self.tmp, self.tmp / "portable.zip")
         dst = self.tmp / "signed.zip"
-        signed = authenticode.sign_package(src, dst, ZIP, self.signer, RULES)
+        signed = sign_package(src, dst, ZIP, self.signer, RULES)
         tampered = self.tmp / "tampered.zip"
         authenticode._rezip(dst, tampered,
                             {"GpgFrontend/payload.txt": b"changed\n"})
@@ -629,7 +652,7 @@ class PackageTest(unittest.TestCase):
         signer = authenticode.Signer(str(self.cert), str(locked),
                                      ask_pin=lambda: asked.append(1) or "1234")
         src = build_zip(self.tmp, self.tmp / "portable.zip")
-        authenticode.sign_package(src, self.tmp / "signed.zip", ZIP, signer,
+        sign_package(src, self.tmp / "signed.zip", ZIP, signer,
                                   RULES)
         self.assertEqual(asked, [1])  # once, however many are signed
         self.assertEqual(self.verify(self.tmp / "signed.zip", ZIP), 1)

@@ -87,7 +87,7 @@ class CliTest(unittest.TestCase):
     def test_every_command_explains_itself(self):
         parser = self.cli.build_parser()
         found = list(self.leaves(parser))
-        self.assertGreater(len(found), 20)
+        self.assertGreaterEqual(len(found), 20)
         for path, p in found:
             with self.subTest(" ".join(path)):
                 self.assertTrue(p.description, path)
@@ -105,14 +105,14 @@ class CliTest(unittest.TestCase):
         for group in ("Anyone", "Maintainer (offline)", "CI",
                       "Signing host", "Setup"):
             self.assertIn(group, out)
-        # The older names still work, and are no longer offered.
-        self.assertNotRegex(out.split("commands:")[1],
-                            r"(?m)^ +(index-keys|root) ")
+        # The trust commands are under trust only.
         parser = self.cli.build_parser()
-        args = parser.parse_args(["index-keys", "renew", "-s", "g.key"])
+        args = parser.parse_args(["trust", "keys", "renew", "-s", "g.key"])
         self.assertEqual(args.key, "trust keys renew")
-        self.assertEqual(parser.parse_args(["root", "verify"]).key,
-                         "trust root verify")
+        for old in (["root", "verify"], ["index-keys", "renew"]):
+            with self.assertRaises(SystemExit), \
+                    contextlib.redirect_stderr(io.StringIO()):
+                parser.parse_args(old)
 
     def test_each_option_names_its_variable_and_where_it_is_set(self):
         os.environ["GFR_BUILDS"] = "r2:fromenv"

@@ -58,7 +58,6 @@ class HttpSource:
                 raise ReleaseError(f"{base}: a base is https:// and ends in /")
         self.bases = bases
         self.slug = slug
-        self.cafile = cafile
         self.context = ssl.create_default_context(cafile=cafile)
 
     def _each(self, path: str, consume):

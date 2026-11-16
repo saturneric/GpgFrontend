@@ -168,10 +168,9 @@ PATHS = {"gnupghome", "work", "authenticode_ca", "state_dir", "index_key",
 class Settings:
     """Every setting's value and where it came from, for one command."""
 
-    def __init__(self, environ=None, path: Path | None = None,
-                 use_config: bool = True):
-        self.environ = os.environ if environ is None else environ
-        self.path = config_path() if use_config and path is None else path
+    def __init__(self):
+        self.environ = os.environ
+        self.path = config_path()
         self.config = load_config(self.path)
         self.defaults = defaults()
 

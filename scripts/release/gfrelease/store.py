@@ -165,8 +165,9 @@ class Store:
             raise StoreUnavailable(f"writing {self._at(path)}: "
                                    f"{out.stderr.strip()}")
 
-    def put_bytes(self, data: bytes, path: str, immutable: bool = True) -> None:
+    def put_bytes(self, data: bytes, path: str) -> None:
+        """put_file() of @p data: never replacing other bytes."""
         with tempfile.TemporaryDirectory() as tmp:
             local = Path(tmp) / "object"
             local.write_bytes(data)
-            self.put_file(local, path, immutable)
+            self.put_file(local, path)

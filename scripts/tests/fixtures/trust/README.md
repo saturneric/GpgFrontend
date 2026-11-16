@@ -1,6 +1,6 @@
 # Throwaway trust files, for tests only
 
-Made with `gfrelease root sign` and `index-keys`, from the keys in `keys/`,
+Made with `gfrelease trust root sign` and `trust keys`, from the keys in `keys/`,
 which have no password and are worth nothing. Nothing real trusts them.
 
 - `root/1.root.json`: root keys a, b, c (2 needed), index list key g1.

@@ -54,7 +54,6 @@ ARTIFACT_PREFIX = re.compile(r"[A-Za-z0-9][A-Za-z0-9._+-]*")
 ROOT_FILE = re.compile(r"([1-9][0-9]*)\.root\.json")
 ROOT_SIG_FILE = re.compile(r"([1-9][0-9]*)\.root\.json\.[0-9A-F]{16}\.minisig")
 INDEX_KEYS_FILE = re.compile(r"([1-9][0-9]*)\.json")
-INDEX_KEYS_SIG_FILE = re.compile(r"([1-9][0-9]*)\.json\.minisig")
 
 
 class PolicyError(Exception):
@@ -459,9 +458,9 @@ def render_versions(policy: dict) -> str:
 
 def newest_root(directory: Path = TRUST_ROOT) -> dict:
     """The newest <N>.root.json that any root key has signed: what
-    SECURITY.md shows. A draft from `gfrelease root new` nobody signed yet
-    is not shown. Whether the signatures verify is `gfrelease root
-    verify`'s to check."""
+    SECURITY.md shows. A draft from `gfrelease trust root new` nobody
+    signed yet is not shown. Whether the signatures verify is `gfrelease
+    trust root verify`'s to check."""
     directory = Path(directory)
     names = [p.name for p in directory.iterdir()] if directory.is_dir() \
         else []

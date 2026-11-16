@@ -270,24 +270,24 @@ class TrustTest(unittest.TestCase):
 
     @unittest.skipIf(WINDOWS, "minisign signs on Linux only (minisig.py)")
     def test_root_new_then_sign_then_verify(self):
-        out = cli(*self.args(), "root", "new")
+        out = cli(*self.args(), "trust", "root", "new")
         self.assertIn("4.root.json: written", out.stdout)
         path = self.root / "4.root.json"
         new = json.loads(path.read_text())
         self.assertEqual(new["version"], 4)
         self.assertGreater(trust.days_left(new), 700)
         # Not yet signed: verify says so.
-        self.assertNotEqual(cli(*self.args(), "root", "verify",
+        self.assertNotEqual(cli(*self.args(), "trust", "root", "verify",
                                 check=False).returncode, 0)
         for name in ("root-a", "root-d"):
-            cli("root", "sign", str(path), "-s",
+            cli("trust", "root", "sign", str(path), "-s",
                 str(fixture_key(name)[0]))
-        out = cli(*self.args(), "root", "verify")
+        out = cli(*self.args(), "trust", "root", "verify")
         self.assertIn("root 4: expires", out.stdout)
         self.assertIn("index-keys 2: expires", out.stdout)
 
     def test_verify_from_a_later_root(self):
-        out = cli(*self.args(), "root", "verify", "--from", "2")
+        out = cli(*self.args(), "trust", "root", "verify", "--from", "2")
         self.assertIn("root 3", out.stdout)
 
     @unittest.skipIf(WINDOWS, "minisign signs on Linux only (minisig.py)")
@@ -295,7 +295,7 @@ class TrustTest(unittest.TestCase):
         """The real path: bash's <(...) -> gfrelease -> minisign."""
         g = fixture_key("g2")[0]
         cmd = " ".join([sys.executable, str(GFRELEASE), *self.args(),
-                        "index-keys", "renew", "-s", f"<(cat {g})"])
+                        "trust", "keys", "renew", "-s", f"<(cat {g})"])
         out = subprocess.run(["bash", "-c", cmd], capture_output=True,
                              text=True)
         self.assertEqual(out.returncode, 0, out.stderr)
@@ -308,7 +308,7 @@ class TrustTest(unittest.TestCase):
     def test_rotate_makes_an_unattended_key_and_lists_it(self):
         secret = self.tmp / "out" / "index.key"
         secret.parent.mkdir()
-        out = cli(*self.args(), "index-keys", "rotate", "--keep-old",
+        out = cli(*self.args(), "trust", "keys", "rotate", "--keep-old",
                   "--secret-out", str(secret), "-s",
                   str(fixture_key("g2")[0]))
         self.assertIn("without a password", out.stdout)
@@ -328,17 +328,17 @@ class TrustTest(unittest.TestCase):
             (self.keys / name).unlink()
         secret = self.tmp / "out" / "index.key"
         secret.parent.mkdir()
-        cli(*self.args(), "index-keys", "rotate", "--secret-out", str(secret),
+        cli(*self.args(), "trust", "keys", "rotate", "--secret-out", str(secret),
             "-s", str(fixture_key("g2")[0]))
         root, keys = trust.load_trust(self.root, self.keys, SLUG)
         self.assertEqual((root["version"], keys["version"]), (3, 2))
         # g1 cannot do the same: it is no root's G any more.
-        out = cli(*self.args(), "index-keys", "renew", "-s",
+        out = cli(*self.args(), "trust", "keys", "renew", "-s",
                   str(fixture_key("g1")[0]), check=False)
         self.assertNotEqual(out.returncode, 0)
 
     def test_rotate_never_writes_a_secret_into_the_repository(self):
-        out = cli(*self.args(), "index-keys", "rotate", "--secret-out",
+        out = cli(*self.args(), "trust", "keys", "rotate", "--secret-out",
                   str(common.ROOT / "index.key"), "-s",
                   str(fixture_key("g2")[0]), check=False)
         self.assertNotEqual(out.returncode, 0)
@@ -347,7 +347,7 @@ class TrustTest(unittest.TestCase):
         self.assertEqual(trust.versions(self.keys), [1, 2])
 
     def test_a_list_g_did_not_sign_is_never_left_behind(self):
-        out = cli(*self.args(), "index-keys", "renew", "-s",
+        out = cli(*self.args(), "trust", "keys", "renew", "-s",
                   str(fixture_key("g1")[0]), check=False)
         self.assertNotEqual(out.returncode, 0)
         self.assertEqual(sorted(os.listdir(self.keys)),

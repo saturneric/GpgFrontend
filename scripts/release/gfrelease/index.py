@@ -8,9 +8,9 @@ of its series, a release candidate's (vX.Y.0-rc.N) makes a series not yet
 released a prerelease, and a stable or imported release is listed only once
 its maintainer signatures verified. Signed with an index key the trusted
 index-keys list names (trusted comment "product=<slug> serial=<n>") and
-published to the update store, after the root and list it names. A run whose index would say nothing new, and is
-not near expiry, publishes nothing; `resign` publishes regardless, to push
-`expires` out.
+published to the update store, after the root and list it names. A run
+whose index would say nothing new publishes nothing; `resign` publishes
+regardless, to push `expires` out (when, is the signing host's to say).
 
 The serial only grows: it is one more than both the host's own record and the
 published index, so a client that has seen serial n never accepts an older
@@ -592,8 +592,8 @@ def _check_imported_files(product: Product, builds: Store, d: dict, path: str,
 
 
 class IndexIncomplete(ReleaseError):
-    """Some releases were refused, or could not be checked, or a mirror
-    could not be written. The index of everything else was still built (and
+    """Some releases were refused, or could not be checked. The index of
+    everything else was still built (and
     published, unless nothing changed): one bad release must not take the
     nightly and every other release off the channel with it. The run fails
     all the same, naming each one, so it is never silent. @p refused says
@@ -856,12 +856,12 @@ def _choose_betas(series: dict[str, dict], betas: list[dict]) -> dict | None:
     return beta
 
 
-def _published_pair(product: Product, update: Store, keys: list[str]
-                    ) -> tuple[dict, bytes, bytes] | None:
-    """The published index, its bytes and its signature's, when a listed
-    index key signed exactly them for this product and the serial it
-    states; None when there is none, or it is not one to believe (said on
-    stderr). A store that does not answer (StoreUnavailable) or a minisign
+def trusted_published(product: Product, update: Store,
+                      keys: list[str]) -> dict | None:
+    """The published index, when one of @p keys (the listed index keys)
+    signed exactly it for this product and the serial it states; None
+    when there is none, or it is not one to believe (said on stderr).
+    A store that does not answer (StoreUnavailable) or a minisign
     that does not run (ToolFailed) raises, as ever: that is not knowing,
     which is not the same, and taking it for "not ours" would build the
     next index without what this one lists."""
@@ -884,15 +884,7 @@ def _published_pair(product: Product, update: Store, keys: list[str]
         ui.warn(f"the published index is not one this host signed, and is "
                 f"replaced: {e}")
         return None
-    return index, data, sig
-
-
-def trusted_published(product: Product, update: Store,
-                      index_pub: list[str]) -> dict | None:
-    """The published index when it verifies with one of @p index_pub, the
-    pinned index keys; None otherwise."""
-    pair = _published_pair(product, update, index_pub)
-    return pair[0] if pair else None
+    return index
 
 
 def read_serial(state_dir: Path) -> int:
@@ -961,11 +953,10 @@ def publish(product: Product, builds: Store, update: Store, *,
     published that none of them verifies."""
     keys = list(index_pub)
     refused = Problems()
-    before = _published_pair(product, update, keys)
     content = build(product, builds, git_dir=git_dir,
                     state_dir=state_dir, cosign=cosign,
                     authenticode_ca=authenticode_ca, refused=refused,
-                    previous=before[0] if before else None)
+                    previous=trusted_published(product, update, keys))
     index = _sign_and_publish(product, content, update, index_key=index_key,
                               state_dir=state_dir, force=force, keys=keys)
     if refused:
@@ -994,11 +985,6 @@ def trust_files(product: Product) -> list[tuple[Path, str]]:
                     for n in (name, name + MINISIG)]
 
 
-def _put_trust(store: Store, files: list[tuple[Path, str]]) -> None:
-    for local, path in files:
-        store.put_file(local, path)
-
-
 def _sign_and_publish(product: Product, content: dict, update: Store, *,
                       index_key: Path, state_dir: Path, force: bool,
                       keys: list[str]) -> dict | None:
@@ -1006,8 +992,7 @@ def _sign_and_publish(product: Product, content: dict, update: Store, *,
     # Whole and verified, or it does not count: an index whose signature is
     # missing (a run that died between the two uploads) or does not verify
     # is replaced, and nothing it says is believed.
-    before = _published_pair(product, update, keys)
-    previous = before[0] if before else None
+    previous = trusted_published(product, update, keys)
     now = utcnow()
     trust = trust_files(product)
     if previous is not None and not force:
@@ -1053,21 +1038,15 @@ def _sign_and_publish(product: Product, content: dict, update: Store, *,
         # serial, never reuse one.
         atomic_write(state_dir / "serial", f"{serial}\n")
         history = layout.history_path(serial)
-
-        def keep(store: Store) -> None:
-            # Every index ever published, kept: what was listed, and when a
-            # release's signatures changed, can always be shown.
-            store.put_file(local, history)
-            store.put_file(sig, history + MINISIG)
-
-        def go_live(store: Store) -> None:
-            # Never an index that names trust its store does not hold.
-            _put_trust(store, trust)
-            store.put_file(sig, INDEX + MINISIG, immutable=False)
-            store.put_file(local, INDEX, immutable=False)
-
-        # History first: no index is ever live without it, and one that
-        # then fails to go live is only a serial skipped.
-        keep(update)
-        go_live(update)
+        # History first: every index ever published is kept (what was
+        # listed, and when a release's signatures changed, can always be
+        # shown), none is live without it, and one that then fails to go
+        # live is only a serial skipped.
+        update.put_file(local, history)
+        update.put_file(sig, history + MINISIG)
+        # Never an index that names trust the store does not hold.
+        for file, path in trust:
+            update.put_file(file, path)
+        update.put_file(sig, INDEX + MINISIG, immutable=False)
+        update.put_file(local, INDEX, immutable=False)
     return index

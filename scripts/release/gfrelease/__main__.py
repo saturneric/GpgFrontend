@@ -259,43 +259,43 @@ def command_list() -> str:
     return "\n".join(lines)
 
 
-def add_root_commands(sub, settings, prefix: str):
-    """trust root new|sign|status|verify (also as the older `root ...`)."""
+def add_root_commands(sub, settings):
+    """trust root new|sign|status|verify."""
     rsub = sub.add_subparsers(dest="action", required=True, metavar="ACTION",
                               parser_class=Parser)
     leaf(rsub, "new", settings, "write the next root: the newest one, one "
          "version up, expiring in two years; edit it by hand for anything "
-         "else", example=f"{prefix} new", key="trust root new",
+         "else", example="trust root new", key="trust root new",
          handler=cmd_root_new)
     p = leaf(rsub, "sign", settings, "add one root key's signature",
-             example=f"{prefix} sign release/root/4.root.json -s root1.key",
+             example="trust root sign release/root/4.root.json -s root1.key",
              key="trust root sign", handler=cmd_root_sign)
     p.add_argument("file", metavar="FILE", help="<N>.root.json")
     p.add_argument("-s", dest="secret", required=True, metavar="SECRET",
                    help="that root key's minisign secret key")
     leaf(rsub, "status", settings, "which root keys signed the newest root, "
          "against both thresholds, and who is missing",
-         example=f"{prefix} status", key="trust root status",
+         example="trust root status", key="trust root status",
          handler=cmd_root_status)
     p = leaf(rsub, "verify", settings, "walk release/root/, check "
              "release/index-keys/, say when each expires",
-             example=f"{prefix} verify", key="trust root verify",
+             example="trust root verify", key="trust root verify",
              handler=cmd_root_verify)
     p.add_argument("--from", dest="first", type=int, default=1, metavar="N",
                    help="trust this root on its own signatures, walk on")
 
 
-def add_keys_commands(sub, settings, prefix: str):
-    """trust keys renew|rotate (also as the older `index-keys ...`)."""
+def add_keys_commands(sub, settings):
+    """trust keys renew|rotate."""
     ksub = sub.add_subparsers(dest="action", required=True, metavar="ACTION",
                               parser_class=Parser)
     kr = leaf(ksub, "renew", settings, "the same keys, one version up, "
               "expiring in a year, signed with G",
-              example=f"{prefix} renew -s <(bw get notes G)",
+              example="trust keys renew -s <(bw get notes G)",
               key="trust keys renew", handler=cmd_keys)
     ko = leaf(ksub, "rotate", settings, "a new index key, listed in the next "
               "version, signed with G",
-              example=f"{prefix} rotate --secret-out ~/index.key --keep-old "
+              example="trust keys rotate --secret-out ~/index.key --keep-old "
               "-s <(bw get notes G)", key="trust keys rotate",
               handler=cmd_keys)
     ko.add_argument("--secret-out", required=True, metavar="FILE",
@@ -412,10 +412,10 @@ def build_parser(settings=None) -> argparse.ArgumentParser:
                             parser_class=Parser)
     r = tsub.add_parser("root", help="new | sign | status | verify")
     add_globals(r, settings)
-    add_root_commands(r, settings, "trust root")
+    add_root_commands(r, settings)
     k = tsub.add_parser("keys", help="renew | rotate")
     add_globals(k, settings)
-    add_keys_commands(k, settings, "trust keys")
+    add_keys_commands(k, settings)
     p = leaf(tsub, "update", settings, "take main's next roots and "
              "index-keys list into --root-dir and --index-keys-dir, as far "
              "as they hold", example="trust update", key="trust update",
@@ -449,8 +449,9 @@ def build_parser(settings=None) -> argparse.ArgumentParser:
         for o in ("staging", "builds", "update", "git_dir", "index_key",
                   "index_pub", "state_dir", "cosign", "authenticode_ca"):
             opt(p, o, settings)
-        flag(p, "force", "publish even if nothing changed")
         if name == "index":
+            # resign is index --force.
+            flag(p, "force", "publish even if nothing changed")
             flag(p, "dry_run", "decide everything, write nothing: what "
                  "would be listed and refused, against the published index")
 
@@ -467,13 +468,6 @@ def build_parser(settings=None) -> argparse.ArgumentParser:
              "completion bash", handler=cmd_completion, product=False)
     p.add_argument("shell", choices=("bash", "zsh"))
 
-    # Older names, still taken, no longer listed.
-    r = sub.add_parser("root")
-    add_globals(r, settings)
-    add_root_commands(r, settings, "root")
-    k = sub.add_parser("index-keys")
-    add_globals(k, settings)
-    add_keys_commands(k, settings, "index-keys")
     for p in LEAVES:
         short_usage(p)
     LEAVES.clear()
@@ -653,11 +647,11 @@ def cmd_help(ctx) -> int:
     if topic in topics.TOPICS:
         ui.info(topics.text(topic))
         return 0
-    words = topic.split()
+    # A command: its own --help, or argparse's error (exit 2) for none.
     try:
-        build_parser(ctx.settings).parse_args([*words, "--help"])
-    except SystemExit:
-        return 0
+        build_parser(ctx.settings).parse_args([*topic.split(), "--help"])
+    except SystemExit as e:
+        return e.code or 0
     return 0
 
 
@@ -845,10 +839,6 @@ def sign_root(file: Path, secret: str) -> str:
     return key_id
 
 
-def sign_index_keys(file: Path, secret: str, slug: str, version: int) -> None:
-    minisig.sign(Path(secret), file, layout.index_keys_comment(slug, version))
-
-
 def trust_report(root: dict, keys: dict) -> dict:
     return {name: {"version": doc["version"], "expires": doc["expires"],
                    "days_left": round(trust.days_left(doc), 1)}
@@ -966,7 +956,8 @@ def cmd_keys(ctx) -> int:
     path = keys_dir / layout.index_keys_name(nxt["version"])
     write_new(path, trust.dump(nxt))
     try:
-        sign_index_keys(path, args.secret, slug, nxt["version"])
+        minisig.sign(Path(args.secret), path,
+                     layout.index_keys_comment(slug, nxt["version"]))
         trust.accept_index_keys(root, path.read_bytes(),
                                 path.with_name(path.name + MINISIG)
                                 .read_bytes(), slug, path.name)
@@ -1059,7 +1050,7 @@ def cmd_host(ctx) -> int:
     if command == "promote":
         status = host.promote()
     else:
-        status = host.index(force=args.force or command == "resign")
+        status = host.index(force=command == "resign" or args.force)
     ctx.result = dict(host.report, status={
         host_mod.DONE: "done", host_mod.PARTIAL: "partial",
         host_mod.FAILED: "failed"}[status])
@@ -1094,8 +1085,6 @@ def _commands(parser, path=()):
     words = []
     for action in subs:
         for name, p in action.choices.items():
-            if name in ("root", "index-keys") and not path:
-                continue  # the older names: taken, not offered
             words.append(name)
             found += _commands(p, (*path, name))
     found.append((path, words + options))

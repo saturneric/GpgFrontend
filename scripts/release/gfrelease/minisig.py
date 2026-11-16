@@ -141,14 +141,12 @@ def verify_bytes(public_keys: list[str], data: bytes, sig: bytes,
         return verify(public_keys, file, sig_file)
 
 
-def generate(secret: Path, password: bool = False) -> str:
-    """A new key pair, @p secret and @p secret.pub beside it; returns the
-    public key. Without @p password it is made with -W, for a key used
-    unattended; with one, minisign asks for it on the terminal."""
+def generate(secret: Path) -> str:
+    """A new key pair, @p secret and @p secret.pub beside it, made without
+    a password (-W), for a key used unattended; returns the public key."""
     secret = Path(secret)
     pub = secret.with_name(secret.name + ".pub")
     if secret.exists() or pub.exists():
         raise ReleaseError(f"{secret} exists")
-    run(["minisign", "-G", *(() if password else ("-W",)), "-s", secret,
-         "-p", pub], capture_output=not password)
+    run(["minisign", "-G", "-W", "-s", secret, "-p", pub])
     return public_key_of(pub)

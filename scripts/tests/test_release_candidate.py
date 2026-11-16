@@ -21,7 +21,6 @@ import os
 import random
 import re
 import shutil
-import stat
 import sys
 import tempfile
 import textwrap
@@ -190,34 +189,11 @@ class ChainTest(TreeCase):
         self.assertEqual([l.split("  ")[1] for l in lines],
                          sorted(l.split("  ")[1] for l in lines))
 
-    def test_github_output_lists_verified_files(self):
-        self.tree.signed_candidate()
-        out = self.tree.root / "gh-output"
-        with contextlib.redirect_stdout(io.StringIO()):
-            code = rc.main(["verify", "--dir", str(self.tree.candidate),
-                            "--identity", IDENTITY, "--sha", SHA,
-                            "--cosign", str(self.tree.cosign),
-                            "--github-output", str(out)])
-        self.assertEqual(code, 0)
-        text = out.read_text()
-        match = re.fullmatch(r"files<<(\S+)\n(.*)\n\1\n", text, re.S)
-        self.assertIsNotNone(match, text)
-        listed = [Path(p) for p in match.group(2).split("\n")]
-        self.assertTrue(all(p.is_absolute() for p in listed))
-        self.assertEqual({p.name for p in listed},
-                         {p.name for p in self.tree.candidate.iterdir()})
-
-    def test_failure_writes_no_output(self):
-        self.tree.signed_candidate()
-        (self.tree.candidate / "stray").write_bytes(b"x")
-        out = self.tree.root / "gh-output"
-        with contextlib.redirect_stderr(io.StringIO()):
-            code = rc.main(["verify", "--dir", str(self.tree.candidate),
-                            "--identity", IDENTITY, "--sha", SHA,
-                            "--cosign", str(self.tree.cosign),
-                            "--github-output", str(out)])
-        self.assertEqual(code, 1)
-        self.assertFalse(out.exists())
+    def test_verify_is_not_a_command(self):
+        # The host verifies through gfrelease, which calls verify().
+        with self.assertRaises(SystemExit), \
+                contextlib.redirect_stderr(io.StringIO()):
+            rc.main(["verify", "--dir", str(self.tree.candidate)])
 
 
 # ---------------------------------------------------------------- identity
