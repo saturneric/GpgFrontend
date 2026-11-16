@@ -56,7 +56,10 @@ class BuildModeTest(unittest.TestCase):
         ("push", "refs/tags/v2.3.0", "release", "final"),
         ("push", "refs/tags/v2.4.0-alpha.0", "nightly", "none"),
         ("push", "refs/tags/v2.3.0-beta.1", "nightly", "none"),
-        ("push", "refs/tags/v2.3.0-rc.1", "nightly", "none"),
+        # A release candidate is published as a beta is; only of X.Y.0.
+        ("push", "refs/tags/v2.3.0-rc.1", "nightly", "rc"),
+        ("push", "refs/tags/v2.3.1-rc.1", "nightly", "none"),
+        ("push", "refs/tags/v2.3.0-rc.01", "nightly", "none"),
         ("push", "refs/tags/v2.08.0", "nightly", "none"),
         ("push", "refs/tags/v2.3.0.1", "nightly", "none"),
         ("pull_request", "refs/pull/7/merge", "pr", "none"),
@@ -100,7 +103,8 @@ class BuildModeTest(unittest.TestCase):
                           ("refs/heads/release/2.2", "release-branch"),
                           ("refs/tags/v2.3.0", "release-tag"),
                           ("refs/tags/v2.3", "other"),
-                          ("refs/tags/v2.3.0-rc.1", "other"),
+                          ("refs/tags/v2.3.0-rc.1", "rc-tag"),
+                          ("refs/tags/v2.3.1-rc.1", "other"),
                           ("refs/heads/release/2.2-fix", "other")):
             for event in ("push", "workflow_dispatch"):
                 with self.subTest(ref=ref, event=event):
@@ -126,7 +130,8 @@ class BuildModeTest(unittest.TestCase):
                 ("push", "refs/heads/release/2.2-fix", "false"),
                 ("push", "refs/tags/v2.4.0", "true"),
                 ("push", "refs/tags/v2.3.1", "true"),
-                ("push", "refs/tags/v2.4.0-rc.1", "false"),
+                ("push", "refs/tags/v2.4.0-rc.1", "true"),
+                ("push", "refs/tags/v2.4.1-rc.1", "false"),
                 ("push", "refs/tags/v2.08.0", "false"),
                 ("pull_request", "refs/pull/7/merge", "false"),
                 ("workflow_dispatch", "refs/tags/v2.4.0", "false")):
@@ -143,6 +148,8 @@ class BuildModeTest(unittest.TestCase):
                 ("push", "refs/heads/release/2.2-fix",
                  "com.bktus.gpgfrontend.nightly"),
                 ("push", "refs/tags/v2.4.0", "com.bktus.gpgfrontend"),
+                # A release candidate opens the release's profile, as a beta.
+                ("push", "refs/tags/v2.4.0-rc.1", "com.bktus.gpgfrontend"),
                 ("pull_request", "refs/pull/7/merge",
                  "com.bktus.gpgfrontend.nightly")):
             with self.subTest(ref=ref):
@@ -168,6 +175,15 @@ class BuildModeTest(unittest.TestCase):
                 self.assertEqual(published, refs.is_release_tag(tag))
                 self.assertEqual(published,
                                  bool(semver.RELEASE_TAG.match(tag)))
+        for tag in ("v2.4.0-rc.1", "v10.0.0-rc.12", "v2.4.1-rc.1",
+                    "v2.4.0-rc.01", "v2.4.0-rc", "v2.4.0-rc.1.1"):
+            with self.subTest(tag=tag):
+                candidate = classify("push", f"refs/tags/{tag}")[
+                    "publish_kind"] == "rc"
+                self.assertEqual(candidate, refs.is_rc_tag(tag))
+                self.assertEqual(candidate, bool(semver.RC_TAG.match(tag)))
+                self.assertEqual(candidate,
+                                 refs.promotes(f"refs/tags/{tag}"))
         for branch in ("main", "release/2.2", "release/10.11",
                        "release/2.2-fix", "release/2", "release/2.2/x",
                        "mainline", "feature/release/2.2"):

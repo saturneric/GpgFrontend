@@ -4,8 +4,9 @@
 
 Built from the release policy and the descriptors in the builds store: main's
 newest promoted build is the nightly channel, a release branch's is the beta
-of its series, and a stable or imported release is listed only once its
-maintainer signatures verified. Signed with an index key the trusted
+of its series, a release candidate's (vX.Y.0-rc.N) makes a series not yet
+released a prerelease, and a stable or imported release is listed only once
+its maintainer signatures verified. Signed with an index key the trusted
 index-keys list names (trusted comment "product=<slug> serial=<n>") and
 published to the update store, after the root and list it names. A run whose index would say nothing new, and is
 not near expiry, publishes nothing; `resign` publishes regardless, to push
@@ -36,7 +37,8 @@ import layout
 import ui
 from common import (BUNDLE, DESCRIPTOR, INDEX, MINISIG, SCHEMA, SIG, SUMS,
                     Problems, Product, ReleaseError, ToolFailed,
-                    atomic_write, candidate_error, is_passing, canonical_json,
+                    atomic_write, candidate_error, check_candidate,
+                    is_passing, canonical_json,
                     check_relpath, git_version, iso, load_json, locked,
                     notes_at, parse_iso, parse_manifest, parse_version, refs,
                     resolve_commit, sha256_bytes, sha256_file, tag_time,
@@ -127,8 +129,8 @@ def _verified_notes(builds: Store, ring: openpgp.Keyring, notes_path: str,
 
 def admit_nightly(product: Product, builds: Store, path: str, raw: bytes,
                   tmp: Path, *, git_dir: Path | None, cosign: str) -> dict:
-    """A promoted build (main's, a nightly; a release branch's, a beta) is
-    listed only if its descriptor is this product's, says what it is
+    """A promoted build (main's, a nightly; a release branch's, a beta; a
+    release candidate tag's, a prerelease) is listed only if its descriptor is this product's, says what it is
     consistently, and what promotion checked holds again: the Sigstore
     bundle under build/ names this product's workflow at the descriptor's
     ref and commit, that manifest states exactly the descriptor's hashes,
@@ -140,9 +142,9 @@ def admit_nightly(product: Product, builds: Store, path: str, raw: bytes,
     if d.get("schema") != SCHEMA or d.get("product") != product.slug:
         raise ReleaseError(f"{path}: not a {product.slug} descriptor")
     ref = d.get("ref", "")
-    if d.get("kind") != layout.KIND_NIGHTLY or not refs.publishes_builds(ref):
-        raise ReleaseError(f"{path}: not a build of main or of a release "
-                           "branch")
+    if d.get("kind") != layout.KIND_NIGHTLY or not refs.promotes(ref):
+        raise ReleaseError(f"{path}: not a build of main, of a release "
+                           "branch or of a release candidate's tag")
     descriptor.require(d, path, "version", "commit", "build", "artifacts",
                        "promoted_at")
     descriptor.require(d["build"], path + " build", "sums", "bundle")
@@ -155,11 +157,16 @@ def admit_nightly(product: Product, builds: Store, path: str, raw: bytes,
         raise ReleaseError(f"{path}: {d['version']} is a final version, which "
                            "a nightly never is")
     # A release branch builds its own series and no other: the beta of 2.2
-    # is never a build that calls itself 2.3.
-    series = refs.release_series(ref)
+    # is never a build that calls itself 2.3. A candidate's tag is exactly
+    # its own version.
+    series = refs.release_series(ref) or refs.rc_series(ref)
     if series and v.series != series:
         raise ReleaseError(f"{path}: {d['version']} is not a build of the "
                            f"{series} series its branch names")
+    rc_tag = refs.tag_of(ref) if refs.rc_series(ref) else ""
+    if rc_tag and d["version"] != rc_tag[1:]:
+        raise ReleaseError(f"{path}: {d['version']} is not the build of "
+                           f"{rc_tag}")
     if prefix != layout.nightly_dir(d["version"]):
         raise ReleaseError(f"{path}: published under another version's name")
     _check_contained(path, [d["build"]["sums"], d["build"]["bundle"]] +
@@ -174,11 +181,16 @@ def admit_nightly(product: Product, builds: Store, path: str, raw: bytes,
         raise ReleaseError(f"{path}: artifacts differ from the signed manifest")
     if git_dir is None:
         raise ReleaseError("builds need --git-dir to be admitted")
-    derived = git_version(git_dir, d["commit"], refs.branch_of(ref))
+    branch = refs.branch_of(ref) or refs.release_branch(series)
+    derived = git_version(git_dir, d["commit"], branch)
     if derived != d["version"]:
         raise ReleaseError(f"{path}: git says {d['commit'][:12]} on "
-                           f"{refs.branch_of(ref)} is {derived}, not "
-                           f"{d['version']}")
+                           f"{branch} is {derived}, not {d['version']}")
+    if rc_tag:
+        # The tag still names this commit, on its series' branch. Once the
+        # series is released, it is simply no longer listed (_choose_rcs).
+        check_candidate(git_dir, ref, d["commit"], derived,
+                        unreleased=False)
     return d
 
 
@@ -593,20 +605,25 @@ class IndexIncomplete(ReleaseError):
         self.index = index
 
 
-def _kept_builds(previous: dict | None, path: str) -> tuple[dict | None,
-                                                            list[dict]]:
+def _kept_builds(previous: dict | None, path: str
+                 ) -> tuple[dict | None, list[dict], list[dict]]:
     """What the published index lists for the descriptor at @p path, which
-    could not be read this round: (as the nightly, as betas)."""
+    could not be read this round: (as the nightly, as betas, as release
+    candidates)."""
     previous = previous or {}
     nightly = previous.get("nightly")
     nightly = nightly if descriptor.names_build(nightly) and \
         nightly["descriptor"] == path else None
     series = previous.get("series")
-    betas = [previous.get("beta")] + [
-        s.get("beta") for s in (series.values() if isinstance(series, dict)
-                                else []) if isinstance(s, dict)]
-    return nightly, [b for b in betas
-                     if descriptor.names_build(b) and b["descriptor"] == path][:1]
+    entries = [s for s in (series.values() if isinstance(series, dict)
+                           else []) if isinstance(s, dict)]
+
+    def named(builds: list) -> list[dict]:
+        return [b for b in builds
+                if descriptor.names_build(b) and b["descriptor"] == path][:1]
+    return (nightly,
+            named([previous.get("beta")] + [s.get("beta") for s in entries]),
+            named([s.get("rc") for s in entries]))
 
 
 def _newer(a: dict, b: dict | None) -> bool:
@@ -634,7 +651,7 @@ def build(product: Product, builds: Store, *,
     withdrawn = {parse_version(w["version"])
                  for w in product.policy.get("withdrawn", [])}
     with tempfile.TemporaryDirectory(prefix="gfr-index-") as tmp:
-        nightly, betas = _admitted_builds(
+        nightly, betas, rcs = _admitted_builds(
             product, builds, Path(tmp), git_dir=git_dir, cosign=cosign,
             withdrawn=withdrawn, previous=previous, refuse=refuse)
         releases = _admitted_releases(
@@ -647,6 +664,7 @@ def build(product: Product, builds: Store, *,
                if s["status"] in policy_mod.CURRENT_STATUSES and s["latest"]]
     stable = max(current, key=parse_version) if current else None
     beta = _choose_betas(series, betas)
+    prerelease = _choose_rcs(series, rcs)
 
     root, keys = product.trust
     return {
@@ -658,25 +676,30 @@ def build(product: Product, builds: Store, *,
         "series": series,
         "channels": {"stable": stable,
                      "beta": beta["version"] if beta else None,
+                     "prerelease":
+                         prerelease["version"] if prerelease else None,
                      "nightly": nightly["version"] if nightly else None},
         "withdrawn": [{"version": w["version"], "reason": w["reason"]}
                       for w in product.policy.get("withdrawn", [])],
         "releases": releases,
         "nightly": nightly,
         "beta": beta,
+        "prerelease": prerelease,
     }
 
 
 def _admitted_builds(product: Product, builds: Store, tmp: Path, *,
                      git_dir, cosign, withdrawn, previous, refuse
-                     ) -> tuple[dict | None, list[dict]]:
-    """The newest admitted build of main (the nightly), and every admitted
-    build of a release branch (a beta, chosen later). Which promoted
+                     ) -> tuple[dict | None, list[dict], list[dict]]:
+    """The newest admitted build of main (the nightly), every admitted
+    build of a release branch (a beta, chosen later), and of a release
+    candidate's tag (chosen later too). Which promoted
     builds are kept in the store, and for how long, is the signing host's
     (the Release-Server container's housekeeping): it never deletes one
     the live index names."""
     nightly = None
     betas: list[dict] = []
+    rcs: list[dict] = []
     promoted = builds.files(layout.NIGHTLY, include=f"*/{DESCRIPTOR}")
     for rel in promoted:
         path = f"{layout.NIGHTLY}/{rel}"
@@ -688,7 +711,7 @@ def _admitted_builds(product: Product, builds: Store, tmp: Path, *,
             refuse(path, e)
             if not is_passing(e):
                 continue
-            kept, kept_betas = _kept_builds(previous, path)
+            kept, kept_betas, kept_rcs = _kept_builds(previous, path)
             # Kept as listed, but never past what the policy says now.
             if kept is not None and \
                     parse_version(kept["version"]) not in withdrawn and \
@@ -696,6 +719,8 @@ def _admitted_builds(product: Product, builds: Store, tmp: Path, *,
                 nightly = kept
             betas += [b for b in kept_betas
                       if parse_version(b["version"]) not in withdrawn]
+            rcs += [b for b in kept_rcs
+                    if parse_version(b["version"]) not in withdrawn]
             continue
         if parse_version(d["version"]) in withdrawn:
             continue
@@ -704,11 +729,13 @@ def _admitted_builds(product: Product, builds: Store, tmp: Path, *,
         # main's builds are the nightly channel; a release/X.Y branch's
         # are the beta of that series (which one is chosen once the
         # releases are known). admit_nightly admits no other ref.
-        if d["ref"] != refs.MAIN:
+        if refs.rc_series(d["ref"]):
+            rcs.append(listed)
+        elif d["ref"] != refs.MAIN:
             betas.append(listed)
         elif _newer(listed, nightly):
             nightly = listed
-    return nightly, betas
+    return nightly, betas, rcs
 
 
 def _admitted_releases(product: Product, builds: Store, tmp: Path, *,
@@ -763,6 +790,8 @@ def _series_table(product: Product, releases: dict[str, dict],
         series[key]["platforms"] = entry.get("platforms", {})
         series[key]["latest"] = None
         series[key]["beta"] = None
+        series[key]["rc"] = None
+        series[key]["prerelease"] = False
         if series[key]["eol"] is not None:
             series[key]["eol"] = str(series[key]["eol"])
     # The stable channel is then the newest release of the series users are
@@ -776,6 +805,30 @@ def _series_table(product: Product, releases: dict[str, dict],
         if key in series:
             series[key]["latest"] = version
     return series
+
+
+def _choose_rcs(series: dict[str, dict], rcs: list[dict]) -> dict | None:
+    """Sets each series' release candidate: its newest X.Y.0-rc.N, while
+    the series has no release and users are meant to move to it (stable,
+    or mainline before the cut). Such a series is a prerelease: offered to
+    those who ask for betas. Its release makes it an ordinary series again,
+    and the candidate is no longer listed. Returns the candidate of the
+    newest prerelease series: the prerelease channel."""
+    for b in rcs:
+        v = parse_version(b["version"])
+        entry = series.get(v.series)
+        if entry is None or not v.is_release_candidate or \
+                entry["status"] not in policy_mod.CURRENT_STATUSES or \
+                entry["latest"] is not None:
+            continue
+        if _newer(b, entry["rc"]):
+            entry["rc"] = b
+            entry["prerelease"] = True
+    newest = None
+    for key in sorted(series, key=policy_mod.series_order):
+        if series[key]["rc"] is not None:
+            newest = series[key]["rc"]
+    return newest
 
 
 def _choose_betas(series: dict[str, dict], betas: list[dict]) -> dict | None:

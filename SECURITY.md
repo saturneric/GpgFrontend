@@ -37,9 +37,9 @@ by the maintainer's key:
 
     12F7E8858CF15BEC9975FF3C5CA3DA246843FD03
 
-Nightly builds (main) and betas (release/X.Y) are signed with Sigstore, on the
-build's manifest (`build/SHA256SUMS.txt.sigstore.json`), by the build
-workflow's identity:
+Nightly builds (main), betas (release/X.Y) and release candidates (vX.Y.0-rc.N)
+are signed with Sigstore, on the build's manifest
+(`build/SHA256SUMS.txt.sigstore.json`), by the build workflow's identity:
 
     https://github.com/saturneric/GpgFrontend/.github/workflows/build.yml@<ref>
 

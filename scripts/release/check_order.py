@@ -16,6 +16,8 @@ offer an older build as an update, or never offer a newer one:
   vX.Y.Z (a release tag build): the tagged tree carries
                release/notes/X.Y.Z.md, the reviewed notes that are published
                with it (scripts/release/notes.sh drafts them).
+  vX.Y.0-rc.N (a release candidate's tag): series X.Y has no release yet.
+               A candidate only ever comes before its series' first release.
 
 Any other ref (a pull request, a base tag, any other tag) has nothing to
 check.
@@ -110,7 +112,19 @@ def check(version: str, ref: str, tags: list[semver.Version],
     return problems
 
 
+def check_rc_tag(tag: str, tags: list[semver.Version]) -> list[str]:
+    series = refs.rc_series(refs.TAGS + tag)
+    released = sorted(t for t in tags if t.series == series)
+    if released:
+        return [f"{tag} is a release candidate of {series}, which already has "
+                f"the release {released[-1]}: a candidate only comes before "
+                f"{series}.0. Fixes go out as betas and fix releases."]
+    return []
+
+
 def check_tag(tag: str, repo: Path) -> list[str]:
+    if refs.is_rc_tag(tag):
+        return check_rc_tag(tag, release_tags(repo))
     if not refs.is_release_tag(tag):
         return []
     notes = repo / "release" / "notes" / f"{tag[1:]}.md"

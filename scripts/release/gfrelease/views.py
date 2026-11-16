@@ -99,7 +99,7 @@ def render_show(view: dict) -> list[str]:
         "",
         "channels",
     ]
-    for name in ("stable", "beta", "nightly"):
+    for name in ("stable", "beta", "prerelease", "nightly"):
         lines.append(f"  {name:<8} {view['channels'].get(name) or '-'}")
     lines += ["", "series"]
     for key, s in view["series"].items():
@@ -297,7 +297,7 @@ def render_overview(view: dict) -> list[str]:
     if view["channels"] is None:
         lines.append(f"  unknown: {view['index_problem']}")
     else:
-        for name in ("stable", "beta", "nightly"):
+        for name in ("stable", "beta", "prerelease", "nightly"):
             lines.append(f"  {name:<8} {view['channels'].get(name) or '-'}")
     if view["branches"]:
         lines += ["", "staged (each branch's newest)"]

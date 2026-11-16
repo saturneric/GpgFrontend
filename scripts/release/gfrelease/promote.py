@@ -3,7 +3,9 @@
 """The signing host's promotion of branch builds: staging -> final location.
 
 main's builds are the nightly channel, a release/X.Y branch's the beta of
-its series; no other branch is promoted. For each branch, only its newest
+its series, and a release candidate's tag (vX.Y.0-rc.N, staged beside that
+branch's builds) the prerelease of a series not released yet; no other ref
+is promoted. For each branch, only its newest
 staged build is (a burst of pushes costs one promotion; the signing host
 deletes older candidates). Before anything is signed:
 
@@ -33,8 +35,8 @@ import layout
 import ui
 from common import (BUNDLE, SCHEMA, STAGED, SUMS, Problems, Product,
                     ReleaseError, ToolFailed, canonical_json, git_version,
-                    iso, parse_version, refs, sha256_file, utcnow,
-                    verify_candidate)
+                    check_candidate, iso, parse_version, refs, sha256_file,
+                    utcnow, verify_candidate)
 from stage import read_staged
 from store import Store
 
@@ -114,12 +116,16 @@ def promote_one(product: Product, staging: Store, builds: Store,
     ref, commit = staged["ref"], staged["commit"]
     if staged["product"] != product.slug:
         raise ReleaseError(f"{prefix} is staged for {staged['product']}")
-    # staged.json is anyone's to write: only builds of main and of release
-    # branches are published, whatever else is staged.
-    if not refs.publishes_builds(ref):
-        raise ReleaseError(f"{prefix}: {ref} is neither main nor a release "
-                           "branch")
-    branch = refs.branch_of(ref)
+    # staged.json is anyone's to write: only builds of main, of release
+    # branches and of release candidate tags are published, whatever else is
+    # staged.
+    if not refs.promotes(ref):
+        raise ReleaseError(f"{prefix}: {ref} is neither main, a release "
+                           "branch nor a release candidate's tag")
+    rc_series = refs.rc_series(ref)
+    # A tag's version is what the tag says, wherever it is: GitVersion reads
+    # it from the tag, and the branch it would otherwise use is its series'.
+    branch = refs.branch_of(ref) or refs.release_branch(rc_series)
     # A final version is the stable release's, published only through the
     # offline stage: a branch build of the tagged commit is never one.
     if parse_version(staged["version"]).is_final:
@@ -151,6 +157,8 @@ def promote_one(product: Product, staging: Store, builds: Store,
             # The branch reached a later series' base tag: not its beta.
             raise ReleaseError(f"{prefix}: {branch} builds {derived}, "
                                f"outside its series {series}")
+        if rc_series:
+            check_candidate(git_dir, ref, commit, derived)
 
         artifacts = []
         for name in sorted(files):
