@@ -11,9 +11,10 @@ only through this, run by hand:
                matches the signed manifest, the tag is signed by a maintainer
                key and points at that commit, and git calls it that version
   authenticode the Windows packages, inside and out, with the certificate
-               on its token (its PIN asked once): every program in the MSI
-               and the portable zip, then the MSI itself; the time stamps
-               are the one network call                             (TSA)
+               on its token: first every program in every MSI and
+               portable zip, then the packages themselves, so a token
+               that asks its PIN for each run of the signing tool asks
+               twice; the time stamps are the one network call      (TSA)
   pgp          a detached .sig for every final file, a final SHA256SUMS.txt
                and its .sig, and the release notes the tag carries, signed
   upload       everything to releases/<version>/ and notes/, the descriptor
@@ -43,6 +44,7 @@ from __future__ import annotations
 
 import json
 import shutil
+import tempfile
 from pathlib import Path
 
 import authenticode
@@ -81,7 +83,8 @@ class Stage:
         self.signer = signer
         self.authenticode_ca = authenticode_ca
         # on_signed(file, done, total, path): each program signed inside a
-        # package, for whoever shows the progress.
+        # package, and then the package itself (path None), for whoever
+        # shows the progress.
         self.on_signed = on_signed
         self.dir.mkdir(parents=True, exist_ok=True)
         self.state_path = self.dir / "state.json"
@@ -280,30 +283,63 @@ class Stage:
         self.final_dir.mkdir()
         rules = authenticode.Rules.of(self.product)
         files = self.state["build"]["files"]
+        packages = {name: info for name, info in sorted(files.items())
+                    if any(authenticode.plan(info))}
+        if packages and self.signer is None:
+            raise ReleaseError(f"{next(iter(packages))} needs an "
+                               "Authenticode signer (--authenticode-cert/"
+                               "-key, or --authenticode-thumbprint)")
         for name, info in sorted(files.items()):
-            if any(authenticode.plan(info)):
-                if self.signer is None:
-                    raise ReleaseError(f"{name} needs an Authenticode signer "
-                                       "(--authenticode-cert/-key)")
-                signed = authenticode.sign_package(
-                    build / name, self.final_dir / name, info, self.signer,
-                    rules, progress=None if self.on_signed is None else
-                    lambda n, total, path, name=name:
-                    self.on_signed(name, n, total, path))
-                # Checked as the signing host will, before anything leaves.
-                authenticode.unchanged_apart_from(build / name,
-                                                  self.final_dir / name,
-                                                  info, signed)
-                authenticode.verify_package(
-                    self.final_dir / name, info,
-                    self.product.authenticode_subject, self.authenticode_ca,
-                    rules, require_timestamp=self.product
-                    .authenticode_timestamp_required)
-                info["transform"] = "authenticode"
-            else:
+            if name not in packages:
                 shutil.copy2(build / name, self.final_dir / name)
                 info["transform"] = "none"
+
+        # In two rounds, each one call of the signer: the programs of every
+        # package, then the packages closed around them.
+        signed = {}
+        with tempfile.TemporaryDirectory(prefix="gfr-sign-") as tmp:
+            opened = {name: authenticode.open_package(
+                build / name, info, rules, Path(tmp) / str(n))
+                for n, (name, info) in enumerate(packages.items())}
+            self._sign({file: (name, path) for name, o in opened.items()
+                        for path, file in o.programs.items()})
+            for name, o in opened.items():
+                signed[name] = authenticode.close_package(
+                    o, self.final_dir / name)
+        self._sign({self.final_dir / name: (name, None)
+                    for name, o in opened.items() if o.outside})
+
+        for name, info in packages.items():
+            # Checked as the signing host will, before anything leaves.
+            authenticode.unchanged_apart_from(build / name,
+                                              self.final_dir / name,
+                                              info, signed[name])
+            authenticode.verify_package(
+                self.final_dir / name, info,
+                self.product.authenticode_subject, self.authenticode_ca,
+                rules, require_timestamp=self.product
+                .authenticode_timestamp_required)
+            info["transform"] = "authenticode"
+        for name, info in files.items():
             info["sha256"] = sha256_file(self.final_dir / name)
+
+    def _sign(self, what: dict[Path, tuple[str, str | None]]) -> None:
+        """Signs the files of @p what in one call, each a (package, path
+        inside it, or None for the package itself), and tells on_signed
+        about each as it is done, counted within its package."""
+        if not what:
+            return
+        totals, done = {}, {}
+        for name, _ in what.values():
+            totals[name] = totals.get(name, 0) + 1
+
+        def on_done(file: Path) -> None:
+            name, path = what[file]
+            done[name] = done.get(name, 0) + 1
+            if self.on_signed is not None:
+                self.on_signed(name, done[name], totals[name], path)
+
+        self.signer.sign_files(list(what), on_done)
 
     def _pgp(self) -> None:
         self._need("key", "git_dir")

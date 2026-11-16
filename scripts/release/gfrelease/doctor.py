@@ -4,7 +4,8 @@
 
   maintainer  the tools of the offline stage, the stores it reads and
               writes, the signing key in GnuPG, the Authenticode token or
-              files, the checkout with its release tags and keyring
+              files (on Windows: the certificate in the user's store), the
+              checkout with its release tags and keyring
   ci          the tools stage needs, and the staging store
   host        the signing host's tools, every store, the index key and
               that the trusted index-keys list holds it
@@ -17,13 +18,16 @@ Exit status 1 when any check failed.
 
 from __future__ import annotations
 
+import base64
+import json
 import shutil
 from pathlib import Path
 
+import authenticode
 import minisig
 import trust
 import ui
-from common import ReleaseError, run
+from common import WINDOWS, ReleaseError, run
 
 ROLES = ("maintainer", "ci", "host")
 TOOLS = {
@@ -32,6 +36,13 @@ TOOLS = {
     "ci": ("git", "rclone", "cosign"),
     "host": ("git", "gpg", "rclone", "cosign", "minisign", "osslsigncode",
              "msiinfo"),
+}
+# The maintainer's stage on Windows signs with signtool and reads an MSI
+# through Windows Installer itself: no osslsigncode, no msitools. minisign
+# only verifies the trust root there; cmake reads the version off the tag.
+WINDOWS_TOOLS = {
+    "maintainer": ("git", "gpg", "gpgconf", "rclone", "cosign", "cmake",
+                   "minisign", "signtool"),
 }
 STORES = {
     "maintainer": ("staging", "builds"),
@@ -63,10 +74,19 @@ class Doctor:
         return self.checks
 
     def tools(self) -> None:
-        for name in TOOLS[self.role]:
+        tools = WINDOWS_TOOLS.get(self.role) if WINDOWS else None
+        for name in tools or TOOLS[self.role]:
             command = {"rclone": self.args.rclone,
-                       "cosign": self.args.cosign}.get(name) or name
+                       "cosign": self.args.cosign,
+                       "signtool": getattr(self.args, "signtool", None),
+                       }.get(name) or name
             path = shutil.which(command)
+            if name == "signtool":
+                try:
+                    path = authenticode.find_signtool(
+                        "" if command == name else command)
+                except ReleaseError:
+                    path = None
             fix = ui.install_hint(name)
             if command != name:
                 fix = f"{fix}; or point --{name} at it (now {command})"
@@ -134,6 +154,10 @@ class Doctor:
 
     def authenticode(self) -> None:
         cert, key = self.args.authenticode_cert, self.args.authenticode_key
+        thumbprint = getattr(self.args, "authenticode_thumbprint", None)
+        if WINDOWS and (thumbprint or not (cert or key)):
+            self.store_certificate(thumbprint)
+            return
         if not cert and not key:
             self.check("authenticode", False, "not set",
                        "set authenticode_cert and authenticode_key (files "
@@ -150,6 +174,51 @@ class Doctor:
                    ", ".join(missing) or "certificate and key set",
                    "point authenticode_cert/key at the files, or set "
                    "pkcs11_module for a token")
+
+    def store_certificate(self, thumbprint: str | None) -> None:
+        """The certificate signtool is to sign with: in the user's store,
+        for code signing, in date, its key known to the store, and the one
+        the trust root pins."""
+        if not thumbprint:
+            self.check("authenticode", False, "not set",
+                       "set authenticode_thumbprint in gfrelease.toml: the "
+                       "SHA-1 thumbprint of the certificate, as certmgr.msc "
+                       "shows it under Personal")
+            return
+        try:
+            thumbprint = authenticode.SigntoolSigner(thumbprint).thumbprint
+            found = json.loads(authenticode.powershell(
+                _STORE_CERTIFICATE, GFR_THUMBPRINT=thumbprint) or "null")
+        except (ReleaseError, ValueError) as e:
+            self.check("authenticode", False, str(e), "")
+            return
+        if not found:
+            self.check("authenticode", False,
+                       f"{thumbprint}: not in your certificate store",
+                       "import the certificate (the card's software does, "
+                       "or certutil -addstore -user My <file>), or correct "
+                       "authenticode_thumbprint")
+            return
+        subject = authenticode.certificate_subject(
+            base64.b64decode(found["certificate"]))
+        wrong = []
+        if not found["code_signing"]:
+            wrong.append("not a code-signing certificate")
+        if not found["has_key"]:
+            wrong.append("the store knows no key for it")
+        if found["days_left"] <= 0:
+            wrong.append("expired")
+        if subject != authenticode._subject_rdns(
+                self.product.authenticode_subject or "/"):
+            wrong.append("not the subject the trust root pins "
+                         f"({self.product.authenticode_subject})")
+        self.check("authenticode", not wrong,
+                   f"{thumbprint}: " + (", ".join(wrong) or
+                                        f"expires in {found['days_left']} "
+                                        "days"),
+                   "certutil -repairstore -user My <thumbprint> binds a "
+                   "card's key to its certificate; a renewed certificate "
+                   "has a new thumbprint")
 
     def checkout(self) -> None:
         git_dir = self.args.git_dir
@@ -189,6 +258,23 @@ class Doctor:
         except ReleaseError as e:
             self.check("index key", False, str(e),
                        "list its public key (gfrelease trust keys rotate)")
+
+
+# The certificate $env:GFR_THUMBPRINT names in the user's store, or nothing.
+_STORE_CERTIFICATE = r"""
+$c = Get-ChildItem -LiteralPath Cert:\CurrentUser\My |
+    Where-Object { $_.Thumbprint -eq $env:GFR_THUMBPRINT } |
+    Select-Object -First 1
+if ($c) {
+    ConvertTo-Json -Compress -InputObject ([pscustomobject]@{
+        certificate  = [Convert]::ToBase64String($c.RawData)
+        has_key      = [bool]$c.HasPrivateKey
+        days_left    = [int][Math]::Floor(($c.NotAfter - (Get-Date)).TotalDays)
+        code_signing = [bool]($c.EnhancedKeyUsageList |
+            Where-Object { $_.ObjectId -eq '1.3.6.1.5.5.7.3.3' })
+    })
+}
+"""
 
 
 def render(checks: list[dict]) -> list[str]:
