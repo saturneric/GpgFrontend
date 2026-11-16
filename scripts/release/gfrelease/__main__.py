@@ -375,13 +375,12 @@ def build_parser(settings=None) -> argparse.ArgumentParser:
              "stable 2.3.0", handler=cmd_stable)
     p.add_argument("version", metavar="VERSION",
                    help="X.Y.Z, its tag vX.Y.Z already pushed")
-    for name in ("work", "staging", "builds", "git_dir", "cosign", "key",
+    for name in ("work", "staging", "git_dir", "cosign", "key",
                  "gnupghome", "authenticode_cert", "authenticode_key",
                  "pkcs11_module", "authenticode_thumbprint", "signtool",
                  "timestamp_url", "authenticode_ca"):
         opt(p, name, settings, OPTIONS[name][0] + (
-            " (read)" if name == "staging" else " (write)"
-            if name == "builds" else ""))
+            " (read, and write under signed/)" if name == "staging" else ""))
     p.add_argument("--redo", choices=stable_mod.STEPS,
                    help="run this step, and every one after it, again")
     p.add_argument("--notes-only", action="store_true",
@@ -394,13 +393,14 @@ def build_parser(settings=None) -> argparse.ArgumentParser:
     p = leaf(sub, "import", settings, "bring over a release made before this "
              "pipeline", "Brings a release published on GitHub Releases "
              "before this pipeline over: downloaded, its maintainer "
-             "signatures checked, uploaded to releases/<version>/.",
+             "signatures checked, handed to the signing host through the "
+             "staging store.",
              "import 2.1.4", handler=cmd_import)
     p.add_argument("versions", nargs="+", metavar="VERSION",
                    help="X.Y.Z, each a published GitHub release")
     opt(p, "work", settings, "where the downloads are kept")
-    opt(p, "builds", settings, "the final artifact store (write); without "
-        "it, only download and check")
+    opt(p, "staging", settings, "the staging store (write under signed/); "
+        "without it, only download and check")
     opt(p, "git_dir", settings, "a clone with the release tags")
 
     t = sub.add_parser("trust", help="the trust root, the index keys, and "
@@ -739,7 +739,7 @@ def cmd_stable(ctx) -> int:
             if token and sys.stdin.isatty() else None)
     stage = stable_mod.Stage(
         product, args.version, Path(args.work),
-        staging=ctx.store(args.staging), builds=ctx.store(args.builds),
+        staging=ctx.store(args.staging),
         git_dir=Path(args.git_dir) if args.git_dir else None,
         cosign=args.cosign or "cosign", key=args.key,
         gnupghome=args.gnupghome, signer=signer,
@@ -749,7 +749,7 @@ def cmd_stable(ctx) -> int:
     if args.notes_only:
         digest = stage.publish_notes()
         ctx.result = {"version": args.version, "notes": digest}
-        ui.info(f"{args.version}: notes {digest} uploaded")
+        ui.info(f"{args.version}: notes {digest} handed over")
         ui.next_step(f"the signing host publishes them on its next round "
                      f"(`gfrelease status {args.version}`)")
         return 0
@@ -764,8 +764,9 @@ def cmd_stable(ctx) -> int:
         ui.info(f"[{number}/{total}] {step}"
                 f"{' (done before)' if done_before else ''}")
         if step == "upload" and not done_before and ask:
-            answer = input(f"Upload {args.version} to {args.builds}? Once "
-                           "it is there it is never replaced. [y/N] ")
+            answer = input(f"Hand {args.version} to the signing host "
+                           f"(upload to {args.staging})? Once it has "
+                           "published it, it is never replaced. [y/N] ")
             if answer.strip().lower() not in ("y", "yes"):
                 raise ReleaseError(f"stopped before the upload: nothing of "
                                    f"{args.version} was published; run "
@@ -782,10 +783,10 @@ def cmd_stable(ctx) -> int:
                 "uploaded")
         ui.next_step(f"gfrelease stable {args.version}")
     elif descriptor:
-        ui.info(f"{args.version}: published to "
+        ui.info(f"{args.version}: handed to the signing host as "
                 f"{descriptor['sums'].rsplit('/', 1)[0]}")
-        ui.next_step(f"the signing host lists it on its next round: "
-                     f"`gfrelease status {args.version}`")
+        ui.next_step(f"the signing host receives and lists it on its next "
+                     f"round: `gfrelease status {args.version}`")
     else:
         ui.info(f"{args.version}: done")
     return 0
@@ -793,26 +794,28 @@ def cmd_stable(ctx) -> int:
 
 def cmd_import(ctx) -> int:
     args = ctx.args
-    builds = ctx.store(args.builds)
+    staging = ctx.store(args.staging)
     done = []
     for version in args.versions:
         job = imported_mod.Import(ctx.product, version, Path(args.work),
-                                  builds=builds, git_dir=Path(args.git_dir))
+                                  staging=staging, git_dir=Path(args.git_dir))
         d = job.run()
         done.append({"version": version, "files": len(d["artifacts"]),
                      "signed_by": d["signing"]["fingerprint"],
-                     "left_out": list(job.skipped), "uploaded": bool(builds)})
+                     "left_out": list(job.skipped),
+                     "uploaded": bool(staging)})
         ui.info(f"{version}: {len(d['artifacts'])} files, signed by "
                 f"{d['signing']['fingerprint']}"
-                + (f", uploaded to releases/{version}/" if builds
+                + (f", handed over as releases/{version}/" if staging
                    else " (checked only, nothing uploaded)"))
         for skipped in job.skipped:
             ui.info(f"  left out: {skipped}")
     ctx.result = {"imported": done}
-    if builds:
-        ui.next_step("the signing host lists them on its next round")
+    if staging:
+        ui.next_step("the signing host receives and lists them on its next "
+                     "round")
     else:
-        ui.next_step("run again with --builds to upload")
+        ui.next_step("run again with --staging to hand them over")
     return 0
 
 

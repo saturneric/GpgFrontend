@@ -680,6 +680,11 @@ class ChainTest(unittest.TestCase):
         self.assertEqual((layout.BRANCHES, layout.TAGS, layout.NIGHTLY,
                           layout.RELEASES), ("branches", "tags", "nightly",
                                              "releases"))
+        # What a maintainer hands over: signed/** of the staging store,
+        # laid out below it as in the builds store.
+        self.assertEqual((layout.SIGNED, layout.NOTES), ("signed", "notes"))
+        self.assertEqual(self.staging.sub(layout.SIGNED).root,
+                         self.staging.root + "/signed")
         self.assertEqual((common.STAGED, common.DESCRIPTOR, common.INDEX),
                          ("staged.json", "release.json", "v1/index.json"))
         self.assertEqual(layout.nightly_dir("2.3.0-alpha.1+gabc"),
@@ -1838,6 +1843,25 @@ class AuthenticodeSubjectTest(unittest.TestCase):
 STABLE_TOOLS = TOOLS and tools("gpg", "gpgconf") and signing_tools()
 
 
+class HandedOver(stable_mod.Stage):
+    """The offline stage, and the host receiving what it handed over
+    (promote.receive) right after: most tests are about what the host
+    makes of a release once it is in the builds store."""
+
+    receive = None
+
+    def run(self, *args, **kw):
+        d = super().run(*args, **kw)
+        if d is not None:
+            self.receive()
+        return d
+
+    def publish_notes(self, *args, **kw):
+        digest = super().publish_notes(*args, **kw)
+        self.receive()
+        return digest
+
+
 @unittest.skipUnless(STABLE_TOOLS, "needs gpg, and osslsigncode, openssl and "
                      "msitools, or on Windows signtool")
 class StableTest(unittest.TestCase):
@@ -1959,15 +1983,29 @@ class StableTest(unittest.TestCase):
                         commit=commit, version=version, filesafe=version,
                         built_at="2026-11-07T08:00:00Z")
 
-    def stage(self, version="2.3.0", **kw):
-        args = dict(staging=self.staging, builds=self.builds,
+    def stage(self, version="2.3.0", received=True, **kw):
+        """The offline stage; with @p received, what it hands over is
+        received by the host as soon as it has."""
+        args = dict(staging=self.staging,
                     git_dir=self.repo, cosign=str(self.cosign),
                     gnupghome=str(self.gnupg),
                     signer=self.certificate.signer(),
                     authenticode_ca=str(self.cert))
         args.update(kw)
-        return stable_mod.Stage(self.product, version, self.tmp / "work",
-                                **args)
+        if not received:
+            return stable_mod.Stage(self.product, version, self.tmp / "work",
+                                    **args)
+        stage = HandedOver(self.product, version, self.tmp / "work", **args)
+        stage.receive = self.receive
+        return stage
+
+    def receive(self, **kw):
+        """The host's part of promote that takes what was handed over."""
+        args = dict(git_dir=self.repo, state_dir=self.state,
+                    cosign=str(self.cosign), authenticode_ca=str(self.cert))
+        args.update(kw)
+        return promote_mod.receive(self.product, self.staging, self.builds,
+                                   **args)
 
     def index(self):
         return index_mod.publish(
@@ -2018,7 +2056,7 @@ class StableTest(unittest.TestCase):
         spec.loader.exec_module(cli)
         args = [*trust_args(self.product), "stable", "2.3.0",
                 "--work", str(self.tmp / "work"),
-                "--staging", self.staging.root, "--builds", self.builds.root,
+                "--staging", self.staging.root,
                 "--git-dir", str(self.repo), "--cosign", str(self.cosign),
                 "--gnupghome", str(self.gnupg),
                 *self.certificate.options(),
@@ -2053,7 +2091,13 @@ class StableTest(unittest.TestCase):
         status, out, err = self.stable_cli()
         self.assertEqual(status, 0, err)
         self.assertIn("[5/5] upload", out)
-        self.assertIn("next: the signing host lists it", out)
+        self.assertIn("next: the signing host receives and lists it", out)
+        # Handed over: in the staging store, and nowhere else until the
+        # host has checked it.
+        self.assertFalse(published.exists())
+        self.assertTrue(self.staging.exists(
+            "signed/releases/2.3.0/release.json"))
+        self.assertEqual([d["version"] for d in self.receive()], ["2.3.0"])
         self.assertTrue(published.exists())
 
     def test_a_stable_release_goes_from_tag_to_a_verified_index(self):
@@ -2188,6 +2232,8 @@ class StableTest(unittest.TestCase):
         self.index()
         self.assertEqual(self.tree(), before)
 
+    @unittest.skipUnless(shutil.which("openssl"), "needs openssl (the "
+                         "HTTPS server's certificate)")
     def test_a_client_over_https_sees_the_stable_release(self):
         import functools
         import http.server
@@ -2335,7 +2381,7 @@ class StableTest(unittest.TestCase):
         # The stage will not sign without a time-stamping service.
         self.assert_refused(
             lambda: stable_mod.Stage(required, "2.3.0", self.tmp / "work",
-                                     staging=self.staging, builds=self.builds,
+                                     staging=self.staging,
                                      git_dir=self.repo,
                                      cosign=str(self.cosign),
                                      gnupghome=str(self.gnupg),
@@ -2601,6 +2647,100 @@ class StableTest(unittest.TestCase):
         target.write_bytes(resigned.read_bytes())
         self.assert_refused(self.index, "not the published bytes|not '/C")
 
+    def test_what_is_handed_over_is_received_only_once_it_is_checked(self):
+        # The staging store is CI's to write too: what a maintainer hands
+        # over there counts for nothing until the host has checked it, and
+        # only what it checked reaches the builds store.
+        self.tag()
+        self.build()
+        d = self.stage(received=False).run()
+        handed = self.tmp / "staging" / "signed"
+        path = "releases/2.3.0/release.json"
+        self.assertEqual(self.builds.files(""), [])
+        self.assertEqual(self.staging.sub("signed").read(path),
+                         common.canonical_json(d))
+
+        def refused(why):
+            with self.assertRaisesRegex(promote_mod.ReceiveIncomplete,
+                                        why) as caught:
+                self.receive()
+            self.assertIn("signed/" + path, str(caught.exception))
+            self.assertEqual(caught.exception.done, [])
+            self.assertEqual(self.builds.files("releases"), [])
+
+        # An installer changed after it was signed.
+        msi = next(a for a in d["artifacts"] if a["kind"] == "msi")
+        target = handed / msi["path"]
+        signed = target.read_bytes()
+        target.chmod(0o644)
+        target.write_bytes(signed + b"more")
+        refused("not received")
+        target.write_bytes(signed)
+        # A descriptor that says something else than was signed.
+        descriptor = handed / path
+        descriptor.chmod(0o644)
+        descriptor.write_bytes(common.canonical_json(
+            dict(d, commit="0" * 40)))
+        refused("not received")
+        descriptor.write_bytes(common.canonical_json(d))
+        # A release handed over as another version.
+        shutil.copytree(handed / "releases" / "2.3.0",
+                        handed / "releases" / "2.3.1")
+        (handed / "releases" / "2.3.0" / "stray.bin").write_bytes(b"x")
+
+        host = host_mod.Host(
+            self.product, self.builds, self.state, staging=self.staging,
+            git_dir=self.repo, cosign=str(self.cosign),
+            authenticode_ca=str(self.cert))
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            status = host.promote()
+        # 2.3.0 is received, whatever else lies there.
+        self.assertEqual(status, host_mod.PARTIAL, err.getvalue())
+        self.assertIn("received 2.3.0 (4 files)", out.getvalue())
+        self.assertIn("signed/releases/2.3.1/release.json", err.getvalue())
+        self.assertEqual(host.report["received"],
+                         [{"version": "2.3.0", "files": 4}])
+        self.assertEqual(self.builds.read(path), common.canonical_json(d))
+        # Exactly what the descriptor and the notes name, nothing else.
+        self.assertNotIn("2.3.0/stray.bin", self.builds.files("releases"))
+        self.assertEqual({f.split("/")[0]
+                          for f in self.builds.files("releases")}, {"2.3.0"})
+        self.assertIn("2.3.0", self.index()["releases"])
+        shutil.rmtree(handed / "releases" / "2.3.1")
+
+        # Received already: nothing to do, and never replaced.
+        self.assertEqual(self.receive(), [])
+        descriptor.write_bytes(common.canonical_json(
+            dict(d, released_at="2030-01-01T00:00:00Z")))
+        with self.assertRaisesRegex(promote_mod.ReceiveIncomplete,
+                                    "never replaced"):
+            self.receive()
+        self.assertEqual(self.builds.read(path), common.canonical_json(d))
+
+    def test_notes_handed_over_are_received_when_a_maintainer_signed_them(
+            self):
+        self.admitted()
+        other = self.new_key("Someone Else <else@example.org>")
+        handed = self.tmp / "staging" / "signed" / "notes" / "2.3.0"
+        for text, key in ((b"Signed by us.\n", self.fpr),
+                          (b"Signed by another.\n", other)):
+            notes = handed / f"{common.sha256_bytes(text)}.md"
+            notes.parent.mkdir(parents=True, exist_ok=True)
+            notes.write_bytes(text)
+            openpgp.sign(notes, key, str(self.gnupg))
+        misnamed = handed / ("0" * 64 + ".md")
+        misnamed.write_bytes(b"Signed by us.\n")
+        openpgp.sign(misnamed, self.fpr, str(self.gnupg))
+        with self.assertRaises(promote_mod.ReceiveIncomplete) as caught:
+            self.receive()
+        self.assertEqual(len(caught.exception.failed), 2)
+        digest = common.sha256_bytes(b"Signed by us.\n")
+        ours = f"notes/2.3.0/{digest}.md"
+        self.assertTrue(self.builds.exists(ours))
+        self.assertTrue(self.builds.exists(ours + ".sig"))
+        self.assertEqual(len(self.builds.files("notes/2.3.0")), 4)
+
     def test_programs_are_signed_in_one_round_and_packages_in_another(self):
         # A card asks its PIN for each run of the signing tool: every
         # program of every package goes to the first, the packages
@@ -2686,6 +2826,7 @@ class ImportTest(unittest.TestCase):
         keys.mkdir()
         self.idx_key, self.idx_pub = keypair(keys, "index")
         self.product = self.write_product(self.tmp / "product", [self.fpr])
+        self.staging = Store(str(self.tmp / "staging"))
         self.builds = Store(str(self.tmp / "builds" / self.product.slug))
         self.update = Store(str(self.tmp / "update" / self.product.slug))
         self.state = self.tmp / "state"
@@ -2717,10 +2858,19 @@ class ImportTest(unittest.TestCase):
         return d
 
     def run_import(self, version, builds=True):
+        """The import, handed over and (with @p builds) received by the
+        host."""
         job = imported_mod.Import(self.product, version, self.tmp / "work",
-                                  builds=self.builds if builds else None,
+                                  staging=self.staging if builds else None,
                                   git_dir=self.repo, source=self.github)
-        return job, job.run()
+        d = job.run()
+        if builds:
+            self.receive()
+        return job, d
+
+    def receive(self):
+        return promote_mod.receive(self.product, self.staging, self.builds,
+                                   git_dir=self.repo, state_dir=self.state)
 
     def index(self):
         return index_mod.publish(
@@ -2835,9 +2985,11 @@ class ImportTest(unittest.TestCase):
         self.git("commit", "-q", "-m", f"notes for {version}")
 
     def sign_notes(self, version):
-        return stable_mod.Stage(self.product, version, self.tmp / "work",
-                                builds=self.builds, git_dir=self.repo,
-                                gnupghome=str(self.gnupg)).publish_notes()
+        digest = stable_mod.Stage(
+            self.product, version, self.tmp / "work", staging=self.staging,
+            git_dir=self.repo, gnupghome=str(self.gnupg)).publish_notes()
+        self.receive()
+        return digest
 
     def test_an_imported_release_gets_its_commit_marker(self):
         self.publish_on_github("2.2.4", self.LEGS)

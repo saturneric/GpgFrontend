@@ -23,6 +23,15 @@ Nothing is signed here: the index names the descriptor by its hash, and
 index.admit_nightly checks what promotion checked again before it does.
 Release tags are never promoted here: a stable release passes through the
 offline signing stage.
+
+What that stage, and `import`, hand over lies in the staging store too,
+under signed/, laid out as it is to be in the builds store (receive()). The
+staging store is anyone's to write who has a token for it, CI among them,
+and what reaches the builds store is never replaced: so a release is
+received only when the index would admit it as it lies there, every
+signature checked (index.admit_stable, admit_imported), and exactly the
+bytes that were checked are copied. Notes handed over for a release
+already there are received when a pinned maintainer signed them.
 """
 
 from __future__ import annotations
@@ -32,13 +41,15 @@ import tempfile
 from pathlib import Path
 
 import layout
+import openpgp
 import ui
-from common import (BUNDLE, SCHEMA, STAGED, SUMS, Problems, Product,
-                    ReleaseError, ToolFailed, canonical_json, git_version,
-                    check_candidate, iso, parse_version, refs, sha256_file,
-                    utcnow, verify_candidate)
+from common import (BUNDLE, DESCRIPTOR, SCHEMA, SIG, STAGED, SUMS, Problems,
+                    Product, ReleaseError, ToolFailed, canonical_json,
+                    git_version, check_candidate, iso, load_json,
+                    parse_version, refs, sha256_file, utcnow,
+                    verify_candidate)
 from stage import read_staged
-from store import Store
+from store import Store, StoreUnavailable
 
 import index as index_mod
 
@@ -48,8 +59,10 @@ class PromoteIncomplete(ReleaseError):
     """Some candidates could not be promoted; the others were. Each failure
     is named, and the run still fails."""
 
+    what = "promoted"
+
     def __init__(self, failed: Problems, done: list[dict]):
-        super().__init__("not promoted:\n  " + "\n  ".join(failed))
+        super().__init__(f"not {self.what}:\n  " + "\n  ".join(failed))
         self.failed = failed
         self.passing = failed.passing  # common.Problems
         self.done = done
@@ -234,4 +247,132 @@ def promote(product: Product, staging: Store, builds: Store, *,
                 failed.note(prefix, ToolFailed(f"local file: {e}"))
     if failed:
         raise PromoteIncomplete(failed, done)
+    return done
+
+
+# --- what a maintainer hands over ------------------------------------------
+
+def _receive_release(product: Product, outbox: Store, builds: Store,
+                     path: str, *, git_dir: Path, state_dir: Path,
+                     cosign: str, authenticode_ca: str | None) -> dict | None:
+    """The release whose descriptor is handed over at @p path, copied to
+    the builds store once it is checked; None when it is there already."""
+    version = path.split("/")[1]
+    if path != layout.descriptor_of(layout.release_dir(version)) or \
+            not parse_version(version, path).is_release:
+        raise ReleaseError("not where a release is handed over")
+    if builds.exists(path):
+        if builds.read(path) == outbox.read(path):
+            return None
+        raise ReleaseError("is published with another descriptor, and a "
+                           "published release is never replaced")
+    with tempfile.TemporaryDirectory(prefix="gfr-receive-") as tmp:
+        root = Path(tmp) / "handed"
+        outbox.download(layout.release_dir(version),
+                        root / layout.RELEASES / version)
+        try:
+            outbox.download(f"{layout.NOTES}/{version}",
+                            root / layout.NOTES / version)
+        except StoreUnavailable:
+            raise
+        except ReleaseError:
+            pass  # none handed over: admission says whether it needs any
+        # Checked as the index will check it, where it lies now: on this
+        # disk, so that what is copied is what was checked.
+        local = Store(str(root), builds.rclone)
+        raw = (root / path).read_bytes()
+        kind = load_json(raw, path).get("kind")
+        try:
+            if kind == layout.KIND_STABLE:
+                d, entry = index_mod.admit_stable(
+                    product, local, path, raw, git_dir=git_dir,
+                    state_dir=state_dir, cosign=cosign,
+                    tmp=Path(tmp) / "check",
+                    authenticode_ca=authenticode_ca, dry=True)
+            elif kind == layout.KIND_IMPORTED:
+                d, entry = index_mod.admit_imported(
+                    product, local, path, raw, git_dir=git_dir,
+                    state_dir=state_dir, tmp=Path(tmp) / "check", dry=True)
+            else:
+                raise ReleaseError("neither a stable nor an imported "
+                                   "release")
+        except index_mod.KeptListed as e:
+            d, entry = e.d, e.entry
+        names = [a[k] for a in d["artifacts"] for k in ("path", "sig")]
+        if kind == layout.KIND_STABLE:
+            names += [d["sums"], d["sums_sig"], d["build"]["sums"],
+                      d["build"]["bundle"]]
+        names += [entry[k] for k in ("notes", "notes_sig") if k in entry]
+        for name in names:
+            builds.put_file(root / name, name)
+        # Last: a descriptor only ever names objects that are already there.
+        builds.put_file(root / path, path)
+    return d
+
+
+def _receive_notes(product: Product, outbox: Store, builds: Store,
+                   path: str) -> bool:
+    """Notes handed over at @p path for a release the builds store has,
+    copied there once a pinned maintainer's signature on them verifies;
+    False when there was nothing to do."""
+    parts = path.split("/")
+    if len(parts) != 3 or path != layout.notes_path(parts[1], parts[2][:-3]):
+        raise ReleaseError("not where notes are handed over")
+    version, digest = parts[1], parts[2][:-3]
+    if builds.exists(path) or not builds.exists(
+            layout.descriptor_of(layout.release_dir(version))):
+        # Published already, or of a release still to be received (or
+        # refused): its notes come with it.
+        return False
+    with tempfile.TemporaryDirectory(prefix="gfr-receive-") as tmp:
+        notes = outbox.fetch_to(path, Path(tmp) / "notes.md")
+        sig = outbox.fetch_to(path + SIG, Path(tmp) / ("notes.md" + SIG))
+        if sha256_file(notes) != digest:
+            raise ReleaseError("not the notes its name says")
+        with openpgp.Keyring.of(product) as ring:
+            ring.verify(notes, sig)
+        builds.put_file(notes, path)
+        builds.put_file(sig, path + SIG)
+    return True
+
+
+class ReceiveIncomplete(PromoteIncomplete):
+    """Something handed over was not received; the rest was."""
+
+    what = "received"
+
+
+def receive(product: Product, staging: Store, builds: Store, *,
+            git_dir: Path, state_dir: Path, cosign: str = "cosign",
+            authenticode_ca: str | None = None) -> list[dict]:
+    """Everything a maintainer handed over (signed/ in the staging store)
+    that is not in the builds store yet, checked and copied there; returns
+    the descriptors of the releases received."""
+    outbox = staging.sub(layout.SIGNED)
+    done: list[dict] = []
+    failed = Problems()
+
+    def each(prefix: str, name: str, one) -> None:
+        for listed in outbox.files(prefix, include=f"*/{name}"):
+            path = f"{prefix}/{listed}"
+            try:
+                one(path)
+            except ReleaseError as e:
+                failed.note(f"{layout.SIGNED}/{path}", e)
+            except OSError as e:
+                failed.note(f"{layout.SIGNED}/{path}",
+                            ToolFailed(f"local file: {e}"))
+
+    def release(path: str) -> None:
+        d = _receive_release(product, outbox, builds, path, git_dir=git_dir,
+                             state_dir=state_dir, cosign=cosign,
+                             authenticode_ca=authenticode_ca)
+        if d is not None:
+            done.append(d)
+
+    each(layout.RELEASES, DESCRIPTOR, release)
+    each(layout.NOTES, "*.md",
+         lambda path: _receive_notes(product, outbox, builds, path))
+    if failed:
+        raise ReceiveIncomplete(failed, done)
     return done

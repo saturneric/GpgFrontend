@@ -5,10 +5,20 @@ signs. Spelled once: the roles that write a path (stage, promote, stable,
 import, index) and the ones that read it (index, verify) can
 only agree.
 
-The staging store (CI writes, the host and the maintainer read):
+The staging store (CI and the maintainer write, the host and the
+maintainer read):
 
   branches/<branch>/<filesafe>/   a candidate built from main or release/X.Y
   tags/<filesafe>/                a candidate built from a release tag
+  signed/releases/<version>/      what a maintainer hands the host: a
+  signed/notes/<version>/...      stable or imported release, and notes,
+                                  laid out as they are to be in the builds
+                                  store
+
+Whoever can write the staging store can write anything there, so nothing in
+it counts until the host has checked it: a candidate before it is promoted,
+and what a maintainer hands over before it is received (promote.py). Only
+the host writes the builds store.
 
 The builds store:
 
@@ -30,10 +40,12 @@ The trust files come from GpgFrontend's release/root/ and
 release/index-keys/, spelled the same (trust.py).
 
 The signing host's container (the Release-Server repository) reads these
-names and nothing of this code: it lists branches/**/staged.json,
-releases/**, notes/** and nightly/*/release.json to tell whether anything
+names and nothing of this code: it lists branches/**/staged.json and
+signed/** in the staging store, releases/**, notes/** and
+nightly/*/release.json in the builds store, to tell whether anything
 changed, and keeps the stores tidy (deletes main's older nightlies, staged
-candidates no one needs and directories without a descriptor; mirrors v1/)
+candidates no one needs, what was handed over once it is received and
+directories without a descriptor; mirrors v1/)
 from the descriptors, staged.json files and the index as published.
 scripts/tests/test_gfrelease.py holds the names and fields it reads to
 these (test_what_the_signing_host_reads_is_held).
@@ -45,6 +57,7 @@ from common import DESCRIPTOR, parse_version
 
 BRANCHES = "branches"
 TAGS = "tags"
+SIGNED = "signed"
 NIGHTLY = "nightly"
 RELEASES = "releases"
 NOTES = "notes"

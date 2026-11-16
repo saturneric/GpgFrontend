@@ -51,6 +51,10 @@ class Store:
     def __str__(self) -> str:
         return self.root
 
+    def sub(self, prefix: str) -> "Store":
+        """The store that @p prefix of this one is."""
+        return Store(self._at(prefix), self.rclone)
+
     def _rclone(self, *args, **kw):
         """rclone, its exit status left to the caller. One that does not
         finish says nothing about the object: StoreUnavailable."""
@@ -161,9 +165,9 @@ class Store:
         `copyto` ignores (it overwrote a different file in testing). The
         check and the upload are two steps: what keeps another writer from
         coming between them is that every path has one writer. The host's
-        runs are serialized by its lock; the maintainer's stage and CI write
-        other paths (releases/<version>/, which the host only reads,
-        the staging store per version)."""
+        runs are serialized by its lock, and it alone writes the builds
+        store; the maintainer's stage and CI write other paths of the
+        staging store (signed/, and a candidate's per version)."""
         if immutable and self.exists(path):
             if self.sha256(path) != sha256_file(local):
                 raise ReleaseError(f"{self._at(path)} exists with other bytes; "
