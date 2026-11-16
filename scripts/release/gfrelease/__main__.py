@@ -521,11 +521,6 @@ def check_required(args) -> None:
             "\n" + args.parser.format_usage().strip())
 
 
-def pub(path_or_key: str) -> str:
-    p = Path(path_or_key)
-    return minisig.public_key_of(p) if p.is_file() else path_or_key
-
-
 def main(argv=None) -> int:
     try:
         settings = settings_mod.Settings()
@@ -1042,7 +1037,7 @@ def cmd_host(ctx) -> int:
     command = args.key
     dry = getattr(args, "dry_run", False)
     if command != "promote":
-        product.check_host_keys(pub(args.index_pub))
+        product.check_host_keys(minisig.public_key(args.index_pub))
 
     def path(value):
         return Path(value) if value else None

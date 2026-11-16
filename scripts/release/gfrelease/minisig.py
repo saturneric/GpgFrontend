@@ -53,6 +53,13 @@ def public_key_of(path: Path) -> str:
     return lines[0]
 
 
+def public_key(path_or_key: str) -> str:
+    """A public key given as its .pub file or as its base64 line."""
+    if path_or_key and Path(path_or_key).is_file():
+        return public_key_of(Path(path_or_key))
+    return path_or_key
+
+
 def sign(secret_key: Path, file: Path, trusted_comment: str,
          sig: Path | None = None) -> Path:
     """@p file signed into @p sig (default: beside it). A key with a

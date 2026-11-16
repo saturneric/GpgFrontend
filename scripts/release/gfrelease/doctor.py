@@ -27,23 +27,21 @@ import authenticode
 import minisig
 import trust
 import ui
-from common import WINDOWS, ReleaseError, run
+from common import WINDOWS, ReleaseError, release_tags, run
 
 ROLES = ("maintainer", "ci", "host")
+# What each role runs: cmake derives a commit's version (GitVersion.cmake),
+# gpgconf ends the throwaway GnuPG homes, osslsigncode and msitools sign and
+# check what is inside a Windows package.
 TOOLS = {
-    "maintainer": ("git", "gpg", "rclone", "cosign", "minisign",
-                   "osslsigncode", "msiinfo", "msibuild"),
-    "ci": ("git", "rclone", "cosign"),
-    "host": ("git", "gpg", "rclone", "cosign", "minisign", "osslsigncode",
-             "msiinfo"),
-}
-# The maintainer's stage on Windows signs with signtool and reads an MSI
-# through Windows Installer itself: no osslsigncode, no msitools. minisign
-# only verifies the trust root there; cmake reads the version off the tag.
-WINDOWS_TOOLS = {
     "maintainer": ("git", "gpg", "gpgconf", "rclone", "cosign", "cmake",
-                   "minisign", "signtool"),
+                   "minisign", "osslsigncode", "msiinfo", "msibuild"),
+    "ci": ("git", "rclone", "cosign"),
+    "host": ("git", "gpg", "gpgconf", "rclone", "cosign", "cmake",
+             "minisign", "osslsigncode", "msiinfo"),
 }
+# On Windows signtool signs, and Windows Installer itself opens an MSI.
+ON_WINDOWS = {"osslsigncode": "signtool", "msiinfo": None, "msibuild": None}
 STORES = {
     # All a maintainer's machine reads and writes: the host alone writes
     # the builds store.
@@ -76,8 +74,9 @@ class Doctor:
         return self.checks
 
     def tools(self) -> None:
-        tools = WINDOWS_TOOLS.get(self.role) if WINDOWS else None
-        for name in tools or TOOLS[self.role]:
+        tools = [ON_WINDOWS.get(n, n) if WINDOWS else n
+                 for n in TOOLS[self.role]]
+        for name in filter(None, tools):
             command = {"rclone": self.args.rclone,
                        "cosign": self.args.cosign,
                        "signtool": getattr(self.args, "signtool", None),
@@ -229,8 +228,7 @@ class Doctor:
                        "set --git-dir to a clone of the product")
             return
         try:
-            tags = run(["git", "-C", git_dir, "tag", "-l", "v*"],
-                       timeout=60).stdout.split()
+            tags = release_tags(Path(git_dir))
         except ReleaseError as e:
             self.check("checkout", False, str(e), "")
             return
@@ -249,9 +247,7 @@ class Doctor:
                        "secret key")
             return
         try:
-            pub = minisig.public_key_of(Path(self.args.index_pub)) \
-                if self.args.index_pub and Path(self.args.index_pub).is_file()\
-                else self.args.index_pub
+            pub = minisig.public_key(self.args.index_pub or "")
             if pub:
                 self.product.check_host_keys(pub)
             self.check("index key", True,
