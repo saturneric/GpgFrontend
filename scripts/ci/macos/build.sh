@@ -76,6 +76,14 @@ XCODE_SETTINGS=(
   PROVISIONING_PROFILE_SPECIFIER=""
 )
 
+# Both flavours build m_email, so both pin OpenSSL. Homebrew's openssl@3 is
+# keg-only: without this, find_package(OpenSSL) takes the unversioned openssl
+# formula under /opt/homebrew, now 4.x, whose headers this branch's vmime does
+# not build against (OpenSSL 4 dropped the ENGINE init flags it uses).
+OPENSSL_ROOT="$(brew --prefix openssl@3)"
+echo "Using OpenSSL from: $OPENSSL_ROOT"
+CMAKE_ARGS+=(-DOPENSSL_ROOT_DIR="$OPENSSL_ROOT")
+
 if [ "$FLAVOR" = installed ]; then
   : "${CCACHE_EPOCH:?}"
 
@@ -102,12 +110,7 @@ if [ "$FLAVOR" = installed ]; then
   ccache -s -v
   echo "::endgroup::"
 
-  # Homebrew's openssl@3 is keg-only, so it is not on the default search path
-  # and find_package(OpenSSL) would pick up the unusable LibreSSL headers that
-  # ship with macOS. vmime's TLS backend needs the real one.
-  OPENSSL_ROOT="$(brew --prefix openssl@3)"
-  echo "Using OpenSSL from: $OPENSSL_ROOT"
-  CMAKE_ARGS+=(-DOPENSSL_ROOT_DIR="$OPENSSL_ROOT" -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON)
+  CMAKE_ARGS+=(-DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON)
 
   # ccache, as xcodebuild build settings rather than a CMake launcher, which
   # the Xcode generator ignores. CC/CXX go through a wrapper; LD/LDPLUSPLUS
