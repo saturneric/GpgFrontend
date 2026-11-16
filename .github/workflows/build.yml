@@ -218,6 +218,48 @@ jobs:
           echo "::warning::R2_STAGING_ENABLED is not 'true': this build is" \
             "signed but not staged, and the signing host will not publish it"
 
+  # The offline stage of a stable release also runs on the maintainer's
+  # Windows machine, where the Authenticode card's software is: there it
+  # signs with signtool and opens an MSI through Windows Installer itself.
+  # The same tests, and the ones only Windows can run (a certificate made
+  # in the runner's store, signed with and checked for real).
+  release-tools-windows:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          lfs: "false"
+          fetch-depth: 0
+          persist-credentials: false
+
+      # git, gpg, cmake and signtool come with the runner. minisign is the
+      # release its author publishes, by its hash.
+      - name: Install Release Tools
+        shell: pwsh
+        run: |
+          $zip = Join-Path $env:RUNNER_TEMP 'minisign.zip'
+          Invoke-WebRequest -OutFile $zip -Uri `
+            https://github.com/jedisct1/minisign/releases/download/0.12/minisign-0.12-win64.zip
+          if ((Get-FileHash $zip -Algorithm SHA256).Hash -ne `
+              '37B600344E20C19314B2E82813DB2BFDCC408B77B876F7727889DBD46D539479') {
+            throw 'minisign: not the pinned download'
+          }
+          Expand-Archive $zip -DestinationPath (Join-Path $env:RUNNER_TEMP 'minisign')
+          Join-Path $env:RUNNER_TEMP 'minisign\minisign-win64\x86_64' |
+            Add-Content -Path $env:GITHUB_PATH
+          choco install rclone --no-progress -y
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          python -m pip install pyyaml==6.0.3
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+
+      - name: Test The Release Tooling
+        shell: pwsh
+        env:
+          GF_REQUIRE_RELEASE_TOOLS: "1"
+        run: python -m unittest discover -s scripts/tests
+
   # One leg's failure does not cancel the others (fail-fast: false) in any
   # build matrix: a cancelled leg hides whether it would have failed too. The
   # release still needs every leg to succeed, which `needs:` in provenance
