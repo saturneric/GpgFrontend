@@ -45,7 +45,8 @@ import verify as verify_mod  # noqa: E402
 from store import Store, StoreUnavailable  # noqa: E402
 from test_authenticode import build_msi, build_zip, pe_bytes  # noqa: E402
 from test_release_candidate import FAKE_COSIGN  # noqa: E402
-from trustutil import git_env, keypair, tools, write_root  # noqa: E402
+from trustutil import (SigningCertificate, git_env, keypair,  # noqa: E402
+                       signing_tools, stand_in, tools, write_root)
 
 
 TOOLS = tools("minisign", "rclone", "git", "cmake")
@@ -142,15 +143,14 @@ def flaky_rclone(directory: Path, marker: str, verb: str = "") -> str:
     """An rclone that fails like an outage (not "not found") for any path
     containing @p marker (when running @p verb, if given), and is rclone for
     everything else."""
-    script = directory / f"rclone-down-{abs(hash((marker, verb)))}"
-    only = f'[ "$1" = "{verb}" ] || exec rclone "$@"\n' if verb else ""
-    script.write_text("#!/bin/sh\n" + only +
-                      "for a in \"$@\"; do case \"$a\" in "
-                      f"*{marker}*) echo 'simulated outage' >&2; exit 1;; "
-                      "esac; done\n"
-                      "exec rclone \"$@\"\n")
-    script.chmod(0o755)
-    return str(script)
+    return str(stand_in(
+        directory, f"rclone-down-{abs(hash((marker, verb)))}",
+        "import subprocess, sys\n"
+        f"marker, verb, args = {marker!r}, {verb!r}, sys.argv[1:]\n"
+        "if (not verb or args[:1] == [verb]) and \\\n"
+        "        any(marker in a for a in args):\n"
+        "    sys.exit('simulated outage')\n"
+        "sys.exit(subprocess.run(['rclone', *args]).returncode)\n"))
 
 
 BAD_VALUES = (None, 5, "x", [], {}, True, 1.5)
@@ -201,9 +201,7 @@ class ChainTest(unittest.TestCase):
         self.builds = Store(str(self.tmp / "builds" / self.slug))
         self.update = Store(str(self.tmp / "update" / self.slug))
         self.state = self.tmp / "state"
-        self.cosign = self.tmp / "cosign"
-        self.cosign.write_text(FAKE_COSIGN.format(python=sys.executable))
-        self.cosign.chmod(self.cosign.stat().st_mode | stat.S_IEXEC)
+        self.cosign = stand_in(self.tmp, "cosign", FAKE_COSIGN)
 
         self.repo = self.tmp / "repo"
         self.repo.mkdir()
@@ -240,7 +238,7 @@ class ChainTest(unittest.TestCase):
             (cand / name).write_bytes(f"{name}\n".encode() * 100)
         lines = "".join(f"{common.sha256_file(cand / n)}  {n}\n"
                         for n in sorted(names))
-        (cand / common.SUMS).write_text(lines)
+        (cand / common.SUMS).write_bytes(lines.encode())
         subprocess.run([self.cosign, "sign-blob", "--bundle", cand / common.BUNDLE,
                         "--identity", self.product.identity(ref),
                         "--issuer", ISSUER, "--sha", commit, cand / common.SUMS],
@@ -604,9 +602,8 @@ class ChainTest(unittest.TestCase):
     def test_a_tool_that_does_not_answer_is_retried_not_refused(self):
         self.commit()
         self.build()
-        hung = self.tmp / "hung-cosign"
-        hung.write_text("#!/bin/sh\nsleep 30\n")
-        hung.chmod(0o755)
+        hung = stand_in(self.tmp, "hung-cosign",
+                        "import time\ntime.sleep(30)\n")
         saved = common.rc.COSIGN_TIMEOUT
         common.rc.COSIGN_TIMEOUT = 1
         try:
@@ -1599,6 +1596,18 @@ class HelperTest(unittest.TestCase):
                          ["serial"])
 
     @unittest.skipUnless(shutil.which("git"), "needs git")
+    def test_a_second_run_is_refused_while_one_holds_the_lock(self):
+        state = Path(tempfile.mkdtemp(prefix="gfr-lock-"))
+        self.addCleanup(shutil.rmtree, state, ignore_errors=True)
+        with common.locked(state):
+            with self.assertRaisesRegex(common.ReleaseError,
+                                        "another run holds"):
+                with common.locked(state):
+                    pass
+        # Let go of with the run that held it.
+        with common.locked(state):
+            pass
+
     def test_a_branch_never_passes_for_a_tag(self):
         repo = self.tmp / "repo"
         repo.mkdir()
@@ -1693,9 +1702,12 @@ class OpenPgpKeyLifecycleTest(unittest.TestCase):
         self.keys = self.tmp / "maintainers.asc"
         self.export()
         # git signs through gpg on the faked clock.
+        # (A shell script on Windows too: Git for Windows runs it.)
         self.wrapper = self.tmp / "gpg-then"
-        self.wrapper.write_text(f"#!/bin/sh\nexec gpg --homedir {self.home} "
-                                f"--faked-system-time {self.SIGNED} \"$@\"\n")
+        self.wrapper.write_bytes(
+            f"#!/bin/sh\nexec '{Path(shutil.which('gpg')).as_posix()}' "
+            f"--homedir '{self.home.as_posix()}' "
+            f"--faked-system-time {self.SIGNED} \"$@\"\n".encode())
         self.wrapper.chmod(0o755)
         self.repo = self.tmp / "repo"
         self.repo.mkdir()
@@ -1823,12 +1835,11 @@ class AuthenticodeSubjectTest(unittest.TestCase):
             with self.assertRaises(common.ReleaseError):
                 self.rdns(bad)
 
-STABLE_TOOLS = TOOLS and tools("gpg", "gpgconf", "osslsigncode", "wixl",
-                              "openssl", "msiinfo", "msibuild")
-SUBJECT = "/CN=GpgFrontend Test Signing/O=Rehearsal/C=DE"
+STABLE_TOOLS = TOOLS and tools("gpg", "gpgconf") and signing_tools()
 
 
-@unittest.skipUnless(STABLE_TOOLS, "needs gpg, osslsigncode, wixl and openssl")
+@unittest.skipUnless(STABLE_TOOLS, "needs gpg, and osslsigncode, openssl and "
+                     "msitools, or on Windows signtool")
 class StableTest(unittest.TestCase):
     """The offline stage and the host's admission of what it made."""
 
@@ -1836,6 +1847,10 @@ class StableTest(unittest.TestCase):
         self.tmp = Path(tempfile.mkdtemp(prefix="gfr-stable-"))
         self.gnupg = self.tmp / "gnupg"
         self.gnupg.mkdir(mode=0o700)
+        # The certificate first: the product pins its subject.
+        self.certificate = SigningCertificate(self.tmp)
+        self.addCleanup(self.certificate.close)
+        self.cert, self.subject = self.certificate.ca, self.certificate.subject
         self.fpr = self.new_key("Test Maintainer <maintainer@example.org>")
         keys = self.tmp / "keys"
         keys.mkdir()
@@ -1846,16 +1861,7 @@ class StableTest(unittest.TestCase):
         self.builds = Store(str(self.tmp / "builds" / self.product.slug))
         self.update = Store(str(self.tmp / "update" / self.product.slug))
         self.state = self.tmp / "state"
-        self.cosign = self.tmp / "cosign"
-        self.cosign.write_text(FAKE_COSIGN.format(python=sys.executable))
-        self.cosign.chmod(self.cosign.stat().st_mode | stat.S_IEXEC)
-
-        self.cert, self.cert_key = self.tmp / "cert.pem", self.tmp / "key.pem"
-        subprocess.run(["openssl", "req", "-x509", "-newkey", "rsa:2048",
-                        "-nodes", "-days", "2", "-subj",
-                        "/CN=GpgFrontend Test Signing/O=Rehearsal/C=DE",
-                        "-keyout", self.cert_key, "-out", self.cert],
-                       check=True, capture_output=True)
+        self.cosign = stand_in(self.tmp, "cosign", FAKE_COSIGN)
 
         self.repo = self.tmp / "repo"
         self.repo.mkdir()
@@ -1896,7 +1902,7 @@ class StableTest(unittest.TestCase):
                                after=getattr(self, "product", None), **{
             "stable_pgp": {"fingerprints": list(fingerprints),
                            "fingerprints_retired": list(retired)},
-            "authenticode_subject": SUBJECT,
+            "authenticode_subject": self.subject,
             # A rehearsal certificate has no time-stamping service to use.
             "authenticode_timestamp": "optional", **policy})
         (directory / "maintainers.asc").write_text(self.gpg(
@@ -1942,8 +1948,8 @@ class StableTest(unittest.TestCase):
             (cand / f"GpgFrontend-{version}-{leg}").write_bytes(
                 leg.encode() * 200)
         names = sorted(p.name for p in cand.iterdir())
-        (cand / common.SUMS).write_text("".join(
-            f"{common.sha256_file(cand / n)}  {n}\n" for n in names))
+        (cand / common.SUMS).write_bytes("".join(
+            f"{common.sha256_file(cand / n)}  {n}\n" for n in names).encode())
         ref = f"refs/tags/v{version}"
         subprocess.run([self.cosign, "sign-blob", "--bundle",
                         cand / common.BUNDLE, "--identity",
@@ -1957,8 +1963,7 @@ class StableTest(unittest.TestCase):
         args = dict(staging=self.staging, builds=self.builds,
                     git_dir=self.repo, cosign=str(self.cosign),
                     gnupghome=str(self.gnupg),
-                    signer=authenticode.Signer(str(self.cert),
-                                               str(self.cert_key)),
+                    signer=self.certificate.signer(),
                     authenticode_ca=str(self.cert))
         args.update(kw)
         return stable_mod.Stage(self.product, version, self.tmp / "work",
@@ -1998,7 +2003,7 @@ class StableTest(unittest.TestCase):
         # release again (a lost state, a new machine): the old one retired,
         # the release the published index lists stays.
         shutil.rmtree(self.state / "admitted")
-        pin("/CN=GpgFrontend New Signing/O=Rehearsal/C=DE", [SUBJECT])
+        pin("/CN=GpgFrontend New Signing/O=Rehearsal/C=DE", [self.subject])
         self.assertEqual(self.index()["releases"]["2.3.0"]["descriptor"],
                          "releases/2.3.0/release.json")
         # Not retired but dropped: it signed nothing that counts any more.
@@ -2016,8 +2021,7 @@ class StableTest(unittest.TestCase):
                 "--staging", self.staging.root, "--builds", self.builds.root,
                 "--git-dir", str(self.repo), "--cosign", str(self.cosign),
                 "--gnupghome", str(self.gnupg),
-                "--authenticode-cert", str(self.cert),
-                "--authenticode-key", str(self.cert_key),
+                *self.certificate.options(),
                 "--authenticode-ca", str(self.cert), *extra]
         out, err = io.StringIO(), io.StringIO()
         with mock.patch.object(sys.stdin, "isatty", return_value=tty), \
@@ -2128,7 +2132,7 @@ class StableTest(unittest.TestCase):
     def tree(self):
         """Every object of the artifact store, by path, with its hash."""
         root = self.tmp / "builds" / self.product.slug
-        return {str(f.relative_to(root)): common.sha256_file(f)
+        return {f.relative_to(root).as_posix(): common.sha256_file(f)
                 for f in sorted(root.rglob("*")) if f.is_file()}
 
     def assert_no_marker(self):
@@ -2335,8 +2339,7 @@ class StableTest(unittest.TestCase):
                                      git_dir=self.repo,
                                      cosign=str(self.cosign),
                                      gnupghome=str(self.gnupg),
-                                     signer=authenticode.Signer(
-                                         str(self.cert), str(self.cert_key)),
+                                     signer=self.certificate.signer(),
                                      authenticode_ca=str(self.cert)).run(),
             "timestamp")
         # Made without one (the product said optional), the host that
@@ -2505,7 +2508,8 @@ class StableTest(unittest.TestCase):
 
     def test_notes_that_do_not_verify_refuse_the_release(self):
         self.admitted()
-        (self.repo / "release" / "notes" / "2.3.0.md").write_text("Edited.\n")
+        (self.repo / "release" / "notes" / "2.3.0.md").write_bytes(
+            b"Edited.\n")
         self.git("commit", "-qam", "notes: edited")
         other = self.new_key("Someone Else <else@example.org>")
         digest = common.sha256_bytes(b"Edited.\n")
@@ -2566,14 +2570,11 @@ class StableTest(unittest.TestCase):
     def test_a_certificate_with_another_subject_is_refused(self):
         self.tag()
         self.build()
-        key, cert = self.tmp / "k2.pem", self.tmp / "c2.pem"
-        subprocess.run(["openssl", "req", "-x509", "-newkey", "rsa:2048",
-                        "-nodes", "-days", "2", "-subj", "/CN=Not Us",
-                        "-keyout", key, "-out", cert], check=True,
-                       capture_output=True)
-        stage = self.stage(signer=authenticode.Signer(str(cert), str(key)),
-                           authenticode_ca=str(cert))
-        self.assert_refused(stage.run, "not '/CN=GpgFrontend Test Signing")
+        other = SigningCertificate(self.tmp, "Not Us")
+        self.addCleanup(other.close)
+        stage = self.stage(signer=other.signer(),
+                           authenticode_ca=str(other.ca))
+        self.assert_refused(stage.run, "not '" + re.escape(self.subject))
 
     def test_a_prerelease_never_goes_through_the_offline_stage(self):
         self.assert_refused(lambda: self.stage("2.3.0-rc.1"), "final releases")
@@ -2592,16 +2593,35 @@ class StableTest(unittest.TestCase):
         d = self.stage().run()
         msi = next(a for a in d["artifacts"] if a["kind"] == "msi")
         target = self.tmp / "builds" / self.product.slug / msi["path"]
-        key, cert = self.tmp / "k3.pem", self.tmp / "c3.pem"
-        subprocess.run(["openssl", "req", "-x509", "-newkey", "rsa:2048",
-                        "-nodes", "-days", "2", "-subj", "/CN=Not Us",
-                        "-keyout", key, "-out", cert], check=True,
-                       capture_output=True)
+        other = SigningCertificate(self.tmp, "Not Us")
+        self.addCleanup(other.close)
         resigned = self.tmp / "resigned.msi"
-        authenticode.Signer(str(cert), str(key)).sign(
+        other.signer().sign(
             self.tmp / "work" / "2.3.0" / "build" / msi["name"], resigned)
         target.write_bytes(resigned.read_bytes())
-        self.assert_refused(self.index, "not the published bytes|not '/CN")
+        self.assert_refused(self.index, "not the published bytes|not '/C")
+
+    def test_programs_are_signed_in_one_round_and_packages_in_another(self):
+        # A card asks its PIN for each run of the signing tool: every
+        # program of every package goes to the first, the packages
+        # themselves to the second.
+        self.tag()
+        self.build()
+        signer = self.certificate.signer()
+        sign_files, rounds, seen = signer.sign_files, [], []
+
+        def recording(files, on_done=None):
+            rounds.append([Path(f).suffix for f in files])
+            sign_files(files, on_done)
+
+        signer.sign_files = recording
+        self.stage(signer=signer, on_signed=lambda *a: seen.append(a)).run(
+            until="authenticode")
+        self.assertEqual(rounds, [[".exe", ".exe"], [".msi"]])
+        msi = "GpgFrontend-2.3.0-windows-x86_64.msi"
+        portable = "GpgFrontend-2.3.0-windows-x86_64-portable.zip"
+        self.assertEqual(seen, [(portable, 1, 1, "GpgFrontend/bin/app.exe"),
+                                (msi, 1, 1, "T/app.exe"), (msi, 1, 1, None)])
 
     def test_the_host_needs_the_notes(self):
         self.tag()
@@ -2654,6 +2674,8 @@ class ImportTest(unittest.TestCase):
     write_product = StableTest.write_product
     git = StableTest.git
     assert_refused = StableTest.assert_refused
+    # Pinned, as every product pins one; nothing here is signed with it.
+    subject = "/CN=GpgFrontend Test Signing/O=Rehearsal/C=DE"
 
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp(prefix="gfr-import-"))
@@ -2808,7 +2830,7 @@ class ImportTest(unittest.TestCase):
     def notes_on_main(self, version, text):
         notes = self.repo / "release" / "notes"
         notes.mkdir(parents=True, exist_ok=True)
-        (notes / f"{version}.md").write_text(text)
+        (notes / f"{version}.md").write_bytes(text.encode())
         self.git("add", "release")
         self.git("commit", "-q", "-m", f"notes for {version}")
 

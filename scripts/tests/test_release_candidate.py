@@ -31,7 +31,10 @@ from pathlib import Path
 SCRIPTS = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(SCRIPTS))
 
+sys.path.insert(0, str(SCRIPTS / "tests"))
+
 import release_candidate as rc  # noqa: E402
+from trustutil import stand_in, symlink  # noqa: E402
 
 WORKFLOW = SCRIPTS.parent / ".github" / "workflows" / "build.yml"
 
@@ -39,8 +42,10 @@ IDENTITY = ("https://github.com/saturneric/GpgFrontend/"
             ".github/workflows/build.yml@refs/heads/main")
 SHA = "0123456789abcdef0123456789abcdef01234567"
 
+# A cosign for the tests (trustutil.stand_in() makes a command of it): a
+# "bundle" that only records what was claimed, and a verification that
+# compares it with what is asked for.
 FAKE_COSIGN = textwrap.dedent("""\
-    #!{python}
     import hashlib, json, sys
 
     def opt(name):
@@ -54,8 +59,8 @@ FAKE_COSIGN = textwrap.dedent("""\
         blob_sha = hashlib.sha256(f.read()).hexdigest()
 
     if cmd == "sign-blob":
-        claims = {{"identity": opt("--identity"), "issuer": opt("--issuer"),
-                  "sha": opt("--sha"), "blob": blob_sha}}
+        claims = {"identity": opt("--identity"), "issuer": opt("--issuer"),
+                  "sha": opt("--sha"), "blob": blob_sha}
         with open(opt("--bundle"), "w") as f:
             json.dump(claims, f)
         sys.exit(0)
@@ -63,10 +68,10 @@ FAKE_COSIGN = textwrap.dedent("""\
     if cmd == "verify-blob":
         with open(opt("--bundle")) as f:
             claims = json.load(f)
-        wanted = {{"identity": opt("--certificate-identity"),
+        wanted = {"identity": opt("--certificate-identity"),
                   "issuer": opt("--certificate-oidc-issuer"),
                   "sha": opt("--certificate-github-workflow-sha"),
-                  "blob": blob_sha}}
+                  "blob": blob_sha}
         if claims != wanted:
             sys.exit("fake cosign: verification failed")
         print("Verified OK", file=sys.stderr)  # as cosign says it
@@ -104,9 +109,7 @@ class Tree:
         self.artifacts = root / "in"
         self.candidate = root / "candidate"
         self.artifacts.mkdir()
-        self.cosign = root / "cosign"
-        self.cosign.write_text(FAKE_COSIGN.format(python=sys.executable))
-        self.cosign.chmod(self.cosign.stat().st_mode | stat.S_IEXEC)
+        self.cosign = stand_in(root, "cosign", FAKE_COSIGN)
 
     def add_leg(self, leg, files, info=None):
         d = self.artifacts / f"gpgfrontend-{leg}"
@@ -380,7 +383,7 @@ class SetTest(TreeCase):
         target = self.c / "GpgFrontend-x86_64.AppImage"
         moved = self.tree.root / "elsewhere"
         target.rename(moved)
-        target.symlink_to(moved)
+        symlink(self, target, moved)
         self.assertRejected(self.tree.verify, "not a regular file")
 
 
@@ -407,7 +410,12 @@ class NamesTest(TreeCase):
             with self.subTest(name=name):
                 shutil.rmtree(self.tree.artifacts)
                 self.tree.artifacts.mkdir()
-                self.tree.add_leg("a", {name: b"x"})
+                try:
+                    self.tree.add_leg("a", {name: b"x"})
+                except OSError:
+                    # A name this filesystem will not even hold (a tab,
+                    # on Windows) cannot reach a release from here.
+                    continue
                 self.assertRejected(self.tree.stage, "unsafe file name")
 
     def test_subdirectory_in_leg(self):
@@ -417,8 +425,9 @@ class NamesTest(TreeCase):
 
     def test_symlink_in_leg(self):
         self.tree.add_leg("a", {"GpgFrontend-a": b"x"})
-        (self.tree.artifacts / "gpgfrontend-a" / "GpgFrontend-link").symlink_to(
-            self.tree.artifacts / "gpgfrontend-a" / "GpgFrontend-a")
+        symlink(self,
+                self.tree.artifacts / "gpgfrontend-a" / "GpgFrontend-link",
+                self.tree.artifacts / "gpgfrontend-a" / "GpgFrontend-a")
         self.assertRejected(self.tree.stage, "not a regular file")
 
     def test_unknown_artifact_directory(self):
