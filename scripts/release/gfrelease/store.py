@@ -11,16 +11,13 @@ For R2 the remote comes from rclone's environment configuration
 
 from __future__ import annotations
 
-import hashlib
 import json
-import subprocess
+import re
 import tempfile
-import threading
 from pathlib import Path
 
-import ui
-from common import (SMALL_OBJECT_LIMIT, TOOL_TIMEOUT, ReleaseError,
-                    ToolTimeout, check_relpath, run, sha256_file)
+from common import (SMALL_OBJECT_LIMIT, ReleaseError, ToolTimeout,
+                    check_relpath, run, sha256_file)
 
 
 # rclone's exit status for "directory not found" / "file not found": the only
@@ -134,32 +131,17 @@ class Store:
         return Path(local)
 
     def sha256(self, path: str) -> str:
-        """Of the stored bytes themselves, streamed: no backend's own hash
-        (an S3 ETag is not one for a multipart upload) is trusted for it."""
-        h = hashlib.sha256()
-        with tempfile.TemporaryFile() as err:
-            ui.tool_started([self.rclone, "cat", self._at(path)])
-            try:
-                proc = subprocess.Popen([self.rclone, "cat", self._at(path)],
-                                        stdout=subprocess.PIPE, stderr=err)
-            except OSError as e:
-                raise ReleaseError(f"{self.rclone} cannot be run: {e}") from e
-            # A read that stalls is cut off like any other tool (rclone has
-            # no deadline of its own for a whole transfer).
-            stalled = threading.Timer(TOOL_TIMEOUT, proc.kill)
-            stalled.start()
-            try:
-                with proc:
-                    for chunk in iter(lambda: proc.stdout.read(1 << 20), b""):
-                        h.update(chunk)
-            finally:
-                stalled.cancel()
-            if proc.returncode != 0:
-                err.seek(0)
-                detail = err.read().decode("utf-8", "replace").strip()
-                raise StoreUnavailable(f"reading {self._at(path)} failed: "
-                                       f"{detail}")
-        return h.hexdigest()
+        """Of the stored bytes themselves, downloaded and hashed by rclone
+        (--download): no backend's own hash (an S3 ETag is not one for a
+        multipart upload) is trusted for it."""
+        out = self._get(["hashsum", "sha256", "--download", self._at(path)],
+                        self._at(path)).stdout
+        digest = out.split(maxsplit=1)[0].decode("ascii", "replace") \
+            if out.strip() else ""
+        if not re.fullmatch(r"[0-9a-f]{64}", digest):
+            raise StoreUnavailable(f"reading {self._at(path)}: rclone gave "
+                                   "no sha256")
+        return digest
 
     def put_file(self, local: Path, path: str, immutable: bool = True) -> None:
         """Immutable by default: an existing object with other bytes is an

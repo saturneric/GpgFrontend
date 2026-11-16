@@ -26,6 +26,7 @@ pinned and are not imported.
 from __future__ import annotations
 
 import http.client
+import shutil
 import urllib.request
 from pathlib import Path
 
@@ -76,8 +77,7 @@ class GitHubSource:
         try:
             with self._open(url, "application/octet-stream") as r, \
                     open(part, "wb") as f:
-                for chunk in iter(lambda: r.read(1 << 20), b""):
-                    f.write(chunk)
+                shutil.copyfileobj(r, f, 1 << 20)
         except (OSError, http.client.HTTPException) as e:
             raise ReleaseError(f"{dst.name}: {e}") from e
         part.replace(dst)

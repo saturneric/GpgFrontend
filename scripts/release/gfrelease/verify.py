@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import contextlib
 import http.client
+import shutil
 import ssl
 import datetime as dt
 import tempfile
@@ -99,8 +100,7 @@ class HttpSource:
         memory whole."""
         def copy(r):
             with open(local, "wb") as f:
-                for chunk in iter(lambda: r.read(1 << 20), b""):
-                    f.write(chunk)
+                shutil.copyfileobj(r, f, 1 << 20)
             return Path(local)
         return self._each(path, copy)
 

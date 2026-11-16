@@ -558,12 +558,12 @@ def tag_time(git_dir: Path, tag: str) -> int:
     """When @p tag was made (Unix seconds): an annotated tag's tagger date,
     or for a lightweight one its commit's committer date. A maintainer's
     signature on a release's file is never older than the release's tag."""
+    # creatordate: the tagger date, or the commit's for a lightweight tag.
     out = run(["git", "-C", git_dir, "for-each-ref",
-               "--format=%(taggerdate:unix) %(committerdate:unix) "
-               "%(*committerdate:unix)", refs.TAGS + tag]).stdout.split()
-    if not out or not out[0].isdigit():
+               "--format=%(creatordate:unix)", refs.TAGS + tag]).stdout.strip()
+    if not out.isdigit():
         raise ReleaseError(f"{git_dir} has no tag {tag} with a date")
-    return int(out[0])
+    return int(out)
 
 
 def notes_at(git_dir: Path, ref: str, version: str) -> bytes | None:
