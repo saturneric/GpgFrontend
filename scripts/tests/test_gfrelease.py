@@ -1160,6 +1160,18 @@ class ChainTest(unittest.TestCase):
         self.assertEqual(code, 0, out)
         self.assertTrue(all(c["ok"] for c in json.loads(out)["checks"]))
 
+    def test_doctor_checks_every_tool_a_host_runs(self):
+        self.git("tag", "v2.3.0-alpha.0")  # a base tag, not a release
+        code, out, _ = self.run_cli(
+            "doctor", "--for", "host", "--json", "--git-dir", str(self.repo),
+            "--index-pub", self.idx_pub, "--index-key", str(self.idx_key))
+        checks = {c["check"]: c for c in json.loads(out)["checks"]}
+        for tool in ("cmake", "gpgconf", "git", "minisign"):
+            self.assertIn(f"tool {tool}", checks)
+        self.assertEqual(checks["checkout"]["found"],
+                         f"{self.repo}: 1 release tags")
+        self.assertTrue(checks["index key"]["ok"], checks["index key"])
+
     def test_a_host_with_keys_clients_do_not_pin_refuses_to_run(self):
         _, other = keypair(self.tmp / "keys", "other")
         listed = make_product(self.tmp / "other", [other])
