@@ -49,7 +49,7 @@ from common import (BUNDLE, DESCRIPTOR, SCHEMA, SIG, STAGED, SUMS, Problems,
                     parse_version, refs, sha256_file, utcnow,
                     verify_candidate)
 from stage import read_staged
-from store import Store, StoreUnavailable
+from store import NotFound, Store
 
 import index as index_mod
 
@@ -270,9 +270,7 @@ def _receive_release(product: Product, outbox: Store, builds: Store,
         try:
             outbox.download(f"{layout.NOTES}/{version}",
                             root / layout.NOTES / version)
-        except StoreUnavailable:
-            raise
-        except ReleaseError:
+        except NotFound:
             pass  # none handed over: admission says whether it needs any
         # Checked as the index will check it, where it lies now: on this
         # disk, so that what is copied is what was checked.

@@ -36,6 +36,7 @@ import layout
 import minisig
 import openpgp
 import trust
+from store import NotFound
 from common import (EXPIRY_SKEW, INDEX, MINISIG, SCHEMA, SIG,
                     SMALL_OBJECT_LIMIT, SUMS, Product, ReleaseError,
                     check_relpath, load_json, parse_iso, parse_manifest,
@@ -60,7 +61,9 @@ class HttpSource:
         self.context = ssl.create_default_context(cafile=cafile)
 
     def _each(self, path: str, consume):
-        errors = []
+        """@p consume of the first base's answer; NotFound when every base
+        answered that there is no such object."""
+        errors, missing = [], 0
         for base in self.bases:
             url = f"{base}{self.slug}/{check_relpath(path)}"
             # Its own name: Cloudflare's bot filter answers urllib's default
@@ -76,6 +79,9 @@ class HttpSource:
                 # HTTPException: an answer cut off (IncompleteRead) or not
                 # HTTP at all, which is neither of the others.
                 errors.append(f"{url}: {e}")
+                missing += getattr(e, "code", None) == 404
+        if missing == len(self.bases):
+            raise NotFound("; ".join(errors))
         raise ReleaseError("; ".join(errors))
 
     def read(self, path: str) -> bytes:
