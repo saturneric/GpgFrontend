@@ -764,9 +764,13 @@ def cmd_stable(ctx) -> int:
         ui.info(f"[{number}/{total}] {step}"
                 f"{' (done before)' if done_before else ''}")
         if step == "upload" and not done_before and ask:
-            answer = input(f"Hand {args.version} to the signing host "
-                           f"(upload to {args.staging})? Once it has "
-                           "published it, it is never replaced. [y/N] ")
+            try:
+                answer = input(f"Hand {args.version} to the signing host "
+                               f"(upload to {args.staging})? Once it has "
+                               "published it, it is never replaced. [y/N] ")
+            except EOFError:
+                # Windows calls NUL a terminal too: nobody there is a No.
+                answer = ""
             if answer.strip().lower() not in ("y", "yes"):
                 raise ReleaseError(f"stopped before the upload: nothing of "
                                    f"{args.version} was published; run "
