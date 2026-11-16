@@ -9,7 +9,11 @@ minisign cannot take a password from anywhere but a terminal.
 
 A secret key is read exactly once, here, and handed to minisign through a
 pipe: a key given as `<(bw get notes ...)` is a /dev/fd/N path that can be
-read only once and that a subprocess would not inherit.
+read only once and that a subprocess would not inherit. Windows has no
+such pipe to name, and nothing there signs with minisign: the signing host
+and whoever signs a trust root are on Linux, the maintainer's Windows
+machine only verifies. Signing is refused there rather than done through
+a copy of the key on disk.
 """
 
 from __future__ import annotations
@@ -19,7 +23,7 @@ import os
 import tempfile
 from pathlib import Path
 
-from common import MINISIG, ReleaseError, run
+from common import MINISIG, WINDOWS, ReleaseError, run
 
 
 def _id(raw: bytes) -> str:
@@ -41,7 +45,7 @@ def key_id(public_key: str) -> str:
 
 def public_key_of(path: Path) -> str:
     """The base64 line of a .pub file."""
-    lines = [l for l in Path(path).read_text().splitlines()
+    lines = [l for l in Path(path).read_text("utf-8").splitlines()
              if l and not l.startswith("untrusted comment:")]
     if len(lines) != 1:
         raise ReleaseError(f"{path}: not a minisign public key file")
@@ -56,6 +60,9 @@ def sign(secret_key: Path, file: Path, trusted_comment: str,
     if "\n" in trusted_comment:
         raise ReleaseError("a trusted comment is one line")
     sig = sig or file.with_name(file.name + MINISIG)
+    if WINDOWS:
+        raise ReleaseError("minisign signs on Linux only: the key reaches it "
+                           "through a pipe Windows cannot name")
     secret = Path(secret_key).read_bytes()
     r, w = os.pipe()
     try:
