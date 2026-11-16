@@ -17,8 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 WXS = (ROOT / "resource" / "wix" / "Package.wxs").read_text(encoding="utf-8")
-# On release/2.2 the MSI is built inline by the workflow, not by build_msi.ps1.
-BUILD_MSI = (ROOT / ".github" / "workflows" / "build.yml").read_text(
+BUILD_MSI = (ROOT / "scripts" / "ci" / "windows" / "build_msi.ps1").read_text(
     encoding="utf-8")
 CMAKE = (ROOT / "CMakeLists.txt").read_text(encoding="utf-8")
 
