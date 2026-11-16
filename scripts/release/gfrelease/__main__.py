@@ -45,8 +45,8 @@ import trust  # noqa: E402
 import ui  # noqa: E402
 import verify as verify_mod  # noqa: E402
 import views  # noqa: E402
-from common import (MINISIG, ROOT, Product, ReleaseError,  # noqa: E402
-                    atomic_write, load_json, locked, parse_iso, policy_mod,
+from common import (MINISIG, ROOT, WINDOWS, Product,  # noqa: E402
+                    ReleaseError, atomic_write, load_json, locked, parse_iso, policy_mod,
                     refs, run, utcnow)
 from store import Store  # noqa: E402
 
@@ -77,6 +77,11 @@ OPTIONS = {
     "authenticode_cert": ("certificate file, or PKCS#11 URI", "CERT"),
     "authenticode_key": ("key file, or PKCS#11 URI", "KEY"),
     "pkcs11_module": ("the token's PKCS#11 module", "FILE"),
+    "authenticode_thumbprint": ("on Windows: the SHA-1 thumbprint of the "
+                                "certificate in your store, signed with by "
+                                "signtool", "SHA1"),
+    "signtool": ("signtool.exe (default: PATH, else the newest Windows "
+                 "SDK's)", "PATH"),
     "timestamp_url": ("RFC 3161 time-stamping services, comma-separated, "
                       "tried in turn", "URL[,URL...]"),
     "cafile": ("CA bundle for the HTTPS bases", "FILE"),
@@ -134,8 +139,9 @@ class Parser(argparse.ArgumentParser):
     """argparse, whose mistakes say what was probably meant."""
 
     def error(self, message):
-        m = re.search(r"invalid choice: '?([^'\s]*)'? \(choose from (.*)\)",
-                      message)
+        # (argparse of Python 3.15 puts a suggestion of its own between.)
+        m = re.search(r"invalid choice: '?([^'\s]*)'?(?:, maybe you meant"
+                      r"[^(]*)? \(choose from (.*)\)", message)
         if m:
             choices = [c.strip(" '") for c in m.group(2).split(",")]
             close = difflib.get_close_matches(m.group(1), choices, n=1)
@@ -350,7 +356,8 @@ def build_parser(settings=None) -> argparse.ArgumentParser:
                    "maintainer)")
     for name in ("staging", "builds", "update", "git_dir", "cosign", "key",
                  "gnupghome", "authenticode_cert", "authenticode_key",
-                 "pkcs11_module", "index_key", "index_pub"):
+                 "pkcs11_module", "authenticode_thumbprint", "signtool",
+                 "index_key", "index_pub"):
         opt(p, name, settings)
 
     p = leaf(sub, "help", settings, "walkthroughs: stable, root-ceremony, "
@@ -370,7 +377,8 @@ def build_parser(settings=None) -> argparse.ArgumentParser:
                    help="X.Y.Z, its tag vX.Y.Z already pushed")
     for name in ("work", "staging", "builds", "git_dir", "cosign", "key",
                  "gnupghome", "authenticode_cert", "authenticode_key",
-                 "pkcs11_module", "timestamp_url", "authenticode_ca"):
+                 "pkcs11_module", "authenticode_thumbprint", "signtool",
+                 "timestamp_url", "authenticode_ca"):
         opt(p, name, settings, OPTIONS[name][0] + (
             " (read)" if name == "staging" else " (write)"
             if name == "builds" else ""))
@@ -710,7 +718,17 @@ def cmd_stage(ctx) -> int:
 def cmd_stable(ctx) -> int:
     args, product = ctx.args, ctx.product
     signer = None
-    if args.authenticode_cert and args.authenticode_key:
+    if args.authenticode_thumbprint:
+        if not WINDOWS:
+            raise ReleaseError("--authenticode-thumbprint names a "
+                               "certificate of the Windows store; here it "
+                               "is --authenticode-cert and -key")
+        # No PIN is asked here: the card's own software does, once for the
+        # programs and once for the packages.
+        signer = authenticode.SigntoolSigner(
+            args.authenticode_thumbprint, args.signtool or "",
+            args.timestamp_url or "")
+    elif args.authenticode_cert and args.authenticode_key:
         token = bool(args.pkcs11_module)
         signer = authenticode.Signer(
             args.authenticode_cert, args.authenticode_key,
@@ -727,7 +745,7 @@ def cmd_stable(ctx) -> int:
         gnupghome=args.gnupghome, signer=signer,
         authenticode_ca=args.authenticode_ca,
         on_signed=lambda name, n, total, path:
-        ui.info(f"  {name}: [{n}/{total}] {path}"))
+        ui.info(f"  {name}: [{n}/{total}] {path or 'the package itself'}"))
     if args.notes_only:
         digest = stage.publish_notes()
         ctx.result = {"version": args.version, "notes": digest}

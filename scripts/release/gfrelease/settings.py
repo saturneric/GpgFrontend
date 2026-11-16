@@ -19,7 +19,8 @@ value and where it came from.
   [stores]      staging, builds, update (rclone paths, the product root
                 included)
   [maintainer]  key, gnupghome, work, authenticode_cert, authenticode_key,
-                pkcs11_module, timestamp_url, authenticode_ca
+                pkcs11_module, authenticode_thumbprint, signtool,
+                timestamp_url, authenticode_ca
   [host]        state_dir, index_key, index_pub
   [trust]       root_dir, index_keys_dir, root_sha256
   [tools]       git_dir, rclone, cosign, product, policy, cafile
@@ -37,7 +38,8 @@ from common import ROOT, ReleaseError
 GROUPS = {
     "stores": ("staging", "builds", "update"),
     "maintainer": ("key", "gnupghome", "work", "authenticode_cert",
-                   "authenticode_key", "pkcs11_module", "timestamp_url",
+                   "authenticode_key", "pkcs11_module",
+                   "authenticode_thumbprint", "signtool", "timestamp_url",
                    "authenticode_ca"),
     "host": ("state_dir", "index_key", "index_pub"),
     "trust": ("root_dir", "index_keys_dir", "root_sha256"),
@@ -66,6 +68,10 @@ TEMPLATE = """\
 # authenticode_cert = "pkcs11:..."
 # authenticode_key = "pkcs11:..."
 # pkcs11_module = "/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so"
+# On Windows instead: the certificate in your store, by its SHA-1
+# thumbprint, signed with by signtool (its key where the store says).
+# authenticode_thumbprint = "..."
+# signtool = "C:/Program Files (x86)/Windows Kits/10/bin/<version>/x64/signtool.exe"
 # timestamp_url = "http://time.certum.pl/,http://timestamp.digicert.com"
 
 [host]
@@ -156,7 +162,7 @@ def defaults() -> dict[str, str]:
 # Settings that name a file or directory: "~" is expanded in them.
 PATHS = {"gnupghome", "work", "authenticode_ca", "state_dir", "index_key",
          "root_dir", "index_keys_dir", "git_dir", "product", "policy",
-         "cafile", "pkcs11_module"}
+         "cafile", "pkcs11_module", "signtool"}
 
 
 class Settings:
