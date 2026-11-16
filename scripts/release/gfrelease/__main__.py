@@ -1053,7 +1053,9 @@ def cmd_host(ctx) -> int:
         report = host.dry_run()
         ctx.result = report
         render_dry_run(report)
-        return host_mod.FAILED if report["refused"] else host_mod.DONE
+        # Ran to its end and would refuse something: as an index run that
+        # refuses something ends.
+        return host_mod.PARTIAL if report["refused"] else host_mod.DONE
     if command == "promote":
         status = host.promote()
     else:

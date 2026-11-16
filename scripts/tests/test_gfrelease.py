@@ -764,6 +764,19 @@ class ChainTest(unittest.TestCase):
                 "--index-key", str(self.idx_key), "--index-pub", self.idx_pub,
                 "--cosign", str(self.cosign)])
         self.assertEqual(status, host_mod.PARTIAL, err.getvalue())
+        # A dry run that would refuse something ran to its end too: what
+        # the host's status page shows, report and all.
+        self.builds.put_bytes(b"not JSON", "nightly/9.9.9/release.json")
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            status = self.cli().main([
+                *trust_args(self.product), "index", "--dry-run",
+                "--builds", self.builds.root, "--update", self.update.root,
+                "--git-dir", str(self.repo), "--state-dir", str(self.state),
+                "--index-pub", self.idx_pub, "--cosign", str(self.cosign)])
+        self.assertEqual(status, host_mod.PARTIAL, err.getvalue())
+        self.assertIn("would list:", out.getvalue())
+        self.assertIn("would refuse: nightly/9.9.9", err.getvalue())
 
     def test_what_the_signing_host_reads_is_held(self):
         """The Release-Server container reads gfrelease's published layout,
@@ -774,7 +787,7 @@ class ChainTest(unittest.TestCase):
         by their exit status and output. Changing any of this changes
         that repository too."""
         listed = ("branches/**/staged.json", "/releases/**", "/notes/**",
-                  "/nightly/*/release.json")
+                  "/nightly/*/release.json", "signed/**")
         self.assertEqual((layout.BRANCHES, layout.TAGS, layout.NIGHTLY,
                           layout.RELEASES), ("branches", "tags", "nightly",
                                              "releases"))
@@ -783,6 +796,9 @@ class ChainTest(unittest.TestCase):
         self.assertEqual((layout.SIGNED, layout.NOTES), ("signed", "notes"))
         self.assertEqual(self.staging.sub(layout.SIGNED).root,
                          self.staging.root + "/signed")
+        self.assertTrue(fnmatch.fnmatch(
+            "signed/" + layout.descriptor_of(layout.release_dir("2.3.0")),
+            "signed/*"))
         self.assertEqual((common.STAGED, common.DESCRIPTOR, common.INDEX),
                          ("staged.json", "release.json", "v1/index.json"))
         self.assertEqual(layout.nightly_dir("2.3.0-alpha.1+gabc"),
