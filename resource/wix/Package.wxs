@@ -117,8 +117,10 @@
     <!-- MaximumUncompressedMediaSize overrides the 200 MB default: the payload (Qt closure +
          GnuPG + modules) is larger than that, so the default silently splits it across
          cab1/cab2/..., and a file landing on a media boundary is a known source of extraction
-         failures mid-install. One cab for the whole package removes that variable. -->
-    <MediaTemplate EmbedCab="yes" CompressionLevel="high" MaximumUncompressedMediaSize="4096" />
+         failures mid-install. One cab for the whole package removes that variable.
+         MSZIP rather than LZX: a stable release signs every program in the cab offline and packs
+         it again (scripts/release/gfrelease/msi.py), which reads and writes MSZIP only. -->
+    <MediaTemplate EmbedCab="yes" CompressionLevel="mszip" MaximumUncompressedMediaSize="4096" />
 
     <!-- Close anything still holding a file in the install tree, otherwise MSI aborts with
          (CloseApplication matches a process by name, so installing either identity also
