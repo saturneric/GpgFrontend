@@ -105,6 +105,22 @@ class GitVersionTest(unittest.TestCase):
         self.assertNotIn("+", v["filesafe"])
         self.assertEqual(v["build_number"], 1_203_000_003)
 
+    def test_excluded_tags_are_left_out(self):
+        """What git called a commit before tags made later: the release
+        tooling's question about a build that was tagged after it."""
+        self.commit()
+        self.git("tag", "v2.2.4")
+        self.commit()
+        sha = self.git("rev-parse", "HEAD")
+        self.git("tag", "v2.3.0")
+        rev = [f"-DGPGFRONTEND_VERSION_REV={sha}"]
+        self.assertEqual(self.derive(defines=rev)["version"], "2.3.0")
+        self.assertEqual(self.derive(defines=[
+            *rev, "-DGPGFRONTEND_VERSION_EXCLUDE=v9.9.9;v2.3.0"])["version"],
+            f"2.3.0-alpha.1+g{sha[:12]}")
+        self.assertEqual(self.derive(defines=[
+            *rev, "-DGPGFRONTEND_VERSION_EXCLUDE="])["version"], "2.3.0")
+
     def test_release_branch_bumps_patch(self):
         self.commit()
         self.git("tag", "v2.2.4")

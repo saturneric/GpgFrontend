@@ -38,8 +38,8 @@ import ui
 from common import (BUNDLE, DESCRIPTOR, INDEX, MINISIG, SCHEMA, SIG, SUMS,
                     Problems, Product, ReleaseError, ToolFailed,
                     atomic_write, candidate_error, check_candidate,
-                    is_passing, canonical_json,
-                    check_relpath, git_version, iso, load_json, locked,
+                    check_git_version, is_passing, canonical_json,
+                    check_relpath, iso, load_json, locked,
                     notes_at, parse_iso, parse_manifest, parse_version, refs,
                     resolve_commit, sha256_bytes, sha256_file, tag_time,
                     tagged_commit, utcnow)
@@ -182,10 +182,8 @@ def admit_nightly(product: Product, builds: Store, path: str, raw: bytes,
     if git_dir is None:
         raise ReleaseError("builds need --git-dir to be admitted")
     branch = refs.branch_of(ref) or refs.release_branch(series)
-    derived = git_version(git_dir, d["commit"], branch)
-    if derived != d["version"]:
-        raise ReleaseError(f"{path}: git says {d['commit'][:12]} on "
-                           f"{branch} is {derived}, not {d['version']}")
+    derived = check_git_version(git_dir, d["commit"], ref, branch,
+                                d["version"], path)
     if rc_tag:
         # The tag still names this commit, on its series' branch. Once the
         # series is released, it is simply no longer listed (_choose_rcs).

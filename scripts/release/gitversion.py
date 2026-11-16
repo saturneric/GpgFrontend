@@ -20,18 +20,28 @@ SCRIPT = ROOT / "cmake" / "GitVersion.cmake"
 TIMEOUT = 300
 
 
-def derive(repo: Path, ref: str = "", rev: str = "",
-           field: str = "version") -> str:
-    """@p field of the version git gives @p rev (the work tree's HEAD when
-    empty) on @p ref. Raises subprocess.CalledProcessError (cmake failed),
-    subprocess.TimeoutExpired, or FileNotFoundError without cmake."""
+def command(repo: Path, ref: str = "", rev: str = "", field: str = "version",
+            exclude: tuple[str, ...] = ()) -> list[str]:
+    """The cmake command that prints @p field of the version git gives
+    @p rev (the work tree's HEAD when empty) on @p ref, the tags in
+    @p exclude left out."""
     cmd = ["cmake", f"-DGF_SOURCE_DIR={repo}", f"-DGF_FIELD={field}"]
     if rev:
         cmd.append(f"-DGPGFRONTEND_VERSION_REV={rev}")
     if ref:
         cmd.append(f"-DGPGFRONTEND_VERSION_REF={ref}")
-    cmd += ["-P", str(SCRIPT)]
-    return subprocess.run(cmd, check=True, capture_output=True, text=True,
+    if exclude:
+        cmd.append(f"-DGPGFRONTEND_VERSION_EXCLUDE={';'.join(exclude)}")
+    return cmd + ["-P", str(SCRIPT)]
+
+
+def derive(repo: Path, ref: str = "", rev: str = "",
+           field: str = "version") -> str:
+    """command()'s answer. Raises subprocess.CalledProcessError (cmake
+    failed), subprocess.TimeoutExpired, or FileNotFoundError without
+    cmake."""
+    return subprocess.run(command(repo, ref, rev, field), check=True,
+                          capture_output=True, text=True,
                           timeout=TIMEOUT).stdout.strip()
 
 

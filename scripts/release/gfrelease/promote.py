@@ -45,7 +45,7 @@ import openpgp
 import ui
 from common import (BUNDLE, DESCRIPTOR, SCHEMA, SIG, STAGED, SUMS, Problems,
                     Product, ReleaseError, ToolFailed, canonical_json,
-                    git_version, check_candidate, iso, load_json,
+                    check_git_version, check_candidate, iso, load_json,
                     parse_version, refs, sha256_file, utcnow,
                     verify_candidate)
 from stage import read_staged
@@ -160,11 +160,8 @@ def promote_one(product: Product, staging: Store, builds: Store,
         identity = product.identity(ref)
         files = verify_candidate(prefix, work, staged, identity, cosign)
 
-        derived = git_version(git_dir, commit, branch)
-        if derived != staged["version"]:
-            raise ReleaseError(f"{prefix}: git says {commit[:12]} on {branch} "
-                               f"is {derived}, the build claims "
-                               f"{staged['version']}")
+        derived = check_git_version(git_dir, commit, ref, branch,
+                                    staged["version"], prefix)
         series = refs.branch_series(branch)
         if series and parse_version(derived).series != series:
             # The branch reached a later series' base tag: not its beta.
