@@ -249,11 +249,31 @@ def promote(product: Product, staging: Store, builds: Store, *,
 
 # --- what a maintainer hands over ------------------------------------------
 
-def _receive_release(product: Product, outbox: Store, builds: Store,
+def _fetch_staged(staging: Store, version: str, local: Path) -> None:
+    """Every file the stage left out of what it handed over in @p local
+    (its .sig is there, the file is not: signing left it as CI built it),
+    from the tag's build still staged. Taken as any handed-over file: what
+    admission then checks is what lies on this disk."""
+    for sig in sorted(local.glob(f"*{SIG}")):
+        name = sig.name[:-len(SIG)]
+        if name == SUMS or (local / name).exists():
+            continue
+        try:
+            staging.fetch_to(f"{layout.staged_tag(version)}/{name}",
+                             local / name)
+        except NotFound as e:
+            raise ReleaseError(f"{name} was left to be taken from the "
+                               "tag's staged build, which no longer holds "
+                               "it") from e
+
+
+def _receive_release(product: Product, staging: Store, builds: Store,
                      path: str, *, git_dir: Path, state_dir: Path,
                      cosign: str, authenticode_ca: str | None) -> dict | None:
-    """The release whose descriptor is handed over at @p path, copied to
-    the builds store once it is checked; None when it is there already."""
+    """The release whose descriptor is handed over at @p path (under
+    signed/ of @p staging), copied to the builds store once it is checked;
+    None when it is there already."""
+    outbox = staging.sub(layout.SIGNED)
     version = path.split("/")[1]
     if path != layout.descriptor_of(layout.release_dir(version)) or \
             not parse_version(version, path).is_release:
@@ -267,6 +287,7 @@ def _receive_release(product: Product, outbox: Store, builds: Store,
         root = Path(tmp) / "handed"
         outbox.download(layout.release_dir(version),
                         root / layout.RELEASES / version)
+        _fetch_staged(staging, version, root / layout.RELEASES / version)
         try:
             outbox.download(f"{layout.NOTES}/{version}",
                             root / layout.NOTES / version)
@@ -326,8 +347,9 @@ def _receive_notes(product: Product, outbox: Store, builds: Store,
             raise ReleaseError("not the notes its name says")
         with openpgp.Keyring.of(product) as ring:
             ring.verify(notes, sig)
-        builds.put_file(notes, path)
+        # The signature first: notes that are there count as received.
         builds.put_file(sig, path + SIG)
+        builds.put_file(notes, path)
     return True
 
 
@@ -359,7 +381,7 @@ def receive(product: Product, staging: Store, builds: Store, *,
                             ToolFailed(f"local file: {e}"))
 
     def release(path: str) -> None:
-        d = _receive_release(product, outbox, builds, path, git_dir=git_dir,
+        d = _receive_release(product, staging, builds, path, git_dir=git_dir,
                              state_dir=state_dir, cosign=cosign,
                              authenticode_ca=authenticode_ca)
         if d is not None:

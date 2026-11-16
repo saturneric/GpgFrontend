@@ -2798,6 +2798,13 @@ class StableTest(unittest.TestCase):
         handed = self.tmp / "staging" / "signed"
         path = "releases/2.3.0/release.json"
         self.assertEqual(self.builds.files(""), [])
+        # Only what signing changed went up with its signatures: the rest
+        # the host takes from the tag's staged build.
+        outbox = set(self.staging.files("signed/releases/2.3.0"))
+        for a in d["artifacts"]:
+            name = a["name"]
+            self.assertIn(name + ".sig", outbox)
+            self.assertEqual(name in outbox, a["transform"] != "none", name)
         self.assertEqual(self.staging.sub("signed").read(path),
                          common.canonical_json(d))
 
@@ -2817,6 +2824,18 @@ class StableTest(unittest.TestCase):
         target.write_bytes(signed + b"more")
         refused("not received")
         target.write_bytes(signed)
+        # A file taken from the tag's staged build that is not what was
+        # signed, or no longer there.
+        unchanged = next(a for a in d["artifacts"]
+                         if a["transform"] == "none")
+        staged = self.tmp / "staging" / "tags" / "2.3.0" / unchanged["name"]
+        original = staged.read_bytes()
+        staged.chmod(0o644)
+        staged.write_bytes(original + b"more")
+        refused("not received")
+        staged.unlink()
+        refused("no longer holds")
+        staged.write_bytes(original)
         # A descriptor that says something else than was signed.
         descriptor = handed / path
         descriptor.chmod(0o644)

@@ -57,6 +57,7 @@ from pathlib import Path
 import authenticode
 import layout
 import openpgp
+import ui
 from common import (BUNDLE, SCHEMA, SIG, STAGED, SUMS, Product, ReleaseError,
                     atomic_write, canonical_json, iso, load_json, notes_at,
                     parse_version, refs, render_manifest, sha256_bytes,
@@ -217,7 +218,7 @@ class Stage:
         local = self._sign_notes(data, digest, "notes-only", key)
         with openpgp.Keyring.of(self.product) as ring:
             ring.verify(local, local.with_name(local.name + SIG))
-        for suffix in ("", SIG):
+        for suffix in (SIG, ""):  # the signature first, as _upload
             self.outbox.put_file(local.with_name(local.name + suffix),
                                  remote + suffix)
         return digest
@@ -390,11 +391,21 @@ class Stage:
         self.state.setdefault("released_at", iso(utcnow()))
         self._save()
         artifacts = []
+        staged = layout.staged_tag(self.version)
+        left_out = 0
         for name in sorted(files):
             info = files[name]
-            self.outbox.put_file(self.final_dir / name, f"{p}/{name}")
+            # Its signature first: what the host takes the file by.
             self.outbox.put_file(self.final_dir / (name + SIG),
                                  f"{p}/{name}{SIG}")
+            # A file signing did not change is CI's, byte for byte, and
+            # still staged: the host takes it from there (promote.py), and
+            # checks it as any other.
+            if info["transform"] == "none" and \
+                    self.staging.exists(f"{staged}/{name}"):
+                left_out += (self.final_dir / name).stat().st_size
+            else:
+                self.outbox.put_file(self.final_dir / name, f"{p}/{name}")
             artifacts.append({
                 k: info[k] for k in ("os", "arch", "kind", "flavor", "min_os",
                                      "sha256", "build_sha256", "transform")
@@ -408,8 +419,14 @@ class Stage:
         self.outbox.put_file(build / SUMS, f"{p}/build/{SUMS}")
         self.outbox.put_file(build / BUNDLE, f"{p}/build/{BUNDLE}")
 
+        if left_out:
+            ui.info(f"  {left_out / 1e6:.1f} MB not uploaded: the host takes "
+                    f"the files signing left as they were from {staged}/")
+
         digest = self.state["notes_sha256"]
-        for suffix in ("", SIG):
+        # The signature first: notes are taken by their .md, so a host round
+        # in between never finds them unsigned.
+        for suffix in (SIG, ""):
             self.outbox.put_file(self.dir / "notes" / f"{digest}.md{suffix}",
                                  layout.notes_path(self.version, digest)
                                  + suffix)
