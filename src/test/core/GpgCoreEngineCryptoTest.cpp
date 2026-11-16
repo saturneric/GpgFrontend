@@ -335,11 +335,11 @@ TEST_P(GpgCoreEngineTest, VerifyRefusesTextOutsideTheSignedBlock) {
   ASSERT_TRUE(key != nullptr);
 
   const auto text = GFBuffer(QString("the signed part"));
-  for (const auto mode : {GpgSignMode::kCLEAR, GpgSignMode::kNORMAL}) {
+  for (const auto mode : {GPGME_SIG_MODE_CLEAR, GPGME_SIG_MODE_NORMAL}) {
     auto [err, data_object] =
         MessageCryptoOperation::GetInstance(Channel()).SignSync({key}, text,
                                                                 mode, true);
-    ASSERT_TRUE(err.Ok());
+    ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
     const auto signed_text =
         ExtractParams<GFBuffer>(data_object, 1).ConvertToQByteArray();
 
@@ -347,7 +347,8 @@ TEST_P(GpgCoreEngineTest, VerifyRefusesTextOutsideTheSignedBlock) {
       auto [v_err, v_obj] =
           MessageCryptoOperation::GetInstance(Channel()).VerifySync(
               GFBuffer(signed_text), GFBuffer());
-      EXPECT_TRUE(v_err.Ok()) << "the untouched message must still verify";
+      EXPECT_EQ(CheckGpgError(v_err), GPG_ERR_NO_ERROR)
+          << "the untouched message must still verify";
     }
 
     const QList<QByteArray> forged = {
@@ -359,8 +360,9 @@ TEST_P(GpgCoreEngineTest, VerifyRefusesTextOutsideTheSignedBlock) {
       auto [v_err, v_obj] =
           MessageCryptoOperation::GetInstance(Channel()).VerifySync(
               GFBuffer(input), GFBuffer());
-      EXPECT_FALSE(v_err.Ok()) << "verified with unsigned text around it:\n"
-                               << input.constData();
+      EXPECT_NE(CheckGpgError(v_err), GPG_ERR_NO_ERROR)
+          << "verified with unsigned text around it:\n"
+          << input.constData();
     }
   }
 

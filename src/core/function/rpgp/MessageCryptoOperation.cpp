@@ -213,7 +213,7 @@ auto VerifyRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
       HasTextOutsideSignedArmor(in_buffer.ConvertToQByteArray())) {
     LOG_W() << "refusing to verify: the input has text outside its signature";
     data_object->Swap({GpgVerifyResult(GFVerifyResult{}), GFBuffer{}});
-    return RpgpError(GFErrorCode::kBAD_DATA);
+    return GPG_ERR_BAD_DATA;
   }
 
   Rust::GfrVerifyResultC verify_result;
