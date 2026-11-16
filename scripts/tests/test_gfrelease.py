@@ -283,6 +283,7 @@ class ChainTest(unittest.TestCase):
         index = self.index()
         self.assertEqual(index["serial"], 1)
         self.assertEqual(index["channels"], {"stable": None, "beta": None,
+                                             "prerelease": None,
                                              "nightly": version})
         self.assertEqual(index["series"]["2.1"]["eol"], "2027-12-31")
 
@@ -353,6 +354,44 @@ class ChainTest(unittest.TestCase):
         self.assertIsNone(index["channels"]["beta"])
         self.assertIsNone(index["beta"])
         self.check()
+
+    def test_a_release_candidate_makes_its_series_a_prerelease(self):
+        # 2.3 is cut at its first candidate: release/2.3 from main, tagged.
+        self.commit()
+        self.git("checkout", "-q", "-b", "release/2.3")
+        self.git("tag", "v2.3.0-rc.1")
+        _, version = self.build(ref="refs/tags/v2.3.0-rc.1")
+        self.assertEqual(version, "2.3.0-rc.1")
+        # Staged beside the branch's betas, so the host promotes it.
+        self.assertTrue(self.staging.files("branches/release-2.3"))
+        (descriptor,) = self.promote()
+        self.assertEqual(descriptor["ref"], "refs/tags/v2.3.0-rc.1")
+        index = self.index()
+        self.assertEqual(index["channels"]["prerelease"], "2.3.0-rc.1")
+        self.assertEqual(index["prerelease"]["version"], "2.3.0-rc.1")
+        self.assertTrue(index["series"]["2.3"]["prerelease"])
+        self.assertEqual(index["series"]["2.3"]["rc"]["version"], "2.3.0-rc.1")
+        self.assertIsNone(index["series"]["2.3"]["latest"])
+        self.assertIsNone(index["channels"]["beta"])  # a candidate, no beta
+        self.check()
+
+    def test_a_candidate_off_its_branch_or_after_its_release_is_refused(self):
+        self.commit()
+        self.git("tag", "v2.3.0-rc.1")  # on main: no release/2.3 yet
+        self.build(ref="refs/tags/v2.3.0-rc.1")
+        with self.assertRaises(common.ReleaseError) as e:
+            self.promote()
+        self.assertIn("is not on release/2.3", str(e.exception))
+
+        # Released already: a candidate tagged since is never promoted.
+        self.git("checkout", "-q", "-b", "release/2.3")
+        self.git("tag", "v2.3.0")
+        self.commit()
+        self.git("tag", "v2.3.0-rc.2")
+        self.build(ref="refs/tags/v2.3.0-rc.2", claim="2.3.0-rc.2")
+        with self.assertRaises(common.ReleaseError) as e:
+            self.promote()
+        self.assertIn("has been released already", str(e.exception))
 
     def test_a_tampered_beta_entry_is_caught(self):
         self.git("checkout", "-q", "-b", "release/2.2", "v2.2.4")

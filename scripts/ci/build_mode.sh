@@ -29,14 +29,18 @@
 #   SCREENSHOT_INPUT  "true" for a screenshot-mode build
 #
 # Trunk model: main is the next minor release, release/X.Y receives fixes
-# for one series, and versions come from tags (cmake/GitVersion.cmake). Three
+# for one series, and versions come from tags (cmake/GitVersion.cmake). Four
 # channels, each fed by one kind of ref (scripts/release/refs.py):
 #   - a release tag vX.Y.Z  -> release build                 publish: final
 #   - a push to main        -> nightly build                 publish: nightly-main
-#   - a push to release/X.Y -> nightly build of that series  publish: beta
+#   - a push to release/X.Y -> beta build of that series     publish: beta
 #                              (the opt-in beta channel of that series)
-#   - any other tag (a vX.Y.0-alpha.0 base tag, a stray prerelease tag)
-#                           -> nightly build, published nowhere
+#   - a release candidate tag vX.Y.0-rc.N (only ever of X.Y.0, before the
+#     series' first release)
+#                           -> beta build of that series     publish: rc
+#                              (a prerelease, offered as a beta is)
+#   - any other tag (a vX.Y.0-alpha.0 base tag, an rc of a patch, a stray
+#     prerelease tag)       -> nightly build, published nowhere
 #   - a pull request        -> PR validation build, published nowhere
 #   - workflow_dispatch     -> honour the chosen input, so a release package
 #                              can be produced without re-tagging; published
@@ -60,6 +64,7 @@ set -euo pipefail
 # leading zeros, nothing after the last number.
 num='(0|[1-9][0-9]*)'
 release_tag_re="^refs/tags/v${num}\.${num}\.${num}\$"
+rc_tag_re="^refs/tags/v${num}\.${num}\.0-rc\.${num}\$"
 release_branch_re="^refs/heads/release/[0-9]+\.[0-9]+\$"
 
 if [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
@@ -68,6 +73,8 @@ elif [[ "$GITHUB_REF" =~ $release_branch_re ]]; then
   ref_kind="release-branch"
 elif [[ "$GITHUB_REF" =~ $release_tag_re ]]; then
   ref_kind="release-tag"
+elif [[ "$GITHUB_REF" =~ $rc_tag_re ]]; then
+  ref_kind="rc-tag"
 else
   ref_kind="other"
 fi
@@ -95,6 +102,7 @@ if [[ "$GITHUB_EVENT_NAME" == "push" ]]; then
   case "$ref_kind" in
     main) publish_kind="nightly-main" ;;
     release-branch) publish_kind="beta" ;;
+    rc-tag) publish_kind="rc" ;;
     release-tag) publish_kind="final" ;;
   esac
 fi
@@ -102,24 +110,27 @@ publishes="false"
 [[ "$publish_kind" != "none" ]] && publishes="true"
 
 # Google Play: every build that publishes, each to the app of its
-# android_package (below). The finals and the release/X.Y betas go to the
-# release app; main's nightlies go to the nightly app ("GpgFrontend Testing").
+# android_package (below). The finals, the release/X.Y betas and the release
+# candidates go to the release app; main's nightlies go to the nightly app
+# ("GpgFrontend Testing").
 # Play takes only a versionCode above every one the app holds, so play-upload
 # asks Play and skips a build that is not (scripts/android/play_upload.py
 # --only-if-newer: a fix or beta of an older series while the app already
 # holds a newer one, or a rerun).
 play_upload="false"
 case "$publish_kind" in
-  nightly-main | beta | final) play_upload="true" ;;
+  nightly-main | beta | rc | final) play_upload="true" ;;
 esac
 
 # Stable release builds drop the "Testing" suffix from the app name; nightly
 # and PR builds are both "nightly" to CMake. A release/X.Y beta is built as a
 # release too: it is the opt-in beta channel of stable users, so it must
-# install over the release and open its profile, not the nightly's. The bundle
+# install over the release and open its profile, not the nightly's. So is a
+# release candidate, which is a beta of the next series. The bundle
 # identifier is fixed either way, so the App Store provisioning profile
 # matches both.
-if [[ "$build_mode" == "release" || "$publish_kind" == "beta" ]]; then
+if [[ "$build_mode" == "release" || "$publish_kind" == "beta" ||
+      "$publish_kind" == "rc" ]]; then
   gpgfrontend_build_mode="release"
 else
   gpgfrontend_build_mode="nightly"

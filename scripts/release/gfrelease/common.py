@@ -445,6 +445,52 @@ def resolve_commit(git_dir: Path, rev: str) -> str | None:
                      f"{(out.stderr or out.stdout).strip()}")
 
 
+def is_ancestor(git_dir: Path, commit: str, rev: str) -> bool:
+    """Whether @p commit is @p rev or reachable from it. A repository that
+    cannot be asked is a ToolFailed, never "no"."""
+    out = run(["git", "-C", git_dir, "merge-base", "--is-ancestor", commit,
+               rev], check=False)
+    if out.returncode in (0, 1):
+        return out.returncode == 0
+    raise ToolFailed(f"{git_dir}: cannot tell whether {commit[:12]} is on "
+                     f"{rev}: {(out.stderr or out.stdout).strip()}")
+
+
+def release_tags(git_dir: Path) -> list[str]:
+    """The versions of every release tag (vX.Y.Z) in @p git_dir."""
+    out = run(["git", "-C", git_dir, "tag", "--list", "v*"])
+    return [t[1:] for t in out.stdout.split() if refs.is_release_tag(t)]
+
+
+def check_candidate(git_dir: Path, ref: str, commit: str, version: str, *,
+                    unreleased: bool = True) -> None:
+    """A release candidate is its tag's build, of a commit on its series'
+    release branch, and comes before that series' first release: never
+    after it, never of a patch (refs.RC_TAG holds the shape). Without
+    @p unreleased, a series released since is no error: the index then
+    simply no longer lists the candidate (index._choose_rcs)."""
+    tag = refs.tag_of(ref)
+    if version != tag[1:]:
+        raise ReleaseError(f"{ref}: git says {commit[:12]} is {version}, "
+                           f"not {tag[1:]}")
+    if resolve_commit(git_dir, ref) != commit:
+        raise ReleaseError(f"{ref} does not point to {commit[:12]}")
+    series = refs.rc_series(ref)
+    branch = refs.HEADS + refs.release_branch(series)
+    if resolve_commit(git_dir, branch) is None or not is_ancestor(
+            git_dir, commit, branch):
+        raise ReleaseError(f"{ref}: {commit[:12]} is not on "
+                           f"{refs.release_branch(series)}")
+    if not unreleased:
+        return
+    released = [t for t in release_tags(git_dir)
+                if parse_version(t).series == series]
+    if released:
+        raise ReleaseError(f"{ref}: {series} has been released already "
+                           f"({max(released, key=parse_version)}); a "
+                           "candidate only comes before its first release")
+
+
 def tagged_commit(git_dir: Path, tag: str, expect: str | None = None,
                   version: str | None = None) -> str:
     """The commit @p tag names, checked: it is @p expect when given, and git

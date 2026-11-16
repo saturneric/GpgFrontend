@@ -319,7 +319,8 @@ class WorkflowTest(unittest.TestCase):
         self.assertNotIn("production", self.job)
         self.assertIn('--release-name "$name"', self.job)
         self.assertIn('case "$PUBLISH_KIND" in', self.job)
-        for arm in ('final) name="$GITHUB_REF_NAME" ;;',
+        # A release candidate is named after its tag, as a release is.
+        for arm in ('final | rc) name="$GITHUB_REF_NAME" ;;',
                     'beta) name="beta-${ARTIFACT_VERSION}" ;;',
                     'nightly-main) name="nightly-${ARTIFACT_VERSION}" ;;'):
             self.assertIn(arm, self.job)

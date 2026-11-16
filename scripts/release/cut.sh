@@ -6,11 +6,14 @@
 #
 #   scripts/release/cut.sh X.Y [--at <ref>] [--no-sign]
 #
-# Run on main, after tagging vX.Y.0 there, with release/policy.toml already
-# edited for the new state: X.Y stable, the old stable legacy (with its eol
-# date), X.(Y+1) mainline. It then
+# Run on main, after tagging the series' first release candidate
+# vX.Y.0-rc.1 there (or vX.Y.0, for a series released without one), with
+# release/policy.toml already edited for the new state: X.Y stable and
+# X.(Y+1) mainline. The series before stays stable while it still gets fixes,
+# or becomes legacy (with its eol date and a successor) now or later; until
+# vX.Y.0 is out, the index lists X.Y as a prerelease by itself. It then
 #
-#   1. creates release/X.Y at vX.Y.0 (or at --at <ref>),
+#   1. creates release/X.Y at vX.Y.0-rc.1 (or vX.Y.0, or --at <ref>),
 #   2. commits the policy change and the re-rendered SECURITY.md on main, and
 #   3. tags that commit vX.(Y+1).0-alpha.0, signed unless --no-sign.
 #
@@ -51,9 +54,14 @@ cd "$top"
 die() { echo "cut: $*" >&2; exit 1; }
 
 [ "$(git symbolic-ref --short -q HEAD)" = "main" ] || die "run this on main"
-[ -z "${at}" ] && at="v${series}.0"
+# At the first release candidate: release/X.Y carries the candidates, then
+# the release and its fixes.
+if [ -z "${at}" ]; then
+  at="v${series}.0-rc.1"
+  git rev-parse -q --verify "${at}^{commit}" >/dev/null || at="v${series}.0"
+fi
 git rev-parse -q --verify "${at}^{commit}" >/dev/null ||
-  die "${at} does not exist; tag v${series}.0 first, or pass --at"
+  die "${at} does not exist; tag v${series}.0-rc.1 (or v${series}.0) first, or pass --at"
 git rev-parse -q --verify "refs/heads/${branch}" >/dev/null &&
   die "${branch} already exists"
 git rev-parse -q --verify "refs/tags/${base_tag}" >/dev/null &&

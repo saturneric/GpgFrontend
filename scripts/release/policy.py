@@ -475,7 +475,8 @@ def render_keys(policy: dict, root: dict) -> str:
     lines.append("")
     lines += [f"    {f}" for f in fprs] or ["    (not yet published)"]
     lines.append("")
-    lines += _wrap("Nightly builds (main) and betas (release/X.Y) are signed "
+    lines += _wrap("Nightly builds (main), betas (release/X.Y) and release "
+                   "candidates (vX.Y.0-rc.N) are signed "
                    "with Sigstore, on the build's manifest "
                    "(`build/SHA256SUMS.txt.sigstore.json`), by the build "
                    "workflow's identity:")

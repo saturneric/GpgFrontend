@@ -31,6 +31,11 @@ _RE = re.compile(
 # scripts/tests/test_build_mode.py holds the two together.
 RELEASE_TAG = re.compile(rf"v({_NUM})\.({_NUM})\.({_NUM})\Z")
 
+# A release candidate's tag: an early build of a new series, before its first
+# release, so only ever of X.Y.0. It is a prerelease (a beta, published as
+# one), never a release. build_mode.sh spells it in bash too.
+RC_TAG = re.compile(rf"v({_NUM})\.({_NUM})\.0-rc\.({_NUM})\Z")
+
 
 @functools.total_ordering
 @dataclass(frozen=True)
@@ -53,6 +58,12 @@ class Version:
     @property
     def core(self) -> tuple[int, int, int]:
         return (self.major, self.minor, self.patch)
+
+    @property
+    def is_release_candidate(self) -> bool:
+        """X.Y.0-rc.N exactly: what an rc tag is (RC_TAG)."""
+        return self.patch == 0 and len(self.prerelease) == 2 and \
+            self.prerelease[0] == "rc" and self.prerelease[1].isdigit()
 
     @property
     def series(self) -> str:
