@@ -175,10 +175,12 @@ class CliTest(unittest.TestCase):
         self.assertNotIn("--index-key", err.splitlines()[0])
 
     def test_hints_say_how_to_fix_it(self):
-        self.assertIn("apt install minisign",
+        self.assertIn("winget install jedisct1.minisign" if os.name == "nt"
+                      else "apt install minisign",
                       ui.hint("minisign is not installed"))
         self.assertIn("cosign", ui.hint("cosign is not installed"))
-        self.assertIn("fuser", ui.hint("another run holds /s/lock"))
+        self.assertIn("another gfrelease command" if os.name == "nt"
+                      else "fuser", ui.hint("another run holds /s/lock"))
         self.assertIn("rclone listremotes", ui.hint(
             "listing r2:x: didn't find section in config file"))
         self.assertIsNone(ui.hint("forged"))
@@ -263,7 +265,8 @@ class CliTest(unittest.TestCase):
     def test_completion_offers_commands_and_options(self):
         status, out, _ = self.run_cli("completion", "bash")
         self.assertEqual(status, 0)
-        if shutil.which("bash"):
+        # (On Windows a "bash" may be WSL's, which is another machine.)
+        if shutil.which("bash") and os.name != "nt":
             words = subprocess.run(
                 ["bash", "-c", out + '\nCOMP_WORDS=(gfrelease trust root '
                  's); COMP_CWORD=3; _gfrelease; echo "${COMPREPLY[@]}"'],

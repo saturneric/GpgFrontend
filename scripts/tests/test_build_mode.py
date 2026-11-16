@@ -45,6 +45,7 @@ def classify(event: str, ref: str, **extra) -> dict:
 
 @unittest.skipUnless(shutil.which("cmake") and shutil.which("git"),
                      "needs cmake and git (the version is derived)")
+@unittest.skipIf(os.name == "nt", "build_mode.sh is CI's, run by bash")
 class BuildModeTest(unittest.TestCase):
     CASES = [
         # event, ref, build_mode, publish_kind

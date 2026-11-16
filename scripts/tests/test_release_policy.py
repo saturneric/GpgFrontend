@@ -501,6 +501,7 @@ def clean_env():
 
 
 @unittest.skipUnless(GIT and CMAKE, "needs git and cmake")
+@unittest.skipIf(os.name == "nt", "cut.sh is run by bash")
 class CutTest(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp(prefix="gfcut-"))

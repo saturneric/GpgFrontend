@@ -7,7 +7,6 @@ rclone rclone
 osslsigncode osslsigncode
 msiinfo msitools
 msibuild msitools
-wixl wixl
 gpg gnupg
 openssl openssl
 git git

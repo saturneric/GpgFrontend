@@ -21,8 +21,8 @@ from unittest import mock
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-from trustutil import (GFRELEASE, gfrelease_env, git_env, keypair,  # noqa: E402
-                       tools, write_root)
+from trustutil import (GFRELEASE, WINDOWS, gfrelease_env,  # noqa: E402
+                       git_env, keypair, tools, write_root)
 import common  # noqa: E402
 import layout  # noqa: E402
 import minisig  # noqa: E402
@@ -268,6 +268,7 @@ class TrustTest(unittest.TestCase):
         return ["--root-dir", str(self.root), "--index-keys-dir",
                 str(self.keys)]
 
+    @unittest.skipIf(WINDOWS, "minisign signs on Linux only (minisig.py)")
     def test_root_new_then_sign_then_verify(self):
         out = cli(*self.args(), "root", "new")
         self.assertIn("4.root.json: written", out.stdout)
@@ -289,6 +290,7 @@ class TrustTest(unittest.TestCase):
         out = cli(*self.args(), "root", "verify", "--from", "2")
         self.assertIn("root 3", out.stdout)
 
+    @unittest.skipIf(WINDOWS, "minisign signs on Linux only (minisig.py)")
     def test_renew_reads_g_once_from_a_process_substitution(self):
         """The real path: bash's <(...) -> gfrelease -> minisign."""
         g = fixture_key("g2")[0]
@@ -302,6 +304,7 @@ class TrustTest(unittest.TestCase):
         self.assertEqual(keys["keys"], json.loads(
             (self.keys / "2.json").read_text())["keys"])
 
+    @unittest.skipIf(WINDOWS, "minisign signs on Linux only (minisig.py)")
     def test_rotate_makes_an_unattended_key_and_lists_it(self):
         secret = self.tmp / "out" / "index.key"
         secret.parent.mkdir()
@@ -318,6 +321,7 @@ class TrustTest(unittest.TestCase):
         f.write_text("x")
         minisig.verify([new], f, minisig.sign(secret, f, "c"))
 
+    @unittest.skipIf(WINDOWS, "minisign signs on Linux only (minisig.py)")
     def test_a_new_g_takes_over_by_signing_the_next_list(self):
         # Root 3 replaced g1 with g2; the newest list is still g1's.
         for name in ("2.json", "2.json.minisig"):
