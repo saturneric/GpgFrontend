@@ -127,6 +127,61 @@ class BatchInProgressMarker {
       -> BatchInProgressMarker& = delete;
 };
 
+/**
+ * @brief Keeps the window that started an operation from acting while it runs.
+ *
+ * The waiting dialog is modal, but only once it is shown: not for its first
+ * moments, and never while an external pinentry holds focus. Until then the
+ * initiating window took clicks and could be closed, so a second Finish made
+ * a second key, and a closed dialog was deleted under the nested loop still
+ * running inside it. Input and close requests to that window, or to a window
+ * containing it, are swallowed; other windows, a passphrase prompt among them,
+ * are untouched.
+ */
+class InitiatorBusyGuard : public QObject {
+ public:
+  explicit InitiatorBusyGuard(QWidget* initiator)
+      : window_(initiator != nullptr ? initiator->window() : nullptr) {
+    if (window_ != nullptr) qApp->installEventFilter(this);
+  }
+  ~InitiatorBusyGuard() override {
+    if (window_ != nullptr) qApp->removeEventFilter(this);
+  }
+
+  InitiatorBusyGuard(const InitiatorBusyGuard&) = delete;
+  auto operator=(const InitiatorBusyGuard&) -> InitiatorBusyGuard& = delete;
+
+ protected:
+  auto eventFilter(QObject* watched, QEvent* event) -> bool override {
+    if (window_.isNull() || !watched->isWidgetType()) return false;
+    auto* widget = static_cast<QWidget*>(watched);
+
+    switch (event->type()) {
+      case QEvent::Close:
+        if (widget->isWindow() &&
+            (widget == window_ || widget->isAncestorOf(window_))) {
+          event->ignore();
+          return true;
+        }
+        return false;
+      case QEvent::MouseButtonPress:
+      case QEvent::MouseButtonRelease:
+      case QEvent::MouseButtonDblClick:
+      case QEvent::KeyPress:
+      case QEvent::KeyRelease:
+      case QEvent::ShortcutOverride:
+      case QEvent::Shortcut:
+      case QEvent::Wheel:
+        return widget->window() == window_;
+      default:
+        return false;
+    }
+  }
+
+ private:
+  QPointer<QWidget> window_;
+};
+
 }  // namespace
 
 namespace GpgFrontend::UI {
@@ -556,6 +611,7 @@ void GpgOperaHelper::WaitForMultipleOperas(
   }
   const BatchInProgressMarker marker;
 
+  const InitiatorBusyGuard busy(parent);
   QEventLoop looper;
   QPointer<WaitingDialog> const dialog =
       new WaitingDialog(title, operas.size() > 1, parent);
@@ -677,6 +733,7 @@ auto GpgOperaHelper::BuildOperasDecryptVerify(
 
 void GpgOperaHelper::WaitForOpera(QWidget* parent, const QString& title,
                                   const OperaWaitingCb& opera) {
+  const InitiatorBusyGuard busy(parent);
   QEventLoop looper;
   QPointer<WaitingDialog> const dialog =
       new WaitingDialog(title, false, parent);
