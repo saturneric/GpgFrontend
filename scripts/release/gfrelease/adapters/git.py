@@ -68,6 +68,16 @@ def git_version(git_dir: Path, commit: str, ref: str,
 _LATER_TAGS = 4
 
 
+def _nearest_tag(git_dir: Path, commit: str, excluded: list[str]) -> str:
+    """The release tag git describes @p commit from, @p excluded left out,
+    or "" when none is reachable."""
+    out = run(["git", "-C", git_dir, "describe", "--tags", "--abbrev=0",
+               "--match=v[0-9]*.[0-9]*.[0-9]*",
+               *(f"--exclude={t}" for t in excluded), commit],
+              check=False)
+    return out.stdout.strip() if out.returncode == 0 else ""
+
+
 def check_git_version(git_dir: Path, commit: str, ref: str, branch: str,
                       claimed: str, where: str) -> str:
     """@p claimed, once git calls @p commit, built from @p ref, on @p branch
@@ -78,17 +88,18 @@ def check_git_version(git_dir: Path, commit: str, ref: str, branch: str,
     own = refs.tag_of(ref)
     derived = git_version(git_dir, commit, branch)
     found, excluded = derived, []
+    tag = _nearest_tag(git_dir, commit, excluded)
     for _ in range(_LATER_TAGS):
         if found == claimed:
             return claimed
-        out = run(["git", "-C", git_dir, "describe", "--tags", "--abbrev=0",
-                   "--match=v[0-9]*.[0-9]*.[0-9]*",
-                   *(f"--exclude={t}" for t in excluded), commit],
-                  check=False)
-        tag = out.stdout.strip()
-        if out.returncode != 0 or not tag or tag == own:
+        if not tag or tag == own:
             break
         excluded.append(tag)
+        # With no release tag left, git names the commit nothing, and a
+        # strict (CI) derivation fails rather than say so.
+        tag = _nearest_tag(git_dir, commit, excluded)
+        if not tag:
+            break
         found = git_version(git_dir, commit, branch, tuple(excluded))
     raise ReleaseError(f"{where}: git says {commit[:12]} on {branch} is "
                        f"{derived}, not {claimed}")
