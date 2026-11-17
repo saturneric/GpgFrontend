@@ -501,6 +501,9 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
 
       qint64 total_written = 0;
       int entry_count = 0;
+      // Regular files this walk has itself put on disk. The only things a hard
+      // link entry may name: anything else is a file that was already there.
+      QSet<QString> extracted_files;
 
       for (;;) {
         struct archive_entry *entry;
@@ -573,6 +576,17 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
             ret = -1;
             break;
           }
+          // libarchive links whatever the name resolves to and then writes the
+          // entry's bytes into it, so a link to a file that was already in the
+          // destination is a write into that file.
+          if (!extracted_files.contains(link_relative_path)) {
+            FLOG_W(
+                "refusing archive entry '%s': hard link to '%s' is not a "
+                "file extracted from this archive",
+                qPrintable(path_name), qPrintable(link_name));
+            ret = -1;
+            break;
+          }
 
           const auto link_target = write_root + "/" + link_relative_path;
 #ifdef Q_OS_WINDOWS
@@ -630,6 +644,14 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
 #else
         archive_entry_set_pathname(entry, target_path_name.toUtf8());
 #endif
+
+        // Whatever is at this path now is what a later link would reach, so
+        // the set follows every entry, not just the regular ones.
+        if (is_hardlink || filetype == AE_IFREG) {
+          extracted_files.insert(relative_path);
+        } else {
+          extracted_files.remove(relative_path);
+        }
 
         r = archive_write_header(ext, entry);
         if (r != ARCHIVE_OK) {
