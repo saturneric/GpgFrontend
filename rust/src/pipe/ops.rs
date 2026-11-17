@@ -51,8 +51,9 @@ use crate::utils::key_armor_opts;
 
 /// The engine channel gfpipe runs on; it has the process to itself.
 const CHANNEL: i32 = 0;
-/// Past this, a message to decrypt or verify in memory is refused.
-const MAX_IN_MEMORY: u64 = 1 << 30;
+/// Past this, a detached signature, the one input read into memory, is
+/// refused: no real one comes near it.
+const MAX_SIGNATURE: u64 = 16 << 20;
 
 pub fn run(
     command: Command,
@@ -199,15 +200,16 @@ fn input(args: &Args, index: usize, io: &mut Io) -> Result<Box<dyn Read + Send +
     }
 }
 
-fn read_all(mut reader: Box<dyn Read + Send + Sync>) -> Result<Vec<u8>, PipeError> {
+/// A detached signature, read whole.
+fn read_signature(mut reader: impl Read) -> Result<Vec<u8>, PipeError> {
     let mut data = Vec::new();
     reader
         .by_ref()
-        .take(MAX_IN_MEMORY + 1)
+        .take(MAX_SIGNATURE + 1)
         .read_to_end(&mut data)
-        .map_err(|e| PipeError::usage(format!("cannot read the input: {e}")))?;
-    if data.len() as u64 > MAX_IN_MEMORY {
-        return Err(PipeError::usage("the input is too large"));
+        .map_err(|e| PipeError::usage(format!("cannot read the signature: {e}")))?;
+    if data.len() as u64 > MAX_SIGNATURE {
+        return Err(PipeError::usage("the signature is too large"));
     }
     Ok(data)
 }
@@ -215,6 +217,8 @@ fn read_all(mut reader: Box<dyn Read + Send + Sync>) -> Result<Vec<u8>, PipeErro
 /// The `index`th input as a file, for operations that stream: a named file
 /// as it is, standard input spooled into an anonymous temporary file, so
 /// input of any size takes flat memory. Its length, for the engine's guards.
+/// The spool is in the OS temporary directory (`TMPDIR` on Unix): standard
+/// input has no directory of its own.
 fn input_file(args: &Args, index: usize, io: &mut Io) -> Result<(File, u64), PipeError> {
     let file = match args.inputs.get(index).map(String::as_str) {
         Some(name) if name != "-" => {
@@ -773,16 +777,46 @@ fn is_encrypted_packets(packets: &[u8]) -> bool {
     )
 }
 
-fn crlf_to_lf(text: &[u8]) -> Vec<u8> {
-    let mut out = Vec::with_capacity(text.len());
-    let mut bytes = text.iter().peekable();
-    while let Some(&b) = bytes.next() {
-        if b == b'\r' && bytes.peek() == Some(&&b'\n') {
-            continue;
-        }
-        out.push(b);
+/// Writes text with its CRLF line endings as LF, as gpg gives back the text
+/// of a clear-text signed message. A CR at the end of one write waits for the
+/// next; [`finish`](Self::finish) writes one still waiting.
+struct CrlfToLf<W: Write> {
+    inner: W,
+    cr: bool,
+}
+
+impl<W: Write> CrlfToLf<W> {
+    fn new(inner: W) -> Self {
+        Self { inner, cr: false }
     }
-    out
+
+    fn finish(mut self) -> std::io::Result<()> {
+        if self.cr {
+            self.inner.write_all(b"\r")?;
+        }
+        self.inner.flush()
+    }
+}
+
+impl<W: Write> Write for CrlfToLf<W> {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        let mut out = Vec::with_capacity(buf.len() + 1);
+        for &b in buf {
+            if self.cr && b != b'\n' {
+                out.push(b'\r');
+            }
+            self.cr = b == b'\r';
+            if !self.cr {
+                out.push(b);
+            }
+        }
+        self.inner.write_all(&out)?;
+        Ok(buf.len())
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        self.inner.flush()
+    }
 }
 
 /// The file a detached signature `sig` is for, as gpg finds it: the same
@@ -820,12 +854,24 @@ fn verify(
     // signature whose data is the file of the same name without its
     // extension.
     let signatures = if args.inputs.len() >= 2 {
-        let sig = read_all(input(args, 0, io)?)?;
+        let sig = read_signature(input(args, 0, io)?)?;
         let (data, _) = input_file(args, 1, io)?;
         verify_detached(data, &sig, pack, status)?
     } else {
-        let message = read_all(input(args, 0, io)?)?;
-        if is_detached_signature(&message) {
+        // Streamed: a signed message is read once, its start alone told
+        // apart. A detached signature is small, so a file whose start holds
+        // all of it and nothing but signatures is one.
+        let (mut file, len) = input_file(args, 0, io)?;
+        let head = head_of(&mut file)?;
+        let detached = if !head.clear_signed && len <= HEAD_BYTES {
+            let raw = read_signature(&mut file)?;
+            file.seek(SeekFrom::Start(0))
+                .map_err(|e| PipeError::usage(format!("cannot read the input: {e}")))?;
+            is_detached_signature(&raw).then_some(raw)
+        } else {
+            None
+        };
+        if let Some(sig) = detached {
             let named = args.inputs.first().filter(|f| f.as_str() != "-");
             let data_file = named.and_then(|f| signed_file_of(f)).ok_or_else(|| {
                 status.push("NODATA 1");
@@ -835,14 +881,28 @@ fn verify(
             })?;
             let data = File::open(&data_file)
                 .map_err(|e| PipeError::usage(format!("cannot read {data_file}: {e}")))?;
-            verify_detached(data, &message, pack, status)?
+            verify_detached(data, &sig, pack, status)?
         } else {
-            let mode = if is_clear_signed(&message) {
-                GfrSignMode::ClearText
+            let result = if head.clear_signed {
+                crate::crypto::verify_cleartext_stream_internal(
+                    CHANNEL,
+                    file,
+                    std::io::sink(),
+                    None,
+                    Some(fetch_public),
+                    pack_ptr(pack),
+                )
             } else {
-                GfrSignMode::Inline
+                crate::crypto::verify_inline_stream_internal(
+                    CHANNEL,
+                    file,
+                    len,
+                    std::io::sink(),
+                    Some(fetch_public),
+                    pack_ptr(pack),
+                )
             };
-            crate::crypto::verify_internal(&message, &[], mode, Some(fetch_public), pack_ptr(pack))
+            result
                 .map_err(|e| {
                     status.push("NODATA 4");
                     PipeError::failed(format!("cannot verify: {}", engine_error(e)))
@@ -1021,29 +1081,41 @@ fn decrypt(
     let head = head_of(&mut file)?;
 
     // gpg --decrypt of a message that is only signed puts out its content and
-    // checks the signature; such a message is read whole.
+    // checks the signature. It streams too, and reaches the output only once
+    // the whole message has been read.
     if head.clear_signed || !is_encrypted_packets(&head.packets) {
-        let message = read_all(Box::new(file))?;
-        let mode = if is_clear_signed(&message) {
-            GfrSignMode::ClearText
-        } else {
-            GfrSignMode::Inline
+        let unreadable = |e: GfrStatus, status: &mut Status| {
+            status.push("NODATA 2");
+            PipeError::failed(format!("cannot read the message: {}", engine_error(e)))
         };
-        let result =
-            crate::crypto::verify_internal(&message, &[], mode, Some(fetch_public), pack_ptr(pack))
-                .map_err(|e| {
-                    status.push("NODATA 2");
-                    PipeError::failed(format!("cannot read the message: {}", engine_error(e)))
-                })?;
-        // The signed text is canonical (CRLF); gpg gives it back as written.
-        let data = Zeroizing::new(if mode == GfrSignMode::ClearText {
-            crlf_to_lf(&result.data)
-        } else {
-            result.data
-        });
-        with_output(args, io, None, |out| {
-            out.write_all(&data)
-                .map_err(|e| PipeError::usage(format!("cannot write the output: {e}")))
+        let result = with_output(args, io, None, |out| {
+            if head.clear_signed {
+                // The signed text is canonical (CRLF); gpg gives it back as
+                // written.
+                let mut text = CrlfToLf::new(out);
+                let result = crate::crypto::verify_cleartext_stream_internal(
+                    CHANNEL,
+                    file,
+                    &mut text,
+                    None,
+                    Some(fetch_public),
+                    pack_ptr(pack),
+                )
+                .map_err(|e| unreadable(e, status))?;
+                text.finish()
+                    .map_err(|e| PipeError::usage(format!("cannot write the output: {e}")))?;
+                Ok(result)
+            } else {
+                crate::crypto::verify_inline_stream_staged_internal(
+                    CHANNEL,
+                    file,
+                    ciphertext_len,
+                    out,
+                    Some(fetch_public),
+                    pack_ptr(pack),
+                )
+                .map_err(|e| unreadable(e, status))
+            }
         })?;
         return if report_all(&result.signatures, pack, status, io) {
             Ok(())
@@ -1462,6 +1534,19 @@ mod tests {
         assert_eq!(date_of(0), "1970-01-01");
         assert_eq!(date_of(951_782_400), "2000-02-29");
         assert_eq!(date_of(1_700_000_000), "2023-11-14");
+    }
+
+    #[test]
+    fn crlf_becomes_lf_across_writes() {
+        let text = b"a\r\nb\r\r\nlone\rcr\r\nend\r";
+        for split in 0..=text.len() {
+            let mut out = Vec::new();
+            let mut lf = CrlfToLf::new(&mut out);
+            lf.write_all(&text[..split]).unwrap();
+            lf.write_all(&text[split..]).unwrap();
+            lf.finish().unwrap();
+            assert_eq!(out, b"a\nb\r\nlone\rcr\nend\r", "split at {split}");
+        }
     }
 
     #[test]

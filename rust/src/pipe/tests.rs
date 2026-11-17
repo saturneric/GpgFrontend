@@ -1220,3 +1220,81 @@ fn large_signed_data_verifies_from_a_pipe() {
     assert_eq!(out.code, 1);
     assert!(out.stdout.text().contains("[GNUPG:] BADSIG"));
 }
+
+/// Text past what gfpipe looks at to tell a message's kind, with lines a
+/// clear-text signature escapes.
+fn big_text() -> Vec<u8> {
+    let mut text = Vec::new();
+    let mut i = 0u32;
+    while text.len() < 3 * 1024 * 1024 {
+        text.extend_from_slice(format!("line {i}\n- dashed\nFrom here\n").as_bytes());
+        i += 1;
+    }
+    text
+}
+
+#[test]
+fn large_signed_messages_verify_and_open_from_pipes() {
+    let f = Fixture::new();
+    let data = big_payload();
+    let text = big_text();
+    for (argv, content) in [
+        (&["-s"][..], &data),
+        (&["-sa"][..], &data),
+        (&["--clearsign"][..], &text),
+    ] {
+        let signed = f.run(argv, content);
+        assert_eq!(signed.code, 0, "{argv:?}: {}", signed.stderr.text());
+
+        let out = f.run(&["--status-fd=1", "--verify"], &signed.stdout.bytes());
+        assert_eq!(out.code, 0, "{argv:?}: {}", out.stderr.text());
+        assert!(git_accepts_verification(&out.stdout.text()), "{argv:?}");
+
+        let opened = f.run(&["--status-fd=2", "-d"], &signed.stdout.bytes());
+        assert_eq!(opened.code, 0, "{argv:?}: {}", opened.stderr.text());
+        assert!(opened.stdout.bytes() == *content, "{argv:?}");
+        assert!(
+            opened.stderr.text().contains("[GNUPG:] GOODSIG "),
+            "{argv:?}"
+        );
+    }
+}
+
+#[test]
+fn a_damaged_signed_message_puts_nothing_into_the_pipe() {
+    let f = Fixture::new();
+    let signed = f.run(&["-s"], &big_payload());
+    assert_eq!(signed.code, 0, "{}", signed.stderr.text());
+    let bytes = signed.stdout.bytes();
+    let cut = &bytes[..bytes.len() - 40];
+
+    let opened = f.run(&["--status-fd=2", "-d"], cut);
+    assert_ne!(opened.code, 0);
+    assert!(opened.stdout.bytes().is_empty(), "no unverified content");
+    assert!(opened.stderr.text().contains("[GNUPG:] NODATA 2"));
+}
+
+#[test]
+fn a_pasted_detached_signature_still_finds_its_data() {
+    let f = Fixture::new();
+    let data = b"signed beside its signature\n";
+    let signed = f.run(&["-bsa"], data);
+    assert_eq!(signed.code, 0, "{}", signed.stderr.text());
+    // Indented base64, as a signature pasted from a mail often is.
+    let mut in_body = false;
+    let mut pasted = String::new();
+    for line in signed.stdout.text().lines() {
+        if in_body && !line.starts_with("-----") {
+            pasted.push_str(&format!("    {line}  \n"));
+        } else {
+            pasted.push_str(line);
+            pasted.push('\n');
+        }
+        in_body |= line.is_empty();
+    }
+    f.file("data.txt", data);
+    let sig = f.file("data.txt.asc", pasted.as_bytes());
+    let out = f.run(&["--status-fd=1", "--verify", &sig], b"");
+    assert_eq!(out.code, 0, "{}", out.stderr.text());
+    assert!(git_accepts_verification(&out.stdout.text()));
+}
