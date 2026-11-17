@@ -28,6 +28,7 @@
 
 #include <gtest/gtest.h>
 
+#include <array>
 #include <thread>
 
 #include "GpgCoreTest.h"
@@ -35,9 +36,24 @@
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/model/GpgData.h"
 #include "core/model/GpgKey.h"
+#include "core/model/GpgPassphraseContext.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend::Test {
+
+// A fresh context says nothing about earlier tries, whatever memory it was
+// made in: recycled memory once made a first prompt open with "the passphrase
+// you entered was incorrect".
+TEST(GpgPassphraseContextTest, AFreshContextCarriesNoEarlierState) {
+  alignas(GpgPassphraseContext)
+      std::array<unsigned char, sizeof(GpgPassphraseContext)>
+          dirty;
+  dirty.fill(0xFF);
+  auto* ctx = new (dirty.data()) GpgPassphraseContext();
+  EXPECT_FALSE(ctx->IsPreWasBad());
+  EXPECT_FALSE(ctx->IsAskForNew());
+  ctx->~GpgPassphraseContext();
+}
 
 TEST_F(GpgCoreTest, CoreInitTest) {
   auto& ctx = GpgContext::GetInstance(kGpgFrontendDefaultChannel);

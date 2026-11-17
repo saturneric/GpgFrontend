@@ -58,8 +58,10 @@ class GF_CORE_EXPORT GpgPassphraseContext : public QObject {
   QString passphrase_info_;
   QString uids_info_;
   QString passphrase_;
-  bool prev_was_bad_;
-  bool ask_for_new_;
+  // Initialised here: the default constructor leaves them alone, and the
+  // object may come from the secure allocator, whose memory is recycled.
+  bool prev_was_bad_ = false;
+  bool ask_for_new_ = false;
 };
 
 }  // namespace GpgFrontend
