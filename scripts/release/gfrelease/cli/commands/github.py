@@ -26,10 +26,9 @@ def cmd_sync(ctx) -> int:
                            "repository's releases (or --dry-run)")
     update, builds = sources(ctx)
     github = GitHub(args.repository or product.repository, token)
-    base = product.data["bases"]["builds"][0]
-    report = github_sync.sync(
-        product, update, builds, github, builds_base=f"{base}{product.slug}/",
-        versions=args.versions or None, dry_run=args.dry_run)
+    report = github_sync.sync(product, update, builds, github,
+                              versions=args.versions or None,
+                              dry_run=args.dry_run)
     problems = report["problems"]
 
     ui.info(f"index serial {report['serial']}, GitHub {report['repository']}"

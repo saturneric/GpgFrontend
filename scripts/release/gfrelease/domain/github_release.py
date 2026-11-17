@@ -4,7 +4,7 @@
 
 The index is what users get; a GitHub release is a copy of it for people
 who look there: the files, each with its maintainer signature, and the
-signed notes. The manifest (SHA256SUMS.txt) stays in the builds store: a
+signed notes as the body. The manifest (SHA256SUMS.txt) stays in the builds store: a
 person checks a file by its own signature. Only what the pipeline released
 (a descriptor of kind stable) is mirrored; an imported release came from
 GitHub and stays as it is there.
@@ -28,7 +28,6 @@ from .release_notes import for_github
 
 # The most a release body may hold, in characters (GitHub's limit).
 BODY_LIMIT = 125_000
-_MARKER = "<!-- gfrelease: notes={} -->"
 
 
 @dataclass(frozen=True)
@@ -66,36 +65,17 @@ def banner(reason: str) -> str:
             "release; the update check offers a newer one.\n")
 
 
-def footer(repository: str, fingerprint: str, builds: str,
-           notes_sha256: str) -> str:
-    """How to check the files, and where else they are (@p builds: the
-    release's directory in the builds store)."""
-    keys = f"https://github.com/{repository}/blob/main/release/maintainers.asc"
-    return (
-        "\n---\n\n"
-        f"Every file has a detached OpenPGP signature (`{SIG}`) by key "
-        f"`{fingerprint}` ([maintainer keys]({keys})). To check one:\n\n"
-        "```\n"
-        f"gpg --verify <file>{SIG} <file>\n"
-        "```\n\n"
-        f"The same files are published at {builds}, and listed in the "
-        "signed update index the application installs updates from.\n\n"
-        + _MARKER.format(notes_sha256) + "\n")
-
-
 def mirrored(descriptor: dict) -> bool:
     """A release the pipeline made, which GitHub mirrors."""
     return descriptor.get("kind") == layout.KIND_STABLE
 
 
-def desired(repository: str, builds_base: str, index: dict,
-            descriptor: dict, entry: dict, notes: str,
+def desired(index: dict, descriptor: dict, entry: dict, notes: str,
             small: dict[str, tuple[str, int]]) -> Release:
     """The GitHub release of the release @p descriptor, listed in @p index
     as @p entry, with @p notes (their text, checked against the index).
     @p small: the sha256 and size of each file's signature by its path in
-    the builds store; @p builds_base the
-    URL of the product's builds store."""
+    the builds store."""
     version = descriptor["version"]
     assets = []
     for a in sorted(descriptor["artifacts"], key=lambda a: a["name"]):
@@ -107,9 +87,6 @@ def desired(repository: str, builds_base: str, index: dict,
         if w.get("version") == version:
             body += banner(w.get("reason") or "withdrawn") + "\n"
     body += for_github(notes, version)
-    body += footer(repository, descriptor["signing"]["fingerprint"],
-                   f"{builds_base}{layout.release_dir(version)}/",
-                   entry["notes_sha256"])
     if len(body) > BODY_LIMIT:
         raise ReleaseError(f"{version}: a release body of {len(body)} "
                            f"characters, more than GitHub's {BODY_LIMIT}")

@@ -40,10 +40,10 @@ from .product import Product
 
 
 def sync(product: Product, update, builds, github: GitHub, *,
-         builds_base: str, versions: list[str] | None = None,
+         versions: list[str] | None = None,
          dry_run: bool = False) -> dict:
     """GitHub's releases made what the index published by @p update says,
-    of the files in @p builds (whose public URL is @p builds_base), only
+    of the files in @p builds, only
     for @p versions when given; with @p dry_run only the plans. Returns a
     report; its problems are what was refused, or could not be done."""
     index = verify.read_index(product, update)
@@ -83,8 +83,7 @@ def sync(product: Product, update, builds, github: GitHub, *,
                 continue
             one = {"version": version, "steps": [], "state": None}
             try:
-                _one(product, index, version, github, builds, builds_base,
-                     fetch, keyring, latest_tag, dry_run, one)
+                _one(product, index, version, github, builds, fetch, keyring, latest_tag, dry_run, one)
             except ReleaseError as e:
                 one["state"] = "refused"
                 problems.note(version, e)
@@ -96,8 +95,7 @@ def sync(product: Product, update, builds, github: GitHub, *,
     return report
 
 
-def _one(product, index, version, github, builds, builds_base, fetch,
-         keyring, latest_tag, dry_run, one) -> None:
+def _one(product, index, version, github, builds, fetch, keyring, latest_tag, dry_run, one) -> None:
     entry = index["releases"][version]
     d = verify.check_release(product, builds, version, entry)
     if not gh.mirrored(d):
@@ -111,8 +109,7 @@ def _one(product, index, version, github, builds, builds_base, fetch,
     for a in d["artifacts"]:
         local = fetch(a["sig"], Path(a["sig"]).name)
         small[a["sig"]] = (sha256_file(local), local.stat().st_size)
-    want = gh.desired(product.repository, builds_base, index, d, entry,
-                      notes.read_text("utf-8"), small)
+    want = gh.desired(index, d, entry, notes.read_text("utf-8"), small)
 
     commit = github.tag_commit(want.tag)
     if commit is None:

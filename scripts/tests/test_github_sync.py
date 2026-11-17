@@ -26,7 +26,6 @@ from gfrelease.domain import github_release as gh
 from test_gfrelease import StableTest
 
 REPO = "example/product"
-BUILDS = "https://builds.example.org/"
 
 
 class FakeGitHub:
@@ -173,9 +172,7 @@ class GitHubSyncTest(StableTest):
 
     def sync(self, **kw):
         return github_sync.sync(self.product, self.update, self.builds,
-                                self.github.client(),
-                                builds_base=BUILDS + self.product.slug + "/",
-                                **kw)
+                                self.github.client(), **kw)
 
     def tagged(self, version="2.3.0"):
         self.github.tags[f"v{version}"] = self.git(
@@ -196,8 +193,7 @@ class GitHubSyncTest(StableTest):
         self.assertFalse(release["draft"])
         self.assertEqual(self.github.latest, release["id"])
         self.assertEqual(release["name"], "v2.3.0")
-        self.assertTrue(release["body"].startswith("- Everything, signed.\n"))
-        self.assertIn(d["signing"]["fingerprint"], release["body"])
+        self.assertEqual(release["body"], "- Everything, signed.\n")
         want = {}
         for a in d["artifacts"]:
             want[a["name"]] = a["path"]
