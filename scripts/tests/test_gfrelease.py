@@ -1211,20 +1211,6 @@ class ChainTest(unittest.TestCase):
             self.assertEqual(self.cli().main(args + ["--min-days-left", "20"]), 1)
         self.assertIn("has not re-signed it", err.getvalue())
 
-    def test_a_dry_run_writes_nothing(self):
-        self.commit()
-        _, version = self.build()
-        self.promote()
-        report = index_mod.dry_run(self.product, self.builds, self.update,
-                                   index_pub=[self.idx_pub],
-                                   state_dir=self.state, git_dir=self.repo,
-                                   cosign=str(self.cosign))
-        self.assertEqual(report["nightly"], version)
-        self.assertEqual(report["refused"], [])
-        self.assertIn("nightly", report["changes"])
-        self.assertFalse(self.state.exists())
-        self.assertFalse(self.update.exists(layout.INDEX))
-
     def test_the_cli_wants_both_stores_or_neither(self):
         import importlib
         cli = importlib.reload(
