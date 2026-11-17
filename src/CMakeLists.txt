@@ -100,6 +100,8 @@ if(GF_BUILD_DESKTOP)
   add_subdirectory(ui)
   add_subdirectory(sdk)
   add_subdirectory(tools)
+  # The command-line tool for key packages; it links no gf_core.
+  add_subdirectory(pipe)
 endif()
 # The unit tests are opt-in: a build without them needs no GoogleTest, and the
 # application then has no -t mode.
@@ -320,6 +322,21 @@ message(STATUS "Registered libraries: ${GPGFRONTEND_LIBRARY_TARGETS}")
 # the guess about what a filename means.
 # The deployable library names are published in build-info.json.
 message(STATUS "Registered modules: ${GPGFRONTEND_MODULE_TARGETS}")
+
+# gfpipe goes with the application, where KeyPackageOperator::BundledGfPipe()
+# looks: in a macOS bundle's Contents/Helpers, else beside the application in
+# bin/ ($APPDIR/usr/bin in an AppImage, /app/bin in a Flatpak).
+if(TARGET gfpipe)
+  add_dependencies(${APP_NAME} gfpipe)
+  if(APPLE)
+    add_custom_command(TARGET ${APP_NAME} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E make_directory
+        "$<TARGET_BUNDLE_CONTENT_DIR:${APP_NAME}>/Helpers"
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:gfpipe>"
+        "$<TARGET_BUNDLE_CONTENT_DIR:${APP_NAME}>/Helpers/gfpipe"
+      VERBATIM)
+  endif()
+endif()
 
 if(XCODE_BUILD)
   install(TARGETS ${APP_NAME}

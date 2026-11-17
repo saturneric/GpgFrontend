@@ -53,6 +53,13 @@ target_link_libraries(gf_core_tests PRIVATE GTest::gtest gf_core gf_shell gf_boo
   gf_res)
 add_test(NAME CoreTests COMMAND gf_core_tests)
 
+# gfpipe end to end with the real git (GpgCoreEngineKeyPackageTest.cpp).
+if(TARGET gfpipe)
+  add_dependencies(gf_core_tests gfpipe)
+  target_compile_definitions(gf_core_tests PRIVATE
+    GF_TEST_GFPIPE="$<TARGET_FILE:gfpipe>")
+endif()
+
 # The phone application's own tests.
 if(GF_BUILD_MOBILE)
   add_subdirectory(mob)
