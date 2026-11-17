@@ -75,6 +75,14 @@ jobs:
             scripts/release
             release
 
+      # The index and its files are minisign-signed; gpg comes with the
+      # runner.
+      - name: Install Release Tools
+        run: |
+          set -euo pipefail
+          sudo apt-get update -q
+          sudo apt-get install -y -q minisign
+
       - name: Mirror the stable releases
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
