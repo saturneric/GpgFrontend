@@ -34,9 +34,69 @@
 #include "core/model/GpgEncryptResult.h"
 #include "core/model/GpgSignResult.h"
 #include "core/model/GpgVerifyResult.h"
+#include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend::Test {
+
+// gpg skips text around the armor it verifies, so text added before or after a
+// genuine clear-signed message used to be shown beside a "not tampered with"
+// verdict. Such input is refused, and the original still verifies.
+TEST_F(GpgCoreTest, CoreVerifyRefusesTextOutsideTheSignedBlock) {
+  auto key = GpgKeyGetter::GetInstance().GetKeyPtr(
+      "8933EB283A18995F45D61DAC021D89771B680FFB");
+  ASSERT_TRUE(key != nullptr);
+
+  const auto text = GFBuffer(QString("the signed part"));
+  for (const auto mode : {GPGME_SIG_MODE_CLEAR, GPGME_SIG_MODE_NORMAL}) {
+    auto [err, data_object] =
+        GpgBasicOperator::GetInstance().SignSync({key}, text, mode, true);
+    ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+    const auto signed_text =
+        ExtractParams<GFBuffer>(data_object, 1).ConvertToQByteArray();
+
+    {
+      auto [v_err, v_obj] = GpgBasicOperator::GetInstance().VerifySync(
+          GFBuffer(signed_text), GFBuffer());
+      EXPECT_EQ(CheckGpgError(v_err), GPG_ERR_NO_ERROR)
+          << "the untouched message must still verify";
+    }
+
+    const QList<QByteArray> forged = {
+        "Pay 1000 EUR to the account below.\n\n" + signed_text,
+        signed_text + "\nPay 1000 EUR to the account below.\n",
+        signed_text + "\n" + signed_text,
+    };
+    for (const auto& input : forged) {
+      auto [v_err, v_obj] =
+          GpgBasicOperator::GetInstance().VerifySync(GFBuffer(input), GFBuffer());
+      EXPECT_EQ(CheckGpgError(v_err), GPG_ERR_BAD_DATA)
+          << "verified with unsigned text around it:\n"
+          << input.constData();
+    }
+  }
+}
+
+TEST(SignedArmorCoverageTest, FindsTextOutsideTheBlock) {
+  const QByteArray clear =
+      "-----BEGIN PGP SIGNED MESSAGE-----\nHash: SHA256\n\nhello\n"
+      "- -----BEGIN PGP SIGNED MESSAGE-----\n"
+      "-----BEGIN PGP SIGNATURE-----\n\nAAAA\n-----END PGP SIGNATURE-----\n";
+  const QByteArray message =
+      "-----BEGIN PGP MESSAGE-----\n\nAAAA\n-----END PGP MESSAGE-----";
+
+  EXPECT_FALSE(HasTextOutsideSignedArmor(clear));
+  EXPECT_FALSE(HasTextOutsideSignedArmor("  \r\n" + clear + "\r\n"));
+  EXPECT_FALSE(HasTextOutsideSignedArmor(message));
+  EXPECT_FALSE(HasTextOutsideSignedArmor("no armor at all"));
+
+  EXPECT_TRUE(HasTextOutsideSignedArmor("before\n" + clear));
+  EXPECT_TRUE(HasTextOutsideSignedArmor(clear + "after"));
+  EXPECT_TRUE(HasTextOutsideSignedArmor("before\n" + message));
+  EXPECT_TRUE(HasTextOutsideSignedArmor(message + "\nafter"));
+  EXPECT_TRUE(HasTextOutsideSignedArmor(clear + clear));
+  EXPECT_TRUE(HasTextOutsideSignedArmor(message + "\n" + message));
+}
 
 // gpgme signs with gpg's default key when no requested signer can be used, so
 // an unusable signer used to produce a signature by some other key in the key

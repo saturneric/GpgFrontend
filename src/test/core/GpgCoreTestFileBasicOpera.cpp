@@ -27,6 +27,7 @@
  */
 
 #include "GpgCoreTest.h"
+#include "core/function/gpg/GpgBasicOperator.h"
 #include "core/function/gpg/GpgFileOpera.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/model/DataObject.h"
@@ -38,6 +39,31 @@
 #include "core/utils/IOUtils.h"
 
 namespace GpgFrontend::Test {
+
+// A combined signed file was verified as text used to be: gpg checked the
+// armored block in it and the verdict stood for the whole file.
+TEST_F(GpgCoreTest, CoreFileVerifyRefusesTextOutsideTheSignedBlock) {
+  auto key = GpgKeyGetter::GetInstance().GetKeyPtr(
+      "8933EB283A18995F45D61DAC021D89771B680FFB");
+  ASSERT_TRUE(key != nullptr);
+
+  auto [err, data_object] = GpgBasicOperator::GetInstance().SignSync(
+      {key}, GFBuffer(QString("the signed part")), GPGME_SIG_MODE_CLEAR, true);
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  const auto signed_text = ExtractParams<GFBuffer>(data_object, 1);
+
+  const auto genuine = CreateTempFileAndWriteData(signed_text);
+  EXPECT_EQ(CheckGpgError(std::get<0>(
+                GpgFileOpera::GetInstance().VerifyFileSync(genuine, {}))),
+            GPG_ERR_NO_ERROR);
+
+  auto forged_text = GFBuffer(QString("Pay 1000 EUR to the account below.\n\n"));
+  forged_text.Append(signed_text);
+  const auto forged = CreateTempFileAndWriteData(forged_text);
+  EXPECT_EQ(CheckGpgError(std::get<0>(
+                GpgFileOpera::GetInstance().VerifyFileSync(forged, {}))),
+            GPG_ERR_BAD_DATA);
+}
 
 // A file that could not be opened reached gpgme as a NULL stream. Every file
 // operation must report it as a failure instead.

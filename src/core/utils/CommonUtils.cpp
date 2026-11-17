@@ -142,6 +142,70 @@ auto IsEmailAddress(const QString& str) -> bool {
   return kReEmailAnchored.match(str).hasMatch();
 }
 
+namespace {
+
+/// Reads text a line at a time and decides whether anything lies outside one
+/// signed or message armor block; see HasTextOutsideSignedArmor().
+class ArmorEnvelopeCheck {
+ public:
+  void Line(const QByteArray& raw) {
+    // Inside cleartext every line starting with '-' is dash-escaped, and
+    // base64 has no dashes, so armor lines can only be the envelope itself.
+    if (raw.startsWith(kArmorBegin)) ++begins_;
+    if (raw.startsWith(kArmorEnd)) ++ends_;
+    if (raw.contains(kArmorBegin)) any_armor_ = true;
+
+    const auto line = raw.trimmed();
+    if (line.isEmpty()) return;
+    if (first_.isEmpty()) first_ = line;
+    last_ = line;
+  }
+
+  [[nodiscard]] auto Outside() const -> bool {
+    if (!any_armor_) return false;
+    const auto cleartext = first_.startsWith(PGP_SIGNED_BEGIN);
+    if (!cleartext && !first_.startsWith(PGP_CRYPT_BEGIN)) return true;
+    if (!last_.endsWith(cleartext ? PGP_SIGNATURE_END : PGP_CRYPT_END)) {
+      return true;
+    }
+    // two openings (message, signature) for cleartext, one otherwise
+    return begins_ != (cleartext ? 2 : 1) || ends_ != 1;
+  }
+
+ private:
+  static constexpr const char* kArmorBegin = "-----BEGIN PGP ";
+  static constexpr const char* kArmorEnd = "-----END PGP ";
+
+  QByteArray first_;
+  QByteArray last_;
+  int begins_ = 0;
+  int ends_ = 0;
+  bool any_armor_ = false;
+};
+
+}  // namespace
+
+auto HasTextOutsideSignedArmor(const QByteArray& data) -> bool {
+  ArmorEnvelopeCheck check;
+  for (const auto& line : data.split('\n')) check.Line(line);
+  return check.Outside();
+}
+
+auto HasTextOutsideSignedArmorInFile(const QString& path) -> bool {
+  QFile file(path);
+  if (!file.open(QIODevice::ReadOnly)) return false;
+  // A line at a time: a signed file can be large, and only its armor lines
+  // and its first and last lines matter.
+  ArmorEnvelopeCheck check;
+  constexpr qint64 kMaxLine = 64 * 1024;
+  while (!file.atEnd()) {
+    const auto line = file.readLine(kMaxLine);
+    if (line.isEmpty() && file.error() != QFileDevice::NoError) return false;
+    check.Line(line);
+  }
+  return check.Outside();
+}
+
 auto IsCoreEnvInitialized() -> bool {
   return Module::RetrieveRTValueTypedOrDefault("core", "env.state.ctx", 0) == 1;
 }

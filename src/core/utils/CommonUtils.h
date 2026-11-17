@@ -104,6 +104,26 @@ auto GF_CORE_EXPORT ParseHexEncodedVersionTuple(const QString &s) -> int;
 auto GF_CORE_EXPORT IsEmailAddress(const QString &) -> bool;
 
 /**
+ * @brief Whether @p data holds anything but whitespace outside one signed or
+ * message armor block.
+ *
+ * gpg verifies the armored block it finds and skips whatever surrounds it,
+ * so text added before or after a genuine clear-signed message, or a second
+ * block, would be shown next to a verdict that does not cover it. Input with
+ * no armor at all is left to gpg.
+ */
+auto GF_CORE_EXPORT HasTextOutsideSignedArmor(const QByteArray &data) -> bool;
+
+/**
+ * @brief HasTextOutsideSignedArmor() for a file, read a line at a time.
+ *
+ * @param path the file about to be verified; false when it cannot be read,
+ *        which the verification itself then reports
+ */
+auto GF_CORE_EXPORT HasTextOutsideSignedArmorInFile(const QString &path)
+    -> bool;
+
+/**
  * @brief if a > b
  *
  * @param a
