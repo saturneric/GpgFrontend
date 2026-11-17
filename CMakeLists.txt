@@ -32,9 +32,16 @@ else()
   set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_SOURCE_DIR}/cmake/FlagsOverrides.cmake")
 endif()
 
+# The version comes from git tags and nowhere else; see cmake/GitVersion.cmake.
+# GF_VERSION is the full SemVer (2.1.14-alpha.3+gabc...), GF_VERSION_CORE the
+# X.Y.Z that project() and every numeric consumer takes.
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/GitVersion.cmake)
+gf_git_version("${CMAKE_CURRENT_SOURCE_DIR}")
+message(STATUS "GpgFrontend Version ${GF_VERSION} (from ${GF_VERSION_SOURCE}, build number ${GF_VERSION_BUILD_NUMBER})")
+
 # define project
 project(GpgFrontend
-  VERSION 2.1.13
+  VERSION ${GF_VERSION_CORE}
   DESCRIPTION "GpgFrontend is a modern, cross-platform, open-source GUI for OpenPGP encryption."
   HOMEPAGE_URL "https://gpgfrontend.bktus.com"
   LANGUAGES CXX)
@@ -196,19 +203,13 @@ endif()
 
 string(TOLOWER "${APP_NAME}" APP_NAME_LOWER)
 
-# Get Git Information
-set(GIT_COMMIT_HASH "")
+# Get Git Information. The commit is the one the version was derived from, so
+# a source archive (no .git) still names it through the VERSION file.
+set(GIT_COMMIT_HASH "${GF_VERSION_COMMIT}")
 set(GIT_BRANCH_NAME "")
 find_package(Git QUIET)
 
 if(GIT_FOUND)
-  execute_process(
-    COMMAND ${GIT_EXECUTABLE} log -1 --pretty=format:%H
-    OUTPUT_VARIABLE GIT_COMMIT_HASH
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    ERROR_QUIET
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  )
   execute_process(
     COMMAND ${GIT_EXECUTABLE} symbolic-ref --short -q HEAD
     OUTPUT_VARIABLE GIT_BRANCH_NAME
@@ -423,3 +424,48 @@ if(BUILD_MODULES AND NOT GPGFRONTEND_QT5_BUILD)
 endif()
 
 add_subdirectory(src)
+
+# What CI hands the release tooling about this build, beside its files
+# (scripts/release/gfrelease candidate stage): which version it built, for
+# which system, with which modules. An internal CI interface, never published.
+if(WIN32)
+  set(_gf_build_os "windows")
+elseif(APPLE)
+  set(_gf_build_os "macos")
+else()
+  set(_gf_build_os "linux")
+endif()
+
+if(GPGFRONTEND_QT5_BUILD)
+  set(_gf_build_qt "5")
+else()
+  set(_gf_build_qt "6")
+endif()
+
+string(JOIN "\n" _gf_build_identity
+  "${GF_VERSION}" "${GF_VERSION_COMMIT}" "${_gf_build_os}"
+  "${CMAKE_SYSTEM_PROCESSOR}" "qt${_gf_build_qt}" "${CMAKE_BUILD_TYPE}")
+string(SHA256 _gf_build_identity_hash "${_gf_build_identity}")
+string(SUBSTRING "${_gf_build_identity_hash}" 0 16 _gf_build_identity_short)
+
+set(_gf_module_entries "")
+foreach(_gf_module IN LISTS GPGFRONTEND_MODULE_TARGETS)
+  list(APPEND _gf_module_entries "\"${_gf_module}\"")
+endforeach()
+list(JOIN _gf_module_entries ", " _gf_module_json)
+
+file(GENERATE
+  OUTPUT "${CMAKE_BINARY_DIR}/artifacts/build-info.json"
+  CONTENT "{
+  \"project_version\": \"${GF_VERSION}\",
+  \"version_core\": \"${GF_VERSION_CORE}\",
+  \"version_filesafe\": \"${GF_VERSION_FILESAFE}\",
+  \"version_series\": \"${GF_VERSION_SERIES}\",
+  \"build_number\": ${GF_VERSION_BUILD_NUMBER},
+  \"commit\": \"${GF_VERSION_COMMIT}\",
+  \"build_id\": \"gfb21-${_gf_build_identity_short}\",
+  \"host_os\": \"${_gf_build_os}\",
+  \"qt_major\": ${_gf_build_qt},
+  \"modules\": [${_gf_module_json}]
+}
+")
