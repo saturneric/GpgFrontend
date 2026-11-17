@@ -142,6 +142,23 @@ class DesiredTest(unittest.TestCase):
         older["channels"]["stable"] = "2.2.6"
         self.assertFalse(want(older).latest)
 
+    def test_an_older_series_release_is_never_the_latest(self):
+        # 2.1.9 of the fixtures: an older series' release, whenever it is
+        # published, never takes the badge from the stable channel's.
+        index, entry, d, notes, small = fixture()
+        old = json.loads((CONTRACT / "builds/releases/2.1.9/release.json")
+                         .read_text())
+        old_entry = dict(index["releases"]["2.1.9"], **{
+            k: entry[k] for k in ("notes", "notes_sha256", "notes_sig")})
+        small = {a["sig"]: ("1" * 64, 147) for a in old["artifacts"]}
+        r = gh.desired(REPO, BUILDS, index, old, old_entry, notes, small)
+        self.assertEqual(index["channels"]["stable"], "2.2.5")
+        self.assertFalse(r.latest)
+        # Published as not the latest, and never made it later.
+        self.assertEqual(gh.plan(r, None, "v2.2.5")[-1].kind, "publish")
+        self.assertEqual(gh.plan(r, github_has(r), "v2.2.5"), [])
+        self.assertEqual(gh.plan(r, github_has(r), None), [])
+
     def test_a_withdrawn_release_says_so_first(self):
         index, *_ = fixture()
         index = copy.deepcopy(index)
