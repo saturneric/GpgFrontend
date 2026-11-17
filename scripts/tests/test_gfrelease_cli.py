@@ -171,6 +171,18 @@ class CliTest(unittest.TestCase):
                                  "--state-dir", "s")
         self.assertNotIn("--index-key", err.splitlines()[0])
 
+    def test_github_sync_writes_only_with_a_token_from_the_environment(self):
+        status, _, err = self.run_cli("github", "sync")
+        self.assertEqual(status, 1)
+        self.assertIn("GITHUB_TOKEN is not set", err)
+        parser = self.cli.build_parser()
+        args = parser.parse_args(["github", "sync", "2.2.5", "--dry-run"])
+        self.assertEqual((args.key, args.versions, args.dry_run),
+                         ("github sync", ["2.2.5"], True))
+        with self.assertRaises(SystemExit), \
+                contextlib.redirect_stderr(io.StringIO()):
+            parser.parse_args(["github", "sync", "--token", "t"])
+
     def test_hints_say_how_to_fix_it(self):
         self.assertIn("winget install jedisct1.minisign" if os.name == "nt"
                       else "apt install minisign",

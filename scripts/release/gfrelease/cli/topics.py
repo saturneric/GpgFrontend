@@ -10,7 +10,8 @@ which span several commands and people, are written out here.
 from __future__ import annotations
 
 from .. import __doc__ as ARCHITECTURE
-from ..app import doctor, stable, trust, views
+from ..app import doctor, github_sync, stable, trust, views
+from ..domain import github_release
 from ..domain import layout
 from . import host, settings, ui
 
@@ -63,9 +64,9 @@ EXIT_CODES = """\
      it is, once fixed; also index --dry-run when it would refuse
      something, and doctor when a check failed
   2  the command line itself is wrong (an unknown command or option)
-  3  promote, index and resign: the step ran to its end but refused
-     something for what it is (named on stderr; refused again until it
-     changes). trust update: something to look at (a next root or list
+  3  promote, index, resign and github sync: the step ran to its end but
+     refused something for what it is (named on stderr; refused again
+     until it changes). trust update: something to look at (a next root or list
      that does not hold, an expiry near)
 """
 
@@ -84,6 +85,8 @@ TOPICS = {
     "views": ("show and status", views.__doc__),
     "doctor": ("checking a machine before it does its part",
                doctor.__doc__),
+    "github": ("the stable releases mirrored to GitHub Releases",
+               github_sync.__doc__ + "\n" + github_release.__doc__),
     "exit-codes": ("what each exit status means", EXIT_CODES),
     "architecture": ("how the tooling is built: its layers and modules",
                      ARCHITECTURE),
