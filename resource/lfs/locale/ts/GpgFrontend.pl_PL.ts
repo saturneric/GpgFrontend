@@ -10813,6 +10813,16 @@ Grupa zostanie usunięta. Zawarte w niej klucze nie zostaną zmienione i pozosta
         <source>New UID</source>
         <translation>Nowy identyfikator użytkownika</translation>
     </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyImportDetailDialog.cpp" line="149"/>
+        <source>%1 of %2 key(s) carried more signatures than are checked; those past the limit were not imported.</source>
+        <translation>%1 z %2 kluczy miało więcej podpisów, niż jest sprawdzanych; podpisy ponad limit nie zostały zaimportowane.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyImportDetailDialog.cpp" line="231"/>
+        <source>Signature Check Limit Reached</source>
+        <translation>Osiągnięto limit sprawdzania podpisów</translation>
+    </message>
 </context>
 <context>
     <name>GpgFrontend::UI::KeyList</name>

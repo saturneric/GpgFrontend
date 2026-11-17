@@ -11095,6 +11095,16 @@ Il gruppo viene rimosso. Le chiavi in esso contenute non vengono toccate e riman
         <source>New UID</source>
         <translation>Nuovo UID</translation>
     </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyImportDetailDialog.cpp" line="149"/>
+        <source>%1 of %2 key(s) carried more signatures than are checked; those past the limit were not imported.</source>
+        <translation>Per %1 di %2 chiavi erano presenti più firme di quelle controllate; quelle oltre il limite non sono state importate.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyImportDetailDialog.cpp" line="231"/>
+        <source>Signature Check Limit Reached</source>
+        <translation>Limite di controllo delle firme raggiunto</translation>
+    </message>
 </context>
 <context>
     <name>GpgFrontend::UI::KeyList</name>

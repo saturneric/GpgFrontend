@@ -11071,6 +11071,16 @@ The group is removed. The keys in it are not touched and stay in your keyring.</
         <source>New UID</source>
         <translation>新使用者 ID</translation>
     </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyImportDetailDialog.cpp" line="149"/>
+        <source>%1 of %2 key(s) carried more signatures than are checked; those past the limit were not imported.</source>
+        <translation>%2 個金鑰中有 %1 個的簽章數超過檢查上限；超出上限的簽章未匯入。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyImportDetailDialog.cpp" line="231"/>
+        <source>Signature Check Limit Reached</source>
+        <translation>已達簽章檢查上限</translation>
+    </message>
 </context>
 <context>
     <name>GpgFrontend::UI::KeyList</name>
