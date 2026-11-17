@@ -61,7 +61,7 @@ use pgp::{
     packet::Signature,
     ser::Serialize,
 };
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap};
 use std::io::{self, BufReader, Cursor, Read};
 use zeroize::Zeroizing;
 
@@ -2576,169 +2576,6 @@ fn serialize_bytes<T: Serialize>(obj: &T) -> Result<Vec<u8>, GfrStatus> {
     Ok(buf)
 }
 
-/// Most signatures a merge leaves on one component (a User ID, a subkey, the
-/// key itself). Far above anything a real key carries; what it stops is the
-/// key-server flooding pattern, where a copy carries thousands of signatures
-/// that are then stored and re-verified on every listing.
-const MAX_MERGED_SIGNATURES: usize = 256;
-
-/// Add the signatures of `src` that `dst` lacks, up to [`MAX_MERGED_SIGNATURES`].
-fn merge_signatures(dst: &mut Vec<Signature>, src: &[Signature]) -> Result<(), GfrStatus> {
-    merge_checked_signatures(dst, src, None, &|_| true)
-}
-
-/// [`merge_signatures`], where a signature naming `primary` as its issuer is
-/// added only if `verifies` accepts it. A self-signature that does not verify
-/// is not the key holder's, and only takes room; signatures by other keys
-/// cannot be checked here and are only capped.
-fn merge_checked_signatures(
-    dst: &mut Vec<Signature>,
-    src: &[Signature],
-    primary: Option<&PublicKey>,
-    verifies: &dyn Fn(&Signature) -> bool,
-) -> Result<(), GfrStatus> {
-    let mut seen: HashSet<Vec<u8>> = HashSet::new();
-
-    for sig in dst.iter() {
-        seen.insert(serialize_bytes(sig)?);
-    }
-
-    let mut capped = 0usize;
-    for sig in src {
-        let key = serialize_bytes(sig)?;
-        if seen.contains(&key) {
-            continue;
-        }
-        let self_issued = primary.is_some_and(|p| names_primary_as_issuer(sig, p));
-        if self_issued && !verifies(sig) {
-            log::warn!("dropping a self-signature that does not verify");
-            continue;
-        }
-        // A verified self-signature always fits: a revocation must never be
-        // what the cap leaves out.
-        if !self_issued && dst.len() >= MAX_MERGED_SIGNATURES {
-            capped += 1;
-            continue;
-        }
-        seen.insert(key);
-        dst.push(sig.clone());
-    }
-    if capped > 0 {
-        log::warn!("left out {capped} signatures past the per-component limit");
-    }
-
-    Ok(())
-}
-
-fn merge_users(
-    primary: &PublicKey,
-    dst: &mut Vec<pgp::types::SignedUser>,
-    src: &[pgp::types::SignedUser],
-) -> Result<(), GfrStatus> {
-    for src_user in src {
-        let src_uid = String::from_utf8_lossy(src_user.id.id()).into_owned();
-
-        if let Some(dst_user) = dst
-            .iter_mut()
-            .find(|u| String::from_utf8_lossy(u.id.id()) == src_uid)
-        {
-            let id = dst_user.id.clone();
-            merge_checked_signatures(
-                &mut dst_user.signatures,
-                &src_user.signatures,
-                Some(primary),
-                &|sig| sig.verify_certification(primary, Tag::UserId, &id).is_ok(),
-            )?;
-        } else if has_verified_uid_certification(primary, src_user) {
-            dst.push(src_user.clone());
-        } else {
-            // A User ID the key holder never certified, carried in by someone
-            // else's copy of the key: not stored, so not listed or searched.
-            log::warn!("dropping a User ID without a valid self-certification");
-        }
-    }
-
-    Ok(())
-}
-
-/// [`merge_users`] for User Attributes (photo IDs), matched by their bytes.
-/// They were not merged at all, so a revocation of a photo ID, or one added
-/// by the key holder, never reached a stored copy.
-fn merge_user_attributes(
-    primary: &PublicKey,
-    dst: &mut Vec<pgp::types::SignedUserAttribute>,
-    src: &[pgp::types::SignedUserAttribute],
-) -> Result<(), GfrStatus> {
-    for src_attr in src {
-        let src_bytes = serialize_bytes(&src_attr.attr)?;
-        let mut existing = None;
-        for (i, d) in dst.iter().enumerate() {
-            if serialize_bytes(&d.attr)? == src_bytes {
-                existing = Some(i);
-                break;
-            }
-        }
-        let certifies = |sig: &Signature, attr: &pgp::packet::UserAttribute| {
-            sig.verify_certification(primary, Tag::UserAttribute, attr)
-                .is_ok()
-        };
-        if let Some(i) = existing {
-            let attr = dst[i].attr.clone();
-            merge_checked_signatures(
-                &mut dst[i].signatures,
-                &src_attr.signatures,
-                Some(primary),
-                &|sig| certifies(sig, &attr),
-            )?;
-        } else if src_attr.signatures.iter().any(|sig| {
-            names_primary_as_issuer(sig, primary)
-                && sig.typ() != Some(SignatureType::CertRevocation)
-                && certifies(sig, &src_attr.attr)
-        }) {
-            dst.push(src_attr.clone());
-        } else {
-            log::warn!("dropping a User Attribute without a valid self-certification");
-        }
-    }
-
-    Ok(())
-}
-
-fn merge_public_subkeys(
-    dst: &mut Vec<SignedPublicSubKey>,
-    src: &[SignedPublicSubKey],
-) -> Result<(), GfrStatus> {
-    for src_sub in src {
-        let src_fpr = src_sub.key.fingerprint().to_string();
-
-        if let Some(dst_sub) = dst
-            .iter_mut()
-            .find(|s| s.key.fingerprint().to_string() == src_fpr)
-        {
-            merge_signatures(&mut dst_sub.signatures, &src_sub.signatures)?;
-        } else {
-            dst.push(src_sub.clone());
-        }
-    }
-
-    Ok(())
-}
-
-fn dedup_signatures_in_place(sigs: &mut Vec<Signature>) -> Result<(), GfrStatus> {
-    let mut seen = HashSet::new();
-    let mut out = Vec::with_capacity(sigs.len());
-
-    for sig in sigs.drain(..) {
-        let key = serialize_bytes(&sig)?;
-        if seen.insert(key) {
-            out.push(sig);
-        }
-    }
-
-    *sigs = out;
-    Ok(())
-}
-
 fn export_secret_key(sk: SignedSecretKey) -> Result<GeneratedKeys, GfrStatus> {
     let fingerprint = sk.fingerprint().to_string();
     let opts = key_armor_opts(sk.primary_key.version());
@@ -2781,183 +2618,604 @@ fn extract_key_revocation_signatures(block: &str) -> Result<Vec<Signature>, GfrS
     }
 }
 
-fn merge_key_components(
-    primary: &PublicKey,
-    base: &mut SignedKeyDetails,
-    incoming: &SignedKeyDetails,
-) -> Result<(), GfrStatus> {
-    let key_sig_verifies = |sig: &Signature| sig.verify_key(primary).is_ok();
-    merge_checked_signatures(
-        &mut base.direct_signatures,
-        &incoming.direct_signatures,
-        Some(primary),
-        &key_sig_verifies,
-    )?;
-    merge_checked_signatures(
-        &mut base.revocation_signatures,
-        &incoming.revocation_signatures,
-        Some(primary),
-        &key_sig_verifies,
-    )?;
-    merge_users(primary, &mut base.users, &incoming.users)?;
-    merge_user_attributes(
-        primary,
-        &mut base.user_attributes,
-        &incoming.user_attributes,
-    )?;
+/// Most third-party signatures a merge leaves on one component (a User ID,
+/// the key itself). Far above anything a real key carries; what it stops is
+/// the key-server flooding pattern, where a copy carries thousands of
+/// signatures that are then stored and re-verified on every listing. The key
+/// holder's own verified signatures always fit: a revocation must never be
+/// what the cap leaves out.
+const MAX_MERGED_SIGNATURES: usize = 256;
 
-    dedup_signatures_in_place(&mut base.direct_signatures)?;
-    dedup_signatures_in_place(&mut base.revocation_signatures)?;
+// Importing a key follows sequoia's model (`Cert::merge_public_and_secret`
+// and `Cert::canonicalize`, which `sq` builds on), and is stricter wherever
+// the two differ:
+//
+// * Incoming data is canonicalized: a self-signature (one naming the primary
+//   as issuer, or naming no issuer at all) is kept only on a component it
+//   verifies on, and re-filed there if it arrived on the wrong one. Sequoia
+//   keeps the ones that verify nowhere as "bad" signatures; they are dropped
+//   here. Incoming components no self-signature binds are dropped, which
+//   sequoia also keeps.
+// * Stored data is never filtered, only folded: a re-import must not lose
+//   anything the store holds.
+// * Signatures are the same when they differ only in their unhashed area,
+//   which no signature covers (sequoia's `normalized_eq`). Of an unhashed
+//   area only an issuer agreeing with one already named is taken over.
+// * Stored secret key material wins; an incoming secret only fills a key
+//   that has none, as sequoia's certificate store keeps the on-disk secrets.
+
+/// True if `sig` counts as a self-signature of `primary`, as sequoia counts
+/// one: it names `primary` as its issuer, or names no issuer at all. A
+/// signature without an issuer is checked against the key itself, never kept
+/// unchecked as someone else's.
+fn is_self_sig_candidate(sig: &Signature, primary: &PublicKey) -> bool {
+    names_primary_as_issuer(sig, primary)
+        || (sig.issuer_fingerprint().is_empty() && sig.issuer_key_id().is_empty())
+}
+
+/// The bytes of `sig` without its unhashed area: two signatures with the same
+/// bytes here are one signature (sequoia's `normalized_eq`). A signature that
+/// cannot be rebuilt is compared by all its bytes.
+fn normalized_sig_bytes(sig: &Signature) -> Result<Vec<u8>, GfrStatus> {
+    let (Some(config), Some(bytes), Some(prefix)) =
+        (sig.config(), sig.signature(), sig.signed_hash_value())
+    else {
+        return serialize_bytes(sig);
+    };
+    let mut config = config.clone();
+    config.unhashed_subpackets.clear();
+    match Signature::from_config(config, prefix, bytes.clone()) {
+        Ok(bare) => serialize_bytes(&bare),
+        Err(_) => serialize_bytes(sig),
+    }
+}
+
+/// The Key ID a fingerprint stands for (RFC 9580 §5.5.4): the low 64 bits of
+/// a v4 fingerprint, the high 64 bits of a v6 one.
+fn key_id_of(fpr: &pgp::types::Fingerprint) -> Option<[u8; 8]> {
+    let bytes = fpr.as_bytes();
+    let id = match fpr.version()? {
+        KeyVersion::V4 => bytes.get(bytes.len().checked_sub(8)?..)?,
+        KeyVersion::V6 => bytes.get(..8)?,
+        _ => return None,
+    };
+    id.try_into().ok()
+}
+
+/// Give `kept` the issuer subpackets of `other`'s unhashed area it lacks, but
+/// only one that agrees with an issuer `kept` already names: an Issuer Key ID
+/// matching its Issuer Fingerprint, or an Issuer Fingerprint matching its
+/// Issuer Key ID when it has no fingerprint. Nothing else of an unhashed area
+/// is taken over, since no signature covers it.
+fn adopt_issuers(kept: &mut Signature, other: &Signature) {
+    let Some(config) = other.config() else {
+        return;
+    };
+    let mut adopted = Vec::new();
+    for subpacket in &config.unhashed_subpackets {
+        match &subpacket.data {
+            SubpacketData::IssuerKeyId(id) => {
+                let named = kept.issuer_key_id().iter().any(|k| *k == id);
+                let agrees = kept
+                    .issuer_fingerprint()
+                    .iter()
+                    .any(|f| key_id_of(f).is_some_and(|k| k[..] == *id.as_ref()));
+                if !named && agrees {
+                    adopted.push(subpacket.clone());
+                }
+            }
+            SubpacketData::IssuerFingerprint(fpr) => {
+                let agrees = key_id_of(fpr)
+                    .is_some_and(|k| kept.issuer_key_id().iter().any(|id| *id.as_ref() == k[..]));
+                if kept.issuer_fingerprint().is_empty() && agrees {
+                    adopted.push(subpacket.clone());
+                }
+            }
+            _ => {}
+        }
+    }
+    for subpacket in adopted {
+        if kept.unhashed_subpacket_push(subpacket).is_err() {
+            break;
+        }
+    }
+}
+
+/// Append the signatures of `src` that `dst` lacks, comparing them by
+/// [`normalized_sig_bytes`]; a duplicate only lends its issuers
+/// ([`adopt_issuers`]). With `cap_for`, a signature that is not a
+/// self-signature of that primary is left out once `dst` holds
+/// [`MAX_MERGED_SIGNATURES`]. Callers pass it only for incoming signatures,
+/// whose self-signatures have been verified.
+fn union_signatures(
+    dst: &mut Vec<Signature>,
+    src: Vec<Signature>,
+    cap_for: Option<&PublicKey>,
+) -> Result<(), GfrStatus> {
+    let mut index: HashMap<Vec<u8>, usize> = HashMap::new();
+    for (i, sig) in dst.iter().enumerate() {
+        index.entry(normalized_sig_bytes(sig)?).or_insert(i);
+    }
+
+    let mut capped = 0usize;
+    for sig in src {
+        let key = normalized_sig_bytes(&sig)?;
+        if let Some(&i) = index.get(&key) {
+            adopt_issuers(&mut dst[i], &sig);
+            continue;
+        }
+        if cap_for.is_some_and(|primary| !is_self_sig_candidate(&sig, primary))
+            && dst.len() >= MAX_MERGED_SIGNATURES
+        {
+            capped += 1;
+            continue;
+        }
+        index.insert(key, dst.len());
+        dst.push(sig);
+    }
+    if capped > 0 {
+        log::warn!("left out {capped} signatures past the per-component limit");
+    }
     Ok(())
 }
 
-/// Merge two armored key blocks for the same fingerprint.
+/// Fold signatures of `sigs` that differ only in their unhashed area into the
+/// first of them. Nothing else is dropped.
+fn fold_signatures(sigs: &mut Vec<Signature>) -> Result<(), GfrStatus> {
+    let src = std::mem::take(sigs);
+    union_signatures(sigs, src, None)
+}
+
+fn is_uid_certification(sig: &Signature) -> bool {
+    matches!(
+        sig.typ(),
+        Some(
+            SignatureType::CertGeneric
+                | SignatureType::CertPersona
+                | SignatureType::CertCasual
+                | SignatureType::CertPositive
+        )
+    )
+}
+
+/// A subkey of a certificate being merged, with or without its secret part.
+enum WorkSubkey {
+    Public(SignedPublicSubKey),
+    Secret(SignedSecretSubKey),
+}
+
+impl WorkSubkey {
+    fn public(&self) -> &PublicSubkey {
+        match self {
+            WorkSubkey::Public(sub) => &sub.key,
+            WorkSubkey::Secret(sub) => sub.key.public_key(),
+        }
+    }
+
+    fn signatures(&self) -> &Vec<Signature> {
+        match self {
+            WorkSubkey::Public(sub) => &sub.signatures,
+            WorkSubkey::Secret(sub) => &sub.signatures,
+        }
+    }
+
+    fn signatures_mut(&mut self) -> &mut Vec<Signature> {
+        match self {
+            WorkSubkey::Public(sub) => &mut sub.signatures,
+            WorkSubkey::Secret(sub) => &mut sub.signatures,
+        }
+    }
+}
+
+/// A certificate being merged: its components, and the secret parts held for
+/// the primary and each subkey. Built from either key type, it merges all
+/// four combinations of public and secret copies the same way.
+struct WorkCert {
+    primary: PublicKey,
+    secret: Option<pgp::packet::SecretKey>,
+    details: SignedKeyDetails,
+    subkeys: Vec<WorkSubkey>,
+}
+
+/// One component of a [`WorkCert`] a signature can belong to.
+#[derive(Clone, Copy)]
+enum Component {
+    Key,
+    User(usize),
+    Attribute(usize),
+    Subkey(usize),
+}
+
+impl WorkCert {
+    fn from_public(pk: SignedPublicKey) -> Result<Self, GfrStatus> {
+        let mut cert = WorkCert {
+            primary: pk.primary_key,
+            secret: None,
+            details: pk.details,
+            subkeys: pk
+                .public_subkeys
+                .into_iter()
+                .map(WorkSubkey::Public)
+                .collect(),
+        };
+        cert.collapse_repeated_components()?;
+        Ok(cert)
+    }
+
+    fn from_secret(sk: SignedSecretKey) -> Result<Self, GfrStatus> {
+        let mut subkeys: Vec<WorkSubkey> = sk
+            .public_subkeys
+            .into_iter()
+            .map(WorkSubkey::Public)
+            .collect();
+        subkeys.extend(sk.secret_subkeys.into_iter().map(WorkSubkey::Secret));
+        let mut cert = WorkCert {
+            primary: sk.primary_key.public_key().clone(),
+            secret: Some(sk.primary_key),
+            details: sk.details,
+            subkeys,
+        };
+        cert.collapse_repeated_components()?;
+        Ok(cert)
+    }
+
+    /// The first certificate in an armored `block`, secret if it is one.
+    fn parse(block: &str) -> Result<Self, GfrStatus> {
+        let block = crate::utils::strip_armor_whitespace(block);
+        let block = without_trust_packets(&block);
+        if let Ok((sk, _)) = SignedSecretKey::from_string(&block) {
+            return Self::from_secret(sk);
+        }
+        let (pk, _) =
+            SignedPublicKey::from_string(&block).map_err(|_| GfrStatus::ErrorInvalidInput)?;
+        Self::from_public(pk)
+    }
+
+    fn fingerprint(&self) -> pgp::types::Fingerprint {
+        self.primary.fingerprint()
+    }
+
+    /// Merge User IDs, User Attributes and subkeys that appear more than once
+    /// into their first occurrence, as sequoia's `sort_and_dedup` does. A
+    /// subkey present both with and without its secret part keeps the secret.
+    fn collapse_repeated_components(&mut self) -> Result<(), GfrStatus> {
+        let users = std::mem::take(&mut self.details.users);
+        for user in users {
+            match self
+                .details
+                .users
+                .iter_mut()
+                .find(|u| u.id.id() == user.id.id())
+            {
+                Some(first) => first.signatures.extend(user.signatures),
+                None => self.details.users.push(user),
+            }
+        }
+
+        let attrs = std::mem::take(&mut self.details.user_attributes);
+        for attr in attrs {
+            match self
+                .details
+                .user_attributes
+                .iter_mut()
+                .find(|a| a.attr == attr.attr)
+            {
+                Some(first) => first.signatures.extend(attr.signatures),
+                None => self.details.user_attributes.push(attr),
+            }
+        }
+
+        let subkeys = std::mem::take(&mut self.subkeys);
+        for sub in subkeys {
+            self.absorb_subkey(sub, None)?;
+        }
+        Ok(())
+    }
+
+    /// Add `sub`, or merge it into the subkey with its fingerprint: their
+    /// signatures are united, and a secret part fills one that is missing.
+    fn absorb_subkey(
+        &mut self,
+        sub: WorkSubkey,
+        cap_for: Option<&PublicKey>,
+    ) -> Result<(), GfrStatus> {
+        let fpr = sub.public().fingerprint();
+        let Some(pos) = self
+            .subkeys
+            .iter()
+            .position(|s| s.public().fingerprint() == fpr)
+        else {
+            self.subkeys.push(sub);
+            return Ok(());
+        };
+        let (incoming_sigs, incoming_secret) = match sub {
+            WorkSubkey::Public(sub) => (sub.signatures, None),
+            WorkSubkey::Secret(sub) => (sub.signatures, Some(sub.key)),
+        };
+        let existing = &mut self.subkeys[pos];
+        if let (WorkSubkey::Public(public), Some(key)) = (&mut *existing, incoming_secret) {
+            let signatures = std::mem::take(&mut public.signatures);
+            *existing = WorkSubkey::Secret(SignedSecretSubKey { key, signatures });
+        }
+        union_signatures(existing.signatures_mut(), incoming_sigs, cap_for)
+    }
+
+    /// True if `sig`, a self-signature, verifies on `component`.
+    fn verifies_on(&self, sig: &Signature, component: Component) -> bool {
+        let primary = &self.primary;
+        match component {
+            Component::Key => {
+                matches!(
+                    sig.typ(),
+                    Some(SignatureType::Key | SignatureType::KeyRevocation)
+                ) && sig.verify_key(primary).is_ok()
+            }
+            Component::User(i) => {
+                (is_uid_certification(sig) || sig.typ() == Some(SignatureType::CertRevocation))
+                    && sig
+                        .verify_certification(primary, Tag::UserId, &self.details.users[i].id)
+                        .is_ok()
+            }
+            Component::Attribute(i) => {
+                (is_uid_certification(sig) || sig.typ() == Some(SignatureType::CertRevocation))
+                    && sig
+                        .verify_certification(
+                            primary,
+                            Tag::UserAttribute,
+                            &self.details.user_attributes[i].attr,
+                        )
+                        .is_ok()
+            }
+            Component::Subkey(i) => {
+                matches!(
+                    sig.typ(),
+                    Some(SignatureType::SubkeyBinding | SignatureType::SubkeyRevocation)
+                ) && sig
+                    .verify_subkey_binding(primary, self.subkeys[i].public())
+                    .is_ok()
+            }
+        }
+    }
+
+    fn components(&self) -> Vec<Component> {
+        let mut all = vec![Component::Key];
+        all.extend((0..self.details.users.len()).map(Component::User));
+        all.extend((0..self.details.user_attributes.len()).map(Component::Attribute));
+        all.extend((0..self.subkeys.len()).map(Component::Subkey));
+        all
+    }
+
+    fn take_signatures(&mut self, component: Component) -> Vec<Signature> {
+        match component {
+            Component::Key => {
+                let mut sigs = std::mem::take(&mut self.details.direct_signatures);
+                sigs.append(&mut self.details.revocation_signatures);
+                sigs
+            }
+            Component::User(i) => std::mem::take(&mut self.details.users[i].signatures),
+            Component::Attribute(i) => {
+                std::mem::take(&mut self.details.user_attributes[i].signatures)
+            }
+            Component::Subkey(i) => std::mem::take(self.subkeys[i].signatures_mut()),
+        }
+    }
+
+    fn push_signature(&mut self, component: Component, sig: Signature) {
+        match component {
+            Component::Key if sig.typ() == Some(SignatureType::KeyRevocation) => {
+                self.details.revocation_signatures.push(sig)
+            }
+            Component::Key => self.details.direct_signatures.push(sig),
+            Component::User(i) => self.details.users[i].signatures.push(sig),
+            Component::Attribute(i) => self.details.user_attributes[i].signatures.push(sig),
+            Component::Subkey(i) => self.subkeys[i].signatures_mut().push(sig),
+        }
+    }
+
+    /// Sequoia's `canonicalize`, made stricter, for a certificate that is
+    /// not stored yet (see the notes above [`is_self_sig_candidate`]).
+    fn canonicalize(&mut self) -> Result<(), GfrStatus> {
+        let primary = self.primary.clone();
+        let components = self.components();
+
+        // Each self-signature stays where it verifies; one that does not is
+        // tried on every other component, and kept wherever it verifies.
+        let mut misplaced = Vec::new();
+        for &component in &components {
+            for sig in self.take_signatures(component) {
+                if !is_self_sig_candidate(&sig, &primary) {
+                    // Someone else's signature: kept unchecked, as there is no
+                    // key here to check it with, except on a subkey, where
+                    // only the key holder's binding or revocation means
+                    // anything.
+                    if !matches!(component, Component::Subkey(_)) {
+                        self.push_signature(component, sig);
+                    }
+                } else if self.verifies_on(&sig, component) {
+                    self.push_signature(component, sig);
+                } else {
+                    misplaced.push(sig);
+                }
+            }
+        }
+        for sig in misplaced {
+            let homes: Vec<Component> = components
+                .iter()
+                .copied()
+                .filter(|&c| self.verifies_on(&sig, c))
+                .collect();
+            if homes.is_empty() {
+                log::warn!("dropping a self-signature that does not verify");
+            }
+            for home in homes {
+                self.push_signature(home, sig.clone());
+            }
+        }
+
+        // A component no self-signature binds is not the key holder's.
+        let self_sig = |sig: &Signature| is_self_sig_candidate(sig, &primary);
+        let before = (
+            self.details.users.len(),
+            self.details.user_attributes.len(),
+            self.subkeys.len(),
+        );
+        self.details.users.retain(|user| {
+            user.signatures
+                .iter()
+                .any(|sig| self_sig(sig) && is_uid_certification(sig))
+        });
+        self.details.user_attributes.retain(|attr| {
+            attr.signatures
+                .iter()
+                .any(|sig| self_sig(sig) && is_uid_certification(sig))
+        });
+        self.subkeys.retain(|sub| !sub.signatures().is_empty());
+        if before
+            != (
+                self.details.users.len(),
+                self.details.user_attributes.len(),
+                self.subkeys.len(),
+            )
+        {
+            log::warn!("dropping User IDs, User Attributes or subkeys the key holder never bound");
+        }
+
+        self.fold(Some(&primary))
+    }
+
+    /// Fold every component's duplicate signatures; with `cap_for`, also cap
+    /// the third-party ones (see [`union_signatures`]).
+    fn fold(&mut self, cap_for: Option<&PublicKey>) -> Result<(), GfrStatus> {
+        for component in self.components() {
+            let sigs = self.take_signatures(component);
+            let mut kept = Vec::with_capacity(sigs.len());
+            union_signatures(&mut kept, sigs, cap_for)?;
+            for sig in kept {
+                self.push_signature(component, sig);
+            }
+        }
+        Ok(())
+    }
+
+    /// Merge `other`, a copy of the same certificate, into this one. Nothing
+    /// of this one is dropped; with `cap`, `other`'s third-party signatures
+    /// are capped, which is right only once `other` is canonicalized.
+    fn absorb(&mut self, other: WorkCert, cap: bool) -> Result<(), GfrStatus> {
+        if self.fingerprint() != other.fingerprint() {
+            return Err(GfrStatus::ErrorInvalidInput);
+        }
+        let primary = self.primary.clone();
+        let cap_for = cap.then_some(&primary);
+
+        if self.secret.is_none() {
+            self.secret = other.secret;
+        }
+
+        union_signatures(
+            &mut self.details.direct_signatures,
+            other.details.direct_signatures,
+            cap_for,
+        )?;
+        union_signatures(
+            &mut self.details.revocation_signatures,
+            other.details.revocation_signatures,
+            cap_for,
+        )?;
+
+        for user in other.details.users {
+            match self
+                .details
+                .users
+                .iter_mut()
+                .find(|u| u.id.id() == user.id.id())
+            {
+                Some(dst) => union_signatures(&mut dst.signatures, user.signatures, cap_for)?,
+                None => self.details.users.push(user),
+            }
+        }
+
+        for attr in other.details.user_attributes {
+            match self
+                .details
+                .user_attributes
+                .iter_mut()
+                .find(|a| a.attr == attr.attr)
+            {
+                Some(dst) => union_signatures(&mut dst.signatures, attr.signatures, cap_for)?,
+                None => self.details.user_attributes.push(attr),
+            }
+        }
+
+        for sub in other.subkeys {
+            self.absorb_subkey(sub, cap_for)?;
+        }
+        Ok(())
+    }
+
+    /// The certificate as rPGP's key types: secret if the primary's secret
+    /// part is held.
+    fn into_signed(self) -> Result<SignedSecretKeyOrPublic, GfrStatus> {
+        let mut public_subkeys = Vec::new();
+        let mut secret_subkeys = Vec::new();
+        for sub in self.subkeys {
+            match sub {
+                WorkSubkey::Public(sub) => public_subkeys.push(sub),
+                WorkSubkey::Secret(sub) => secret_subkeys.push(sub),
+            }
+        }
+        Ok(match self.secret {
+            Some(secret) => SignedSecretKeyOrPublic::Secret(SignedSecretKey::new(
+                secret,
+                self.details,
+                public_subkeys,
+                secret_subkeys,
+            )),
+            None => {
+                // A secret subkey without the primary's secret part cannot
+                // arise from a merge; kept as public if it ever does.
+                public_subkeys.extend(secret_subkeys.into_iter().map(SignedPublicSubKey::from));
+                SignedSecretKeyOrPublic::Public(SignedPublicKey::new(
+                    self.primary,
+                    self.details,
+                    public_subkeys,
+                ))
+            }
+        })
+    }
+
+    fn export(self) -> Result<GeneratedKeys, GfrStatus> {
+        match self.into_signed()? {
+            SignedSecretKeyOrPublic::Secret(sk) => export_secret_key(sk),
+            SignedSecretKeyOrPublic::Public(pk) => export_public_key(pk),
+        }
+    }
+}
+
+enum SignedSecretKeyOrPublic {
+    Secret(SignedSecretKey),
+    Public(SignedPublicKey),
+}
+
+/// Merge `incoming_block` into `base_block`, two armored copies of the same
+/// certificate (any combination of secret and public).
 ///
-/// Handles all four combinations of (secret, public) × (secret, public):
-/// - secret + secret → merged secret
-/// - secret + public → secret enriched with public signatures
-/// - public + secret → secret enriched with public signatures
-/// - public + public → merged public
-///
-/// Returns `ErrorInvalidInput` if the fingerprints don't match.
+/// `base_block` is the stored copy and is never filtered, only folded.
+/// `incoming_block` is canonicalized first (see the notes above
+/// [`is_self_sig_candidate`]). Returns `ErrorInvalidInput` if the
+/// fingerprints don't match.
 pub fn merge_key_block_internal(
     base_block: &str,
     incoming_block: &str,
 ) -> Result<GeneratedKeys, GfrStatus> {
-    let base_block = crate::utils::strip_armor_whitespace(base_block);
-    let incoming_block = crate::utils::strip_armor_whitespace(incoming_block);
-    let base_block = without_trust_packets(&base_block);
-    let incoming_block = without_trust_packets(&incoming_block);
-    let base_sk = SignedSecretKey::from_string(&base_block).ok();
-    let base_pk = SignedPublicKey::from_string(&base_block).ok();
-    let inc_sk = SignedSecretKey::from_string(&incoming_block).ok();
-    let inc_pk = SignedPublicKey::from_string(&incoming_block).ok();
-
-    match (base_sk, inc_sk) {
-        (Some((mut target_sk, _)), Some((other_sk, _))) => {
-            if target_sk.fingerprint() != other_sk.fingerprint() {
-                return Err(GfrStatus::ErrorInvalidInput);
-            }
-            merge_sk_into_sk(&mut target_sk, &other_sk)?;
-            export_secret_key(target_sk)
-        }
-
-        (Some((mut target_sk, _)), None) => {
-            if let Some((other_pk, _)) = inc_pk {
-                if target_sk.fingerprint() != other_pk.fingerprint() {
-                    return Err(GfrStatus::ErrorInvalidInput);
-                }
-                merge_pk_into_sk(&mut target_sk, &other_pk)?;
-            }
-            export_secret_key(target_sk)
-        }
-
-        (None, Some((mut target_sk, _))) => {
-            if let Some((other_pk, _)) = base_pk {
-                if target_sk.fingerprint() != other_pk.fingerprint() {
-                    return Err(GfrStatus::ErrorInvalidInput);
-                }
-                merge_pk_into_sk(&mut target_sk, &other_pk)?;
-            }
-            export_secret_key(target_sk)
-        }
-
-        (None, None) => {
-            if let (Some((mut target_pk, _)), Some((other_pk, _))) = (base_pk, inc_pk) {
-                if target_pk.fingerprint() != other_pk.fingerprint() {
-                    return Err(GfrStatus::ErrorInvalidInput);
-                }
-                let primary = target_pk.primary_key.clone();
-                merge_key_components(&primary, &mut target_pk.details, &other_pk.details)?;
-                merge_public_subkeys(&mut target_pk.public_subkeys, &other_pk.public_subkeys)?;
-                export_public_key(target_pk)
-            } else {
-                Err(GfrStatus::ErrorInvalidInput)
-            }
-        }
+    let mut base = WorkCert::parse(base_block)?;
+    let mut incoming = WorkCert::parse(incoming_block)?;
+    if base.fingerprint() != incoming.fingerprint() {
+        return Err(GfrStatus::ErrorInvalidInput);
     }
-}
-
-fn merge_sk_into_sk(
-    target: &mut SignedSecretKey,
-    source: &SignedSecretKey,
-) -> Result<(), GfrStatus> {
-    let primary = target.primary_key.public_key();
-    merge_key_components(&primary, &mut target.details, &source.details)?;
-
-    merge_secret_subkeys(&mut target.secret_subkeys, &source.secret_subkeys)?;
-    // A subkey public-only on the target but secret in the source becomes
-    // secret; the secret copy now holds the merged signatures.
-    let mut demoted = Vec::new();
-    target.public_subkeys.retain(|p| {
-        let secret = target
-            .secret_subkeys
-            .iter()
-            .any(|s| s.key.fingerprint() == p.key.fingerprint());
-        if secret {
-            demoted.push(p.clone());
-        }
-        !secret
-    });
-    merge_subkeys_into_secret(target, &demoted)?;
-    merge_subkeys_into_secret(target, &source.public_subkeys)?;
-
-    Ok(())
-}
-
-/// Merge public subkeys into a secret key: signatures go onto the matching
-/// secret or public subkey, and a subkey the target lacks is kept as a
-/// public-only subkey (its secret part lives elsewhere, e.g. on a card).
-fn merge_subkeys_into_secret(
-    target: &mut SignedSecretKey,
-    incoming: &[SignedPublicSubKey],
-) -> Result<(), GfrStatus> {
-    for incoming_sub in incoming {
-        let incoming_fpr = incoming_sub.key.fingerprint();
-        if let Some(dst_sub) = target
-            .secret_subkeys
-            .iter_mut()
-            .find(|s| s.key.fingerprint() == incoming_fpr)
-        {
-            merge_signatures(&mut dst_sub.signatures, &incoming_sub.signatures)?;
-        } else {
-            merge_public_subkeys(
-                &mut target.public_subkeys,
-                std::slice::from_ref(incoming_sub),
-            )?;
-        }
-    }
-    Ok(())
-}
-
-fn merge_secret_subkeys(
-    dst: &mut Vec<SignedSecretSubKey>,
-    src: &[SignedSecretSubKey],
-) -> Result<(), GfrStatus> {
-    for src_sub in src {
-        let src_fpr = src_sub.key.fingerprint().to_string();
-
-        if let Some(dst_sub) = dst
-            .iter_mut()
-            .find(|s| s.key.fingerprint().to_string() == src_fpr)
-        {
-            merge_signatures(&mut dst_sub.signatures, &src_sub.signatures)?;
-        } else {
-            dst.push(src_sub.clone());
-        }
-    }
-
-    Ok(())
-}
-
-fn merge_pk_into_sk(
-    target: &mut SignedSecretKey,
-    source: &SignedPublicKey,
-) -> Result<(), GfrStatus> {
-    let primary = target.primary_key.public_key();
-    merge_key_components(&primary, &mut target.details, &source.details)?;
-
-    merge_subkeys_into_secret(target, &source.public_subkeys)
+    incoming.canonicalize()?;
+    base.fold(None)?;
+    base.absorb(incoming, true)?;
+    base.export()
 }
 
 fn parse_signatures_from_armor(block: &str) -> Result<Vec<Signature>, GfrStatus> {
@@ -3000,8 +3258,8 @@ pub fn import_rev_cert_internal(
         }
 
         base_sk.details.revocation_signatures.extend(verified);
-        dedup_signatures_in_place(&mut base_sk.details.revocation_signatures)?;
-        dedup_signatures_in_place(&mut base_sk.details.direct_signatures)?;
+        fold_signatures(&mut base_sk.details.revocation_signatures)?;
+        fold_signatures(&mut base_sk.details.direct_signatures)?;
 
         return export_secret_key(base_sk);
     }
@@ -3021,8 +3279,8 @@ pub fn import_rev_cert_internal(
         }
 
         base_pk.details.revocation_signatures.extend(verified);
-        dedup_signatures_in_place(&mut base_pk.details.revocation_signatures)?;
-        dedup_signatures_in_place(&mut base_pk.details.direct_signatures)?;
+        fold_signatures(&mut base_pk.details.revocation_signatures)?;
+        fold_signatures(&mut base_pk.details.direct_signatures)?;
 
         return export_public_key(base_pk);
     }
