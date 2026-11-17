@@ -1442,7 +1442,7 @@ class ChainTest(unittest.TestCase):
         verify_mod.check_index(self.product, index, comment)
         expires = formats.parse_iso(index["expires"])
         for generated, why in (
-                (formats.iso(expires - verify_mod.MAX_INDEX_LIFETIME
+                (formats.iso(expires - limits.MAX_INDEX_LIFETIME
                             - dt.timedelta(seconds=1)),
                  "longer than any client takes"),
                 (None, "UTC time"), ("2026-1-1T00:00:00Z", "UTC time")):

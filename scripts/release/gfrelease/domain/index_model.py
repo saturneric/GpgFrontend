@@ -11,10 +11,47 @@ import datetime as dt
 
 from . import descriptor
 from . import policy as policy_mod
-from .formats import SCHEMA, parse_version
+from . import layout
+from .formats import SCHEMA, iso, parse_version, sha256_bytes
+from .limits import INDEX_LIFETIME
 
-LIFETIME = dt.timedelta(days=policy_mod.INDEX_LIFETIME_DAYS)
+LIFETIME = INDEX_LIFETIME
 VOLATILE = ("serial", "generated_at", "expires")
+
+
+def build_entry(version: str, path: str, raw: bytes) -> dict:
+    """How the index names a build (the nightly, a beta, a release
+    candidate): its version, its descriptor at @p path and that
+    descriptor's hash (@p raw its bytes)."""
+    return {"version": version, "descriptor": path,
+            "sha256": sha256_bytes(raw)}
+
+
+def notes_fields(version: str, notes: bytes) -> dict:
+    """A release entry's notes: where they are published, their hash and
+    the maintainer's signature beside them."""
+    digest = sha256_bytes(notes)
+    notes_path = layout.notes_path(version, digest)
+    return {"notes": notes_path, "notes_sha256": digest,
+            "notes_sig": layout.sig_of(notes_path)}
+
+
+def iso_of(created: int) -> str:
+    """A signature's time (Unix seconds) as the index spells times."""
+    return iso(dt.datetime.fromtimestamp(created, dt.timezone.utc))
+
+
+def release_entry(path: str, descriptor_sha256: str, notes: dict | None,
+                  signatures: dict) -> dict:
+    """How the index lists a release: its descriptor at @p path and that
+    descriptor's hash, its @p notes (notes_fields()), and when each file's
+    maintainer signature was made and by whom (the manifest's is not a
+    file a client gets)."""
+    return {"descriptor": path, "sha256": descriptor_sha256} | \
+        (notes or {}) | {"signatures": {
+            name: {"signer": sig["signer"], "created": iso_of(sig["created"])}
+            for name, sig in sorted(signatures.items())
+            if name != layout.SUMS}}
 
 
 def withdrawn(policy: dict) -> set:
@@ -155,3 +192,10 @@ def content(slug: str, policy: dict, root_version: int,
         "beta": beta,
         "prerelease": prerelease,
     }
+
+
+def dated(content: dict, serial: int, now: dt.datetime) -> dict:
+    """@p content as published: its @p serial, made @p now and valid for
+    LIFETIME."""
+    return dict(content, serial=serial, generated_at=iso(now),
+                expires=iso(now + LIFETIME))

@@ -364,10 +364,6 @@ def check_product(product: dict) -> None:
         raise PolicyError("\n".join(errors))
 
 
-# How long a signed index is valid.
-INDEX_LIFETIME_DAYS = 14
-
-
 def mainline(policy: dict) -> str:
     for key, entry in policy.get("series", {}).items():
         if isinstance(entry, dict) and entry.get("status") == "mainline":

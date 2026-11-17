@@ -23,7 +23,6 @@ from release/product.json, as a client would.
 from __future__ import annotations
 
 import contextlib
-import datetime as dt
 import http.client
 import shutil
 import ssl
@@ -41,15 +40,12 @@ from ..domain import policy as policy_mod
 from ..domain.formats import (SCHEMA, check_relpath, load_json, parse_iso,
                               parse_version, sha256_bytes)
 from ..domain.layout import INDEX, MINISIG, SIG, SUMS
-from ..domain.limits import EXPIRY_SKEW, SMALL_OBJECT_LIMIT
+from ..domain.limits import MAX_INDEX_LIFETIME, EXPIRY_SKEW, SMALL_OBJECT_LIMIT
 from ..domain.manifest import parse_manifest
 from ..errors import ReleaseError
 from . import trust
 from .product import Product
 
-# The longest an index may be valid for, from when it was made: what the
-# update check allows (kMaxIndexLifetimeSeconds).
-MAX_INDEX_LIFETIME = dt.timedelta(days=60)
 
 
 class HttpSource:
