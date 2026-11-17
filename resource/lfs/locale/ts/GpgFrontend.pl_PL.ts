@@ -5544,6 +5544,101 @@ GpgFrontend spróbuje teraz zaimportować klucz(e).</translation>
         <source>Export As Key Package</source>
         <translation>Eksportuj jako pakiet kluczy</translation>
     </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="207"/>
+        <source>Remove the passphrase from the private keys in the package</source>
+        <translation>Usuń hasło z kluczy prywatnych w pakiecie</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="211"/>
+        <source>Needed for tools such as gfpipe that sign without asking. The package&apos;s own protection is then all that guards the keys. The keys in GpgFrontend keep their passphrase.</source>
+        <translation>Potrzebne dla narzędzi takich jak gfpipe, które podpisują bez pytania. Ochroną kluczy jest wtedy wyłącznie ochrona samego pakietu. Klucze w GpgFrontend zachowują swoje hasło.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="273"/>
+        <source>Name the package and choose where to save it.</source>
+        <translation>Nazwij pakiet i wybierz miejsce jego zapisania.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="278"/>
+        <source>Include gfpipe, ready to use</source>
+        <translation>Dołącz gfpipe, gotowy do użycia</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="282"/>
+        <source>gfpipe is a small command line tool. It lets git and scripts sign and encrypt with these keys, like gpg.</source>
+        <translation>gfpipe to małe narzędzie wiersza poleceń. Dzięki niemu git i skrypty mogą podpisywać i szyfrować tymi kluczami, tak jak gpg.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="286"/>
+        <source>This installation does not include it.</source>
+        <translation>Ta instalacja go nie zawiera.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="290"/>
+        <source>gfpipe, the package and its key are saved together in this folder. Keep the folder private: anyone who can open it can use your keys.</source>
+        <translation>gfpipe, pakiet i jego klucz są zapisywane razem w tym folderze. Folder należy zachować w poufności: każdy, kto może go otworzyć, może użyć kluczy z pakietu.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="418"/>
+        <source>Choose how the package is protected. A PIN cannot be recovered.</source>
+        <translation>Wybierz sposób ochrony pakietu. PIN-u nie można odzyskać.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="437"/>
+        <source>A PIN and a separate key file (recommended for transfer)</source>
+        <translation>PIN i osobny plik kluczy (zalecane przy przekazywaniu)</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="438"/>
+        <source>A plain key</source>
+        <translation>Zwykły klucz</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="443"/>
+        <source>Write the version 2 format, for older GpgFrontend versions</source>
+        <translation>Zapisz w formacie wersji 2, dla starszych wersji GpgFrontend</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="846"/>
+        <source>gfpipe is ready to use in this folder.</source>
+        <translation>gfpipe jest gotowy do użycia w tym folderze.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="848"/>
+        <source>The key package has been saved.</source>
+        <translation>Pakiet kluczy został zapisany.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="854"/>
+        <source>Run gfpipe from this folder as you would run gpg. To sign with git: %1. Anyone who can read this folder has the keys.</source>
+        <translation>gfpipe należy uruchamiać z tego folderu tak jak gpg. Aby podpisywać za pomocą git: %1. Każdy, kto może odczytać ten folder, ma klucze.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="858"/>
+        <source>This key opens the package and is not shown again. Copy it or save it now, for example into the GFPIPE_KEY variable or a CI secret. Anyone with the key and the package has the keys.</source>
+        <translation>Ten klucz otwiera pakiet i nie zostanie wyświetlony ponownie. Skopiuj go lub zapisz teraz, na przykład do zmiennej GFPIPE_KEY lub sekretu CI. Każdy, kto ma klucz i pakiet, ma klucze.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="865"/>
+        <source>Copy Key</source>
+        <translation>Kopiuj klucz</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="866"/>
+        <source>Save Key...</source>
+        <translation>Zapisz klucz...</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="867"/>
+        <source>Key</source>
+        <translation>Klucz</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="868"/>
+        <source>Save Key</source>
+        <translation>Zapisz klucz</translation>
+    </message>
 </context>
 <context>
     <name>GpgFrontend::UI::FileOperaOutcome</name>
@@ -7111,6 +7206,31 @@ Otworzyć go w przeglądarce?</translation>
         <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="666"/>
         <source>Import Failed</source>
         <translation>Import nie powiódł się</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="220"/>
+        <source>Key</source>
+        <translation>Klucz</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="224"/>
+        <source>Key that opens the package</source>
+        <translation>Klucz otwierający pakiet</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="271"/>
+        <source>The private keys in this package have no passphrase. Set one after importing them, in each key&apos;s details.</source>
+        <translation>Klucze prywatne w tym pakiecie nie mają hasła. Ustaw je po zaimportowaniu, w szczegółach każdego klucza.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="500"/>
+        <source>Enter the key that was shown when the package was exported. It starts with gfkp3:.</source>
+        <translation>Wprowadź klucz, który został wyświetlony podczas eksportu pakietu. Zaczyna się od gfkp3:.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="628"/>
+        <source>This key does not open the package.</source>
+        <translation>Ten klucz nie otwiera pakietu.</translation>
     </message>
 </context>
 <context>
@@ -23227,6 +23347,96 @@ Cofnij te zmiany lub wybierz Anuluj, aby odrzucić wszystkie zmiany wprowadzone 
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="61"/>
         <source>A profile with this name already exists.</source>
         <translation>Profil o tej nazwie już istnieje.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="134"/>
+        <source>This key package was made by a newer version of GpgFrontend. Update GpgFrontend to import it.</source>
+        <translation>Ten pakiet kluczy został utworzony przez nowszą wersję GpgFrontend. Aby go zaimportować, należy zaktualizować GpgFrontend.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="106"/>
+        <source>Recommended for moving keys to another device. Importing needs the package, its key file and the PIN.</source>
+        <translation>Zalecane do przenoszenia kluczy na inne urządzenie. Import wymaga pakietu, jego pliku kluczy i PIN-u.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="110"/>
+        <source>Opens with a key shown once after the export, for an environment variable or a CI secret. Anyone with the key and the package has the keys.</source>
+        <translation>Otwierany kluczem wyświetlanym jednorazowo po eksporcie, do zmiennej środowiskowej lub sekretu CI. Każdy, kto ma klucz i pakiet, ma też klucze.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="241"/>
+        <source>gfpipe cannot open a package protected by a PIN. Choose a plain key.</source>
+        <translation>gfpipe nie może otworzyć pakietu chronionego PIN-em. Należy wybrać zwykły klucz.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="320"/>
+        <source>Passphrases</source>
+        <translation>Hasła</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="321"/>
+        <source>Removed from the private keys</source>
+        <translation>Usunięte z kluczy prywatnych</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="322"/>
+        <source>Kept</source>
+        <translation>Zachowane</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="341"/>
+        <source>Plain key, saved beside the package for gfpipe</source>
+        <translation>Zwykły klucz, zapisany obok pakietu dla gfpipe</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="342"/>
+        <source>Plain key, shown after the export</source>
+        <translation>Zwykły klucz, wyświetlany po eksporcie</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="349"/>
+        <source>Format</source>
+        <translation>Format</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="351"/>
+        <source>Version 2, for older versions</source>
+        <translation>Wersja 2, dla starszych wersji</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="352"/>
+        <source>Version 3</source>
+        <translation>Wersja 3</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="362"/>
+        <source>gfpipe</source>
+        <translation>gfpipe</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="363"/>
+        <source>Copied into the folder, ready to run</source>
+        <translation>Skopiowano do folderu, gotowe do uruchomienia</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="398"/>
+        <source>Opens the package. Anyone with this file and the package has the keys.</source>
+        <translation>Otwiera pakiet. Każdy, kto ma ten plik i pakiet, ma klucze.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="422"/>
+        <source>The keys are encrypted with a random key (XChaCha20-Poly1305). That key is sealed with your PIN (Argon2id) and written to the key file. Importing needs the package, the key file and the PIN.</source>
+        <translation>Klucze są szyfrowane losowym kluczem (XChaCha20-Poly1305). Ten klucz jest zabezpieczony Twoim PIN-em (Argon2id) i zapisany w pliku kluczy. Do importu potrzebne są pakiet, plik kluczy i PIN.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="429"/>
+        <source>The keys are encrypted with a random key (XChaCha20-Poly1305), sealed with a key saved beside the package as default.gfkey.</source>
+        <translation>Klucze są szyfrowane losowym kluczem (XChaCha20-Poly1305), zabezpieczonym kluczem zapisanym obok pakietu jako default.gfkey.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="433"/>
+        <source>The keys are encrypted with a random key (XChaCha20-Poly1305), sealed with a key you are shown once after the export.</source>
+        <translation>Klucze są szyfrowane losowym kluczem (XChaCha20-Poly1305), zabezpieczonym kluczem wyświetlanym jednorazowo po eksporcie.</translation>
     </message>
 </context>
 <context>

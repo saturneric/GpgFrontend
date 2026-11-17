@@ -5590,6 +5590,101 @@ GpgFrontend 现在将尝试导入密钥。</translation>
         <source>Export As Key Package</source>
         <translation>导出为密钥包</translation>
     </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="207"/>
+        <source>Remove the passphrase from the private keys in the package</source>
+        <translation>移除密钥包中私钥的口令</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="211"/>
+        <source>Needed for tools such as gfpipe that sign without asking. The package&apos;s own protection is then all that guards the keys. The keys in GpgFrontend keep their passphrase.</source>
+        <translation>gfpipe 等工具在签名时不会询问口令，因此需要这样做。此后，密钥包自身的保护就是守护密钥的唯一屏障。GpgFrontend 中的密钥仍保留其口令。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="273"/>
+        <source>Name the package and choose where to save it.</source>
+        <translation>为密钥包命名并选择保存位置。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="278"/>
+        <source>Include gfpipe, ready to use</source>
+        <translation>附带可直接使用的 gfpipe</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="282"/>
+        <source>gfpipe is a small command line tool. It lets git and scripts sign and encrypt with these keys, like gpg.</source>
+        <translation>gfpipe 是一个小巧的命令行工具。它让 git 和脚本可以像使用 gpg 一样，用这些密钥进行签名和加密。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="286"/>
+        <source>This installation does not include it.</source>
+        <translation>此安装未包含它。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="290"/>
+        <source>gfpipe, the package and its key are saved together in this folder. Keep the folder private: anyone who can open it can use your keys.</source>
+        <translation>gfpipe、密钥包及其密钥会一起保存在此文件夹中。请妥善保管此文件夹：任何能打开它的人都能使用您的密钥。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="418"/>
+        <source>Choose how the package is protected. A PIN cannot be recovered.</source>
+        <translation>选择密钥包的保护方式。PIN 无法找回。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="437"/>
+        <source>A PIN and a separate key file (recommended for transfer)</source>
+        <translation>PIN 和单独的密钥文件（推荐用于传输）</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="438"/>
+        <source>A plain key</source>
+        <translation>普通密钥</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="443"/>
+        <source>Write the version 2 format, for older GpgFrontend versions</source>
+        <translation>写入版本 2 格式，供旧版 GpgFrontend 使用</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="846"/>
+        <source>gfpipe is ready to use in this folder.</source>
+        <translation>gfpipe 已可在此文件夹中直接使用。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="848"/>
+        <source>The key package has been saved.</source>
+        <translation>密钥包已保存。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="854"/>
+        <source>Run gfpipe from this folder as you would run gpg. To sign with git: %1. Anyone who can read this folder has the keys.</source>
+        <translation>在此文件夹中像运行 gpg 一样运行 gfpipe。要用 git 签名：%1。任何能读取此文件夹的人都能使用这些密钥。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="858"/>
+        <source>This key opens the package and is not shown again. Copy it or save it now, for example into the GFPIPE_KEY variable or a CI secret. Anyone with the key and the package has the keys.</source>
+        <translation>此密钥用于打开密钥包，之后不会再显示。请立即复制或保存它，例如保存到 GFPIPE_KEY 变量或 CI 机密中。任何同时拥有此密钥和密钥包的人都能使用这些密钥。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="865"/>
+        <source>Copy Key</source>
+        <translation>复制密钥</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="866"/>
+        <source>Save Key...</source>
+        <translation>保存密钥...</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="867"/>
+        <source>Key</source>
+        <translation>密钥</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="868"/>
+        <source>Save Key</source>
+        <translation>保存密钥</translation>
+    </message>
 </context>
 <context>
     <name>GpgFrontend::UI::FileOperaOutcome</name>
@@ -7262,6 +7357,31 @@ Open it in your browser?</source>
         <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="666"/>
         <source>Import Failed</source>
         <translation>导入失败</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="220"/>
+        <source>Key</source>
+        <translation>密钥</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="224"/>
+        <source>Key that opens the package</source>
+        <translation>打开密钥包的密钥</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="271"/>
+        <source>The private keys in this package have no passphrase. Set one after importing them, in each key&apos;s details.</source>
+        <translation>此密钥包中的私钥没有口令。导入后，请在每个密钥的详情中设置口令。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="500"/>
+        <source>Enter the key that was shown when the package was exported. It starts with gfkp3:.</source>
+        <translation>请输入导出密钥包时显示的密钥。它以 gfkp3: 开头。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="628"/>
+        <source>This key does not open the package.</source>
+        <translation>此密钥无法打开该密钥包。</translation>
     </message>
 </context>
 <context>
@@ -24298,6 +24418,96 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="61"/>
         <source>A profile with this name already exists.</source>
         <translation>已存在同名配置文件。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="134"/>
+        <source>This key package was made by a newer version of GpgFrontend. Update GpgFrontend to import it.</source>
+        <translation>此密钥包由较新版本的 GpgFrontend 创建。请更新 GpgFrontend 后再导入。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="106"/>
+        <source>Recommended for moving keys to another device. Importing needs the package, its key file and the PIN.</source>
+        <translation>推荐用于将密钥迁移到其他设备。导入时需要密钥包、其密钥文件和 PIN。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="110"/>
+        <source>Opens with a key shown once after the export, for an environment variable or a CI secret. Anyone with the key and the package has the keys.</source>
+        <translation>使用导出后仅显示一次的密钥打开，适用于环境变量或 CI 机密。任何同时拥有该密钥和密钥包的人都能获得其中的密钥。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="241"/>
+        <source>gfpipe cannot open a package protected by a PIN. Choose a plain key.</source>
+        <translation>gfpipe 无法打开受 PIN 保护的密钥包。请选择普通密钥。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="320"/>
+        <source>Passphrases</source>
+        <translation>口令</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="321"/>
+        <source>Removed from the private keys</source>
+        <translation>已从私钥中移除</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="322"/>
+        <source>Kept</source>
+        <translation>已保留</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="341"/>
+        <source>Plain key, saved beside the package for gfpipe</source>
+        <translation>普通密钥，保存在密钥包旁边供 gfpipe 使用</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="342"/>
+        <source>Plain key, shown after the export</source>
+        <translation>普通密钥，导出后显示</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="349"/>
+        <source>Format</source>
+        <translation>格式</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="351"/>
+        <source>Version 2, for older versions</source>
+        <translation>版本 2，适用于旧版本</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="352"/>
+        <source>Version 3</source>
+        <translation>版本 3</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="362"/>
+        <source>gfpipe</source>
+        <translation>gfpipe</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="363"/>
+        <source>Copied into the folder, ready to run</source>
+        <translation>已复制到文件夹，可直接运行</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="398"/>
+        <source>Opens the package. Anyone with this file and the package has the keys.</source>
+        <translation>用于打开密钥包。任何同时拥有此文件和密钥包的人都能获得密钥。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="422"/>
+        <source>The keys are encrypted with a random key (XChaCha20-Poly1305). That key is sealed with your PIN (Argon2id) and written to the key file. Importing needs the package, the key file and the PIN.</source>
+        <translation>密钥使用随机密钥（XChaCha20-Poly1305）加密。该密钥由您的 PIN（Argon2id）封装，并写入密钥文件。导入时需要密钥包、密钥文件和 PIN。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="429"/>
+        <source>The keys are encrypted with a random key (XChaCha20-Poly1305), sealed with a key saved beside the package as default.gfkey.</source>
+        <translation>密钥使用随机密钥（XChaCha20-Poly1305）加密，并由保存在密钥包旁的 default.gfkey 密钥封装。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="433"/>
+        <source>The keys are encrypted with a random key (XChaCha20-Poly1305), sealed with a key you are shown once after the export.</source>
+        <translation>密钥使用随机密钥（XChaCha20-Poly1305）加密，并由导出后仅向您显示一次的密钥封装。</translation>
     </message>
 </context>
 <context>
