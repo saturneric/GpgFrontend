@@ -580,7 +580,7 @@ set(GPGFRONTEND_APP_DISPLAY_NAME "${GPGFRONTEND_APP_BASE_DISPLAY_NAME}")
 # every release/X.Y branch (fixes for one series) produce nightlies, and a
 # vX.Y.Z tag on either produces a release, so the branch name cannot
 # distinguish the two. CI builds a release/X.Y push (the beta channel) as a
-# release as well (scripts/ci/build_mode.sh). Only nightlies have their own
+# release as well (`gfrelease ci build-mode`). Only nightlies have their own
 # identity and profile.
 # A screenshot build shows the name users see:
 # the manual's images are of the release, and only the display name changes,

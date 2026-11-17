@@ -101,7 +101,7 @@ GROUPS = (
     ("CI", (
         ("stage", "upload a release candidate"),
         ("candidate", "stage: gather and check a release candidate"),
-        ("ci", "check-order | version: the version a build may have"),
+        ("ci", "build-mode | check-order | version: what CI builds"),
         ("policy", "check | render-security | check-security | mainline"))),
     ("Signing host", (
         ("promote", "promote each branch's newest staged build"),

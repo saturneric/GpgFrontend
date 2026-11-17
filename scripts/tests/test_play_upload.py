@@ -307,7 +307,7 @@ class WorkflowTest(unittest.TestCase):
         self.assertRegex(self.job, r"(?m)^    needs: \[setup, sign-android\]$")
 
     def test_what_build_mode_sends(self):
-        # setup's classification (scripts/ci/build_mode.sh): the vX.Y.Z
+        # setup's classification (`gfrelease ci build-mode`): the vX.Y.Z
         # releases, the release/X.Y betas and main's nightlies; never a base
         # tag, a prerelease tag or a pull request. test_build_mode.py holds
         # play_upload to exactly that.
@@ -346,7 +346,7 @@ class WorkflowTest(unittest.TestCase):
         self.assertIn('--version-code "$BUILD_NUMBER"', self.job)
 
     def test_the_release_goes_to_its_app_only_if_newer(self):
-        # build_mode.sh names the app (android_package): the release app
+        # `gfrelease ci build-mode` names the app (android_package): the release app
         # for a final or a beta, the nightly app for a nightly. A final or a
         # beta may find it holding a newer release, and a rerun its own
         # build, and is skipped then.
@@ -368,7 +368,7 @@ class WorkflowTest(unittest.TestCase):
                       called)
         self.assertIn('aapt2" dump packagename "$apk" | grep -qx '
                       '"$ANDROID_PACKAGE"', called)
-        # And CMake gives the ids build_mode.sh names.
+        # And CMake gives the ids `gfrelease ci build-mode` names.
         cmake = (WORKFLOW.parent.parent.parent / "src" / "mob" /
                  "CMakeLists.txt").read_text(encoding="utf-8")
         for package in ("com.bktus.gpgfrontend", "com.bktus.gpgfrontend.nightly"):

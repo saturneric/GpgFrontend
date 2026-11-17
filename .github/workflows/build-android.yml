@@ -32,7 +32,7 @@ on:
       gpgfrontend_build_mode:
         type: string
         required: true
-      # The application id that mode gives (scripts/ci/build_mode.sh): the
+      # The application id that mode gives (`gfrelease ci build-mode`): the
       # APK is checked to carry it.
       android_package:
         type: string

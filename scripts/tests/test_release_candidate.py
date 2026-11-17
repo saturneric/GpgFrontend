@@ -598,7 +598,7 @@ class WorkflowTest(unittest.TestCase):
                           "sign-macos", "macos-smoke", "sign-android"})
 
     def test_publishing_jobs_gate_on_the_one_classification(self):
-        # scripts/ci/build_mode.sh decides once which refs publish (main's
+        # `gfrelease ci build-mode` decides once which refs publish (main's
         # nightlies, release/X.Y betas, vX.Y.Z releases). A job that matched
         # refs itself could sign a base tag or a prerelease tag.
         for name in ("sign-android", "sign-macos", "macos-smoke",

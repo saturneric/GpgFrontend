@@ -264,7 +264,7 @@ if(ANDROID)
   # data, its own name on the launcher, and its own app on Play. Only the id
   # changes: the Java classes stay in com.bktus.gpgfrontend, and everything
   # that names the application at run time asks getPackageName().
-  # scripts/ci/build_mode.sh names the same two ids (android_package).
+  # `gfrelease ci build-mode` names the same two ids (android_package).
   if(GPGFRONTEND_BUILD_STABLE_INT)
     set(_gf_android_package_name "com.bktus.gpgfrontend")
   else()

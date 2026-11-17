@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # Copyright (C) 2021-2026 Saturneric <eric@bktus.com>
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""scripts/ci/build_mode.sh: which runs build what, and which publish it.
+"""`gfrelease ci build-mode` (domain/build_mode.py): which runs build what,
+and which publish it.
 
 Every signing, provenance, staging and upload job in build.yml gates on
 `publish_kind`, so this table is the whole answer to "does a push of this ref
@@ -13,16 +14,21 @@ import functools
 import os
 import shutil
 import subprocess
+import sys
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 
-import _paths  # noqa: E402,F401
+import _paths  # noqa: E402
 from gfrelease.domain import refs  # noqa: E402
 from gfrelease.domain import semver  # noqa: E402
 
-SCRIPT = ROOT / "scripts" / "ci" / "build_mode.sh"
+from gfrelease.domain import policy  # noqa: E402
+
+
+_ANDROID = policy.load_product()["android"]
+RELEASE_APP, NIGHTLY_APP = _ANDROID["package"], _ANDROID["nightly_package"]
 
 
 def run_script(event: str, ref: str, **extra):
@@ -32,7 +38,8 @@ def run_script(event: str, ref: str, **extra):
     if event == "workflow_dispatch":
         env["BUILD_MODE_INPUT"] = "release"
     env.update(extra)
-    return subprocess.run(["bash", str(SCRIPT)], cwd=ROOT, env=env,
+    return subprocess.run([sys.executable, "-I", str(_paths.GFRELEASE),
+                           "ci", "build-mode"], cwd=ROOT, env=env,
                           capture_output=True, text=True)
 
 
@@ -46,7 +53,6 @@ def classify(event: str, ref: str, **extra) -> dict:
 
 @unittest.skipUnless(shutil.which("cmake") and shutil.which("git"),
                      "needs cmake and git (the version is derived)")
-@unittest.skipIf(os.name == "nt", "build_mode.sh is CI's, run by bash")
 class BuildModeTest(unittest.TestCase):
     CASES = [
         # event, ref, build_mode, publish_kind
@@ -145,29 +151,29 @@ class BuildModeTest(unittest.TestCase):
         # over the release and opens its profile. A release branch built by
         # hand as a nightly stays one.
         for event, ref, package in (
-                ("push", "refs/heads/main", "com.bktus.gpgfrontend.nightly"),
-                ("push", "refs/heads/release/2.3", "com.bktus.gpgfrontend"),
-                ("push", "refs/heads/release/2.2-fix",
-                 "com.bktus.gpgfrontend.nightly"),
-                ("push", "refs/tags/v2.4.0", "com.bktus.gpgfrontend"),
+                ("push", "refs/heads/main", NIGHTLY_APP),
+                ("push", "refs/heads/release/2.3", RELEASE_APP),
+                ("push", "refs/heads/release/2.2-fix", NIGHTLY_APP),
+                ("push", "refs/tags/v2.4.0", RELEASE_APP),
                 # A release candidate opens the release's profile, as a beta.
-                ("push", "refs/tags/v2.4.0-rc.1", "com.bktus.gpgfrontend"),
-                ("pull_request", "refs/pull/7/merge",
-                 "com.bktus.gpgfrontend.nightly")):
+                ("push", "refs/tags/v2.4.0-rc.1", RELEASE_APP),
+                ("pull_request", "refs/pull/7/merge", NIGHTLY_APP)):
             with self.subTest(ref=ref):
                 out = classify(event, ref)
                 self.assertEqual(out["android_package"], package)
                 self.assertEqual(out["gpgfrontend_build_mode"] == "release",
-                                 package == "com.bktus.gpgfrontend")
+                                 package == RELEASE_APP)
         manual = classify("workflow_dispatch", "refs/heads/release/2.3",
                           BUILD_MODE_INPUT="nightly")
-        self.assertEqual(manual["android_package"],
-                         "com.bktus.gpgfrontend.nightly")
+        self.assertEqual(manual["android_package"], NIGHTLY_APP)
+        # And CMake gives the ids product.json names.
+        cmake = (ROOT / "src" / "mob" / "CMakeLists.txt").read_text("utf-8")
+        for package in (RELEASE_APP, NIGHTLY_APP):
+            self.assertIn(f'set(_gf_android_package_name "{package}")', cmake)
 
     def test_the_ref_shapes_match_the_tooling(self):
-        # The shell patterns and scripts/release/gfrelease/domain/refs.py must agree, or CI
-        # stages a build the release server then refuses (or skips one it
-        # would take).
+        # What CI publishes and what the signing host takes are decided by
+        # the same refs.py: a build CI stages is one the host promotes.
         for tag in ("v2.3.0", "v10.0.1", "v0.0.0", "v2.3.0-beta.1",
                     "v2.4.0-alpha.0", "v2.3", "v2.3.0+meta", "nightly",
                     "v2.08.0", "v02.3.0", "v2.3.0.1"):

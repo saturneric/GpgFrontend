@@ -1,7 +1,8 @@
 # Copyright (C) 2021-2026 Saturneric <eric@bktus.com>
 # SPDX-License-Identifier: GPL-3.0-or-later
 """The commands with a command line of their own, handed everything after
-their name: policy, candidate, ci check-order and ci version. They need no
+their name: policy, candidate, ci build-mode, ci check-order and ci
+version. They need no
 product, settings or store, and are what CI and the maintainer's scripts
 (cut.sh, notes.sh, rehearse.sh) run. Each prints in the form its caller
 reads: GitHub's ::error:: lines for check-order, a bare version for
@@ -19,7 +20,7 @@ from ..adapters import git as gitversion_mod
 from ..app import candidate as candidate_mod
 from ..app import check_order as check_order_mod
 from ..domain import policy as policy_mod
-from ..domain import refs
+from ..domain import build_mode, refs
 from ..domain.manifest import CandidateError
 from ..errors import ReleaseError
 from ..paths import ROOT
@@ -151,6 +152,57 @@ def check_order_main(argv: list[str]) -> int:
     return 1 if problems else 0
 
 
+def build_mode_main(argv: list[str]) -> int:
+    ap = argparse.ArgumentParser(
+        prog="gfrelease ci build-mode", description=build_mode.__doc__,
+        epilog="Reads GITHUB_EVENT_NAME and GITHUB_REF, and the inputs "
+        "BUILD_MODE_INPUT (workflow_dispatch's build_mode) and "
+        "SCREENSHOT_INPUT (\"true\" for a screenshot-mode build), passed "
+        "through the environment rather than interpolated into a script. "
+        "Prints key=value lines for $GITHUB_OUTPUT. The version is derived "
+        "once, from the full history (fetch-depth: 0), so every job names "
+        "its files alike.",
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--repo", type=Path, default=ROOT)
+    args = ap.parse_args(argv)
+    env = os.environ
+    screenshot = env.get("SCREENSHOT_INPUT", "false") == "true"
+    try:
+        event, ref = env["GITHUB_EVENT_NAME"], env["GITHUB_REF"]
+        fields = build_mode.decide(
+            event, ref, build_mode=env.get("BUILD_MODE_INPUT", ""),
+            screenshot=screenshot,
+            android=policy_mod.load_product()["android"])
+        for field, name in (("version", "version"),
+                            ("artifact_version", "filesafe"),
+                            ("build_number", "build_number")):
+            fields[field] = gitversion_mod.derive(args.repo, field=name)
+        build_mode.check_version(fields["version"],
+                                 fields["artifact_version"],
+                                 fields["build_number"])
+    except KeyError as e:
+        print(f"::error::{e.args[0]} is not set", file=sys.stderr)
+        return 1
+    except ReleaseError as e:
+        print(f"::error::{e}", file=sys.stderr)
+        return 1
+    except subprocess.CalledProcessError as e:
+        print(f"::error::cmake failed: {(e.stderr or '').strip()}",
+              file=sys.stderr)
+        return 1
+    except (subprocess.TimeoutExpired, OSError) as e:
+        print(f"::error::{e}", file=sys.stderr)
+        return 1
+    for field in build_mode.FIELDS:
+        print(f"{field}={fields[field]}")
+    print(f"Version: {fields['version']}\n"
+          f"Build mode: {fields['build_mode']}\n"
+          f"Publish: {fields['publish_kind']}\n"
+          f"Build type: {fields['build_type']}\n"
+          f"Screenshot mode: {str(screenshot).lower()}", file=sys.stderr)
+    return 0
+
+
 def version_main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(
         prog="gfrelease ci version", description=gitversion_mod.__doc__,
@@ -177,6 +229,7 @@ FORWARDED = {
     "candidate": candidate_main,
     "ci check-order": check_order_main,
     "ci version": version_main,
+    "ci build-mode": build_mode_main,
 }
 
 
@@ -187,7 +240,7 @@ def forwarded(argv: list[str]):
         if len(argv) >= words and name in FORWARDED:
             return FORWARDED[name], argv[words:]
     if argv[:1] == ["ci"]:
-        print("usage: gfrelease ci {check-order,version} ...",
+        print("usage: gfrelease ci {build-mode,check-order,version} ...",
               file=sys.stderr)
         return None, None
     return None, argv

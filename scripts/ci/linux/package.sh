@@ -28,7 +28,7 @@
 #
 # Environment: ARTIFACT_VERSION, FLAVOR_SUFFIX, RUNNER_TEMP.
 # Writes build/upload-artifact/GpgFrontend-<version>-linux-<arch>[-portable].AppImage,
-# <version> being the file-safe one scripts/ci/build_mode.sh derives.
+# <version> being the file-safe one `gfrelease ci build-mode` derives.
 
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"

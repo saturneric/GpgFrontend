@@ -107,7 +107,7 @@ jobs:
         id: mode
         env:
           BUILD_MODE_INPUT: ${{ github.event.inputs.build_mode }}
-        run: scripts/ci/build_mode.sh >> "$GITHUB_OUTPUT"
+        run: scripts/gfrelease ci build-mode >> "$GITHUB_OUTPUT"
 
       - name: ccache
         uses: hendrikmuhs/ccache-action@f09c25b45002a07be2955cbe52e8cee55643f89d # v1.2.24
@@ -163,7 +163,7 @@ jobs:
     # Two independent gates on which refs may ever request the signing
     # material: this condition, and the deployment branch rule on the
     # environment.
-    # Only main and final release tags (vX.Y.Z), as scripts/ci/build_mode.sh
+    # Only main and final release tags (vX.Y.Z), as `gfrelease ci build-mode`
     # classifies refs for build.yml: a base tag vX.Y.0-alpha.0, a prerelease
     # tag or any other tag never asks for the signing material. Pushed or
     # run by hand alike (there is no pull_request trigger).
