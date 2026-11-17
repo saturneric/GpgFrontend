@@ -176,15 +176,43 @@ TEST(IOUtilsSafeOutputTest, CommitReplacingADirectoryLeavesNoBackup) {
   ASSERT_TRUE(QDir().mkpath(staged));
   ASSERT_TRUE(WriteFile(staged + "/new.txt", QByteArray("newer")));
 
+  const auto kept = KeptFolderPath(final_path);
   EXPECT_TRUE(CommitSafeOutputFile(staged, final_path));
   EXPECT_TRUE(QFileInfo::exists(final_path + "/new.txt"));
   EXPECT_FALSE(QFileInfo::exists(final_path + "/old.txt"));
+  // The replaced folder is kept, visibly, never deleted.
+  EXPECT_TRUE(QFileInfo::exists(kept + "/old.txt"));
 
   const auto leftovers =
       QDir(temp_dir.path())
           .entryList({"*gpgfrontend.backup*"},
                      QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot);
   EXPECT_TRUE(leftovers.isEmpty()) << leftovers.join(", ").toStdString();
+}
+
+TEST(IOUtilsSafeOutputTest, AKeptFolderNeverTakesAnExistingName) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+  const QString final_path = temp_dir.path() + "/photos";
+
+  EXPECT_EQ(KeptFolderPath(final_path), final_path + ".bak");
+  ASSERT_TRUE(QDir().mkpath(final_path + ".bak"));
+  EXPECT_EQ(KeptFolderPath(final_path), final_path + ".bak-2");
+  ASSERT_TRUE(WriteFile(final_path + ".bak-2", QByteArray("a file")));
+  EXPECT_EQ(KeptFolderPath(final_path), final_path + ".bak-3");
+}
+
+TEST(IOUtilsSafeOutputTest, CommitReplacingAFileRemovesTheOldFile) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+
+  const QString final_path = temp_dir.path() + "/note.txt";
+  ASSERT_TRUE(WriteFile(final_path, QByteArray("older")));
+  const QString staged = MakeSafeOutputTempPath(final_path);
+  ASSERT_TRUE(WriteFile(staged, QByteArray("newer")));
+
+  EXPECT_TRUE(CommitSafeOutputFile(staged, final_path));
+  EXPECT_FALSE(QFileInfo::exists(KeptFolderPath(final_path)));
 }
 
 TEST(IOUtilsSafeOutputTest, WorkDirsArePrivateAndUnpredictable) {
