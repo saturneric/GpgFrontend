@@ -19,8 +19,6 @@ from gfrelease.errors import ReleaseError
 
 FIXTURES = _paths.TESTS / "fixtures"
 CONTRACT = FIXTURES / "contract" / "full"
-REPO = "example/product"
-BUILDS = "https://builds.example.org/product/"
 
 
 class ReleaseNotesTest(unittest.TestCase):
@@ -81,8 +79,7 @@ def fixture():
 
 def want(index=None, descriptor=None):
     i, entry, d, notes, small = fixture()
-    return gh.desired(REPO, BUILDS, index or i, descriptor or d, entry, notes,
-                      small)
+    return gh.desired(index or i, descriptor or d, entry, notes, small)
 
 
 def github_has(release, *, draft=False, skip=(), body=None):
@@ -124,16 +121,9 @@ class DesiredTest(unittest.TestCase):
                                   first["sha256"], first["size"]))
         self.assertEqual(by_name[first["name"] + ".sig"].sha256, "1" * 64)
 
-    def test_the_body_is_the_notes_then_how_to_check_the_files(self):
+    def test_the_body_is_the_notes_alone(self):
         index, entry, d, notes, small = fixture()
-        r = want()
-        self.assertTrue(r.body.startswith(for_github(notes, "2.2.5")))
-        self.assertIn(d["signing"]["fingerprint"], r.body)
-        self.assertIn(f"{BUILDS}releases/2.2.5/", r.body)
-        self.assertIn(f"https://github.com/{REPO}/blob/main/release/"
-                      "maintainers.asc", r.body)
-        self.assertTrue(r.body.endswith(
-            f"<!-- gfrelease: notes={entry['notes_sha256']} -->\n"))
+        self.assertEqual(want().body, for_github(notes, "2.2.5"))
 
     def test_only_the_stable_channels_release_is_the_latest(self):
         index, *_ = fixture()
@@ -151,7 +141,7 @@ class DesiredTest(unittest.TestCase):
         old_entry = dict(index["releases"]["2.1.9"], **{
             k: entry[k] for k in ("notes", "notes_sha256", "notes_sig")})
         small = {a["sig"]: ("1" * 64, 147) for a in old["artifacts"]}
-        r = gh.desired(REPO, BUILDS, index, old, old_entry, notes, small)
+        r = gh.desired(index, old, old_entry, notes, small)
         self.assertEqual(index["channels"]["stable"], "2.2.5")
         self.assertFalse(r.latest)
         # Published as not the latest, and never made it later.
@@ -173,8 +163,7 @@ class DesiredTest(unittest.TestCase):
     def test_a_body_github_would_not_take_is_refused(self):
         index, entry, d, notes, small = fixture()
         with self.assertRaisesRegex(ReleaseError, "more than GitHub's"):
-            gh.desired(REPO, BUILDS, index, d, entry,
-                       "x " * gh.BODY_LIMIT, small)
+            gh.desired(index, d, entry, "x " * gh.BODY_LIMIT, small)
 
 
 class PlanTest(unittest.TestCase):
