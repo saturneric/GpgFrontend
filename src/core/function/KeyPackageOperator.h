@@ -47,6 +47,64 @@ struct KeyPackageKey {
 };
 
 /**
+ * @brief What protects a key package.
+ *
+ * Version 2 knows only the PIN. Version 3 adds a plain key, for a package
+ * that goes to a tool such as gfpipe.
+ */
+enum class KeyPackageProtection : std::uint8_t {
+  kPIN_FILE,  ///< a PIN, with the wrapped key in a separate key file
+  kPLAIN,     ///< a random secret the user keeps as text
+};
+
+/**
+ * @brief What a key package's plaintext header says, read without opening it.
+ */
+struct KeyPackageInfo {
+  int version = 0;  ///< 2 or 3; 0 when the file is not a key package
+  KeyPackageProtection protection = KeyPackageProtection::kPIN_FILE;
+  /// Some secret key in it has no passphrase of its own (version 3 only).
+  bool secrets_unprotected = false;
+  QString package_id;       ///< version 3 only
+  qint64 generated_at = 0;  ///< Unix seconds; version 3 only
+  int key_count = 0;        ///< version 3 only
+  /// Made by a newer GpgFrontend than this one can read; nothing else in the
+  /// info is filled in.
+  bool too_new = false;
+};
+
+/**
+ * @brief What to write as a version 3 key package.
+ */
+struct KeyPackageV3Request {
+  QString package_path;
+  QString key_path;  ///< the separate key file; PIN only
+  GpgAbstractKeyPtrList keys;
+  bool secret = false;  ///< include the secret keys of keys that have one
+  /// Write the secret keys without their passphrase; the package's own
+  /// protection then guards them. The key database is not changed.
+  bool remove_passphrase = false;
+  KeyPackageProtection protection = KeyPackageProtection::kPIN_FILE;
+  GFBuffer pin;  ///< PIN only
+  /// A gfpipe program to set up beside the package, ready to run: it is
+  /// copied into the package's folder, and a plain key is saved there as
+  /// `<name>.gfkey`, where gfpipe looks for it. Empty for none.
+  QString gfpipe_program;
+};
+
+/**
+ * @brief What writing a version 3 key package produced.
+ */
+struct KeyPackageV3Written {
+  QString error;  ///< empty on success
+  /// The key as text for the user to keep (plain only), shown once.
+  GFBuffer plain_key;
+  QString package_id;
+  QString gfpipe_path;    ///< the copied gfpipe, when one was asked for
+  QString key_text_path;  ///< the saved plain key, when set up for gfpipe
+};
+
+/**
  * @brief Singleton operator for creating and importing encrypted key packages.
  *
  * A key package bundles exported OpenPGP key data encrypted with a randomly
@@ -154,6 +212,56 @@ class GF_CORE_EXPORT KeyPackageOperator
    */
   auto ImportKeyPackageKeys(const GFBuffer &key_data, const QStringList &fprs)
       -> std::tuple<QString, QSharedPointer<GpgImportInformation>>;
+
+  /**
+   * @brief Write a version 3 key package, blocking.
+   *
+   * Exports each key of @p request on this channel, removes the passphrases
+   * when asked (prompting for each key once), seals the package and writes its
+   * files.
+   *
+   * @param request what to write
+   * @return the outcome
+   */
+  auto GenerateKeyPackageV3Sync(const KeyPackageV3Request &request)
+      -> KeyPackageV3Written;
+
+  /**
+   * @brief GenerateKeyPackageV3Sync() on a task runner.
+   *
+   * @param request what to write
+   * @param cb receives the outcome on the calling thread
+   */
+  void GenerateKeyPackageV3(const KeyPackageV3Request &request,
+                            const std::function<void(KeyPackageV3Written)> &cb);
+
+  /**
+   * @brief Read what a key package's header says, without opening it.
+   *
+   * @param key_package_path the package file
+   * @return the header, with version 0 when the file is not a key package
+   */
+  static auto InspectKeyPackage(const QString &key_package_path)
+      -> KeyPackageInfo;
+
+  /**
+   * @brief The gfpipe this installation carries: beside the application,
+   * or in Contents/Helpers of a macOS bundle.
+   *
+   * @return its path; empty when this installation has none
+   */
+  static auto BundledGfPipe() -> QString;
+
+  /**
+   * @brief Open a plain version 3 package.
+   *
+   * @param key_package_path the package file
+   * @param secret the plain key text
+   * @return tuple of (error message, key data), as OpenKeyPackage()
+   */
+  static auto OpenKeyPackageWithSecret(const QString &key_package_path,
+                                       const GFBuffer &secret)
+      -> std::tuple<QString, GFBuffer>;
 
  private:
   GFBufferFactory &gb_fac_ = GFBufferFactory::GetInstance(
