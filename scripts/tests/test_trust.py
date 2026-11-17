@@ -19,15 +19,15 @@ from pathlib import Path
 from unittest import mock
 
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE))
 
+import _paths  # noqa: E402,F401
 from trustutil import (GFRELEASE, WINDOWS, gfrelease_env,  # noqa: E402
                        git_env, keypair, tools, write_root)
-import common  # noqa: E402
-import layout  # noqa: E402
-import minisig  # noqa: E402
-import policy as policy_mod  # noqa: E402
-import trust  # noqa: E402
+from gfrelease import common  # noqa: E402
+from gfrelease.domain import layout  # noqa: E402
+from gfrelease.adapters import minisig  # noqa: E402
+from gfrelease.domain import policy as policy_mod  # noqa: E402
+from gfrelease.app import trust  # noqa: E402
 
 FIXTURE = HERE / "fixtures" / "trust"
 SLUG = "gpgfrontend"

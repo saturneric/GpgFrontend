@@ -9,17 +9,16 @@ Run: python3 -m unittest discover -s scripts/tests
 """
 
 import shutil
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import _paths  # noqa: E402,F401
 from trustutil import local_rclone, tools  # noqa: E402
 
-import common  # noqa: E402
-from store import Store  # noqa: E402
+from gfrelease import common  # noqa: E402
+from gfrelease.adapters.store import Store  # noqa: E402
 
 TREE = {
     "top.txt": b"top\n",

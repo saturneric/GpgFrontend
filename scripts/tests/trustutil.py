@@ -13,11 +13,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 GFRELEASE = ROOT / "scripts" / "release" / "gfrelease"
-sys.path.insert(0, str(GFRELEASE))
 
-import layout  # noqa: E402
-import minisig  # noqa: E402
-import trust  # noqa: E402
+import _paths  # noqa: E402,F401
+from gfrelease.domain import layout  # noqa: E402
+from gfrelease.adapters import minisig  # noqa: E402
+from gfrelease.app import trust  # noqa: E402
 
 
 def tools(*names: str) -> bool:
@@ -239,7 +239,7 @@ def local_rclone():
     everything with GF_REAL_RCLONE=1, runs rclone itself."""
     import re
     from unittest import mock
-    import store
+    from gfrelease.adapters import store
 
     real = store.Store._rclone
 
@@ -267,7 +267,7 @@ def signing_tools() -> bool:
     msitools, or on Windows signtool (the system brings the rest)."""
     if not WINDOWS:
         return tools("osslsigncode", "openssl", "msiinfo", "msibuild")
-    import authenticode
+    from gfrelease.adapters.windows import authenticode
     try:
         authenticode.find_signtool()
         return True
@@ -282,7 +282,7 @@ def msix_resources(test, directory: Path, program: str) -> Path:
     """resource/msix/ as @p test needs it, and used for as long as it
     runs: the manifest starting @p program (a path inside the test's MSI)
     instead of GpgFrontend's own."""
-    import msix
+    from gfrelease.adapters.windows import msix
     from unittest import mock
     out = Path(directory) / "msix-resources"
     if not out.exists():  # there already in a copy of a test's directory
@@ -329,7 +329,7 @@ def packs_msix(test) -> None:
     signs and verifies it), so the same release is made on every platform."""
     if WINDOWS:
         return
-    import msix
+    from gfrelease.adapters.windows import msix
     from unittest import mock
     for name, value in (("available", lambda: True),
                         ("_pack", pack_as_a_zip)):
@@ -366,7 +366,7 @@ class SigningCertificate:
     the rehearsal's authenticode_ca, signer() to sign with."""
 
     def __init__(self, directory: Path, name: str = "GpgFrontend Test Signing"):
-        import authenticode
+        from gfrelease.adapters.windows import authenticode
         directory = Path(directory)
         if WINDOWS:
             self.ca = directory / f"{name}.cer"
@@ -394,13 +394,13 @@ class SigningCertificate:
                 "--authenticode-key", str(self.key)]
 
     def signer(self, **kw):
-        import authenticode
+        from gfrelease.adapters.windows import authenticode
         if WINDOWS:
             return authenticode.SigntoolSigner(self.thumbprint, **kw)
         return authenticode.Signer(str(self.ca), str(self.key), **kw)
 
     def close(self) -> None:
         if WINDOWS:
-            import authenticode
+            from gfrelease.adapters.windows import authenticode
             authenticode.powershell(_REMOVE_CERTIFICATE,
                                     GFR_THUMBPRINT=self.thumbprint)

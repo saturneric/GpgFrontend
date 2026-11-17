@@ -14,7 +14,6 @@ import os
 import shutil
 import struct
 import subprocess
-import sys
 import tempfile
 import unittest
 import zipfile
@@ -24,16 +23,14 @@ from unittest import mock
 from xml.etree import ElementTree
 
 ROOT = Path(__file__).resolve().parent.parent.parent
-sys.path.insert(0, str(ROOT / "scripts" / "release" / "gfrelease"))
-sys.path.insert(0, str(ROOT / "scripts" / "tests"))
-sys.path.insert(0, str(ROOT / "scripts" / "release"))
 
-import authenticode  # noqa: E402
-import cab  # noqa: E402
-import common  # noqa: E402
-import msi  # noqa: E402
-import msix  # noqa: E402
-import policy  # noqa: E402
+import _paths  # noqa: E402,F401
+from gfrelease.adapters.windows import authenticode  # noqa: E402
+from gfrelease.adapters.windows import cab  # noqa: E402
+from gfrelease import common  # noqa: E402
+from gfrelease.adapters.windows import msi  # noqa: E402
+from gfrelease.adapters.windows import msix  # noqa: E402
+from gfrelease.domain import policy  # noqa: E402
 from trustutil import (SigningCertificate, pack_as_a_zip,  # noqa: E402
                        signing_tools)
 

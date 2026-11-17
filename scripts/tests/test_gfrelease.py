@@ -29,22 +29,20 @@ from pathlib import Path
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent.parent
-GFR =ROOT / "scripts" / "release" / "gfrelease"
-sys.path.insert(0, str(GFR))
-sys.path.insert(0, str(ROOT / "scripts" / "tests"))
 
-import common  # noqa: E402
-import host as host_mod  # noqa: E402
-import index as index_mod  # noqa: E402
-import layout  # noqa: E402
-import minisig  # noqa: E402
-import openpgp  # noqa: E402
-import promote as promote_mod  # noqa: E402
-import stage as stage_mod  # noqa: E402
-import trust  # noqa: E402
-import verify as verify_mod  # noqa: E402
-import views  # noqa: E402
-from store import Store, StoreUnavailable  # noqa: E402
+import _paths  # noqa: E402,F401
+from gfrelease import common  # noqa: E402
+from gfrelease.app import host as host_mod  # noqa: E402
+from gfrelease.app import index as index_mod  # noqa: E402
+from gfrelease.domain import layout  # noqa: E402
+from gfrelease.adapters import minisig  # noqa: E402
+from gfrelease.adapters import openpgp  # noqa: E402
+from gfrelease.app import promote as promote_mod  # noqa: E402
+from gfrelease.app import stage as stage_mod  # noqa: E402
+from gfrelease.app import trust  # noqa: E402
+from gfrelease.app import verify as verify_mod  # noqa: E402
+from gfrelease.app import views  # noqa: E402
+from gfrelease.adapters.store import Store, StoreUnavailable  # noqa: E402
 from test_authenticode import build_msi, build_zip, pe_bytes  # noqa: E402
 from test_release_candidate import FAKE_COSIGN  # noqa: E402
 from trustutil import (WINDOWS, SigningCertificate, git_env,  # noqa: E402
@@ -1100,11 +1098,9 @@ class ChainTest(unittest.TestCase):
             "already holds")
 
     def cli(self):
-        import importlib.util
-        spec = importlib.util.spec_from_file_location("gfr_cli",
-                                                      GFR / "__main__.py")
-        cli = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(cli)
+        import importlib
+        cli = importlib.reload(
+            importlib.import_module("gfrelease.cli.main"))
         return cli
 
     # --- the command line: views, --json --------------------------------
@@ -1300,11 +1296,9 @@ class ChainTest(unittest.TestCase):
         self.assertFalse(self.update.exists(common.INDEX))
 
     def test_the_cli_wants_both_stores_or_neither(self):
-        import importlib.util
-        spec = importlib.util.spec_from_file_location("gfr_cli",
-                                                      GFR / "__main__.py")
-        cli = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(cli)
+        import importlib
+        cli = importlib.reload(
+            importlib.import_module("gfrelease.cli.main"))
         err = io.StringIO()
         with contextlib.redirect_stderr(err):
             self.assertEqual(cli.main(["verify", "--update", str(self.tmp)]), 1)
@@ -1669,9 +1663,9 @@ if __name__ == "__main__":
 
 # --------------------------------------------------------------- stable
 
-import authenticode  # noqa: E402
-import msix as msix_mod  # noqa: E402
-import stable as stable_mod  # noqa: E402
+from gfrelease.adapters.windows import authenticode  # noqa: E402
+from gfrelease.adapters.windows import msix as msix_mod  # noqa: E402
+from gfrelease.app import stable as stable_mod  # noqa: E402
 
 
 class HelperTest(unittest.TestCase):
@@ -2278,11 +2272,9 @@ class StableTest(unittest.TestCase):
         self.assert_refused(self.index, "signed by")
 
     def stable_cli(self, *extra, tty=False, answer=""):
-        import importlib.util
-        spec = importlib.util.spec_from_file_location("gfr_cli",
-                                                      GFR / "__main__.py")
-        cli = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(cli)
+        import importlib
+        cli = importlib.reload(
+            importlib.import_module("gfrelease.cli.main"))
         args = [*trust_args(self.product), "stable", "2.3.0",
                 "--work", str(self.tmp / "work"),
                 "--staging", self.staging.root,
@@ -3167,7 +3159,7 @@ class StableTest(unittest.TestCase):
         self.assert_refused(self.index, "tag v2.3.0|notes")
 
 
-import imported as imported_mod  # noqa: E402
+from gfrelease.app import imported as imported_mod  # noqa: E402
 
 IMPORT_TOOLS = TOOLS and tools("gpg", "gpgconf")
 

@@ -11,7 +11,6 @@ import json
 import os
 import re
 import subprocess
-import sys
 from pathlib import Path
 
 # The maintainer's stage also runs on Windows, where the Authenticode token's
@@ -22,18 +21,12 @@ if WINDOWS:
 else:
     import fcntl
 
-HERE = Path(__file__).resolve().parent
-RELEASE_DIR = HERE.parent
-ROOT = RELEASE_DIR.parent.parent
-sys.path.insert(0, str(RELEASE_DIR))
-sys.path.insert(0, str(ROOT / "scripts"))
-
-import gitversion  # noqa: E402
-import policy as policy_mod  # noqa: E402
-import refs  # noqa: E402
-import release_candidate as rc  # noqa: E402
-import semver  # noqa: E402
-import ui  # noqa: E402
+from .adapters import gitversion
+from .app import candidate as rc
+from .cli import ui
+from .domain import policy as policy_mod
+from .domain import refs, semver
+from .paths import RELEASE_DIR, ROOT  # noqa: F401  (others take them here)
 
 SCHEMA = 1
 DESCRIPTOR = "release.json"
@@ -322,7 +315,7 @@ class Product:
         """The root and the index-keys list, checked and unexpired; read
         when first asked for (staging needs neither)."""
         if self._trust is None:
-            import trust  # trust.py builds on this module
+            from .app import trust  # trust.py builds on this module
             root, keys = trust.load_trust(self.root_dir, self.index_keys_dir,
                                           self.slug, self.root_sha256)
             trust.check_unexpired(root, f"root {root['version']}")

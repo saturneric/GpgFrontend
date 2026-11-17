@@ -13,32 +13,28 @@ from __future__ import annotations
 
 import argparse
 import contextlib
-import importlib.util
 import io
 import json
 import os
 import shutil
 import subprocess
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[2]
-GFR = ROOT / "scripts" / "release" / "gfrelease"
-sys.path.insert(0, str(GFR))
 
-import settings as settings_mod  # noqa: E402
-import topics  # noqa: E402
-import ui  # noqa: E402
+import _paths  # noqa: E402,F401
+from gfrelease.cli import settings as settings_mod  # noqa: E402
+from gfrelease.cli import topics  # noqa: E402
+from gfrelease.cli import ui  # noqa: E402
 
 
 def load_cli():
-    spec = importlib.util.spec_from_file_location("gfr_cli",
-                                                  GFR / "__main__.py")
-    cli = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(cli)
+    import importlib
+    cli = importlib.reload(
+        importlib.import_module("gfrelease.cli.main"))
     return cli
 
 
