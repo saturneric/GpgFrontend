@@ -41,6 +41,7 @@
 #include "core/utils/GpgUtils.h"
 #include "core/utils/MemoryUtils.h"
 #include "ui/UIModuleManager.h"
+#include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/SignersPicker.h"
 #include "ui/function/GpgOperaHelper.h"
@@ -841,7 +842,7 @@ auto MainWindow::handle_module_error(QMap<QString, GFBuffer> p) -> bool {
 }
 
 void MainWindow::slot_gpg_opera_buffer_show_helper(
-    const QContainer<GpgOperaResult>& results) {
+    const QContainer<GpgOperaResult>& results, const QPointer<QWidget>& page) {
   for (const auto& result : results) {
     // Never replace the editor content with the output of a failed operation.
     // A failed decrypt can still carry a non-empty buffer (e.g. gpg extracts
@@ -850,7 +851,15 @@ void MainWindow::slot_gpg_opera_buffer_show_helper(
     if (result.status < 0) continue;
     if (result.o_buffer.Empty()) continue;
 
-    edit_->SlotFillTextEditWithText(result.o_buffer);
+    // Into the tab the input came from. The current one may be another by now
+    // (the window stays usable while gpg waits on pinentry), and writing there
+    // replaced a document nobody had asked to change.
+    if (!edit_->SetGFBuffer2Page(page, result.o_buffer)) {
+      emit UISignalStation::GetInstance() -> SignalRefreshStatusBar(
+          tr("The tab the text came from was closed, or no longer holds a "
+             "text document."),
+          5000);
+    }
     return;
   }
 }
@@ -858,6 +867,8 @@ void MainWindow::slot_gpg_opera_buffer_show_helper(
 auto MainWindow::exec_operas_helper(
     const QString& task,
     const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool {
+  // Taken before the wait: this is the tab the input came from.
+  const QPointer<QWidget> page = edit_->CurPage();
   GpgOperaHelper::WaitForMultipleOperas(this, task, contexts->operas);
 
   // Releases the reference cycle the operas hold on this basement.
@@ -877,7 +888,7 @@ auto MainWindow::exec_operas_helper(
     }
   }
 
-  slot_gpg_opera_buffer_show_helper(opera_results);
+  slot_gpg_opera_buffer_show_helper(opera_results, page);
 
   slot_result_analyse_show_helper(opera_results);
   return all_success;

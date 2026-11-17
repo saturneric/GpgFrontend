@@ -491,12 +491,14 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   void slot_restart_gpg_components(bool);
 
   /**
-   * @brief
+   * @brief Put the first usable output into the tab the input came from.
    *
-   * @param results
+   * @param results the operation's results
+   * @param page the tab the operation's input came from, which is where its
+   *        output goes: not whichever tab is current when it finishes
    */
   void slot_gpg_opera_buffer_show_helper(
-      const QContainer<GpgOperaResult>& results);
+      const QContainer<GpgOperaResult>& results, const QPointer<QWidget>& page);
 
   /**
    * @details refresh and enable specify crypto-menu actions.
