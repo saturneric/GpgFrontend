@@ -88,6 +88,16 @@ auto GF_CORE_EXPORT IsFlatpakENV() -> bool;
 auto GF_CORE_EXPORT IsAppImageENV() -> bool;
 
 /**
+ * @brief The program that starts this installation again: the .AppImage file
+ * inside an AppImage, @p argv0 everywhere else.
+ *
+ * Inside an AppImage argv[0] names the image's temporary mount, which goes
+ * away with this process: a successor started from it would find nothing
+ * there. Falls back to @p argv0 when $APPIMAGE names no existing file.
+ */
+auto GF_CORE_EXPORT RelaunchProgram(const QString &argv0) -> QString;
+
+/**
  * @brief
  *
  * @param s

@@ -29,8 +29,40 @@
 #include <gtest/gtest.h>
 
 #include "core/function/gpg/GpgCommandExecutor.h"
+#include "core/utils/CommonUtils.h"
 
 namespace GpgFrontend::Test {
+
+#ifdef Q_OS_LINUX
+TEST(RelaunchProgramTest, AnAppImageRestartsFromTheImageNotItsMount) {
+  // argv[0] inside an AppImage is its temporary mount, gone with the process
+  // that restarts; the file is what comes back.
+  QTemporaryDir stick;
+  ASSERT_TRUE(stick.isValid());
+  const auto image = stick.path() + "/GpgFrontend.AppImage";
+  QFile file(image);
+  ASSERT_TRUE(file.open(QIODevice::WriteOnly));
+  file.close();
+  const auto mount = QStringLiteral("/tmp/.mount_GpgFroXyZ/AppRun");
+
+  const auto previous = qgetenv("APPIMAGE");
+  qunsetenv("APPIMAGE");
+  EXPECT_EQ(RelaunchProgram(mount), mount);
+
+  qputenv("APPIMAGE", image.toLocal8Bit());
+  EXPECT_EQ(RelaunchProgram(mount), QFileInfo(image).absoluteFilePath());
+
+  // Nothing there: the image cannot be what restarts.
+  qputenv("APPIMAGE", "/nonexistent/GpgFrontend.AppImage");
+  EXPECT_EQ(RelaunchProgram(mount), mount);
+
+  if (previous.isEmpty()) {
+    qunsetenv("APPIMAGE");
+  } else {
+    qputenv("APPIMAGE", previous);
+  }
+}
+#endif
 
 #ifndef Q_OS_WINDOWS
 

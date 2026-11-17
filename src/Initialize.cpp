@@ -45,6 +45,7 @@
 #include "core/module/ModuleInit.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "core/utils/CommonUtils.h"
 #include "ui/GpgFrontendUIInit.h"
 
 // main
@@ -323,7 +324,8 @@ void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
       ctx->rtn == GpgFrontend::kCrashCode) {
     QStringList args = qApp->arguments();
     if (!args.isEmpty()) {
-      g_relaunch_program = args.takeFirst();
+      // The .AppImage file inside an AppImage, not its temporary mount.
+      g_relaunch_program = RelaunchProgram(args.takeFirst());
       g_relaunch_args = args;
       g_relaunch_pending.store(true);
     }

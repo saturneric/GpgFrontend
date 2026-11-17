@@ -120,6 +120,13 @@ auto GF_CORE_EXPORT IsAppImageENV() -> bool {
   return !QString::fromLocal8Bit(qgetenv("APPIMAGE")).isEmpty();
 }
 
+auto RelaunchProgram(const QString& argv0) -> QString {
+  if (!IsAppImageENV()) return argv0;
+  const QFileInfo image(qEnvironmentVariable("APPIMAGE"));
+  return image.isFile() && image.isAbsolute() ? image.absoluteFilePath()
+                                              : argv0;
+}
+
 auto GF_CORE_EXPORT ParseHexEncodedVersionTuple(const QString& s) -> int {
   // s is a hex-encoded, unsigned int-packed version tuple,
   // i.e. each byte represents one part of the version tuple
