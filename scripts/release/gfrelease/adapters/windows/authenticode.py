@@ -507,7 +507,15 @@ def powershell(script: str, **env: str) -> str:
     encoded = base64.b64encode((prelude + script).encode("utf-16-le"))
     return run(["powershell", "-NoProfile", "-NonInteractive",
                 "-EncodedCommand", encoded.decode("ascii")],
-               env=dict(os.environ, **env), timeout=600).stdout
+               env=dict(powershell_environ(), **env), timeout=600).stdout
+
+
+def powershell_environ() -> dict[str, str]:
+    """This environment, as Windows PowerShell is started with it. Started
+    from PowerShell 7, the inherited PSModulePath points it at 7's modules,
+    and it loses its own (the Cert: drive among them)."""
+    return {k: v for k, v in os.environ.items()
+            if k.upper() != "PSMODULEPATH"}
 
 
 # What Windows makes of each file listed in $env:GFR_FILES: its verdict, the

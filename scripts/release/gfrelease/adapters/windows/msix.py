@@ -154,7 +154,7 @@ def _pack(tree: Path, files: dict[str, bytes], out: Path,
     run(["powershell", "-NoProfile", "-NonInteractive", "-ExecutionPolicy",
          "Bypass", "-File", resources / LOGOS, "-Icon", icon(),
          "-Assets", tree / "Assets"],
-        timeout=600)
+        env=authenticode.powershell_environ(), timeout=600)
     # The index of the logos, before anything else is in the tree: makepri
     # lists every file it finds there.
     config = tree.with_name("priconfig.xml")
