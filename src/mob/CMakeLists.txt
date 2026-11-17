@@ -48,6 +48,7 @@ qt_add_library(gf_mob_lib STATIC
   model/KeyCategoriesController.cpp
   model/KeyGroupsController.cpp
   model/AboutInfo.cpp
+  model/ProfileStatus.cpp
   model/KeyDatabasesController.cpp
   model/KeyDescription.cpp
   model/ProfilesController.cpp

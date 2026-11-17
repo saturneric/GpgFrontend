@@ -20837,6 +20837,16 @@ L&apos;ouvrir dans votre navigateur ?</translation>
 </context>
 <context>
     <name>MainPage</name>
+    <message>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="308"/>
+        <source>Status</source>
+        <translation>État</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="309"/>
+        <source>How this profile is protected and what it runs on. Copy it when reporting an issue.</source>
+        <translation>Comment ce profil est protégé et sur quoi il fonctionne. Copiez-le pour signaler un problème.</translation>
+    </message>
     <message numerus="yes">
         <location filename="../../../../src/mob/qml/MainPage.qml" line="59"/>
         <source>%n shared file(s) added, as copies for this session.</source>
@@ -24571,6 +24581,16 @@ Annulez ces modifications, ou choisissez Annuler pour abandonner tout ce que vou
 </context>
 <context>
     <name>SettingsPage</name>
+    <message>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="310"/>
+        <source>Status</source>
+        <translation>État</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="311"/>
+        <source>Secure level, credential store and engine.</source>
+        <translation>Niveau de sécurité, magasin d&apos;identifiants et moteur.</translation>
+    </message>
     <message>
         <location filename="../../../../src/mob/qml/SettingsPage.qml" line="39"/>
         <source>Settings</source>

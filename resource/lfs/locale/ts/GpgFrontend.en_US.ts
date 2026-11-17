@@ -17424,6 +17424,16 @@ Open it in your browser?</source>
 </context>
 <context>
     <name>MainPage</name>
+    <message>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="308"/>
+        <source>Status</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/MainPage.qml" line="309"/>
+        <source>How this profile is protected and what it runs on. Copy it when reporting an issue.</source>
+        <translation type="unfinished"></translation>
+    </message>
     <message numerus="yes">
         <location filename="../../../../src/mob/qml/MainPage.qml" line="59"/>
         <source>%n shared file(s) added, as copies for this session.</source>
@@ -20816,6 +20826,16 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
 </context>
 <context>
     <name>SettingsPage</name>
+    <message>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="310"/>
+        <source>Status</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/mob/qml/SettingsPage.qml" line="311"/>
+        <source>Secure level, credential store and engine.</source>
+        <translation type="unfinished"></translation>
+    </message>
     <message>
         <location filename="../../../../src/mob/qml/SettingsPage.qml" line="39"/>
         <source>Settings</source>

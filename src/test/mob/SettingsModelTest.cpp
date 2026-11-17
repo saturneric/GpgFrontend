@@ -39,6 +39,7 @@
 #include "files/ShareRetentionStore.h"
 #include "model/AboutInfo.h"
 #include "model/KeyDatabasesController.h"
+#include "model/ProfileStatus.h"
 #include "model/SettingsModel.h"
 
 namespace GpgFrontend::Test::Mobile {
@@ -365,6 +366,50 @@ TEST(SettingsModelTest, AboutTellsTheBuildTheEngineAndTheTranslators) {
 #else
     EXPECT_TRUE(about.androidBuild().isEmpty());
 #endif
+  });
+}
+
+// The profile status: what the desktop's About > Status tab tells, the
+// secure level, the credential store and the engine among it.
+TEST(SettingsModelTest, StatusTellsTheProfileAsTheDesktopDoes) {
+  RunOnMainThread([]() {
+    GpgFrontend::Mobile::ProfileStatus status;
+    QStringList titles;
+    QMap<QString, QVariantMap> rows;
+    for (const auto& section : status.sections()) {
+      titles << section.toMap().value("title").toString();
+      for (const auto& row : section.toMap().value("rows").toList()) {
+        rows.insert(row.toMap().value("label").toString(), row.toMap());
+      }
+    }
+
+    // Every section the desktop shows, with something in it.
+    EXPECT_TRUE(titles.contains("At a Glance"));
+    EXPECT_TRUE(titles.contains("Profile"));
+    EXPECT_TRUE(titles.contains("OpenPGP Engines"));
+
+    // The desktop's captions, without their colon.
+    EXPECT_TRUE(rows.contains("Secure Level"));
+    EXPECT_TRUE(rows.contains("Application Key Protection"));
+    EXPECT_FALSE(rows.value("Profile ID").value("value").toString().isEmpty());
+    EXPECT_TRUE(rows.value("Profile ID").value("mono").toBool());
+    // Either named or said to be missing, with why.
+    EXPECT_TRUE(rows.contains("System Credential Store"));
+
+    // The phone's one engine; nothing of GnuPG's, and no running mode.
+    EXPECT_EQ(rows.value("rPGP").value("value"), "Available");
+#if !GF_ENGINE_GNUPG
+    EXPECT_FALSE(rows.contains("GnuPG Offline Mode"));
+    EXPECT_FALSE(rows.contains("Pinentry Program Path"));
+#endif
+#ifdef Q_OS_ANDROID
+    EXPECT_FALSE(rows.contains("Running Mode"));
+#endif
+
+    // Copied as the desktop copies it.
+    const auto text = status.text();
+    EXPECT_TRUE(text.contains("[At a Glance]"));
+    EXPECT_TRUE(text.contains("Secure Level: "));
   });
 }
 

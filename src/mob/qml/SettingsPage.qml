@@ -32,6 +32,8 @@ Page {
     signal categoriesRequested()
     // The profiles on this phone (not the key generation ones above).
     signal profileManagerRequested()
+    // The profile's status, as the desktop's About > Status tab tells it.
+    signal statusRequested()
     // Another key database is in use: what is open of the last one goes.
     signal keyDatabaseSwitched()
 
@@ -295,6 +297,19 @@ Page {
                 detail: qsTr("Open another, start a new one, or keep a backup.")
                 valueText: phoneProfiles.currentName
                 onClicked: page.profileManagerRequested()
+
+                Icon {
+                    symbol: "chevron_right"
+                    color: Material.secondaryTextColor
+                }
+            }
+
+            ListRow {
+                objectName: "profileStatus"
+                Layout.fillWidth: true
+                text: qsTr("Status")
+                detail: qsTr("Secure level, credential store and engine.")
+                onClicked: page.statusRequested()
 
                 Icon {
                     symbol: "chevron_right"

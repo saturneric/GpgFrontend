@@ -22,6 +22,8 @@ Page {
     // [{title, rows: [{label, value, full}]}]; full, where given, is what
     // a shortened value stands for, and what is copied.
     property var sections: []
+    // What Copy copies, where the page's owner words it; else the facts.
+    property string copyText: ""
 
     signal back()
 
@@ -45,7 +47,7 @@ Page {
             text: qsTr("Copy")
             icon.source: Theme.icon("content_copy")
             onClicked: {
-                output.copy(page.asText(), false)
+                output.copy(page.copyText.length > 0 ? page.copyText : page.asText(), false)
                 done.show(qsTr("Copied."))
             }
         }
@@ -109,6 +111,14 @@ Page {
                             Layout.bottomMargin: 6
                             label: modelData.label
                             value: modelData.value
+                            detail: modelData.detail || ""
+                            mono: modelData.mono === true
+                            // A fallback, not what was asked for: marked as
+                            // the desktop marks it; nothing to say, quiet.
+                            valueColor: modelData.degraded === true ? Theme.warning
+                                        : modelData.dimmed === true
+                                          ? Material.secondaryTextColor
+                                          : Material.foreground
                         }
                     }
                 }

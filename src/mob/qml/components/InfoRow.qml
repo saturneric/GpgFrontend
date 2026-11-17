@@ -16,6 +16,8 @@ GridLayout {
     property string label
     property string value
     property bool mono: false
+    // A sentence about the value, under both, quieter than either.
+    property string detail: ""
     property color valueColor: Material.foreground
 
     // Beside each other while the label takes no more than about a third.
@@ -54,5 +56,16 @@ GridLayout {
         horizontalAlignment: row.stacked ? Text.AlignLeft : Text.AlignRight
         Accessible.role: Accessible.StaticText
         Accessible.name: row.label + ": " + row.value
+    }
+
+    Label {
+        objectName: "infoDetail"
+        Layout.fillWidth: true
+        Layout.columnSpan: row.columns
+        visible: row.detail.length > 0
+        text: row.detail
+        wrapMode: Text.Wrap
+        color: Material.secondaryTextColor
+        font.pixelSize: Theme.labelSize
     }
 }

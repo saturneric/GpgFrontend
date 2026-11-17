@@ -162,6 +162,7 @@ Page {
                 onCategoriesRequested: settingsStack.push(categoriesPage)
                 onProfilesRequested: settingsStack.push(profilesPage)
                 onProfileManagerRequested: settingsStack.push(profileManager)
+                onStatusRequested: settingsStack.push(profileStatusPage)
                 onKeyDatabaseSwitched: main.keyDatabaseSwitched()
             }
         }
@@ -292,6 +293,25 @@ Page {
     // What the desktop's About dialog tells of a build, a page each.
     AboutInfo {
         id: aboutInfo
+    }
+
+    // What the desktop's About > Status tab tells of the profile; read again
+    // on each push, so a switched profile shows its own.
+    ProfileStatus {
+        id: profileStatus
+    }
+
+    Component {
+        id: profileStatusPage
+        FactsPage {
+            objectName: "profileStatusPage"
+            title: qsTr("Status")
+            intro: qsTr("How this profile is protected and what it runs on. "
+                        + "Copy it when reporting an issue.")
+            sections: profileStatus.sections()
+            copyText: profileStatus.text()
+            onBack: settingsStack.pop()
+        }
     }
 
     Component {
