@@ -33,7 +33,7 @@ SCRIPTS = Path(__file__).resolve().parent.parent
 import _paths  # noqa: E402,F401
 from gfrelease.adapters import cosign as cosign_mod  # noqa: E402
 from gfrelease.app import candidate as rc  # noqa: E402
-from gfrelease.cli import forwarded  # noqa: E402
+from gfrelease.cli import parser as parser_mod  # noqa: E402
 from trustutil import stand_in, symlink  # noqa: E402
 
 WORKFLOW = SCRIPTS.parent / ".github" / "workflows" / "build.yml"
@@ -194,8 +194,8 @@ class ChainTest(TreeCase):
         # The host verifies through gfrelease, which calls verify().
         with self.assertRaises(SystemExit), \
                 contextlib.redirect_stderr(io.StringIO()):
-            forwarded.candidate_main(["verify", "--dir",
-                                      str(self.tree.candidate)])
+            parser_mod.build_parser().parse_args(
+                ["candidate", "verify", "--dir", str(self.tree.candidate)])
 
 
 # ---------------------------------------------------------------- identity

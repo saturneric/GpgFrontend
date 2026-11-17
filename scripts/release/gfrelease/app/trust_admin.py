@@ -1,10 +1,27 @@
 # Copyright (C) 2021-2026 Saturneric <eric@bktus.com>
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The trust ceremonies (gfrelease help root-ceremony): the next root
-written and signed by the root keys, the index-keys list renewed or a new
-index key rotated in, both by G; and the signing host taking main's next
-roots and lists (trust update). What each document says and when one is
-trusted is trust.py's; this writes them."""
+"""The trust ceremonies: the next root written and signed by the root
+keys, the index-keys list renewed or a new index key rotated in, both by
+G; and the signing host taking main's next roots and lists (trust update).
+What each document says and when one is trusted is trust.py's; this writes
+them.
+
+A new root (renewing one, or changing the root keys, G or the host policy),
+offline:
+
+  1. gfrelease trust root new: release/root/<N+1>.root.json, the newest
+     root one version up, expiring in two years; edit it by hand for
+     anything else that changes.
+  2. gfrelease trust root sign <file> -s <root key>: once per root key
+     holder, as many of root N's keys as its threshold and as many of the
+     new root's own; each run says who is still missing.
+  3. gfrelease trust root verify, then commit release/root/: the signing
+     host takes it on its next round.
+
+The index-keys list (release/index-keys/<V>.json, signed by G): `trust keys
+renew -s <G>` before it expires; `--rotate --secret-out <path>` lists a new
+index key instead (with --keep-old beside the current ones). G's secret is
+read once from the path given, so -s <(bw get notes ...) works."""
 
 from __future__ import annotations
 
@@ -59,6 +76,30 @@ def sign_root(file: Path, secret: str) -> str:
     finally:
         tmp.unlink(missing_ok=True)
     return key_id
+
+
+def signatures(file: Path, slug: str) -> list[dict]:
+    """Who signed the root @p file, against the thresholds of the root
+    before it and its own: [{whose, threshold, signed, missing}]."""
+    read = trust.read_dir(file.parent)
+    data = file.read_bytes()
+    doc = trust.load(data, file.name, trust.ROOT_KIND, slug)
+    n = doc["version"]
+    previous = trust.walk(read, slug, upto=n - 1, steps=None) if n > 1 \
+        else None
+    groups = []
+    for whose, signer in ((f"root {n - 1}", previous), ("its own", doc)):
+        if signer is None:
+            continue
+        role = signer["roles"]["root"]
+        keys = {i: signer["keys"][i] for i in role["keyids"]}
+        found = trust.signers(
+            data, {i: read(layout.root_sig_name(n, i)) for i in keys}, keys,
+            layout.root_comment(slug, n))
+        groups.append({"whose": whose, "threshold": role["threshold"],
+                       "signed": sorted(found),
+                       "missing": sorted(set(keys) - found)})
+    return groups
 
 
 def outside_repository(path: str) -> Path:

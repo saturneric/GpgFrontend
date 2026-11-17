@@ -289,10 +289,6 @@ class TrustTest(unittest.TestCase):
         self.assertIn("root 4: expires", out.stdout)
         self.assertIn("index-keys 2: expires", out.stdout)
 
-    def test_verify_from_a_later_root(self):
-        out = cli(*self.args(), "trust", "root", "verify", "--from", "2")
-        self.assertIn("root 3", out.stdout)
-
     @unittest.skipIf(WINDOWS, "minisign signs on Linux only (minisig.py)")
     def test_renew_reads_g_once_from_a_process_substitution(self):
         """The real path: bash's <(...) -> gfrelease -> minisign."""
@@ -311,7 +307,7 @@ class TrustTest(unittest.TestCase):
     def test_rotate_makes_an_unattended_key_and_lists_it(self):
         secret = self.tmp / "out" / "index.key"
         secret.parent.mkdir()
-        out = cli(*self.args(), "trust", "keys", "rotate", "--keep-old",
+        out = cli(*self.args(), "trust", "keys", "renew", "--rotate", "--keep-old",
                   "--secret-out", str(secret), "-s",
                   str(fixture_key("g2")[0]))
         self.assertIn("without a password", out.stdout)
@@ -331,7 +327,7 @@ class TrustTest(unittest.TestCase):
             (self.keys / name).unlink()
         secret = self.tmp / "out" / "index.key"
         secret.parent.mkdir()
-        cli(*self.args(), "trust", "keys", "rotate", "--secret-out", str(secret),
+        cli(*self.args(), "trust", "keys", "renew", "--rotate", "--secret-out", str(secret),
             "-s", str(fixture_key("g2")[0]))
         root, keys = trust.load_trust(self.root, self.keys, SLUG)
         self.assertEqual((root["version"], keys["version"]), (3, 2))
@@ -341,7 +337,7 @@ class TrustTest(unittest.TestCase):
         self.assertNotEqual(out.returncode, 0)
 
     def test_rotate_never_writes_a_secret_into_the_repository(self):
-        out = cli(*self.args(), "trust", "keys", "rotate", "--secret-out",
+        out = cli(*self.args(), "trust", "keys", "renew", "--rotate", "--secret-out",
                   str(paths.ROOT / "index.key"), "-s",
                   str(fixture_key("g2")[0]), check=False)
         self.assertNotEqual(out.returncode, 0)

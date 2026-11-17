@@ -695,25 +695,31 @@ class ChainTest(unittest.TestCase):
 
     def round(self, host: host_mod.Host | None = None):
         """promote, then index: what the Release-Server container runs,
-        and the worse of the two."""
+        and the worse of the two; with both steps' reports (what the
+        command prints as JSON)."""
         host = host or self.host()
-        out, err = io.StringIO(), io.StringIO()
-        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
-            statuses = {host.promote(), host.index()}
+        err = io.StringIO()
+        reports = {}
+        with contextlib.redirect_stderr(err):
+            statuses = {host.promote()}
+            reports["promote"] = host.report
+            statuses.add(host.index())
+            reports["index"] = host.report
         status = next((s for s in (host_mod.FAILED, host_mod.PARTIAL)
                        if s in statuses), host_mod.DONE)
-        return status, out.getvalue(), err.getvalue()
+        return status, reports, err.getvalue()
 
     def test_a_round_says_done_partial_or_failed(self):
         self.commit()
         prefix, version = self.build()
         status, out, _ = self.round()
         self.assertEqual(status, host_mod.DONE)
-        self.assertIn(f"{host_mod.PUBLISHED} 1, stable None, beta None, "
-                      f"nightly {version}", out)
+        published_ = out["index"]["published"]
+        self.assertEqual((published_["serial"],
+                          published_["channels"]["nightly"]), (1, version))
         status, out, _ = self.round()
-        self.assertEqual((status, out.strip()),
-                         (host_mod.DONE, host_mod.UNCHANGED))
+        self.assertEqual((status, out["index"]["unchanged"]),
+                         (host_mod.DONE, True))
 
         # A forged candidate: refused for what it is, every round alike.
         staged = json.loads(self.staging.read(f"{prefix}/{layout.STAGED}"))
@@ -722,7 +728,8 @@ class ChainTest(unittest.TestCase):
         status, out, err = self.round()
         self.assertEqual(status, host_mod.PARTIAL)
         self.assertIn("not promoted", err)
-        self.assertIn(host_mod.UNCHANGED, out)
+        self.assertEqual(out["promote"]["status"], "partial")
+        self.assertTrue(out["index"]["unchanged"])
 
         # A store that does not answer: worth another round as it is.
         down = self.host()
@@ -731,7 +738,7 @@ class ChainTest(unittest.TestCase):
         status, out, err = self.round(down)
         self.assertEqual(status, host_mod.FAILED)
         # The index is kept all the same.
-        self.assertIn(host_mod.UNCHANGED, out)
+        self.assertTrue(out["index"]["unchanged"])
 
     def test_a_tool_that_does_not_answer_is_retried_not_refused(self):
         self.commit()
@@ -800,19 +807,8 @@ class ChainTest(unittest.TestCase):
                 "--index-key", str(self.idx_key), "--index-pub", self.idx_pub,
                 "--cosign", str(self.cosign)])
         self.assertEqual(status, host_mod.PARTIAL, err.getvalue())
-        # A dry run that would refuse something ran to its end too: what
-        # the host's status page shows, report and all.
-        self.builds.put_bytes(b"not JSON", "nightly/9.9.9/release.json")
-        out, err = io.StringIO(), io.StringIO()
-        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
-            status = self.cli().main([
-                *trust_args(self.product), "index", "--dry-run",
-                "--builds", self.builds.root, "--update", self.update.root,
-                "--git-dir", str(self.repo), "--state-dir", str(self.state),
-                "--index-pub", self.idx_pub, "--cosign", str(self.cosign)])
-        self.assertEqual(status, host_mod.PARTIAL, err.getvalue())
-        self.assertIn("would list:", out.getvalue())
-        self.assertIn("would refuse: nightly/9.9.9", err.getvalue())
+        # Its report on stdout says the same.
+        self.assertEqual(json.loads(out.getvalue())["status"], "partial")
 
     def test_what_the_signing_host_reads_is_held(self):
         """The Release-Server container reads gfrelease's published layout,
@@ -858,7 +854,8 @@ class ChainTest(unittest.TestCase):
                              set(staged))
         status, out, _ = self.round()
         self.assertEqual(status, host_mod.DONE)
-        self.assertIn(f"promoted {version} (3 files)", out)
+        self.assertEqual(out["promote"]["promoted"],
+                         [{"version": version, "files": 3}])
         index = published(self.update)
         d = json.loads(self.builds.read(index["nightly"]["descriptor"]))
         self.assertEqual((d["kind"], d["ref"], d["version"]),
@@ -870,9 +867,11 @@ class ChainTest(unittest.TestCase):
                              index["nightly"]["descriptor"])))
         for field in ("expires", "nightly", "series", "releases"):
             self.assertIn(field, index)
-        self.assertRegex(out, rf"{host_mod.PUBLISHED} 1, stable None, beta "
-                         rf"None, nightly {re.escape(version)}, expires \S+")
-        self.assertEqual(self.round()[1].strip(), host_mod.UNCHANGED)
+        self.assertEqual(out["index"]["published"], {
+            "serial": 1, "channels": index_model.summary(index),
+            "expires": index["expires"]})
+        self.assertEqual(out["index"]["status"], "done")
+        self.assertTrue(self.round()[1]["index"]["unchanged"])
         self.assertEqual((host_mod.DONE, host_mod.FAILED, host_mod.PARTIAL),
                          (0, 1, 3))
 
@@ -1135,7 +1134,7 @@ class ChainTest(unittest.TestCase):
             importlib.import_module("gfrelease.cli.main"))
         return cli
 
-    # --- the command line: views, --json --------------------------------
+    # --- the command line ---------------------------------------------
 
     def run_cli(self, *args):
         out, err = io.StringIO(), io.StringIO()
@@ -1150,138 +1149,38 @@ class ChainTest(unittest.TestCase):
                 "--index-key", str(self.idx_key), "--index-pub", self.idx_pub,
                 "--cosign", str(self.cosign)]
 
-    def test_the_host_steps_report_as_json(self):
+    def test_the_host_steps_print_one_json_document(self):
         self.commit()
         _, version = self.build()
-        status, out, _ = self.run_cli("--json", "promote", *self.host_args())
+        status, out, _ = self.run_cli("promote", *self.host_args())
         self.assertEqual(status, host_mod.DONE)
         self.assertEqual(json.loads(out)["promoted"],
                          [{"version": version, "files": 3}])
-        status, out, _ = self.run_cli("index", "--json", *self.host_args())
+        status, out, _ = self.run_cli("index", *self.host_args())
         report = json.loads(out)
         self.assertEqual((report["status"], report["unchanged"]),
                          ("done", False))
         self.assertEqual(report["published"]["serial"], 1)
         self.assertEqual(report["published"]["channels"]["nightly"], version)
-        report = json.loads(self.run_cli("--json", "index",
-                                         *self.host_args())[1])
+        report = json.loads(self.run_cli("index", *self.host_args())[1])
         self.assertTrue(report["unchanged"])
+        # --force re-signs: a new serial, nothing else changed.
+        report = json.loads(self.run_cli("index", "--force",
+                                         *self.host_args())[1])
+        self.assertEqual((report["unchanged"], report["published"]["serial"]),
+                         (False, 2))
 
-    def test_status_follows_a_nightly_through_the_chain(self):
-        self.commit()
-        _, version = self.build()
-        stores = ["--update", self.update.root, "--builds", self.builds.root,
-                  "--staging", self.staging.root]
-
-        def status():
-            code, out, err = self.run_cli("status", version, "--json",
-                                          *stores)
-            self.assertEqual(code, 0, err)
-            view = json.loads(out)
-            return {f["step"]: f["state"] for f in view["facts"]}, \
-                view["next"]
-
-        facts, nxt = status()
-        self.assertEqual((facts["staged by CI"], facts["promoted"]),
-                         ("yes", "no"))
-        self.assertIn("promote", nxt)
-        self.promote()
-        facts, nxt = status()
-        self.assertEqual((facts["promoted"], facts["listed"]), ("yes", "no"))
-        self.assertIn("next index", nxt)
-        self.index()
-        facts, nxt = status()
-        self.assertEqual(facts["listed"], "yes")
-        self.assertIsNone(nxt)
-        code, out, _ = self.run_cli("status", version, *stores)
-        self.assertIn("✓ listed  (nightly)", out)
-        self.assertNotIn("next:", out)
-
-    def test_status_and_show_name_a_release_candidate(self):
-        self.commit()
-        self.git("checkout", "-q", "-b", "release/2.3")
-        self.git("tag", "v2.3.0-rc.1")
-        self.build(ref="refs/tags/v2.3.0-rc.1")
-        self.promote()
-        self.index()
-        stores = ["--update", self.update.root, "--builds", self.builds.root]
-        code, out, err = self.run_cli("status", "2.3.0-rc.1", "--json",
-                                      *stores)
-        self.assertEqual(code, 0, err)
-        view = json.loads(out)
-        listed = next(f for f in view["facts"] if f["step"] == "listed")
-        self.assertEqual(listed["state"], "yes")
-        self.assertIn("release candidate of 2.3", listed["detail"])
-        code, out, err = self.run_cli("show", "--update", self.update.root)
-        self.assertEqual(code, 0, err)
-        self.assertIn("rc 2.3.0-rc.1", out)
-
-    def test_show_reads_the_index_as_a_client_does(self):
-        self.commit()
-        _, version = self.build()
-        self.promote()
-        self.index()
-        code, out, err = self.run_cli("show", "--update", self.update.root)
-        self.assertEqual(code, 0, err)
-        self.assertIn("update index, serial 1", out)
-        self.assertRegex(out, rf"nightly +{re.escape(version)}")
-        view = json.loads(self.run_cli("show", "--json", "--update",
-                                       self.update.root)[1])
-        self.assertEqual(view["serial"], 1)
-        self.assertGreater(view["days_left"], 13)
-        # Signed by a key the trusted list does not hold: shown nothing.
-        (self.tmp / "update" / self.slug / "v1" / "index.json").write_text(
-            "{}")
-        code, _, err = self.run_cli("show", "--update", self.update.root)
-        self.assertEqual(code, 1)
-        self.assertIn("error:", err)
-
-    def test_root_status_counts_signatures_against_both_thresholds(self):
+    def test_signing_a_root_says_who_is_still_missing(self):
         code, out, err = self.run_cli("trust", "root", "new")
         self.assertEqual(code, 0, err)
-        self.assertIn("next: ", out)
-        code, out, _ = self.run_cli("--json", "trust", "root", "status")
-        view = json.loads(out)
-        self.assertEqual(view["version"], 2)
-        self.assertFalse(view["complete"])
-        self.assertEqual([len(g["signed"]) for g in view["groups"]], [0, 0])
-        code, out, _ = self.run_cli("trust", "root", "status")
-        self.assertIn("0 of", out)
-        self.assertIn("more of root 1 root keys", out)
         keys = Path(__file__).resolve().parent / "fixtures" / "trust" / "keys"
         path = self.product.root_dir / "2.root.json"
         code, out, err = self.run_cli("trust", "root", "sign", str(path),
                                       "-s", str(keys / "root-a.key"))
         self.assertEqual(code, 0, err)
-        view = json.loads(self.run_cli("--json", "trust", "root",
-                                       "status")[1])
-        self.assertEqual([len(g["signed"]) for g in view["groups"]], [1, 1])
-
-    def test_doctor_names_what_is_missing(self):
-        code, out, _ = self.run_cli(
-            "doctor", "--for", "ci", "--cosign", str(self.tmp / "nothing"),
-            "--staging", self.staging.root)
-        self.assertEqual(code, 1)
-        self.assertIn("✗ tool cosign: not found", out)
-        self.assertIn("fix: install cosign", out)
-        self.assertRegex(out, "✓ store staging")
-        code, out, _ = self.run_cli("doctor", "--for", "ci", "--json",
-                                    "--cosign", str(self.cosign),
-                                    "--staging", self.staging.root)
-        self.assertEqual(code, 0, out)
-        self.assertTrue(all(c["ok"] for c in json.loads(out)["checks"]))
-
-    def test_doctor_checks_every_tool_a_host_runs(self):
-        self.git("tag", "v2.3.0-alpha.0")  # a base tag, not a release
-        code, out, _ = self.run_cli(
-            "doctor", "--for", "host", "--json", "--git-dir", str(self.repo),
-            "--index-pub", self.idx_pub, "--index-key", str(self.idx_key))
-        checks = {c["check"]: c for c in json.loads(out)["checks"]}
-        for tool in ("cmake", "gpgconf", "git", "minisign"):
-            self.assertIn(f"tool {tool}", checks)
-        self.assertEqual(checks["checkout"]["found"],
-                         f"{self.repo}: 1 release tags")
-        self.assertTrue(checks["index key"]["ok"], checks["index key"])
+        self.assertIn("root 1 root keys: 1 of", out)
+        self.assertIn("its own root keys: 1 of", out)
+        self.assertIn("missing ", out)
 
     def test_a_host_with_keys_clients_do_not_pin_refuses_to_run(self):
         _, other = keypair(self.tmp / "keys", "other")
@@ -1436,7 +1335,7 @@ class ChainTest(unittest.TestCase):
         self.assertEqual(status, host_mod.FAILED, err)
         self.assertIn("staged.json", err)
         # The index was still built from what is there.
-        self.assertIn(f"{host_mod.PUBLISHED} 1", out)
+        self.assertEqual(out["index"]["published"]["serial"], 1)
         self.assertEqual(published(self.update)["channels"]["nightly"],
                          version)
 
@@ -2340,24 +2239,12 @@ class StableTest(unittest.TestCase):
         status, out, err = self.stable_cli()
         self.assertEqual(status, 0, err)
         self.assertIn("[5/5] upload", out)
-        self.assertIn("next: the signing host receives and lists it", out)
+        self.assertIn("2.3.0: handed to the signing host", out)
         # Handed over: in the staging store, and nowhere else until the
         # host has checked it.
         self.assertFalse(published.exists())
         self.assertTrue(self.staging.exists(
             "signed/releases/2.3.0/release.json"))
-        # Every step done, nothing received yet: status says so.
-        view = views.status(self.product, "2.3.0", update=self.update,
-                            builds=self.builds, staging=self.staging,
-                            work=self.tmp / "work", git_dir=self.repo)
-        facts = {f["step"]: f["state"] for f in view["facts"]}
-        self.assertEqual((facts["handed over"],
-                          facts["received by the host"]), ("yes", "no"))
-        self.assertIn("next round", view["next"])
-        # Without the staging store nothing is concluded from it.
-        view = views.status(self.product, "2.3.0", update=self.update,
-                            builds=self.builds, git_dir=self.repo)
-        self.assertIn("give the staging store", view["next"])
         self.assertEqual([d["version"] for d in self.receive()], ["2.3.0"])
         self.assertTrue(published.exists())
 
@@ -2970,7 +2857,6 @@ class StableTest(unittest.TestCase):
             status = host.promote()
         # 2.3.0 is received, whatever else lies there.
         self.assertEqual(status, host_mod.PARTIAL, err.getvalue())
-        self.assertIn("received 2.3.0 (5 files)", out.getvalue())
         self.assertIn("signed/releases/2.3.1/release.json", err.getvalue())
         self.assertEqual(host.report["received"],
                          [{"version": "2.3.0", "files": 5}])

@@ -77,20 +77,19 @@ $others"
 printf '%s\n' "$dirty" | grep -q -E '^.. release/policy\.toml$' ||
   die "edit release/policy.toml first: ${series} stable, ${next} mainline"
 
-policy=(python3 -I "${here}/gfrelease" policy --policy "${top}/release/policy.toml"
-  --product "${top}/release/product.json" --security "${top}/SECURITY.md"
-  --root-dir "${top}/release/root")
-"${policy[@]}" check
-[ "$("${policy[@]}" mainline)" = "${next}" ] ||
-  die "release/policy.toml must name ${next} mainline"
-python3 - "${top}/release/policy.toml" "${series}" <<'PY' ||
+python3 - "${top}/release/policy.toml" "${series}" "${next}" <<'PY' ||
 import sys, tomllib
 with open(sys.argv[1], "rb") as f:
-    entry = tomllib.load(f)["series"].get(sys.argv[2], {})
-sys.exit(0 if entry.get("status") == "stable" else 1)
+    series = tomllib.load(f)["series"]
+mainline = [k for k, v in series.items() if v.get("status") == "mainline"]
+sys.exit(0 if series.get(sys.argv[2], {}).get("status") == "stable" and
+         mainline == [sys.argv[3]] else 1)
 PY
-  die "release/policy.toml must name ${series} stable"
-"${policy[@]}" render-security
+  die "release/policy.toml must name ${series} stable and ${next} mainline"
+# Checks the policy, then renders SECURITY.md from it.
+python3 -I "${here}/gfrelease" --policy "${top}/release/policy.toml" \
+  --product "${top}/release/product.json" --root-dir "${top}/release/root" \
+  policy render-security --security "${top}/SECURITY.md"
 
 git branch "${branch}" "${at}"
 git add release/policy.toml SECURITY.md

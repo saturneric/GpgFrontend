@@ -1,17 +1,15 @@
 # Copyright (C) 2021-2026 Saturneric <eric@bktus.com>
 # SPDX-License-Identifier: GPL-3.0-or-later
 """The signing host's two steps, each a command: promote, and index
-(resign is index --force). promote is everything that brings something
+(`index --force` re-signs). promote is everything that brings something
 from the staging store to the builds store, which only the host writes:
 the branch builds CI staged, and the releases and notes a maintainer
-handed over. The steps are app/promote.py's and app/index.py's; what
-they say to the host is this module's.
+handed over. The steps are app/promote.py's and app/index.py's; what they
+say to the host is this module's.
 
-Which step runs when, in what order, how often, and what is done about
-the stores besides (pruning, mirroring) is for whoever runs the host: the
-Release-Server container. It runs promote, then index, then a read-back
-`gfrelease verify` of anything published, and builds the index even when
-promotion failed. Each step ends in one of three ways, its exit status:
+Which step runs when, how often, and what is done about the stores besides
+(pruning, mirroring) is for whoever runs the host: the Release-Server
+container. Each step ends in one of three ways, its exit status:
 
   DONE     everything asked for was done.
   PARTIAL  it ran to its end, but something was refused for what it is (a
@@ -21,13 +19,11 @@ promotion failed. Each step ends in one of three ways, its exit status:
            answer, a tool that did not finish, a signature that could not
            be made). Worth running again as it is.
 
-What it prints on stdout is read by that caller too: "promoted <version>
-(<n> files)" for each build promoted, "received <version> (<n> files)" for
-each release a maintainer handed over, and "index unchanged" or a line
-starting "published serial"; with --json, one document saying the same
-(promoted, received, published, unchanged, problems, status). Every
-problem goes to
-stderr, each line starting "error:", the first naming the first one.
+On stdout each step prints one JSON document: promoted and received (each
+{version, files}), published ({serial, channels, expires}, or null),
+unchanged, problems and status ("done", "partial" or "failed"). Every
+problem also goes to stderr, each starting "error:", the first naming the
+first one.
 """
 
 from __future__ import annotations
@@ -45,9 +41,7 @@ from ..domain import index_model
 from ..errors import ReleaseError
 
 DONE, FAILED, PARTIAL = 0, 1, 3
-
-UNCHANGED = "index unchanged"
-PUBLISHED = "published serial"
+STATUS = {DONE: "done", PARTIAL: "partial", FAILED: "failed"}
 
 
 @dataclass
@@ -63,16 +57,9 @@ class Host:
     index_pub: list[str] | None = None
     cosign: str = "cosign"
     authenticode_ca: str | None = None
-    # What the last step did, for --json: promoted, published (or
+    # What the last step did: promoted, received, published (or
     # unchanged) and the problems.
     report: dict = field(default_factory=dict)
-
-    def dry_run(self) -> dict:
-        return index_mod.dry_run(
-            self.product, self.builds, self.update,
-            state_dir=self.state_dir,
-            git_dir=self.git_dir, cosign=self.cosign,
-            authenticode_ca=self.authenticode_ca, index_pub=self.index_pub)
 
     def promote(self) -> int:
         """Every branch's newest staged build that verifies, promoted."""
@@ -84,8 +71,8 @@ class Host:
         return self._step(lambda problem: self._index(force, problem))
 
     def _step(self, step) -> int:
-        """@p step under the host's lock; prints what was done on stdout
-        and every problem on stderr. Returns DONE, PARTIAL or FAILED."""
+        """@p step under the host's lock, every problem printed on stderr.
+        Returns DONE, PARTIAL or FAILED."""
         problems: list[str] = []
         status = DONE
         self.report = {"promoted": [], "received": [], "published": None,
@@ -109,6 +96,7 @@ class Host:
             # was refused before it is named.
             for text in problems:
                 print(f"error: {text}", file=sys.stderr)
+        self.report["status"] = STATUS[status]
         return status
 
     def _promote(self, problem) -> None:
@@ -131,10 +119,9 @@ class Host:
             except (ReleaseError, OSError) as e:
                 done = []
                 problem(f"{name}: {e}", True)
-            for d in done:
-                self.report[what].append(
-                    {"version": d["version"], "files": len(d["artifacts"])})
-                print(f"{what} {d['version']} ({len(d['artifacts'])} files)")
+            self.report[what] += [
+                {"version": d["version"], "files": len(d["artifacts"])}
+                for d in done]
 
     def _index(self, force: bool, problem) -> None:
         try:
@@ -148,13 +135,8 @@ class Host:
             index = e.index
             problem(str(e), e.passing)
         self.report["unchanged"] = index is None
-        if index is None:
-            print(UNCHANGED)
-        else:
-            channels = index_model.summary(index)
+        if index is not None:
             self.report["published"] = {
-                "serial": index["serial"], "channels": channels,
+                "serial": index["serial"],
+                "channels": index_model.summary(index),
                 "expires": index["expires"]}
-            print(f"{PUBLISHED} {index['serial']}, stable "
-                  f"{channels['stable']}, beta {channels['beta']}, nightly "
-                  f"{channels['nightly']}, expires {index['expires']}")

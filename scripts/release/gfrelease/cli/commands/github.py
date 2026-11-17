@@ -11,7 +11,7 @@ from ...app import github_sync
 from ...errors import ReleaseError
 from .. import host as host_mod
 from .. import ui
-from .inspect import sources
+from .verify import sources
 
 # The token, from the environment only (never a command line, which others
 # on the machine can read): GitHub Actions' own, with contents: write.
@@ -20,10 +20,6 @@ TOKEN = "GITHUB_TOKEN"
 
 def cmd_sync(ctx) -> int:
     args, product = ctx.args, ctx.product
-    if bool(getattr(args, "update", None)) != \
-            bool(getattr(args, "builds", None)):
-        raise ReleaseError("give both --update and --builds, or neither "
-                           "(the HTTPS bases)")
     token = os.environ.get(TOKEN) or None
     if token is None and not args.dry_run:
         raise ReleaseError(f"{TOKEN} is not set: a token that writes the "
@@ -35,7 +31,6 @@ def cmd_sync(ctx) -> int:
         product, update, builds, github, builds_base=f"{base}{product.slug}/",
         versions=args.versions or None, dry_run=args.dry_run)
     problems = report["problems"]
-    ctx.result = dict(report, problems=list(problems))
 
     ui.info(f"index serial {report['serial']}, GitHub {report['repository']}"
             f"{' (dry run)' if args.dry_run else ''}:")
