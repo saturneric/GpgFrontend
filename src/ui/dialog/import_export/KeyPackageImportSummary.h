@@ -72,6 +72,11 @@ struct KeyPackageImportChoice {
   KeyPackageImportFile key_file;
   bool pin_entered = false;
   int keys_selected = 0;  ///< ticked on the last step
+  /// Whether the package comes with a separate key file: version 2 and PIN
+  /// version 3 packages do.
+  bool needs_key_file = true;
+  /// The package was made by a newer GpgFrontend that this one cannot read.
+  bool package_too_new = false;
 };
 
 /**
@@ -104,6 +109,7 @@ enum class KeyPackageImportProblem {
   kNoPackage,
   kPackageUnreadable,
   kPackageTooLarge,
+  kPackageTooNew,
   kNoKeyFile,
   kKeyFileUnreadable,
   kKeyFileTooLarge,

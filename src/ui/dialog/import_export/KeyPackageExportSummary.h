@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/function/KeyPackageOperator.h"
 #include "ui/widgets/MetaListPanel.h"
 
 namespace GpgFrontend::UI {
@@ -84,6 +85,17 @@ struct KeyPackageExportChoice {
   QString name;           ///< the package's file name, without extension
   QString location;       ///< the folder the package goes into
   bool location_writable = false;
+
+  /// Write the older version 2 format, for GpgFrontend versions that cannot
+  /// read version 3. Only a PIN can protect it.
+  bool legacy_format = false;
+  /// What protects a version 3 package.
+  KeyPackageProtection protection = KeyPackageProtection::kPIN_FILE;
+  /// Write the private keys without their own passphrase (version 3 only).
+  bool remove_passphrase = false;
+  /// Copy gfpipe into the chosen folder too, ready to run: the package is
+  /// named "default", and a plain key is saved beside it.
+  bool for_gfpipe = false;
 };
 
 /**
@@ -98,6 +110,7 @@ enum class KeyPackageExportProblem {
   kNoKeyFile,
   kSameFile,
   kNoPin,
+  kGfPipeNeedsNoPin,  ///< gfpipe cannot read a PIN-protected package
 };
 
 /**
@@ -140,6 +153,40 @@ auto GF_UI_EXPORT KeyPackageExportCount(const KeyPackageExportChoice& choice)
  */
 auto GF_UI_EXPORT
 KeyPackageIncludesPrivate(const KeyPackageExportChoice& choice) -> bool;
+
+/**
+ * @brief What actually protects the package: a version 2 package is always
+ * protected by a PIN, whatever was picked for version 3.
+ * @param choice what has been chosen
+ * @return the protection that will be written
+ */
+auto GF_UI_EXPORT KeyPackageEffectiveProtection(
+    const KeyPackageExportChoice& choice) -> KeyPackageProtection;
+
+/**
+ * @brief Whether the package is written with a separate key file.
+ * @param choice what has been chosen
+ * @return true for a PIN-protected package
+ */
+auto GF_UI_EXPORT KeyPackageUsesKeyFile(const KeyPackageExportChoice& choice)
+    -> bool;
+
+/**
+ * @brief Whether private keys are written without their passphrase.
+ * Only for version 3, and only when private keys go in at all.
+ * @param choice what has been chosen
+ * @return true when the passphrases are removed
+ */
+auto GF_UI_EXPORT
+KeyPackageRemovesPassphrase(const KeyPackageExportChoice& choice) -> bool;
+
+/**
+ * @brief What one protection means, as one sentence beside its option.
+ * @param protection the protection
+ * @return translated sentence
+ */
+auto GF_UI_EXPORT
+DescribeKeyPackageProtectionOption(KeyPackageProtection protection) -> QString;
 
 /**
  * @brief Whether "Include private keys" can be offered at all.
@@ -294,21 +341,26 @@ auto GF_UI_EXPORT BuildKeyPackageReviewRows(
     const KeyPackageExportChoice& choice) -> QList<MetaListRow>;
 
 /**
- * @brief The rows the "exported" dialog names the two written files with.
+ * @brief The rows the "exported" dialog names the written files with.
  *
  * @param package_path the package that was written
- * @param key_path the key file that was written
+ * @param key_path the key file that was written; empty when there is none
+ * @param gfpipe_path the gfpipe copied beside it; empty when none was
+ * @param key_text_path the plain key saved for gfpipe; empty when none was
  * @return the rows to hand a MetaListPanel
  */
-auto GF_UI_EXPORT BuildKeyPackageExportDoneRows(const QString& package_path,
-                                                const QString& key_path)
+auto GF_UI_EXPORT BuildKeyPackageExportDoneRows(
+    const QString& package_path, const QString& key_path,
+    const QString& gfpipe_path = {}, const QString& key_text_path = {})
     -> QList<MetaListRow>;
 
 /**
- * @brief How the two files are sealed, as one sentence for the curious.
+ * @brief How the package is sealed, as one sentence for the curious.
  *
+ * @param choice what has been chosen
  * @return translated sentence
  */
-auto GF_UI_EXPORT DescribeKeyPackageProtection() -> QString;
+auto GF_UI_EXPORT
+DescribeKeyPackageProtection(const KeyPackageExportChoice& choice) -> QString;
 
 }  // namespace GpgFrontend::UI

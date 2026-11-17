@@ -150,7 +150,7 @@ void ImportKeyPackageDialog::build_files_page() {
   // shape for "a file, and the button that picks it".
   const auto add_path_row = [&](int row, const QString& caption,
                                 const QString& accessible, QLineEdit*& edit,
-                                QPushButton*& button) {
+                                QPushButton*& button) -> QLabel* {
     auto* label = new QLabel(caption, page);
     edit = new QLineEdit(page);
     edit->setReadOnly(true);
@@ -162,11 +162,12 @@ void ImportKeyPackageDialog::build_files_page() {
     grid->addWidget(label, row, 0);
     grid->addWidget(edit, row, 1);
     grid->addWidget(button, row, 2);
+    return label;
   };
   add_path_row(0, tr("Key package"), tr("Choose the key package"),
                package_edit_, package_button_);
-  add_path_row(1, tr("Key file"), tr("Choose the key file"), key_file_edit_,
-               key_file_button_);
+  key_file_label_ = add_path_row(1, tr("Key file"), tr("Choose the key file"),
+                                 key_file_edit_, key_file_button_);
 
   // Where the key file came from, and the way back to the one beside the
   // package when another was chosen.
@@ -215,6 +216,25 @@ void ImportKeyPackageDialog::build_unlock_page() {
   entry_->setAccessibleName(tr("PIN that protects the key file"));
   layout->addWidget(entry_);
 
+  // A version 3 package may open with a plain key instead.
+  plain_key_label_ = new QLabel(tr("Key"), page);
+  plain_key_edit_ = new QLineEdit(page);
+  plain_key_edit_->setEchoMode(QLineEdit::Password);
+  plain_key_edit_->setPlaceholderText(u"gfkp3:..."_s);
+  plain_key_edit_->setAccessibleName(tr("Key that opens the package"));
+  plain_key_label_->setBuddy(plain_key_edit_);
+  auto* plain_row = new QHBoxLayout();
+  plain_row->setSpacing(6);
+  plain_row->addWidget(plain_key_label_);
+  plain_row->addWidget(plain_key_edit_, 1);
+  layout->addLayout(plain_row);
+  connect(plain_key_edit_, &QLineEdit::textChanged, this,
+          &ImportKeyPackageDialog::slot_state_changed);
+
+  unlock_note_ = CreateDetailLabel({}, page);
+  unlock_note_->setWordWrap(true);
+  layout->addWidget(unlock_note_);
+
   // Which files the PIN is about to open.
   review_ = new MetaListPanel(page);
   layout->addWidget(review_);
@@ -245,6 +265,16 @@ void ImportKeyPackageDialog::build_keys_page() {
           tr("These keys are in the package. Untick any you do not want to "
              "import."),
           page);
+
+  // The package's own protection was all that guarded these keys.
+  unprotected_label_ = new QLabel(
+      tr("The private keys in this package have no passphrase. Set one after "
+         "importing them, in each key's details."),
+      page);
+  unprotected_label_->setWordWrap(true);
+  SetLabelTextColor(unprotected_label_, WarningColor(palette()));
+  unprotected_label_->hide();
+  layout->addWidget(unprotected_label_);
 
   selection_label_ = new QLabel(page);
   selection_label_->setWordWrap(true);
@@ -353,7 +383,13 @@ auto ImportKeyPackageDialog::choice() const -> KeyPackageImportChoice {
   choice.package = Inspect(package_path_);
   choice.key_file =
       Inspect(key_file_path_.isEmpty() ? sibling_key_file() : key_file_path_);
-  choice.pin_entered = entry_->Acceptable();
+  const auto plain =
+      info_.version == 3 && info_.protection == KeyPackageProtection::kPLAIN;
+  choice.needs_key_file =
+      info_.version != 3 || info_.protection == KeyPackageProtection::kPIN_FILE;
+  choice.package_too_new = info_.too_new;
+  choice.pin_entered = plain ? !plain_key_edit_->text().trimmed().isEmpty()
+                             : entry_->Acceptable();
   choice.keys_selected = static_cast<int>(selected_fprs().size());
   return choice;
 }
@@ -381,6 +417,7 @@ void ImportKeyPackageDialog::slot_choose_package() {
   if (chosen.isEmpty()) return;
 
   package_path_ = chosen;
+  info_ = KeyPackageOperator::InspectKeyPackage(package_path_);
   drop_opened();
   slot_state_changed();
 
@@ -444,8 +481,28 @@ void ImportKeyPackageDialog::slot_state_changed() {
   } else {
     key_file_note_->clear();
   }
-  key_file_note_->setVisible(!key_file_note_->text().isEmpty());
-  key_file_reset_->setVisible(!key_file_path_.isEmpty() && has_sibling);
+  key_file_note_->setVisible(current.needs_key_file &&
+                             !key_file_note_->text().isEmpty());
+  key_file_reset_->setVisible(current.needs_key_file &&
+                              !key_file_path_.isEmpty() && has_sibling);
+  for (auto* widget : std::initializer_list<QWidget*>{
+           key_file_label_, key_file_edit_, key_file_button_}) {
+    widget->setVisible(current.needs_key_file);
+  }
+
+  // What opening this package takes.
+  const auto plain = !current.needs_key_file;
+  entry_->setVisible(current.needs_key_file);
+  plain_key_label_->setVisible(plain);
+  plain_key_edit_->setVisible(plain);
+  if (plain) {
+    unlock_note_->setText(
+        tr("Enter the key that was shown when the package was exported. It "
+           "starts with gfkp3:."));
+  } else {
+    unlock_note_->clear();
+  }
+  unlock_note_->setVisible(!unlock_note_->text().isEmpty());
 
   // Only what the user caused: a field that is merely empty already says so.
   QString problem;
@@ -515,6 +572,9 @@ void ImportKeyPackageDialog::start_open() {
   const auto key_path = current.key_file.path;
   const auto pin = entry_->Secret();
   const auto channel = current_gpg_context_channel_;
+  // A version 3 package without a key file opens with its plain key.
+  const auto with_secret = !current.needs_key_file;
+  const GFBuffer secret(plain_key_edit_->text().trimmed());
 
   set_busy(true);
 
@@ -541,8 +601,11 @@ void ImportKeyPackageDialog::start_open() {
         auto* task = new Thread::Task{
             [=](const DataObjectPtr& data_object) -> int {
               auto [err, key_data] =
-                  KeyPackageOperator::GetInstance(channel).OpenKeyPackage(
-                      package_path, key_path, pin);
+                  with_secret
+                      ? KeyPackageOperator::OpenKeyPackageWithSecret(
+                            package_path, secret)
+                      : KeyPackageOperator::GetInstance(channel).OpenKeyPackage(
+                            package_path, key_path, pin);
               data_object->Swap({err, key_data});
               return 0;
             },
@@ -560,6 +623,12 @@ void ImportKeyPackageDialog::finish_open(const QString& error,
 
   if (!error.isEmpty()) {
     const auto failure = DescribeKeyPackageImportError(error);
+    if (failure.retry_pin && plain_key_edit_->isVisible()) {
+      plain_key_edit_->clear();
+      unlock_note_->setText(tr("This key does not open the package."));
+      plain_key_edit_->setFocus();
+      return;
+    }
     if (failure.retry_pin) {
       // Answered where the PIN was typed, with the files still chosen.
       entry_->Clear();
@@ -593,6 +662,8 @@ void ImportKeyPackageDialog::finish_open(const QString& error,
 
   key_data_ = key_data;
   opened_ = true;
+  unprotected_label_->setVisible(info_.version == 3 &&
+                                 info_.secrets_unprotected);
   fill_key_table();
   slot_state_changed();
   next();

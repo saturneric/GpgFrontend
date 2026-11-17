@@ -79,24 +79,33 @@ auto KeyPackageImportProblems(KeyPackageImportStep step,
     problems.append(KeyPackageImportProblem::kPackageUnreadable);
   } else if (package.bytes > kMaxKeyPackageBytes) {
     problems.append(KeyPackageImportProblem::kPackageTooLarge);
+  } else if (choice.package_too_new) {
+    // Nothing else about it can be trusted: not even which key file it needs.
+    problems.append(KeyPackageImportProblem::kPackageTooNew);
+    return problems;
   }
 
   const auto& key_file = choice.key_file;
-  if (key_file.path.isEmpty()) {
-    problems.append(KeyPackageImportProblem::kNoKeyFile);
-  } else if (!key_file.is_file || !key_file.readable) {
-    problems.append(KeyPackageImportProblem::kKeyFileUnreadable);
-  } else if (key_file.bytes > kMaxKeyPackageKeyFileBytes) {
-    problems.append(KeyPackageImportProblem::kKeyFileTooLarge);
-  }
+  if (choice.needs_key_file) {
+    if (key_file.path.isEmpty()) {
+      problems.append(KeyPackageImportProblem::kNoKeyFile);
+    } else if (!key_file.is_file || !key_file.readable) {
+      problems.append(KeyPackageImportProblem::kKeyFileUnreadable);
+    } else if (key_file.bytes > kMaxKeyPackageKeyFileBytes) {
+      problems.append(KeyPackageImportProblem::kKeyFileTooLarge);
+    }
 
-  if (!package.path.isEmpty() && !key_file.path.isEmpty() &&
-      SamePath(package.path, key_file.path)) {
-    problems.append(KeyPackageImportProblem::kSameFile);
+    if (!package.path.isEmpty() && !key_file.path.isEmpty() &&
+        SamePath(package.path, key_file.path)) {
+      problems.append(KeyPackageImportProblem::kSameFile);
+    }
   }
   if (step == KeyPackageImportStep::kFiles) return problems;
 
-  if (!choice.pin_entered) problems.append(KeyPackageImportProblem::kNoPin);
+  // A PIN, or a version 3 package's plain key.
+  if (!choice.pin_entered) {
+    problems.append(KeyPackageImportProblem::kNoPin);
+  }
   if (step == KeyPackageImportStep::kUnlock) return problems;
 
   if (choice.keys_selected <= 0) {
@@ -121,6 +130,10 @@ auto DescribeKeyPackageImportProblem(KeyPackageImportProblem problem)
           "can open.");
     case KeyPackageImportProblem::kPackageTooLarge:
       return QObject::tr("This file is too large to be a key package.");
+    case KeyPackageImportProblem::kPackageTooNew:
+      return QObject::tr(
+          "This key package was made by a newer version of GpgFrontend. "
+          "Update GpgFrontend to import it.");
     case KeyPackageImportProblem::kNoKeyFile:
       return QObject::tr("Choose the key file that came with the package.");
     case KeyPackageImportProblem::kKeyFileUnreadable:
@@ -232,8 +245,12 @@ auto BuildKeyPackageImportReviewRows(const KeyPackageImportChoice& choice)
     return r;
   };
 
-  return {row(QObject::tr("Key package"), choice.package.path),
-          row(QObject::tr("Key file"), choice.key_file.path)};
+  QList<MetaListRow> rows = {
+      row(QObject::tr("Key package"), choice.package.path)};
+  if (choice.needs_key_file) {
+    rows.append(row(QObject::tr("Key file"), choice.key_file.path));
+  }
+  return rows;
 }
 
 }  // namespace GpgFrontend::UI

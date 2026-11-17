@@ -106,6 +106,7 @@ class ImportKeyPackageDialog : public GeneralWizard {
   // Files
   QLineEdit* package_edit_{};
   QPushButton* package_button_{};
+  QLabel* key_file_label_{};
   QLineEdit* key_file_edit_{};
   QPushButton* key_file_button_{};
   QLabel* key_file_note_{};
@@ -113,15 +114,21 @@ class ImportKeyPackageDialog : public GeneralWizard {
   QLabel* problem_label_{};
 
   // Unlock
+  QLabel* unlock_note_{};
+  QLabel* plain_key_label_{};
+  QLineEdit* plain_key_edit_{};
   SecretEntryPanel* entry_{};
   MetaListPanel* review_{};
 
   // Keys
+  QLabel* unprotected_label_{};
   QLabel* selection_label_{};
   QStandardItemModel* keys_model_{};
   QTableView* keys_table_{};
 
   QString package_path_;
+  /// What the chosen package's header says: how it opens.
+  KeyPackageInfo info_;
   /// The key file the user chose. Empty while it is the one found beside the
   /// package.
   QString key_file_path_;

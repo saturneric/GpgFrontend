@@ -31,6 +31,7 @@
 #include <QFileDialog>
 
 #include "core/function/KeyPackageOperator.h"
+#include "core/utils/IOUtils.h"
 #include "ui/dialog/MetaListDialog.h"
 #include "ui/dialog/SecretPrompt.h"
 #include "ui/function/FilePanelPath.h"
@@ -114,9 +115,41 @@ ExportKeyPackageDialog::ExportKeyPackageDialog(int channel,
           &ExportKeyPackageDialog::slot_choose_location);
   connect(this, &QWizard::currentIdChanged, this,
           &ExportKeyPackageDialog::slot_page_changed);
+  connect(remove_passphrase_box_, &QCheckBox::toggled, this,
+          &ExportKeyPackageDialog::slot_state_changed);
+  connect(gfpipe_box_, &QCheckBox::toggled, this,
+          &ExportKeyPackageDialog::slot_gfpipe_toggled);
+  connect(protection_group_, &QButtonGroup::idToggled, this,
+          [this](int, bool checked) {
+            if (checked) slot_protection_changed();
+          });
+  connect(legacy_box_, &QCheckBox::toggled, this,
+          &ExportKeyPackageDialog::slot_protection_changed);
 
   set_location(GetDefaultUserFilePath());
 }
+
+void ExportKeyPackageDialog::slot_gfpipe_toggled(bool on) {
+  if (on) {
+    name_before_gfpipe_ = name_edit_->text();
+
+    // gfpipe cannot read a PIN package or the older format. A plain key is
+    // saved beside it, so the folder works as soon as it is written.
+    legacy_box_->setChecked(false);
+    if (protection_group_->checkedId() ==
+        static_cast<int>(KeyPackageProtection::kPIN_FILE)) {
+      protection_group_->button(static_cast<int>(KeyPackageProtection::kPLAIN))
+          ->setChecked(true);
+    }
+    // The package gfpipe reads without being told which.
+    name_edit_->setText(u"default"_s);
+  } else if (!name_before_gfpipe_.isEmpty()) {
+    name_edit_->setText(name_before_gfpipe_);
+  }
+  slot_protection_changed();
+}
+
+void ExportKeyPackageDialog::slot_protection_changed() { slot_state_changed(); }
 
 auto ExportKeyPackageDialog::add_page(KeyPackageExportStep step)
     -> GeneralWizardPage* {
@@ -167,6 +200,20 @@ void ExportKeyPackageDialog::build_contents_page(Preset preset) {
   include_private_box_->setAccessibleDescription(
       private_warning_label_->text());
   layout->addWidget(private_warning_label_);
+
+  // Only meaningful once private keys go in; what it costs is said beside it,
+  // and only while it is ticked.
+  remove_passphrase_box_ = new QCheckBox(
+      tr("Remove the passphrase from the private keys in the package"), page);
+  layout->addWidget(remove_passphrase_box_);
+  remove_passphrase_warning_ = WarningLabel(page);
+  remove_passphrase_warning_->setText(
+      tr("Needed for tools such as gfpipe that sign without asking. The "
+         "package's own protection is then all that guards the keys. The keys "
+         "in GpgFrontend keep their passphrase."));
+  remove_passphrase_box_->setAccessibleDescription(
+      remove_passphrase_warning_->text());
+  layout->addWidget(remove_passphrase_warning_);
 
   limits_label_ =
       CreateDetailLabel(DescribeKeyPackageContentLimits(initial), page);
@@ -223,11 +270,35 @@ void ExportKeyPackageDialog::build_contents_page(Preset preset) {
 void ExportKeyPackageDialog::build_location_page() {
   auto* page = add_page(KeyPackageExportStep::kLocation);
   auto* layout = PageLayout(page);
-  AddLead(layout,
-          tr("Name the package and choose where to save it. Its key file is "
-             "saved beside it unless you choose another place, such as a "
-             "separate drive."),
-          page);
+  AddLead(layout, tr("Name the package and choose where to save it."), page);
+
+  // gfpipe reads the package and key that lie beside it, so the folder
+  // written here is ready to use as it is.
+  bundled_gfpipe_ = KeyPackageOperator::BundledGfPipe();
+  gfpipe_box_ = new QCheckBox(tr("Include gfpipe, ready to use"), page);
+  gfpipe_box_->setObjectName(u"gfpipeBox"_s);
+  gfpipe_box_->setEnabled(!bundled_gfpipe_.isEmpty());
+
+  auto about = tr(
+      "gfpipe is a small command line tool. It lets git and scripts sign and "
+      "encrypt with these keys, like gpg.");
+  if (bundled_gfpipe_.isEmpty()) {
+    about += u" "_s + tr("This installation does not include it.");
+  }
+  gfpipe_about_ = CreateDetailLabel(about, page);
+  gfpipe_note_ = CreateDetailLabel(
+      tr("gfpipe, the package and its key are saved together in this folder. "
+         "Keep the folder private: anyone who can open it can use your "
+         "keys."),
+      page);
+  // Under the box's text, not under its indicator.
+  auto* gfpipe_details = new QVBoxLayout();
+  gfpipe_details->setContentsMargins(
+      style()->pixelMetric(QStyle::PM_IndicatorWidth) +
+          style()->pixelMetric(QStyle::PM_CheckBoxLabelSpacing),
+      0, 0, 0);
+  gfpipe_details->addWidget(gfpipe_about_);
+  gfpipe_details->addWidget(gfpipe_note_);
 
   auto* grid = new QGridLayout();
   grid->setHorizontalSpacing(6);
@@ -244,21 +315,21 @@ void ExportKeyPackageDialog::build_location_page() {
   name_edit_->setObjectName(u"packageNameEdit"_s);
   name_label->setBuddy(name_edit_);
 
-  auto* generate_button = new QPushButton(tr("Generate name"), page);
-  generate_button->setAutoDefault(false);
-  generate_button->setAccessibleName(tr("Generate a package name"));
-  connect(generate_button, &QPushButton::clicked, this,
+  generate_button_ = new QPushButton(tr("Generate name"), page);
+  generate_button_->setAutoDefault(false);
+  generate_button_->setAccessibleName(tr("Generate a package name"));
+  connect(generate_button_, &QPushButton::clicked, this,
           &ExportKeyPackageDialog::slot_generate_name);
 
   grid->addWidget(name_label, 0, 0);
   grid->addWidget(name_edit_, 0, 1);
-  grid->addWidget(generate_button, 0, 2);
+  grid->addWidget(generate_button_, 0, 2);
 
   // Each path is a read-only field with Browse beside it: the platform's own
   // shape for "a file, and the button that picks it".
   const auto add_path_row = [&](int row, const QString& caption,
                                 const QString& accessible, QLineEdit*& edit,
-                                QPushButton*& button) {
+                                QPushButton*& button) -> QLabel* {
     auto* label = new QLabel(caption, page);
     edit = new QLineEdit(page);
     edit->setReadOnly(true);
@@ -270,11 +341,13 @@ void ExportKeyPackageDialog::build_location_page() {
     grid->addWidget(label, row, 0);
     grid->addWidget(edit, row, 1);
     grid->addWidget(button, row, 2);
+    return label;
   };
   add_path_row(1, tr("Save to"), tr("Choose where to save the key package"),
                location_edit_, location_button_);
-  add_path_row(2, tr("Key file"), tr("Choose where to save the key file"),
-               key_file_edit_, key_file_button_);
+  key_file_label_ =
+      add_path_row(2, tr("Key file"), tr("Choose where to save the key file"),
+                   key_file_edit_, key_file_button_);
 
   // Whether the key file follows the package, and the way back when it does
   // not.
@@ -301,6 +374,11 @@ void ExportKeyPackageDialog::build_location_page() {
   problem_label_ = WarningLabel(page);
   layout->addWidget(problem_label_);
 
+  // Below the fields it changes: ticking it names the package "default".
+  layout->addSpacing(8);
+  layout->addWidget(gfpipe_box_);
+  layout->addLayout(gfpipe_details);
+
   // How the files are sealed, as one quiet line under a hairline: true and
   // worth checking, but not something to fill in.
   auto* rule = new QFrame(page);
@@ -313,13 +391,13 @@ void ExportKeyPackageDialog::build_location_page() {
   lock->setPixmap(QIcon(u":/icons/lock.png"_s).pixmap(16, 16));
   lock->setAlignment(Qt::AlignTop);
 
-  auto* mechanism = CreateDetailLabel(DescribeKeyPackageProtection(), page);
-  mechanism->setWordWrap(true);
+  mechanism_label_ = CreateDetailLabel({}, page);
+  mechanism_label_->setWordWrap(true);
 
   auto* mechanism_row = new QHBoxLayout();
   mechanism_row->setSpacing(8);
   mechanism_row->addWidget(lock, 0, Qt::AlignTop);
-  mechanism_row->addWidget(mechanism, 1);
+  mechanism_row->addWidget(mechanism_label_, 1);
   layout->addLayout(mechanism_row);
 
   layout->addStretch(1);
@@ -337,10 +415,36 @@ void ExportKeyPackageDialog::build_protection_page() {
   // Said before the fields rather than under them: it is the one thing to know
   // before choosing, and under the fields it read as small print.
   AddLead(layout,
-          tr("Choose a PIN to protect the key file. Importing needs the "
-             "package, the key file and this PIN, and the PIN cannot be "
+          tr("Choose how the package is protected. A PIN cannot be "
              "recovered."),
           page);
+
+  // One option per protection, each with what it means under it.
+  protection_group_ = new QButtonGroup(this);
+  const auto add_option = [&](KeyPackageProtection protection,
+                              const QString& text) {
+    auto* radio = new QRadioButton(text, page);
+    protection_group_->addButton(radio, static_cast<int>(protection));
+    auto* detail =
+        CreateDetailLabel(DescribeKeyPackageProtectionOption(protection), page);
+    detail->setWordWrap(true);
+    detail->setContentsMargins(24, 0, 0, 0);
+    radio->setAccessibleDescription(detail->text());
+    layout->addWidget(radio);
+    layout->addWidget(detail);
+  };
+  add_option(KeyPackageProtection::kPIN_FILE,
+             tr("A PIN and a separate key file (recommended for transfer)"));
+  add_option(KeyPackageProtection::kPLAIN, tr("A plain key"));
+  protection_group_->button(static_cast<int>(KeyPackageProtection::kPIN_FILE))
+      ->setChecked(true);
+
+  legacy_box_ = new QCheckBox(
+      tr("Write the version 2 format, for older GpgFrontend versions"), page);
+  layout->addWidget(legacy_box_);
+
+  protection_problem_label_ = WarningLabel(page);
+  layout->addWidget(protection_problem_label_);
 
   auto texts = DefaultSecretPromptTexts(SecretPromptSubject::kKeyPackage,
                                         SecretPromptMode::kSET);
@@ -442,6 +546,11 @@ auto ExportKeyPackageDialog::choice() const -> KeyPackageExportChoice {
   choice.key_file_path = key_file_path_.isEmpty()
                              ? DefaultKeyPackageKeyFilePath(choice)
                              : key_file_path_;
+  choice.legacy_format = legacy_box_->isChecked();
+  choice.protection =
+      static_cast<KeyPackageProtection>(protection_group_->checkedId());
+  choice.remove_passphrase = remove_passphrase_box_->isChecked();
+  choice.for_gfpipe = gfpipe_box_->isChecked();
   return choice;
 }
 
@@ -535,15 +644,52 @@ void ExportKeyPackageDialog::slot_state_changed() {
 
   contents_summary_->setText(DescribeKeyPackageContents(current));
   private_warning_label_->setVisible(KeyPackageIncludesPrivate(current));
+  // Version 2 has no way to say its keys are unprotected, so it never writes
+  // them that way.
+  remove_passphrase_box_->setEnabled(KeyPackageIncludesPrivate(current) &&
+                                     !current.legacy_format);
+  remove_passphrase_warning_->setVisible(KeyPackageRemovesPassphrase(current));
   refresh_key_table(current);
 
   ShowPath(location_edit_, location_);
   ShowPath(key_file_edit_, current.key_file_path);
 
+  // gfpipe reads "default" unless told otherwise; the folder is the user's.
+  name_edit_->setEnabled(!current.for_gfpipe);
+  generate_button_->setEnabled(!current.for_gfpipe);
+  gfpipe_note_->setVisible(current.for_gfpipe);
+
+  const auto uses_key_file = KeyPackageUsesKeyFile(current);
   const auto follows = key_file_path_.isEmpty();
   key_file_note_->setText(follows ? tr("Saved beside the package.")
                                   : tr("Saved in a place of its own."));
-  key_file_reset_->setVisible(!follows);
+  for (auto* widget : std::initializer_list<QWidget*>{
+           key_file_label_, key_file_edit_, key_file_button_, key_file_note_}) {
+    widget->setVisible(uses_key_file);
+  }
+  key_file_reset_->setVisible(uses_key_file && !follows);
+  mechanism_label_->setText(DescribeKeyPackageProtection(current));
+
+  // A PIN package is the only kind the older format and gfpipe disagree on.
+  const auto legacy = current.legacy_format;
+  legacy_box_->setEnabled(!current.for_gfpipe);
+  protection_group_->button(static_cast<int>(KeyPackageProtection::kPLAIN))
+      ->setEnabled(!legacy);
+  protection_group_->button(static_cast<int>(KeyPackageProtection::kPIN_FILE))
+      ->setEnabled(!current.for_gfpipe);
+  entry_->setVisible(KeyPackageEffectiveProtection(current) ==
+                     KeyPackageProtection::kPIN_FILE);
+
+  QString protection_problem;
+  for (const auto p :
+       KeyPackageExportProblems(KeyPackageExportStep::kProtection, current)) {
+    if (p == KeyPackageExportProblem::kGfPipeNeedsNoPin) {
+      protection_problem = DescribeKeyPackageExportProblem(p);
+      break;
+    }
+  }
+  protection_problem_label_->setText(protection_problem);
+  protection_problem_label_->setVisible(!protection_problem.isEmpty());
 
   review_->SetRows(BuildKeyPackageReviewRows(current));
 
@@ -586,9 +732,22 @@ auto ExportKeyPackageDialog::confirm_replacements(const QStringList& paths)
 void ExportKeyPackageDialog::start_export() {
   const auto current = choice();
   const auto package_path = KeyPackagePath(current);
-  const auto key_path = current.key_file_path;
+  const auto key_path =
+      KeyPackageUsesKeyFile(current) ? current.key_file_path : QString{};
 
-  if (!confirm_replacements({package_path, key_path})) return;
+  QStringList targets = {package_path};
+  if (!key_path.isEmpty()) targets.append(key_path);
+  const auto gfpipe = current.for_gfpipe ? bundled_gfpipe_ : QString{};
+  if (!gfpipe.isEmpty()) {
+    const QDir folder = QFileInfo(package_path).absoluteDir();
+    targets.append(folder.filePath(QFileInfo(gfpipe).fileName()));
+    if (KeyPackageEffectiveProtection(current) ==
+        KeyPackageProtection::kPLAIN) {
+      targets.append(folder.filePath(
+          QFileInfo(package_path).completeBaseName() + u".gfkey"_s));
+    }
+  }
+  if (!confirm_replacements(targets)) return;
 
   // Filtered into a copy: the list the wizard was handed stays whole, so a
   // retry after a failure, or a change of mind on the first step, starts from
@@ -606,27 +765,57 @@ void ExportKeyPackageDialog::start_export() {
   set_busy(true);
 
   QPointer<ExportKeyPackageDialog> self(this);
+
+  if (current.legacy_format) {
+    GpgOperaHelper::WaitForOpera(
+        this, tr("Exporting"), [=](const OperaWaitingHd& op_hd) {
+          KeyPackageOperator::GetInstance(channel).GenerateKeyPackage(
+              package_path, key_path, keys, pin, secret,
+              [=](int err, const DataObjectPtr& data_object) {
+                op_hd();
+                if (self == nullptr) return;
+
+                QString error;
+                if (err < 0 && data_object != nullptr &&
+                    data_object->Check<QString>()) {
+                  error = ExtractParams<QString>(data_object, 0);
+                }
+                self->finish_export(err >= 0, error, {}, package_path,
+                                    key_path);
+              });
+        });
+    return;
+  }
+
+  KeyPackageV3Request request;
+  request.package_path = package_path;
+  request.key_path = key_path;
+  request.keys = keys;
+  request.secret = secret;
+  request.remove_passphrase = KeyPackageRemovesPassphrase(current);
+  request.protection = KeyPackageEffectiveProtection(current);
+  if (request.protection == KeyPackageProtection::kPIN_FILE) request.pin = pin;
+  request.gfpipe_program = gfpipe;
+
   GpgOperaHelper::WaitForOpera(
       this, tr("Exporting"), [=](const OperaWaitingHd& op_hd) {
-        KeyPackageOperator::GetInstance(channel).GenerateKeyPackage(
-            package_path, key_path, keys, pin, secret,
-            [=](int err, const DataObjectPtr& data_object) {
+        KeyPackageOperator::GetInstance(channel).GenerateKeyPackageV3(
+            request, [=](const KeyPackageV3Written& written) {
               op_hd();
               if (self == nullptr) return;
-
-              QString error;
-              if (err < 0 && data_object != nullptr &&
-                  data_object->Check<QString>()) {
-                error = ExtractParams<QString>(data_object, 0);
-              }
-              self->finish_export(err >= 0, error, package_path, key_path);
+              self->finish_export(written.error.isEmpty(), written.error,
+                                  written.plain_key, package_path, key_path,
+                                  written.gfpipe_path, written.key_text_path);
             });
       });
 }
 
 void ExportKeyPackageDialog::finish_export(bool success, const QString& error,
+                                           const GFBuffer& plain_key,
                                            const QString& package_path,
-                                           const QString& key_path) {
+                                           const QString& key_path,
+                                           const QString& gfpipe_path,
+                                           const QString& key_text_path) {
   set_busy(false);
 
   if (!success) {
@@ -650,29 +839,81 @@ void ExportKeyPackageDialog::finish_export(bool success, const QString& error,
   // it deletes itself on close.
   const QPointer<QWidget> owner = parentWidget();
   const auto title = tr("Key Package Exported");
-  const auto subtitle = tr("The key package and its key file have been saved.");
+  const auto with_gfpipe = !gfpipe_path.isEmpty();
+  // Saved beside gfpipe, the key needs no copying or saving here.
+  const auto shown_key = key_text_path.isEmpty() ? plain_key : GFBuffer{};
+  const auto subtitle =
+      with_gfpipe ? tr("gfpipe is ready to use in this folder.")
+      : key_path.isEmpty()
+          ? tr("The key package has been saved.")
+          : tr("The key package and its key file have been saved.");
+  const auto git_command = u"git config --global gpg.program \"%1\""_s.arg(
+      QDir::toNativeSeparators(gfpipe_path));
   const auto note =
-      tr("Keep the key file and the PIN apart from the package, and delete "
-         "both files once the transfer is done.");
+      with_gfpipe
+          ? tr("Run gfpipe from this folder as you would run gpg. To sign "
+               "with git: %1. Anyone who can read this folder has the keys.")
+                .arg(git_command)
+      : !plain_key.Empty()
+          ? tr("This key opens the package and is not shown again. Copy it or "
+               "save it now, for example into the GFPIPE_KEY variable or a CI "
+               "secret. Anyone with the key and the package has the keys.")
+          : tr("Keep the key file and the PIN apart from the package, and "
+               "delete both files once the transfer is done.");
   const auto done_text = tr("Done");
   const auto folder_text = tr("Show in Folder");
+  const auto copy_text = tr("Copy Key");
+  const auto save_text = tr("Save Key...");
+  const auto key_caption = tr("Key");
+  const auto save_title = tr("Save Key");
 
   accept();
 
   QTimer::singleShot(0, qApp, [=]() {
-    // Named in rows, the same way the summary named them a moment ago: the
-    // two files are now facts rather than intentions.
-    MetaListDialog done(title, subtitle, owner);
-    done.AddSection({}, BuildKeyPackageExportDoneRows(package_path, key_path));
-    done.AddNote(note);
-    done.AddButton(done_text, QDialogButtonBox::AcceptRole);
-    const auto show_folder =
-        done.AddButton(folder_text, QDialogButtonBox::ActionRole);
-    done.exec();
+    // Shown until the user is done with it: copying or saving the key comes
+    // back here, since the key is not shown anywhere else.
+    for (;;) {
+      // Named in rows, the same way the summary named them a moment ago: the
+      // files are now facts rather than intentions.
+      MetaListDialog done(title, subtitle, owner);
+      auto rows = BuildKeyPackageExportDoneRows(package_path, key_path,
+                                                gfpipe_path, key_text_path);
+      if (!shown_key.Empty()) {
+        rows.append(
+            {.caption = key_caption, .value = shown_key.ConvertToQString()});
+      }
+      done.AddSection({}, rows);
+      done.AddNote(note, !plain_key.Empty());
+      done.AddButton(done_text, QDialogButtonBox::AcceptRole);
+      const auto show_folder =
+          done.AddButton(folder_text, QDialogButtonBox::ActionRole);
+      const auto copy_key =
+          shown_key.Empty()
+              ? -1
+              : done.AddButton(copy_text, QDialogButtonBox::ActionRole);
+      const auto save_key =
+          shown_key.Empty()
+              ? -1
+              : done.AddButton(save_text, QDialogButtonBox::ActionRole);
+      done.exec();
 
-    if (done.Choice() == show_folder) {
-      QDesktopServices::openUrl(
-          QUrl::fromLocalFile(QFileInfo(package_path).absolutePath()));
+      const auto picked = done.Choice();
+      if (picked == show_folder) {
+        QDesktopServices::openUrl(
+            QUrl::fromLocalFile(QFileInfo(package_path).absolutePath()));
+      } else if (picked == copy_key && copy_key >= 0) {
+        QGuiApplication::clipboard()->setText(plain_key.ConvertToQString());
+        continue;
+      } else if (picked == save_key && save_key >= 0) {
+        const auto path = QFileDialog::getSaveFileName(
+            owner, save_title,
+            QDir(QFileInfo(package_path).absolutePath())
+                .filePath(QFileInfo(package_path).completeBaseName() +
+                          u".gfkey"_s));
+        if (!path.isEmpty()) WriteFileGFBuffer(path, plain_key);
+        continue;
+      }
+      break;
     }
   });
 }

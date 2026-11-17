@@ -248,6 +248,7 @@ TEST(KeyPackageImportSummaryTest, EveryProblemHasWords) {
        {KeyPackageImportProblem::kNoPackage,
         KeyPackageImportProblem::kPackageUnreadable,
         KeyPackageImportProblem::kPackageTooLarge,
+        KeyPackageImportProblem::kPackageTooNew,
         KeyPackageImportProblem::kNoKeyFile,
         KeyPackageImportProblem::kKeyFileUnreadable,
         KeyPackageImportProblem::kKeyFileTooLarge,
@@ -255,6 +256,30 @@ TEST(KeyPackageImportSummaryTest, EveryProblemHasWords) {
         KeyPackageImportProblem::kNoKeysSelected}) {
     EXPECT_FALSE(DescribeKeyPackageImportProblem(problem).isEmpty());
   }
+}
+
+TEST(KeyPackageImportSummaryTest, AVersion3PackageWithoutAKeyFileNeedsNone) {
+  // A plain-key package: no key file, but its key must be typed.
+  auto choice = Ready();
+  choice.key_file = {};
+  choice.needs_key_file = false;
+  EXPECT_TRUE(CanAdvanceKeyPackageImport(KeyPackageImportStep::kFiles, choice));
+  EXPECT_EQ(BuildKeyPackageImportReviewRows(choice).size(), 1);
+
+  choice.pin_entered = false;
+  EXPECT_TRUE(KeyPackageImportProblems(KeyPackageImportStep::kUnlock, choice)
+                  .contains(KeyPackageImportProblem::kNoPin));
+}
+
+TEST(KeyPackageImportSummaryTest, APackageFromANewerVersionStopsAtTheFiles) {
+  auto choice = Ready();
+  choice.package_too_new = true;
+  // Its key file cannot be judged: only the version is reported.
+  choice.key_file = {};
+  EXPECT_EQ(KeyPackageImportProblems(KeyPackageImportStep::kFiles, choice),
+            QList{KeyPackageImportProblem::kPackageTooNew});
+  EXPECT_EQ(KeyPackageImportProblems(KeyPackageImportStep::kKeys, choice),
+            QList{KeyPackageImportProblem::kPackageTooNew});
 }
 
 }  // namespace GpgFrontend::Test

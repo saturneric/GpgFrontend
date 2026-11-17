@@ -47,6 +47,7 @@ using UI::DescribeKeyPackageContents;
 using UI::DescribeKeyPackageExportProblem;
 using UI::DescribeKeyPackageProtection;
 using UI::IsValidKeyPackageName;
+using UI::KeyPackageEffectiveProtection;
 using UI::KeyPackageExportChoice;
 using UI::KeyPackageExportCount;
 using UI::KeyPackageExportProblem;
@@ -57,6 +58,8 @@ using UI::KeyPackageKeepsKey;
 using UI::KeyPackageKeyColumns;
 using UI::KeyPackageKeyEntry;
 using UI::KeyPackagePath;
+using UI::KeyPackageRemovesPassphrase;
+using UI::KeyPackageUsesKeyFile;
 using UI::WithKeyPackageExtension;
 
 /// Three keys, two of them with a private part: every option has something to
@@ -380,12 +383,105 @@ TEST(KeyPackageExportSummaryTest, TheDoneRowsNameBothFiles) {
 }
 
 TEST(KeyPackageExportSummaryTest, TheMechanismNamesTheRealCipher) {
-  // The old success message claimed AES-256-GCM; the files are sealed with
-  // XChaCha20-Poly1305 behind Argon2id.
-  const auto text = DescribeKeyPackageProtection();
-  EXPECT_TRUE(text.contains("XChaCha20-Poly1305"));
-  EXPECT_TRUE(text.contains("Argon2id"));
-  EXPECT_FALSE(text.contains("AES"));
+  // Version 2 seals with XChaCha20-Poly1305 behind Argon2id; an old success
+  // message once claimed AES-256-GCM for it.
+  auto choice = Ready();
+  choice.legacy_format = true;
+  const auto v2 = DescribeKeyPackageProtection(choice);
+  EXPECT_TRUE(v2.contains("XChaCha20-Poly1305"));
+  EXPECT_TRUE(v2.contains("Argon2id"));
+  EXPECT_FALSE(v2.contains("AES"));
+
+  // Version 3 is XChaCha20-Poly1305 too, with Argon2id only where a PIN is
+  // involved.
+  choice.legacy_format = false;
+  const auto v3_pin = DescribeKeyPackageProtection(choice);
+  EXPECT_TRUE(v3_pin.contains("XChaCha20-Poly1305"));
+  EXPECT_TRUE(v3_pin.contains("Argon2id"));
+  EXPECT_FALSE(v3_pin.contains("AES"));
+
+  choice.protection = KeyPackageProtection::kPLAIN;
+  const auto v3_plain = DescribeKeyPackageProtection(choice);
+  EXPECT_TRUE(v3_plain.contains("XChaCha20-Poly1305"));
+  EXPECT_FALSE(v3_plain.contains("Argon2id"));
+}
+
+TEST(KeyPackageExportSummaryTest, OnlyAPinPackageHasAKeyFile) {
+  auto choice = Ready();
+  choice.key_file_path.clear();
+  EXPECT_TRUE(KeyPackageUsesKeyFile(choice));
+  EXPECT_TRUE(KeyPackageExportProblems(KeyPackageExportStep::kLocation, choice)
+                  .contains(KeyPackageExportProblem::kNoKeyFile));
+
+  choice.protection = KeyPackageProtection::kPLAIN;
+  EXPECT_FALSE(KeyPackageUsesKeyFile(choice));
+  EXPECT_TRUE(
+      CanAdvanceKeyPackageExport(KeyPackageExportStep::kProtection, choice));
+  for (const auto& row : BuildKeyPackageReviewRows(choice)) {
+    EXPECT_NE(row.caption, "Key file");
+  }
+
+  // The older format knows no other protection, whatever was picked.
+  choice.legacy_format = true;
+  EXPECT_EQ(KeyPackageEffectiveProtection(choice),
+            KeyPackageProtection::kPIN_FILE);
+  EXPECT_TRUE(KeyPackageUsesKeyFile(choice));
+}
+
+TEST(KeyPackageExportSummaryTest, APinIsAskedForOnlyWhenItProtects) {
+  auto choice = Ready();
+  choice.pin_acceptable = false;
+  EXPECT_TRUE(
+      KeyPackageExportProblems(KeyPackageExportStep::kProtection, choice)
+          .contains(KeyPackageExportProblem::kNoPin));
+
+  choice.protection = KeyPackageProtection::kPLAIN;
+  EXPECT_TRUE(
+      CanAdvanceKeyPackageExport(KeyPackageExportStep::kProtection, choice));
+}
+
+TEST(KeyPackageExportSummaryTest, GfPipeCannotOpenAPinPackage) {
+  auto choice = Ready();
+  choice.for_gfpipe = true;
+  EXPECT_EQ(KeyPackageExportProblems(KeyPackageExportStep::kProtection, choice),
+            QList{KeyPackageExportProblem::kGfPipeNeedsNoPin});
+
+  choice.legacy_format = true;
+  choice.protection = KeyPackageProtection::kPLAIN;
+  EXPECT_TRUE(
+      KeyPackageExportProblems(KeyPackageExportStep::kProtection, choice)
+          .contains(KeyPackageExportProblem::kGfPipeNeedsNoPin));
+
+  choice.legacy_format = false;
+  EXPECT_TRUE(
+      CanAdvanceKeyPackageExport(KeyPackageExportStep::kProtection, choice));
+}
+
+TEST(KeyPackageExportSummaryTest,
+     PassphrasesAreRemovedOnlyFromVersion3Secrets) {
+  auto choice = Ready();
+  choice.remove_passphrase = true;
+  EXPECT_FALSE(KeyPackageRemovesPassphrase(choice));  // no private keys in it
+
+  choice.include_private = true;
+  EXPECT_TRUE(KeyPackageRemovesPassphrase(choice));
+  bool flagged = false;
+  for (const auto& row : BuildKeyPackageReviewRows(choice)) {
+    if (row.caption == "Passphrases") {
+      EXPECT_EQ(row.value, "Removed from the private keys");
+      flagged = row.danger;
+    }
+  }
+  EXPECT_TRUE(flagged);
+
+  choice.legacy_format = true;
+  EXPECT_FALSE(KeyPackageRemovesPassphrase(choice));
+}
+
+TEST(KeyPackageExportSummaryTest, ThereIsNoKeyFileRowWithoutAKeyFile) {
+  const auto rows = BuildKeyPackageExportDoneRows("/a/pkg.gfpack", {});
+  ASSERT_EQ(rows.size(), 1);
+  EXPECT_EQ(rows[0].value, QDir::toNativeSeparators("/a/pkg.gfpack"));
 }
 
 TEST(KeyPackageExportSummaryTest, EveryProblemHasWords) {
@@ -395,8 +491,34 @@ TEST(KeyPackageExportSummaryTest, EveryProblemHasWords) {
         KeyPackageExportProblem::kInvalidName,
         KeyPackageExportProblem::kNoLocation,
         KeyPackageExportProblem::kLocationNotWritable,
-        KeyPackageExportProblem::kSameFile}) {
+        KeyPackageExportProblem::kSameFile,
+        KeyPackageExportProblem::kGfPipeNeedsNoPin}) {
     EXPECT_FALSE(DescribeKeyPackageExportProblem(problem).isEmpty());
+  }
+}
+
+TEST(KeyPackageExportSummaryTest, IncludingGfPipeIsNamedBeforeAndAfter) {
+  auto choice = Ready();
+  choice.protection = KeyPackageProtection::kPLAIN;
+  choice.for_gfpipe = true;
+  const auto review = BuildKeyPackageReviewRows(choice);
+  const auto has = [](const QList<UI::MetaListRow>& rows,
+                      const QString& caption, const QString& needle) {
+    return std::any_of(
+        rows.cbegin(), rows.cend(), [&](const UI::MetaListRow& r) {
+          return r.caption == caption && r.value.contains(needle);
+        });
+  };
+  EXPECT_TRUE(has(review, "gfpipe", "ready to run"));
+  EXPECT_TRUE(has(review, "Protection", "beside the package for gfpipe"));
+
+  const auto done = BuildKeyPackageExportDoneRows(
+      "/t/default.gfpack", {}, "/t/gfpipe", "/t/default.gfkey");
+  EXPECT_TRUE(has(done, "gfpipe", "gfpipe"));
+  EXPECT_TRUE(has(done, "Key", "default.gfkey"));
+  // The saved key is the one row that hands over the keys.
+  for (const auto& row : done) {
+    EXPECT_EQ(row.danger, row.caption == "Key") << row.caption.toStdString();
   }
 }
 

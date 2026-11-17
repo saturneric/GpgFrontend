@@ -83,6 +83,38 @@ auto KeyPackageIncludesPrivate(const KeyPackageExportChoice& choice) -> bool {
   return choice.include_private && choice.with_private > 0;
 }
 
+auto KeyPackageEffectiveProtection(const KeyPackageExportChoice& choice)
+    -> KeyPackageProtection {
+  return choice.legacy_format ? KeyPackageProtection::kPIN_FILE
+                              : choice.protection;
+}
+
+auto KeyPackageUsesKeyFile(const KeyPackageExportChoice& choice) -> bool {
+  return KeyPackageEffectiveProtection(choice) ==
+         KeyPackageProtection::kPIN_FILE;
+}
+
+auto KeyPackageRemovesPassphrase(const KeyPackageExportChoice& choice) -> bool {
+  return choice.remove_passphrase && !choice.legacy_format &&
+         KeyPackageIncludesPrivate(choice);
+}
+
+auto DescribeKeyPackageProtectionOption(KeyPackageProtection protection)
+    -> QString {
+  switch (protection) {
+    case KeyPackageProtection::kPIN_FILE:
+      return QObject::tr(
+          "Recommended for moving keys to another device. Importing needs the "
+          "package, its key file and the PIN.");
+    case KeyPackageProtection::kPLAIN:
+      return QObject::tr(
+          "Opens with a key shown once after the export, for an environment "
+          "variable or a CI secret. Anyone with the key and the package has "
+          "the keys.");
+  }
+  return {};
+}
+
 auto CanIncludePrivateKeys(const KeyPackageExportChoice& choice) -> bool {
   return choice.with_private > 0;
 }
@@ -150,20 +182,31 @@ auto KeyPackageExportProblems(KeyPackageExportStep step,
   } else if (!choice.location_writable) {
     problems.append(KeyPackageExportProblem::kLocationNotWritable);
   }
-  if (choice.key_file_path.isEmpty()) {
+  const auto uses_key_file = KeyPackageUsesKeyFile(choice);
+  if (uses_key_file && choice.key_file_path.isEmpty()) {
     problems.append(KeyPackageExportProblem::kNoKeyFile);
   }
 
   // The two files are the two halves of the lock. Written to one path, the
   // second write would replace the first and leave nothing to import.
   const auto package = KeyPackagePath(choice);
-  if (!package.isEmpty() && !choice.key_file_path.isEmpty() &&
+  if (uses_key_file && !package.isEmpty() && !choice.key_file_path.isEmpty() &&
       SamePath(package, choice.key_file_path)) {
     problems.append(KeyPackageExportProblem::kSameFile);
   }
   if (step == KeyPackageExportStep::kLocation) return problems;
 
-  if (!choice.pin_acceptable) problems.append(KeyPackageExportProblem::kNoPin);
+  switch (KeyPackageEffectiveProtection(choice)) {
+    case KeyPackageProtection::kPIN_FILE:
+      if (choice.for_gfpipe) {
+        problems.append(KeyPackageExportProblem::kGfPipeNeedsNoPin);
+      } else if (!choice.pin_acceptable) {
+        problems.append(KeyPackageExportProblem::kNoPin);
+      }
+      break;
+    case KeyPackageProtection::kPLAIN:
+      break;
+  }
 
   return problems;
 }
@@ -194,6 +237,10 @@ auto DescribeKeyPackageExportProblem(KeyPackageExportProblem problem)
       return QObject::tr(
           "The key package and the key file would be the same file. Choose a "
           "different name or location for one of them.");
+    case KeyPackageExportProblem::kGfPipeNeedsNoPin:
+      return QObject::tr(
+          "gfpipe cannot open a package protected by a PIN. Choose a plain "
+          "key.");
   }
   return {};
 }
@@ -268,13 +315,41 @@ auto BuildKeyPackageReviewRows(const KeyPackageExportChoice& choice)
                                      : QObject::tr("Not included"),
                .danger = with_private});
 
+  if (with_private && !choice.legacy_format) {
+    const auto removed = KeyPackageRemovesPassphrase(choice);
+    rows.append({.caption = QObject::tr("Passphrases"),
+                 .value = removed ? QObject::tr("Removed from the private keys")
+                                  : QObject::tr("Kept"),
+                 .danger = removed});
+  }
+
   // Never a row that reads as protected when it is not: the rows are built
   // from the choice, not from where the wizard happens to be.
-  const auto sealed = choice.pin_acceptable && !choice.key_file_path.isEmpty();
+  QString protection;
+  bool sealed = false;
+  switch (KeyPackageEffectiveProtection(choice)) {
+    case KeyPackageProtection::kPIN_FILE:
+      sealed = choice.pin_acceptable && !choice.key_file_path.isEmpty() &&
+               !choice.for_gfpipe;
+      protection = sealed ? QObject::tr("Key file protected by your PIN")
+                          : QObject::tr("Not set up yet");
+      break;
+    case KeyPackageProtection::kPLAIN:
+      sealed = true;
+      protection =
+          choice.for_gfpipe
+              ? QObject::tr("Plain key, saved beside the package for gfpipe")
+              : QObject::tr("Plain key, shown after the export");
+      break;
+  }
   rows.append({.caption = QObject::tr("Protection"),
-               .value = sealed ? QObject::tr("Key file protected by your PIN")
-                               : QObject::tr("Not set up yet"),
+               .value = protection,
                .danger = !sealed});
+
+  rows.append({.caption = QObject::tr("Format"),
+               .value = choice.legacy_format
+                            ? QObject::tr("Version 2, for older versions")
+                            : QObject::tr("Version 3")});
 
   const auto package = KeyPackagePath(choice);
   rows.append({.caption = QObject::tr("Key package"),
@@ -283,36 +358,84 @@ auto BuildKeyPackageReviewRows(const KeyPackageExportChoice& choice)
                .dimmed = package.isEmpty(),
                .path = !package.isEmpty()});
 
-  rows.append({.caption = QObject::tr("Key file"),
-               .value = choice.key_file_path.isEmpty()
-                            ? QObject::tr("Not chosen yet")
-                            : QDir::toNativeSeparators(choice.key_file_path),
-               .dimmed = choice.key_file_path.isEmpty(),
-               .path = !choice.key_file_path.isEmpty()});
+  if (choice.for_gfpipe) {
+    rows.append({.caption = QObject::tr("gfpipe"),
+                 .value = QObject::tr("Copied into the folder, ready to run")});
+  }
+
+  if (KeyPackageUsesKeyFile(choice)) {
+    rows.append({.caption = QObject::tr("Key file"),
+                 .value = choice.key_file_path.isEmpty()
+                              ? QObject::tr("Not chosen yet")
+                              : QDir::toNativeSeparators(choice.key_file_path),
+                 .dimmed = choice.key_file_path.isEmpty(),
+                 .path = !choice.key_file_path.isEmpty()});
+  }
 
   return rows;
 }
 
 auto BuildKeyPackageExportDoneRows(const QString& package_path,
-                                   const QString& key_path)
+                                   const QString& key_path,
+                                   const QString& gfpipe_path,
+                                   const QString& key_text_path)
     -> QList<MetaListRow> {
-  return {
+  QList<MetaListRow> rows = {
       {.caption = QObject::tr("Key package"),
        .value = QDir::toNativeSeparators(package_path),
        .path = true},
-      {.caption = QObject::tr("Key file"),
-       .value = QDir::toNativeSeparators(key_path),
-       .detail = QObject::tr("Needed with the PIN to import the package."),
-       .path = true},
   };
+  if (!key_path.isEmpty()) {
+    rows.append(
+        {.caption = QObject::tr("Key file"),
+         .value = QDir::toNativeSeparators(key_path),
+         .detail = QObject::tr("Needed with the PIN to import the package."),
+         .path = true});
+  }
+  if (!key_text_path.isEmpty()) {
+    rows.append({.caption = QObject::tr("Key"),
+                 .value = QDir::toNativeSeparators(key_text_path),
+                 .detail = QObject::tr("Opens the package. Anyone with this "
+                                       "file and the package has the keys."),
+                 .danger = true,
+                 .path = true});
+  }
+  if (!gfpipe_path.isEmpty()) {
+    rows.append({.caption = QObject::tr("gfpipe"),
+                 .value = QDir::toNativeSeparators(gfpipe_path),
+                 .path = true});
+  }
+  return rows;
 }
 
-auto DescribeKeyPackageProtection() -> QString {
-  return QObject::tr(
-      "The keys are encrypted with a random 256-character passphrase "
-      "(XChaCha20-Poly1305). That passphrase is sealed with your PIN "
-      "(Argon2id) and written to the key file. Importing needs the package, "
-      "the key file and the PIN.");
+auto DescribeKeyPackageProtection(const KeyPackageExportChoice& choice)
+    -> QString {
+  if (choice.legacy_format) {
+    return QObject::tr(
+        "The keys are encrypted with a random 256-character passphrase "
+        "(XChaCha20-Poly1305). That passphrase is sealed with your PIN "
+        "(Argon2id) and written to the key file. Importing needs the package, "
+        "the key file and the PIN.");
+  }
+  switch (choice.protection) {
+    case KeyPackageProtection::kPIN_FILE:
+      return QObject::tr(
+          "The keys are encrypted with a random key (XChaCha20-Poly1305). "
+          "That key "
+          "is sealed with your PIN (Argon2id) and written to the key file. "
+          "Importing needs the package, the key file and the PIN.");
+    case KeyPackageProtection::kPLAIN:
+      return choice.for_gfpipe
+                 ? QObject::tr(
+                       "The keys are encrypted with a random key "
+                       "(XChaCha20-Poly1305), sealed with a key saved beside "
+                       "the package as default.gfkey.")
+                 : QObject::tr(
+                       "The keys are encrypted with a random key "
+                       "(XChaCha20-Poly1305), sealed with a key you are shown "
+                       "once after the export.");
+  }
+  return {};
 }
 
 }  // namespace GpgFrontend::UI

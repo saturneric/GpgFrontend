@@ -103,6 +103,8 @@ class ExportKeyPackageDialog : public GeneralWizard {
   void slot_generate_name();
   void slot_state_changed();
   void slot_page_changed(int id);
+  void slot_gfpipe_toggled(bool on);
+  void slot_protection_changed();
 
  private:
   int current_gpg_context_channel_;
@@ -117,21 +119,32 @@ class ExportKeyPackageDialog : public GeneralWizard {
   QCheckBox* only_private_box_{};
   QCheckBox* include_private_box_{};
   QLabel* private_warning_label_{};
+  QCheckBox* remove_passphrase_box_{};
+  QLabel* remove_passphrase_warning_{};
   QLabel* limits_label_{};
   QStandardItemModel* keys_model_{};
   QTableView* keys_table_{};
 
   // Location
+  QCheckBox* gfpipe_box_{};
+  QLabel* gfpipe_about_{};  ///< what gfpipe is, always shown
+  QLabel* gfpipe_note_{};   ///< what ticking the box writes
   QLineEdit* name_edit_{};
   QLineEdit* location_edit_{};
   QPushButton* location_button_{};
+  QPushButton* generate_button_{};
+  QLabel* key_file_label_{};
   QLineEdit* key_file_edit_{};
   QPushButton* key_file_button_{};
   QLabel* key_file_note_{};
   QPushButton* key_file_reset_{};
   QLabel* problem_label_{};
+  QLabel* mechanism_label_{};
 
   // Protection
+  QButtonGroup* protection_group_{};
+  QCheckBox* legacy_box_{};
+  QLabel* protection_problem_label_{};
   SecretEntryPanel* entry_{};
   MetaListPanel* review_{};
 
@@ -140,6 +153,10 @@ class ExportKeyPackageDialog : public GeneralWizard {
   QString key_file_path_;
   QString location_;
   bool location_writable_ = false;
+  /// The name chosen before "Include gfpipe" fixed it to "default".
+  QString name_before_gfpipe_;
+  /// The gfpipe this installation carries; empty when it has none.
+  QString bundled_gfpipe_;
 
   /// Paths whose replacement the native picker already confirmed. Anything
   /// else that exists is asked about once, right before it is written.
@@ -178,7 +195,9 @@ class ExportKeyPackageDialog : public GeneralWizard {
 
   /// @brief Show how the export went, and close on success.
   void finish_export(bool success, const QString& error,
-                     const QString& package_path, const QString& key_path);
+                     const GFBuffer& plain_key, const QString& package_path,
+                     const QString& key_path, const QString& gfpipe_path = {},
+                     const QString& key_text_path = {});
 
   /// @brief Keep the buttons from starting a second export.
   void set_busy(bool busy);
