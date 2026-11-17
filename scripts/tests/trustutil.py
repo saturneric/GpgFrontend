@@ -117,6 +117,142 @@ def stand_in(directory: Path, name: str, source: str) -> Path:
     return script
 
 
+# --- rclone over local directories, in process -----------------------------
+#
+# Each rclone run costs some 45 ms of startup, and a chain test makes a
+# hundred of them: nine tenths of the suite's time. For a store that is a
+# local directory, local_rclone() answers in process as rclone would.
+# StoreContractTest holds it to the real rclone, case by case, and
+# GF_REAL_RCLONE=1 runs every test through the real one. A store with a
+# stand-in rclone (an outage) and the gfrelease command line still run it.
+
+REAL_RCLONE = os.environ.get("GF_REAL_RCLONE") == "1"
+
+
+def _rclone_glob(pattern: str):
+    """rclone's filter glob: * within a name, ** across names; one not
+    starting with / matches the end of a path."""
+    import re
+    out, i = [], 0
+    while i < len(pattern):
+        if pattern.startswith("**", i):
+            out.append(".*")
+            i += 2
+        elif pattern[i] == "*":
+            out.append("[^/]*")
+            i += 1
+        elif pattern[i] == "?":
+            out.append("[^/]")
+            i += 1
+        else:
+            out.append(re.escape(pattern[i]))
+            i += 1
+    body = "".join(out)
+    if pattern.startswith("/"):
+        return re.compile(body[1:] if body.startswith("/") else body + "$")
+    return re.compile(f"(?:^|.*/){body}$")
+
+
+def _local_files(path: Path) -> list[str]:
+    return sorted(p.relative_to(path).as_posix() for p in path.rglob("*")
+                  if p.is_file())
+
+
+def _copy_tree(src: Path, dst: Path) -> None:
+    for rel in _local_files(src):
+        (dst / rel).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(src / rel, dst / rel)
+
+
+def _local_rclone_run(args: tuple, text: bool):
+    """rclone @p args as Store runs it, over local paths: lsf, lsjson,
+    cat, copy, copyto and hashsum, with rclone's exit status 3 for a path
+    that is not there."""
+    import hashlib
+    import json
+    import subprocess
+
+    verb, rest = args[0], list(args[1:])
+    opts, paths = {}, []
+    while rest:
+        a = rest.pop(0)
+        if a in ("--include", "--count"):
+            opts[a] = rest.pop(0)
+        elif a.startswith("--"):
+            opts[a] = True
+        else:
+            paths.append(Path(a))
+
+    def done(code=0, out=b"", err=""):
+        if text:
+            out = out.decode("utf-8", "replace")
+        else:
+            err = err.encode()
+        return subprocess.CompletedProcess(["rclone", *args], code, out, err)
+
+    if verb == "hashsum":
+        paths = paths[1:]  # the algorithm, sha256 here
+    src = paths[0]
+    if not src.exists():
+        return done(3, err=f"error: directory not found: {src}")
+    if verb == "lsf":
+        if src.is_file():
+            return done(out=f"{src.name}\n".encode())
+        names = _local_files(src)
+        if "--include" in opts:
+            match = _rclone_glob(opts["--include"])
+            names = [n for n in names if match.match(n)]
+        return done(out="".join(f"{n}\n" for n in names).encode())
+    if verb == "lsjson":
+        found = [src] if src.is_file() else sorted(
+            p for p in src.iterdir() if p.is_file())
+        return done(out=json.dumps(
+            [{"Path": p.name, "Name": p.name, "Size": p.stat().st_size,
+              "IsDir": False} for p in found]).encode())
+    if verb == "cat":
+        files = [src] if src.is_file() else [src / n for n in _local_files(src)]
+        data = b"".join(f.read_bytes() for f in files)
+        if "--count" in opts:
+            data = data[:int(opts["--count"])]
+        return done(out=data)
+    if verb == "hashsum":
+        files = ([(src.name, src)] if src.is_file() else
+                 [(n, src / n) for n in _local_files(src)])
+        return done(out="".join(
+            f"{hashlib.sha256(f.read_bytes()).hexdigest()}  {n}\n"
+            for n, f in files).encode())
+    if verb in ("copy", "copyto"):
+        dst = paths[1]
+        if src.is_dir():
+            _copy_tree(src, dst)
+        else:
+            target = dst / src.name if verb == "copy" else dst
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(src, target)
+        return done()
+    raise AssertionError(f"local_rclone does not know `rclone {verb}`")
+
+
+def local_rclone():
+    """A patch (start() it) that answers Store's rclone in process for a
+    store over local directories with the plain rclone; anything else, and
+    everything with GF_REAL_RCLONE=1, runs rclone itself."""
+    import re
+    from unittest import mock
+    import store
+
+    real = store.Store._rclone
+
+    def _rclone(self, *args, **kw):
+        remote = re.compile(r"^[A-Za-z0-9_.-]{2,}:")
+        if REAL_RCLONE or self.rclone != "rclone" or \
+                any(remote.match(str(a)) for a in args):
+            return real(self, *args, **kw)
+        return _local_rclone_run(args, kw.get("text", True))
+
+    return mock.patch.object(store.Store, "_rclone", _rclone)
+
+
 def symlink(test, link: Path, target: Path) -> None:
     """@p link made a symbolic link to @p target, or the test skipped where
     this user may not make one (Windows, without developer mode)."""
@@ -149,13 +285,15 @@ def msix_resources(test, directory: Path, program: str) -> Path:
     import msix
     from unittest import mock
     out = Path(directory) / "msix-resources"
-    shutil.copytree(msix.RESOURCES, out)
-    manifest = out / msix.MANIFEST
-    text = manifest.read_text("utf-8")
-    ours = 'Executable="VFS\\AppData\\GpgFrontend\\bin\\GpgFrontend.exe"'
-    assert ours in text
-    manifest.write_text(text.replace(
-        ours, 'Executable="VFS\\%s"' % program.replace("/", "\\")), "utf-8")
+    if not out.exists():  # there already in a copy of a test's directory
+        shutil.copytree(msix.RESOURCES, out)
+        manifest = out / msix.MANIFEST
+        text = manifest.read_text("utf-8")
+        ours = 'Executable="VFS\\AppData\\GpgFrontend\\bin\\GpgFrontend.exe"'
+        assert ours in text
+        manifest.write_text(text.replace(
+            ours, 'Executable="VFS\\%s"' % program.replace("/", "\\")),
+            "utf-8")
     patch = mock.patch.object(msix, "RESOURCES", out)
     patch.start()
     test.addCleanup(patch.stop)
