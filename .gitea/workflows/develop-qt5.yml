@@ -74,4 +74,4 @@ jobs:
             -DGPGFRONTEND_BUILD_APP_IMAGE=ON \
             -DGPGFRONTEND_QT5_BUILD=ON \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
-          cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
+          cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -- -v
