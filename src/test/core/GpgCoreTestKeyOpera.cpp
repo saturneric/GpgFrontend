@@ -28,11 +28,13 @@
 
 #include "GpgCoreTest.h"
 #include "core/GpgConstants.h"
+#include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "core/model/GpgGenerateKeyResult.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/utils/GpgUtils.h"
+#include "core/utils/IOUtils.h"
 
 namespace GpgFrontend::Test {
 
@@ -113,6 +115,38 @@ TEST_F(GpgCoreTest, CoreAddADSKTestA) {
   ASSERT_EQ(s_keys.last().ID(), "F89C95A05088CC93");
   ASSERT_EQ(s_keys.last().IsADSK(), true);
 
-  GpgKeyOpera::GetInstance().DeleteKey(key);
+  EXPECT_TRUE(GpgKeyOpera::GetInstance().DeleteKey(key));
+}
+
+// Deleting keys and writing a revocation certificate returned nothing, so a
+// refused delete or a certificate that was never written ended in silence.
+TEST_F(GpgCoreTest, CoreKeyOperaReportsWhatItDid) {
+  auto info = GpgKeyImportExporter::GetInstance().ImportKey(
+      GFBuffer(QString::fromLatin1(test_private_key_data)));
+  ASSERT_EQ(info->not_imported, 0);
+  GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).FlushKeyCache();
+  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+                 .GetKeyPtr("5C4D80546EB6E52F");
+  ASSERT_TRUE(key != nullptr && key->IsGood());
+
+  // The certificate is written, and names the key it revokes.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto rev_path = dir.filePath("key.rev");
+  EXPECT_TRUE(GpgKeyOpera::GetInstance().GenerateRevokeCert(key, rev_path, 0,
+                                                             "test"));
+  auto [read, cert] = ReadFileGFBuffer(rev_path);
+  ASSERT_TRUE(read);
+  EXPECT_EQ(GpgKeyImportExporter::GetInstance().RevocationCertificateTarget(
+                cert),
+            key->Fingerprint().toUpper());
+
+  // Nowhere to write it: not written, and said so.
+  EXPECT_FALSE(GpgKeyOpera::GetInstance().GenerateRevokeCert(
+      key, dir.filePath("missing/dir/key.rev"), 0, "test"));
+
+  EXPECT_TRUE(GpgKeyOpera::GetInstance().DeleteKey(key));
+  // A key that is no longer there is not deleted again.
+  EXPECT_FALSE(GpgKeyOpera::GetInstance().DeleteKey(key));
 }
 };  // namespace GpgFrontend::Test

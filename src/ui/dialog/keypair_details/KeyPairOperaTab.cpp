@@ -318,9 +318,15 @@ void KeyPairOperaTab::slot_gen_revoke_cert() {
               m_output_file_name = dialog.selectedFiles().front();
             }
 
-            if (!m_output_file_name.isEmpty()) {
-              GpgKeyOpera::GetInstance(current_gpg_context_channel_)
-                  .GenerateRevokeCert(m_key_, m_output_file_name, code, text);
+            if (!m_output_file_name.isEmpty() &&
+                !GpgKeyOpera::GetInstance(current_gpg_context_channel_)
+                     .GenerateRevokeCert(m_key_, m_output_file_name, code,
+                                         text)) {
+              // Cancelling the passphrase prompt ends here too, and used to
+              // end in silence, as if the certificate had been written.
+              QMessageBox::critical(
+                  this, tr("Generate revocation certificate"),
+                  tr("The revocation certificate could not be generated."));
             }
           });
 

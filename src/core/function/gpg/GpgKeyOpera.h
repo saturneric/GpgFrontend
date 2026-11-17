@@ -56,18 +56,20 @@ class GF_CORE_EXPORT GpgKeyOpera : public SingletonFunctionObject<GpgKeyOpera> {
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
   /**
-   * @brief
+   * @brief Delete a list of keys, or key groups, from the key ring.
    *
-   * @param key_ids
+   * @param keys the keys and groups to delete
+   * @return true only when every key was deleted; the rest are still tried
    */
-  void DeleteKeys(const GpgAbstractKeyPtrList& keys);
+  auto DeleteKeys(const GpgAbstractKeyPtrList& keys) -> bool;
 
   /**
-   * @brief
+   * @brief Delete one key, or key group.
    *
-   * @param key_id
+   * @param key_id the key to delete
+   * @return true when the key was deleted
    */
-  void DeleteKey(const GpgAbstractKeyPtr& key_id);
+  auto DeleteKey(const GpgAbstractKeyPtr& key_id) -> bool;
 
   /**
    * @brief Set the Expire object
@@ -85,10 +87,11 @@ class GF_CORE_EXPORT GpgKeyOpera : public SingletonFunctionObject<GpgKeyOpera> {
    *
    * @param key
    * @param output_file_name
+   * @return true when the certificate was written
    */
-  void GenerateRevokeCert(const GpgKeyPtr& key, const QString& output_path,
+  auto GenerateRevokeCert(const GpgKeyPtr& key, const QString& output_path,
                           int revocation_reason_code,
-                          const QString& revocation_reason_text);
+                          const QString& revocation_reason_text) -> bool;
 
   /**
    * @brief

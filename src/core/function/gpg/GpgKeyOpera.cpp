@@ -48,22 +48,32 @@ GpgKeyOpera::GpgKeyOpera(int channel)
  * Delete keys
  * @param uidList key ids
  */
-void GpgKeyOpera::DeleteKeys(const GpgAbstractKeyPtrList& keys) {
+auto GpgKeyOpera::DeleteKeys(const GpgAbstractKeyPtrList& keys) -> bool {
+  // Every key is tried, and any one that could not be deleted is a failure:
+  // a refused delete (a cancelled confirmation, a locked key ring) used to be
+  // skipped in silence, as if the key were gone.
+  auto all_deleted = true;
   for (const auto& key : keys) {
-    if (key->KeyType() == GpgAbstractKeyType::kGPG_KEY && key->IsGood()) {
-      auto k = qSharedPointerDynamicCast<GpgKey>(key);
-      auto err = CheckGpgError(gpgme_op_delete_ext(
-          ctx_.DefaultContext(), static_cast<gpgme_key_t>(*k),
-          GPGME_DELETE_ALLOW_SECRET | GPGME_DELETE_FORCE));
-      assert(gpg_err_code(err) == GPG_ERR_NO_ERROR);
-    } else {
-      LOG_W() << "GpgKeyOpera DeleteKeys get key failed: " << key->ID();
-    }
-
     if (key->KeyType() == GpgAbstractKeyType::kGPG_KEYGROUP) {
       GpgKeyGroupGetter::GetInstance(GetChannel()).Remove(key->ID());
+      continue;
+    }
+    if (key->KeyType() != GpgAbstractKeyType::kGPG_KEY || !key->IsGood()) {
+      LOG_W() << "GpgKeyOpera DeleteKeys get key failed: " << key->ID();
+      all_deleted = false;
+      continue;
+    }
+
+    auto k = qSharedPointerDynamicCast<GpgKey>(key);
+    auto err = CheckGpgError(gpgme_op_delete_ext(
+        ctx_.DefaultContext(), static_cast<gpgme_key_t>(*k),
+        GPGME_DELETE_ALLOW_SECRET | GPGME_DELETE_FORCE));
+    if (err != GPG_ERR_NO_ERROR) {
+      LOG_W() << "failed to delete key:" << key->ID() << ", error code:" << err;
+      all_deleted = false;
     }
   }
+  return all_deleted;
 }
 
 /**
@@ -104,10 +114,11 @@ auto GpgKeyOpera::SetExpire(const GpgKeyPtr& key, const SubkeyId& subkey_fpr,
  * @param outputFileName out file name(path)
  * @return the process doing this job
  */
-void GpgKeyOpera::GenerateRevokeCert(const GpgKeyPtr& key,
+auto GpgKeyOpera::GenerateRevokeCert(const GpgKeyPtr& key,
                                      const QString& output_path,
                                      int revocation_reason_code,
-                                     const QString& revocation_reason_text) {
+                                     const QString& revocation_reason_text)
+    -> bool {
   LOG_D() << "revoke code:" << revocation_reason_code
           << "text:" << revocation_reason_text;
 
@@ -117,6 +128,9 @@ void GpgKeyOpera::GenerateRevokeCert(const GpgKeyPtr& key,
 
   const auto app_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.app_path", QString{});
+  // A cancelled passphrase prompt ends here too, and used to end in silence,
+  // as if the certificate had been written.
+  auto succeeded = std::make_shared<bool>(false);
   // get all components
   GpgCommandExecutor::ExecuteSync(
       {app_path,
@@ -129,6 +143,7 @@ void GpgKeyOpera::GenerateRevokeCert(const GpgKeyPtr& key,
                    << p_err << ", process stdout: " << p_out;
            return;
          }
+         *succeeded = QFileInfo(output_path).size() > 0;
          LOG_D() << "gnupg gen revoke exit_code: " << exit_code
                  << "process stdout size: " << p_out.size();
        },
@@ -162,6 +177,7 @@ void GpgKeyOpera::GenerateRevokeCert(const GpgKeyPtr& key,
            }
          }
        }});
+  return *succeeded;
 }
 
 auto GenerateKeyImpl(GpgContext& ctx,
@@ -375,7 +391,9 @@ auto GpgKeyOpera::ModifyTOFUPolicy(const GpgKeyPtr& key,
   return CheckGpgError(err);
 }
 
-void GpgKeyOpera::DeleteKey(const GpgAbstractKeyPtr& key) { DeleteKeys({key}); }
+auto GpgKeyOpera::DeleteKey(const GpgAbstractKeyPtr& key) -> bool {
+  return DeleteKeys({key});
+}
 
 auto AddADSKImpl(GpgContext& ctx, const GpgKeyPtr& key, const GpgSubKey& adsk,
                  const DataObjectPtr& data_object) -> GpgError {
