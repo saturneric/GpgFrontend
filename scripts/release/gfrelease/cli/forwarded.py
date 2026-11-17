@@ -84,7 +84,7 @@ def candidate_main(argv: list[str]) -> int:
     try:
         staged = candidate_mod.stage(args.artifacts, args.out)
     except CandidateError as e:
-        print(f"release_candidate: {e}", file=sys.stderr)
+        print(f"candidate: {e}", file=sys.stderr)
         return 1
     hashes = staged["hashes"]
     print(f"staged {len(hashes)} deliverable(s) from {staged['legs']} "
