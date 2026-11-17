@@ -104,7 +104,7 @@ def _one(product, index, version, github, builds, builds_base, fetch,
     d = verify.check_release(product, builds, version, entry)
     if not gh.mirrored(d):
         one["state"] = "skipped"
-        one["detail"] = f"a {d['kind']} release, not mirrored"
+        one["detail"] = f"{d['kind']}, not mirrored"
         return
     notes = verify.checked_notes(entry, fetch, keyring)
     if notes is None:
