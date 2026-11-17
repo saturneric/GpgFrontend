@@ -28,6 +28,7 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -294,7 +295,8 @@ const auto kDemoPackagePin = u"Correct-Horse-42"_s;
  * @brief Export As Key Package for Alice, on the wizard's step @p step
  *        (0 Contents, 1 Location, 2 Protection).
  */
-auto KeyPackageExport(ScenarioContext& ctx, int step) -> bool {
+auto KeyPackageExport(ScenarioContext& ctx, int step, bool gfpipe = false)
+    -> bool {
   auto* mgmt = OpenKeyMgmt(ctx, kBackdropSize);
   auto* table = mgmt != nullptr ? ShowCategory(ctx, mgmt, u"all"_s) : nullptr;
   if (table == nullptr || !CheckKeyRow(ctx, table, kAliceEmail)) return false;
@@ -324,6 +326,14 @@ auto KeyPackageExport(ScenarioContext& ctx, int step) -> bool {
   name->setText(u"KeyPackage_q7Hm2Rk9"_s);
 
   if (!AdvanceWizard(ctx, wizard, step)) return false;
+  if (gfpipe) {
+    auto* box = dialog->findChild<QCheckBox*>(u"gfpipeBox"_s);
+    if (box == nullptr || !box->isEnabled()) {
+      ctx.Fail(kEXIT_USAGE, u"gfpipe-option-missing"_s);
+      return false;
+    }
+    box->setChecked(true);
+  }
   if (step == 2) {
     // The PIN and its repeat, so the summary and the Export button show.
     for (auto* edit : wizard->currentPage()->findChildren<QLineEdit*>()) {
@@ -355,6 +365,10 @@ auto KeyPackageExport(ScenarioContext& ctx, int step) -> bool {
         return focus_settled && dialog->isActiveWindow();
       },
       u"key-package-settled"_s);
+}
+
+auto KeyPackageExportGfPipeScenario(ScenarioContext& ctx) -> bool {
+  return KeyPackageExport(ctx, 1, true);
 }
 
 auto KeyPackageExportContentsScenario(ScenarioContext& ctx) -> bool {
@@ -590,6 +604,8 @@ void RegisterKeyTransferScenarios(QList<Scenario>& scenarios) {
       export_package, KeyPackageExportLocationScenario);
   add(u"key-package-export-protection"_s, QSize(), CaptureMode::kDIALOG,
       export_package, KeyPackageExportProtectionScenario);
+  add(u"key-package-export-gfpipe"_s, QSize(), CaptureMode::kDIALOG,
+      export_package, KeyPackageExportGfPipeScenario);
   add(u"key-server-search"_s, QSize(820, 600), CaptureMode::kDIALOG,
       {main_window, QString::fromLatin1(kNativeDialogClass)},
       KeyServerSearchScenario);
