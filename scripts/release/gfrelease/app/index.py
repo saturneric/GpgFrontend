@@ -35,7 +35,7 @@ from ..adapters.files import atomic_write, locked, sha256_file
 from ..adapters.git import (check_git_version, notes_at, resolve_commit,
                             tag_time, tagged_commit)
 from ..adapters.store import Store, StoreUnavailable
-from ..adapters.windows import authenticode, msix
+from ..adapters.windows import authenticode
 from ..cli import ui
 from ..domain import descriptor, index_model, layout, refs
 from ..domain import policy as policy_mod
@@ -46,6 +46,7 @@ from ..domain.layout import BUNDLE, DESCRIPTOR, INDEX, MINISIG, SIG, SUMS
 from ..domain.manifest import parse_manifest
 from ..errors import Problems, ReleaseError, ToolFailed, is_passing
 from . import candidate as rc
+from . import checks
 from .candidate import candidate_error, check_candidate
 from .product import Product
 
@@ -523,13 +524,9 @@ def _check_stable(product: Product, builds: Store, d: dict, path: str, *,
                     source.get("transform") != "authenticode":
                 raise ReleaseError(f"{a['name']}: not an MSIX made from "
                                    "this release's signed MSI")
-            authenticode.verify_package(
-                work / a["name"], a,
-                product.authenticode_subjects if recheck
-                else [product.authenticode_subject],
-                authenticode_ca, authenticode.Rules.of(product),
-                require_timestamp=product.authenticode_timestamp_required)
-            msix.check_derived(work / a["name"], work / source["name"])
+            checks.msix_of(product, work / a["name"], a,
+                           work / source["name"], authenticode_ca,
+                           recheck=recheck)
             continue
         if not isinstance(a.get("build_sha256"), str) or \
                 built.get(a["name"]) != a["build_sha256"]:
@@ -545,12 +542,8 @@ def _check_stable(product: Product, builds: Store, d: dict, path: str, *,
             if not any(authenticode.plan(a)):
                 raise ReleaseError(f"{a['name']}: a {a['kind']} is never "
                                    "Authenticode-signed")
-            authenticode.verify_package(
-                work / a["name"], a,
-                product.authenticode_subjects if recheck
-                else [product.authenticode_subject],
-                authenticode_ca, authenticode.Rules.of(product),
-                require_timestamp=product.authenticode_timestamp_required)
+            checks.windows_signed(product, work / a["name"], a,
+                                   authenticode_ca, recheck=recheck)
         else:
             raise ReleaseError(f"{a['name']}: unknown transform "
                                f"{a.get('transform')!r}")
@@ -767,8 +760,7 @@ def trusted_published(product: Product, update: Store,
     if not update.exists(INDEX):
         return None
     try:
-        data, sig = update.read(INDEX), update.read(INDEX + MINISIG)
-        comment = minisig.verify_bytes(keys, data, sig, INDEX)
+        data, comment = minisig.read_signed(update, INDEX, keys)
         index = load_json(data, INDEX)
         serial = index.get("serial")
         if not isinstance(serial, int) or isinstance(serial, bool) or \

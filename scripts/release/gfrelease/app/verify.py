@@ -110,11 +110,6 @@ class HttpSource:
         return ", ".join(f"{b}{self.slug}/" for b in self.bases)
 
 
-def _signed(source, path: str, keys: list[str]) -> tuple[bytes, str]:
-    data, sig = source.read(path), source.read(path + MINISIG)
-    return data, minisig.verify_bytes(keys, data, sig, path)
-
-
 def _file_name(name) -> str:
     """An artifact's name, used as a local file's: one plain segment."""
     if not isinstance(name, str) or "/" in name:
@@ -417,7 +412,7 @@ def read_index(product: Product, update) -> dict:
     # signature then decides.
     index_keys = _index_keys(product, update,
                              load_json(update.read(INDEX), INDEX))
-    data, comment = _signed(update, INDEX, index_keys)
+    data, comment = minisig.read_signed(update, INDEX, index_keys)
     index = load_json(data, INDEX)
     check_index(product, index, comment)
     return index
