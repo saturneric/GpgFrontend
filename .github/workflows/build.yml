@@ -565,12 +565,17 @@ jobs:
           path: in/
           pattern: buildinfo-*
 
+      # Every leg built the version setup derived (its build-info.json), so
+      # the files' names and the application inside them agree.
       - name: Stage Release Candidate
+        env:
+          ARTIFACT_VERSION: ${{ needs.setup.outputs.artifact_version }}
         run: |
           set -euo pipefail
           scripts/gfrelease candidate stage \
             --artifacts in/ \
-            --out candidate/
+            --out candidate/ \
+            --version "$ARTIFACT_VERSION"
 
       - name: Install cosign
         uses: sigstore/cosign-installer@d58896d6a1865668819e1d91763c7751a165e159 # v3.9.2
