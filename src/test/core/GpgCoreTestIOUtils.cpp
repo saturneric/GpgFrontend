@@ -47,6 +47,35 @@ auto WriteTempFile(const QString& dir, const QString& name,
 
 }  // namespace
 
+TEST(IOUtilsReadWriteTest, AnEmptyFileReadsAsEmpty) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+
+  const QString path = WriteTempFile(temp_dir.path(), "empty.txt", {});
+  auto [ok, buffer] = ReadFileGFBuffer(path);
+  EXPECT_TRUE(ok);
+  EXPECT_TRUE(buffer.Empty());
+}
+
+TEST(IOUtilsReadWriteTest, ADirectoryIsNotReadAsAFile) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+
+  auto [ok, buffer] = ReadFileGFBuffer(temp_dir.path());
+  EXPECT_FALSE(ok);
+}
+
+TEST(IOUtilsReadWriteTest, AWholeWriteSucceeds) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+
+  const QString path = temp_dir.path() + "/whole.txt";
+  ASSERT_TRUE(WriteFile(path, QByteArray("all of it")));
+  QFile f(path);
+  ASSERT_TRUE(f.open(QIODevice::ReadOnly));
+  EXPECT_EQ(f.readAll(), QByteArray("all of it"));
+}
+
 TEST(IOUtilsSafeOutputTest, TempPathIsStagedOutsideTheOutputDirectory) {
   QTemporaryDir temp_dir;
   ASSERT_TRUE(temp_dir.isValid());
