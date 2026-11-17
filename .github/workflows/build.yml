@@ -208,6 +208,7 @@ jobs:
           lfs: "false"
           submodules: recursive
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Setup Signing (macOS)
         shell: bash
@@ -707,6 +708,7 @@ jobs:
           lfs: "false"
           submodules: recursive
           fetch-depth: 0
+          persist-credentials: false
 
       # Saved only from pushes, so no pull request can seed an object file
       # into what a release is built from.
