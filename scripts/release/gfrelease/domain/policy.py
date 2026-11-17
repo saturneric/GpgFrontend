@@ -23,13 +23,14 @@ import textwrap
 import tomllib
 from pathlib import Path
 
-from ..paths import ROOT
-from . import semver
+from ..paths import POLICY_FILE, PRODUCT_FILE, SECURITY_FILE, TRUST_ROOT_DIR
+from . import layout, semver
+from .formats import unique_keys
 
-POLICY = ROOT / "release" / "policy.toml"
-PRODUCT = ROOT / "release" / "product.json"
-TRUST_ROOT = ROOT / "release" / "root"
-SECURITY = ROOT / "SECURITY.md"
+POLICY = POLICY_FILE
+PRODUCT = PRODUCT_FILE
+TRUST_ROOT = TRUST_ROOT_DIR
+SECURITY = SECURITY_FILE
 
 STATUSES = ("mainline", "stable", "legacy", "eol")
 # The series users are meant to be on: their newest release is the stable
@@ -46,10 +47,10 @@ FINGERPRINT = re.compile(r"[0-9A-F]{40}([0-9A-F]{24})?")
 REPOSITORY = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+")
 WORKFLOW = re.compile(r"\.github/workflows/[A-Za-z0-9_.-]+\.ya?ml")
 ARTIFACT_PREFIX = re.compile(r"[A-Za-z0-9][A-Za-z0-9._+-]*")
-# The trust files' names (gfrelease/trust.py), versions from 1, in decimal.
-ROOT_FILE = re.compile(r"([1-9][0-9]*)\.root\.json")
-ROOT_SIG_FILE = re.compile(r"([1-9][0-9]*)\.root\.json\.[0-9A-F]{16}\.minisig")
-INDEX_KEYS_FILE = re.compile(r"([1-9][0-9]*)\.json")
+# The trust files' names (layout.py).
+ROOT_FILE = layout.ROOT_FILE
+ROOT_SIG_FILE = layout.ROOT_SIG_FILE
+INDEX_KEYS_FILE = layout.INDEX_KEYS_FILE
 
 
 class PolicyError(Exception):
@@ -59,16 +60,6 @@ class PolicyError(Exception):
 def load_policy(path: Path = POLICY) -> dict:
     with open(path, "rb") as f:
         return tomllib.load(f)
-
-
-def unique_keys(pairs: list[tuple]) -> dict:
-    """json's object_pairs_hook refusing a key given twice: it reads
-    differently in different parsers, so the checks here would pass on one
-    value and a client act on the other."""
-    keys = [k for k, _ in pairs]
-    if len(keys) != len(set(keys)):
-        raise ValueError("a key is given twice")
-    return dict(pairs)
 
 
 def load_json_file(path: Path):

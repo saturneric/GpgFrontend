@@ -11,7 +11,6 @@ import json
 import re
 
 from ..errors import ReleaseError
-from . import policy as policy_mod
 from . import semver
 from .limits import SMALL_OBJECT_LIMIT
 
@@ -36,6 +35,16 @@ def sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def unique_keys(pairs: list[tuple]) -> dict:
+    """json's object_pairs_hook refusing a key given twice: it reads
+    differently in different parsers, so the checks here would pass on one
+    value and a client act on the other."""
+    keys = [k for k, _ in pairs]
+    if len(keys) != len(set(keys)):
+        raise ValueError("a key is given twice")
+    return dict(pairs)
+
+
 def load_json(data: bytes | str, what: str) -> dict:
     """A JSON object read from a store or the state directory; anything else
     is a ReleaseError naming @p what, never a traceback."""
@@ -44,7 +53,7 @@ def load_json(data: bytes | str, what: str) -> dict:
     if len(data) > SMALL_OBJECT_LIMIT:
         raise ReleaseError(f"{what}: larger than {SMALL_OBJECT_LIMIT} bytes")
     try:
-        value = json.loads(data, object_pairs_hook=policy_mod.unique_keys)
+        value = json.loads(data, object_pairs_hook=unique_keys)
     except (ValueError, UnicodeDecodeError, RecursionError) as e:
         raise ReleaseError(f"{what}: not JSON ({e})") from e
     if not isinstance(value, dict):

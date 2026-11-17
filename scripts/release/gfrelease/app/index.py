@@ -323,7 +323,7 @@ def _admit_release(product: Product, builds: Store, path: str, raw: bytes,
     the store, and records into a copy of the state directory."""
     version = d["version"]
     tag = refs.release_tag(version)
-    record_path = state_dir / "admitted" / f"{version}.json"
+    record_path = state_dir / layout.admitted_record(version)
     stale = _read_record(record_path)
     if stale is not None and stale.get("kind", kind) != kind:
         raise ReleaseError(f"{path}: {version} was admitted as "
@@ -407,7 +407,7 @@ def _admit_release(product: Product, builds: Store, path: str, raw: bytes,
     if signatures != previous:
         # Before the record: a crash in between repeats a line, never
         # loses one.
-        _append_history(state_dir / "admitted" / f"{version}.history.jsonl",
+        _append_history(state_dir / layout.admitted_history(version),
                         {"at": iso(utcnow()), "descriptor": path,
                          "descriptor_sha256": base["sha256"],
                          "signatures": signatures, "previous": previous})
@@ -914,7 +914,7 @@ def trusted_published(product: Product, update: Store,
 
 
 def read_serial(state_dir: Path) -> int:
-    path = state_dir / "serial"
+    path = state_dir / layout.STATE_SERIAL
     if not path.exists():
         return 0
     try:
@@ -1062,7 +1062,7 @@ def _sign_and_publish(product: Product, content: dict, update: Store, *,
         minisig.verify(keys, local, sig)
         # Recorded before the upload: a crash after it can only skip a
         # serial, never reuse one.
-        atomic_write(state_dir / "serial", f"{serial}\n")
+        atomic_write(state_dir / layout.STATE_SERIAL, f"{serial}\n")
         history = layout.history_path(serial)
         # History first: every index ever published is kept (what was
         # listed, and when a release's signatures changed, can always be

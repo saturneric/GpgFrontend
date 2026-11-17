@@ -19,13 +19,14 @@ import shutil
 import tempfile
 from pathlib import Path
 
+from ..domain import layout
 from ..errors import ReleaseError
 from .process import run
 
 
 def sign(file: Path, fingerprint: str, gnupghome: str | None = None) -> Path:
     """`file.sig` beside @p file, made with the key @p fingerprint names."""
-    sig = file.with_name(file.name + ".sig")
+    sig = file.with_name(layout.sig_of(file.name))
     cmd = ["gpg", "--batch", "--yes", "--detach-sign",
            "--local-user", f"{fingerprint}!", "--output", sig, file]
     if gnupghome:

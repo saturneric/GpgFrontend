@@ -53,6 +53,8 @@ these (test_what_the_signing_host_reads_is_held).
 
 from __future__ import annotations
 
+import re
+
 from .formats import parse_version
 from .manifest import BUNDLE
 from .manifest import MANIFEST as SUMS
@@ -64,8 +66,32 @@ STAGED = "staged.json"
 MINISIG = ".minisig"  # a minisign signature, beside what it signs
 INDEX = "v1/index.json"
 
-# The signing host's state directory.
-STATE_LOCK = "lock"  # held by every command of the host (files.locked)
+# The signing host's state directory (--state-dir).
+STATE_LOCK = "lock"      # held by every command of the host (files.locked)
+STATE_SERIAL = "serial"  # the last serial this host published
+TRUST_FLOOR = "floor.json"  # the oldest index-keys list it still takes
+# A maintainer's stage of one release (--work/<version>/): how far it got.
+STAGE_STATE = "state.json"
+
+
+def admitted_record(version: str) -> str:
+    """The host's record of a release it admitted: what was checked."""
+    return f"admitted/{version}.json"
+
+
+def admitted_history(version: str) -> str:
+    """Every change of an admitted release's signatures, one per line."""
+    return f"admitted/{version}.history.jsonl"
+
+
+def notes_source(version: str) -> str:
+    """A release's reviewed notes in the product's repository."""
+    return f"release/notes/{version}.md"
+
+
+def sig_of(path: str) -> str:
+    """The OpenPGP signature beside @p path."""
+    return f"{path}{SIG}"
 
 BRANCHES = "branches"
 TAGS = "tags"
@@ -133,6 +159,13 @@ def index_comment(slug: str, serial) -> str:
 
 ROOT_DIR = "v1/root"
 INDEX_KEYS_DIR = "v1/index-keys"
+
+
+# The trust files' names, versions from 1, in decimal: what root_name(),
+# root_sig_name() and index_keys_name() write.
+ROOT_FILE = re.compile(r"([1-9][0-9]*)\.root\.json")
+ROOT_SIG_FILE = re.compile(r"([1-9][0-9]*)\.root\.json\.[0-9A-F]{16}\.minisig")
+INDEX_KEYS_FILE = re.compile(r"([1-9][0-9]*)\.json")
 
 
 def root_name(n: int) -> str:

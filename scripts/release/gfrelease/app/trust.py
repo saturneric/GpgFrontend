@@ -366,7 +366,7 @@ def _update_index_keys(read_keys, keys_versions: list[int], keys_dir: Path,
     """The newest index-keys list, of main's @p keys_versions and those
     kept in @p keys_dir, that @p root's G signed and that is not older than
     the one taken before (floor.json); kept in @p keys_dir."""
-    floor_path = keys_dir / "floor.json"
+    floor_path = keys_dir / layout.TRUST_FLOOR
     g = root["roles"]["index_list"]["keyids"]
     floor = load_json(floor_path.read_bytes(), str(floor_path)) \
         if floor_path.is_file() else {"index_list": g, "version": 0}
