@@ -89,7 +89,7 @@ auto MergeGFKeyRpgpImpl(const QList<GFKey>& gf_keys, bool secret)
     auto err = Rust::gfr_crypto_merge_key_blocks(
         base_buffer,      // base
         incoming_buffer,  // incoming
-        &out_sec, &out_pub);
+        &out_sec, &out_pub, nullptr);
 
     if (err != Rust::GfrStatus::Success) {
       LOG_E() << "Merge failed at index " << i

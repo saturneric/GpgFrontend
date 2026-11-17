@@ -2627,7 +2627,8 @@ const MAX_MERGED_REVOCATIONS: usize = 256;
 
 /// Most public-key verifications one merge or canonicalization performs.
 /// Revocations are checked first. A self-claimed signature the budget does
-/// not reach is not stored. A real key needs a few dozen checks; a copy carrying more than
+/// not reach is not stored, and the import reports that the limit was
+/// reached. A real key needs a few dozen checks; a copy carrying more than
 /// this many self-claimed signatures is a flood.
 const MAX_SIGNATURE_CHECKS: usize = 4096;
 
@@ -2657,8 +2658,9 @@ const MAX_SIGNATURE_CHECKS: usize = 4096;
 //   signature is stored; sequoia stores every one.
 // * At most MAX_SIGNATURE_CHECKS verifications are made, revocations first.
 //   A self-claimed signature (one naming this key, or naming no issuer) they
-//   do not reach is not stored. Third-party signatures are not checked and
-//   stay under their caps. Sequoia has no such limit.
+//   do not reach is not stored, and the import reports that the limit was
+//   reached. Third-party signatures are not checked and stay under their
+//   caps. Sequoia has no such limit.
 // * An incoming self-claimed key-level signature of a type no component
 //   takes (e.g. 0x02, 0x19, 0x40) is not stored; a stored one stays.
 //   Sequoia stores it as "bad".
@@ -2769,11 +2771,19 @@ fn checkable(signer: &PublicParams, sig: &Signature) -> bool {
 
 /// A shared count of the public-key verifications a merge may still make
 /// (see [`MAX_SIGNATURE_CHECKS`]).
-struct CheckBudget(std::cell::Cell<usize>);
+struct CheckBudget(std::cell::Cell<usize>, std::cell::Cell<bool>);
 
 impl CheckBudget {
     fn new() -> Self {
-        CheckBudget(std::cell::Cell::new(MAX_SIGNATURE_CHECKS))
+        CheckBudget(
+            std::cell::Cell::new(MAX_SIGNATURE_CHECKS),
+            std::cell::Cell::new(false),
+        )
+    }
+
+    /// True once a check was refused because the budget was spent.
+    fn reached(&self) -> bool {
+        self.1.get()
     }
 
     /// Check `sig`, made by a key with `signer`, with `verify`: what the
@@ -2791,6 +2801,7 @@ impl CheckBudget {
         }
         let left = self.0.get();
         if left == 0 {
+            self.1.set(true);
             return Verdict::Unchecked;
         }
         self.0.set(left - 1);
@@ -3504,6 +3515,14 @@ enum SignedSecretKeyOrPublic {
     Public(SignedPublicKey),
 }
 
+/// What importing a certificate produced.
+pub struct ImportOutcome {
+    pub keys: GeneratedKeys,
+    /// True if [`MAX_SIGNATURE_CHECKS`] was reached: self-claimed signatures
+    /// past it were not checked and not stored.
+    pub check_limit_reached: bool,
+}
+
 /// Merge `incoming_block` into `base_block`, two armored copies of the same
 /// certificate (any combination of secret and public).
 ///
@@ -3512,10 +3531,10 @@ enum SignedSecretKeyOrPublic {
 /// [`is_self_sig_candidate`]). At most [`MAX_SIGNATURE_CHECKS`] signatures
 /// are verified in all. Returns `ErrorInvalidInput` if the fingerprints
 /// don't match.
-pub fn merge_key_block_internal(
+pub fn merge_key_block_report(
     base_block: &str,
     incoming_block: &str,
-) -> Result<GeneratedKeys, GfrStatus> {
+) -> Result<ImportOutcome, GfrStatus> {
     let mut base = WorkCert::parse(base_block)?;
     let mut incoming = WorkCert::parse(incoming_block)?;
     if base.fingerprint() != incoming.fingerprint() {
@@ -3526,16 +3545,38 @@ pub fn merge_key_block_internal(
     incoming.canonicalize(&stored, &budget)?;
     base.fold(None)?;
     base.absorb(incoming, true)?;
-    base.export()
+    Ok(ImportOutcome {
+        keys: base.export()?,
+        check_limit_reached: budget.reached(),
+    })
+}
+
+/// [`merge_key_block_report`] without the report.
+#[cfg(test)]
+pub fn merge_key_block_internal(
+    base_block: &str,
+    incoming_block: &str,
+) -> Result<GeneratedKeys, GfrStatus> {
+    merge_key_block_report(base_block, incoming_block).map(|outcome| outcome.keys)
 }
 
 /// Canonicalize the first certificate of an armored `block` that is about to
 /// be stored for the first time, as sequoia does on parsing one (see the
 /// notes above [`is_self_sig_candidate`]).
-pub fn canonicalize_key_block_internal(block: &str) -> Result<GeneratedKeys, GfrStatus> {
+pub fn canonicalize_key_block_report(block: &str) -> Result<ImportOutcome, GfrStatus> {
     let mut cert = WorkCert::parse(block)?;
-    cert.canonicalize(&StoredComponents::default(), &CheckBudget::new())?;
-    cert.export()
+    let budget = CheckBudget::new();
+    cert.canonicalize(&StoredComponents::default(), &budget)?;
+    Ok(ImportOutcome {
+        keys: cert.export()?,
+        check_limit_reached: budget.reached(),
+    })
+}
+
+/// [`canonicalize_key_block_report`] without the report.
+#[cfg(test)]
+pub fn canonicalize_key_block_internal(block: &str) -> Result<GeneratedKeys, GfrStatus> {
+    canonicalize_key_block_report(block).map(|outcome| outcome.keys)
 }
 
 fn parse_signatures_from_armor(block: &str) -> Result<Vec<Signature>, GfrStatus> {
@@ -7108,6 +7149,22 @@ mod key_tests {
         );
         // What was stored is all still there.
         assert_eq!(out, merged_public(genuine.clone(), genuine));
+    }
+
+    #[test]
+    fn the_check_budget_being_reached_is_reported() {
+        let genuine = SignedPublicKey::from(keys::V4_SIGN.secret.clone());
+        let stored = export_public_key(genuine.clone()).unwrap().public;
+        let (flooded, _, _) = flooded_copy(&genuine);
+        let flooded = export_public_key(flooded).unwrap().public;
+
+        let outcome = merge_key_block_report(&stored, &flooded).expect("merge");
+        assert!(outcome.check_limit_reached);
+        let outcome = canonicalize_key_block_report(&flooded).expect("canonicalize");
+        assert!(outcome.check_limit_reached);
+
+        let clean = merge_key_block_report(&stored, &stored).expect("merge");
+        assert!(!clean.check_limit_reached);
     }
 
     #[test]

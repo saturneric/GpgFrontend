@@ -35,9 +35,9 @@
 use crate::crypto::sniff_recipients;
 use crate::err::clear_last_error;
 use crate::key::{
-    canonicalize_key_block_internal, delete_subkey_internal, detect_key_version_internal,
+    canonicalize_key_block_report, delete_subkey_internal, detect_key_version_internal,
     extract_rev_cert_target_fpr_internal, generate_key_rev_cert_internal,
-    get_ecdh_kdf_params_internal, import_rev_cert_internal, merge_key_block_internal,
+    get_ecdh_kdf_params_internal, import_rev_cert_internal, merge_key_block_report,
     modify_key_password_internal, revoke_subkey_internal, update_key_expiration_internal,
 };
 use crate::key::{
@@ -840,17 +840,21 @@ pub extern "C" fn gfr_crypto_generate_key_rev_cert(
 /// Useful for importing certification signatures or subkeys from an external source.
 /// On success `*out_public_block` is always populated; `*out_secret_block` is
 /// populated only if a secret key is present. Free with `gfr_crypto_free_string`.
+/// `*out_check_limit_reached` (if not null) says whether the signature check
+/// limit was reached, so that self-claimed signatures past it were not stored.
 ///
 /// # Safety
-/// All four pointer arguments must be non-null.
+/// Both block out-params must be non-null; `out_check_limit_reached` may be null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_merge_key_blocks(
     base_block: GfrBuffer,
     incoming_block: GfrBuffer,
     out_secret_block: *mut *mut c_char,
     out_public_block: *mut *mut c_char,
+    out_check_limit_reached: *mut bool,
 ) -> GfrStatus {
     clear_last_error();
+    write_check_limit(out_check_limit_reached, false);
 
     if !out_secret_block.is_null() {
         unsafe {
@@ -873,14 +877,25 @@ pub extern "C" fn gfr_crypto_merge_key_blocks(
 
         let incoming_str = unsafe { incoming_block.as_str() }?;
 
-        let merged = merge_key_block_internal(base_str, incoming_str)?;
-        write_key_blocks(merged, out_secret_block, out_public_block)
+        let merged = merge_key_block_report(base_str, incoming_str)?;
+        write_key_blocks(merged.keys, out_secret_block, out_public_block)?;
+        write_check_limit(out_check_limit_reached, merged.check_limit_reached);
+        Ok(())
     });
 
     match result {
         Ok(Ok(())) => GfrStatus::Success,
         Ok(Err(e)) => e,
         Err(_) => GfrStatus::ErrorPanic,
+    }
+}
+
+/// Write `reached` through `out`, unless it is null.
+fn write_check_limit(out: *mut bool, reached: bool) {
+    if !out.is_null() {
+        unsafe {
+            *out = reached;
+        }
     }
 }
 
@@ -914,16 +929,20 @@ fn write_key_blocks(
 ///
 /// On success `*out_public_block` is always populated; `*out_secret_block` is
 /// populated only if a secret key is present. Free with `gfr_crypto_free_string`.
+/// `*out_check_limit_reached` (if not null) is as for
+/// `gfr_crypto_merge_key_blocks`.
 ///
 /// # Safety
-/// Both output pointers must be non-null.
+/// Both block out-params must be non-null; `out_check_limit_reached` may be null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_canonicalize_key_block(
     key_block: GfrBuffer,
     out_secret_block: *mut *mut c_char,
     out_public_block: *mut *mut c_char,
+    out_check_limit_reached: *mut bool,
 ) -> GfrStatus {
     clear_last_error();
+    write_check_limit(out_check_limit_reached, false);
 
     for out in [out_secret_block, out_public_block] {
         if !out.is_null() {
@@ -938,8 +957,10 @@ pub extern "C" fn gfr_crypto_canonicalize_key_block(
             return Err(GfrStatus::ErrorInvalidInput);
         }
         let block = unsafe { key_block.as_str() }?;
-        let canonical = canonicalize_key_block_internal(block)?;
-        write_key_blocks(canonical, out_secret_block, out_public_block)
+        let canonical = canonicalize_key_block_report(block)?;
+        write_key_blocks(canonical.keys, out_secret_block, out_public_block)?;
+        write_check_limit(out_check_limit_reached, canonical.check_limit_reached);
+        Ok(())
     });
 
     match result {
@@ -1484,6 +1505,7 @@ mod ffi_key_tests {
                 buf(&keys::V4_SIGN.public_armored),
                 std::ptr::null_mut(),
                 std::ptr::null_mut(),
+                std::ptr::null_mut(),
             ),
             GfrStatus::ErrorInvalidInput
         );
@@ -1500,6 +1522,7 @@ mod ffi_key_tests {
                 buf(&key.public_armored),
                 &mut sec_out,
                 &mut pub_out,
+                std::ptr::null_mut(),
             ),
             GfrStatus::Success
         );
@@ -1516,6 +1539,7 @@ mod ffi_key_tests {
                 buf(&keys::V4_SIGN.public_armored),
                 std::ptr::null_mut(),
                 std::ptr::null_mut(),
+                std::ptr::null_mut(),
             ),
             GfrStatus::ErrorInvalidInput
         );
@@ -1527,7 +1551,12 @@ mod ffi_key_tests {
         let mut sec_out = std::ptr::null_mut();
         let mut pub_out = std::ptr::null_mut();
         assert_eq!(
-            gfr_crypto_canonicalize_key_block(buf(&key.secret_armored), &mut sec_out, &mut pub_out,),
+            gfr_crypto_canonicalize_key_block(
+                buf(&key.secret_armored),
+                &mut sec_out,
+                &mut pub_out,
+                std::ptr::null_mut(),
+            ),
             GfrStatus::Success
         );
         assert!(take(sec_out).contains("PRIVATE KEY BLOCK"));
@@ -1550,13 +1579,82 @@ mod ffi_key_tests {
         let mut sec_out = std::ptr::null_mut();
         let mut pub_out = std::ptr::null_mut();
         assert_eq!(
-            gfr_crypto_canonicalize_key_block(buf(&block), &mut sec_out, &mut pub_out,),
+            gfr_crypto_canonicalize_key_block(
+                buf(&block),
+                &mut sec_out,
+                &mut pub_out,
+                std::ptr::null_mut(),
+            ),
             GfrStatus::Success
         );
         assert!(sec_out.is_null());
         let (out, _) = SignedPublicKey::from_string(&take(pub_out)).expect("parses");
         assert!(out.details.users.is_empty());
         assert_eq!(out.public_subkeys.len(), bare.public_subkeys.len());
+    }
+
+    #[test]
+    fn canonicalize_and_merge_report_the_check_limit() {
+        // More self-claimed signatures than the check limit: the FFI says so.
+        use pgp::composed::{Deserializable, SignedPublicKey};
+        use pgp::packet::Signature;
+        let mut flooded = SignedPublicKey::from(keys::V4_SIGN.secret.clone());
+        let model = flooded.details.users[0].signatures[0].clone();
+        for i in 0..5000u32 {
+            let junk = Signature::from_config(
+                model.config().unwrap().clone(),
+                [(i >> 8) as u8 ^ 0x5a, i as u8],
+                model.signature().unwrap().clone(),
+            )
+            .unwrap();
+            flooded.details.users[0].signatures.push(junk);
+        }
+        let flooded = flooded.to_armored_string(Default::default()).unwrap();
+        let clean = &keys::V4_SIGN.public_armored;
+
+        let mut sec_out = std::ptr::null_mut();
+        let mut pub_out = std::ptr::null_mut();
+        let mut reached = false;
+        assert_eq!(
+            gfr_crypto_canonicalize_key_block(
+                buf(&flooded),
+                &mut sec_out,
+                &mut pub_out,
+                &mut reached
+            ),
+            GfrStatus::Success
+        );
+        take(pub_out);
+        assert!(reached);
+        assert!(SignedPublicKey::from_string(clean).is_ok());
+
+        let mut pub_out = std::ptr::null_mut();
+        assert_eq!(
+            gfr_crypto_merge_key_blocks(
+                buf(clean),
+                buf(&flooded),
+                &mut sec_out,
+                &mut pub_out,
+                &mut reached
+            ),
+            GfrStatus::Success
+        );
+        take(pub_out);
+        assert!(reached);
+
+        let mut pub_out = std::ptr::null_mut();
+        assert_eq!(
+            gfr_crypto_merge_key_blocks(
+                buf(clean),
+                buf(clean),
+                &mut sec_out,
+                &mut pub_out,
+                &mut reached
+            ),
+            GfrStatus::Success
+        );
+        take(pub_out);
+        assert!(!reached, "a clean copy does not reach it");
     }
 
     // -- modify_key_password -----------------------------------------------------------
@@ -1610,6 +1708,7 @@ mod ffi_key_tests {
                 GfrBuffer::empty(),
                 &mut out_c,
                 &mut out_c2,
+                std::ptr::null_mut(),
             ),
             gfr_crypto_modify_key_password(
                 0,
