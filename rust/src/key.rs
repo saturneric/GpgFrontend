@@ -6803,6 +6803,362 @@ mod key_tests {
         assert!(holds(&pk.details.users[0].signatures, &y));
     }
 
+    // -- importing: valid data canonicalization must keep ---------------------
+
+    fn creation(at: u32) -> Subpacket {
+        Subpacket::regular(SubpacketData::SignatureCreationTime(
+            pgp::types::Timestamp::from_secs(at),
+        ))
+        .unwrap()
+    }
+
+    fn issued_by(fpr: pgp::types::Fingerprint) -> Subpacket {
+        Subpacket::regular(SubpacketData::IssuerFingerprint(fpr)).unwrap()
+    }
+
+    /// A key revocation (0x20) by `target` itself.
+    fn self_key_revocation(target: &keys::Fixture, created: u32) -> Signature {
+        let primary = &target.secret.primary_key;
+        let mut cfg =
+            SignatureConfig::from_key(rand::thread_rng(), primary, SignatureType::KeyRevocation)
+                .unwrap();
+        cfg.hashed_subpackets = vec![creation(created), issued_by(primary.fingerprint())];
+        cfg.unhashed_subpackets.clear();
+        cfg.sign_key(primary, &Password::empty(), primary.public_key())
+            .unwrap()
+    }
+
+    #[test]
+    fn third_party_revocations_are_not_pushed_out_by_a_flood() {
+        let target = &keys::V4_SIGN;
+        let signer = &keys::V4_PRIMARY_ONLY;
+        let genuine = SignedPublicKey::from(target.secret.clone());
+        let created = genuine.primary_key.created_at().as_secs();
+        let uid = genuine.details.users[0].id.clone();
+        let signer_fpr = signer.secret.primary_key.fingerprint();
+        let flood: Vec<Signature> = (0..(MAX_MERGED_SIGNATURES as u32 + 20))
+            .map(|i| {
+                uid_sig(
+                    signer,
+                    &genuine,
+                    &uid,
+                    SignatureType::CertGeneric,
+                    Some(signer_fpr.clone()),
+                    created + 10 + i,
+                )
+            })
+            .collect();
+        // The signer withdraws its certification, after all the junk.
+        let withdrawal = uid_sig(
+            signer,
+            &genuine,
+            &uid,
+            SignatureType::CertRevocation,
+            Some(signer_fpr.clone()),
+            created + 5_000,
+        );
+
+        let mut cert = genuine.clone();
+        cert.details.users[0].signatures.extend(flood.clone());
+        cert.details.users[0].signatures.push(withdrawal.clone());
+        let out = canonical(cert);
+        assert!(holds(&out.details.users[0].signatures, &withdrawal));
+
+        // A stored key already full of certifications still takes it.
+        let mut stored = genuine.clone();
+        stored.details.users[0].signatures.extend(flood);
+        let mut incoming = genuine.clone();
+        incoming.details.users[0]
+            .signatures
+            .push(withdrawal.clone());
+        let out = merged_public(stored, incoming);
+        assert!(holds(&out.details.users[0].signatures, &withdrawal));
+    }
+
+    #[test]
+    fn an_expired_self_signature_is_kept() {
+        // Expiry is a question of when, not of who made it: the signature
+        // is valid history and stays.
+        let target = &keys::V4_SIGN;
+        let primary = &target.secret.primary_key;
+        let genuine = SignedPublicKey::from(target.secret.clone());
+        let created = genuine.primary_key.created_at().as_secs();
+        let uid = genuine.details.users[0].id.clone();
+        let mut cfg =
+            SignatureConfig::from_key(rand::thread_rng(), primary, SignatureType::CertPositive)
+                .unwrap();
+        cfg.hashed_subpackets = vec![
+            creation(created + 11),
+            issued_by(primary.fingerprint()),
+            Subpacket::regular(SubpacketData::SignatureExpirationTime(Duration::from_secs(
+                1,
+            )))
+            .unwrap(),
+        ];
+        cfg.unhashed_subpackets.clear();
+        let expired = cfg
+            .sign_certification_third_party(
+                primary,
+                &Password::empty(),
+                &genuine.primary_key,
+                Tag::UserId,
+                &uid,
+            )
+            .unwrap();
+
+        let mut cert = genuine.clone();
+        cert.details.users[0].signatures.push(expired.clone());
+        let out = canonical(cert);
+        assert!(holds(&out.details.users[0].signatures, &expired));
+    }
+
+    #[test]
+    fn an_issuerless_certification_is_kept_as_someone_elses() {
+        // sq keeps a signature without an issuer it cannot place. Failing as
+        // the holder's own does not make it a forgery: it may be anyone's.
+        let target = &keys::V4_SIGN;
+        let genuine = SignedPublicKey::from(target.secret.clone());
+        let created = genuine.primary_key.created_at().as_secs();
+        let uid = genuine.details.users[0].id.clone();
+        let issuerless = uid_sig(
+            &keys::V4_PRIMARY_ONLY,
+            &genuine,
+            &uid,
+            SignatureType::CertGeneric,
+            None,
+            created + 6,
+        );
+        let mut incoming = genuine.clone();
+        incoming.details.users[0]
+            .signatures
+            .push(issuerless.clone());
+
+        let out = canonical(incoming.clone());
+        assert!(holds(&out.details.users[0].signatures, &issuerless));
+        let out = merged_public(genuine, incoming);
+        assert!(holds(&out.details.users[0].signatures, &issuerless));
+        assert!(has_verified_uid_certification(
+            &out.primary_key,
+            &out.details.users[0]
+        ));
+    }
+
+    #[test]
+    fn signature_checks_are_bounded() {
+        // Thousands of self-claimed signatures: only MAX_SIGNATURE_CHECKS
+        // are verified (revocations first); those that fail and those past
+        // the budget are not stored.
+        let target = &keys::V4_SIGN;
+        let genuine = SignedPublicKey::from(target.secret.clone());
+        let created = genuine.primary_key.created_at().as_secs();
+        let model = genuine.details.users[0].signatures[0].clone();
+        let forge = |n: u32| {
+            let mut cfg = model.config().unwrap().clone();
+            cfg.hashed_subpackets = vec![
+                creation(created + 100 + n),
+                issued_by(genuine.primary_key.fingerprint()),
+            ];
+            cfg.unhashed_subpackets.clear();
+            Signature::from_config(
+                cfg,
+                model.signed_hash_value().unwrap(),
+                model.signature().unwrap().clone(),
+            )
+            .unwrap()
+        };
+        let total = MAX_SIGNATURE_CHECKS as u32 + 2 * MAX_MERGED_SIGNATURES as u32;
+        let mut cert = genuine.clone();
+        cert.details.users[0]
+            .signatures
+            .extend((0..total).map(forge));
+        let revocation = self_key_revocation(target, created + 50_000);
+        cert.details.revocation_signatures.push(revocation);
+
+        let out = canonical(cert);
+        let own = genuine.details.users[0].signatures.len();
+        let sigs = &out.details.users[0].signatures;
+        assert_eq!(sigs.len(), own, "none past the budget is stored");
+        assert_eq!(
+            verified_uid_self_sigs(&out.primary_key, &out.details.users[0]).len(),
+            own
+        );
+        assert!(is_primary_key_revoked(
+            &out.primary_key,
+            &out.details.revocation_signatures
+        ));
+    }
+
+    #[test]
+    fn a_certificate_without_user_ids_imports_and_merges() {
+        // keys.openpgp.org serves a certificate whose addresses are not
+        // verified without its User IDs.
+        let target = &keys::V4_SIGN;
+        let primary = &target.secret.primary_key;
+        let genuine = SignedPublicKey::from(target.secret.clone());
+        let created = genuine.primary_key.created_at().as_secs();
+        let mut bare = genuine.clone();
+        bare.details.users.clear();
+        bare.details.user_attributes.clear();
+
+        let out = canonical(bare.clone());
+        assert!(out.details.users.is_empty());
+        assert_eq!(out.public_subkeys.len(), genuine.public_subkeys.len());
+
+        let mut stored = genuine.clone();
+        let new_sub = stored.public_subkeys.pop().unwrap();
+        let mut cfg =
+            SignatureConfig::from_key(rand::thread_rng(), primary, SignatureType::Key).unwrap();
+        cfg.hashed_subpackets = vec![creation(created + 13), issued_by(primary.fingerprint())];
+        cfg.unhashed_subpackets.clear();
+        let direct = cfg
+            .sign_key(primary, &Password::empty(), primary.public_key())
+            .unwrap();
+        let mut incoming = bare;
+        incoming.details.direct_signatures.push(direct.clone());
+
+        let out = merged_public(stored, incoming);
+        let ids: Vec<&[u8]> = out.details.users.iter().map(|u| u.id.id()).collect();
+        let want: Vec<&[u8]> = genuine.details.users.iter().map(|u| u.id.id()).collect();
+        assert_eq!(ids, want, "every stored User ID is kept");
+        assert!(
+            out.public_subkeys
+                .iter()
+                .any(|s| s.key.fingerprint() == new_sub.key.fingerprint())
+        );
+        assert!(holds(&out.details.direct_signatures, &direct));
+    }
+
+    // -- importing: the check budget, signatures nothing takes ---------------
+
+    /// `n` distinct copies of `sig`, differing only in the digest prefix, so
+    /// none verifies and none is a duplicate of another.
+    fn junk_copies(sig: &Signature, n: u32) -> Vec<Signature> {
+        (0..n)
+            .map(|i| {
+                Signature::from_config(
+                    sig.config().unwrap().clone(),
+                    [(i >> 8) as u8, i as u8],
+                    sig.signature().unwrap().clone(),
+                )
+                .unwrap()
+            })
+            .collect()
+    }
+
+    /// A key whose incoming copy carries, on its first subkey, as many
+    /// forged self-claimed revocations as the check budget, and, past what
+    /// the budget reaches, a forged revocation of its second subkey (where
+    /// no cap can be what leaves it out) and an issuer-less certification.
+    fn flooded_copy(genuine: &SignedPublicKey) -> (SignedPublicKey, Signature, Signature) {
+        assert!(
+            genuine.public_subkeys.len() >= 2,
+            "the fixture has two subkeys"
+        );
+        let created = genuine.primary_key.created_at().as_secs();
+        let junk_model = forged_subkey_revocation(&keys::V4_PRIMARY_ONLY, genuine, created + 8);
+        let mut second = genuine.clone();
+        second.public_subkeys.swap(0, 1);
+        let late = forged_subkey_revocation(&keys::V4_PRIMARY_ONLY, &second, created + 9);
+        let uid = genuine.details.users[0].id.clone();
+        let issuerless = uid_sig(
+            &keys::V4_PRIMARY_ONLY,
+            genuine,
+            &uid,
+            SignatureType::CertGeneric,
+            None,
+            created + 6,
+        );
+        let mut flooded = genuine.clone();
+        flooded.public_subkeys[0]
+            .signatures
+            .extend(junk_copies(&junk_model, MAX_SIGNATURE_CHECKS as u32));
+        flooded.public_subkeys[1].signatures.push(late.clone());
+        flooded.details.users[0].signatures.push(issuerless.clone());
+        (flooded, late, issuerless)
+    }
+
+    #[test]
+    fn self_claimed_signatures_past_the_check_budget_are_not_stored() {
+        let genuine = SignedPublicKey::from(keys::V4_SIGN.secret.clone());
+        let (flooded, late, issuerless) = flooded_copy(&genuine);
+
+        let out = merged_public(genuine.clone(), flooded.clone());
+        let sub = &out.public_subkeys[1];
+        assert!(
+            !holds(&sub.signatures, &late),
+            "an unchecked revocation was stored"
+        );
+        assert!(!is_subkey_revoked(
+            &out.primary_key,
+            &sub.key,
+            &sub.signatures
+        ));
+        assert!(
+            !holds(&out.details.users[0].signatures, &issuerless),
+            "an unchecked issuer-less signature was stored"
+        );
+        let flood = &flooded.public_subkeys[0].signatures;
+        let own = &genuine.public_subkeys[0].signatures;
+        assert!(
+            !out.public_subkeys[0]
+                .signatures
+                .iter()
+                .any(|s| holds(flood, s) && !holds(own, s)),
+            "flood signatures were stored"
+        );
+        // What was stored is all still there.
+        assert_eq!(out, merged_public(genuine.clone(), genuine));
+    }
+
+    #[test]
+    fn a_clean_copy_merges_normally_after_a_flooded_one() {
+        let genuine = SignedPublicKey::from(keys::V4_SIGN.secret.clone());
+        let created = genuine.primary_key.created_at().as_secs();
+        let (flooded, _, _) = flooded_copy(&genuine);
+        let after_flood = merged_public(genuine.clone(), flooded);
+
+        let signer = &keys::V4_PRIMARY_ONLY;
+        let cert = certification_by(
+            signer,
+            &genuine,
+            signer.secret.primary_key.fingerprint(),
+            created + 20,
+        );
+        let mut clean = genuine.clone();
+        clean.details.users[0].signatures.push(cert.clone());
+        let out = merged_public(after_flood, clean);
+        assert!(holds(&out.details.users[0].signatures, &cert));
+        assert_eq!(out.public_subkeys.len(), genuine.public_subkeys.len());
+    }
+
+    #[test]
+    fn an_incoming_key_level_signature_no_component_takes_is_dropped() {
+        use pgp::types::SignatureBytes;
+        let genuine = SignedPublicKey::from(keys::V4_SIGN.secret.clone());
+        let model = genuine.details.users[0].signatures[0].clone();
+        let mut cfg = model.config().unwrap().clone();
+        cfg.typ = SignatureType::Standalone;
+        let orphan = Signature::from_config(
+            cfg,
+            model.signed_hash_value().unwrap(),
+            SignatureBytes::clone(model.signature().unwrap()),
+        )
+        .unwrap();
+        let mut with_orphan = genuine.clone();
+        with_orphan.details.direct_signatures.push(orphan.clone());
+
+        let out = merged_public(genuine.clone(), with_orphan.clone());
+        assert!(!holds(&out.details.direct_signatures, &orphan), "taken in");
+        let as_new = canonical(with_orphan.clone());
+        assert!(
+            !holds(&as_new.details.direct_signatures, &orphan),
+            "stored as new"
+        );
+        // A stored one stays.
+        let out = merged_public(with_orphan, genuine);
+        assert!(holds(&out.details.direct_signatures, &orphan));
+    }
+
     // -- ECDH KDF parameters -------------------------------------------------
 
     #[test]
