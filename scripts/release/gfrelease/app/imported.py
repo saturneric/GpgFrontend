@@ -35,9 +35,10 @@ from ..adapters.clock import utcnow
 from ..adapters.files import atomic_write, sha256_file
 from ..adapters.git import tag_time, tagged_commit
 from ..adapters.store import Store
+from ..domain import descriptor as descriptors
 from ..domain import layout, refs
-from ..domain.formats import (SCHEMA, canonical_json, iso, load_json,
-                              parse_iso, parse_version)
+from ..domain.formats import (canonical_json, iso, load_json, parse_iso,
+                              parse_version)
 from ..domain.layout import DESCRIPTOR, SIG
 from ..domain.limits import SMALL_OBJECT_LIMIT
 from ..errors import ReleaseError
@@ -186,26 +187,19 @@ class Import:
                 self.outbox.put_file(self.dir / name, f"{p}/{name}")
                 self.outbox.put_file(self.dir / (name + SIG),
                                      layout.sig_of(f"{p}/{name}"))
-            artifacts.append({
-                k: info[k] for k in ("os", "arch", "kind", "flavor", "min_os",
-                                     "sha256", "size") if k in info} | {
+            artifacts.append(descriptors.classified(info) | {
+                k: info[k] for k in ("sha256", "size") if k in info} | {
                 "name": name, "path": f"{p}/{name}",
                 "sig": layout.sig_of(f"{p}/{name}")})
 
         released = release.get("published_at") or ""
-        descriptor = {
-            "schema": SCHEMA, "product": self.product.slug,
-            "kind": layout.KIND_IMPORTED,
-            "version": self.version,
-            "series": parse_version(self.version).series,
-            "ref": refs.release_tag_ref(self.version), "commit": commit,
-            "released_at": iso(parse_iso(released)) if released else None,
-            "imported_at": iso(utcnow()),
-            "source": self.source.page(self.tag),
-            "signing": {"scheme": layout.SCHEME_OPENPGP,
-                        "fingerprint": signers.pop()},
-            "artifacts": artifacts,
-        }
+        descriptor = descriptors.make(
+            layout.KIND_IMPORTED, self.product.slug, self.version,
+            refs.release_tag_ref(self.version), commit,
+            {"scheme": layout.SCHEME_OPENPGP, "fingerprint": signers.pop()},
+            artifacts,
+            released_at=iso(parse_iso(released)) if released else None,
+            imported_at=iso(utcnow()), source=self.source.page(self.tag))
         # A rerun keeps the first import's time, so the descriptor's bytes
         # (immutable once uploaded) come out the same.
         local = self.dir / DESCRIPTOR

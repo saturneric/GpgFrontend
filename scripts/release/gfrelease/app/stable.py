@@ -67,9 +67,10 @@ from ..adapters.git import notes_at, tagged_commit
 from ..adapters.store import Store
 from ..adapters.windows import authenticode, msix
 from ..cli import ui
+from ..domain import descriptor as descriptors
 from ..domain import layout, refs
-from ..domain.formats import (SCHEMA, canonical_json, iso, load_json,
-                              parse_version, sha256_bytes)
+from ..domain.formats import (canonical_json, iso, load_json, parse_version,
+                              sha256_bytes)
 from ..domain.layout import BUNDLE, SIG, STAGED, SUMS
 from ..domain.manifest import render_manifest
 from ..errors import ReleaseError
@@ -498,28 +499,23 @@ class Stage:
         """The release as the stage's record has it: every file in final/,
         and when it was first handed over."""
         files, p = self.state["build"]["files"], self.prefix
-        artifacts = [{
-            k: info[k] for k in ("os", "arch", "kind", "flavor", "min_os",
-                                 "sha256", "build_sha256", "transform", "from")
-            if k in info} | {
+        artifacts = [descriptors.classified(info) | {
+            k: info[k] for k in ("sha256", "build_sha256", "transform",
+                                 "from") if k in info} | {
             "name": name, "size": (self.final_dir / name).stat().st_size,
             "path": f"{p}/{name}", "sig": layout.sig_of(f"{p}/{name}")}
             for name, info in sorted(files.items())]
         b = self.state["build"]
-        return {
-            "schema": SCHEMA, "product": self.product.slug,
-            "kind": layout.KIND_STABLE,
-            "version": self.version, "series": parse_version(self.version).series,
-            "ref": refs.release_tag_ref(self.version), "commit": b["commit"],
-            "built_at": b["built_at"], "released_at": self.state["released_at"],
-            "signing": {"scheme": layout.SCHEME_OPENPGP,
-                        "fingerprint": self.key},
-            "build": {"sums": layout.build_sums(p),
-                      "bundle": layout.build_bundle(p),
-                      "identity": b["identity"]},
-            "sums": f"{p}/{SUMS}", "sums_sig": layout.sig_of(f"{p}/{SUMS}"),
-            "artifacts": artifacts,
-        }
+        return descriptors.make(
+            layout.KIND_STABLE, self.product.slug, self.version,
+            refs.release_tag_ref(self.version), b["commit"],
+            {"scheme": layout.SCHEME_OPENPGP, "fingerprint": self.key},
+            artifacts,
+            built_at=b["built_at"], released_at=self.state["released_at"],
+            build={"sums": layout.build_sums(p),
+                   "bundle": layout.build_bundle(p),
+                   "identity": b["identity"]},
+            sums=f"{p}/{SUMS}", sums_sig=layout.sig_of(f"{p}/{SUMS}"))
 
     def add_msix(self) -> dict:
         """For a release handed over without its MSIX (made before the

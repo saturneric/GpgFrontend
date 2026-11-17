@@ -1,13 +1,35 @@
 # Copyright (C) 2021-2026 Saturneric <eric@bktus.com>
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The shape of a descriptor (release.json), checked before anything in it
-is believed: by the host when it admits one (index.py), and by anyone who
-checks a published index (verify.py)."""
+"""A descriptor (release.json): what one is made of, by whoever makes one
+(promote.py a nightly, stable.py a stable release, imported.py an imported
+one), and its shape, checked before anything in it is believed: by the
+host when it admits one (index.py), and by anyone who checks a published
+index (verify.py)."""
 
 from __future__ import annotations
 
 from ..errors import ReleaseError
 from . import refs
+from .formats import SCHEMA, parse_version
+
+# What the product's artifact rules say of a file (Product.classify): what a
+# client picks its download by.
+CLASSIFIED = ("os", "arch", "kind", "flavor", "min_os")
+
+
+def classified(entry: dict) -> dict:
+    """The fields of the artifact entry @p entry the artifact rules decide."""
+    return {k: entry[k] for k in CLASSIFIED if k in entry}
+
+
+def make(kind: str, product: str, version: str, ref: str, commit: str,
+         signing: dict, artifacts: list[dict], **fields) -> dict:
+    """A descriptor of @p kind (layout.KIND_*): what every kind says, and
+    @p fields, its own."""
+    return {"schema": SCHEMA, "product": product, "kind": kind,
+            "version": version, "series": parse_version(version).series,
+            "ref": ref, "commit": commit, "signing": signing,
+            "artifacts": artifacts, **fields}
 
 _STRINGS = ("product", "kind", "version", "ref", "commit", "sums", "sums_sig",
             "promoted_at", "built_at")
