@@ -74,7 +74,7 @@ class PromoteIncomplete(ReleaseError):
     def __init__(self, failed: Problems, done: list[dict]):
         super().__init__(f"not {self.what}:\n  " + "\n  ".join(failed))
         self.failed = failed
-        self.passing = failed.passing  # common.Problems
+        self.passing = failed.passing  # errors.Problems
         self.done = done
 
 

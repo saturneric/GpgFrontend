@@ -613,7 +613,7 @@ class IndexIncomplete(ReleaseError):
     published, unless nothing changed): one bad release must not take the
     nightly and every other release off the channel with it. The run fails
     all the same, naming each one, so it is never silent. @p refused says
-    whether running again may help (common.Problems)."""
+    whether running again may help (errors.Problems)."""
 
     def __init__(self, refused: Problems, index: dict | None):
         super().__init__("refused or not checked (the index lists "
@@ -631,7 +631,7 @@ def build(product: Product, builds: Store, *,
     """The index's content, without serial and times. A release that fails
     admission is left out and appended to @p refused (when given; otherwise
     its error is raised). One that could not be checked (a store that did
-    not answer, a tool that did not run: common.is_passing) keeps its entry
+    not answer, a tool that did not run: errors.is_passing) keeps its entry
     from @p previous, the published index (one whose signature verified,
     trusted_published), and is named in @p refused all the same: an outage
     never takes a release off the channel, and never passes unnoticed."""

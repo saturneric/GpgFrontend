@@ -30,7 +30,7 @@ The builds store:
 
 The update store:
 
-  v1/index.json                   the signed index (common.INDEX)
+  v1/index.json                   the signed index (INDEX)
   v1/history/<serial>.json        every index ever published
   v1/root/<N>.root.json           every trusted root, and beside it one
                                   <N>.root.json.<keyid>.minisig per signer

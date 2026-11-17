@@ -49,8 +49,9 @@ def configure(*, json_out: bool = False, quiet: bool = False,
         report.log.addHandler(_SHOWN)
         report.log.setLevel(logging.INFO)
     if verbose:
-        # Read by common.run and the store's own streams, and by every
-        # gfrelease this one starts.
+        # Read by tool_started() (every tool adapters/process.py runs)
+        # and the store's own streams, and by every gfrelease this one
+        # starts.
         os.environ["GFR_VERBOSE"] = "1"
 
 

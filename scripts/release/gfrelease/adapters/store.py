@@ -34,7 +34,7 @@ class StoreUnavailable(ReleaseError):
     nothing about the object is known. Unlike an object that is not there,
     which is an answer."""
 
-    passing = True  # common.is_passing: the next run may well be answered
+    passing = True  # errors.is_passing: the next run may well be answered
 
 
 class NotFound(ReleaseError):
