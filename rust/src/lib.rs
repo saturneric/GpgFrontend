@@ -75,6 +75,7 @@ mod utils;
 
 mod cache;
 mod keypack;
+mod pipe;
 mod tar;
 
 #[cfg(test)]

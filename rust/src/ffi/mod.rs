@@ -38,6 +38,7 @@ pub mod key;
 pub mod keygen;
 pub mod keypack;
 pub mod mem;
+pub mod pipe;
 pub mod user_id;
 
 /// The engine version. The engine ships with the Host, so CMake passes the
