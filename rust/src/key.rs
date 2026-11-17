@@ -6058,6 +6058,389 @@ mod key_tests {
         );
     }
 
+    // -- importing: sq's merge and canonicalize policy, stricter -------------
+
+    /// A signature of `typ` by `signer` over `uid` of `target`, naming
+    /// `issuer` as its issuer in the hashed area, or no issuer at all.
+    fn uid_sig(
+        signer: &keys::Fixture,
+        target: &SignedPublicKey,
+        uid: &pgp::packet::UserId,
+        typ: SignatureType,
+        issuer: Option<pgp::types::Fingerprint>,
+        created: u32,
+    ) -> Signature {
+        let signing = &signer.secret.primary_key;
+        let mut cfg = SignatureConfig::from_key(rand::thread_rng(), signing, typ).unwrap();
+        cfg.hashed_subpackets = vec![
+            Subpacket::regular(SubpacketData::SignatureCreationTime(
+                pgp::types::Timestamp::from_secs(created),
+            ))
+            .unwrap(),
+        ];
+        if let Some(fpr) = issuer {
+            cfg.hashed_subpackets
+                .push(Subpacket::regular(SubpacketData::IssuerFingerprint(fpr)).unwrap());
+        }
+        cfg.unhashed_subpackets.clear();
+        cfg.sign_certification_third_party(
+            signing,
+            &Password::empty(),
+            &target.primary_key,
+            Tag::UserId,
+            uid,
+        )
+        .unwrap()
+    }
+
+    /// A User ID packet of exactly `bytes`, which need not be UTF-8.
+    fn user_id(bytes: &[u8]) -> pgp::packet::UserId {
+        use pgp::packet::{Packet, PacketParser};
+        let mut packet = vec![0xC0 | 13, bytes.len() as u8];
+        packet.extend(bytes);
+        match PacketParser::new(Cursor::new(packet)).next() {
+            Some(Ok(Packet::UserId(id))) => id,
+            other => panic!("not a user id: {other:?}"),
+        }
+    }
+
+    /// A revocation of `target`'s first subkey made by `signer`, but naming
+    /// `target`'s primary as its issuer.
+    fn forged_subkey_revocation(
+        signer: &keys::Fixture,
+        target: &SignedPublicKey,
+        created: u32,
+    ) -> Signature {
+        let signing = &signer.secret.primary_key;
+        let mut cfg =
+            SignatureConfig::from_key(rand::thread_rng(), signing, SignatureType::SubkeyRevocation)
+                .unwrap();
+        cfg.hashed_subpackets = vec![
+            Subpacket::regular(SubpacketData::SignatureCreationTime(
+                pgp::types::Timestamp::from_secs(created),
+            ))
+            .unwrap(),
+            Subpacket::regular(SubpacketData::IssuerFingerprint(
+                target.primary_key.fingerprint(),
+            ))
+            .unwrap(),
+        ];
+        cfg.sign_subkey_binding(
+            signing,
+            signing.public_key(),
+            &Password::empty(),
+            &target.public_subkeys[0].key,
+        )
+        .unwrap()
+    }
+
+    fn canonical(cert: SignedPublicKey) -> SignedPublicKey {
+        let block = export_public_key(cert).unwrap().public;
+        let out = canonicalize_key_block_internal(&block).expect("canonicalize");
+        SignedPublicKey::from_string(&out.public).unwrap().0
+    }
+
+    fn merged_public(base: SignedPublicKey, incoming: SignedPublicKey) -> SignedPublicKey {
+        let out = merge_key_block_internal(
+            &export_public_key(base).unwrap().public,
+            &export_public_key(incoming).unwrap().public,
+        )
+        .expect("merge");
+        SignedPublicKey::from_string(&out.public).unwrap().0
+    }
+
+    fn holds(sigs: &[Signature], sig: &Signature) -> bool {
+        let want = normalized_sig_bytes(sig).unwrap();
+        sigs.iter()
+            .any(|s| normalized_sig_bytes(s).unwrap() == want)
+    }
+
+    fn strip_unhashed(sig: &mut Signature) {
+        while sig.unhashed_subpacket_remove(0).is_ok() {}
+    }
+
+    #[test]
+    fn an_imported_key_keeps_only_what_its_holder_bound() {
+        let target = &keys::V4_SIGN;
+        let signer = &keys::V4_PRIMARY_ONLY;
+        let genuine = SignedPublicKey::from(target.secret.clone());
+        let created = genuine.primary_key.created_at().as_secs();
+        let me = genuine.primary_key.fingerprint();
+        let uid = genuine.details.users[0].id.clone();
+
+        let mut cert = genuine.clone();
+        // Made by another key, but claiming to be the holder's own.
+        let forged = uid_sig(
+            signer,
+            &genuine,
+            &uid,
+            SignatureType::CertPositive,
+            Some(me.clone()),
+            created + 5,
+        );
+        // sq counts a signature naming no issuer as a self-signature.
+        let issuerless = uid_sig(
+            signer,
+            &genuine,
+            &uid,
+            SignatureType::CertPositive,
+            None,
+            created + 6,
+        );
+        cert.details.users[0]
+            .signatures
+            .extend([forged.clone(), issuerless.clone()]);
+        let signer_fpr = signer.secret.primary_key.fingerprint();
+        for i in 0..(MAX_MERGED_SIGNATURES as u32 + 44) {
+            let sig = uid_sig(
+                signer,
+                &genuine,
+                &uid,
+                SignatureType::CertGeneric,
+                Some(signer_fpr.clone()),
+                created + 10 + i,
+            );
+            cert.details.users[0].signatures.push(sig);
+        }
+        let mallory = user_id(b"Mallory <mallory@example.org>");
+        let mallory_sig = uid_sig(
+            signer,
+            &genuine,
+            &mallory,
+            SignatureType::CertPositive,
+            Some(me),
+            created + 7,
+        );
+        cert.details
+            .users
+            .push(SignedUser::new(mallory, vec![mallory_sig]));
+        let squatted =
+            SignedPublicKey::from(keys::V4_NISTP256.secret.clone()).public_subkeys[0].clone();
+        let squatted_fpr = squatted.key.fingerprint();
+        cert.public_subkeys.push(squatted);
+        let forged_revocation = forged_subkey_revocation(signer, &genuine, created + 8);
+        cert.public_subkeys[0]
+            .signatures
+            .push(forged_revocation.clone());
+
+        let out = canonical(cert);
+
+        assert_eq!(out.details.users.len(), 1, "only the certified User ID");
+        assert_eq!(out.details.users[0].id, uid);
+        let sigs = &out.details.users[0].signatures;
+        assert!(!holds(sigs, &forged), "a forged self-signature was kept");
+        assert!(!holds(sigs, &issuerless), "an issuer-less forgery was kept");
+        assert_eq!(sigs.len(), MAX_MERGED_SIGNATURES, "the flood is capped");
+        assert!(has_verified_uid_certification(
+            &out.primary_key,
+            &out.details.users[0]
+        ));
+        for own in &genuine.details.users[0].signatures {
+            assert!(holds(sigs, own), "the holder's own signature was lost");
+        }
+
+        assert_eq!(out.public_subkeys.len(), genuine.public_subkeys.len());
+        assert!(
+            out.public_subkeys
+                .iter()
+                .all(|s| s.key.fingerprint() != squatted_fpr)
+        );
+        assert!(!holds(
+            &out.public_subkeys[0].signatures,
+            &forged_revocation
+        ));
+        assert!(!is_subkey_revoked(
+            &out.primary_key,
+            &out.public_subkeys[0].key,
+            &out.public_subkeys[0].signatures
+        ));
+    }
+
+    #[test]
+    fn a_revocation_on_the_wrong_user_id_is_refiled_not_lost() {
+        // sq re-files a self-signature onto the component it verifies on:
+        // a revocation must not be dropped for where it was found.
+        let target = &keys::V4_SIGN;
+        let genuine = SignedPublicKey::from(target.secret.clone());
+        let created = genuine.primary_key.created_at().as_secs();
+        let me = genuine.primary_key.fingerprint();
+        let first = genuine.details.users[0].id.clone();
+        let second = user_id(b"Second <second@example.org>");
+
+        let mut cert = genuine.clone();
+        let certification = uid_sig(
+            target,
+            &genuine,
+            &second,
+            SignatureType::CertPositive,
+            Some(me.clone()),
+            created + 5,
+        );
+        let revocation = uid_sig(
+            target,
+            &genuine,
+            &second,
+            SignatureType::CertRevocation,
+            Some(me),
+            created + 6,
+        );
+        cert.details
+            .users
+            .push(SignedUser::new(second.clone(), vec![certification]));
+        cert.details.users[0].signatures.push(revocation.clone());
+
+        let out = canonical(cert);
+        let find = |id: &pgp::packet::UserId| {
+            out.details
+                .users
+                .iter()
+                .find(|u| u.id == *id)
+                .expect("kept")
+        };
+        assert!(!holds(&find(&first).signatures, &revocation));
+        assert!(!is_user_id_revoked(&out.primary_key, find(&first)));
+        assert!(is_user_id_revoked(&out.primary_key, find(&second)));
+    }
+
+    #[test]
+    fn a_merge_takes_no_forged_subkey_binding_or_revocation() {
+        let target = &keys::V4_SIGN;
+        let genuine = SignedPublicKey::from(target.secret.clone());
+        let created = genuine.primary_key.created_at().as_secs();
+
+        let mut incoming = genuine.clone();
+        let squatted =
+            SignedPublicKey::from(keys::V4_NISTP256.secret.clone()).public_subkeys[0].clone();
+        let squatted_fpr = squatted.key.fingerprint();
+        incoming.public_subkeys.push(squatted);
+        let forged_revocation =
+            forged_subkey_revocation(&keys::V4_PRIMARY_ONLY, &genuine, created + 8);
+        incoming.public_subkeys[0]
+            .signatures
+            .push(forged_revocation.clone());
+
+        let out = merged_public(genuine.clone(), incoming);
+        assert_eq!(out.public_subkeys.len(), genuine.public_subkeys.len());
+        assert!(
+            out.public_subkeys
+                .iter()
+                .all(|s| s.key.fingerprint() != squatted_fpr)
+        );
+        assert!(!holds(
+            &out.public_subkeys[0].signatures,
+            &forged_revocation
+        ));
+    }
+
+    #[test]
+    fn a_signature_that_differs_only_unhashed_is_stored_once() {
+        // GnuPG and key servers rewrite the unhashed area. sq treats such
+        // copies as one signature; storing both grew the key on every
+        // re-import and reported it as changed.
+        let target = &keys::V4_SIGN;
+        let genuine = SignedPublicKey::from(target.secret.clone());
+        let own = genuine.details.users[0].signatures.len();
+        let me = genuine.primary_key.legacy_key_id();
+        let stranger = keys::V4_PRIMARY_ONLY.secret.primary_key.legacy_key_id();
+        assert!(
+            genuine.details.users[0]
+                .signatures
+                .iter()
+                .all(|s| !s.issuer_fingerprint().is_empty()),
+            "the fixture names its issuer by fingerprint"
+        );
+
+        let mut stored = genuine.clone();
+        stored.details.users[0]
+            .signatures
+            .iter_mut()
+            .for_each(strip_unhashed);
+        let mut incoming = genuine.clone();
+        for sig in &mut incoming.details.users[0].signatures {
+            strip_unhashed(sig);
+            for id in [me.clone(), stranger.clone()] {
+                sig.unhashed_subpacket_push(
+                    Subpacket::regular(SubpacketData::IssuerKeyId(id)).unwrap(),
+                )
+                .unwrap();
+            }
+        }
+
+        let out = merged_public(stored, incoming);
+        let sigs = &out.details.users[0].signatures;
+        assert_eq!(sigs.len(), own);
+        for sig in sigs {
+            let unhashed: Vec<_> = sig.config().unwrap().unhashed_subpackets.clone();
+            let ids: Vec<_> = unhashed
+                .iter()
+                .filter_map(|p| match &p.data {
+                    SubpacketData::IssuerKeyId(id) => Some(id.clone()),
+                    _ => None,
+                })
+                .collect();
+            assert_eq!(
+                ids,
+                vec![me.clone()],
+                "only an agreeing issuer is taken over"
+            );
+        }
+
+        // Re-importing what is stored changes nothing, byte for byte.
+        let block = export_public_key(out.clone()).unwrap().public;
+        let again = merge_key_block_internal(&block, &block).unwrap();
+        assert_eq!(again.public, block);
+    }
+
+    #[test]
+    fn a_merge_never_drops_what_is_stored() {
+        let target = &keys::V4_SIGN;
+        let genuine = SignedPublicKey::from(target.secret.clone());
+        let created = genuine.primary_key.created_at().as_secs();
+        let uid = genuine.details.users[0].id.clone();
+        let forged = uid_sig(
+            &keys::V4_PRIMARY_ONLY,
+            &genuine,
+            &uid,
+            SignatureType::CertPositive,
+            Some(genuine.primary_key.fingerprint()),
+            created + 5,
+        );
+        let mut stored = genuine.clone();
+        stored.details.users[0].signatures.push(forged.clone());
+
+        let out = merged_public(stored, genuine);
+        assert!(holds(&out.details.users[0].signatures, &forged));
+    }
+
+    #[test]
+    fn user_ids_are_told_apart_by_their_bytes() {
+        // Both read as "\u{FFFD}a" once decoded lossily.
+        let target = &keys::V4_SIGN;
+        let genuine = SignedPublicKey::from(target.secret.clone());
+        let created = genuine.primary_key.created_at().as_secs();
+        let me = genuine.primary_key.fingerprint();
+        let with_uid = |bytes: &[u8]| {
+            let id = user_id(bytes);
+            let sig = uid_sig(
+                target,
+                &genuine,
+                &id,
+                SignatureType::CertPositive,
+                Some(me.clone()),
+                created + 5,
+            );
+            let mut cert = genuine.clone();
+            cert.details.users.push(SignedUser::new(id, vec![sig]));
+            cert
+        };
+
+        let out = merged_public(with_uid(b"\xFFa"), with_uid(b"\xFEa"));
+        let ids: Vec<&[u8]> = out.details.users.iter().map(|u| u.id.id()).collect();
+        assert_eq!(ids.len(), genuine.details.users.len() + 2, "{ids:?}");
+        assert!(ids.contains(&&b"\xFFa"[..]));
+        assert!(ids.contains(&&b"\xFEa"[..]));
+    }
+
     // -- ECDH KDF parameters -------------------------------------------------
 
     #[test]
