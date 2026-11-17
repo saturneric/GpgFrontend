@@ -222,8 +222,10 @@ jobs:
           ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-          DMG_NAME: GpgFrontend-${{ steps.meta.outputs.artifact_version }}-${{ matrix.os }}.dmg
+          ARTIFACT_VERSION: ${{ steps.meta.outputs.artifact_version }}
+          RUNNER_OS_LABEL: ${{ matrix.os }}
         run: |
+          DMG_NAME="$(scripts/ci/artifact_name.sh "${RUNNER_OS_LABEL}.dmg")"
           scripts/ci/apple/make_dmg.sh "$APP" "$RUNNER_TEMP/unsigned" "$OUT/$DMG_NAME"
           scripts/ci/apple/notarize.sh "$OUT/$DMG_NAME"
 
@@ -239,8 +241,11 @@ jobs:
         if: inputs.target == 'app-store'
         env:
           INSTALLER_IDENTITY: ${{ secrets.MAS_INSTALLER_CODE_SIGN_IDENTITY }}
-          PKG_NAME: GpgFrontend-${{ steps.meta.outputs.artifact_version }}-${{ matrix.os }}-sandbox.pkg
-        run: scripts/ci/apple/make_pkg.sh package "$APP" "$OUT/$PKG_NAME"
+          ARTIFACT_VERSION: ${{ steps.meta.outputs.artifact_version }}
+          RUNNER_OS_LABEL: ${{ matrix.os }}
+        run: |
+          PKG_NAME="$(scripts/ci/artifact_name.sh "${RUNNER_OS_LABEL}-sandbox.pkg")"
+          scripts/ci/apple/make_pkg.sh package "$APP" "$OUT/$PKG_NAME"
 
       # The Developer ID dmg is a release deliverable: provenance collects
       # every `gpgfrontend-*` artifact of a build.yml run and pairs it with

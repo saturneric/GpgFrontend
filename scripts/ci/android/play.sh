@@ -53,7 +53,7 @@ case "$PUBLISH_KIND" in
     ;;
 esac
 
-aab="$RUNNER_TEMP/play/GpgFrontend-${ARTIFACT_VERSION}-android-arm64-v8a.aab"
+aab="$RUNNER_TEMP/play/$("$here/../artifact_name.sh" android-arm64-v8a.aab)"
 "$here/jarsign.sh" PLAY_UPLOAD "$unsigned/unsigned.aab" "$aab"
 
 python3 -I scripts/android/play_upload.py \

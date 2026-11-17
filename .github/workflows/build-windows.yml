@@ -179,14 +179,24 @@ jobs:
       - name: Package Portable Archive
         if: matrix.flavor == 'portable'
         run: |
-          cd "$(cygpath -u "$GITHUB_WORKSPACE")/build/artifacts"
-          zip -r "../upload-artifact/GpgFrontend-${ARTIFACT_VERSION}-windows-x86_64-portable.zip" *
+          ws="$(cygpath -u "$GITHUB_WORKSPACE")"
+          name="$("$ws/scripts/ci/artifact_name.sh" windows-x86_64-portable.zip)"
+          cd "$ws/build/artifacts"
+          zip -r "../upload-artifact/$name" *
+
+      # Named as every published file is (scripts/ci/artifact_name.sh), for
+      # the PowerShell step after it.
+      - name: Name The MSI Installer
+        if: matrix.flavor == 'installed'
+        run: |
+          ws="$(cygpath -u "$GITHUB_WORKSPACE")"
+          echo "MSI_NAME=$("$ws/scripts/ci/artifact_name.sh" windows-x86_64.msi)" >> "$GITHUB_ENV"
 
       - name: Build MSI Installer
         if: matrix.flavor == 'installed'
         shell: pwsh
         run: |
-          ./scripts/ci/windows/build_msi.ps1 -OutputName "GpgFrontend-$env:ARTIFACT_VERSION-windows-x86_64.msi"
+          ./scripts/ci/windows/build_msi.ps1 -OutputName "$env:MSI_NAME"
 
       - name: Smoke Test The Portable Archive
         if: matrix.flavor == 'portable'

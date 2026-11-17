@@ -280,7 +280,8 @@ fi
 # named the image after the .desktop entry, so both flavours came out as
 # Gpg_Frontend-<arch>.AppImage and collided once the release job merged every
 # runner's artifacts into one directory.
-OUTPUT="$OUT_DIR/GpgFrontend-${ARTIFACT_VERSION}-linux-${ARCH}${FLAVOR_SUFFIX}.AppImage"
+OUTPUT="$OUT_DIR/$("$(dirname "$0")/../artifact_name.sh" \
+  "linux-${ARCH}${FLAVOR_SUFFIX}.AppImage")"
 ARCH="$ARCH" "$APPIMAGETOOL" "${APPSTREAM_ARGS[@]}" "$APP_DIR" "$OUTPUT"
 ls -l "$OUT_DIR"
 echo "::endgroup::"

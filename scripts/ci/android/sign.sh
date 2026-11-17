@@ -28,10 +28,12 @@
 # build installs over an older one on a phone. The names come from the
 # arch and $ARTIFACT_VERSION, never from the artifact:
 #
-#   $RUNNER_TEMP/upload-artifact/GpgFrontend-<version>-android-<arch>.apk
+#   $RUNNER_TEMP/upload-artifact/<name of android-<arch>.apk>
 #       the release download
-#   $RUNNER_TEMP/upload-bundle/GpgFrontend-<version>-android-<arch>.aab
+#   $RUNNER_TEMP/upload-bundle/<name of android-<arch>.aab>
 #       the bundle, which goes up apart and never reaches a release
+#
+# each named by ../artifact_name.sh.
 #
 # Inputs (environment): ANDROID_KEYSTORE, ANDROID_KEYSTORE_PASSWORD,
 # ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD, ARTIFACT_VERSION, ANDROID_HOME,
@@ -53,7 +55,7 @@ printf '%s' "$ANDROID_KEYSTORE" | base64 -d > "$ks"
 
 out="$RUNNER_TEMP/upload-artifact"
 mkdir -p "$out"
-apk="$out/GpgFrontend-${ARTIFACT_VERSION}-android-${ARCH}.apk"
+apk="$out/$("$here/../artifact_name.sh" "android-${ARCH}.apk")"
 "$bt/apksigner" sign --ks "$ks" --ks-key-alias "$ANDROID_KEY_ALIAS" \
   --ks-pass env:ANDROID_KEYSTORE_PASSWORD \
   --key-pass env:ANDROID_KEY_PASSWORD \
@@ -62,7 +64,7 @@ rm -f "$apk.idsig"
 "$bt/apksigner" verify --verbose --print-certs "$apk" |
   grep -E "^Verified using|^Signer #1 certificate (DN|SHA-256)"
 
-aab="$RUNNER_TEMP/upload-bundle/GpgFrontend-${ARTIFACT_VERSION}-android-${ARCH}.aab"
+aab="$RUNNER_TEMP/upload-bundle/$("$here/../artifact_name.sh" "android-${ARCH}.aab")"
 "$here/jarsign.sh" ANDROID "$unsigned/unsigned.aab" "$aab"
 
 # Both packages by the one key, compared in apksigner's notation.
