@@ -180,7 +180,7 @@ def _tagged(git_dir, version: str) -> str:
 def _stage_state(work, version: str) -> dict | None:
     if not work:
         return None
-    path = Path(work) / version / "state.json"
+    path = Path(work) / version / layout.STAGE_STATE
     try:
         return json.loads(path.read_text())
     except (OSError, ValueError):

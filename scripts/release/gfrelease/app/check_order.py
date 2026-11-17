@@ -38,7 +38,7 @@ from pathlib import Path
 
 from ..adapters import git as gitversion
 from ..domain import policy as policy_mod
-from ..domain import refs, semver
+from ..domain import layout, refs, semver
 from ..paths import ROOT
 
 
@@ -122,7 +122,7 @@ def check_tag(tag: str, repo: Path) -> list[str]:
         return check_rc_tag(tag, release_tags(repo))
     if not refs.is_release_tag(tag):
         return []
-    notes = repo / "release" / "notes" / f"{tag[1:]}.md"
+    notes = repo / layout.notes_source(tag[1:])
     if not notes.is_file() or not notes.read_text(encoding="utf-8").strip():
         return [f"{tag} has no release notes: add release/notes/{notes.name} "
                 "(scripts/release/notes.sh drafts it) before tagging"]

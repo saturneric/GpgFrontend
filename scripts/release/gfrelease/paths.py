@@ -9,3 +9,11 @@ PACKAGE = Path(__file__).resolve().parent
 RELEASE_DIR = PACKAGE.parent
 # The checkout (or the signing host's copy of what it needs of one).
 ROOT = RELEASE_DIR.parent.parent
+
+# The product's release configuration, in the checkout.
+RELEASE_CONFIG = ROOT / "release"
+PRODUCT_FILE = RELEASE_CONFIG / "product.json"
+POLICY_FILE = RELEASE_CONFIG / "policy.toml"
+TRUST_ROOT_DIR = RELEASE_CONFIG / "root"
+INDEX_KEYS_DIR = RELEASE_CONFIG / "index-keys"
+SECURITY_FILE = ROOT / "SECURITY.md"

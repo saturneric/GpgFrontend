@@ -14,7 +14,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from ..domain import refs
+from ..domain import layout, refs
 from ..domain.limits import NOTES_LIMIT
 from ..errors import ReleaseError, ToolFailed
 from ..paths import ROOT
@@ -176,7 +176,7 @@ def notes_at(git_dir: Path, ref: str, version: str) -> bytes | None:
     commit = resolve_commit(git_dir, ref)
     if commit is None:
         return None
-    path = f"release/notes/{version}.md"
+    path = layout.notes_source(version)
     if not run(["git", "-C", git_dir, "ls-tree", "--name-only", commit, "--",
                 path]).stdout.strip():
         return None

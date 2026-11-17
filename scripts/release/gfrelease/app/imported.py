@@ -185,12 +185,12 @@ class Import:
             if self.outbox is not None:
                 self.outbox.put_file(self.dir / name, f"{p}/{name}")
                 self.outbox.put_file(self.dir / (name + SIG),
-                                     f"{p}/{name}{SIG}")
+                                     layout.sig_of(f"{p}/{name}"))
             artifacts.append({
                 k: info[k] for k in ("os", "arch", "kind", "flavor", "min_os",
                                      "sha256", "size") if k in info} | {
                 "name": name, "path": f"{p}/{name}",
-                "sig": f"{p}/{name}{SIG}"})
+                "sig": layout.sig_of(f"{p}/{name}")})
 
         released = release.get("published_at") or ""
         descriptor = {

@@ -108,7 +108,7 @@ class Stage:
         # shows the progress.
         self.on_signed = on_signed
         self.dir.mkdir(parents=True, exist_ok=True)
-        self.state_path = self.dir / "state.json"
+        self.state_path = self.dir / layout.STAGE_STATE
         self.state = (load_json(self.state_path.read_text(),
                                 str(self.state_path))
                       if self.state_path.exists() else
@@ -193,7 +193,7 @@ class Stage:
         data = notes_at(self.git_dir, ref, self.version)
         if data is None:
             raise ReleaseError(f"{ref} carries no "
-                               f"release/notes/{self.version}.md")
+                               f"{layout.notes_source(self.version)}")
         return data, sha256_bytes(data)
 
     def _sign_notes(self, data: bytes, digest: str, directory: str = "notes",
@@ -425,7 +425,7 @@ class Stage:
         self._check_signing_key()
         self.state["key"] = self.key
         files = self.state["build"]["files"]
-        for stale in self.final_dir.glob("*.sig"):
+        for stale in self.final_dir.glob(f"*{SIG}"):
             stale.unlink()
         self._sign_files(sorted(files))
 
@@ -444,7 +444,7 @@ class Stage:
                 ring.verify(self.final_dir / name,
                             self.final_dir / (name + SIG))
             ring.verify(notes_dir / f"{digest}.md",
-                        notes_dir / f"{digest}.md{SIG}")
+                        notes_dir / layout.sig_of(f"{digest}.md"))
 
     def _upload(self) -> None:
         self._need("staging")
@@ -460,7 +460,7 @@ class Stage:
             info = files[name]
             # Its signature first: what the host takes the file by.
             self.outbox.put_file(self.final_dir / (name + SIG),
-                                 f"{p}/{name}{SIG}")
+                                 layout.sig_of(f"{p}/{name}"))
             # A file signing did not change is CI's, byte for byte, and
             # still staged: the host takes it from there (promote.py), and
             # checks it as any other.
@@ -471,7 +471,7 @@ class Stage:
                 self.outbox.put_file(self.final_dir / name, f"{p}/{name}")
         self.outbox.put_file(self.final_dir / SUMS, f"{p}/{SUMS}")
         self.outbox.put_file(self.final_dir / (SUMS + SIG),
-                             f"{p}/{SUMS}{SIG}")
+                             layout.sig_of(f"{p}/{SUMS}"))
         build = self.dir / "build"
         self.outbox.put_file(build / SUMS, layout.build_sums(p))
         self.outbox.put_file(build / BUNDLE, layout.build_bundle(p))
@@ -503,7 +503,7 @@ class Stage:
                                  "sha256", "build_sha256", "transform", "from")
             if k in info} | {
             "name": name, "size": (self.final_dir / name).stat().st_size,
-            "path": f"{p}/{name}", "sig": f"{p}/{name}{SIG}"}
+            "path": f"{p}/{name}", "sig": layout.sig_of(f"{p}/{name}")}
             for name, info in sorted(files.items())]
         b = self.state["build"]
         return {
@@ -517,7 +517,7 @@ class Stage:
             "build": {"sums": layout.build_sums(p),
                       "bundle": layout.build_bundle(p),
                       "identity": b["identity"]},
-            "sums": f"{p}/{SUMS}", "sums_sig": f"{p}/{SUMS}{SIG}",
+            "sums": f"{p}/{SUMS}", "sums_sig": layout.sig_of(f"{p}/{SUMS}"),
             "artifacts": artifacts,
         }
 

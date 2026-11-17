@@ -51,7 +51,7 @@ from ..domain import policy as policy_mod
 from ..domain.formats import load_json, parse_iso
 from ..domain.layout import MINISIG
 from ..errors import ReleaseError
-from ..paths import ROOT
+from ..paths import PRODUCT_FILE, ROOT
 from . import settings as settings_mod
 from . import topics, ui
 
@@ -513,7 +513,7 @@ def product_of(args) -> Product:
         policy = Path(args.policy) if args.policy else \
             product.with_name("policy.toml")
     else:
-        product = ROOT / "release" / "product.json"
+        product = PRODUCT_FILE
         policy = product.with_name("policy.toml")
     return Product(product, policy, root_dir=args.root_dir,
                    index_keys_dir=args.index_keys_dir,

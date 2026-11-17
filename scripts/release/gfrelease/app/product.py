@@ -12,7 +12,7 @@ from ..domain import policy as policy_mod
 from ..domain import semver
 from ..domain.formats import parse_version
 from ..errors import ReleaseError
-from ..paths import ROOT
+from ..paths import INDEX_KEYS_DIR, TRUST_ROOT_DIR
 from . import trust
 
 
@@ -41,9 +41,8 @@ class Product:
         # The maintainers' public keys sit beside the product file; only
         # those whose fingerprint the root pins are ever used.
         self.keyring_path = Path(product_path).with_name("maintainers.asc")
-        self.root_dir = Path(root_dir or ROOT / "release" / "root")
-        self.index_keys_dir = Path(index_keys_dir or
-                                   ROOT / "release" / "index-keys")
+        self.root_dir = Path(root_dir or TRUST_ROOT_DIR)
+        self.index_keys_dir = Path(index_keys_dir or INDEX_KEYS_DIR)
         self.root_sha256 = root_sha256
         self._trust = None
 
