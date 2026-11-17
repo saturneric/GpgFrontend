@@ -71,12 +71,14 @@ pub(crate) use std::{
     path::Path,
 };
 
+mod cleartext;
 mod decrypt;
 mod encrypt;
 mod sign;
 mod staging;
 mod verify;
 
+pub use cleartext::*;
 pub use decrypt::*;
 pub use encrypt::*;
 pub use sign::*;

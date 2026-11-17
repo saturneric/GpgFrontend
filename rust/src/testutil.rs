@@ -2342,7 +2342,7 @@ pub mod verify_stream {
             .collect()
     }
 
-    /// Verify the self-contained inline-signed `message`
+    /// Verify the self-contained `message` (inline or clear-text, by `mode`)
     /// as a stream, with the public key the callback answers now, and assert
     /// that the outcome, content and every signature's result equal what the
     /// in-memory verifier gave (`expected`), or that both refuse it. Detached
@@ -2362,7 +2362,15 @@ pub mod verify_stream {
                 Some(cb::pubkey_fetch),
                 std::ptr::null_mut(),
             ),
-            _ => return,
+            GfrSignMode::ClearText => crate::crypto::verify_cleartext_stream_internal(
+                0,
+                std::io::Cursor::new(message),
+                &mut content,
+                None,
+                Some(cb::pubkey_fetch),
+                std::ptr::null_mut(),
+            ),
+            GfrSignMode::Detached => return,
         };
         match (expected, &streamed) {
             (Ok(memory), Ok(stream)) => {

@@ -708,7 +708,15 @@ mod verify_tests {
                     None,
                     std::ptr::null_mut(),
                 );
-                inline.is_ok()
+                let cleartext = crate::crypto::verify_cleartext_stream_internal(
+                    0,
+                    Cursor::new(vector),
+                    std::io::sink(),
+                    None,
+                    None,
+                    std::ptr::null_mut(),
+                );
+                (inline.is_ok(), cleartext.is_ok())
             });
             assert!(streamed.is_ok(), "a stream verifier panicked");
         }

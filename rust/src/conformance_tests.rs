@@ -1548,8 +1548,9 @@ mod rfc9580_armor_whitespace {
             GfrSignMode::ClearText,
             Some(cb::pubkey_fetch),
             std::ptr::null_mut(),
-        )
-        .expect("verifies");
+        );
+        crate::testutil::verify_stream::agrees(normalized.as_bytes(), GfrSignMode::ClearText, &res);
+        let res = res.expect("verifies");
         ta::only_status(&res.signatures, GfrSignatureStatus::Valid);
     }
 
@@ -1609,8 +1610,9 @@ mod rfc9580_armor_whitespace {
             GfrSignMode::ClearText,
             Some(cb::pubkey_fetch),
             std::ptr::null_mut(),
-        )
-        .expect("the pasted cleartext verifies");
+        );
+        crate::testutil::verify_stream::agrees(pasted.as_bytes(), GfrSignMode::ClearText, &res);
+        let res = res.expect("the pasted cleartext verifies");
         ta::only_status(&res.signatures, GfrSignatureStatus::Valid);
     }
 

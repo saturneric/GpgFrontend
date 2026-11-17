@@ -346,6 +346,46 @@ TEST_F(RpgpCoreTest, CoreFileVerifyCleartextSignedFileTest) {
   }
 }
 
+// A self-contained signed file is read as a stream; a cut one fails, and a
+// changed one is a bad signature, in both of its forms.
+TEST_F(RpgpCoreTest, CoreFileVerifyDamagedSelfContainedFileTest) {
+  auto sign_key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                      .GetKeyPtr("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497");
+  ASSERT_TRUE(sign_key != nullptr);
+
+  for (const auto mode : {GpgSignMode::kCLEAR, GpgSignMode::kNORMAL}) {
+    auto [err, data_object] =
+        MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+            .SignSync({sign_key}, GFBuffer(QString("Hello RPGP Damaged File!")),
+                      mode, true);
+    ASSERT_TRUE(err.Ok());
+    const auto signed_data =
+        ExtractParams<GFBuffer>(data_object, 1).ConvertToQByteArray();
+
+    auto cut_file = CreateTempFileAndWriteData(
+        GFBuffer(signed_data.left(signed_data.size() - 40)));
+    auto [cut_err, cut_object] =
+        FileCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+            .VerifyFileSync(cut_file, QString());
+    EXPECT_FALSE(cut_err.Ok()) << static_cast<int>(mode);
+    QFile::remove(cut_file);
+
+    if (mode != GpgSignMode::kCLEAR) continue;
+    auto changed = signed_data;
+    changed.replace("Damaged", "Changed");
+    auto changed_file = CreateTempFileAndWriteData(GFBuffer(changed));
+    auto [changed_err, changed_object] =
+        FileCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+            .VerifyFileSync(changed_file, QString());
+    if (changed_err.Ok()) {
+      auto verify_result = ExtractParams<GpgVerifyResult>(changed_object, 0);
+      ASSERT_EQ(verify_result.GetSignature().size(), 1);
+      EXPECT_FALSE(verify_result.GetSignature().at(0).GetStatus().Ok());
+    }
+    QFile::remove(changed_file);
+  }
+}
+
 namespace {
 
 // The fixture key's default signing subkey, the one the engine picks when the

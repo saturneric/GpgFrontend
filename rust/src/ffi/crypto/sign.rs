@@ -335,12 +335,11 @@ pub extern "C" fn gfr_crypto_verify_data(
 /// Verify the signature(s) on a file.
 ///
 /// For detached mode `sig_file_path` must point to the signature file.
-/// For inline mode `out_file_path` (may be null) receives the signed content,
+/// For inline and clear-text modes `out_file_path` (may be null) receives the
+/// signed content (a clear-text message's signed text has CRLF line endings),
 /// written only once the whole message has been read; with null it is read
 /// and discarded, never held in memory. The file is read as a stream, so it
-/// may be of any size. For clear-text mode `out_file_path` (may be null)
-/// receives the extracted plaintext. Public keys are fetched via
-/// `fetch_pubkey_cb`/`free_cb`.
+/// may be of any size. Public keys are fetched via `fetch_pubkey_cb`/`free_cb`.
 /// Free with `gfr_crypto_free_verify_result`.
 ///
 /// # Safety
@@ -384,12 +383,7 @@ pub extern "C" fn gfr_crypto_verify_file(
             ""
         };
 
-        let mut out_data_ptr: *mut u8 = std::ptr::null_mut();
-        let mut out_data_len: usize = 0;
-        let c_signatures;
-        let is_verified;
-
-        match mode {
+        let stream_result = match mode {
             // ---------------------------------------------------------
             // Detached: Use stream implementation for large payloads
             // ---------------------------------------------------------
@@ -406,16 +400,13 @@ pub extern "C" fn gfr_crypto_verify_file(
                 let sig_data =
                     std::fs::read(sig_path_str).map_err(|_| GfrStatus::ErrorInvalidInput)?;
 
-                let stream_result = crate::crypto::verify_detached_stream_internal(
+                crate::crypto::verify_detached_stream_internal(
                     channel,
                     in_file,
                     &sig_data,
                     Some(fetch_pubkey_cb),
                     user_data,
-                )?;
-
-                is_verified = stream_result.is_verified;
-                c_signatures = stream_result.signatures;
+                )?
             }
 
             // ---------------------------------------------------------
@@ -425,7 +416,7 @@ pub extern "C" fn gfr_crypto_verify_file(
             GfrSignMode::Inline => {
                 let in_file = crate::crypto::open_input_file(in_path_str)?;
                 let in_len = in_file.metadata().map(|m| m.len()).unwrap_or(0);
-                let stream_result = if out_path_str.is_empty() {
+                if out_path_str.is_empty() {
                     crate::crypto::verify_inline_stream_internal(
                         channel,
                         in_file,
@@ -446,45 +437,44 @@ pub extern "C" fn gfr_crypto_verify_file(
                     )?;
                     crate::crypto::commit_output(stage)?;
                     result
-                };
-
-                is_verified = stream_result.is_verified;
-                c_signatures = stream_result.signatures;
-            }
-
-            // ---------------------------------------------------------
-            // ClearText: Use non-stream fallback to extract payload
-            // ---------------------------------------------------------
-            GfrSignMode::ClearText => {
-                let in_data =
-                    std::fs::read(in_path_str).map_err(|_| GfrStatus::ErrorInvalidInput)?;
-
-                let internal_result = crate::crypto::verify_internal(
-                    &in_data,
-                    &[], // sig_data is not needed for inline
-                    mode,
-                    Some(fetch_pubkey_cb),
-                    user_data,
-                )?;
-
-                is_verified = internal_result.is_verified;
-                c_signatures = internal_result.signatures;
-
-                if !out_path_str.is_empty() {
-                    std::fs::write(out_path_str, &internal_result.data).map_err(|e| {
-                        log::error!("Failed to write inline extracted data to file: {}", e);
-                        GfrStatus::ErrorInternal
-                    })?;
-                } else {
-                    // Boxed slice guarantees `capacity == len` for the C handoff.
-                    let mut data_boxed =
-                        crate::ffi::mem::into_wiped_boxed_slice(internal_result.data);
-                    out_data_ptr = data_boxed.as_mut_ptr();
-                    out_data_len = data_boxed.len();
-                    std::mem::forget(data_boxed);
                 }
             }
-        }
+
+            // ---------------------------------------------------------
+            // ClearText: read a line at a time, the signed text spooled
+            // beside the output and written only once it is verified
+            // ---------------------------------------------------------
+            GfrSignMode::ClearText => {
+                let in_file = crate::crypto::open_input_file(in_path_str)?;
+                if out_path_str.is_empty() {
+                    crate::crypto::verify_cleartext_stream_internal(
+                        channel,
+                        in_file,
+                        std::io::sink(),
+                        None,
+                        Some(fetch_pubkey_cb),
+                        user_data,
+                    )?
+                } else {
+                    let mut stage = crate::crypto::stage_output_file(out_path_str)?;
+                    let spool_dir = Path::new(out_path_str)
+                        .parent()
+                        .filter(|dir| !dir.as_os_str().is_empty());
+                    let result = crate::crypto::verify_cleartext_stream_internal(
+                        channel,
+                        in_file,
+                        stage.file_mut(),
+                        spool_dir,
+                        Some(fetch_pubkey_cb),
+                        user_data,
+                    )?;
+                    crate::crypto::commit_output(stage)?;
+                    result
+                }
+            }
+        };
+        let is_verified = stream_result.is_verified;
+        let c_signatures = stream_result.signatures;
 
         // Convert signatures array for C
         let mut c_sigs_c = Vec::with_capacity(c_signatures.len());
@@ -511,8 +501,9 @@ pub extern "C" fn gfr_crypto_verify_file(
         std::mem::forget(boxed_sigs);
 
         unsafe {
-            (*out_result).data = out_data_ptr;
-            (*out_result).data_len = out_data_len;
+            // A file's content goes to `out_file_path`, never back in memory.
+            (*out_result).data = std::ptr::null_mut();
+            (*out_result).data_len = 0;
             (*out_result).meta.signatures = sigs_ptr;
             (*out_result).meta.signature_count = sigs_count;
             (*out_result).meta.is_verified = is_verified;
@@ -1104,6 +1095,52 @@ mod ffi_sign_tests {
             std::fs::read_dir(dir.path()).expect("list").count(),
             0,
             "nothing committed, no stage left"
+        );
+    }
+
+    #[test]
+    fn a_cleartext_signed_file_verifies_as_a_stream() {
+        let message = crate::crypto::sign_internal(
+            0,
+            "",
+            b"clear text\nin a file\n",
+            &[&keys::V4_SIGN.secret_armored],
+            None,
+            GfrSignMode::ClearText,
+            true,
+        )
+        .expect("sign")
+        .data;
+        let dir = tempfile::tempdir().expect("tempdir");
+        let out_path = dir.path().join("text.txt");
+
+        let (status, mut verified) =
+            verify_file_self_contained(&message, GfrSignMode::ClearText, Some(&out_path));
+        assert_eq!(status, GfrStatus::Success);
+        assert!(verified.meta.is_verified);
+        assert!(verified.data.is_null());
+        crate::ffi::mem::gfr_crypto_free_verify_result(&mut verified);
+        assert_eq!(
+            std::fs::read(&out_path).expect("text"),
+            b"clear text\r\nin a file\r\n"
+        );
+        std::fs::remove_file(&out_path).expect("remove");
+
+        let (status, mut verified) =
+            verify_file_self_contained(&message, GfrSignMode::ClearText, None);
+        assert_eq!(status, GfrStatus::Success);
+        assert!(verified.meta.is_verified);
+        crate::ffi::mem::gfr_crypto_free_verify_result(&mut verified);
+
+        let cut = message.len() - 30;
+        let (status, mut verified) =
+            verify_file_self_contained(&message[..cut], GfrSignMode::ClearText, Some(&out_path));
+        assert_ne!(status, GfrStatus::Success);
+        crate::ffi::mem::gfr_crypto_free_verify_result(&mut verified);
+        assert_eq!(
+            std::fs::read_dir(dir.path()).expect("list").count(),
+            0,
+            "nothing committed, no stage or spool left"
         );
     }
 }
