@@ -1123,14 +1123,15 @@ fn split_pgp_blocks(input: &str) -> Vec<String> {
 
 /// Parse one or more armored PGP key blocks and return metadata for each unique key.
 ///
-/// The input may contain concatenated armor blocks. If the same fingerprint
-/// appears as both a secret and a public block, the secret key entry wins
-/// (the public-only block is skipped via the `entry().or_insert_with()` pattern).
+/// The input may contain concatenated armor blocks. Copies of one certificate
+/// (say a secret block and a public block carrying newer signatures, or two
+/// keyring entries) are merged in input order, as `sq` imports each copy in
+/// turn; a secret copy is the base, so its secret parts win. Nothing is
+/// filtered here: importing canonicalizes before storing. Keys are returned
+/// in the order they first appear.
 pub fn extract_metadata_many_internal(
     key_blocks: &str,
 ) -> Result<Vec<ExtractedMetadata>, GfrStatus> {
-    let mut results_map: HashMap<String, ExtractedMetadata> = HashMap::new();
-
     let key_blocks = crate::utils::strip_armor_whitespace(key_blocks);
     let individual_blocks = split_pgp_blocks(&key_blocks);
 
@@ -1138,51 +1139,38 @@ pub fn extract_metadata_many_internal(
         return Err(GfrStatus::ErrorInvalidInput);
     }
 
+    let mut order: Vec<String> = Vec::new();
+    let mut certs: HashMap<String, WorkCert> = HashMap::new();
+    let mut add = |cert: WorkCert| -> Result<(), GfrStatus> {
+        let fpr = cert.fingerprint().to_string();
+        let Some(existing) = certs.get_mut(&fpr) else {
+            order.push(fpr.clone());
+            certs.insert(fpr, cert);
+            return Ok(());
+        };
+        if existing.secret.is_none() && cert.secret.is_some() {
+            let public_copy = std::mem::replace(existing, cert);
+            existing.absorb(public_copy, false)
+        } else {
+            existing.absorb(cert, false)
+        }
+    };
+
     for block in individual_blocks {
         if let Ok((sk_iter, _)) = SignedSecretKey::from_string_many(&block) {
             for sk_res in sk_iter {
-                if let Ok(sk) = sk_res {
-                    let fpr = sk.fingerprint().to_string();
-                    let mut metadata = build_secret_metadata(&sk);
-
-                    metadata.secret_key_block = sk
-                        .to_armored_string(key_armor_opts(sk.primary_key.version()))
-                        .ok()
-                        .map(Zeroizing::new);
-
-                    let public_key = SignedPublicKey::from(sk.clone());
-                    metadata.public_key_block = public_key
-                        .to_armored_string(key_armor_opts(public_key.primary_key.version()))
-                        .unwrap_or_default();
-
-                    results_map.insert(fpr, metadata);
-                } else {
-                    log::error!(
-                        "Failed to parse a secret key from block: {}",
-                        sk_res.err().unwrap()
-                    );
+                match sk_res {
+                    Ok(sk) => add(WorkCert::from_secret(sk)?)?,
+                    Err(e) => log::error!("Failed to parse a secret key from block: {e}"),
                 }
             }
         }
 
         if let Ok((pk_iter, _)) = SignedPublicKey::from_string_many(&block) {
             for pk_res in pk_iter {
-                if let Ok(pk) = pk_res {
-                    let fpr = pk.fingerprint().to_string();
-
-                    results_map.entry(fpr).or_insert_with(|| {
-                        let mut metadata = build_public_metadata(&pk);
-                        metadata.public_key_block = pk
-                            .to_armored_string(key_armor_opts(pk.primary_key.version()))
-                            .unwrap_or_default();
-                        metadata.secret_key_block = None;
-                        metadata
-                    });
-                } else {
-                    log::error!(
-                        "Failed to parse a public key from block: {}",
-                        pk_res.err().unwrap()
-                    );
+                match pk_res {
+                    Ok(pk) => add(WorkCert::from_public(pk)?)?,
+                    Err(e) => log::error!("Failed to parse a public key from block: {e}"),
                 }
             }
         }
@@ -1190,10 +1178,17 @@ pub fn extract_metadata_many_internal(
 
     log::info!(
         "Completed processing all blocks. Total unique keys found: {}",
-        results_map.len()
+        order.len()
     );
 
-    let results: Vec<ExtractedMetadata> = results_map.into_values().collect();
+    let mut results = Vec::with_capacity(order.len());
+    for fpr in order {
+        let cert = certs.remove(&fpr).ok_or(GfrStatus::ErrorInternal)?;
+        results.push(match cert.into_signed()? {
+            SignedSecretKeyOrPublic::Secret(sk) => build_secret_metadata(&sk),
+            SignedSecretKeyOrPublic::Public(pk) => build_public_metadata(&pk),
+        });
+    }
 
     if results.is_empty() {
         return Err(GfrStatus::ErrorInvalidInput);
@@ -6439,6 +6434,43 @@ mod key_tests {
         assert_eq!(ids.len(), genuine.details.users.len() + 2, "{ids:?}");
         assert!(ids.contains(&&b"\xFFa"[..]));
         assert!(ids.contains(&&b"\xFEa"[..]));
+    }
+
+    #[test]
+    fn copies_of_one_key_in_one_input_are_merged() {
+        // sq imports every copy in turn; the last secret copy used to
+        // replace the others, and the first public copy to win outright.
+        let target = &keys::V4_SIGN;
+        let signer = &keys::V4_PRIMARY_ONLY;
+        let genuine = SignedPublicKey::from(target.secret.clone());
+        let created = genuine.primary_key.created_at().as_secs();
+        let signer_fpr = signer.secret.primary_key.fingerprint();
+        let with_cert = |at: u32| {
+            let sig = certification_by(signer, &genuine, signer_fpr.clone(), at);
+            let mut cert = genuine.clone();
+            cert.details.users[0].signatures.push(sig.clone());
+            (export_public_key(cert).unwrap().public, sig)
+        };
+        let (copy_x, x) = with_cert(created + 1);
+        let (copy_y, y) = with_cert(created + 2);
+
+        for input in [
+            format!("{}{}", target.secret_armored, copy_x),
+            format!("{}{}", copy_x, target.secret_armored),
+        ] {
+            let metas = extract_metadata_many_internal(&input).expect("meta");
+            assert_eq!(metas.len(), 1);
+            assert!(metas[0].has_secret);
+            let secret = metas[0].secret_key_block.as_ref().expect("secret kept");
+            let (sk, _) = SignedSecretKey::from_string(secret).unwrap();
+            assert!(holds(&sk.details.users[0].signatures, &x));
+        }
+
+        let metas = extract_metadata_many_internal(&format!("{copy_x}{copy_y}")).expect("meta");
+        assert_eq!(metas.len(), 1);
+        let (pk, _) = SignedPublicKey::from_string(&metas[0].public_key_block).unwrap();
+        assert!(holds(&pk.details.users[0].signatures, &x));
+        assert!(holds(&pk.details.users[0].signatures, &y));
     }
 
     // -- ECDH KDF parameters -------------------------------------------------
