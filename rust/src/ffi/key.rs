@@ -35,10 +35,10 @@
 use crate::crypto::sniff_recipients;
 use crate::err::clear_last_error;
 use crate::key::{
-    delete_subkey_internal, detect_key_version_internal, extract_rev_cert_target_fpr_internal,
-    generate_key_rev_cert_internal, get_ecdh_kdf_params_internal, import_rev_cert_internal,
-    merge_key_block_internal, modify_key_password_internal, revoke_subkey_internal,
-    update_key_expiration_internal,
+    canonicalize_key_block_internal, delete_subkey_internal, detect_key_version_internal,
+    extract_rev_cert_target_fpr_internal, generate_key_rev_cert_internal,
+    get_ecdh_kdf_params_internal, import_rev_cert_internal, merge_key_block_internal,
+    modify_key_password_internal, revoke_subkey_internal, update_key_expiration_internal,
 };
 use crate::key::{
     export_merged_keys, export_merged_public_keys, export_merged_secret_keys,
@@ -874,22 +874,72 @@ pub extern "C" fn gfr_crypto_merge_key_blocks(
         let incoming_str = unsafe { incoming_block.as_str() }?;
 
         let merged = merge_key_block_internal(base_str, incoming_str)?;
+        write_key_blocks(merged, out_secret_block, out_public_block)
+    });
 
-        let public_cstr = CString::new(merged.public).map_err(|_| GfrStatus::ErrorInternal)?;
+    match result {
+        Ok(Ok(())) => GfrStatus::Success,
+        Ok(Err(e)) => e,
+        Err(_) => GfrStatus::ErrorPanic,
+    }
+}
 
-        unsafe {
-            *out_public_block = public_cstr.into_raw();
+/// Hand `keys` out through the two non-null out-params: the public block
+/// always, the secret block only if there is one.
+fn write_key_blocks(
+    keys: crate::keygen::GeneratedKeys,
+    out_secret_block: *mut *mut c_char,
+    out_public_block: *mut *mut c_char,
+) -> Result<(), GfrStatus> {
+    let public_cstr = CString::new(keys.public).map_err(|_| GfrStatus::ErrorInternal)?;
+    let secret_cstr = if keys.secret.is_empty() {
+        None
+    } else {
+        Some(CString::new(keys.secret.as_bytes()).map_err(|_| GfrStatus::ErrorInternal)?)
+    };
+
+    unsafe {
+        *out_public_block = public_cstr.into_raw();
+        if let Some(secret_cstr) = secret_cstr {
+            *out_secret_block = secret_cstr.into_raw();
         }
+    }
+    Ok(())
+}
 
-        if !merged.secret.is_empty() {
-            let secret_cstr =
-                CString::new(merged.secret.as_bytes()).map_err(|_| GfrStatus::ErrorInternal)?;
+/// Canonicalize a certificate about to be stored for the first time, as
+/// `sq` does on import: self-signatures that do not verify, User IDs, User
+/// Attributes and subkeys the key holder never bound, and third-party
+/// signatures past the per-component limit are left out.
+///
+/// On success `*out_public_block` is always populated; `*out_secret_block` is
+/// populated only if a secret key is present. Free with `gfr_crypto_free_string`.
+///
+/// # Safety
+/// Both output pointers must be non-null.
+#[unsafe(no_mangle)]
+pub extern "C" fn gfr_crypto_canonicalize_key_block(
+    key_block: GfrBuffer,
+    out_secret_block: *mut *mut c_char,
+    out_public_block: *mut *mut c_char,
+) -> GfrStatus {
+    clear_last_error();
+
+    for out in [out_secret_block, out_public_block] {
+        if !out.is_null() {
             unsafe {
-                *out_secret_block = secret_cstr.into_raw();
+                *out = std::ptr::null_mut();
             }
         }
+    }
 
-        Ok(())
+    let result = catch_unwind(|| -> Result<(), GfrStatus> {
+        if out_secret_block.is_null() || out_public_block.is_null() {
+            return Err(GfrStatus::ErrorInvalidInput);
+        }
+        let block = unsafe { key_block.as_str() }?;
+        let canonical = canonicalize_key_block_internal(block)?;
+        write_key_blocks(canonical, out_secret_block, out_public_block)
     });
 
     match result {
@@ -1457,6 +1507,56 @@ mod ffi_key_tests {
         let public = take(pub_out);
         assert!(secret.contains("PRIVATE KEY BLOCK"));
         assert!(public.contains("PUBLIC KEY BLOCK"));
+    }
+
+    #[test]
+    fn canonicalize_key_block_rejects_null_out_params() {
+        assert_eq!(
+            gfr_crypto_canonicalize_key_block(
+                buf(&keys::V4_SIGN.public_armored),
+                std::ptr::null_mut(),
+                std::ptr::null_mut(),
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+    }
+
+    #[test]
+    fn canonicalize_key_block_keeps_a_genuine_key_whole() {
+        let key = &keys::V4_SIGN;
+        let mut sec_out = std::ptr::null_mut();
+        let mut pub_out = std::ptr::null_mut();
+        assert_eq!(
+            gfr_crypto_canonicalize_key_block(buf(&key.secret_armored), &mut sec_out, &mut pub_out,),
+            GfrStatus::Success
+        );
+        assert!(take(sec_out).contains("PRIVATE KEY BLOCK"));
+        let parse = |block: &str| {
+            use pgp::composed::Deserializable;
+            pgp::composed::SignedPublicKey::from_string(block)
+                .expect("parses")
+                .0
+        };
+        assert_eq!(parse(&take(pub_out)), parse(&key.public_armored));
+    }
+
+    #[test]
+    fn canonicalize_key_block_accepts_a_certificate_without_user_ids() {
+        // As keys.openpgp.org serves a certificate with unverified addresses.
+        use pgp::composed::{Deserializable, SignedPublicKey};
+        let mut bare = SignedPublicKey::from(keys::V4_SIGN.secret.clone());
+        bare.details.users.clear();
+        let block = bare.to_armored_string(Default::default()).unwrap();
+        let mut sec_out = std::ptr::null_mut();
+        let mut pub_out = std::ptr::null_mut();
+        assert_eq!(
+            gfr_crypto_canonicalize_key_block(buf(&block), &mut sec_out, &mut pub_out,),
+            GfrStatus::Success
+        );
+        assert!(sec_out.is_null());
+        let (out, _) = SignedPublicKey::from_string(&take(pub_out)).expect("parses");
+        assert!(out.details.users.is_empty());
+        assert_eq!(out.public_subkeys.len(), bare.public_subkeys.len());
     }
 
     // -- modify_key_password -----------------------------------------------------------

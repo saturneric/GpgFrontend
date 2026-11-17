@@ -3218,6 +3218,15 @@ pub fn merge_key_block_internal(
     base.export()
 }
 
+/// Canonicalize the first certificate of an armored `block` that is about to
+/// be stored for the first time, as sequoia does on parsing one (see the
+/// notes above [`is_self_sig_candidate`]).
+pub fn canonicalize_key_block_internal(block: &str) -> Result<GeneratedKeys, GfrStatus> {
+    let mut cert = WorkCert::parse(block)?;
+    cert.canonicalize()?;
+    cert.export()
+}
+
 fn parse_signatures_from_armor(block: &str) -> Result<Vec<Signature>, GfrStatus> {
     // Every Signature packet of every armor block; other packets (a v6
     // revocation certificate's primary key, RFC 9580 §10.1.2) are skipped.
