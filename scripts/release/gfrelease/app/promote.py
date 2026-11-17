@@ -24,21 +24,14 @@ index.admit_nightly checks what promotion checked again before it does.
 Release tags are never promoted here: a stable release passes through the
 offline signing stage.
 
-What that stage, and `import`, hand over lies in the staging store too,
-under signed/, laid out as it is to be in the builds store (receive()). The
-staging store is anyone's to write who has a token for it, CI among them:
-so a release is received only when the index would admit it as it lies
-there, every signature checked (index.admit_stable, admit_imported), and
-exactly the bytes that were checked are copied. Notes handed over for a
-release already there are received when a pinned maintainer signed them.
-
-A release already there is received again when what is handed over for it
-passes the same admission: a file added (an MSIX made from the MSI
-afterwards), or one signed anew. Only what changed need be handed over,
-with the manifest and the descriptor; the rest is taken from the builds
-store (_complete). Admission is what keeps an older state of the release
-from coming back that way: no maintainer signature may be older than the
-one admitted before for its file (index._check_signature_times).
+What that stage hands over lies in the staging store too, under signed/,
+laid out as it is to be in the builds store (receive()). The staging store
+is anyone's to write who has a token for it, CI among them: so a release is
+received only when the index would admit it as it lies there, every
+signature checked (index.admit_stable), and exactly the bytes that were
+checked are copied. A release is received once: one published is never
+replaced. Notes handed over for a release already there are received when
+a pinned maintainer signed them.
 """
 
 from __future__ import annotations
@@ -55,7 +48,7 @@ from ..adapters.git import check_git_version
 from ..adapters.store import NotFound, Store
 from ..domain import descriptor as descriptors
 from ..domain import layout, refs
-from ..domain.formats import (canonical_json, check_relpath, iso, load_json,
+from ..domain.formats import (canonical_json, iso, load_json,
                               parse_version)
 from ..domain.layout import BUNDLE, DESCRIPTOR, SIG, STAGED, SUMS
 from ..errors import Problems, ReleaseError, ToolFailed
@@ -276,29 +269,23 @@ def _receive_release(product: Product, staging: Store, builds: Store,
                      path: str, *, git_dir: Path, state_dir: Path,
                      cosign: str, authenticode_ca: str | None) -> dict | None:
     """The release whose descriptor is handed over at @p path (under
-    signed/ of @p staging), copied to the builds store once it is checked
-    (of one published already, what was handed over of it); None when it
-    is there already."""
+    signed/ of @p staging), copied to the builds store once it is checked;
+    None when it is there already."""
     outbox = staging.sub(layout.SIGNED)
     version = path.split("/")[1]
     if path != layout.descriptor_of(layout.release_dir(version)) or \
             not parse_version(version, path).is_release:
         raise ReleaseError("not where a release is handed over")
-    published = None
     if builds.exists(path):
-        published = builds.read(path)
-        if published == outbox.read(path):
+        if builds.read(path) == outbox.read(path):
             return None
+        raise ReleaseError(f"{version} is published already, and a "
+                           "published release is never replaced")
     with tempfile.TemporaryDirectory(prefix="gfr-receive-") as tmp:
         root = Path(tmp) / "handed"
         outbox.download(layout.release_dir(version),
                         root / layout.RELEASES / version)
         raw = (root / path).read_bytes()
-        kept: set[str] = set()
-        if published is not None:
-            # Before anything is looked for in the tag's staged build,
-            # which need not be there any more: what is published is.
-            kept = _complete(builds, root, version, load_json(raw, path))
         _fetch_staged(staging, version, root / layout.RELEASES / version)
         try:
             outbox.download(f"{layout.NOTES}/{version}",
@@ -308,74 +295,27 @@ def _receive_release(product: Product, staging: Store, builds: Store,
         # Checked as the index will check it, where it lies now: on this
         # disk, so that what is copied is what was checked.
         local = Store(str(root), builds.rclone)
-        kind = load_json(raw, path).get("kind")
+        if load_json(raw, path).get("kind") != layout.KIND_STABLE:
+            raise ReleaseError("not a stable release")
         try:
-            if kind == layout.KIND_STABLE:
-                d, entry = index_mod.admit_stable(
-                    product, local, path, raw, git_dir=git_dir,
-                    state_dir=state_dir, cosign=cosign,
-                    tmp=Path(tmp) / "check",
-                    authenticode_ca=authenticode_ca, dry=True)
-            elif kind == layout.KIND_IMPORTED:
-                d, entry = index_mod.admit_imported(
-                    product, local, path, raw, git_dir=git_dir,
-                    state_dir=state_dir, tmp=Path(tmp) / "check", dry=True)
-            else:
-                raise ReleaseError("neither a stable nor an imported "
-                                   "release")
+            d, entry = index_mod.admit_stable(
+                product, local, path, raw, git_dir=git_dir,
+                state_dir=state_dir, cosign=cosign, tmp=Path(tmp) / "check",
+                authenticode_ca=authenticode_ca, dry=True)
         except index_mod.KeptListed as e:
             d, entry = e.d, e.entry
         names = [a[k] for a in d["artifacts"] for k in ("path", "sig")]
-        if kind == layout.KIND_STABLE:
-            names += [d["sums"], d["sums_sig"], d["build"]["sums"],
-                      d["build"]["bundle"]]
+        names += [d["sums"], d["sums_sig"], d["build"]["sums"],
+                  d["build"]["bundle"]]
         for name in names:
-            # Of a release published before, what was taken from the
-            # builds store is there, and what was handed over takes the
-            # place of what it had.
-            if name not in kept:
-                builds.put_file(root / name, name,
-                                immutable=published is None)
+            builds.put_file(root / name, name)
         # Content-addressed, so never in the place of others.
         for name in [entry[k] for k in ("notes", "notes_sig") if k in entry]:
             builds.put_file(root / name, name)
         # Last: a descriptor only ever names objects that are already
-        # there, and until it is, a release published before is the one it
-        # was.
-        builds.put_file(root / path, path, immutable=published is None)
+        # there.
+        builds.put_file(root / path, path)
     return d
-
-
-def _complete(builds: Store, root: Path, version: str,
-              handed: dict) -> set[str]:
-    """For a release that is published and handed over again: whatever the
-    descriptor handed over names and did not come with it, fetched into
-    @p root from the builds store, so that only what changed need be
-    handed over and the whole is still checked as the index will check
-    it. Returns the names fetched. The descriptor is not believed yet: a
-    name it gives is only ever looked for."""
-    listed = handed.get("artifacts")
-    names = [a.get(k) for a in (listed if isinstance(listed, list) else [])
-             if isinstance(a, dict) for k in ("path", "sig")]
-    build = handed.get("build")
-    if isinstance(build, dict):
-        names += [build.get(k) for k in ("sums", "bundle")]
-    fetched = set()
-    for name in names:
-        if not isinstance(name, str) or (root / check_relpath(name)).exists():
-            continue
-        try:
-            builds.fetch_to(name, root / name)
-            fetched.add(name)
-        except NotFound:
-            pass  # admission refuses a release with a file missing
-    try:
-        # Content-addressed: beside whatever notes were handed over.
-        builds.download(f"{layout.NOTES}/{version}",
-                        root / layout.NOTES / version)
-    except NotFound:
-        pass  # admission says whether it needs any
-    return fetched
 
 
 def _receive_notes(product: Product, outbox: Store, builds: Store,

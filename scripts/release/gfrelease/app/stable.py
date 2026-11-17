@@ -30,10 +30,7 @@ store, which it alone writes.
 
 After the release, `--notes-only` signs and hands over main's copy of the
 notes (a typo fixed there); the host then publishes it in place of the old
-one. And `--msix` makes the MSIX of a release that was handed over without
-one, and hands over only that: the package, its signature, the manifest
-that now lists it and the descriptor. The host takes everything else from
-what it has published, and adds the package to the release.
+one. Nothing else of a release changes once the host has published it.
 
 Each step records itself in <work>/<version>/state.json and is skipped once
 done, so a run interrupted anywhere (a token unplugged, a connection lost)
@@ -508,56 +505,6 @@ class Stage:
                    "bundle": layout.build_bundle(p),
                    "identity": b["identity"]},
             sums=f"{p}/{SUMS}", sums_sig=layout.sig_of(f"{p}/{SUMS}"))
-
-    def add_msix(self) -> dict:
-        """For a release handed over without its MSIX (made before the
-        stage made one, or where none can be packed): makes it from the
-        signed MSI in final/, signs it, lists it in a manifest signed
-        anew, and hands over only what that changes. The host adds it to
-        the release it has published (promote.py); one it has not received
-        yet, it receives with it. Returns the descriptor."""
-        if self._conflict:
-            raise ReleaseError(self._conflict)
-        if "upload" not in self.state["done"]:
-            raise ReleaseError(f"{self.version} is not handed over yet: the "
-                               "stage itself makes its MSIX (gfrelease "
-                               f"stable {self.version})")
-        self._need("key", "staging")
-        files, p = self.state["build"]["files"], self.prefix
-        if not msix.available() and all(_built(i) for i in files.values()):
-            raise ReleaseError("an MSIX is packed by the Windows SDK's "
-                               "makeappx: only on Windows")
-        made = self._make_msix()
-        if made:
-            self._sign({self.final_dir / name: (name, None) for name in made})
-            for name, source in made.items():
-                self._check_msix(name, source)
-                files[name]["sha256"] = sha256_file(self.final_dir / name)
-            self._sign_files(sorted(made))
-            with openpgp.Keyring.of(self.product) as ring:
-                ring.verify_beside(self.final_dir, [*sorted(made), SUMS])
-            # On disk before anything is sent: a run stopped here sends
-            # these files, it never makes others.
-            self._save()
-        added = sorted(n for n, info in files.items() if not _built(info))
-        if not added:
-            raise ReleaseError(f"{self.version} has no MSI an MSIX is made "
-                               "of")
-        # What was handed over before may still lie there, and is replaced:
-        # nothing in the staging store counts until the host has checked it.
-        for name in [*added, SUMS]:
-            for suffix in (SIG, ""):
-                self.outbox.put_file(self.final_dir / (name + suffix),
-                                     f"{p}/{name}{suffix}", immutable=False)
-        descriptor = self._descriptor()
-        with tempfile.TemporaryDirectory(prefix="gfr-msix-") as tmp:
-            local = Path(tmp) / "release.json"
-            local.write_bytes(canonical_json(descriptor))
-            self.outbox.put_file(local, layout.descriptor_of(p),
-                                 immutable=False)
-        self.state["descriptor"] = descriptor
-        self._save()
-        return descriptor
 
 
 def _built(info: dict) -> bool:
