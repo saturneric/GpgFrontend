@@ -26,6 +26,7 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 
 import _paths  # noqa: E402,F401
 from gfrelease.adapters.windows import authenticode  # noqa: E402
+from gfrelease.adapters.windows import x509  # noqa: E402
 from gfrelease.adapters.windows import cab  # noqa: E402
 from gfrelease import errors  # noqa: E402
 from gfrelease.adapters.windows import msi  # noqa: E402
@@ -259,7 +260,7 @@ class CertificateTest(unittest.TestCase):
             ("O", 30, "Open Source".encode("utf-16-be")),
             ("CN", 12, b"Yu Hu, Developer / Signer"),
             ("private", 12, b"x"))
-        subject = authenticode.certificate_subject(der)
+        subject = x509.certificate_subject(der)
         self.assertEqual(subject, [
             ("C", "DE"), ("ST", "Baden-Württemberg"), ("O", "Open Source"),
             ("CN", "Yu Hu, Developer / Signer"),
@@ -269,8 +270,8 @@ class CertificateTest(unittest.TestCase):
                     "/CN=Yu Hu, Developer \\/ Signer/1.3.6.1.4.1.311.99=x",
                     "1.3.6.1.4.1.311.99=x,CN=Yu Hu\\, Developer / Signer,"
                     "O=Open Source,ST=Baden-Württemberg,C=DE",
-                    authenticode._shown(subject)):
-            self.assertEqual(authenticode._subject_rdns(pin), subject)
+                    x509.shown(subject)):
+            self.assertEqual(x509.subject_rdns(pin), subject)
 
     def test_what_is_no_certificate_is_refused(self):
         whole = self.certificate(("CN", 12, b"a"))
@@ -283,7 +284,7 @@ class CertificateTest(unittest.TestCase):
                     self.certificate(("CN", 4, b"a")),
                     self.der(0x30, lone)):
             with self.assertRaises(errors.ReleaseError):
-                authenticode.certificate_subject(bad)
+                x509.certificate_subject(bad)
 
     def test_a_certificate_file_is_pem_or_der(self):
         tmp = Path(tempfile.mkdtemp(prefix="gfr-authenticode-"))
@@ -294,8 +295,8 @@ class CertificateTest(unittest.TestCase):
             "-----BEGIN CERTIFICATE-----\n" +
             base64.encodebytes(c).decode() +
             "-----END CERTIFICATE-----\n" for c in (a, b)))
-        self.assertEqual(authenticode.certificates_in(tmp / "one.cer"), [a])
-        self.assertEqual(authenticode.certificates_in(tmp / "two.pem"),
+        self.assertEqual(x509.certificates_in(tmp / "one.cer"), [a])
+        self.assertEqual(x509.certificates_in(tmp / "two.pem"),
                          [a, b])
 
 
