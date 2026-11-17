@@ -57,8 +57,6 @@ cmake -B "$ROOT/build" -S "$ROOT" -G Ninja \
   -DGPGFRONTEND_INTEGRATED_MODULE_BINDING_ALGORITHM=FILE_SHA256
 cmake --build "$ROOT/build" --config "$BUILD_TYPE" --parallel --verbose
 
-ccache -s -v 2>/dev/null || ccache -s
-# Keep only what this build used, so the saved cache stays the working set
-# instead of growing toward max-size run after run.
-ccache --evict-older-than "$(( $(date +%s) - CCACHE_EPOCH + 60 ))s"
-ccache -s
+# shellcheck source=scripts/ci/lib.sh
+. "$ROOT/scripts/ci/lib.sh"
+ccache_keep_working_set

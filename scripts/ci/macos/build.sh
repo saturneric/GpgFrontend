@@ -80,27 +80,9 @@ if [ "$FLAVOR" = installed ]; then
   : "${CCACHE_EPOCH:?}"
 
   # The GnuPG engine links a static GpgME. The sandbox flavour is rPGP-only.
-  echo "::group::Build GpgME"
-  (
-    cd "$ROOT/third_party/gpgme"
-    export CC="ccache gcc"
-    export CXX="ccache g++"
-    ./autogen.sh
-    mkdir -p build && cd build
-    ../configure --enable-static \
-      --disable-shared \
-      --enable-silent-rules \
-      --disable-dependency-tracking \
-      --enable-languages=cl \
-      --disable-gpgconf-test \
-      --disable-gpg-test \
-      --disable-gpgsm-test \
-      --disable-g13-test
-    make -j"$(sysctl -n hw.logicalcpu)"
-    sudo make install
-  )
-  ccache -s -v
-  echo "::endgroup::"
+  # shellcheck source=scripts/ci/lib.sh
+  . "$ROOT/scripts/ci/lib.sh"
+  build_gpgme sudo
 
   # Homebrew's openssl@3 is keg-only, so it is not on the default search path
   # and find_package(OpenSSL) would pick up the unusable LibreSSL headers that
@@ -163,11 +145,7 @@ xcodebuild -project "$BUILD/GpgFrontend.xcodeproj" \
 echo "::endgroup::"
 
 if [ "$FLAVOR" = installed ]; then
-  ccache -s -v
-  # Keep only what this build used, so the saved cache stays the working set
-  # instead of growing toward max-size run after run.
-  ccache --evict-older-than "$(( $(date +%s) - CCACHE_EPOCH + 60 ))s"
-  ccache -s
+  ccache_keep_working_set
 fi
 
 # Skip -exportArchive: the generated ExportOptions.plist is method=developer-id

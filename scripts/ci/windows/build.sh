@@ -27,31 +27,13 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 : "${BUILD_TYPE:?}" "${GPGFRONTEND_BUILD_MODE:?}" "${FLAVOR:?}" "${CCACHE_EPOCH:?}"
 cd "$ROOT"
+# shellcheck source=scripts/ci/lib.sh
+. "$ROOT/scripts/ci/lib.sh"
 
-echo "::group::Build GpgME"
 (
-  cd third_party/gpgme
-  export CC="ccache gcc"
-  export CXX="ccache g++"
   export CFLAGS="${CFLAGS:-} -Wno-int-conversion -Wno-incompatible-pointer-types"
-  ./autogen.sh
-  mkdir -p build && cd build
-  ../configure --enable-maintainer-mode \
-    --enable-static \
-    --disable-shared \
-    --enable-silent-rules \
-    --disable-dependency-tracking \
-    --enable-languages=cl \
-    --disable-gpgconf-test \
-    --disable-gpg-test \
-    --disable-gpgsm-test \
-    --disable-g13-test \
-    --enable-w32-glib
-  make -j"$(nproc)"
-  make install
+  build_gpgme "" --enable-maintainer-mode --enable-w32-glib
 )
-ccache -s -v
-echo "::endgroup::"
 
 echo "::group::Build GpgFrontend"
 # Unquoted on purpose: empty, or two separate -D flags.
@@ -66,9 +48,5 @@ cmake -G "Ninja" -S . -B build \
   -DGPGFRONTEND_INTEGRATED_MODULE_BINDING_ALGORITHM=PE_AUTHENTICODE_SHA256 \
   ${SCREENSHOT_CMAKE_FLAG:-}
 cmake --build build --config "$BUILD_TYPE" --parallel --verbose
-ccache -s -v
-# Keep only what this build used, so the saved cache stays the working set
-# instead of growing toward max-size run after run.
-ccache --evict-older-than "$(( $(date +%s) - CCACHE_EPOCH + 60 ))s"
-ccache -s
+ccache_keep_working_set
 echo "::endgroup::"
