@@ -18,6 +18,11 @@
 
 Reads either a Store (the signing host's read-back) or the public HTTPS bases
 from release/product.json, as a client would.
+
+This is the release tooling's reference client. What it checks of an index
+is what the update check (modules/src/m_ver_check) checks, and the two are
+held to the same files: scripts/tests/fixtures/contract, read by both
+test_contract.py and the update check's ContractTest.
 """
 
 from __future__ import annotations
