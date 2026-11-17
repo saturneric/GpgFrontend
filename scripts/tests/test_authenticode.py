@@ -27,7 +27,7 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 import _paths  # noqa: E402,F401
 from gfrelease.adapters.windows import authenticode  # noqa: E402
 from gfrelease.adapters.windows import cab  # noqa: E402
-from gfrelease import common  # noqa: E402
+from gfrelease import errors  # noqa: E402
 from gfrelease.adapters.windows import msi  # noqa: E402
 from gfrelease.adapters.windows import msix  # noqa: E402
 from gfrelease.domain import policy  # noqa: E402
@@ -149,20 +149,20 @@ class CabTest(unittest.TestCase):
     def test_a_damaged_block_is_refused(self):
         raw = bytearray(cab.write([cab.Entry("a", b"hello" * 1000)]))
         raw[-5] ^= 0xFF
-        with self.assertRaisesRegex(common.ReleaseError, "checksum"):
+        with self.assertRaisesRegex(errors.ReleaseError, "checksum"):
             cab.read(bytes(raw))
 
     def test_what_is_not_read_is_refused(self):
         raw = bytearray(cab.write([cab.Entry("a", b"hello")]))
         lzx = bytearray(raw)
         struct.pack_into("<H", lzx, 36 + 6, 3)  # the folder's compression
-        with self.assertRaisesRegex(common.ReleaseError, "mszip"):
+        with self.assertRaisesRegex(errors.ReleaseError, "mszip"):
             cab.read(bytes(lzx))
         spanning = bytearray(raw)
         struct.pack_into("<H", spanning, 30, cab.FLAG_NEXT)
-        with self.assertRaisesRegex(common.ReleaseError, "spans"):
+        with self.assertRaisesRegex(errors.ReleaseError, "spans"):
             cab.read(bytes(spanning))
-        with self.assertRaisesRegex(common.ReleaseError, "not a cabinet"):
+        with self.assertRaisesRegex(errors.ReleaseError, "not a cabinet"):
             cab.read(b"PK\3\4" + bytes(40))
 
     def test_a_cabinet_cut_anywhere_is_a_refusal(self):
@@ -175,7 +175,7 @@ class CabTest(unittest.TestCase):
             if len(cut) >= 12:
                 struct.pack_into("<I", cut, 8, len(cut))
             with self.subTest(end=end), \
-                    self.assertRaises(common.ReleaseError):
+                    self.assertRaises(errors.ReleaseError):
                 cab.read(bytes(cut))
 
     def test_a_block_that_unpacks_past_its_size_is_refused(self):
@@ -190,7 +190,7 @@ class CabTest(unittest.TestCase):
                           0, 0, 0) + \
             struct.pack("<IHH", data_at, 1, cab.COMPRESS_MSZIP) + \
             struct.pack("<IIHHHH", cab.BLOCK, 0, 0, 0, 0, 0x20) + name + block
-        with self.assertRaisesRegex(common.ReleaseError, "more than"):
+        with self.assertRaisesRegex(errors.ReleaseError, "more than"):
             cab.read(raw)
 
     def test_the_checksum_is_the_cabinet_one(self):
@@ -282,7 +282,7 @@ class CertificateTest(unittest.TestCase):
         for bad in (b"", b"\x30", whole[:-40], b"\x30\x03\x02\x01\x01",
                     self.certificate(("CN", 4, b"a")),
                     self.der(0x30, lone)):
-            with self.assertRaises(common.ReleaseError):
+            with self.assertRaises(errors.ReleaseError):
                 authenticode.certificate_subject(bad)
 
     def test_a_certificate_file_is_pem_or_der(self):
@@ -346,11 +346,11 @@ class SigntoolTest(unittest.TestCase):
                 Path(authenticode.find_signtool()),
                 kits / "10.0.26100.0" / "x64" / "signtool.exe")
             # One named is the one run, and has to be there.
-            with self.assertRaisesRegex(common.ReleaseError, "not there"):
+            with self.assertRaisesRegex(errors.ReleaseError, "not there"):
                 authenticode.find_signtool(str(self.tmp / "signtool.exe"))
         with mock.patch.dict(os.environ, dict(env, **{
                 "ProgramFiles(x86)": str(self.tmp / "none")})):
-            with self.assertRaisesRegex(common.ReleaseError,
+            with self.assertRaisesRegex(errors.ReleaseError,
                                         "signtool is not installed"):
                 authenticode.find_signtool()
 
@@ -358,7 +358,7 @@ class SigntoolTest(unittest.TestCase):
         self.assertEqual(authenticode.SigntoolSigner(
             "f9 cd:dc" + "00" * 17).thumbprint, "F9CDDC" + "00" * 17)
         for bad in ("", "F9CD", "G" * 40, "00" * 32):
-            with self.assertRaisesRegex(common.ReleaseError, "40 hex"):
+            with self.assertRaisesRegex(errors.ReleaseError, "40 hex"):
                 authenticode.SigntoolSigner(bad)
 
     def test_everything_is_signed_by_one_run(self):
@@ -389,7 +389,7 @@ class SigntoolTest(unittest.TestCase):
 
     def test_the_services_are_given_up_after_six_runs(self):
         signer = self.signer([(0, "the timestamp server did not answer")] * 6)
-        with self.assertRaisesRegex(common.ToolFailed, "timestamp server"):
+        with self.assertRaisesRegex(errors.ToolFailed, "timestamp server"):
             signer.sign_files(self.files)
         self.assertEqual(len(self.tried), authenticode.ATTEMPTS)
 
@@ -402,13 +402,13 @@ class SigntoolTest(unittest.TestCase):
                      "SignTool Error: No certificates were found that met "
                      "all the given criteria."):
             signer = self.signer([(0, said)] * 6)
-            with self.assertRaisesRegex(common.ToolFailed, "signtool failed"):
+            with self.assertRaisesRegex(errors.ToolFailed, "signtool failed"):
                 signer.sign_files(self.files)
             self.assertEqual(len(self.tried), 1, said)
 
     def test_without_a_service_there_is_one_run(self):
         signer = self.signer([(0, "the timestamp server, somehow")], urls="")
-        with self.assertRaises(common.ToolFailed):
+        with self.assertRaises(errors.ToolFailed):
             signer.sign_files(self.files)
         self.assertEqual(self.tried, [(None, ["a.exe", "b.exe", "c.exe"])])
 
@@ -435,7 +435,7 @@ class OsslsigncodeTest(unittest.TestCase):
         def once(src, dst, ts):
             tried.append(ts)
             if len(tried) < 3:
-                raise common.ToolFailed(f"osslsigncode failed: connect error "
+                raise errors.ToolFailed(f"osslsigncode failed: connect error "
                                         f"Connecting to {ts} Failed")
             shutil.copy(src, dst)
 
@@ -455,12 +455,12 @@ class OsslsigncodeTest(unittest.TestCase):
 
         def once(src, dst, ts):
             tried.append(ts)
-            raise common.ToolFailed("osslsigncode failed: PKCS11 login "
+            raise errors.ToolFailed("osslsigncode failed: PKCS11 login "
                                     "failed, then no timestamp")
 
         signer = authenticode.Signer("c", "k", timestamp_url="http://a")
         signer._once = once
-        with self.assertRaisesRegex(common.ReleaseError, "login"):
+        with self.assertRaisesRegex(errors.ReleaseError, "login"):
             signer.sign(self.tmp / "in", self.tmp / "out")
         self.assertEqual(tried, ["http://a"])
 
@@ -489,7 +489,7 @@ class MsixTest(unittest.TestCase):
         # The other way a pin is written, and a value Windows quotes.
         self.assertEqual(msix.publisher("CN=A\\, Inc.,O=B,C=DE"),
                          'CN="A, Inc.", O=B, C=DE')
-        with self.assertRaisesRegex(common.ReleaseError, "UID"):
+        with self.assertRaisesRegex(errors.ReleaseError, "UID"):
             msix.publisher("/UID=1/CN=a")
 
     def test_the_manifest_takes_the_version_and_the_publisher(self):
@@ -508,7 +508,7 @@ class MsixTest(unittest.TestCase):
         for logo in logos:
             name = logo.rsplit("\\", 1)[1][:-len(".png")]
             self.assertIn(f"'{name}'", drawn)
-        with self.assertRaisesRegex(common.ReleaseError, "final release"):
+        with self.assertRaisesRegex(errors.ReleaseError, "final release"):
             msix.manifest(msix.RESOURCES, "2.3.0-rc.1", "/CN=T")
 
     def test_an_msix_is_named_after_its_msi(self):
@@ -542,7 +542,7 @@ class PackageTest(unittest.TestCase):
         try:
             authenticode.verify(local, self.subject, str(self.cert))
             return True
-        except common.ReleaseError:
+        except errors.ReleaseError:
             return False
 
     def test_the_fixture_holds_the_payload(self):
@@ -609,17 +609,17 @@ class PackageTest(unittest.TestCase):
                                   "E": msi.hash_parts(new["T/app.exe"]),
                                   "B": msi.hash_parts(pe_bytes("gpg"))})
         self.assertEqual(msi.table(dst, "NoSuchTable"), [])
-        with self.assertRaisesRegex(common.ReleaseError, "holds no"):
+        with self.assertRaisesRegex(errors.ReleaseError, "holds no"):
             msi.Payload.read(src).replace({"T/other.exe": b""}, dst)
         (self.tmp / "not.msi").write_bytes(b"not an MSI")
-        with self.assertRaises(common.ReleaseError):
+        with self.assertRaises(errors.ReleaseError):
             msi.Payload.read(self.tmp / "not.msi")
         # Tables without the columns a payload is read from.
         table = msi.table
         with mock.patch.object(msi, "table", lambda m, name: [
                 {k: v for k, v in row.items() if k != "Component_"}
                 for row in table(m, name)]), \
-                self.assertRaisesRegex(common.ReleaseError, "not an "
+                self.assertRaisesRegex(errors.ReleaseError, "not an "
                                        "installer's"):
             msi.Payload.read(src)
 
@@ -643,9 +643,9 @@ class PackageTest(unittest.TestCase):
         # The package signed, but not what is in it.
         outer_only = self.tmp / "outer.msi"
         self.signer.sign(src, outer_only)
-        with self.assertRaisesRegex(common.ReleaseError, "T/app.exe"):
+        with self.assertRaisesRegex(errors.ReleaseError, "T/app.exe"):
             self.verify(outer_only, MSI)
-        with self.assertRaisesRegex(common.ReleaseError, "app.exe"):
+        with self.assertRaisesRegex(errors.ReleaseError, "app.exe"):
             self.verify(build_zip(self.tmp, self.tmp / "p.zip"), ZIP)
 
     def test_a_signature_is_checked_for_who_made_it_and_what_it_covers(self):
@@ -655,22 +655,22 @@ class PackageTest(unittest.TestCase):
         authenticode.verify(program, self.subject, str(self.cert))
         authenticode.verify(program, ["/CN=Another", self.subject],
                             str(self.cert))
-        with self.assertRaisesRegex(common.ReleaseError, "signed by"):
+        with self.assertRaisesRegex(errors.ReleaseError, "signed by"):
             authenticode.verify(program, "/CN=Not Us", str(self.cert))
-        with self.assertRaisesRegex(common.ReleaseError, "no time-stamp"):
+        with self.assertRaisesRegex(errors.ReleaseError, "no time-stamp"):
             authenticode.verify(program, self.subject, str(self.cert),
                                 require_timestamp=True)
         # A certificate nothing vouches for, however it names itself.
-        with self.assertRaisesRegex(common.ReleaseError, "no valid"):
+        with self.assertRaisesRegex(errors.ReleaseError, "no valid"):
             authenticode.verify(program, self.subject)
         other = SigningCertificate(self.tmp, "Someone Else")
         self.addCleanup(other.close)
-        with self.assertRaisesRegex(common.ReleaseError, "no valid"):
+        with self.assertRaisesRegex(errors.ReleaseError, "no valid"):
             authenticode.verify(program, self.subject, str(other.ca))
         changed = bytearray(program.read_bytes())
         changed[0x205] ^= 1
         program.write_bytes(changed)
-        with self.assertRaisesRegex(common.ReleaseError, "no valid"):
+        with self.assertRaisesRegex(errors.ReleaseError, "no valid"):
             authenticode.verify(program, self.subject, str(self.cert))
 
     def test_a_change_beyond_the_signed_programs_is_refused(self):
@@ -680,7 +680,7 @@ class PackageTest(unittest.TestCase):
         tampered = self.tmp / "tampered.zip"
         authenticode._rezip(dst, tampered,
                             {"GpgFrontend/payload.txt": b"changed\n"})
-        with self.assertRaisesRegex(common.ReleaseError, "payload.txt"):
+        with self.assertRaisesRegex(errors.ReleaseError, "payload.txt"):
             authenticode.unchanged_apart_from(src, tampered, ZIP, signed)
 
     def test_an_msix_holds_the_files_of_its_msi_and_no_others(self):
@@ -696,7 +696,7 @@ class PackageTest(unittest.TestCase):
         def refused(why, files=files):
             out = self.tmp / "refused.msix"
             pack_as_a_zip(tree, files, out)
-            with self.assertRaisesRegex(common.ReleaseError, why):
+            with self.assertRaisesRegex(errors.ReleaseError, why):
                 msix.check_derived(out, FIXTURE_MSI)
 
         package = self.tmp / "test.msix"
@@ -744,7 +744,7 @@ class PackageTest(unittest.TestCase):
         program.write_bytes(pe_bytes("app"))
         signer = authenticode.SigntoolSigner("00" * 20,
                                              timestamp_url="http://a")
-        with self.assertRaisesRegex(common.ToolFailed, "No certificates"):
+        with self.assertRaisesRegex(errors.ToolFailed, "No certificates"):
             signer.sign_files([program])
         self.assertEqual(program.read_bytes(), pe_bytes("app"))
 

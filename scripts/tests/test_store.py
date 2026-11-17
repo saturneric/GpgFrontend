@@ -17,7 +17,7 @@ from pathlib import Path
 import _paths  # noqa: E402,F401
 from trustutil import local_rclone, tools  # noqa: E402
 
-from gfrelease import common  # noqa: E402
+from gfrelease.domain import limits  # noqa: E402
 from gfrelease.adapters.store import Store  # noqa: E402
 
 TREE = {
@@ -26,7 +26,7 @@ TREE = {
     "a/b/staged.json": b"b\n",
     "a/c/x/staged.json": b"x\n",
     "a/c/x/other.json": b"o\n",
-    "big.bin": b"z" * (common.SMALL_OBJECT_LIMIT + 1),
+    "big.bin": b"z" * (limits.SMALL_OBJECT_LIMIT + 1),
 }
 
 

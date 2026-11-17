@@ -31,7 +31,18 @@ from unittest import mock
 ROOT = Path(__file__).resolve().parent.parent.parent
 
 import _paths  # noqa: E402,F401
-from gfrelease import common  # noqa: E402
+from gfrelease.adapters import clock  # noqa: E402
+from gfrelease.adapters import files as files_mod  # noqa: E402
+from gfrelease.adapters import git as git_mod  # noqa: E402
+from gfrelease.adapters import process as process_mod  # noqa: E402
+from gfrelease.app import candidate as candidate_mod  # noqa: E402
+from gfrelease.app import product as product_mod  # noqa: E402
+from gfrelease.domain import formats  # noqa: E402
+from gfrelease.domain import limits  # noqa: E402
+from gfrelease.domain import manifest  # noqa: E402
+from gfrelease.domain import refs  # noqa: E402
+from gfrelease import errors  # noqa: E402
+from gfrelease import paths  # noqa: E402
 from gfrelease.app import host as host_mod  # noqa: E402
 from gfrelease.app import index as index_mod  # noqa: E402
 from gfrelease.domain import layout  # noqa: E402
@@ -72,11 +83,11 @@ TRUST_KEYS = Path(__file__).resolve().parent / "fixtures" / "trust" / "keys"
 def published(update: Store) -> dict:
     """The index in @p update as it stands, unverified: what a test looks
     at after the run that published it."""
-    return common.load_json(update.read(common.INDEX), common.INDEX)
+    return formats.load_json(update.read(layout.INDEX), layout.INDEX)
 
 
 def make_product(directory: Path, index_pubs, after=None,
-                 **host_policy) -> common.Product:
+                 **host_policy) -> product_mod.Product:
     """This product as release/product.json has it, published under a
     trust root of its own (fixtures/trust/keys: root keys a and b sign it,
     g1 signs the index-keys list) that lists @p index_pubs, and whose
@@ -86,11 +97,11 @@ def make_product(directory: Path, index_pubs, after=None,
     never changes."""
     directory.mkdir(parents=True, exist_ok=True)
     for name in ("product.json", "policy.toml"):
-        shutil.copy(common.ROOT / "release" / name, directory)
+        shutil.copy(paths.ROOT / "release" / name, directory)
     if after is not None:
         shutil.copytree(after.root_dir, directory / "root")
         shutil.copytree(after.index_keys_dir, directory / "index-keys")
-        product = common.Product(directory / "product.json",
+        product = product_mod.Product(directory / "product.json",
                                  directory / "policy.toml",
                                  root_dir=directory / "root",
                                  index_keys_dir=directory / "index-keys")
@@ -120,7 +131,7 @@ def make_product(directory: Path, index_pubs, after=None,
     path.write_bytes(trust.dump(keys))
     minisig.sign(TRUST_KEYS / "g1.key", path,
                  layout.index_keys_comment("gpgfrontend", 1))
-    product = common.Product(directory / "product.json",
+    product = product_mod.Product(directory / "product.json",
                              directory / "policy.toml",
                              root_dir=directory / "root",
                              index_keys_dir=directory / "index-keys")
@@ -128,7 +139,7 @@ def make_product(directory: Path, index_pubs, after=None,
     return product
 
 
-def sign_root(product: common.Product, doc: dict) -> None:
+def sign_root(product: product_mod.Product, doc: dict) -> None:
     """@p doc as the next root of @p product's trust, signed by root keys
     a and b."""
     write_root(product.root_dir, doc,
@@ -137,7 +148,7 @@ def sign_root(product: common.Product, doc: dict) -> None:
     product._trust = None  # read again
 
 
-def next_root(product: common.Product, **changes) -> dict:
+def next_root(product: product_mod.Product, **changes) -> dict:
     """The next root of @p product's trust, with @p changes."""
     doc = dict(trust.renewed(product.trust[0], trust.ROOT_LIFETIME),
                **changes)
@@ -145,7 +156,7 @@ def next_root(product: common.Product, **changes) -> dict:
     return doc
 
 
-def trust_args(product: common.Product) -> list[str]:
+def trust_args(product: product_mod.Product) -> list[str]:
     """The command line that names @p product and its trust."""
     return ["--product", str(product.keyring_path.with_name("product.json")),
             "--root-dir", str(product.root_dir),
@@ -196,7 +207,7 @@ def assert_only_release_errors(test, admit, d: dict, values=BAD_VALUES):
         with test.subTest(label):
             try:
                 admit(json.dumps(m).encode())
-            except common.ReleaseError:
+            except errors.ReleaseError:
                 pass
 
 
@@ -240,7 +251,7 @@ class ChainTest(unittest.TestCase):
     def build(self, ref="refs/heads/main", claim=None, extra=None):
         """A signed candidate of HEAD, staged as CI would."""
         commit = self.git("rev-parse", "HEAD")
-        version = claim or common.git_version(self.repo, commit, ref.split("/", 2)[2])
+        version = claim or git_mod.git_version(self.repo, commit, ref.split("/", 2)[2])
         filesafe = version.replace("+", "-")
         cand = self.tmp / f"cand-{filesafe}"
         cand.mkdir()
@@ -249,12 +260,12 @@ class ChainTest(unittest.TestCase):
                  f"GpgFrontend-{filesafe}-macos-15.dmg"] + (extra or [])
         for name in names:
             (cand / name).write_bytes(f"{name}\n".encode() * 100)
-        lines = "".join(f"{common.sha256_file(cand / n)}  {n}\n"
+        lines = "".join(f"{files_mod.sha256_file(cand / n)}  {n}\n"
                         for n in sorted(names))
-        (cand / common.SUMS).write_bytes(lines.encode())
-        subprocess.run([self.cosign, "sign-blob", "--bundle", cand / common.BUNDLE,
+        (cand / layout.SUMS).write_bytes(lines.encode())
+        subprocess.run([self.cosign, "sign-blob", "--bundle", cand / layout.BUNDLE,
                         "--identity", self.product.identity(ref),
-                        "--issuer", ISSUER, "--sha", commit, cand / common.SUMS],
+                        "--issuer", ISSUER, "--sha", commit, cand / layout.SUMS],
                        check=True)
         return stage_mod.stage(self.product, cand, self.staging, ref=ref,
                                commit=commit, version=version, filesafe=filesafe,
@@ -349,7 +360,7 @@ class ChainTest(unittest.TestCase):
         self.assertEqual(index["beta"]["version"], version)
         self.assertEqual(index["beta"]["descriptor"],
                          f"nightly/{version.replace('+', '-')}/"
-                         f"{common.DESCRIPTOR}")
+                         f"{layout.DESCRIPTOR}")
         self.check()
         # A series users are no longer meant to be on offers no beta.
         self.product.policy["series"]["2.2"]["status"] = "legacy"
@@ -424,7 +435,7 @@ class ChainTest(unittest.TestCase):
         self.commit()
         self.git("tag", "v2.3.0-rc.1")  # on main: no release/2.3 yet
         self.build(ref="refs/tags/v2.3.0-rc.1")
-        with self.assertRaises(common.ReleaseError) as e:
+        with self.assertRaises(errors.ReleaseError) as e:
             self.promote()
         self.assertIn("is not on release/2.3", str(e.exception))
 
@@ -434,7 +445,7 @@ class ChainTest(unittest.TestCase):
         self.commit()
         self.git("tag", "v2.3.0-rc.2")
         self.build(ref="refs/tags/v2.3.0-rc.2", claim="2.3.0-rc.2")
-        with self.assertRaises(common.ReleaseError) as e:
+        with self.assertRaises(errors.ReleaseError) as e:
             self.promote()
         self.assertIn("has been released already", str(e.exception))
 
@@ -500,10 +511,10 @@ class ChainTest(unittest.TestCase):
         self.build(ref="refs/heads/release/2.2")
         self.promote()
         self.index()
-        path = self.tmp / "update" / self.slug / common.INDEX
+        path = self.tmp / "update" / self.slug / layout.INDEX
         tampered = json.loads(path.read_text())
         tampered["channels"]["beta"] = "2.2.9-beta.1"
-        path.write_bytes(common.canonical_json(tampered))
+        path.write_bytes(formats.canonical_json(tampered))
         minisig.sign(self.idx_key, path,
                      f"product={self.slug} serial={tampered['serial']}")
         self.assert_refused(self.check, "channels.beta")
@@ -511,8 +522,8 @@ class ChainTest(unittest.TestCase):
     def resign(self, index: dict) -> None:
         """@p index published as it is, signed with the index key: what
         whoever holds that key could publish."""
-        path = self.tmp / "update" / self.slug / common.INDEX
-        path.write_bytes(common.canonical_json(index))
+        path = self.tmp / "update" / self.slug / layout.INDEX
+        path.write_bytes(formats.canonical_json(index))
         minisig.sign(self.idx_key, path,
                      layout.index_comment(self.slug, index["serial"]))
 
@@ -595,8 +606,8 @@ class ChainTest(unittest.TestCase):
         # replay) and drops the nightly.
         forged = dict(first, serial=10 ** 9, nightly=None)
         forged["channels"] = dict(first["channels"], nightly=None)
-        path = self.tmp / "update" / self.slug / common.INDEX
-        path.write_bytes(common.canonical_json(forged))
+        path = self.tmp / "update" / self.slug / layout.INDEX
+        path.write_bytes(formats.canonical_json(forged))
         _, other = keypair(self.tmp / "keys", "intruder")
         minisig.sign(self.tmp / "keys" / "intruder.key", path,
                      layout.index_comment(self.slug, forged["serial"]))
@@ -614,7 +625,7 @@ class ChainTest(unittest.TestCase):
         self.promote()
         self.index()
         shutil.rmtree(self.state)
-        sig = self.tmp / "update" / self.slug / (common.INDEX + ".minisig")
+        sig = self.tmp / "update" / self.slug / (layout.INDEX + ".minisig")
         sig.write_text("cut short\n")
         # Any serial picked now could be below one clients have seen.
         self.assert_refused(self.index, "next serial is not known")
@@ -684,7 +695,7 @@ class ChainTest(unittest.TestCase):
                          (host_mod.DONE, host_mod.UNCHANGED))
 
         # A forged candidate: refused for what it is, every round alike.
-        staged = json.loads(self.staging.read(f"{prefix}/{common.STAGED}"))
+        staged = json.loads(self.staging.read(f"{prefix}/{layout.STAGED}"))
         self.forge_staged("branches/main/9.9.9-alpha.1", staged,
                           version="9.9.9-alpha.1", filesafe="9.9.9-alpha.1")
         status, out, err = self.round()
@@ -706,19 +717,19 @@ class ChainTest(unittest.TestCase):
         self.build()
         hung = stand_in(self.tmp, "hung-cosign",
                         "import time\ntime.sleep(30)\n")
-        saved = common.rc.COSIGN_TIMEOUT
-        common.rc.COSIGN_TIMEOUT = 1
+        saved = candidate_mod.COSIGN_TIMEOUT
+        candidate_mod.COSIGN_TIMEOUT = 1
         try:
             status, _, err = self.round(self.host(cosign=str(hung)))
         finally:
-            common.rc.COSIGN_TIMEOUT = saved
+            candidate_mod.COSIGN_TIMEOUT = saved
         # Nothing was decided about the candidate: the next round asks
         # again, rather than counting it refused until something changes.
         self.assertEqual(status, host_mod.FAILED, err)
         self.assertIn("did not finish", err)
         # A git that cannot be run is no verdict either.
-        self.assertTrue(common.is_passing(common.ToolFailed("git failed")))
-        self.assertFalse(common.is_passing(common.ReleaseError("forged")))
+        self.assertTrue(errors.is_passing(errors.ToolFailed("git failed")))
+        self.assertFalse(errors.is_passing(errors.ReleaseError("forged")))
 
     def test_a_build_that_could_not_be_checked_keeps_its_listing(self):
         self.commit()
@@ -729,11 +740,11 @@ class ChainTest(unittest.TestCase):
                                                [self.idx_pub])
 
         def admit(*_args, **_kw):
-            raise common.ToolFailed("cosign cannot be run")
+            raise errors.ToolFailed("cosign cannot be run")
         saved = index_mod.admit_nightly
         index_mod.admit_nightly = admit
         try:
-            refused = common.Problems()
+            refused = errors.Problems()
             content = index_mod.build(self.product, self.builds,
                                       refused=refused, previous=previous)
             # Not checked is not refused: still listed, the run still fails.
@@ -741,9 +752,9 @@ class ChainTest(unittest.TestCase):
             self.assertTrue(refused and refused.passing)
 
             def forged(*_args, **_kw):
-                raise common.ReleaseError("not what CI built")
+                raise errors.ReleaseError("not what CI built")
             index_mod.admit_nightly = forged
-            refused = common.Problems()
+            refused = errors.Problems()
             content = index_mod.build(self.product, self.builds,
                                       refused=refused, previous=previous)
             # Refused for what it is: off the channel.
@@ -755,7 +766,7 @@ class ChainTest(unittest.TestCase):
     def test_the_cli_exits_with_the_steps_status(self):
         self.commit()
         prefix, _ = self.build()
-        staged = json.loads(self.staging.read(f"{prefix}/{common.STAGED}"))
+        staged = json.loads(self.staging.read(f"{prefix}/{layout.STAGED}"))
         self.forge_staged("branches/main/9.9.9-alpha.1", staged,
                           version="9.9.9-alpha.1", filesafe="9.9.9-alpha.1")
         out, err = io.StringIO(), io.StringIO()
@@ -803,7 +814,7 @@ class ChainTest(unittest.TestCase):
         self.assertTrue(fnmatch.fnmatch(
             "signed/" + layout.descriptor_of(layout.release_dir("2.3.0")),
             "signed/*"))
-        self.assertEqual((common.STAGED, common.DESCRIPTOR, common.INDEX),
+        self.assertEqual((layout.STAGED, layout.DESCRIPTOR, layout.INDEX),
                          ("staged.json", "release.json", "v1/index.json"))
         self.assertEqual(layout.nightly_dir("2.3.0-alpha.1+gabc"),
                          "nightly/2.3.0-alpha.1-gabc")
@@ -821,7 +832,7 @@ class ChainTest(unittest.TestCase):
 
         self.commit()
         prefix, version = self.build()
-        staged = json.loads(self.staging.read(f"{prefix}/{common.STAGED}"))
+        staged = json.loads(self.staging.read(f"{prefix}/{layout.STAGED}"))
         self.assertLessEqual({"ref", "version", "commit", "filesafe"},
                              set(staged))
         status, out, _ = self.round()
@@ -832,9 +843,9 @@ class ChainTest(unittest.TestCase):
         self.assertEqual((d["kind"], d["ref"], d["version"]),
                          ("nightly", "refs/heads/main", version))
         self.assertRegex(d["commit"], "^[0-9a-f]{40}$")
-        common.parse_iso(d["promoted_at"])
+        formats.parse_iso(d["promoted_at"])
         self.assertEqual(index["nightly"]["sha256"],
-                         common.sha256_bytes(self.builds.read(
+                         formats.sha256_bytes(self.builds.read(
                              index["nightly"]["descriptor"])))
         for field in ("expires", "nightly", "beta", "series", "releases"):
             self.assertIn(field, index)
@@ -847,7 +858,7 @@ class ChainTest(unittest.TestCase):
     # --- refusals ------------------------------------------------------
 
     def assert_refused(self, fn, pattern):
-        with self.assertRaisesRegex(common.ReleaseError, pattern):
+        with self.assertRaisesRegex(errors.ReleaseError, pattern):
             fn()
 
     def test_a_version_git_does_not_confirm_is_refused(self):
@@ -866,7 +877,7 @@ class ChainTest(unittest.TestCase):
     def test_a_candidate_signed_for_another_ref_is_refused(self):
         self.commit()
         prefix, _ = self.build()
-        staged = self.tmp / "staging" / prefix / common.STAGED
+        staged = self.tmp / "staging" / prefix / layout.STAGED
         data = json.loads(staged.read_text())
         data["ref"] = "refs/heads/release/2.3"
         staged.write_text(json.dumps(data))
@@ -904,10 +915,10 @@ class ChainTest(unittest.TestCase):
         self.build()
         self.promote()
         self.index()
-        path = self.tmp / "update" / self.slug / common.INDEX
+        path = self.tmp / "update" / self.slug / layout.INDEX
         data = json.loads(path.read_text())
         data["channels"]["nightly"] = "9.9.9"
-        path.write_bytes(common.canonical_json(data))
+        path.write_bytes(formats.canonical_json(data))
         self.assert_refused(lambda: self.check(deep=False), "no pinned key")
 
     def test_verify_rejects_another_products_index(self):
@@ -928,7 +939,7 @@ class ChainTest(unittest.TestCase):
         self.index()
         # Signed by a key the index-keys list does not hold.
         secret, _ = keypair(self.tmp / "keys", "other")
-        path = self.tmp / "update" / self.slug / common.INDEX
+        path = self.tmp / "update" / self.slug / layout.INDEX
         index = json.loads(path.read_text())
         minisig.sign(secret, path,
                      layout.index_comment(self.slug, index["serial"]))
@@ -955,7 +966,7 @@ class ChainTest(unittest.TestCase):
         # The release branch build's manifest no longer matches its
         # descriptor: that one release is refused, nothing else is.
         sums = (self.tmp / "builds" / self.slug / "nightly" /
-                branch_version.replace("+", "-") / "build" / common.SUMS)
+                branch_version.replace("+", "-") / "build" / layout.SUMS)
         sums.write_text(sums.read_text().replace("0", "1", 1))
         with self.assertRaises(index_mod.IndexIncomplete) as caught:
             self.index()
@@ -971,7 +982,7 @@ class ChainTest(unittest.TestCase):
         self.git("checkout", "-q", "-b", "release/2.2", "v2.2.4")
         self.commit()
         prefix, _ = self.build(ref="refs/heads/release/2.2")
-        (self.tmp / "staging" / prefix / common.STAGED).write_text("{")
+        (self.tmp / "staging" / prefix / layout.STAGED).write_text("{")
         with self.assertRaises(promote_mod.PromoteIncomplete) as caught:
             self.promote()
         self.assertEqual([d["version"] for d in caught.exception.done],
@@ -981,7 +992,7 @@ class ChainTest(unittest.TestCase):
     def test_a_filesafe_ci_claims_is_never_trusted(self):
         self.commit()
         prefix, version = self.build()
-        staged_path = self.tmp / "staging" / prefix / common.STAGED
+        staged_path = self.tmp / "staging" / prefix / layout.STAGED
         staged = json.loads(staged_path.read_text())
         staged["filesafe"] = "9.9.9"
         staged_path.write_text(json.dumps(staged))
@@ -1007,7 +1018,7 @@ class ChainTest(unittest.TestCase):
         root = self.tmp / "builds" / self.slug
         self.promote()
         self.index()
-        clean = {str(f.relative_to(root)): common.sha256_file(f)
+        clean = {str(f.relative_to(root)): files_mod.sha256_file(f)
                  for f in sorted(root.rglob("*")) if f.is_file()}
 
         class Crash(Exception):
@@ -1041,7 +1052,7 @@ class ChainTest(unittest.TestCase):
                 self.promote()
                 self.index()
                 self.assertEqual(
-                    {str(f.relative_to(root)): common.sha256_file(f)
+                    {str(f.relative_to(root)): files_mod.sha256_file(f)
                      for f in sorted(root.rglob("*")) if f.is_file()}, clean)
             n += 1
         self.assertGreater(n, 5)
@@ -1081,8 +1092,8 @@ class ChainTest(unittest.TestCase):
         prefix, version = self.build()
         cand = self.tmp / f"cand-{version.replace('+', '-')}"
         # The re-run's Sigstore bundle has other bytes: still nothing to do.
-        (cand / common.BUNDLE).write_text(
-            (cand / common.BUNDLE).read_text() + "\n")
+        (cand / layout.BUNDLE).write_text(
+            (cand / layout.BUNDLE).read_text() + "\n")
         again = stage_mod.stage(self.product, cand, self.staging,
                                 ref="refs/heads/main", commit=commit,
                                 version=version,
@@ -1293,7 +1304,7 @@ class ChainTest(unittest.TestCase):
         self.assertEqual(report["refused"], [])
         self.assertIn("nightly", report["changes"])
         self.assertFalse(self.state.exists())
-        self.assertFalse(self.update.exists(common.INDEX))
+        self.assertFalse(self.update.exists(layout.INDEX))
 
     def test_the_cli_wants_both_stores_or_neither(self):
         import importlib
@@ -1309,7 +1320,7 @@ class ChainTest(unittest.TestCase):
                     "https://x/y", "a%2fb", "a//b", "", "a/b\n/c",
                     "a/b\n", ".", "a/.hidden", None):
             with self.subTest(path=bad):
-                self.assert_refused(lambda: common.check_relpath(bad),
+                self.assert_refused(lambda: formats.check_relpath(bad),
                                     "not a product-relative path")
 
     def test_every_published_index_is_kept_in_the_history(self):
@@ -1334,7 +1345,7 @@ class ChainTest(unittest.TestCase):
         self.build()
         self.promote()
         first = self.index()
-        sig = self.tmp / "update" / self.slug / (common.INDEX + ".minisig")
+        sig = self.tmp / "update" / self.slug / (layout.INDEX + ".minisig")
         sig.write_text("cut short\n")
         again = self.index()
         self.assertIsNotNone(again)
@@ -1362,7 +1373,7 @@ class ChainTest(unittest.TestCase):
                           index["index_keys_version"]), (1, 1))
         trust_paths = [path for _, path in index_mod.trust_files(self.product)]
         self.assertEqual(len(trust_paths), 5)  # a root, 2 sigs, a list, 1
-        (live,) = [i for i, p in enumerate(order) if p == common.INDEX]
+        (live,) = [i for i, p in enumerate(order) if p == layout.INDEX]
         for path in trust_paths:
             self.assertIn(path, order[:live])
             self.assertTrue(self.update.exists(path), path)
@@ -1416,8 +1427,8 @@ class ChainTest(unittest.TestCase):
         self.promote()
         self.index()
         with mock.patch.object(minisig, "run",
-                               side_effect=common.ToolFailed("no minisign")):
-            with self.assertRaisesRegex(common.ToolFailed, "no minisign"):
+                               side_effect=errors.ToolFailed("no minisign")):
+            with self.assertRaisesRegex(errors.ToolFailed, "no minisign"):
                 index_mod.trusted_published(self.product, self.update,
                                             [self.idx_pub])
 
@@ -1429,9 +1440,9 @@ class ChainTest(unittest.TestCase):
         index = published(self.update)
         comment = layout.index_comment(self.slug, index["serial"])
         verify_mod.check_index(self.product, index, comment)
-        expires = common.parse_iso(index["expires"])
+        expires = formats.parse_iso(index["expires"])
         for generated, why in (
-                (common.iso(expires - verify_mod.MAX_INDEX_LIFETIME
+                (formats.iso(expires - verify_mod.MAX_INDEX_LIFETIME
                             - dt.timedelta(seconds=1)),
                  "longer than any client takes"),
                 (None, "UTC time"), ("2026-1-1T00:00:00Z", "UTC time")):
@@ -1440,23 +1451,23 @@ class ChainTest(unittest.TestCase):
                     self.product, dict(index, generated_at=generated),
                     comment), why)
         # A day past its expiry is still a clock that is off, as for clients.
-        later = common.iso(expires + dt.timedelta(hours=12))
+        later = formats.iso(expires + dt.timedelta(hours=12))
         with mock.patch.dict(os.environ, {"GFR_NOW": later}):
             verify_mod.check_index(self.product, index, comment)
 
     def test_notes_no_client_would_read_are_refused(self):
         notes = self.repo / "release" / "notes" / "2.3.0.md"
         notes.parent.mkdir(parents=True)
-        notes.write_bytes(b"x" * (common.NOTES_LIMIT + 1))
+        notes.write_bytes(b"x" * (limits.NOTES_LIMIT + 1))
         self.git("add", "release")
         self.commit()
-        self.assert_refused(lambda: common.notes_at(
-            self.repo, common.refs.MAIN, "2.3.0"), "no client reads")
+        self.assert_refused(lambda: git_mod.notes_at(
+            self.repo, refs.MAIN, "2.3.0"), "no client reads")
 
     def forge_staged(self, prefix, staged, **changes):
         """A staged.json in the untrusted staging bucket, written by anyone."""
-        self.staging.put_bytes(common.canonical_json(dict(staged, **changes)),
-                               f"{prefix}/{common.STAGED}")
+        self.staging.put_bytes(formats.canonical_json(dict(staged, **changes)),
+                               f"{prefix}/{layout.STAGED}")
 
     def test_an_interrupted_stage_upload_finishes_on_a_rerun(self):
         self.commit()
@@ -1464,23 +1475,23 @@ class ChainTest(unittest.TestCase):
         # As if the earlier attempt died before staged.json, with a bundle
         # of other bytes (a re-run signs again) already up.
         root = self.tmp / "staging" / prefix
-        (root / common.STAGED).unlink()
-        (root / common.BUNDLE).write_text("an earlier attempt's bundle")
+        (root / layout.STAGED).unlink()
+        (root / layout.BUNDLE).write_text("an earlier attempt's bundle")
         cand = self.tmp / f"cand-{version.replace('+', '-')}"
         commit = self.git("rev-parse", "HEAD")
         stage_mod.stage(self.product, cand, self.staging,
                         ref="refs/heads/main", commit=commit, version=version,
                         filesafe=version.replace("+", "-"),
                         built_at="2026-11-06T12:00:00Z")
-        self.assertEqual((root / common.BUNDLE).read_bytes(),
-                         (cand / common.BUNDLE).read_bytes())
+        self.assertEqual((root / layout.BUNDLE).read_bytes(),
+                         (cand / layout.BUNDLE).read_bytes())
         self.assertEqual([d["version"] for d in self.promote()], [version])
 
     def test_a_forged_candidate_never_writes_a_commit_marker(self):
         self.commit()
         prefix, _ = self.build()
         (d,) = self.promote()
-        staged = json.loads(self.staging.read(f"{prefix}/{common.STAGED}"))
+        staged = json.loads(self.staging.read(f"{prefix}/{layout.STAGED}"))
         forged = "f" * 40
         self.forge_staged("branches/main/0-forged", staged, commit=forged)
         try:
@@ -1493,7 +1504,7 @@ class ChainTest(unittest.TestCase):
     def test_a_forged_higher_candidate_does_not_block_the_real_one(self):
         self.commit()
         prefix, version = self.build()
-        staged = json.loads(self.staging.read(f"{prefix}/{common.STAGED}"))
+        staged = json.loads(self.staging.read(f"{prefix}/{layout.STAGED}"))
         self.forge_staged("branches/main/9.9.9-alpha.1", staged,
                           version="9.9.9-alpha.1", filesafe="9.9.9-alpha.1")
         with self.assertRaises(promote_mod.PromoteIncomplete) as caught:
@@ -1509,7 +1520,7 @@ class ChainTest(unittest.TestCase):
         with contextlib.redirect_stderr(err):
             self.assertEqual(self.promote(), [])
         self.assertIn("final version", err.getvalue())
-        self.assertFalse(self.builds.exists(f"nightly/2.2.4/{common.DESCRIPTOR}"))
+        self.assertFalse(self.builds.exists(f"nightly/2.2.4/{layout.DESCRIPTOR}"))
 
     def test_a_withdrawn_nightly_is_never_named(self):
         self.commit()
@@ -1518,10 +1529,10 @@ class ChainTest(unittest.TestCase):
         self.index()
         # The index as a signing host that missed the withdrawal would sign
         # it: verify refuses a channel naming a withdrawn version.
-        path = self.tmp / "update" / self.slug / common.INDEX
+        path = self.tmp / "update" / self.slug / layout.INDEX
         tampered = json.loads(path.read_text())
         tampered["withdrawn"] = [{"version": version, "reason": "broken"}]
-        path.write_bytes(common.canonical_json(tampered))
+        path.write_bytes(formats.canonical_json(tampered))
         sig = minisig.sign(self.idx_key, path,
                            f"product={self.slug} serial={tampered['serial']}")
         self.assertEqual(sig, Path(f"{path}.minisig"))
@@ -1555,14 +1566,14 @@ class ChainTest(unittest.TestCase):
         # whose fields have the wrong types.
         prefix = layout.nightly_dir(first["version"])
         self.rewrite(dict(first, promoted_at="yesterday"),
-                     f"{prefix}/{common.DESCRIPTOR}")
+                     f"{prefix}/{layout.DESCRIPTOR}")
         base = {"schema": 1, "product": self.slug, "kind": "nightly",
                 "version": "9.9.9-alpha.1", "ref": "refs/heads/main",
                 "artifacts": []}
         for name, d in (("9.9.9-alpha.1", dict(base, signing="x")),
                         ("9.9.9-alpha.2", dict(base, ref=5))):
             self.builds.put_bytes(json.dumps(d).encode(),
-                                  f"nightly/{name}/{common.DESCRIPTOR}")
+                                  f"nightly/{name}/{layout.DESCRIPTOR}")
         with self.assertRaises(index_mod.IndexIncomplete) as caught:
             self.index()
         self.assertEqual(len(caught.exception.refused), 3)
@@ -1578,7 +1589,7 @@ class ChainTest(unittest.TestCase):
         return f
 
     def rewrite(self, descriptor, path):
-        self.stored(path).write_bytes(common.canonical_json(descriptor))
+        self.stored(path).write_bytes(formats.canonical_json(descriptor))
 
     def assert_no_nightly(self):
         with self.assertRaises(index_mod.IndexIncomplete) as caught:
@@ -1593,11 +1604,11 @@ class ChainTest(unittest.TestCase):
         prefix = layout.nightly_dir(d["version"])
         first = d["artifacts"][0]
         self.stored(first["path"]).write_bytes(b"replaced")
-        digest = common.sha256_bytes(b"replaced")
+        digest = formats.sha256_bytes(b"replaced")
         changed = [dict(first, sha256=digest, build_sha256=digest)] + \
             d["artifacts"][1:]
         self.rewrite(dict(d, artifacts=changed),
-                     f"{prefix}/{common.DESCRIPTOR}")
+                     f"{prefix}/{layout.DESCRIPTOR}")
         self.assertIn("signed manifest", str(self.assert_no_nightly()))
 
     def test_a_name_listed_twice_is_refused(self):
@@ -1608,7 +1619,7 @@ class ChainTest(unittest.TestCase):
         first = dict(d["artifacts"][0], sha256="0" * 64, build_sha256="0" * 64,
                      path=f"{prefix}/elsewhere.bin")
         self.rewrite(dict(d, artifacts=[first] + d["artifacts"]),
-                     f"{prefix}/{common.DESCRIPTOR}")
+                     f"{prefix}/{layout.DESCRIPTOR}")
         self.assertIn("twice", str(self.assert_no_nightly()))
 
     def test_an_artifact_the_rules_call_otherwise_is_refused(self):
@@ -1618,7 +1629,7 @@ class ChainTest(unittest.TestCase):
         prefix = layout.nightly_dir(d["version"])
         lied = [dict(a, os="linux") if a["kind"] == "msi" else a
                 for a in d["artifacts"]]
-        self.rewrite(dict(d, artifacts=lied), f"{prefix}/{common.DESCRIPTOR}")
+        self.rewrite(dict(d, artifacts=lied), f"{prefix}/{layout.DESCRIPTOR}")
         self.assertIn("artifact rules", str(self.assert_no_nightly()))
 
     def test_a_nightly_forged_in_the_builds_bucket_is_never_listed(self):
@@ -1633,23 +1644,23 @@ class ChainTest(unittest.TestCase):
         # The genuine bundle and manifest, relabelled: Sigstore still holds,
         # git does not call that commit 2.9.0-alpha.1.
         build = {k: f"{prefix}/build/{k}"
-                 for k in (common.SUMS, common.BUNDLE)}
+                 for k in (layout.SUMS, layout.BUNDLE)}
         for name, path in build.items():
             self.builds.put_bytes(self.builds.read(d["build"][
-                "sums" if name == common.SUMS else "bundle"]), path)
+                "sums" if name == layout.SUMS else "bundle"]), path)
         artifacts = []
         for a in d["artifacts"]:
             name = a["name"].replace(
-                common.parse_version(d["version"]).filesafe,
-                common.parse_version(version).filesafe)
+                formats.parse_version(d["version"]).filesafe,
+                formats.parse_version(version).filesafe)
             artifacts.append(dict(a, name=name, path=f"{prefix}/{name}"))
             self.builds.put_bytes(self.builds.read(a["path"]),
                                   f"{prefix}/{name}")
         forged = dict(d, version=version, artifacts=artifacts,
-                      build=dict(d["build"], sums=build[common.SUMS],
-                                 bundle=build[common.BUNDLE]))
-        self.builds.put_bytes(common.canonical_json(forged),
-                              f"{prefix}/{common.DESCRIPTOR}")
+                      build=dict(d["build"], sums=build[layout.SUMS],
+                                 bundle=build[layout.BUNDLE]))
+        self.builds.put_bytes(formats.canonical_json(forged),
+                              f"{prefix}/{layout.DESCRIPTOR}")
         with self.assertRaises(index_mod.IndexIncomplete) as caught:
             self.index()
         self.assertEqual(caught.exception.index["nightly"]["version"],
@@ -1678,7 +1689,7 @@ class HelperTest(unittest.TestCase):
         shutil.rmtree(self.tmp, ignore_errors=True)
 
     def test_output_that_is_not_utf8_is_no_traceback(self):
-        out = common.run([sys.executable, "-c",
+        out = process_mod.run([sys.executable, "-c",
                           "import sys; sys.stdout.buffer.write(b'ok \\xff')"])
         self.assertTrue(out.stdout.startswith("ok "))
 
@@ -1687,7 +1698,7 @@ class HelperTest(unittest.TestCase):
                b"trusted comment: product=x file=y version=1\nAAAA\n")
         self.assertEqual(minisig.trusted_comment(sig),
                          "product=x file=y version=1")
-        self.assertRaises(common.ReleaseError, minisig.trusted_comment,
+        self.assertRaises(errors.ReleaseError, minisig.trusted_comment,
                           b"untrusted comment: x\nRWQ=\n"
                           b"trusted comment: \xff\nAAAA\n")
 
@@ -1703,7 +1714,7 @@ class HelperTest(unittest.TestCase):
             with self.subTest(label):
                 try:
                     staged_ok = stage_mod.read_staged(json.dumps(m).encode())
-                except common.ReleaseError:
+                except errors.ReleaseError:
                     continue
                 # What passes is what promote then relies on.
                 promote_mod.by_ref_newest_first([("p", staged_ok)])
@@ -1713,36 +1724,36 @@ class HelperTest(unittest.TestCase):
     def test_a_clock_without_a_zone_is_utc(self):
         os.environ["GFR_NOW"] = "2026-11-08T10:00:00"
         try:
-            self.assertEqual(common.iso(common.utcnow()),
+            self.assertEqual(formats.iso(clock.utcnow()),
                              "2026-11-08T10:00:00Z")
         finally:
             del os.environ["GFR_NOW"]
 
     def test_filesafe_folds_build_metadata(self):
-        self.assertEqual(common.parse_version("2.3.0-alpha.4+gabc").filesafe,
+        self.assertEqual(formats.parse_version("2.3.0-alpha.4+gabc").filesafe,
                          "2.3.0-alpha.4-gabc")
-        self.assertEqual(common.parse_version("2.2.4").filesafe, "2.2.4")
+        self.assertEqual(formats.parse_version("2.2.4").filesafe, "2.2.4")
 
     def test_bad_input_is_a_release_error_not_a_traceback(self):
         for data in (b"{", b"[]", b"\xff"):
-            with self.assertRaises(common.ReleaseError):
-                common.load_json(data, "x")
+            with self.assertRaises(errors.ReleaseError):
+                formats.load_json(data, "x")
         for text in ("2.2", None, "v2.2.4.1"):
-            with self.assertRaises(common.ReleaseError):
-                common.parse_version(text)
-        with self.assertRaisesRegex(common.ReleaseError, "malformed line"):
-            common.parse_manifest(b"abc  name\n", "SHA256SUMS.txt")
+            with self.assertRaises(errors.ReleaseError):
+                formats.parse_version(text)
+        with self.assertRaisesRegex(errors.ReleaseError, "malformed line"):
+            manifest.parse_manifest(b"abc  name\n", "SHA256SUMS.txt")
 
     def test_manifest_round_trips(self):
         hashes = {"b": "1" * 64, "a": "2" * 64}
-        data = common.render_manifest(hashes)
+        data = manifest.render_manifest(hashes)
         self.assertEqual(data, f"{'2' * 64}  a\n{'1' * 64}  b\n".encode())
-        self.assertEqual(common.parse_manifest(data, "m"), hashes)
+        self.assertEqual(manifest.parse_manifest(data, "m"), hashes)
 
     def test_atomic_write_leaves_no_partial_file(self):
         target = self.tmp / "state" / "serial"
-        common.atomic_write(target, "1\n")
-        common.atomic_write(target, b"2\n")
+        files_mod.atomic_write(target, "1\n")
+        files_mod.atomic_write(target, b"2\n")
         self.assertEqual(target.read_text(), "2\n")
         self.assertEqual(sorted(p.name for p in target.parent.iterdir()),
                          ["serial"])
@@ -1751,13 +1762,13 @@ class HelperTest(unittest.TestCase):
     def test_a_second_run_is_refused_while_one_holds_the_lock(self):
         state = Path(tempfile.mkdtemp(prefix="gfr-lock-"))
         self.addCleanup(shutil.rmtree, state, ignore_errors=True)
-        with common.locked(state):
-            with self.assertRaisesRegex(common.ReleaseError,
+        with files_mod.locked(state):
+            with self.assertRaisesRegex(errors.ReleaseError,
                                         "another run holds"):
-                with common.locked(state):
+                with files_mod.locked(state):
                     pass
         # Let go of with the run that held it.
-        with common.locked(state):
+        with files_mod.locked(state):
             pass
 
     def test_a_branch_never_passes_for_a_tag(self):
@@ -1768,14 +1779,14 @@ class HelperTest(unittest.TestCase):
         run("init", "-q", "-b", "main")
         run("commit", "-q", "--allow-empty", "-m", "c")
         run("branch", "v9.9.9")  # a branch named like a tag
-        with self.assertRaisesRegex(common.ReleaseError, "has no tag v9.9.9"):
-            common.tagged_commit(repo, "v9.9.9")
+        with self.assertRaisesRegex(errors.ReleaseError, "has no tag v9.9.9"):
+            git_mod.tagged_commit(repo, "v9.9.9")
         run("tag", "v9.9.8")
         head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo,
                               capture_output=True, text=True).stdout.strip()
-        self.assertEqual(common.tagged_commit(repo, "v9.9.8", expect=head), head)
-        with self.assertRaisesRegex(common.ReleaseError, "not 0+"):
-            common.tagged_commit(repo, "v9.9.8", expect="0" * 40)
+        self.assertEqual(git_mod.tagged_commit(repo, "v9.9.8", expect=head), head)
+        with self.assertRaisesRegex(errors.ReleaseError, "not 0+"):
+            git_mod.tagged_commit(repo, "v9.9.8", expect="0" * 40)
 
 
 class OpenPgpStatusTest(unittest.TestCase):
@@ -1805,21 +1816,21 @@ class OpenPgpStatusTest(unittest.TestCase):
                          self.PINNED)
 
     def test_revoked_is_refused(self):
-        with self.assertRaisesRegex(common.ReleaseError, "revoked"):
+        with self.assertRaisesRegex(errors.ReleaseError, "revoked"):
             self.ring()._accept(self.status("REVKEYSIG", self.PINNED), "f")
 
     def test_expired_counts_only_for_what_it_signed_in_time(self):
         before = self.status("EXPKEYSIG", self.PINNED, created=100)
         self.assertEqual(self.accept(self.ring(expiry=200), before),
                          self.PINNED)
-        with self.assertRaisesRegex(common.ReleaseError, "revoked"):
+        with self.assertRaisesRegex(errors.ReleaseError, "revoked"):
             self.ring(expiry=200, revoked=True)._accept(before, "f")
         after = self.status("EXPKEYSIG", self.PINNED, created=300)
-        with self.assertRaisesRegex(common.ReleaseError, "after its key"):
+        with self.assertRaisesRegex(errors.ReleaseError, "after its key"):
             self.ring(expiry=200)._accept(after, "f")
 
     def test_an_expired_signature_is_refused(self):
-        with self.assertRaisesRegex(common.ReleaseError, "EXPSIG"):
+        with self.assertRaisesRegex(errors.ReleaseError, "EXPSIG"):
             self.ring()._accept(self.status("EXPSIG", self.PINNED), "f")
 
     def test_every_signature_is_looked_at(self):
@@ -1828,9 +1839,9 @@ class OpenPgpStatusTest(unittest.TestCase):
         self.assertEqual(self.accept(self.ring(), both), self.PINNED)
 
     def test_none_valid(self):
-        with self.assertRaisesRegex(common.ReleaseError, "not a pinned"):
+        with self.assertRaisesRegex(errors.ReleaseError, "not a pinned"):
             self.ring()._accept(self.status("GOODSIG", self.OTHER), "f")
-        with self.assertRaisesRegex(common.ReleaseError, "no valid signature"):
+        with self.assertRaisesRegex(errors.ReleaseError, "no valid signature"):
             self.ring()._accept("[GNUPG:] NEWSIG\n[GNUPG:] BADSIG x u\n", "f")
 
 
@@ -1911,9 +1922,9 @@ class OpenPgpKeyLifecycleTest(unittest.TestCase):
     def test_an_expired_and_revoked_key_signs_nothing(self):
         self.revoke()
         with openpgp.Keyring(self.keys, [self.fpr]) as ring:
-            with self.assertRaisesRegex(common.ReleaseError, "revoked"):
+            with self.assertRaisesRegex(errors.ReleaseError, "revoked"):
                 ring.verify(self.data, Path(f"{self.data}.sig"))
-            with self.assertRaisesRegex(common.ReleaseError, "revoked"):
+            with self.assertRaisesRegex(errors.ReleaseError, "revoked"):
                 ring.verify_tag(self.repo, "v1.0.0")
 
     def test_the_callers_git_config_has_no_say(self):
@@ -1984,7 +1995,7 @@ class AuthenticodeSubjectTest(unittest.TestCase):
 
     def test_an_unreadable_subject_is_refused(self):
         for bad in ("", "/", "nonsense", "/CN=a/=b", r"/CN=a\xFF"):
-            with self.assertRaises(common.ReleaseError):
+            with self.assertRaises(errors.ReleaseError):
                 self.rdns(bad)
 
 STABLE_TOOLS = TOOLS and tools("gpg", "gpgconf") and signing_tools()
@@ -2072,7 +2083,7 @@ class StableTest(unittest.TestCase):
         self.repo = self.tmp / "repo"
         self.idx_key = self.tmp / "keys" / "index.key"
         product = self.tmp / "product"
-        self.product = common.Product(
+        self.product = product_mod.Product(
             product / "product.json", product / "policy.toml",
             root_dir=product / "root", index_keys_dir=product / "index-keys")
         self.staging = Store(str(self.tmp / "staging"))
@@ -2198,13 +2209,13 @@ class StableTest(unittest.TestCase):
             (cand / f"GpgFrontend-{version}-{leg}").write_bytes(
                 leg.encode() * 200)
         names = sorted(p.name for p in cand.iterdir())
-        (cand / common.SUMS).write_bytes("".join(
-            f"{common.sha256_file(cand / n)}  {n}\n" for n in names).encode())
+        (cand / layout.SUMS).write_bytes("".join(
+            f"{files_mod.sha256_file(cand / n)}  {n}\n" for n in names).encode())
         ref = f"refs/tags/v{version}"
         subprocess.run([self.cosign, "sign-blob", "--bundle",
-                        cand / common.BUNDLE, "--identity",
+                        cand / layout.BUNDLE, "--identity",
                         self.product.identity(ref), "--issuer", ISSUER,
-                        "--sha", commit, cand / common.SUMS], check=True)
+                        "--sha", commit, cand / layout.SUMS], check=True)
         stage_mod.stage(self.product, cand, self.staging, ref=ref,
                         commit=commit, version=version, filesafe=version,
                         built_at="2026-11-07T08:00:00Z")
@@ -2246,7 +2257,7 @@ class StableTest(unittest.TestCase):
                                  deep=deep)
 
     def assert_refused(self, fn, pattern):
-        with self.assertRaisesRegex(common.ReleaseError, pattern):
+        with self.assertRaisesRegex(errors.ReleaseError, pattern):
             fn()
 
     # --- the stable path -----------------------------------------------
@@ -2418,7 +2429,7 @@ class StableTest(unittest.TestCase):
     def tree(self):
         """Every object of the artifact store, by path, with its hash."""
         root = self.tmp / "builds" / self.product.slug
-        return {f.relative_to(root).as_posix(): common.sha256_file(f)
+        return {f.relative_to(root).as_posix(): files_mod.sha256_file(f)
                 for f in sorted(root.rglob("*")) if f.is_file()}
 
     def assert_no_marker(self):
@@ -2513,7 +2524,7 @@ class StableTest(unittest.TestCase):
 
     def test_no_shape_of_a_stable_descriptor_is_a_traceback(self):
         d = self.staged()
-        path = f"releases/2.3.0/{common.DESCRIPTOR}"
+        path = f"releases/2.3.0/{layout.DESCRIPTOR}"
         work = self.tmp / "admit"
 
         def admit(raw):
@@ -2541,9 +2552,9 @@ class StableTest(unittest.TestCase):
                       if k not in ("sums", "sums_sig", "build")}
         relabelled["kind"] = "imported"
         path = self.tmp / "builds" / self.product.slug / "releases" / \
-            "2.3.0" / common.DESCRIPTOR
+            "2.3.0" / layout.DESCRIPTOR
         path.chmod(0o644)
-        path.write_bytes(common.canonical_json(relabelled))
+        path.write_bytes(formats.canonical_json(relabelled))
         self.assert_refused(self.index, "admitted as stable")
 
     def test_an_outage_keeps_a_listed_release_listed(self):
@@ -2703,7 +2714,7 @@ class StableTest(unittest.TestCase):
                          root_dir / layout.root_sig_name(
                              2, minisig.key_id(minisig.public_key_of(
                                  TRUST_KEYS / f"{name}.pub"))))
-        self.product = common.Product(
+        self.product = product_mod.Product(
             self.tmp / "product" / "product.json",
             self.tmp / "product" / "policy.toml", root_dir=root_dir,
             index_keys_dir=self.product.index_keys_dir)
@@ -2783,7 +2794,7 @@ class StableTest(unittest.TestCase):
             b"Edited.\n")
         self.git("commit", "-qam", "notes: edited")
         other = self.new_key("Someone Else <else@example.org>")
-        digest = common.sha256_bytes(b"Edited.\n")
+        digest = formats.sha256_bytes(b"Edited.\n")
         local = self.tmp / "notes.md"
         local.write_bytes(b"Edited.\n")
         openpgp.sign(local, other, str(self.gnupg))
@@ -2891,7 +2902,7 @@ class StableTest(unittest.TestCase):
             self.assertIn(name + ".sig", outbox)
             self.assertEqual(name in outbox, a["transform"] != "none", name)
         self.assertEqual(self.staging.sub("signed").read(path),
-                         common.canonical_json(d))
+                         formats.canonical_json(d))
 
         def refused(why):
             with self.assertRaisesRegex(promote_mod.ReceiveIncomplete,
@@ -2924,10 +2935,10 @@ class StableTest(unittest.TestCase):
         # A descriptor that says something else than was signed.
         descriptor = handed / path
         descriptor.chmod(0o644)
-        descriptor.write_bytes(common.canonical_json(
+        descriptor.write_bytes(formats.canonical_json(
             dict(d, commit="0" * 40)))
         refused("not received")
-        descriptor.write_bytes(common.canonical_json(d))
+        descriptor.write_bytes(formats.canonical_json(d))
         # A release handed over as another version.
         shutil.copytree(handed / "releases" / "2.3.0",
                         handed / "releases" / "2.3.1")
@@ -2946,7 +2957,7 @@ class StableTest(unittest.TestCase):
         self.assertIn("signed/releases/2.3.1/release.json", err.getvalue())
         self.assertEqual(host.report["received"],
                          [{"version": "2.3.0", "files": 5}])
-        self.assertEqual(self.builds.read(path), common.canonical_json(d))
+        self.assertEqual(self.builds.read(path), formats.canonical_json(d))
         # Exactly what the descriptor and the notes name, nothing else.
         self.assertNotIn("2.3.0/stray.bin", self.builds.files("releases"))
         self.assertEqual({f.split("/")[0]
@@ -2957,12 +2968,12 @@ class StableTest(unittest.TestCase):
         # Received already: nothing to do, and what is handed over for it
         # afterwards takes its place only if it is admitted too.
         self.assertEqual(self.receive(), [])
-        descriptor.write_bytes(common.canonical_json(
+        descriptor.write_bytes(formats.canonical_json(
             dict(d, commit="0" * 40)))
         with self.assertRaisesRegex(promote_mod.ReceiveIncomplete,
                                     "not received"):
             self.receive()
-        self.assertEqual(self.builds.read(path), common.canonical_json(d))
+        self.assertEqual(self.builds.read(path), formats.canonical_json(d))
 
     def test_notes_that_could_not_be_read_are_not_taken_for_none(self):
         self.tag()
@@ -3004,7 +3015,7 @@ class StableTest(unittest.TestCase):
         name = "GpgFrontend-2.3.0-windows-x86_64.msix"
         self.assertEqual(
             sorted(p.name for p in handed.iterdir()),
-            sorted([name, name + ".sig", common.SUMS, common.SUMS + ".sig",
+            sorted([name, name + ".sig", layout.SUMS, layout.SUMS + ".sig",
                     "release.json"]))
         self.assertEqual([a for a in after["artifacts"] if a["name"] != name],
                          before["artifacts"])
@@ -3014,18 +3025,18 @@ class StableTest(unittest.TestCase):
         # descriptor that list it.
         self.assertEqual([len(d["artifacts"]) for d in self.receive()], [5])
         path = "releases/2.3.0/release.json"
-        self.assertEqual(self.builds.read(path), common.canonical_json(after))
+        self.assertEqual(self.builds.read(path), formats.canonical_json(after))
         tree = self.tree()
         self.assertEqual(
             {p for p in published if tree[p] != published[p]},
-            {path, f"releases/2.3.0/{common.SUMS}",
-             f"releases/2.3.0/{common.SUMS}.sig"})
+            {path, f"releases/2.3.0/{layout.SUMS}",
+             f"releases/2.3.0/{layout.SUMS}.sig"})
         self.assertEqual(set(tree) - set(published),
                          {f"releases/2.3.0/{name}",
                           f"releases/2.3.0/{name}.sig"})
         entry = self.index()["releases"]["2.3.0"]
         self.assertEqual(entry["sha256"],
-                         common.sha256_bytes(common.canonical_json(after)))
+                         formats.sha256_bytes(formats.canonical_json(after)))
         self.assertIn(name, entry["signatures"])
         self.assertIn({"version": "2.3.0", "kind": "stable", "artifacts": 5},
                       self.check()["checked"])
@@ -3037,7 +3048,7 @@ class StableTest(unittest.TestCase):
     def test_a_published_release_changes_only_to_what_is_admitted(self):
         before = self.without_msix()
         earlier = {name: self.builds.read(f"releases/2.3.0/{name}")
-                   for name in (common.SUMS, common.SUMS + ".sig")}
+                   for name in (layout.SUMS, layout.SUMS + ".sig")}
         time.sleep(1.1)  # a signature's time is in seconds
         after = self.stage(received=False).add_msix()
         handed = self.tmp / "staging" / "signed" / "releases" / "2.3.0"
@@ -3047,11 +3058,11 @@ class StableTest(unittest.TestCase):
         def refused(why, descriptor=after):
             (handed / "release.json").chmod(0o644)
             (handed / "release.json").write_bytes(
-                common.canonical_json(descriptor))
+                formats.canonical_json(descriptor))
             with self.assertRaisesRegex(promote_mod.ReceiveIncomplete, why):
                 self.receive()
             self.assertEqual(self.builds.read(path),
-                             common.canonical_json(before))
+                             formats.canonical_json(before))
             self.assertFalse(self.builds.exists(package["path"]))
 
         files = after["artifacts"]
@@ -3082,9 +3093,9 @@ class StableTest(unittest.TestCase):
         refused("not received")
         target.write_bytes(signed)
 
-        (handed / "release.json").write_bytes(common.canonical_json(after))
+        (handed / "release.json").write_bytes(formats.canonical_json(after))
         self.assertEqual([d["version"] for d in self.receive()], ["2.3.0"])
-        self.assertEqual(self.builds.read(path), common.canonical_json(after))
+        self.assertEqual(self.builds.read(path), formats.canonical_json(after))
         self.index()
 
         # What it was before, handed over again: its manifest's signature
@@ -3092,10 +3103,10 @@ class StableTest(unittest.TestCase):
         for name, data in earlier.items():
             (handed / name).chmod(0o644)
             (handed / name).write_bytes(data)
-        (handed / "release.json").write_bytes(common.canonical_json(before))
+        (handed / "release.json").write_bytes(formats.canonical_json(before))
         with self.assertRaisesRegex(promote_mod.ReceiveIncomplete, "replay"):
             self.receive()
-        self.assertEqual(self.builds.read(path), common.canonical_json(after))
+        self.assertEqual(self.builds.read(path), formats.canonical_json(after))
 
     def test_an_msix_is_made_only_after_the_release_is_handed_over(self):
         self.tag()
@@ -3111,7 +3122,7 @@ class StableTest(unittest.TestCase):
         handed = self.tmp / "staging" / "signed" / "notes" / "2.3.0"
         for text, key in ((b"Signed by us.\n", self.fpr),
                           (b"Signed by another.\n", other)):
-            notes = handed / f"{common.sha256_bytes(text)}.md"
+            notes = handed / f"{formats.sha256_bytes(text)}.md"
             notes.parent.mkdir(parents=True, exist_ok=True)
             notes.write_bytes(text)
             openpgp.sign(notes, key, str(self.gnupg))
@@ -3121,7 +3132,7 @@ class StableTest(unittest.TestCase):
         with self.assertRaises(promote_mod.ReceiveIncomplete) as caught:
             self.receive()
         self.assertEqual(len(caught.exception.failed), 2)
-        digest = common.sha256_bytes(b"Signed by us.\n")
+        digest = formats.sha256_bytes(b"Signed by us.\n")
         ours = f"notes/2.3.0/{digest}.md"
         self.assertTrue(self.builds.exists(ours))
         self.assertTrue(self.builds.exists(ours + ".sig"))
@@ -3174,7 +3185,7 @@ class FakeGitHub:
     def release(self, tag):
         d = self.root / tag
         if not d.is_dir():
-            raise common.ReleaseError(f"GitHub release {tag}: 404")
+            raise errors.ReleaseError(f"GitHub release {tag}: 404")
         return {"tag_name": tag, "draft": False,
                 "published_at": "2026-10-28T12:00:00Z",
                 "assets": [{"name": p.name, "size": p.stat().st_size,
@@ -3386,7 +3397,7 @@ class ImportTest(unittest.TestCase):
     def test_no_shape_of_an_imported_descriptor_is_a_traceback(self):
         self.publish_on_github("2.2.4", self.LEGS)
         _, d = self.run_import("2.2.4")
-        path = f"releases/2.2.4/{common.DESCRIPTOR}"
+        path = f"releases/2.2.4/{layout.DESCRIPTOR}"
         work = self.tmp / "admit"
 
         def admit(raw):
@@ -3423,28 +3434,28 @@ class ImportTest(unittest.TestCase):
         self.builds.put_file(fixed, hot)
         self.builds.put_file(Path(f"{fixed}.sig"), hot + ".sig")
         hotfixed = dict(d, artifacts=[
-            dict(x, sha256=common.sha256_file(fixed),
+            dict(x, sha256=files_mod.sha256_file(fixed),
                  size=fixed.stat().st_size, path=hot, sig=hot + ".sig")
             if x is a else x for x in d["artifacts"]])
         path = self.tmp / "builds" / self.product.slug / "releases" / \
-            "2.2.4" / common.DESCRIPTOR
+            "2.2.4" / layout.DESCRIPTOR
         path.chmod(0o644)
-        path.write_bytes(common.canonical_json(hotfixed))
+        path.write_bytes(formats.canonical_json(hotfixed))
 
         entry = self.index()["releases"]["2.2.4"]
         self.assertGreater(
-            common.parse_iso(entry["signatures"][a["name"]]["created"]),
-            common.parse_iso(first["signatures"][a["name"]]["created"]))
+            formats.parse_iso(entry["signatures"][a["name"]]["created"]),
+            formats.parse_iso(first["signatures"][a["name"]]["created"]))
         history = (self.state / "admitted" / "2.2.4.history.jsonl") \
             .read_text().splitlines()
         self.assertEqual(len(history), 2)
         self.assertEqual(json.loads(history[-1])["signatures"][a["name"]]
-                         ["sha256"], common.sha256_file(fixed))
+                         ["sha256"], files_mod.sha256_file(fixed))
         self.check()
 
         # The build it replaced, offered again: its signature is older than
         # the one admitted since, so it is a replay.
-        path.write_bytes(common.canonical_json(d))
+        path.write_bytes(formats.canonical_json(d))
         self.assert_refused(self.index, "older than")
 
     def test_a_manifest_path_in_an_imported_descriptor_is_refused(self):
@@ -3456,9 +3467,9 @@ class ImportTest(unittest.TestCase):
         self.builds.put_bytes(b"%s  GpgFrontend-9.9.9-alpha.1-macos-15.dmg\n"
                               % (b"0" * 64), planted)
         root = self.tmp / "builds" / self.product.slug
-        path = root / "releases" / "2.2.4" / common.DESCRIPTOR
+        path = root / "releases" / "2.2.4" / layout.DESCRIPTOR
         path.chmod(0o644)
-        path.write_bytes(common.canonical_json(dict(d, sums=planted)))
+        path.write_bytes(formats.canonical_json(dict(d, sums=planted)))
         with self.assertRaises(index_mod.IndexIncomplete) as caught:
             self.index()
         self.assertNotIn("2.2.4", caught.exception.index["releases"])
@@ -3512,7 +3523,7 @@ class ImportTest(unittest.TestCase):
         self.run_import("2.2.4")
         self.notes_on_main("2.2.4", "Fixes.\n")
         other = self.new_key("Someone Else <else@example.org>")
-        digest = common.sha256_bytes(b"Fixes.\n")
+        digest = formats.sha256_bytes(b"Fixes.\n")
         local = self.tmp / "notes.md"
         local.write_bytes(b"Fixes.\n")
         openpgp.sign(local, other, str(self.gnupg))
