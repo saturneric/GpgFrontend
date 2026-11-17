@@ -1675,6 +1675,7 @@ if __name__ == "__main__":
 # --------------------------------------------------------------- stable
 
 from gfrelease.adapters.windows import authenticode  # noqa: E402
+from gfrelease.adapters.windows import x509  # noqa: E402
 from gfrelease.adapters.windows import msix as msix_mod  # noqa: E402
 from gfrelease.app import stable as stable_mod  # noqa: E402
 
@@ -1954,7 +1955,7 @@ class AuthenticodeSubjectTest(unittest.TestCase):
     PIN = "/CN=GpgFrontend Test Signing/O=Rehearsal/C=DE"
 
     def rdns(self, s):
-        return authenticode._subject_rdns(s)
+        return x509.subject_rdns(s)
 
     def test_both_forms_of_one_subject_match(self):
         want = self.rdns(self.PIN)

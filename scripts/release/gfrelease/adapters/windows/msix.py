@@ -35,7 +35,7 @@ from ...domain.formats import parse_version
 from ...errors import ReleaseError
 from ...paths import ROOT
 from ..process import WINDOWS, run
-from . import authenticode, msi
+from . import authenticode, msi, x509
 
 RESOURCES = ROOT / "resource" / "msix"
 MANIFEST = "AppxManifest.xml"
@@ -105,7 +105,7 @@ def publisher(subject: str) -> str:
     Publisher: last attribute first, Windows' names, a value with a
     character that would end it in quotes."""
     parts = []
-    for attr, value in reversed(authenticode._subject_rdns(subject)):
+    for attr, value in reversed(x509.subject_rdns(subject)):
         if attr not in _WINDOWS_NAMES:
             raise ReleaseError(f"no MSIX publisher can name the subject's "
                                f"{attr}")

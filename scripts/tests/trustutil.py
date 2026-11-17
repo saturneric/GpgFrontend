@@ -366,7 +366,7 @@ class SigningCertificate:
     the rehearsal's authenticode_ca, signer() to sign with."""
 
     def __init__(self, directory: Path, name: str = "GpgFrontend Test Signing"):
-        from gfrelease.adapters.windows import authenticode
+        from gfrelease.adapters.windows import authenticode, x509
         directory = Path(directory)
         if WINDOWS:
             self.ca = directory / f"{name}.cer"
@@ -374,8 +374,8 @@ class SigningCertificate:
                 _NEW_CERTIFICATE, GFR_SUBJECT=f"CN={name}, O=Rehearsal, C=DE",
                 GFR_OUT=str(self.ca)).strip()
             # As the certificate has it, whichever way Windows ordered it.
-            self.subject = authenticode._shown(
-                authenticode.certificate_subject(self.ca.read_bytes()))
+            self.subject = x509.shown(
+                x509.certificate_subject(self.ca.read_bytes()))
         else:
             import subprocess
             self.ca = directory / f"{name}.pem"

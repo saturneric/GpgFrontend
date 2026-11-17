@@ -26,7 +26,7 @@ from pathlib import Path
 from ..adapters import minisig
 from ..adapters.git import release_tags
 from ..adapters.process import WINDOWS, run
-from ..adapters.windows import authenticode
+from ..adapters.windows import authenticode, x509
 from ..cli import ui
 from ..errors import ReleaseError
 from . import trust
@@ -210,7 +210,7 @@ class Doctor:
                        "or certutil -addstore -user My <file>), or correct "
                        "authenticode_thumbprint")
             return
-        subject = authenticode.certificate_subject(
+        subject = x509.certificate_subject(
             base64.b64decode(found["certificate"]))
         wrong = []
         if not found["code_signing"]:
@@ -219,7 +219,7 @@ class Doctor:
             wrong.append("the store knows no key for it")
         if found["days_left"] <= 0:
             wrong.append("expired")
-        if subject != authenticode._subject_rdns(
+        if subject != x509.subject_rdns(
                 self.product.authenticode_subject or "/"):
             wrong.append("not the subject the trust root pins "
                          f"({self.product.authenticode_subject})")
