@@ -32,7 +32,7 @@ from pathlib import Path
 from ..adapters import git as gitversion_mod
 from ..adapters import minisig, process
 from ..adapters.clock import utcnow
-from ..adapters.files import atomic_write, locked
+from ..adapters.files import atomic_write
 from ..adapters.process import WINDOWS, run
 from ..adapters.store import Store  # noqa: E402
 from ..adapters.windows import authenticode
@@ -42,12 +42,12 @@ from ..app import doctor as doctor_mod
 from ..app import imported as imported_mod
 from ..app import stable as stable_mod
 from ..app import stage as stage_mod
-from ..app import trust, views
+from ..app import trust, trust_admin, views
 from ..app import verify as verify_mod
 from ..app.product import Product
-from ..domain import layout, refs
+from ..domain import layout
 from ..domain import policy as policy_mod
-from ..domain.formats import load_json, parse_iso
+from ..domain.formats import parse_iso
 from ..domain.layout import MINISIG
 from ..errors import ReleaseError
 from ..paths import PRODUCT_FILE, ROOT
@@ -872,39 +872,6 @@ def cmd_import(ctx) -> int:
     return 0
 
 
-def write_new(path: Path, data: bytes) -> None:
-    """A trust file is written once: one there already is never replaced."""
-    if path.exists():
-        raise ReleaseError(f"{path} exists")
-    atomic_write(path, data)
-
-
-def sign_root(file: Path, secret: str) -> str:
-    """One root key's signature on @p file, beside it as
-    <N>.root.json.<keyid>.minisig; returns the key id."""
-    doc = load_json(file.read_bytes(), str(file))
-    n, slug = doc.get("version"), doc.get("product")
-    if not isinstance(n, int) or not isinstance(slug, str):
-        raise ReleaseError(f"{file}: not a root")
-    tmp = file.with_name(file.name + ".new" + MINISIG)
-    try:
-        minisig.sign(Path(secret), file, layout.root_comment(slug, n), tmp)
-        key_id = minisig.prehashed_key_id(tmp.read_bytes())
-        if key_id is None:
-            raise ReleaseError("minisign made a legacy signature")
-        write_new(file.with_name(layout.root_sig_name(n, key_id)),
-                  tmp.read_bytes())
-    finally:
-        tmp.unlink(missing_ok=True)
-    return key_id
-
-
-def trust_report(root: dict, keys: dict) -> dict:
-    return {name: {"version": doc["version"], "expires": doc["expires"],
-                   "days_left": round(trust.days_left(doc), 1)}
-            for name, doc in (("root", root), ("index_keys", keys))}
-
-
 def report_trust(root: dict, keys: dict) -> None:
     for doc, what in ((root, f"root {root['version']}"),
                       (keys, f"index-keys {keys['version']}")):
@@ -914,19 +881,16 @@ def report_trust(root: dict, keys: dict) -> None:
 
 def trust_next(root: dict, keys: dict) -> None:
     """A next: line when the root or the list should be renewed soon."""
-    if trust.days_left(root) < trust.ROOT_WARN_DAYS:
+    due = trust_admin.renewal_due(root, keys)
+    if due == "root":
         ui.next_step("renew the root: gfrelease trust root new (gfrelease "
                      "help root-ceremony)")
-    elif trust.days_left(keys) < trust.INDEX_KEYS_WARN_DAYS:
+    elif due == "index_keys":
         ui.next_step("renew the index-keys list: gfrelease trust keys renew")
 
 
 def cmd_root_new(ctx) -> int:
-    product = ctx.product
-    root = trust.newest_root(product.root_dir, product.slug)
-    nxt = trust.renewed(root, trust.ROOT_LIFETIME)
-    path = product.root_dir / layout.root_name(nxt["version"])
-    write_new(path, trust.dump(nxt))
+    path, nxt, root = trust_admin.new_root(ctx.product)
     threshold = root["roles"]["root"]["threshold"]
     ctx.result = {"written": str(path), "version": nxt["version"]}
     ui.info(f"{path}: written; edit it by hand if anything else changes")
@@ -937,7 +901,7 @@ def cmd_root_new(ctx) -> int:
 
 
 def cmd_root_sign(ctx) -> int:
-    key_id = sign_root(Path(ctx.args.file), ctx.args.secret)
+    key_id = trust_admin.sign_root(Path(ctx.args.file), ctx.args.secret)
     ui.info(f"{ctx.args.file}: signed by {key_id}")
     ctx.result = {"file": ctx.args.file, "signed_by": key_id}
     try:
@@ -966,7 +930,7 @@ def cmd_root_verify(ctx) -> int:
     product = ctx.product
     root, keys = trust.load_trust(product.root_dir, product.index_keys_dir,
                                   product.slug, first=ctx.args.first)
-    ctx.result = trust_report(root, keys)
+    ctx.result = trust_admin.summary(root, keys)
     report_trust(root, keys)
     trust.check_unexpired(root, f"root {root['version']}")
     trust.check_unexpired(keys, f"index-keys {keys['version']}")
@@ -974,60 +938,16 @@ def cmd_root_verify(ctx) -> int:
     return 0
 
 
-def outside_repository(path: str) -> Path:
-    p = Path(path).resolve()
-    if p == ROOT or ROOT in p.parents:
-        raise ReleaseError(f"{p} is inside the repository")
-    return p
-
-
 def cmd_keys(ctx) -> int:
-    args, product = ctx.args, ctx.product
-    slug, root_dir, keys_dir = product.slug, product.root_dir, \
-        product.index_keys_dir
-    root = trust.newest_root(root_dir, slug)
-    trust.check_unexpired(root, f"root {root['version']}")
-    found = trust.versions(keys_dir)
-    if not found:
-        raise ReleaseError(f"{keys_dir}: no index-keys list to follow")
-    name = layout.index_keys_name(found[-1])
-    read = trust.read_dir(keys_dir)
-    # Expired or not: renewing one that lapsed is what this is for. Signed
-    # by the trusted root's G, or after G was replaced by an earlier root's:
-    # the new G takes over by signing the next one.
-    for n in range(root["version"], 0, -1):
-        signer = trust.walk(trust.read_dir(root_dir), slug, upto=n,
-                            steps=None)
-        try:
-            current = trust.accept_index_keys(signer, read(name),
-                                              read(name + MINISIG), slug,
-                                              name)
-            break
-        except ReleaseError:
-            if n == 1:
-                raise
-    nxt = trust.renewed(current, trust.INDEX_KEYS_LIFETIME)
-    new_key = None
-    if args.action == "rotate":
-        secret = outside_repository(args.secret_out)
-        new_key = minisig.generate(secret)
-        nxt["keys"] = (dict(current["keys"]) if args.keep_old else {}) | \
-            {minisig.key_id(new_key): new_key}
-    path = keys_dir / layout.index_keys_name(nxt["version"])
-    write_new(path, trust.dump(nxt))
-    try:
-        minisig.sign(Path(args.secret), path,
-                     layout.index_keys_comment(slug, nxt["version"]))
-        trust.accept_index_keys(root, path.read_bytes(),
-                                path.with_name(path.name + MINISIG)
-                                .read_bytes(), slug, path.name)
-    except ReleaseError:
-        path.unlink(missing_ok=True)
-        path.with_name(path.name + MINISIG).unlink(missing_ok=True)
-        raise
-    ctx.result = {"written": str(path), "expires": nxt["expires"],
+    args = ctx.args
+    done = trust_admin.renew_index_keys(
+        ctx.product, args.secret,
+        secret_out=args.secret_out if args.action == "rotate" else None,
+        keep_old=getattr(args, "keep_old", False))
+    path, new_key, secret = done["path"], done["new_key"], done["secret"]
+    ctx.result = {"written": str(path), "expires": done["expires"],
                   "new_key": new_key}
-    ui.info(f"{path}: written and signed, expires {nxt['expires']}")
+    ui.info(f"{path}: written and signed, expires {done['expires']}")
     if new_key is None:
         ui.next_step(f"commit {path} and its {MINISIG}")
         return 0
@@ -1048,33 +968,12 @@ def cmd_keys(ctx) -> int:
     return 0
 
 
-def git_reader(git_dir: Path, directory: str):
-    """read() for trust.walk(): main's release/<directory>/, and the names
-    it holds. A mirror that cannot be read is an error, never "not
-    there"."""
-    prefix = f"release/{directory}/"
-    names = run(["git", "-C", git_dir, "ls-tree", "--name-only", refs.MAIN,
-                 "--", prefix]).stdout.split()
-
-    def read(name: str) -> bytes | None:
-        if prefix + name not in names:
-            return None
-        return run(["git", "-C", git_dir, "show",
-                    f"{refs.MAIN}:{prefix}{name}"], text=False).stdout
-    return read, [n[len(prefix):] for n in names]
-
-
 def cmd_trust_update(ctx) -> int:
     args, product = ctx.args, ctx.product
-    with locked(Path(args.state_dir)):
-        read_root, _ = git_reader(Path(args.git_dir), "root")
-        read_keys, names = git_reader(Path(args.git_dir), "index-keys")
-        root, keys, problems = trust.update(
-            read_root, read_keys,
-            policy_mod.numbered(names, policy_mod.INDEX_KEYS_FILE),
-            product.root_dir, product.index_keys_dir, product.slug,
-            product.root_sha256)
-    ctx.result = dict(trust_report(root, keys), problems=list(problems))
+    root, keys, problems = trust_admin.update_from_git(
+        product, Path(args.git_dir), Path(args.state_dir))
+    ctx.result = dict(trust_admin.summary(root, keys),
+                      problems=list(problems))
     report_trust(root, keys)
     for problem in problems:
         ui.warn(problem)

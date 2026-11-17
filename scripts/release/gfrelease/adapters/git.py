@@ -168,6 +168,22 @@ def tag_time(git_dir: Path, tag: str) -> int:
     return int(out)
 
 
+def tree_reader(git_dir: Path, ref: str, directory: str):
+    """read(name) of the files in @p directory as @p ref has it, None for
+    one it does not hold, and their names. A repository that cannot be
+    read is an error, never "not there"."""
+    prefix = f"{directory}/"
+    names = run(["git", "-C", git_dir, "ls-tree", "--name-only", ref,
+                 "--", prefix]).stdout.split()
+
+    def read(name: str) -> bytes | None:
+        if prefix + name not in names:
+            return None
+        return run(["git", "-C", git_dir, "show", f"{ref}:{prefix}{name}"],
+                   text=False).stdout
+    return read, [n[len(prefix):] for n in names]
+
+
 def notes_at(git_dir: Path, ref: str, version: str) -> bytes | None:
     """release/notes/<version>.md as @p ref has it, or None when it has none
     (or an empty one, or there is no such ref). A repository that cannot be
