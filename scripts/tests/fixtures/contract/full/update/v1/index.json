@@ -1,13 +1,6 @@
 {
- "beta": {
-  "descriptor": "nightly/2.2.6-alpha.3-gabcdef012345/release.json",
-  "sha256": "d1eb25a39faf868af7c6852a3e4a0519a30d6f8c543eb58b844c52e2e917c60f",
-  "version": "2.2.6-alpha.3+gabcdef012345"
- },
  "channels": {
-  "beta": "2.2.6-alpha.3+gabcdef012345",
   "nightly": "2.4.0-alpha.12+g0123456789ab",
-  "prerelease": "2.3.0-rc.1",
   "stable": "2.2.5"
  },
  "expires": "2026-11-15T00:00:00Z",
@@ -17,11 +10,6 @@
   "descriptor": "nightly/2.4.0-alpha.12-g0123456789ab/release.json",
   "sha256": "4fea03acebb2b569bc3812fa988ca607336e84aed1ee6b92154198e5f1493364",
   "version": "2.4.0-alpha.12+g0123456789ab"
- },
- "prerelease": {
-  "descriptor": "nightly/2.3.0-rc.1/release.json",
-  "sha256": "f8527447bc100c0a2f1db542ec97705be5cd322ee925e37b20952af592ba6a59",
-  "version": "2.3.0-rc.1"
  },
  "product": "gpgfrontend",
  "releases": {

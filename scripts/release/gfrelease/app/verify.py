@@ -40,17 +40,16 @@ from ..adapters import minisig, openpgp
 from ..adapters.clock import utcnow
 from ..adapters.files import sha256_file
 from ..adapters.store import NotFound
-from ..domain import descriptor, layout, refs
+from ..domain import descriptor, index_model, layout, refs
 from ..domain import policy as policy_mod
 from ..domain.formats import (SCHEMA, check_relpath, load_json, parse_iso,
                               parse_version, sha256_bytes)
 from ..domain.layout import INDEX, MINISIG, SIG, SUMS
-from ..domain.limits import MAX_INDEX_LIFETIME, EXPIRY_SKEW, SMALL_OBJECT_LIMIT
+from ..domain.limits import EXPIRY_SKEW, MAX_INDEX_LIFETIME, SMALL_OBJECT_LIMIT
 from ..domain.manifest import parse_manifest
 from ..errors import ReleaseError
 from . import trust
 from .product import Product
-
 
 
 class HttpSource:
@@ -235,8 +234,11 @@ def _check_channels(index: dict) -> list[tuple[str, dict]]:
         return refs.release_tag_ref(b["version"]), b
 
     def newest(name: str, found: list[tuple[str, dict]]) -> None:
-        """The listed one is the newest of the series' (clients older than
-        the per-series entries look there), and is listed when any is."""
+        """An index that still says the beta or the prerelease for all
+        series (before they were dropped): the listed one is the newest of
+        the series', and is listed when any is."""
+        if name not in channels and index.get(name) is None:
+            return
         listed = index.get(name) or {}
         if channels.get(name) != listed.get("version"):
             raise ReleaseError(f"channels.{name} {channels.get(name)} is not "
@@ -430,7 +432,8 @@ def verify(product: Product, update, builds, *, deep: bool = False) -> dict:
         tmp = Path(tmp_name)
         index = read_index(product, update)
         report = {"product": product.slug, "serial": index["serial"],
-                  "expires": index["expires"], "channels": index["channels"],
+                  "expires": index["expires"],
+                  "channels": index_model.summary(index),
                   "checked": []}
 
         ring = None

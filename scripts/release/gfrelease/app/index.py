@@ -792,10 +792,10 @@ def dry_run(product: Product, builds: Store, update: Store, *,
     previous = listed or {}
     before = {k: v for k, v in previous.items() if k not in index_model.VOLATILE}
     return {
-        "channels": content["channels"],
+        "channels": index_model.summary(content),
         "releases": sorted(content["releases"], key=parse_version),
         "nightly": (content["nightly"] or {}).get("version"),
-        "beta": (content["beta"] or {}).get("version"),
+        "beta": index_model.summary(content)["beta"],
         "betas": {key: entry["beta"]["version"]
                   for key, entry in content["series"].items()
                   if entry["beta"]},

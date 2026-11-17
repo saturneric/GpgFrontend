@@ -9,9 +9,8 @@ from __future__ import annotations
 
 import datetime as dt
 
-from . import descriptor
+from . import descriptor, layout
 from . import policy as policy_mod
-from . import layout
 from .formats import SCHEMA, iso, parse_version, sha256_bytes
 from .limits import INDEX_LIFETIME
 
@@ -112,13 +111,12 @@ def series_table(policy: dict, releases: dict[str, dict],
     return series
 
 
-def choose_rcs(series: dict[str, dict], rcs: list[dict]) -> dict | None:
+def choose_rcs(series: dict[str, dict], rcs: list[dict]) -> None:
     """Sets each series' release candidate: its newest X.Y.0-rc.N, while
     the series has no release and users are meant to move to it (stable,
     or mainline before the cut). Such a series is a prerelease: offered to
     those who ask for betas. Its release makes it an ordinary series again,
-    and the candidate is no longer listed. Returns the candidate of the
-    newest prerelease series: the prerelease channel."""
+    and the candidate is no longer listed."""
     for b in rcs:
         v = parse_version(b["version"])
         entry = series.get(v.series)
@@ -129,19 +127,13 @@ def choose_rcs(series: dict[str, dict], rcs: list[dict]) -> dict | None:
         if newer(b, entry["rc"]):
             entry["rc"] = b
             entry["prerelease"] = True
-    newest = None
-    for key in sorted(series, key=policy_mod.series_order):
-        if series[key]["rc"] is not None:
-            newest = series[key]["rc"]
-    return newest
 
 
-def choose_betas(series: dict[str, dict], betas: list[dict]) -> dict | None:
+def choose_betas(series: dict[str, dict], betas: list[dict]) -> None:
     """Sets each series' beta: its release branch's newest build, when users
     are meant to be on that series and the build is newer than its latest
     release. Admitted as a nightly is; a user opts in, and is only ever
-    offered the beta of the series they run. Returns the newest of them
-    all, where clients older than the per-series entry look for it."""
+    offered the beta of the series they run."""
     for b in betas:
         v = parse_version(b["version"])
         entry = series.get(v.series)
@@ -152,11 +144,6 @@ def choose_betas(series: dict[str, dict], betas: list[dict]) -> dict | None:
             continue
         if newer(b, entry["beta"]):
             entry["beta"] = b
-    beta = None
-    for entry in series.values():
-        if entry["beta"] is not None and newer(entry["beta"], beta):
-            beta = entry["beta"]
-    return beta
 
 
 def content(slug: str, policy: dict, root_version: int,
@@ -171,8 +158,12 @@ def content(slug: str, policy: dict, root_version: int,
     current = [s["latest"] for s in series.values()
                if s["status"] in policy_mod.CURRENT_STATUSES and s["latest"]]
     stable = max(current, key=parse_version) if current else None
-    beta = choose_betas(series, betas)
-    prerelease = choose_rcs(series, rcs)
+    choose_betas(series, betas)
+    choose_rcs(series, rcs)
+    # Two channels for all: the stable release and main's nightly. Betas and
+    # release candidates are each series' own (series.<X.Y>.beta and .rc);
+    # the beta and the prerelease that once stood for all of them here were
+    # read by no released client, and are gone.
     return {
         "schema": SCHEMA, "product": slug,
         # Where a client finds what it needs to trust this index:
@@ -181,16 +172,35 @@ def content(slug: str, policy: dict, root_version: int,
         "index_keys_version": index_keys_version,
         "series": series,
         "channels": {"stable": stable,
-                     "beta": beta["version"] if beta else None,
-                     "prerelease":
-                         prerelease["version"] if prerelease else None,
                      "nightly": nightly["version"] if nightly else None},
         "withdrawn": [{"version": w["version"], "reason": w["reason"]}
                       for w in policy.get("withdrawn", [])],
         "releases": releases,
         "nightly": nightly,
-        "beta": beta,
-        "prerelease": prerelease,
+    }
+
+
+def summary(index: dict) -> dict[str, str | None]:
+    """What an index offers, as people read it: the stable release, the
+    newest beta of any series, the release candidate of the newest series
+    that has one (the prerelease), and the nightly. An older index that
+    says the beta and the prerelease for all itself is read as it says."""
+    channels = index.get("channels") or {}
+    series = index.get("series") or {}
+
+    def version(entry) -> str | None:
+        return entry.get("version") if isinstance(entry, dict) else None
+    betas = [version(s.get("beta")) for s in series.values()
+             if isinstance(s, dict) and version(s.get("beta"))]
+    rcs = [version(series[k].get("rc"))
+           for k in sorted(series, key=policy_mod.series_order)
+           if isinstance(series[k], dict) and version(series[k].get("rc"))]
+    return {
+        "stable": channels.get("stable"),
+        "beta": channels.get("beta", max(betas, key=parse_version,
+                                         default=None)),
+        "prerelease": channels.get("prerelease", rcs[-1] if rcs else None),
+        "nightly": channels.get("nightly"),
     }
 
 

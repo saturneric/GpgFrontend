@@ -45,6 +45,7 @@ from gfrelease import errors  # noqa: E402
 from gfrelease import paths  # noqa: E402
 from gfrelease.cli import host as host_mod  # noqa: E402
 from gfrelease.app import index as index_mod  # noqa: E402
+from gfrelease.domain import index_model  # noqa: E402
 from gfrelease.domain import layout  # noqa: E402
 from gfrelease.adapters import minisig  # noqa: E402
 from gfrelease.adapters import openpgp  # noqa: E402
@@ -305,9 +306,11 @@ class ChainTest(unittest.TestCase):
 
         index = self.index()
         self.assertEqual(index["serial"], 1)
-        self.assertEqual(index["channels"], {"stable": None, "beta": None,
-                                             "prerelease": None,
+        self.assertEqual(index["channels"], {"stable": None,
                                              "nightly": version})
+        # The beta and the prerelease for all series are each series' own.
+        for gone in ("beta", "prerelease"):
+            self.assertNotIn(gone, index)
         self.assertEqual(index["series"]["2.1"]["eol"], "2027-12-31")
 
         report = self.check()
@@ -356,17 +359,18 @@ class ChainTest(unittest.TestCase):
         index = self.index()
         # Never main's nightly; the beta channel, signed the same way.
         self.assertEqual(index["channels"]["nightly"], nightly)
-        self.assertEqual(index["channels"]["beta"], version)
-        self.assertEqual(index["beta"]["version"], version)
-        self.assertEqual(index["beta"]["descriptor"],
+        beta = index["series"]["2.2"]["beta"]
+        self.assertEqual(beta["version"], version)
+        self.assertEqual(beta["descriptor"],
                          f"nightly/{version.replace('+', '-')}/"
                          f"{layout.DESCRIPTOR}")
+        self.assertEqual(index_model.summary(index)["beta"], version)
         self.check()
         # A series users are no longer meant to be on offers no beta.
         self.product.policy["series"]["2.2"]["status"] = "legacy"
         index = self.index(force=True)
-        self.assertIsNone(index["channels"]["beta"])
-        self.assertIsNone(index["beta"])
+        self.assertIsNone(index["series"]["2.2"]["beta"])
+        self.assertIsNone(index_model.summary(index)["beta"])
         self.check()
 
     def test_a_release_candidate_makes_its_series_a_prerelease(self):
@@ -381,12 +385,13 @@ class ChainTest(unittest.TestCase):
         (descriptor,) = self.promote()
         self.assertEqual(descriptor["ref"], "refs/tags/v2.3.0-rc.1")
         index = self.index()
-        self.assertEqual(index["channels"]["prerelease"], "2.3.0-rc.1")
-        self.assertEqual(index["prerelease"]["version"], "2.3.0-rc.1")
+        self.assertEqual(index_model.summary(index)["prerelease"],
+                         "2.3.0-rc.1")
         self.assertTrue(index["series"]["2.3"]["prerelease"])
         self.assertEqual(index["series"]["2.3"]["rc"]["version"], "2.3.0-rc.1")
         self.assertIsNone(index["series"]["2.3"]["latest"])
-        self.assertIsNone(index["channels"]["beta"])  # a candidate, no beta
+        # A candidate, no beta.
+        self.assertIsNone(index_model.summary(index)["beta"])
         self.check()
 
     def test_a_tampered_release_candidate_is_caught(self):
@@ -463,7 +468,8 @@ class ChainTest(unittest.TestCase):
                 self.git("tag", "-f", *(["-a", "-m", "2.2.5"] if annotated
                                         else []), "v2.2.5")
                 index = self.index(force=True)
-                self.assertEqual(index["channels"]["beta"], version)
+                self.assertEqual(index["series"]["2.2"]["beta"]["version"],
+                                 version)
                 self.check()
 
     def test_a_build_whose_ancestor_was_tagged_later_stays_listed(self):
@@ -473,7 +479,8 @@ class ChainTest(unittest.TestCase):
         _, version = self.build(ref="refs/heads/release/2.2")
         self.promote()
         self.git("tag", "v2.2.5", "HEAD~1")
-        self.assertEqual(self.index()["channels"]["beta"], version)
+        self.assertEqual(self.index()["series"]["2.2"]["beta"]["version"],
+                         version)
         self.check()
 
     def test_a_candidate_tagged_as_its_release_stays_listed(self):
@@ -483,7 +490,8 @@ class ChainTest(unittest.TestCase):
         self.build(ref="refs/tags/v2.3.0-rc.1")
         self.promote()
         self.git("tag", "v2.3.0")
-        self.assertEqual(self.index()["channels"]["prerelease"], "2.3.0-rc.1")
+        self.assertEqual(self.index()["series"]["2.3"]["rc"]["version"],
+                         "2.3.0-rc.1")
         self.check()
 
     def test_a_build_tagged_before_promotion_is_promoted_as_built(self):
@@ -539,9 +547,9 @@ class ChainTest(unittest.TestCase):
         self.assertEqual(index["series"]["2.2"]["beta"]["version"], newer)
         # The mainline series has no release branch build: no beta.
         self.assertIsNone(index["series"]["2.3"]["beta"])
-        # The top-level entry, for clients that predate the per-series
-        # one, is the newest of them.
-        self.assertEqual(index["beta"], index["series"]["2.2"]["beta"])
+        # Each series' only: no beta for all of them.
+        self.assertNotIn("beta", index)
+        self.assertNotIn("beta", index["channels"])
         self.check()
 
     def promote_all(self) -> list[dict]:
@@ -591,6 +599,8 @@ class ChainTest(unittest.TestCase):
         self.build(ref="refs/heads/release/2.2")
         self.promote()
         old = self.index()
+        old["beta"] = old["series"]["2.2"]["beta"]
+        old["channels"]["beta"] = old["beta"]["version"]
         for entry in old["series"].values():
             del entry["beta"]
         self.resign(old)
@@ -847,7 +857,7 @@ class ChainTest(unittest.TestCase):
         self.assertEqual(index["nightly"]["sha256"],
                          formats.sha256_bytes(self.builds.read(
                              index["nightly"]["descriptor"])))
-        for field in ("expires", "nightly", "beta", "series", "releases"):
+        for field in ("expires", "nightly", "series", "releases"):
             self.assertIn(field, index)
         self.assertRegex(out, rf"{host_mod.PUBLISHED} 1, stable None, beta "
                          rf"None, nightly {re.escape(version)}, expires \S+")

@@ -41,6 +41,7 @@ from ..adapters.store import Store
 from ..app import index as index_mod
 from ..app import promote as promote_mod
 from ..app.product import Product
+from ..domain import index_model
 from ..errors import ReleaseError
 
 DONE, FAILED, PARTIAL = 0, 1, 3
@@ -150,7 +151,7 @@ class Host:
         if index is None:
             print(UNCHANGED)
         else:
-            channels = index["channels"]
+            channels = index_model.summary(index)
             self.report["published"] = {
                 "serial": index["serial"], "channels": channels,
                 "expires": index["expires"]}
