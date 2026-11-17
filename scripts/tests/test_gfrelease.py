@@ -53,7 +53,6 @@ from gfrelease.app import promote as promote_mod  # noqa: E402
 from gfrelease.app import stage as stage_mod  # noqa: E402
 from gfrelease.app import trust  # noqa: E402
 from gfrelease.app import verify as verify_mod  # noqa: E402
-from gfrelease.app import views  # noqa: E402
 from gfrelease.adapters.store import Store, StoreUnavailable  # noqa: E402
 from test_authenticode import build_msi, build_zip, pe_bytes  # noqa: E402
 from test_release_candidate import FAKE_COSIGN  # noqa: E402
@@ -3073,39 +3072,15 @@ class StableTest(unittest.TestCase):
         self.assert_refused(self.index, "tag v2.3.0|notes")
 
 
-from gfrelease.app import imported as imported_mod  # noqa: E402
+from gfrelease.domain import descriptor as descriptor_mod  # noqa: E402
 
 IMPORT_TOOLS = TOOLS and tools("gpg", "gpgconf")
 
 
-class FakeGitHub:
-    """GitHub Releases, from a directory per tag: every file in it is an
-    asset; `drafts` and `missing` shape the answers."""
-
-    def __init__(self, root: Path):
-        self.root = root
-
-    def release(self, tag):
-        d = self.root / tag
-        if not d.is_dir():
-            raise errors.ReleaseError(f"GitHub release {tag}: 404")
-        return {"tag_name": tag, "draft": False,
-                "published_at": "2026-10-28T12:00:00Z",
-                "assets": [{"name": p.name, "size": p.stat().st_size,
-                            "browser_download_url": str(p)}
-                           for p in sorted(d.iterdir())]}
-
-    def download(self, url, dst):
-        shutil.copy(url, dst)
-
-    def page(self, tag):
-        return f"https://github.example/releases/tag/{tag}"
-
-
 @unittest.skipUnless(IMPORT_TOOLS, "needs gpg, minisign, rclone, git and cmake")
 class ImportTest(unittest.TestCase):
-    """Releases from before the pipeline: brought over on their original
-    signatures, admitted by the host only when every file still verifies."""
+    """Releases from before the pipeline, imported once on their original
+    signatures: admitted by the host only when every file still verifies."""
 
     gpg = StableTest.gpg
     retag_later = StableTest.retag_later
@@ -3129,7 +3104,6 @@ class ImportTest(unittest.TestCase):
         self.builds = Store(str(self.tmp / "builds" / self.product.slug))
         self.update = Store(str(self.tmp / "update" / self.product.slug))
         self.state = self.tmp / "state"
-        self.github = FakeGitHub(self.tmp / "github")
 
         self.repo = self.tmp / "repo"
         self.repo.mkdir()
@@ -3144,28 +3118,34 @@ class ImportTest(unittest.TestCase):
                        capture_output=True)
         shutil.rmtree(self.tmp, ignore_errors=True)
 
-    def publish_on_github(self, version, legs, *, signer=None, unsigned=()):
-        """A hand-made release: each file with a binary detached `.sig`."""
-        d = self.tmp / "github" / f"v{version}"
-        d.mkdir(parents=True)
-        for leg in legs:
-            f = d / f"GpgFrontend-{version}-{leg}"
-            f.write_bytes(f"{version} {leg}\n".encode() * 100)
-            if leg not in unsigned:
-                self.gpg("--local-user", f"{signer or self.fpr}!",
-                         "--detach-sign", "--output", f"{f}.sig", f)
+    def place(self, version, legs=None, *, signer=None):
+        """An imported release as the builds store holds it: each file with
+        its original detached `.sig`, and its descriptor."""
+        p = layout.release_dir(version)
+        root = self.tmp / "builds" / self.product.slug
+        artifacts = []
+        for name in sorted(f"GpgFrontend-{version}-{leg}"
+                           for leg in legs or self.LEGS):
+            f = root / p / name
+            f.parent.mkdir(parents=True, exist_ok=True)
+            f.write_bytes(f"{name}\n".encode() * 100)
+            self.gpg("--local-user", f"{signer or self.fpr}!",
+                     "--detach-sign", "--output", f"{f}.sig", f)
+            artifacts.append(descriptor_mod.classified(
+                self.product.classify(name, version)) | {
+                "sha256": files_mod.sha256_file(f),
+                "size": f.stat().st_size, "name": name,
+                "path": f"{p}/{name}", "sig": layout.sig_of(f"{p}/{name}")})
+        d = descriptor_mod.make(
+            layout.KIND_IMPORTED, self.product.slug, version,
+            refs.release_tag_ref(version), self.git("rev-parse", f"v{version}"),
+            {"scheme": layout.SCHEME_OPENPGP, "fingerprint": self.fpr},
+            artifacts, released_at="2026-10-28T12:00:00Z",
+            imported_at="2026-11-01T00:00:00Z",
+            source=f"https://github.example/releases/tag/v{version}")
+        self.builds.put_bytes(formats.canonical_json(d),
+                              layout.descriptor_of(p))
         return d
-
-    def run_import(self, version, builds=True):
-        """The import, handed over and (with @p builds) received by the
-        host."""
-        job = imported_mod.Import(self.product, version, self.tmp / "work",
-                                  staging=self.staging if builds else None,
-                                  git_dir=self.repo, source=self.github)
-        d = job.run()
-        if builds:
-            self.receive()
-        return job, d
 
     def receive(self):
         return promote_mod.receive(self.product, self.staging, self.builds,
@@ -3185,33 +3165,8 @@ class ImportTest(unittest.TestCase):
             "windows-x86_64.msix", "macos-15.dmg")
 
     def test_old_releases_reach_a_verified_index(self):
-        self.publish_on_github("2.2.4", self.LEGS)
-        self.publish_on_github("2.1.13", ("qt5-linux-x86_64.AppImage",
-                                          "macos-13.dmg",
-                                          "windows-x86_64.wixpdb"))
-        _, d = self.run_import("2.2.4")
-        job, old = self.run_import("2.1.13")
-
-        self.assertEqual(d["kind"], "imported")
-        self.assertEqual(d["signing"], {"scheme": "openpgp",
-                                        "fingerprint": self.fpr})
-        self.assertEqual(d["commit"], self.git("rev-parse", "v2.2.4"))
-        self.assertEqual(d["released_at"], "2026-10-28T12:00:00Z")
-        self.assertEqual(len(d["artifacts"]), 4)
-        self.assertEqual(job.skipped,
-                         ["GpgFrontend-2.1.13-windows-x86_64.wixpdb "
-                          "(no artifact rule)"])
-        kinds = {(a["name"].split("2.1.13-")[1]): (a["arch"], a["flavor"])
-                 for a in old["artifacts"]}
-        self.assertEqual(kinds, {"qt5-linux-x86_64.AppImage":
-                                 ("x86_64", "qt5"),
-                                 "macos-13.dmg": ("x86_64", "installed")})
-        # The published signature is the original one, byte for byte.
-        name = "GpgFrontend-2.2.4-macos-15.dmg"
-        original = (self.tmp / "github" / "v2.2.4" / f"{name}.sig").read_bytes()
-        self.assertEqual(self.builds.read(f"releases/2.2.4/{name}.sig"),
-                         original)
-
+        self.place("2.2.4")
+        self.place("2.1.13", ("qt5-linux-x86_64.AppImage", "macos-13.dmg"))
         index = self.index()
         self.assertEqual(index["channels"]["stable"], "2.2.4")
         self.assertEqual(index["series"]["2.2"]["latest"], "2.2.4")
@@ -3222,47 +3177,13 @@ class ImportTest(unittest.TestCase):
                                 for c in report["checked"]),
                          [("2.1.13", "imported", 2), ("2.2.4", "imported", 4)])
 
-    def test_a_rerun_changes_nothing(self):
-        self.publish_on_github("2.2.4", self.LEGS)
-        _, first = self.run_import("2.2.4")
-        _, again = self.run_import("2.2.4")
-        self.assertEqual(first, again)
-
-    def test_check_only_uploads_nothing(self):
-        self.publish_on_github("2.2.4", self.LEGS)
-        self.run_import("2.2.4", builds=False)
-        self.assertEqual(self.builds.files(""), [])
-
-    def test_what_the_signatures_do_not_cover_is_refused(self):
-        d = self.publish_on_github("2.2.4", self.LEGS)
-        (d / "GpgFrontend-2.2.4-macos-15.dmg").write_bytes(b"swapped")
-        self.assert_refused(lambda: self.run_import("2.2.4"),
-                            "macos-15.dmg: the signature does not verify")
-        self.assertEqual(self.builds.files(""), [])
-
     def test_another_key_is_refused(self):
         other = self.new_key("Someone Else <else@example.org>")
-        self.publish_on_github("2.2.4", self.LEGS, signer=other)
-        # Not in maintainers.asc at all, so gpg cannot even check it.
-        self.assert_refused(lambda: self.run_import("2.2.4"),
-                            "signature does not verify|not a pinned")
-
-    def test_an_unsigned_file_is_left_out(self):
-        self.publish_on_github("2.2.4", self.LEGS,
-                               unsigned=("windows-x86_64.msix",))
-        job, d = self.run_import("2.2.4")
-        self.assertEqual(len(d["artifacts"]), 3)
-        self.assertEqual(job.skipped, ["GpgFrontend-2.2.4-windows-x86_64.msix "
-                                       "(no signature)"])
-
-    def test_releases_before_the_floor_and_prereleases_are_not_imported(self):
-        self.assert_refused(lambda: self.run_import("2.1.4"), "older than 2.1.5")
-        self.assert_refused(lambda: self.run_import("2.2.0-beta.1"),
-                            "only final releases")
+        self.place("2.2.4", signer=other)
+        self.assert_refused(self.index, "signature does not verify|not a pinned")
 
     def test_the_host_checks_every_file_again(self):
-        self.publish_on_github("2.2.4", self.LEGS)
-        self.run_import("2.2.4")
+        self.place("2.2.4")
         # A file replaced behind the importer's back.
         stored = (self.tmp / "builds" / self.product.slug / "releases" /
                   "2.2.4" / "GpgFrontend-2.2.4-macos-15.dmg")
@@ -3270,8 +3191,7 @@ class ImportTest(unittest.TestCase):
         self.assert_refused(self.index, "not the published bytes")
 
     def test_the_host_refuses_a_moved_tag(self):
-        self.publish_on_github("2.2.4", self.LEGS)
-        self.run_import("2.2.4")
+        self.place("2.2.4")
         self.git("commit", "-q", "--allow-empty", "-m", "later")
         self.git("tag", "-f", "v2.2.4")
         self.assert_refused(self.index, r"v2\.2\.4 is [0-9a-f]+, not")
@@ -3291,15 +3211,13 @@ class ImportTest(unittest.TestCase):
         return digest
 
     def test_an_imported_release_gets_its_commit_marker(self):
-        self.publish_on_github("2.2.4", self.LEGS)
-        _, d = self.run_import("2.2.4")
+        d = self.place("2.2.4")
         self.assertIn("2.2.4", self.index()["releases"])
         self.assertTrue(self.builds.exists(f"commits/{d['commit']}"))
         self.check()
 
     def test_no_shape_of_an_imported_descriptor_is_a_traceback(self):
-        self.publish_on_github("2.2.4", self.LEGS)
-        _, d = self.run_import("2.2.4")
+        d = self.place("2.2.4")
         path = f"releases/2.2.4/{layout.DESCRIPTOR}"
         work = self.tmp / "admit"
 
@@ -3312,8 +3230,7 @@ class ImportTest(unittest.TestCase):
         assert_only_release_errors(self, admit, d, values=(None, 5, {}))
 
     def test_files_signed_before_their_tag_are_refused(self):
-        self.publish_on_github("2.2.4", self.LEGS)
-        self.run_import("2.2.4")
+        self.place("2.2.4")
         self.index()
         # An older release's files and signatures, relabelled: they were
         # signed before this version's tag existed.
@@ -3323,8 +3240,7 @@ class ImportTest(unittest.TestCase):
     def test_a_hotfix_signed_later_is_admitted_and_an_older_one_never_again(
             self):
         import time
-        self.publish_on_github("2.2.4", self.LEGS)
-        _, d = self.run_import("2.2.4")
+        d = self.place("2.2.4")
         first = self.index()["releases"]["2.2.4"]
         a = next(x for x in d["artifacts"] if x["name"].endswith("15.dmg"))
         fixed = self.tmp / a["name"]
@@ -3364,8 +3280,7 @@ class ImportTest(unittest.TestCase):
     def test_a_manifest_path_in_an_imported_descriptor_is_refused(self):
         """An imported release has no manifest of its own: one named in its
         descriptor is not what its files were checked against."""
-        self.publish_on_github("2.2.4", self.LEGS)
-        _, d = self.run_import("2.2.4")
+        d = self.place("2.2.4")
         planted = "nightly/9.9.9-alpha.1/SHA256SUMS.txt"
         self.builds.put_bytes(b"%s  GpgFrontend-9.9.9-alpha.1-macos-15.dmg\n"
                               % (b"0" * 64), planted)
@@ -3378,8 +3293,7 @@ class ImportTest(unittest.TestCase):
         self.assertNotIn("2.2.4", caught.exception.index["releases"])
 
     def test_an_imported_file_without_its_sig_is_not_listed(self):
-        self.publish_on_github("2.2.4", self.LEGS)
-        _, d = self.run_import("2.2.4")
+        d = self.place("2.2.4")
         root = self.tmp / "builds" / self.product.slug
         (root / d["artifacts"][0]["sig"]).unlink()
         with self.assertRaises(index_mod.IndexIncomplete) as caught:
@@ -3388,8 +3302,7 @@ class ImportTest(unittest.TestCase):
         self.assertEqual([p for p in root.rglob("*.minisig")], [])
 
     def test_notes_are_listed_once_a_maintainer_signed_them(self):
-        self.publish_on_github("2.2.4", self.LEGS)
-        self.run_import("2.2.4")
+        self.place("2.2.4")
         self.notes_on_main("2.2.4", "Fixes.\n")
 
         # On main but not signed yet: listed without them, and said so.
@@ -3422,8 +3335,7 @@ class ImportTest(unittest.TestCase):
                             f"notes/2.2.4/{digest}.md")
 
     def test_notes_signed_by_someone_else_are_refused(self):
-        self.publish_on_github("2.2.4", self.LEGS)
-        self.run_import("2.2.4")
+        self.place("2.2.4")
         self.notes_on_main("2.2.4", "Fixes.\n")
         other = self.new_key("Someone Else <else@example.org>")
         digest = formats.sha256_bytes(b"Fixes.\n")
@@ -3436,8 +3348,7 @@ class ImportTest(unittest.TestCase):
         self.assert_refused(self.index, "signature does not verify|not a pinned")
 
     def test_the_host_admits_once(self):
-        self.publish_on_github("2.2.4", self.LEGS)
-        self.run_import("2.2.4")
+        self.place("2.2.4")
         self.index()
         # Admitted and recorded: the next round does not download again.
         stored = (self.tmp / "builds" / self.product.slug / "releases" /

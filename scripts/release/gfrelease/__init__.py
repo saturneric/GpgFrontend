@@ -31,22 +31,18 @@ the rules after each layer.
              product (the product and the trust it is published under),
              trust and trust_admin (the trust root and index keys),
              candidate and stage (CI), promote and index (the signing
-             host), stable and imported (the maintainer), github_sync
-             (stable releases mirrored to GitHub), verify, views,
-             doctor, check_order, checks (what more than one role checks)
-             and hints (what fixes a problem). Returns what it did; runs
-             tools only through the adapters, prints nothing, reads no
-             environment.
+             host), stable (the maintainer), github_sync (stable releases
+             mirrored to GitHub), verify, check_order, checks (what more
+             than one role checks). Returns what it did; runs tools only
+             through the adapters, prints nothing, reads no environment.
 
   cli/       the command line: parser, main, commands/ (one module per
-             group), forwarded (the commands with a command line of their
-             own: policy, candidate, ci), host (the signing host's steps,
-             with the lines and exit statuses its container reads),
-             settings, ui (all that is printed), topics and completion.
+             group), host (the signing host's steps, with the JSON and exit
+             statuses its container reads), settings, ui (all that is
+             printed).
 
 The roles: CI stages candidates (gfrelease stage), the signing host
-promotes them and publishes the signed index (promote, index, resign),
-the maintainer signs stable releases offline (stable, import) and keeps
-the trust root (trust root, trust keys); anyone checks what is published
-(verify, show, status).
+promotes them and publishes the signed index (promote, index), the
+maintainer signs stable releases offline (stable) and keeps the trust root
+(trust root, trust keys); anyone checks what is published (verify).
 """
