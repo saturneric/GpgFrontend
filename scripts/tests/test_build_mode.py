@@ -9,6 +9,7 @@ reach users": main's nightlies, release/X.Y's betas and vX.Y.Z releases. A
 base tag or a prerelease tag publishes nothing.
 """
 
+import functools
 import os
 import shutil
 import subprocess
@@ -36,6 +37,7 @@ def run_script(event: str, ref: str, **extra):
                           capture_output=True, text=True)
 
 
+@functools.cache  # the script reads nothing else: a ref asked again is known
 def classify(event: str, ref: str, **extra) -> dict:
     out = run_script(event, ref, **extra)
     out.check_returncode()

@@ -12,6 +12,7 @@ Run: python3 -m unittest discover -s scripts/tests
 """
 
 import contextlib
+import copy
 import datetime as dt
 import fnmatch
 import io
@@ -46,9 +47,21 @@ import views  # noqa: E402
 from store import Store, StoreUnavailable  # noqa: E402
 from test_authenticode import build_msi, build_zip, pe_bytes  # noqa: E402
 from test_release_candidate import FAKE_COSIGN  # noqa: E402
-from trustutil import (SigningCertificate, git_env, keypair,  # noqa: E402
-                       msix_resources, packs_msix, signing_tools, stand_in,
-                       tools, write_root)
+from trustutil import (WINDOWS, SigningCertificate, git_env,  # noqa: E402
+                       keypair, local_rclone, msix_resources, packs_msix,
+                       signing_tools, stand_in, tools, write_root)
+
+# rclone over the test's directories, in process (test_store holds it to the
+# real one): a tenth of the time. GF_REAL_RCLONE=1 runs the real rclone.
+_LOCAL_RCLONE = local_rclone()
+
+
+def setUpModule():
+    _LOCAL_RCLONE.start()
+
+
+def tearDownModule():
+    _LOCAL_RCLONE.stop()
 
 
 TOOLS = tools("minisign", "rclone", "git", "cmake")
@@ -313,15 +326,6 @@ class ChainTest(unittest.TestCase):
         second = self.index()
         self.assertEqual(second["channels"]["nightly"], newer)
         self.assertEqual(second["serial"], first["serial"] + 1)
-
-    def test_resign_pushes_expiry_with_a_new_serial(self):
-        self.commit()
-        self.build()
-        self.promote()
-        first = self.index()
-        later = self.index(force=True)
-        self.assertEqual(later["serial"], first["serial"] + 1)
-        self.check(deep=False)
 
     def test_serial_survives_a_lost_state_dir(self):
         self.commit()
@@ -1072,6 +1076,7 @@ class ChainTest(unittest.TestCase):
         self.at("2026-11-12T00:00:00Z")
         self.assertIsNone(self.index())
         self.assertEqual(self.index(force=True)["serial"], first["serial"] + 1)
+        self.check(deep=False)
 
     def test_a_rerun_workflow_stages_again(self):
         commit = self.commit()
@@ -2013,32 +2018,48 @@ class HandedOver(stable_mod.Stage):
 @unittest.skipUnless(STABLE_TOOLS, "needs gpg, and osslsigncode, openssl and "
                      "msitools, or on Windows signtool")
 class StableTest(unittest.TestCase):
-    """The offline stage and the host's admission of what it made."""
+    """The offline stage and the host's admission of what it made.
+
+    Most tests start from one of three states: the fixture as setUp makes
+    it, a release tagged, built and staged (staged()), and that release
+    admitted (admitted()). Each is made once per class, by the first test
+    that needs it, and copied into every later test's own directory: the
+    stage alone takes most of a second. Nothing in the tree names the
+    directory it is in, so a copy is the state itself."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls._snapshots = {}   # name -> (directory, what making it returned)
+        cls._snapshot_root = Path(tempfile.mkdtemp(prefix="gfr-stable-snap-"))
+        cls._certificate = None
+
+    @classmethod
+    def tearDownClass(cls):
+        if cls._certificate is not None:
+            cls._certificate.close()
+        shutil.rmtree(cls._snapshot_root, ignore_errors=True)
 
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp(prefix="gfr-stable-"))
-        self.gnupg = self.tmp / "gnupg"
-        self.gnupg.mkdir(mode=0o700)
-        # The certificate first: the product pins its subject.
-        self.certificate = SigningCertificate(self.tmp)
-        self.addCleanup(self.certificate.close)
-        self.cert, self.subject = self.certificate.ca, self.certificate.subject
+        self.from_snapshot("fresh", self.make_fixture)
         # The MSIX the stage makes of the test MSI, wherever this runs.
         packs_msix(self)
         msix_resources(self, self.tmp, "T/app.exe")
+
+    def make_fixture(self):
+        """What every test starts from: a maintainer's key, the product
+        pinning it, a certificate, stores and a repository with notes."""
+        self.gnupg.mkdir(mode=0o700)
+        # The certificate first: the product pins its subject.
+        type(self)._certificate = SigningCertificate(self.tmp)
+        self.subject = self._certificate.subject
         self.fpr = self.new_key("Test Maintainer <maintainer@example.org>")
         keys = self.tmp / "keys"
         keys.mkdir()
-        self.idx_key, self.idx_pub = keypair(keys, "index")
-        self.product = self.write_product(self.tmp / "product", [self.fpr])
+        _, self.idx_pub = keypair(keys, "index")
+        self.write_product(self.tmp / "product", [self.fpr])
+        stand_in(self.tmp, "cosign", FAKE_COSIGN)
 
-        self.staging = Store(str(self.tmp / "staging"))
-        self.builds = Store(str(self.tmp / "builds" / self.product.slug))
-        self.update = Store(str(self.tmp / "update" / self.product.slug))
-        self.state = self.tmp / "state"
-        self.cosign = stand_in(self.tmp, "cosign", FAKE_COSIGN)
-
-        self.repo = self.tmp / "repo"
         self.repo.mkdir()
         self.git("init", "-q", "-b", "main")
         self.git("commit", "-q", "--allow-empty", "-m", "start")
@@ -2048,10 +2069,70 @@ class StableTest(unittest.TestCase):
             "## 2.3.0\n\n- Everything, signed.\n")
         self.git("add", "release")
         self.git("commit", "-q", "-m", "release notes")
+        return {"fpr": self.fpr, "idx_pub": self.idx_pub}
+
+    def attach(self, fixture: dict) -> None:
+        """This test's attributes, over its directory and @p fixture."""
+        self.fpr, self.idx_pub = fixture["fpr"], fixture["idx_pub"]
+        self.gnupg = self.tmp / "gnupg"
+        self.repo = self.tmp / "repo"
+        self.idx_key = self.tmp / "keys" / "index.key"
+        product = self.tmp / "product"
+        self.product = common.Product(
+            product / "product.json", product / "policy.toml",
+            root_dir=product / "root", index_keys_dir=product / "index-keys")
+        self.staging = Store(str(self.tmp / "staging"))
+        self.builds = Store(str(self.tmp / "builds" / self.product.slug))
+        self.update = Store(str(self.tmp / "update" / self.product.slug))
+        self.state = self.tmp / "state"
+        self.cosign = next(self.tmp.glob("cosign*")) if WINDOWS \
+            else self.tmp / "cosign"
+        # The class's certificate, its files in this test's directory.
+        self.certificate = copy.copy(self._certificate)
+        for name in ("ca", "key"):
+            if hasattr(self.certificate, name):
+                setattr(self.certificate, name,
+                        self.tmp / getattr(self.certificate, name).name)
+        self.cert = self.certificate.ca
+        self.subject = self.certificate.subject
+
+    def from_snapshot(self, name: str, make):
+        """The state @p name in this test's directory: copied from where an
+        earlier test made it, or made now by @p make (which returns what
+        the state's tests need to know of it) and kept for the next."""
+        if name not in self._snapshots:
+            if name == "fresh":
+                self.gnupg = self.tmp / "gnupg"
+                self.repo = self.tmp / "repo"
+                made = make()
+                self.attach(made)
+            else:
+                made = make()
+            self.kill_agent()
+            snapshot = self._snapshot_root / name
+            shutil.copytree(self.tmp, snapshot, symlinks=True)
+            self._snapshots[name] = (snapshot, made)
+            if name != "fresh":
+                return copy.deepcopy(made)
+        snapshot, made = self._snapshots[name]
+        self.kill_agent()
+        shutil.rmtree(self.tmp)
+        shutil.copytree(snapshot, self.tmp, symlinks=True)
+        self.attach(self._snapshots["fresh"][1])
+        return copy.deepcopy(made)
+
+    def staged(self) -> dict:
+        """v2.3.0 tagged, built and staged: its descriptor."""
+        return self.from_snapshot(
+            "staged", lambda: (self.tag(), self.build(), self.stage().run())[2])
+
+    def kill_agent(self) -> None:
+        if getattr(self, "gnupg", None) is not None and self.gnupg.is_dir():
+            subprocess.run(["gpgconf", "--homedir", self.gnupg, "--kill",
+                            "all"], capture_output=True)
 
     def tearDown(self):
-        subprocess.run(["gpgconf", "--homedir", self.gnupg, "--kill", "all"],
-                       capture_output=True)
+        self.kill_agent()
         shutil.rmtree(self.tmp, ignore_errors=True)
 
     # --- fixtures ------------------------------------------------------
@@ -2177,10 +2258,7 @@ class StableTest(unittest.TestCase):
     # --- the stable path -----------------------------------------------
 
     def test_a_replaced_certificate_keeps_earlier_releases(self):
-        self.tag()
-        self.build()
-        self.stage().run()
-        self.index()
+        self.admitted()
 
         def pin(subject, retired):
             self.product = self.write_product(
@@ -2264,9 +2342,7 @@ class StableTest(unittest.TestCase):
         self.assertTrue(published.exists())
 
     def test_a_stable_release_goes_from_tag_to_a_verified_index(self):
-        self.tag()
-        self.build()
-        d = self.stage().run()
+        d = self.staged()
 
         # The MSI and the portable zip signed (inside, and the MSI itself),
         # an MSIX made from the MSI, everything else published as built.
@@ -2318,9 +2394,7 @@ class StableTest(unittest.TestCase):
                       report["checked"])
 
     def test_a_resumed_upload_sends_the_same_descriptor(self):
-        self.tag()
-        self.build()
-        descriptor = self.stage().run()
+        descriptor = self.staged()
         state_path = self.tmp / "work" / "2.3.0" / "state.json"
         # As if the run stopped after the descriptor went up but before the
         # step was recorded: the next run uploads again, byte for byte.
@@ -2335,18 +2409,14 @@ class StableTest(unittest.TestCase):
         self.assertEqual(again["released_at"], descriptor["released_at"])
 
     def test_signing_again_after_the_upload_is_refused(self):
-        self.tag()
-        self.build()
-        self.stage().run()
+        self.staged()
         for step in ("pgp", "authenticode", "fetch"):
             self.assert_refused(lambda: self.stage().run(redo=step),
                                 "upload has begun")
         self.assertIsNotNone(self.stage().run(redo="upload"))
 
     def test_another_versions_state_is_refused(self):
-        self.tag()
-        self.build()
-        self.stage().run()
+        self.staged()
         work = self.tmp / "work"
         shutil.copytree(work / "2.3.0", work / "2.3.1")
         self.assert_refused(lambda: self.stage("2.3.1"), "not 2.3.1")
@@ -2363,9 +2433,7 @@ class StableTest(unittest.TestCase):
         self.assertFalse(any(p.startswith("commits/") for p in self.tree()))
 
     def test_a_passing_release_gets_its_commit_marker(self):
-        self.tag()
-        self.build()
-        descriptor = self.stage().run()
+        descriptor = self.staged()
         self.index()
         self.assertTrue(self.builds.exists(f"commits/{descriptor['commit']}"))
         self.assertEqual([p for p in self.tree() if p.endswith(".minisig")],
@@ -2373,9 +2441,7 @@ class StableTest(unittest.TestCase):
         self.check(deep=True)
 
     def test_any_missing_or_bad_signature_means_no_listing(self):
-        self.tag()
-        self.build()
-        descriptor = self.stage().run()
+        descriptor = self.staged()
         root = self.tmp / "builds" / self.product.slug
         msi = next(a for a in descriptor["artifacts"] if a["kind"] == "msi")
         cases = {
@@ -2403,10 +2469,7 @@ class StableTest(unittest.TestCase):
                 self.assert_no_marker()
 
     def test_admitting_again_changes_nothing(self):
-        self.tag()
-        self.build()
-        self.stage().run()
-        self.index()
+        self.admitted()
         before = self.tree()
         shutil.rmtree(self.state)  # admitted again from nothing
         self.index()
@@ -2419,10 +2482,7 @@ class StableTest(unittest.TestCase):
         import http.server
         import ssl
         import threading
-        self.tag()
-        self.build()
-        self.stage().run()
-        self.index()
+        self.admitted()
         ca, key = self.tmp / "ca.pem", self.tmp / "ca.key"
         subprocess.run(["openssl", "req", "-x509", "-newkey", "ec",
                         "-pkeyopt", "ec_paramgen_curve:P-256", "-nodes",
@@ -2453,15 +2513,14 @@ class StableTest(unittest.TestCase):
     # --- trust inputs --------------------------------------------------
 
     def admitted(self):
-        self.tag()
-        self.build()
-        self.stage().run()
-        self.assertIn("2.3.0", self.index()["releases"])
+        """staged(), and admitted by the host: the index it published."""
+        index = self.from_snapshot(
+            "admitted", lambda: (self.staged(), self.index())[1])
+        self.assertIn("2.3.0", index["releases"])
+        return index
 
     def test_no_shape_of_a_stable_descriptor_is_a_traceback(self):
-        self.tag()
-        self.build()
-        d = self.stage().run()
+        d = self.staged()
         path = f"releases/2.3.0/{common.DESCRIPTOR}"
         work = self.tmp / "admit"
 
@@ -2484,9 +2543,7 @@ class StableTest(unittest.TestCase):
         self.assert_refused(self.index, "before its tag")
 
     def test_a_stable_release_relabelled_imported_is_refused(self):
-        self.tag()
-        self.build()
-        d = self.stage().run()
+        d = self.staged()
         self.index()
         relabelled = {k: v for k, v in d.items()
                       if k not in ("sums", "sums_sig", "build")}
@@ -2516,9 +2573,7 @@ class StableTest(unittest.TestCase):
         self.assertEqual(index["channels"]["stable"], "2.3.0")
 
     def test_notes_only_with_unchanged_notes_is_a_no_op(self):
-        self.tag()
-        self.build()
-        self.stage().run()
+        self.staged()
         # main's notes are still the tag's: nothing new to sign or upload,
         # and the stage's own signed copy is left as it is.
         sig = next((self.tmp / "work" / "2.3.0" / "notes").glob("*.md.sig"))
@@ -2534,9 +2589,7 @@ class StableTest(unittest.TestCase):
         return other
 
     def test_a_resumed_upload_names_the_key_that_signed(self):
-        self.tag()
-        self.build()
-        self.stage().run()
+        self.staged()
         state_path = self.tmp / "work" / "2.3.0" / "state.json"
         state = json.loads(state_path.read_text())
         state["done"].remove("upload")
@@ -2760,9 +2813,7 @@ class StableTest(unittest.TestCase):
         self.assertIsNotNone(self.stage().run())  # picks up at pgp
 
     def test_a_typo_fix_in_main_reaches_the_index(self):
-        self.tag()
-        self.build()
-        self.stage().run()
+        self.staged()
         first = self.index()["releases"]["2.3.0"]["notes_sha256"]
 
         (self.repo / "release" / "notes" / "2.3.0.md").write_text(
@@ -2813,17 +2864,13 @@ class StableTest(unittest.TestCase):
         self.assert_refused(lambda: self.stage("2.3.0-rc.1"), "final releases")
 
     def test_the_host_refuses_a_manifest_not_signed_by_a_maintainer(self):
-        self.tag()
-        self.build()
-        d = self.stage().run()
+        d = self.staged()
         sums = self.tmp / "builds" / self.product.slug / d["sums"]
         sums.write_text(sums.read_text().replace("0", "1", 1))
         self.assert_refused(self.index, "does not verify")
 
     def test_the_host_refuses_an_installer_signed_by_another_certificate(self):
-        self.tag()
-        self.build()
-        d = self.stage().run()
+        d = self.staged()
         msi = next(a for a in d["artifacts"] if a["kind"] == "msi")
         target = self.tmp / "builds" / self.product.slug / msi["path"]
         other = SigningCertificate(self.tmp, "Not Us")
@@ -3112,9 +3159,7 @@ class StableTest(unittest.TestCase):
                                 (msi + "x", 1, 1, None)])
 
     def test_the_host_needs_the_notes(self):
-        self.tag()
-        self.build()
-        self.stage().run()
+        self.staged()
         # Notes gone from both main and the tag's view: nothing to publish.
         self.git("rm", "-q", "release/notes/2.3.0.md")
         self.git("commit", "-qm", "drop notes")
