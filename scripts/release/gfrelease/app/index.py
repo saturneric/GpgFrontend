@@ -29,6 +29,7 @@ import shutil
 import tempfile
 from pathlib import Path
 
+from .. import report
 from ..adapters import minisig, openpgp
 from ..adapters.clock import utcnow
 from ..adapters.files import atomic_write, locked, sha256_file
@@ -36,7 +37,6 @@ from ..adapters.git import (check_git_version, notes_at, resolve_commit,
                             tag_time, tagged_commit)
 from ..adapters.store import Store, StoreUnavailable
 from ..adapters.windows import authenticode
-from ..cli import ui
 from ..domain import descriptor, index_model, layout, refs
 from ..domain import policy as policy_mod
 from ..domain.formats import (SCHEMA, canonical_json, check_relpath, iso,
@@ -377,7 +377,7 @@ def _admit_release(product: Product, builds: Store, path: str, raw: bytes,
                     f"{tag}: the notes main has for it are not signed and "
                     f"uploaded yet (gfrelease stable {version} --notes-only): "
                     f"{e}") from e
-            ui.warn(f"{version}: listed "
+            report.warn(f"{version}: listed "
                     f"{'with its admitted notes' if previous_notes else 'without notes'}"
                     f"; main's are not signed and uploaded yet (gfrelease "
                     f"stable {version} --notes-only)")
@@ -772,7 +772,7 @@ def trusted_published(product: Product, update: Store,
     except (StoreUnavailable, ToolFailed):
         raise
     except ReleaseError as e:
-        ui.warn(f"the published index is not one this host signed, and is "
+        report.warn(f"the published index is not one this host signed, and is "
                 f"replaced: {e}")
         return None
     return index

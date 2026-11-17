@@ -60,13 +60,13 @@ import shutil
 import tempfile
 from pathlib import Path
 
+from .. import report
 from ..adapters import openpgp
 from ..adapters.clock import utcnow
 from ..adapters.files import atomic_write, sha256_file
 from ..adapters.git import notes_at, tagged_commit
 from ..adapters.store import Store
 from ..adapters.windows import authenticode, msix
-from ..cli import ui
 from ..domain import descriptor as descriptors
 from ..domain import layout, refs
 from ..domain.formats import (canonical_json, iso, load_json, parse_version,
@@ -470,7 +470,7 @@ class Stage:
         self.outbox.put_file(build / BUNDLE, layout.build_bundle(p))
 
         if left_out >= 1e6:
-            ui.info(f"  {left_out / 1e6:.1f} MB not uploaded: the host takes "
+            report.info(f"  {left_out / 1e6:.1f} MB not uploaded: the host takes "
                     f"the files signing left as they were from {staged}/")
 
         digest = self.state["notes_sha256"]

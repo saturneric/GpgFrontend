@@ -27,9 +27,8 @@ from ..adapters import minisig
 from ..adapters.git import release_tags
 from ..adapters.process import WINDOWS, run
 from ..adapters.windows import authenticode, x509
-from ..cli import ui
 from ..errors import ReleaseError
-from . import trust
+from . import hints, trust
 
 ROLES = ("maintainer", "ci", "host")
 # What each role runs: cmake derives a commit's version (GitVersion.cmake),
@@ -97,7 +96,7 @@ class Doctor:
                         name, "" if command == name else command)
                 except ReleaseError:
                     path = None
-            fix = ui.install_hint(name)
+            fix = hints.install_hint(name)
             if command != name:
                 fix = f"{fix}; or point --{name} at it (now {command})"
             self.check(f"tool {name}", path is not None,
@@ -117,7 +116,7 @@ class Doctor:
                           timeout=60)
             except ReleaseError as e:
                 self.check(f"store {name}", False, str(e),
-                           ui.hint(str(e)) or "")
+                           hints.hint(str(e)) or "")
                 continue
             if out.returncode in (0, 3):  # 3: there, and still empty
                 self.check(f"store {name}", True, root)
@@ -125,7 +124,7 @@ class Doctor:
                 detail = out.stderr.strip().splitlines()
                 self.check(f"store {name}", False,
                            f"{root}: {detail[-1] if detail else 'no answer'}",
-                           ui.hint(out.stderr) or
+                           hints.hint(out.stderr) or
                            "check the remote with `rclone lsd <remote>:`")
 
     def trust(self) -> None:
@@ -154,14 +153,14 @@ class Doctor:
         try:
             out = run(cmd, check=False, timeout=60)
         except ReleaseError as e:
-            self.check("signing key", False, str(e), ui.hint(str(e)) or "")
+            self.check("signing key", False, str(e), hints.hint(str(e)) or "")
             return
         pinned = key in self.product.maintainers
         self.check("signing key", out.returncode == 0 and pinned,
                    key if out.returncode == 0 else f"{key}: no secret key",
                    "the key must be in GnuPG (--gnupghome) and a pinned "
                    "maintainer's primary fingerprint" if out.returncode == 0
-                   else ui.hint("No secret key"))
+                   else hints.hint("No secret key"))
 
     def authenticode(self) -> None:
         cert, key = self.args.authenticode_cert, self.args.authenticode_key
