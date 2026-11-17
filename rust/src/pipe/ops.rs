@@ -32,7 +32,7 @@
 use std::cell::RefCell;
 use std::ffi::{CStr, CString, c_char, c_void};
 use std::fs::File;
-use std::io::{Read, Write};
+use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::Path;
 
 use pgp::composed::{Deserializable, SignedPublicKey, SignedSecretKey};
@@ -210,6 +210,75 @@ fn read_all(mut reader: Box<dyn Read + Send + Sync>) -> Result<Vec<u8>, PipeErro
         return Err(PipeError::usage("the input is too large"));
     }
     Ok(data)
+}
+
+/// The `index`th input as a file, for operations that stream: a named file
+/// as it is, standard input spooled into an anonymous temporary file, so
+/// input of any size takes flat memory. Its length, for the engine's guards.
+fn input_file(args: &Args, index: usize, io: &mut Io) -> Result<(File, u64), PipeError> {
+    let file = match args.inputs.get(index).map(String::as_str) {
+        Some(name) if name != "-" => {
+            File::open(name).map_err(|e| PipeError::usage(format!("cannot read {name}: {e}")))?
+        }
+        _ => {
+            let cannot =
+                |e: std::io::Error| PipeError::usage(format!("cannot read the input: {e}"));
+            // No name, so it disappears on every exit path.
+            let mut spool = tempfile::tempfile().map_err(cannot)?;
+            let mut stdin = std::mem::replace(&mut io.stdin, Box::new(std::io::empty()));
+            std::io::copy(&mut stdin, &mut spool).map_err(cannot)?;
+            spool.seek(SeekFrom::Start(0)).map_err(cannot)?;
+            spool
+        }
+    };
+    let len = file
+        .metadata()
+        .map_err(|e| PipeError::usage(format!("cannot read the input: {e}")))?
+        .len();
+    Ok((file, len))
+}
+
+/// What the start of a message says, read without loading the rest.
+struct Head {
+    armored: bool,
+    clear_signed: bool,
+    /// The first packets, dearmored: enough for the first packet's tag and
+    /// the recipients, which come first.
+    packets: Vec<u8>,
+}
+
+/// How much of a message's start is read to look at it.
+const HEAD_BYTES: u64 = 1 << 20;
+
+fn head_of(file: &mut File) -> Result<Head, PipeError> {
+    let cannot = |e: std::io::Error| PipeError::usage(format!("cannot read the input: {e}"));
+    let mut raw = Vec::new();
+    Read::by_ref(file)
+        .take(HEAD_BYTES)
+        .read_to_end(&mut raw)
+        .map_err(cannot)?;
+    file.seek(SeekFrom::Start(0)).map_err(cannot)?;
+
+    let clear_signed = is_clear_signed(&raw);
+    let armored = raw
+        .iter()
+        .position(|b| !b.is_ascii_whitespace())
+        .is_some_and(|at| raw[at..].starts_with(b"-----BEGIN PGP"));
+    let packets = if armored && !clear_signed {
+        // Streamed through the armor: a cut-off block still yields its start.
+        let mut decoded = Vec::new();
+        let _ = pgp::armor::Dearmor::new(std::io::BufReader::new(&raw[..]))
+            .take(HEAD_BYTES)
+            .read_to_end(&mut decoded);
+        decoded
+    } else {
+        raw
+    };
+    Ok(Head {
+        armored,
+        clear_signed,
+        packets,
+    })
 }
 
 /// Where the output goes: the `-o` file; or, as gpg does when it signs or
@@ -694,15 +763,12 @@ fn is_detached_signature(message: &[u8]) -> bool {
     packets.peek().is_some() && packets.all(|p| matches!(p, Ok(Packet::Signature(_))))
 }
 
-/// Whether `message` is encrypted, rather than only signed.
-fn is_encrypted(message: &[u8]) -> bool {
-    if is_clear_signed(message) {
-        return false;
-    }
-    let bytes = crate::crypto::dearmor_all(message);
+/// Whether a message, by its first packets (dearmored), is encrypted rather
+/// than only signed.
+fn is_encrypted_packets(packets: &[u8]) -> bool {
     // PKESK, SKESK, SED, SEIPD, and LibrePGP's OCB packet (RFC 9580 §5).
     matches!(
-        crate::keypack::first_packet_tag(&bytes),
+        crate::keypack::first_packet_tag(packets),
         Some(1 | 3 | 9 | 18 | 20)
     )
 }
@@ -749,13 +815,14 @@ fn verify(
     io: &mut Io,
     status: &mut Status,
 ) -> Result<(), PipeError> {
-    // `verify SIG DATA` checks a detached signature; `verify FILE` a signed
-    // message, inline or clear-text, or a detached signature whose data is
-    // the file of the same name without its extension.
-    let (data, sig, mode) = if args.inputs.len() >= 2 {
+    // `verify SIG DATA` checks a detached signature, streaming the data;
+    // `verify FILE` a signed message, inline or clear-text, or a detached
+    // signature whose data is the file of the same name without its
+    // extension.
+    let signatures = if args.inputs.len() >= 2 {
         let sig = read_all(input(args, 0, io)?)?;
-        let data = read_all(input(args, 1, io)?)?;
-        (data, sig, GfrSignMode::Detached)
+        let (data, _) = input_file(args, 1, io)?;
+        verify_detached(data, &sig, pack, status)?
     } else {
         let message = read_all(input(args, 0, io)?)?;
         if is_detached_signature(&message) {
@@ -766,32 +833,54 @@ fn verify(
                     "this is a detached signature; give the signed data too: verify SIG DATA",
                 )
             })?;
-            let data = std::fs::read(&data_file)
+            let data = File::open(&data_file)
                 .map_err(|e| PipeError::usage(format!("cannot read {data_file}: {e}")))?;
-            (data, message, GfrSignMode::Detached)
-        } else if is_clear_signed(&message) {
-            (message, Vec::new(), GfrSignMode::ClearText)
+            verify_detached(data, &message, pack, status)?
         } else {
-            (message, Vec::new(), GfrSignMode::Inline)
+            let mode = if is_clear_signed(&message) {
+                GfrSignMode::ClearText
+            } else {
+                GfrSignMode::Inline
+            };
+            crate::crypto::verify_internal(&message, &[], mode, Some(fetch_public), pack_ptr(pack))
+                .map_err(|e| {
+                    status.push("NODATA 4");
+                    PipeError::failed(format!("cannot verify: {}", engine_error(e)))
+                })?
+                .signatures
         }
     };
 
-    let result =
-        crate::crypto::verify_internal(&data, &sig, mode, Some(fetch_public), pack_ptr(pack))
-            .map_err(|e| {
-                status.push("NODATA 4");
-                PipeError::failed(format!("cannot verify: {}", engine_error(e)))
-            })?;
-
-    if result.signatures.is_empty() {
+    if signatures.is_empty() {
         status.push("NODATA 3");
         return Err(PipeError::failed("no signature found"));
     }
-    if report_all(&result.signatures, pack, status, io) {
+    if report_all(&signatures, pack, status, io) {
         Ok(())
     } else {
         Err(PipeError::failed("the signature is not good"))
     }
+}
+
+/// A detached signature over `data`, read as a stream.
+fn verify_detached(
+    data: File,
+    sig: &[u8],
+    pack: &OpenPackage,
+    status: &mut Status,
+) -> Result<Vec<SignatureResultInternal>, PipeError> {
+    crate::crypto::verify_detached_stream_internal(
+        CHANNEL,
+        data,
+        sig,
+        Some(fetch_public),
+        pack_ptr(pack),
+    )
+    .map(|result| result.signatures)
+    .map_err(|e| {
+        status.push("NODATA 4");
+        PipeError::failed(format!("cannot verify: {}", engine_error(e)))
+    })
 }
 
 /// The recipients: those named, else `--default-recipient`, plus the
@@ -926,11 +1015,15 @@ fn decrypt(
     io: &mut Io,
     status: &mut Status,
 ) -> Result<(), PipeError> {
-    let message = read_all(input(args, 0, io)?)?;
+    // Streamed: standard input is spooled to a temporary file, and the
+    // plaintext is staged in another until it is authenticated.
+    let (mut file, ciphertext_len) = input_file(args, 0, io)?;
+    let head = head_of(&mut file)?;
 
     // gpg --decrypt of a message that is only signed puts out its content and
-    // checks the signature.
-    if !is_encrypted(&message) {
+    // checks the signature; such a message is read whole.
+    if head.clear_signed || !is_encrypted_packets(&head.packets) {
+        let message = read_all(Box::new(file))?;
         let mode = if is_clear_signed(&message) {
             GfrSignMode::ClearText
         } else {
@@ -959,7 +1052,7 @@ fn decrypt(
         };
     }
 
-    let recipients = crate::crypto::sniff_recipients(&message);
+    let recipients = crate::crypto::sniff_recipients(&head.packets);
     for r in &recipients {
         status.push(format!(
             "ENC_TO {} {} 0",
@@ -968,15 +1061,7 @@ fn decrypt(
         ));
     }
     status.push("BEGIN_DECRYPTION");
-    let result = crate::crypto::decrypt_and_verify_internal(
-        CHANNEL,
-        &message,
-        Some(fetch_secret),
-        Some(pipe_password),
-        Some(fetch_public),
-        pack_ptr(pack),
-    )
-    .map_err(|e| {
+    let failed = |e: GfrStatus, status: &mut Status| {
         if matches!(e, GfrStatus::ErrorNoSecretKey | GfrStatus::ErrorNoKey) {
             for r in &recipients {
                 status.push(format!("NO_SECKEY {}", r.key_id.to_uppercase()));
@@ -999,12 +1084,20 @@ fn decrypt(
         } else {
             PipeError::failed(format!("cannot decrypt: {detail}"))
         }
-    })?;
-    let data = Zeroizing::new(result.data);
-
-    with_output(args, io, None, |out| {
-        out.write_all(&data)
-            .map_err(|e| PipeError::usage(format!("cannot write the output: {e}")))
+    };
+    let result = with_output(args, io, None, |out| {
+        crate::crypto::decrypt_and_verify_stream_staged_internal(
+            CHANNEL,
+            file,
+            ciphertext_len,
+            out,
+            head.armored,
+            Some(fetch_secret),
+            Some(pipe_password),
+            Some(fetch_public),
+            pack_ptr(pack),
+        )
+        .map_err(|e| failed(e, status))
     })?;
     status.push("DECRYPTION_OKAY");
     status.push("GOODMDC");

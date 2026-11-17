@@ -1156,3 +1156,67 @@ fn explicit_options_win_over_what_lies_beside_gfpipe() {
         listed(&host, &["--key-file", key_file.to_str().unwrap()]).contains(&V4_SIGN.primary_fpr)
     );
 }
+
+// ------------------------------------------------------------- native pipes
+
+/// More than gfpipe looks at to tell a message's kind, so the rest streams.
+fn big_payload() -> Vec<u8> {
+    (0..3 * 1024 * 1024u32)
+        .map(|i| (i.wrapping_mul(2_654_435_761) >> 24) as u8)
+        .collect()
+}
+
+#[test]
+fn large_messages_stream_through_pipes() {
+    let f = Fixture::new();
+    let data = big_payload();
+    for armor in [false, true] {
+        let mut argv = vec!["-e", "-r", V4_SIGN.primary_fpr.as_str()];
+        if armor {
+            argv.push("-a");
+        }
+        let sealed = f.run(&argv, &data);
+        assert_eq!(sealed.code, 0, "{}", sealed.stderr.text());
+
+        let opened = f.run(&["--status-fd=2", "-d"], &sealed.stdout.bytes());
+        assert_eq!(opened.code, 0, "armor={armor}: {}", opened.stderr.text());
+        assert!(opened.stdout.bytes() == data, "armor={armor}");
+        assert!(opened.stderr.text().contains("[GNUPG:] ENC_TO "));
+    }
+}
+
+#[test]
+fn a_damaged_message_puts_nothing_into_the_pipe() {
+    let f = Fixture::new();
+    let sealed = f.run(&["-e", "-r", &V4_SIGN.primary_fpr], &big_payload());
+    assert_eq!(sealed.code, 0, "{}", sealed.stderr.text());
+    let mut damaged = sealed.stdout.bytes();
+    let at = damaged.len() - 100;
+    damaged[at] ^= 1;
+
+    let opened = f.run(&["--status-fd=2", "-d"], &damaged);
+    assert_ne!(opened.code, 0);
+    assert!(
+        opened.stdout.bytes().is_empty(),
+        "no unauthenticated plaintext"
+    );
+    assert!(opened.stderr.text().contains("[GNUPG:] DECRYPTION_FAILED"));
+}
+
+#[test]
+fn large_signed_data_verifies_from_a_pipe() {
+    let f = Fixture::new();
+    let data = big_payload();
+    let signed = f.run(&["-bsa"], &data);
+    assert_eq!(signed.code, 0, "{}", signed.stderr.text());
+    let sig = f.file("big.asc", &signed.stdout.bytes());
+    let out = f.run(&["--status-fd=1", "--verify", &sig, "-"], &data);
+    assert_eq!(out.code, 0, "{}", out.stderr.text());
+    assert!(git_accepts_verification(&out.stdout.text()));
+
+    let mut changed = data.clone();
+    changed[1_500_000] ^= 1;
+    let out = f.run(&["--status-fd=1", "--verify", &sig, "-"], &changed);
+    assert_eq!(out.code, 1);
+    assert!(out.stdout.text().contains("[GNUPG:] BADSIG"));
+}
