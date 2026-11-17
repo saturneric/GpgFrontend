@@ -31,6 +31,7 @@ from ..app import views
 from ..errors import ReleaseError
 from ..paths import ROOT
 from . import settings as settings_mod
+from .commands import github as github_cmd
 from .commands import inspect, publish, release, setup
 from .commands import trust as trust_cmd
 
@@ -100,6 +101,7 @@ GROUPS = (
         ("trust keys", "renew | rotate: the keys that sign the index"))),
     ("CI", (
         ("stage", "upload a release candidate"),
+        ("github sync", "mirror the stable releases to GitHub Releases"),
         ("candidate", "stage: gather and check a release candidate"),
         ("ci", "build-mode | check-order | version: what CI builds"),
         ("policy", "check | render-security | check-security | mainline"))),
@@ -229,6 +231,7 @@ def short_usage(p) -> None:
         if isinstance(a.choices, (list, tuple)) and not a.metavar:
             name = "{" + ",".join(a.choices) + "}"
         args.append(f"[{name}]" if a.nargs == "?" else
+                    f"[{name} ...]" if a.nargs == "*" else
                     f"{name} ..." if a.nargs == "+" else name)
     p.usage = " ".join([p.prog, "[options]", *args])
 
@@ -418,6 +421,34 @@ def build_parser(settings=None) -> argparse.ArgumentParser:
     for name in ("candidate", "staging", "ref", "commit", "version",
                  "filesafe", "built_at"):
         opt(p, name, settings)
+
+    g = sub.add_parser("github", help="sync: the stable releases on GitHub "
+                       "Releases", description="GitHub Releases, mirrored "
+                       "from the signed index (gfrelease help github).")
+    add_globals(g, settings)
+    gsub = g.add_subparsers(dest="action", required=True, metavar="ACTION",
+                            parser_class=Parser)
+    p = leaf(gsub, "sync", settings, "mirror the stable releases to GitHub "
+             "Releases",
+             "Makes GitHub's release of each stable release the signed "
+             "index lists what the index says: every file and its "
+             "signature, the signed manifest and the release notes, each "
+             "checked as verify --deep checks it before it is uploaded. "
+             "Writes with the token in GITHUB_TOKEN (contents: write); "
+             "--dry-run needs none.",
+             "github sync --dry-run", key="github sync",
+             handler=github_cmd.cmd_sync)
+    p.add_argument("versions", nargs="*", metavar="VERSION",
+                   help="only these releases (default: every stable one)")
+    opt(p, "update", settings, "the index store (default: the HTTPS bases)")
+    opt(p, "builds", settings, "the artifact store (default: the HTTPS "
+        "bases)")
+    opt(p, "cafile", settings)
+    p.add_argument("--repository", metavar="OWNER/NAME",
+                   help="another repository than the trust root's (a "
+                   "fork, to try it on)")
+    p.add_argument("--dry-run", action="store_true",
+                   help="check and plan only: nothing is written")
 
     # The signing host's.
     for name, help, description in (
