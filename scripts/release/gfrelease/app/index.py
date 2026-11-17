@@ -37,7 +37,7 @@ from ..adapters.git import (check_git_version, notes_at, resolve_commit,
 from ..adapters.store import Store, StoreUnavailable
 from ..adapters.windows import authenticode, msix
 from ..cli import ui
-from ..domain import descriptor, layout, refs
+from ..domain import descriptor, index_model, layout, refs
 from ..domain import policy as policy_mod
 from ..domain.formats import (SCHEMA, canonical_json, check_relpath, iso,
                               load_json, parse_iso, parse_version,
@@ -49,8 +49,6 @@ from . import candidate as rc
 from .candidate import candidate_error, check_candidate
 from .product import Product
 
-LIFETIME = dt.timedelta(days=policy_mod.INDEX_LIFETIME_DAYS)
-VOLATILE = ("serial", "generated_at", "expires")
 # How many used serials a host that lost its state steps over before it
 # concludes the history is not its own.
 SERIAL_SKIPS = 64
@@ -186,7 +184,7 @@ def admit_nightly(product: Product, builds: Store, path: str, raw: bytes,
                                 d["version"], path)
     if rc_tag:
         # The tag still names this commit, on its series' branch. Once the
-        # series is released, it is simply no longer listed (_choose_rcs).
+        # series is released, it is simply no longer listed (index_model.choose_rcs).
         check_candidate(git_dir, ref, d["commit"], derived,
                         unreleased=False)
     return d
@@ -632,32 +630,6 @@ class IndexIncomplete(ReleaseError):
         self.index = index
 
 
-def _kept_builds(previous: dict | None, path: str
-                 ) -> tuple[dict | None, list[dict], list[dict]]:
-    """What the published index lists for the descriptor at @p path, which
-    could not be read this round: (as the nightly, as betas, as release
-    candidates)."""
-    previous = previous or {}
-    nightly = previous.get("nightly")
-    nightly = nightly if descriptor.names_build(nightly) and \
-        nightly["descriptor"] == path else None
-    series = previous.get("series")
-    entries = [s for s in (series.values() if isinstance(series, dict)
-                           else []) if isinstance(s, dict)]
-
-    def named(builds: list) -> list[dict]:
-        return [b for b in builds
-                if descriptor.names_build(b) and b["descriptor"] == path][:1]
-    return (nightly,
-            named([previous.get("beta")] + [s.get("beta") for s in entries]),
-            named([s.get("rc") for s in entries]))
-
-
-def _newer(a: dict, b: dict | None) -> bool:
-    return b is None or \
-        parse_version(a["version"]) > parse_version(b["version"])
-
-
 def build(product: Product, builds: Store, *,
           git_dir: Path | None = None, state_dir: Path | None = None,
           cosign: str = "cosign", authenticode_ca: str | None = None,
@@ -675,8 +647,7 @@ def build(product: Product, builds: Store, *,
             raise error
         refused.note(path, error)
 
-    withdrawn = {parse_version(w["version"])
-                 for w in product.policy.get("withdrawn", [])}
+    withdrawn = index_model.withdrawn(product.policy)
     with tempfile.TemporaryDirectory(prefix="gfr-index-") as tmp:
         nightly, betas, rcs = _admitted_builds(
             product, builds, Path(tmp), git_dir=git_dir, cosign=cosign,
@@ -686,33 +657,10 @@ def build(product: Product, builds: Store, *,
             cosign=cosign, authenticode_ca=authenticode_ca, dry=dry,
             previous=previous, refuse=refuse)
 
-    series = _series_table(product, releases, withdrawn)
-    current = [s["latest"] for s in series.values()
-               if s["status"] in policy_mod.CURRENT_STATUSES and s["latest"]]
-    stable = max(current, key=parse_version) if current else None
-    beta = _choose_betas(series, betas)
-    prerelease = _choose_rcs(series, rcs)
-
     root, keys = product.trust
-    return {
-        "schema": SCHEMA, "product": product.slug,
-        # Where a client finds what it needs to trust this index:
-        # v1/root/ up to this version, and this index-keys list.
-        "root_version": root["version"],
-        "index_keys_version": keys["version"],
-        "series": series,
-        "channels": {"stable": stable,
-                     "beta": beta["version"] if beta else None,
-                     "prerelease":
-                         prerelease["version"] if prerelease else None,
-                     "nightly": nightly["version"] if nightly else None},
-        "withdrawn": [{"version": w["version"], "reason": w["reason"]}
-                      for w in product.policy.get("withdrawn", [])],
-        "releases": releases,
-        "nightly": nightly,
-        "beta": beta,
-        "prerelease": prerelease,
-    }
+    return index_model.content(
+        product.slug, product.policy, root["version"], keys["version"],
+        releases=releases, nightly=nightly, betas=betas, rcs=rcs)
 
 
 def _admitted_builds(product: Product, builds: Store, tmp: Path, *,
@@ -738,11 +686,11 @@ def _admitted_builds(product: Product, builds: Store, tmp: Path, *,
             refuse(path, e)
             if not is_passing(e):
                 continue
-            kept, kept_betas, kept_rcs = _kept_builds(previous, path)
+            kept, kept_betas, kept_rcs = index_model.kept_builds(previous, path)
             # Kept as listed, but never past what the policy says now.
             if kept is not None and \
                     parse_version(kept["version"]) not in withdrawn and \
-                    _newer(kept, nightly):
+                    index_model.newer(kept, nightly):
                 nightly = kept
             betas += [b for b in kept_betas
                       if parse_version(b["version"]) not in withdrawn]
@@ -760,7 +708,7 @@ def _admitted_builds(product: Product, builds: Store, tmp: Path, *,
             rcs.append(listed)
         elif d["ref"] != refs.MAIN:
             betas.append(listed)
-        elif _newer(listed, nightly):
+        elif index_model.newer(listed, nightly):
             nightly = listed
     return nightly, betas, rcs
 
@@ -805,80 +753,6 @@ def _admitted_releases(product: Product, builds: Store, tmp: Path, *,
             continue
         releases[d["version"]] = entry
     return releases
-
-
-def _series_table(product: Product, releases: dict[str, dict],
-                  withdrawn: set) -> dict[str, dict]:
-    """Each series as the policy states it, with its newest release that is
-    not withdrawn (latest); its beta is chosen later (_choose_betas)."""
-    series = {}
-    for key, entry in product.policy["series"].items():
-        series[key] = {k: entry.get(k) for k in ("status", "eol", "successor")}
-        series[key]["platforms"] = entry.get("platforms", {})
-        series[key]["latest"] = None
-        series[key]["beta"] = None
-        series[key]["rc"] = None
-        series[key]["prerelease"] = False
-        if series[key]["eol"] is not None:
-            series[key]["eol"] = str(series[key]["eol"])
-    # The stable channel is then the newest release of the series users are
-    # meant to be on (stable, or mainline once its .0 shipped and before the
-    # policy moved on). The nightly and beta channels are builds, never
-    # releases.
-    for version in sorted(releases, key=parse_version):
-        if parse_version(version) in withdrawn:
-            continue
-        key = parse_version(version).series
-        if key in series:
-            series[key]["latest"] = version
-    return series
-
-
-def _choose_rcs(series: dict[str, dict], rcs: list[dict]) -> dict | None:
-    """Sets each series' release candidate: its newest X.Y.0-rc.N, while
-    the series has no release and users are meant to move to it (stable,
-    or mainline before the cut). Such a series is a prerelease: offered to
-    those who ask for betas. Its release makes it an ordinary series again,
-    and the candidate is no longer listed. Returns the candidate of the
-    newest prerelease series: the prerelease channel."""
-    for b in rcs:
-        v = parse_version(b["version"])
-        entry = series.get(v.series)
-        if entry is None or not v.is_release_candidate or \
-                entry["status"] not in policy_mod.CURRENT_STATUSES or \
-                entry["latest"] is not None:
-            continue
-        if _newer(b, entry["rc"]):
-            entry["rc"] = b
-            entry["prerelease"] = True
-    newest = None
-    for key in sorted(series, key=policy_mod.series_order):
-        if series[key]["rc"] is not None:
-            newest = series[key]["rc"]
-    return newest
-
-
-def _choose_betas(series: dict[str, dict], betas: list[dict]) -> dict | None:
-    """Sets each series' beta: its release branch's newest build, when users
-    are meant to be on that series and the build is newer than its latest
-    release. Admitted as a nightly is; a user opts in, and is only ever
-    offered the beta of the series they run. Returns the newest of them
-    all, where clients older than the per-series entry look for it."""
-    for b in betas:
-        v = parse_version(b["version"])
-        entry = series.get(v.series)
-        if entry is None or \
-                entry["status"] not in policy_mod.CURRENT_STATUSES or \
-                (entry["latest"] is not None and
-                 v <= parse_version(entry["latest"])):
-            continue
-        if _newer(b, entry["beta"]):
-            entry["beta"] = b
-    beta = None
-    for entry in series.values():
-        if entry["beta"] is not None and _newer(entry["beta"], beta):
-            beta = entry["beta"]
-    return beta
 
 
 def trusted_published(product: Product, update: Store,
@@ -945,7 +819,7 @@ def dry_run(product: Product, builds: Store, update: Store, *,
                         authenticode_ca=authenticode_ca, refused=refused,
                         previous=listed, dry=True)
     previous = listed or {}
-    before = {k: v for k, v in previous.items() if k not in VOLATILE}
+    before = {k: v for k, v in previous.items() if k not in index_model.VOLATILE}
     return {
         "channels": content["channels"],
         "releases": sorted(content["releases"], key=parse_version),
@@ -1021,7 +895,7 @@ def _sign_and_publish(product: Product, content: dict, update: Store, *,
     now = utcnow()
     trust = trust_files(product)
     if previous is not None and not force:
-        same = {k: v for k, v in previous.items() if k not in VOLATILE} == content
+        same = {k: v for k, v in previous.items() if k not in index_model.VOLATILE} == content
         if same:
             return None
 
@@ -1049,7 +923,7 @@ def _sign_and_publish(product: Product, content: dict, update: Store, *,
                            f"{serial - 1}, far beyond the published one; "
                            "something else writes there")
     index = dict(content, serial=serial, generated_at=iso(now),
-                 expires=iso(now + LIFETIME))
+                 expires=iso(now + index_model.LIFETIME))
 
     with tempfile.TemporaryDirectory(prefix="gfr-sign-") as tmp:
         local = Path(tmp) / "index.json"
