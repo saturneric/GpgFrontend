@@ -23,10 +23,10 @@
 # signing host publishes once the maintainer has signed the release offline.
 # Every hour this reads that index from the public HTTPS bases, as the
 # application does, and makes each stable release's GitHub release what the
-# index says: the files and their maintainer signatures, the signed
-# manifest and the signed release notes. Every file is checked against the
-# index and its signature before it is uploaded, so nothing here rests on
-# this runner; the job's token only writes this repository's releases.
+# index says: the files with their maintainer signatures, and the signed
+# release notes. Every file is checked against the index and its signature
+# before it is uploaded, so nothing here rests on this runner; the job's
+# token only writes this repository's releases.
 #
 # By hand: run it with a version to mirror only that release, or as a dry
 # run to see the planned steps without writing anything.

@@ -3,8 +3,9 @@
 """A stable release as GitHub shows it, mirrored from the signed index.
 
 The index is what users get; a GitHub release is a copy of it for people
-who look there: the files and their maintainer signatures, the manifest
-and its signature, and the signed notes. Only what the pipeline released
+who look there: the files, each with its maintainer signature, and the
+signed notes. The manifest (SHA256SUMS.txt) stays in the builds store: a
+person checks a file by its own signature. Only what the pipeline released
 (a descriptor of kind stable) is mirrored; an imported release came from
 GitHub and stays as it is there.
 
@@ -22,7 +23,7 @@ from dataclasses import dataclass
 
 from ..errors import ReleaseError
 from . import layout, refs
-from .layout import SIG, SUMS
+from .layout import SIG
 from .release_notes import for_github
 
 # The most a release body may hold, in characters (GitHub's limit).
@@ -72,12 +73,10 @@ def footer(repository: str, fingerprint: str, builds: str,
     keys = f"https://github.com/{repository}/blob/main/release/maintainers.asc"
     return (
         "\n---\n\n"
-        f"Every file has a detached OpenPGP signature (`.sig`) by key "
-        f"`{fingerprint}` ([maintainer keys]({keys})), and {SUMS} lists "
-        f"their SHA-256 hashes, signed the same way:\n\n"
+        f"Every file has a detached OpenPGP signature (`{SIG}`) by key "
+        f"`{fingerprint}` ([maintainer keys]({keys})). To check one:\n\n"
         "```\n"
-        f"gpg --verify {SUMS}{SIG} {SUMS}\n"
-        f"sha256sum --check --ignore-missing {SUMS}\n"
+        f"gpg --verify <file>{SIG} <file>\n"
         "```\n\n"
         f"The same files are published at {builds}, and listed in the "
         "signed update index the application installs updates from.\n\n"
@@ -94,18 +93,14 @@ def desired(repository: str, builds_base: str, index: dict,
             small: dict[str, tuple[str, int]]) -> Release:
     """The GitHub release of the release @p descriptor, listed in @p index
     as @p entry, with @p notes (their text, checked against the index).
-    @p small: the sha256 and size of each small file it names (signatures
-    and the manifest) by its path in the builds store; @p builds_base the
+    @p small: the sha256 and size of each file's signature by its path in
+    the builds store; @p builds_base the
     URL of the product's builds store."""
     version = descriptor["version"]
     assets = []
     for a in sorted(descriptor["artifacts"], key=lambda a: a["name"]):
         assets.append(Asset(a["name"], a["path"], a["sha256"], a["size"]))
         assets.append(Asset(a["name"] + SIG, a["sig"], *small[a["sig"]]))
-    for path, name in ((descriptor.get("sums"), SUMS),
-                       (descriptor.get("sums_sig"), SUMS + SIG)):
-        if path:
-            assets.append(Asset(name, path, *small[path]))
 
     body = ""
     for w in index.get("withdrawn", []):

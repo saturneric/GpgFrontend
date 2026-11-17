@@ -432,8 +432,8 @@ def build_parser(settings=None) -> argparse.ArgumentParser:
              "Releases",
              "Makes GitHub's release of each stable release the signed "
              "index lists what the index says: every file and its "
-             "signature, the signed manifest and the release notes, each "
-             "checked as verify --deep checks it before it is uploaded. "
+             "signature, and the release notes, each checked as verify "
+             "--deep checks it before it is uploaded. "
              "Writes with the token in GITHUB_TOKEN (contents: write); "
              "--dry-run needs none.",
              "github sync --dry-run", key="github sync",

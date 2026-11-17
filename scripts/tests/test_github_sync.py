@@ -199,8 +199,6 @@ class GitHubSyncTest(StableTest):
         for a in d["artifacts"]:
             want[a["name"]] = a["path"]
             want[a["name"] + ".sig"] = a["sig"]
-        want["SHA256SUMS.txt"] = d["sums"]
-        want["SHA256SUMS.txt.sig"] = d["sums_sig"]
         got = {a["name"]: a["data"].encode("latin-1")
                for a in release["assets"]}
         self.assertEqual(sorted(got), sorted(want))
