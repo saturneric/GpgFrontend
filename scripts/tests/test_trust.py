@@ -23,7 +23,10 @@ HERE = Path(__file__).resolve().parent
 import _paths  # noqa: E402,F401
 from trustutil import (GFRELEASE, WINDOWS, gfrelease_env,  # noqa: E402
                        git_env, keypair, tools, write_root)
-from gfrelease import common  # noqa: E402
+from gfrelease.adapters import files as files_mod  # noqa: E402
+from gfrelease.domain import formats  # noqa: E402
+from gfrelease import errors  # noqa: E402
+from gfrelease import paths  # noqa: E402
 from gfrelease.domain import layout  # noqa: E402
 from gfrelease.adapters import minisig  # noqa: E402
 from gfrelease.domain import policy as policy_mod  # noqa: E402
@@ -85,7 +88,7 @@ class TrustTest(unittest.TestCase):
         # Root 2 keeps a, b and d's signatures; root 1 (a, b, c; 2 needed)
         # then has only b's.
         self.sig(2, "root-a").unlink()
-        with self.assertRaisesRegex(common.ReleaseError,
+        with self.assertRaisesRegex(errors.ReleaseError,
                                     "1 of root 1's root keys"):
             self.walk()
 
@@ -101,7 +104,7 @@ class TrustTest(unittest.TestCase):
         root2["roles"] = dict(root1["roles"], root={
             "keyids": [k[2] for k in new], "threshold": 2})
         self.write_root(root2, [k[0] for k in new])
-        with self.assertRaisesRegex(common.ReleaseError,
+        with self.assertRaisesRegex(errors.ReleaseError,
                                     "0 of root 1's root keys"):
             self.walk()
 
@@ -111,14 +114,14 @@ class TrustTest(unittest.TestCase):
         self.assertEqual(self.walk()["version"], 1)
         root1 = self.walk()
         data3 = (self.root / "3.root.json").read_bytes()
-        with self.assertRaisesRegex(common.ReleaseError, "version 3, not 2"):
+        with self.assertRaisesRegex(errors.ReleaseError, "version 3, not 2"):
             trust.accept_root(root1, data3, lambda _: None, SLUG, "3")
 
     def test_a_lower_version_is_never_taken(self):
         root3 = self.walk()
         data2 = (self.root / "2.root.json").read_bytes()
         read = trust.read_dir(self.root)
-        with self.assertRaisesRegex(common.ReleaseError, "version 2, not 4"):
+        with self.assertRaisesRegex(errors.ReleaseError, "version 2, not 4"):
             trust.accept_root(root3, data2,
                               lambda i: read(layout.root_sig_name(2, i)),
                               SLUG, "2")
@@ -132,7 +135,7 @@ class TrustTest(unittest.TestCase):
         path = self.root / "2.root.json"
         minisig.sign(fixture_key("root-a")[0], path,
                      layout.root_comment(SLUG, 3), self.sig(2, "root-a"))
-        with self.assertRaisesRegex(common.ReleaseError, "1 of root 1's"):
+        with self.assertRaisesRegex(errors.ReleaseError, "1 of root 1's"):
             self.walk()
 
     def test_a_legacy_signature_does_not_count(self):
@@ -142,7 +145,7 @@ class TrustTest(unittest.TestCase):
                         self.sig(2, "root-a"), "-t",
                         layout.root_comment(SLUG, 2)],
                        check=True, capture_output=True, input=b"")
-        with self.assertRaisesRegex(common.ReleaseError, "1 of root 1's"):
+        with self.assertRaisesRegex(errors.ReleaseError, "1 of root 1's"):
             self.walk()
 
     def test_the_walk_stops_after_its_steps(self):
@@ -165,21 +168,21 @@ class TrustTest(unittest.TestCase):
         # Not "signed by 0 of root 1's keys", which would read as a root
         # nobody signed and be reported as lasting.
         with mock.patch.object(minisig, "run",
-                               side_effect=common.ToolFailed("no minisign")):
-            with self.assertRaisesRegex(common.ToolFailed, "no minisign"):
+                               side_effect=errors.ToolFailed("no minisign")):
+            with self.assertRaisesRegex(errors.ToolFailed, "no minisign"):
                 self.walk()
 
     def test_the_first_root_must_be_the_anchor(self):
-        anchor = common.sha256_file(self.root / "1.root.json")
+        anchor = files_mod.sha256_file(self.root / "1.root.json")
         self.assertEqual(self.walk(anchor=anchor)["version"], 3)
-        with self.assertRaisesRegex(common.ReleaseError, "not 0+"):
+        with self.assertRaisesRegex(errors.ReleaseError, "not 0+"):
             self.walk(anchor="0" * 64)
 
     def test_the_index_list_key_is_never_a_root_key(self):
         doc = json.loads((self.root / "1.root.json").read_text())
         doc["roles"]["index_list"]["keyids"] = [
             doc["roles"]["root"]["keyids"][0]]
-        with self.assertRaisesRegex(common.ReleaseError, "also a root key"):
+        with self.assertRaisesRegex(errors.ReleaseError, "also a root key"):
             trust.load(json.dumps(doc).encode(), "1", trust.ROOT_KIND, SLUG)
 
     def test_a_key_listed_under_another_id_is_refused(self):
@@ -187,7 +190,7 @@ class TrustTest(unittest.TestCase):
         ids = list(doc["keys"])
         doc["keys"][ids[0]], doc["keys"][ids[1]] = \
             doc["keys"][ids[1]], doc["keys"][ids[0]]
-        with self.assertRaisesRegex(common.ReleaseError, "not the key"):
+        with self.assertRaisesRegex(errors.ReleaseError, "not the key"):
             trust.load(json.dumps(doc).encode(), "1", trust.ROOT_KIND, SLUG)
 
     def test_a_key_listed_twice_in_a_role_is_refused(self):
@@ -195,7 +198,7 @@ class TrustTest(unittest.TestCase):
         doc = json.loads((self.root / "1.root.json").read_text())
         a = doc["roles"]["root"]["keyids"][0]
         doc["roles"]["root"]["keyids"] = [a, a]
-        with self.assertRaisesRegex(common.ReleaseError, "roles.root"):
+        with self.assertRaisesRegex(errors.ReleaseError, "roles.root"):
             trust.load(json.dumps(doc).encode(), "1", trust.ROOT_KIND, SLUG)
 
     def test_an_expiry_is_written_whole(self):
@@ -206,7 +209,7 @@ class TrustTest(unittest.TestCase):
                         "2028-01-05T00:00:00+02:00", "2028-01-05"):
             doc["expires"] = expires
             with self.subTest(expires), \
-                    self.assertRaisesRegex(common.ReleaseError, "UTC time"):
+                    self.assertRaisesRegex(errors.ReleaseError, "UTC time"):
                 trust.load(json.dumps(doc).encode(), "1", trust.ROOT_KIND,
                            SLUG)
 
@@ -222,7 +225,7 @@ class TrustTest(unittest.TestCase):
         root3 = self.walk()
         self.assertEqual(root3["version"], 3)
         self.assertIsNone(trust.check_unexpired(root3, "root 3"))
-        with self.assertRaisesRegex(common.ReleaseError, "expired"):
+        with self.assertRaisesRegex(errors.ReleaseError, "expired"):
             trust.check_unexpired(root2, "root 2")
 
     # --- the index-keys list --------------------------------------------
@@ -231,7 +234,7 @@ class TrustTest(unittest.TestCase):
         name = layout.index_keys_name(v)
         read = trust.read_dir(self.keys)
         return trust.accept_index_keys(root, read(name),
-                                       read(name + common.MINISIG), SLUG,
+                                       read(name + layout.MINISIG), SLUG,
                                        name, floor)
 
     def test_a_list_signed_by_another_key_than_g_is_refused(self):
@@ -239,7 +242,7 @@ class TrustTest(unittest.TestCase):
         path = self.keys / "2.json"
         minisig.sign(fixture_key("root-a")[0], path,
                      layout.index_keys_comment(SLUG, 2))
-        with self.assertRaisesRegex(common.ReleaseError,
+        with self.assertRaisesRegex(errors.ReleaseError,
                                     "not signed by root 3's"):
             self.accept_list(root3, 2)
 
@@ -247,19 +250,19 @@ class TrustTest(unittest.TestCase):
         root3 = self.walk()
         self.assertEqual(self.accept_list(root3, 2)["version"], 2)
         # List 1 was signed by g1, which root 3 replaced with g2.
-        with self.assertRaisesRegex(common.ReleaseError, "not signed by"):
+        with self.assertRaisesRegex(errors.ReleaseError, "not signed by"):
             self.accept_list(root3, 1)
 
     def test_a_list_older_than_the_floor_is_refused(self):
-        with self.assertRaisesRegex(common.ReleaseError, "older than 3"):
+        with self.assertRaisesRegex(errors.ReleaseError, "older than 3"):
             self.accept_list(self.walk(), 2, floor=3)
 
     def test_an_expired_list_is_refused_by_whoever_checks_it(self):
         keys = self.accept_list(self.walk(), 2)
         trust.check_unexpired(keys, "index-keys 2")
-        with self.assertRaisesRegex(common.ReleaseError, "expired"):
+        with self.assertRaisesRegex(errors.ReleaseError, "expired"):
             trust.check_unexpired(keys, "index-keys 2",
-                                  now=common.parse_iso(
+                                  now=formats.parse_iso(
                                       "2100-01-02T00:00:00Z"))
 
     # --- the commands ---------------------------------------------------
@@ -339,11 +342,11 @@ class TrustTest(unittest.TestCase):
 
     def test_rotate_never_writes_a_secret_into_the_repository(self):
         out = cli(*self.args(), "trust", "keys", "rotate", "--secret-out",
-                  str(common.ROOT / "index.key"), "-s",
+                  str(paths.ROOT / "index.key"), "-s",
                   str(fixture_key("g2")[0]), check=False)
         self.assertNotEqual(out.returncode, 0)
         self.assertIn("inside the repository", out.stderr)
-        self.assertFalse((common.ROOT / "index.key").exists())
+        self.assertFalse((paths.ROOT / "index.key").exists())
         self.assertEqual(trust.versions(self.keys), [1, 2])
 
     def test_a_list_g_did_not_sign_is_never_left_behind(self):
@@ -366,7 +369,7 @@ class TrustUpdateTest(unittest.TestCase):
         self.state = self.tmp / "state"
         (self.repo / "release").mkdir(parents=True)
         self.git("init", "-q", "-b", "main")
-        self.anchor = common.sha256_file(FIXTURE / "root" / "1.root.json")
+        self.anchor = files_mod.sha256_file(FIXTURE / "root" / "1.root.json")
 
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
