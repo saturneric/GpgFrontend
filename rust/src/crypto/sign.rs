@@ -365,13 +365,18 @@ where
         // MODE 2: DETACHED SIGNATURE (Buffered)
         // ---------------------------------------------------------
         GfrSignMode::Detached => {
-            let mut data = Vec::new();
-            input_stream.read_to_end(&mut data).record_err_with(|| {
-                crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInvalidInput)
-            })?;
-
             if parsed_keys.is_empty() {
                 return Err(GfrStatus::ErrorInvalidInput);
+            }
+
+            // One signer reads the input as it streams by; several each need
+            // all of it, so it is held in memory for them.
+            let streamed = parsed_keys.len() == 1;
+            let mut data = Vec::new();
+            if !streamed {
+                input_stream.read_to_end(&mut data).record_err_with(|| {
+                    crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInvalidInput)
+                })?;
             }
 
             let mut all_sigs = Vec::new();
@@ -385,20 +390,25 @@ where
                     let pwd = fetch_pwd_for_key(is_enc, &fpr)?;
                     selected_key.check_passphrase(&pwd)?;
 
+                    let source: &mut dyn Read = if streamed {
+                        &mut input_stream
+                    } else {
+                        &mut &*data
+                    };
                     let sig_res = match selected_key {
                         SelectedKey::Primary(k) => DetachedSignature::sign_binary_data(
                             &mut rng,
                             k,
                             &pwd,
                             HashAlgorithm::Sha512,
-                            &*data,
+                            source,
                         ),
                         SelectedKey::Sub(k) => DetachedSignature::sign_binary_data(
                             &mut rng,
                             k,
                             &pwd,
                             HashAlgorithm::Sha512,
-                            &*data,
+                            source,
                         ),
                     };
 
@@ -410,8 +420,12 @@ where
                         Err(e) => {
                             // The passphrase was checked already
                             // (`check_passphrase`): not a passphrase problem.
+                            // A streamed input may also have been cancelled.
                             set_last_error(&format!("signing failed for key {}: {}", fpr, e));
-                            Err(GfrStatus::ErrorInternal)
+                            Err(crate::cancel::status_or_canceled(
+                                channel,
+                                GfrStatus::ErrorInternal,
+                            ))
                         }
                     }
                 })?;

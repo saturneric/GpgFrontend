@@ -1087,6 +1087,53 @@ fn decrypt_archive_staged(
     })
 }
 
+/// Decrypt (and optionally verify) the ciphertext `input` into `output`, a
+/// pipe or any other writer that cannot take anything back.
+///
+/// Streamed like a file, so messages of any size decrypt in bounded memory,
+/// and staged like one: the plaintext goes to an anonymous temporary file and
+/// is copied to `output` only after decryption, integrity checking and every
+/// write have succeeded. `output` never sees a byte that was not
+/// authenticated. `ciphertext_len` sizes the guard against compression bombs
+/// (see [`Sink::Staged`]).
+#[allow(clippy::too_many_arguments)]
+pub fn decrypt_and_verify_stream_staged_internal<W>(
+    channel: i32,
+    input: File,
+    ciphertext_len: u64,
+    mut output: W,
+    ascii_armor: bool,
+    fetch_seckey_cb: Option<GfrSecretKeyFetchCb>,
+    fetch_pwd_cb: Option<GfrPasswordFetchCb>,
+    fetch_pubkey_cb: Option<GfrPublicKeyFetchCb>,
+    user_data: *mut c_void,
+) -> Result<DecryptAndVerifyStreamResultInternal, GfrStatus>
+where
+    W: Write + Send + Sync,
+{
+    // No name, so it disappears on every exit path, including a crash.
+    let mut stage = tempfile::tempfile()
+        .map_err(|e| stage_error("cannot create a temporary file for decryption", e))?;
+    let result = decrypt_message_stream(
+        channel,
+        input,
+        plain_stage_writer(&mut stage),
+        ascii_armor,
+        fetch_seckey_cb,
+        fetch_pwd_cb,
+        fetch_pubkey_cb,
+        user_data,
+        // Safe: nothing reaches `output` unless this returns `Ok`.
+        Sink::Staged { ciphertext_len },
+    )?;
+    stage
+        .seek(SeekFrom::Start(0))
+        .and_then(|_| std::io::copy(&mut stage, &mut output))
+        .and_then(|_| output.flush())
+        .map_err(|e| stage_error("cannot write the decrypted output", e))?;
+    Ok(result)
+}
+
 /// Decrypt (and optionally verify) a file into `out_file_path`.
 ///
 /// SEIPD v1 payloads are streamed, so files of any size decrypt in bounded
