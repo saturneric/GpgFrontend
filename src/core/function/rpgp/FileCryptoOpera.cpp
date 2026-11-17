@@ -91,9 +91,8 @@ auto EncryptFileRpgpImpl(OpenPGPContext& ctx_,
 
   auto is_directory = QFileInfo(in_path).isDir();
   if (is_directory) {
-    // For directory encryption, we need to create a tar archive in memory first
-    // and then pass it to the Rust FFI. The Rust FFI will handle the encryption
-    // of the tar archive.
+    // The Rust FFI packs the directory into a tar archive, spooled beside the
+    // output, and encrypts that.
     status = Rust::gfr_crypto_encrypt_directory(
         ctx_.GetChannel(), in_file_path_utf8.constData(),
         out_file_path_utf8.constData(), recipient_buffers.data(),
@@ -548,9 +547,8 @@ auto EncryptSymmetricFileRpgpImpl(OpenPGPContext& ctx_, const QString& in_path,
 
   auto is_directory = QFileInfo(in_path).isDir();
   if (is_directory) {
-    // For directory encryption, we need to create a tar archive in memory
-    // first and then pass it to the Rust FFI. The Rust FFI will handle the
-    // encryption of the tar archive.
+    // The Rust FFI packs the directory into a tar archive, spooled beside the
+    // output, and encrypts that.
     status = Rust::gfr_crypto_encrypt_directory_symmetric(
         ctx_.GetChannel(), in_file_path_utf8.constData(),
         out_file_path_utf8.constData(), ascii, FetchPasswordCallback,

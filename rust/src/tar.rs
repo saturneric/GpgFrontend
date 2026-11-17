@@ -36,13 +36,26 @@ use std::{
 
 use crate::{err::set_last_error, types::GfrStatus};
 
-/// Pack a directory into an anonymous temporary tar archive.
+/// Pack a directory into an anonymous temporary tar archive in the OS
+/// temporary directory. See [`build_tar_tempfile_in`].
+#[cfg(test)]
+pub fn build_tar_tempfile_from_directory(in_dir_path: &str) -> Result<(File, String), GfrStatus> {
+    build_tar_tempfile_in(in_dir_path, None)
+}
+
+/// Pack a directory into an anonymous temporary tar archive in `spool_dir`,
+/// or the OS temporary directory when it is `None`. The archive is as large
+/// as the directory, so an encryption spools it beside its output: the OS
+/// temporary directory may be RAM-backed (tmpfs) or small.
 ///
 /// Returns `(tempfile, filename_hint)` where `tempfile` is already seeked back
 /// to offset 0, ready for the caller to read. The temp file is deleted when
 /// the `File` handle is dropped. The `{}` inner scope around the builder
 /// ensures the tar trailer is flushed before the seek.
-pub fn build_tar_tempfile_from_directory(in_dir_path: &str) -> Result<(File, String), GfrStatus> {
+pub fn build_tar_tempfile_in(
+    in_dir_path: &str,
+    spool_dir: Option<&Path>,
+) -> Result<(File, String), GfrStatus> {
     let dir_path = Path::new(in_dir_path);
     if !dir_path.is_dir() {
         log::error!("Input path is not a directory: {}", in_dir_path);
@@ -56,7 +69,11 @@ pub fn build_tar_tempfile_from_directory(in_dir_path: &str) -> Result<(File, Str
         .to_string();
     let filename_hint = format!("{}.tar", dir_name);
 
-    let mut temp_archive = tempfile::tempfile().map_err(|e| {
+    let mut temp_archive = match spool_dir {
+        Some(dir) => tempfile::tempfile_in(dir),
+        None => tempfile::tempfile(),
+    }
+    .map_err(|e| {
         log::error!("Failed to create temp file for tar: {}", e);
         set_last_error(&e.to_string());
         GfrStatus::ErrorIo
@@ -230,6 +247,31 @@ mod tar_tests {
         // Only the "." root entry, or nothing at all -- either way it parses.
         let entries = entries_of(archive);
         assert!(entries.len() <= 1, "{entries:?}");
+    }
+
+    #[test]
+    fn an_archive_spools_in_the_directory_given() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        write(dir.path(), "hello.txt", b"world");
+        let spool = tempfile::tempdir().expect("spool dir");
+        let (archive, _hint) =
+            build_tar_tempfile_in(&dir.path().to_string_lossy(), Some(spool.path())).expect("pack");
+        let entries = entries_of(archive);
+        assert!(
+            entries.iter().any(|e| e.ends_with("hello.txt")),
+            "{entries:?}"
+        );
+        assert_eq!(
+            std::fs::read_dir(spool.path()).expect("list").count(),
+            0,
+            "the spool leaves nothing behind"
+        );
+        let missing = spool.path().join("missing");
+        assert_eq!(
+            build_tar_tempfile_in(&dir.path().to_string_lossy(), Some(&missing)).err(),
+            Some(GfrStatus::ErrorIo),
+            "a spool directory that cannot be used is an error, not a silent fallback"
+        );
     }
 
     #[test]

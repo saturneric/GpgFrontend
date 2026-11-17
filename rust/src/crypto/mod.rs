@@ -43,7 +43,7 @@ pub(crate) use crate::key::KeyVerdict;
 pub(crate) use crate::{
     cache::{PASSWORD_CACHE, PasswordCachePolicy},
     err::{IntoGfrResult, RecordErr, set_last_error},
-    tar::build_tar_tempfile_from_directory,
+    tar::build_tar_tempfile_in,
     types::{
         GfrPasswordFetchCb, GfrPublicKeyFetchCb, GfrRecipientStatus, GfrSecretKeyFetchCb,
         GfrSignMode, GfrSignatureStatus, GfrStatus,
@@ -1455,6 +1455,12 @@ pub(crate) fn stage_output_file(out_file_path: &str) -> Result<staging::StagedFi
         set_last_error(&format!("cannot create the output file: {e}"));
         GfrStatus::ErrorIo
     })
+}
+
+/// Where a large temporary file for the output `out_file_path` goes: beside
+/// it, as its stage does, not in a temporary directory that may be in RAM.
+pub(crate) fn spool_dir_for(out_file_path: &str) -> &Path {
+    staging::stage_dir_for(Path::new(out_file_path))
 }
 
 /// Move a finished output stage into place.

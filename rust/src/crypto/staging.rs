@@ -57,7 +57,7 @@ use tempfile::{NamedTempFile, TempDir};
 
 /// The directory a stage for `dest` lives in: `dest`'s parent, so the commit
 /// is a same-filesystem rename.
-fn stage_dir_for(dest: &Path) -> &Path {
+pub(crate) fn stage_dir_for(dest: &Path) -> &Path {
     match dest.parent() {
         Some(dir) if !dir.as_os_str().is_empty() => dir,
         _ => Path::new("."),

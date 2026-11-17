@@ -169,7 +169,8 @@ pub fn encrypt_directory_internal(
     public_key_blocks: &[&str],
     ascii_armor: bool,
 ) -> Result<EncryptStreamResultInternal, crate::types::GfrStatus> {
-    let (temp_archive, filename_hint) = build_tar_tempfile_from_directory(in_dir_path)?;
+    let (temp_archive, filename_hint) =
+        build_tar_tempfile_in(in_dir_path, Some(spool_dir_for(out_file_path)))?;
     let mut stage = stage_output_file(out_file_path)?;
 
     log::info!("Encrypting tar archive...");
@@ -937,7 +938,8 @@ pub fn encrypt_and_sign_directory_internal(
     ascii_armor: bool,
 ) -> Result<EncryptAndSignResultInternal, crate::types::GfrStatus> {
     require_signers(secret_key_blocks)?;
-    let (temp_archive, filename_hint) = build_tar_tempfile_from_directory(in_dir_path)?;
+    let (temp_archive, filename_hint) =
+        build_tar_tempfile_in(in_dir_path, Some(spool_dir_for(out_file_path)))?;
     let mut stage = stage_output_file(out_file_path)?;
 
     log::info!("Encrypting and signing tar archive...");
@@ -1042,7 +1044,8 @@ pub fn encrypt_directory_with_password_internal(
     fetch_pwd_cb: Option<GfrPasswordFetchCb>,
     ascii_armor: bool,
 ) -> Result<SymmetricEncryptStreamResultInternal, crate::types::GfrStatus> {
-    let (temp_archive, filename_hint) = build_tar_tempfile_from_directory(in_dir_path)?;
+    let (temp_archive, filename_hint) =
+        build_tar_tempfile_in(in_dir_path, Some(spool_dir_for(out_file_path)))?;
     let mut stage = stage_output_file(out_file_path)?;
 
     log::info!("Encrypting tar archive...");
