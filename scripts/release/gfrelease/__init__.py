@@ -16,8 +16,10 @@ the rules after each layer.
              in the stores, the host's state and a stage's work, and what
              each signature says it signs), formats (JSON, times,
              versions), limits (what clients hold to as well), manifest (a
-             candidate's SHA256SUMS.txt), descriptor (release.json), and
-             index_model (what the index says of what was admitted).
+             candidate's SHA256SUMS.txt), descriptor (release.json),
+             index_model (what the index says of what was admitted),
+             release_notes and github_release (a stable release as its
+             GitHub release shows it).
              Runs no tool, prints nothing, reads no environment.
 
   adapters/  one outside thing each: process (running a tool), files,
