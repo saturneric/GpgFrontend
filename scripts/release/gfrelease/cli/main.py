@@ -19,9 +19,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
-import datetime as dt
 import difflib
-import getpass
 import io
 import os
 import re
@@ -29,31 +27,21 @@ import sys
 import textwrap
 from pathlib import Path
 
-from ..adapters import git as gitversion_mod
-from ..adapters import minisig, process
-from ..adapters.clock import utcnow
-from ..adapters.files import atomic_write
-from ..adapters.process import WINDOWS, run
-from ..adapters.store import Store  # noqa: E402
-from ..adapters.windows import authenticode
-from ..app import candidate as candidate_mod
-from ..app import check_order as check_order_mod
+from ..adapters import process
+from ..adapters.process import run
+from ..adapters.store import Store
 from ..app import doctor as doctor_mod
-from ..app import imported as imported_mod
 from ..app import stable as stable_mod
-from ..app import stage as stage_mod
-from ..app import trust, trust_admin, views
-from ..app import verify as verify_mod
+from ..app import views
 from ..app.product import Product
-from ..domain import layout
-from ..domain import policy as policy_mod
-from ..domain.formats import parse_iso
-from ..domain.layout import MINISIG
 from ..errors import ReleaseError
 from ..paths import PRODUCT_FILE, ROOT
 from . import host as host_mod
 from . import settings as settings_mod
-from . import topics, ui
+from . import ui
+from .commands import inspect, publish, release, setup
+from .commands import trust as trust_cmd
+from .forwarded import forwarded
 
 # What every option says, and what its value looks like.
 OPTIONS = {
@@ -100,19 +88,12 @@ OPTIONS = {
                       "monitor's early warning that the signing host "
                       "stopped)", "DAYS"),
 }
+
+
 GLOBAL = ("product", "policy", "rclone", "root_dir", "index_keys_dir",
           "root_sha256")
-# What each command cannot do without, checked before it starts.
-REQUIRED = {
-    "stage": ("candidate", "staging", "ref", "commit", "version", "filesafe",
-              "built_at"),
-    "stable": ("work",),
-    "import": ("work", "git_dir"),
-    "promote": ("builds", "state_dir", "staging", "git_dir"),
-    "index": ("builds", "state_dir", "update", "index_key", "index_pub"),
-    "resign": ("builds", "state_dir", "update", "index_key", "index_pub"),
-    "trust update": ("git_dir", "state_dir", "root_dir", "index_keys_dir"),
-}
+
+
 # The command list of `gfrelease --help`, by who runs what.
 GROUPS = (
     ("Anyone", (
@@ -140,15 +121,11 @@ GROUPS = (
         ("config", "show | init: settings and where they come from"),
         ("completion", "bash | zsh: shell completion"))),
 )
-# Commands with a command line of their own, given everything after their
-# name: they need no product, settings or store.
-FORWARDED = {
-    "policy": lambda argv: policy_mod.main(argv),
-    "candidate": lambda argv: candidate_mod.main(argv),
-    "ci check-order": lambda argv: check_order_mod.main(argv),
-    "ci version": lambda argv: gitversion_mod.main(argv),
-}
+
+
 OPT_NAMES: set[str] = set()
+
+
 LEAVES: list = []
 
 
@@ -193,8 +170,6 @@ def tool_version() -> str:
     except ReleaseError:
         return "unknown"
 
-
-# --- building the command line ---------------------------------------------
 
 def opt(p, name, settings=None, help=None, repeated=False):
     """--name, unset unless given: its value comes from the environment, the
@@ -283,21 +258,21 @@ def add_root_commands(sub, settings):
     leaf(rsub, "new", settings, "write the next root: the newest one, one "
          "version up, expiring in two years; edit it by hand for anything "
          "else", example="trust root new", key="trust root new",
-         handler=cmd_root_new)
+         handler=trust_cmd.cmd_root_new)
     p = leaf(rsub, "sign", settings, "add one root key's signature",
              example="trust root sign release/root/4.root.json -s root1.key",
-             key="trust root sign", handler=cmd_root_sign)
+             key="trust root sign", handler=trust_cmd.cmd_root_sign)
     p.add_argument("file", metavar="FILE", help="<N>.root.json")
     p.add_argument("-s", dest="secret", required=True, metavar="SECRET",
                    help="that root key's minisign secret key")
     leaf(rsub, "status", settings, "which root keys signed the newest root, "
          "against both thresholds, and who is missing",
          example="trust root status", key="trust root status",
-         handler=cmd_root_status)
+         handler=trust_cmd.cmd_root_status)
     p = leaf(rsub, "verify", settings, "walk release/root/, check "
              "release/index-keys/, say when each expires",
              example="trust root verify", key="trust root verify",
-             handler=cmd_root_verify)
+             handler=trust_cmd.cmd_root_verify)
     p.add_argument("--from", dest="first", type=int, default=1, metavar="N",
                    help="trust this root on its own signatures, walk on")
 
@@ -309,12 +284,12 @@ def add_keys_commands(sub, settings):
     kr = leaf(ksub, "renew", settings, "the same keys, one version up, "
               "expiring in a year, signed with G",
               example="trust keys renew -s <(bw get notes G)",
-              key="trust keys renew", handler=cmd_keys)
+              key="trust keys renew", handler=trust_cmd.cmd_keys)
     ko = leaf(ksub, "rotate", settings, "a new index key, listed in the next "
               "version, signed with G",
               example="trust keys rotate --secret-out ~/index.key --keep-old "
               "-s <(bw get notes G)", key="trust keys rotate",
-              handler=cmd_keys)
+              handler=trust_cmd.cmd_keys)
     ko.add_argument("--secret-out", required=True, metavar="FILE",
                     help="where the new index key's secret goes (never "
                     "inside the repository)")
@@ -342,7 +317,7 @@ def build_parser(settings=None) -> argparse.ArgumentParser:
              "Checks the published index the way a client does, and further: "
              "its signature and trust, every descriptor and manifest it "
              "names, and with --deep every artifact.",
-             "verify --deep", handler=cmd_verify)
+             "verify --deep", handler=inspect.cmd_verify)
     opt(p, "update", settings, "the index store (default: the HTTPS bases)")
     opt(p, "builds", settings, "the artifact store (default: the HTTPS "
         "bases)")
@@ -353,13 +328,13 @@ def build_parser(settings=None) -> argparse.ArgumentParser:
 
     p = leaf(sub, "show", settings, "the published index: channels, series, "
              "releases", views.__doc__.split("\n\n")[1], "show",
-             handler=cmd_show)
+             handler=inspect.cmd_show)
     opt(p, "update", settings, "the index store (default: the HTTPS bases)")
     opt(p, "cafile", settings)
 
     p = leaf(sub, "status", settings, "where a release (or everything) "
              "stands, and what to do next", views.__doc__.split("\n\n")[1],
-             "status 2.3.0", handler=cmd_status)
+             "status 2.3.0", handler=inspect.cmd_status)
     p.add_argument("release", nargs="?", metavar="VERSION",
                    help="X.Y.Z, or a nightly's or beta's version")
     for name in ("update", "builds", "staging", "work", "git_dir", "cafile"):
@@ -367,7 +342,7 @@ def build_parser(settings=None) -> argparse.ArgumentParser:
 
     p = leaf(sub, "doctor", settings, "check this machine can do its part",
              doctor_mod.__doc__.split("\n\n")[1], "doctor --for maintainer",
-             handler=cmd_doctor)
+             handler=inspect.cmd_doctor)
     p.add_argument("--for", dest="role", choices=doctor_mod.ROLES,
                    default="maintainer", help="whose part (default: "
                    "maintainer)")
@@ -378,7 +353,7 @@ def build_parser(settings=None) -> argparse.ArgumentParser:
         opt(p, name, settings)
 
     p = leaf(sub, "help", settings, "walkthroughs: stable, root-ceremony, "
-             "config, ...", example="help stable", handler=cmd_help,
+             "config, ...", example="help stable", handler=setup.cmd_help,
              product=False)
     p.add_argument("topic", nargs="?", metavar="TOPIC",
                    help="a topic, or a command")
@@ -389,7 +364,7 @@ def build_parser(settings=None) -> argparse.ArgumentParser:
              "(gfrelease help stable): fetch, verify, authenticode, pgp, "
              "upload. Each step is recorded and skipped once done, so a "
              "stage stopped anywhere resumes where it stopped.",
-             "stable 2.3.0", handler=cmd_stable)
+             "stable 2.3.0", handler=release.cmd_stable)
     p.add_argument("version", metavar="VERSION",
                    help="X.Y.Z, its tag vX.Y.Z already pushed")
     for name in ("work", "staging", "git_dir", "cosign", "key",
@@ -416,7 +391,7 @@ def build_parser(settings=None) -> argparse.ArgumentParser:
              "before this pipeline over: downloaded, its maintainer "
              "signatures checked, handed to the signing host through the "
              "staging store.",
-             "import 2.1.4", handler=cmd_import)
+             "import 2.1.4", handler=release.cmd_import)
     p.add_argument("versions", nargs="+", metavar="VERSION",
                    help="X.Y.Z, each a published GitHub release")
     opt(p, "work", settings, "where the downloads are kept")
@@ -440,7 +415,7 @@ def build_parser(settings=None) -> argparse.ArgumentParser:
     p = leaf(tsub, "update", settings, "take main's next roots and "
              "index-keys list into --root-dir and --index-keys-dir, as far "
              "as they hold", example="trust update", key="trust update",
-             handler=cmd_trust_update)
+             handler=trust_cmd.cmd_trust_update)
     opt(p, "git_dir", settings, "this product's git mirror (may be bare)")
     opt(p, "state_dir", settings, "where the lock lives")
 
@@ -448,7 +423,7 @@ def build_parser(settings=None) -> argparse.ArgumentParser:
     p = leaf(sub, "stage", settings, "upload a release candidate (CI)",
              example="stage --candidate out/ --staging r2:staging --ref "
              "refs/heads/main --commit <sha> --version <v> --filesafe <v> "
-             "--built-at <time>", handler=cmd_stage)
+             "--built-at <time>", handler=publish.cmd_stage)
     for name in ("candidate", "staging", "ref", "commit", "version",
                  "filesafe", "built_at"):
         opt(p, name, settings)
@@ -466,7 +441,7 @@ def build_parser(settings=None) -> argparse.ArgumentParser:
              "expiry", "Publishes the index again whatever changed: a new "
              "serial and expiry.")):
         p = leaf(sub, name, settings, help, description, name,
-                 handler=cmd_host)
+                 handler=publish.cmd_host)
         for o in ("staging", "builds", "update", "git_dir", "index_key",
                   "index_pub", "state_dir", "cosign", "authenticode_ca"):
             opt(p, o, settings)
@@ -479,14 +454,14 @@ def build_parser(settings=None) -> argparse.ArgumentParser:
     # Setup.
     p = leaf(sub, "config", settings, "show | init: settings and where they "
              "come from", settings_mod.__doc__.split("\n\n")[0],
-             "config show", handler=cmd_config, product=False)
+             "config show", handler=setup.cmd_config, product=False)
     p.add_argument("action", choices=("show", "init"))
     p.add_argument("--here", action="store_true",
                    help="init: ./gfrelease.toml instead of the user's")
     p = leaf(sub, "completion", settings, "bash | zsh: shell completion",
              "Prints a completion script: add `source <(scripts/gfrelease "
              "completion bash)` to ~/.bashrc, or the zsh one to ~/.zshrc.",
-             "completion bash", handler=cmd_completion, product=False)
+             "completion bash", handler=setup.cmd_completion, product=False)
     p.add_argument("shell", choices=("bash", "zsh"))
 
     for p in LEAVES:
@@ -495,13 +470,27 @@ def build_parser(settings=None) -> argparse.ArgumentParser:
     return ap
 
 
-# --- running it --------------------------------------------------------------
+# What each command cannot do without, checked before it starts.
+REQUIRED = {
+    "stage": ("candidate", "staging", "ref", "commit", "version", "filesafe",
+              "built_at"),
+    "stable": ("work",),
+    "import": ("work", "git_dir"),
+    "promote": ("builds", "state_dir", "staging", "git_dir"),
+    "index": ("builds", "state_dir", "update", "index_key", "index_pub"),
+    "resign": ("builds", "state_dir", "update", "index_key", "index_pub"),
+    "trust update": ("git_dir", "state_dir", "root_dir", "index_keys_dir"),
+}
+
 
 class Context:
     def __init__(self, args, product, settings):
         self.args, self.product, self.settings = args, product, settings
         self.rclone = args.rclone or "rclone"
         self.result = None  # what --json prints
+        # The command line itself, for the commands that read it
+        # (help, completion).
+        self.build_parser = build_parser
 
     def store(self, root):
         return Store(root, self.rclone) if root else None
@@ -534,19 +523,6 @@ def check_required(args) -> None:
                       (f", or [{group[n]}] {n} in gfrelease.toml"
                        if n in group else "") for n in missing) +
             "\n" + args.parser.format_usage().strip())
-
-
-def forwarded(argv: list[str]):
-    """The forwarded command @p argv starts with, and the rest of it."""
-    for words in (2, 1):
-        name = " ".join(argv[:words])
-        if len(argv) >= words and name in FORWARDED:
-            return FORWARDED[name], argv[words:]
-    if argv[:1] == ["ci"]:
-        print("usage: gfrelease ci {check-order,version} ...",
-              file=sys.stderr)
-        return None, None
-    return None, argv
 
 
 def main(argv=None) -> int:
@@ -592,484 +568,3 @@ def main(argv=None) -> int:
         # traceback.
         ui.error(f"malformed input ({type(e).__name__}: {e})")
         return host_mod.FAILED
-
-
-# --- the commands ------------------------------------------------------------
-
-def sources(ctx):
-    """The update and builds stores, or the HTTPS bases a client reads."""
-    args, product = ctx.args, ctx.product
-    bases = product.data["bases"]
-    update = getattr(args, "update", None)
-    builds = getattr(args, "builds", None)
-    cafile = getattr(args, "cafile", None)
-    return (Store(update, ctx.rclone) if update else
-            verify_mod.HttpSource(bases["update"], product.slug, cafile),
-            Store(builds, ctx.rclone) if builds else
-            verify_mod.HttpSource(bases["builds"], product.slug, cafile))
-
-
-def cmd_verify(ctx) -> int:
-    args = ctx.args
-    if bool(getattr(args, "update", None)) != \
-            bool(getattr(args, "builds", None)):
-        raise ReleaseError("give both --update and --builds, or neither "
-                           "(the HTTPS bases)")
-    update, builds = sources(ctx)
-    report = verify_mod.verify(ctx.product, update, builds, deep=args.deep)
-    ctx.result = report
-    left = parse_iso(report["expires"]) - utcnow()
-    ui.info(f"index serial {report['serial']} of {report['product']} "
-            f"verifies; expires {report['expires']} (in "
-            f"{left.total_seconds() / 86400:.1f} days)")
-    for line in views.channel_lines(report["channels"]):
-        ui.info(line)
-    ui.info(f"checked {len(report['checked'])}"
-            f"{' deeply' if args.deep else ''}:")
-    for c in report["checked"]:
-        ui.info(f"  ✓ {c.get('version')} ({c.get('kind')}, "
-                f"{c.get('artifacts')} files)")
-    if getattr(args, "min_days_left", None) and \
-            left < dt.timedelta(days=float(args.min_days_left)):
-        raise ReleaseError(f"the index expires at {report['expires']}, in "
-                           f"{left}: the signing host has not re-signed it")
-    return 0
-
-
-def cmd_show(ctx) -> int:
-    update, _ = sources(ctx)
-    view = views.show(ctx.product, update)
-    ctx.result = view
-    for line in views.render_show(view):
-        ui.info(line)
-    nxt = views.show_next(view)
-    if nxt:
-        ui.next_step(nxt)
-    return 0
-
-
-def cmd_status(ctx) -> int:
-    args = ctx.args
-    update, builds = sources(ctx)
-    staging = ctx.store(getattr(args, "staging", None))
-    if args.release:
-        view = views.status(ctx.product, args.release, update=update,
-                            builds=builds, staging=staging, work=args.work,
-                            git_dir=args.git_dir)
-        lines = views.render_status(view)
-    else:
-        view = views.overview(ctx.product, update=update, builds=builds,
-                              staging=staging)
-        lines = views.render_overview(view)
-    ctx.result = view
-    for line in lines:
-        ui.info(line)
-    if view.get("next"):
-        ui.next_step(view["next"])
-    return 0
-
-
-def cmd_doctor(ctx) -> int:
-    checks = doctor_mod.Doctor(ctx.args, ctx.product, ctx.args.role).run()
-    ctx.result = {"role": ctx.args.role, "checks": checks}
-    for line in doctor_mod.render(checks):
-        ui.info(line)
-    return 0 if all(c["ok"] for c in checks) else host_mod.FAILED
-
-
-def cmd_help(ctx) -> int:
-    topic = ctx.args.topic
-    if not topic:
-        for line in topics.listing():
-            ui.info(line)
-        ui.info("\nCommands: gfrelease --help; one command: gfrelease "
-                "COMMAND --help.")
-        return 0
-    if topic in topics.TOPICS:
-        ui.info(topics.text(topic))
-        return 0
-    # A command: its own --help, or argparse's error (exit 2) for none.
-    tool, _ = forwarded(topic.split())
-    if tool is not None:
-        try:
-            return tool(["--help"])
-        except SystemExit as e:
-            return e.code or 0
-    try:
-        build_parser(ctx.settings).parse_args([*topic.split(), "--help"])
-    except SystemExit as e:
-        return e.code or 0
-    return 0
-
-
-def cmd_config(ctx) -> int:
-    if ctx.args.action == "init":
-        path = Path.cwd() / "gfrelease.toml" if ctx.args.here else \
-            settings_mod.default_config_path()
-        if path.exists():
-            raise ReleaseError(f"{path} exists; edit it, or remove it first")
-        path.parent.mkdir(parents=True, exist_ok=True)
-        atomic_write(path, settings_mod.TEMPLATE.encode())
-        ctx.result = {"written": str(path)}
-        ui.info(f"{path}: written")
-        ui.next_step("fill it in, then `gfrelease config show`")
-        return 0
-    s = ctx.settings
-    rows = {}
-    for name in sorted(settings_mod.KNOWN):
-        value, source = s.lookup(name)
-        rows[name] = {"value": value, "from": source}
-    ctx.result = {"config": str(s.path) if s.path else None,
-                  "settings": rows}
-    ui.info(f"config file: {s.path or 'none'}")
-    width = max(map(len, rows))
-    for name, row in rows.items():
-        if row["value"] is None:
-            ui.info(f"  {name:<{width}}  -")
-        else:
-            ui.info(f"  {name:<{width}}  {row['value']}  ({row['from']})")
-    return 0
-
-
-def cmd_completion(ctx) -> int:
-    print(completion(build_parser(), ctx.args.shell))
-    return 0
-
-
-def cmd_stage(ctx) -> int:
-    args = ctx.args
-    prefix = stage_mod.stage(
-        ctx.product, Path(args.candidate), ctx.store(args.staging),
-        ref=args.ref, commit=args.commit, version=args.version,
-        filesafe=args.filesafe, built_at=args.built_at)
-    ctx.result = {"staged": prefix}
-    ui.info(f"staged {prefix}")
-    if prefix.startswith(f"{layout.TAGS}/"):
-        ui.next_step(f"the maintainer runs `gfrelease stable {args.version}`")
-    else:
-        ui.next_step("the signing host promotes it on its next round")
-    return 0
-
-
-def cmd_stable(ctx) -> int:
-    args, product = ctx.args, ctx.product
-    signer = None
-    if args.authenticode_thumbprint:
-        if not WINDOWS:
-            raise ReleaseError("--authenticode-thumbprint names a "
-                               "certificate of the Windows store; here it "
-                               "is --authenticode-cert and -key")
-        # No PIN is asked here: the card's own software does, once for the
-        # programs and once for the packages.
-        signer = authenticode.SigntoolSigner(
-            args.authenticode_thumbprint, args.signtool or "",
-            args.timestamp_url or "")
-    elif args.authenticode_cert and args.authenticode_key:
-        token = bool(args.pkcs11_module)
-        signer = authenticode.Signer(
-            args.authenticode_cert, args.authenticode_key,
-            args.pkcs11_module or "", args.timestamp_url or "",
-            # One PIN for every program signed, asked at the first.
-            ask_pin=(lambda: getpass.getpass(
-                "PIN of the Authenticode token (empty: the token asks): "))
-            if token and sys.stdin.isatty() else None)
-    stage = stable_mod.Stage(
-        product, args.version, Path(args.work),
-        staging=ctx.store(args.staging),
-        git_dir=Path(args.git_dir) if args.git_dir else None,
-        cosign=args.cosign or "cosign", key=args.key,
-        gnupghome=args.gnupghome, signer=signer,
-        authenticode_ca=args.authenticode_ca,
-        on_signed=lambda name, n, total, path:
-        ui.info(f"  {name}: [{n}/{total}] {path or 'the package itself'}"))
-    if args.notes_only:
-        digest = stage.publish_notes()
-        ctx.result = {"version": args.version, "notes": digest}
-        ui.info(f"{args.version}: notes {digest} handed over")
-        ui.next_step(f"the signing host publishes them on its next round "
-                     f"(`gfrelease status {args.version}`)")
-        return 0
-    if args.msix:
-        descriptor = stage.add_msix()
-        added = [a["name"] for a in descriptor["artifacts"]
-                 if a["transform"] == "msix"]
-        ctx.result = {"version": args.version, "added": added}
-        ui.info(f"{args.version}: {', '.join(added)} handed over")
-        ui.next_step(f"the signing host adds it to the release on its next "
-                     f"round (`gfrelease status {args.version}`)")
-        return 0
-
-    total = len(stable_mod.STEPS)
-    ask = not args.yes and not ui.JSON and sys.stdin.isatty() and \
-        not args.dry_run
-    ui.info(f"{args.version}: {' → '.join(stable_mod.STEPS)}"
-            f"{' (dry run: until verify)' if args.dry_run else ''}")
-
-    def on_step(step, number, done_before):
-        ui.info(f"[{number}/{total}] {step}"
-                f"{' (done before)' if done_before else ''}")
-        if step == "upload" and not done_before and ask:
-            try:
-                answer = input(f"Hand {args.version} to the signing host "
-                               f"(upload to {args.staging})? Once it has "
-                               "published it, it is never replaced. [y/N] ")
-            except EOFError:
-                # Windows calls NUL a terminal too: nobody there is a No.
-                answer = ""
-            if answer.strip().lower() not in ("y", "yes"):
-                raise ReleaseError(f"stopped before the upload: nothing of "
-                                   f"{args.version} was published; run "
-                                   "again to go on")
-
-    descriptor = stage.run(args.redo, until="verify" if args.dry_run
-                           else None, on_step=on_step)
-    ctx.result = {"version": args.version,
-                  "done": stage.state.get("done", []),
-                  "published": descriptor["sums"].rsplit("/", 1)[0]
-                  if descriptor else None}
-    if args.dry_run:
-        ui.info(f"{args.version}: fetched and verified; nothing signed or "
-                "uploaded")
-        ui.next_step(f"gfrelease stable {args.version}")
-    elif descriptor:
-        ui.info(f"{args.version}: handed to the signing host as "
-                f"{descriptor['sums'].rsplit('/', 1)[0]}")
-        kinds = {a["kind"] for a in descriptor["artifacts"]}
-        if "msi" in kinds and "msix" not in kinds:
-            ui.info(f"{args.version}: without an MSIX, which only Windows "
-                    f"packs (there: gfrelease stable {args.version} --msix)")
-        ui.next_step(f"the signing host receives and lists it on its next "
-                     f"round: `gfrelease status {args.version}`")
-    else:
-        ui.info(f"{args.version}: done")
-    return 0
-
-
-def cmd_import(ctx) -> int:
-    args = ctx.args
-    staging = ctx.store(args.staging)
-    done = []
-    for version in args.versions:
-        job = imported_mod.Import(ctx.product, version, Path(args.work),
-                                  staging=staging, git_dir=Path(args.git_dir))
-        d = job.run()
-        done.append({"version": version, "files": len(d["artifacts"]),
-                     "signed_by": d["signing"]["fingerprint"],
-                     "left_out": list(job.skipped),
-                     "uploaded": bool(staging)})
-        ui.info(f"{version}: {len(d['artifacts'])} files, signed by "
-                f"{d['signing']['fingerprint']}"
-                + (f", handed over as releases/{version}/" if staging
-                   else " (checked only, nothing uploaded)"))
-        for skipped in job.skipped:
-            ui.info(f"  left out: {skipped}")
-    ctx.result = {"imported": done}
-    if staging:
-        ui.next_step("the signing host receives and lists them on its next "
-                     "round")
-    else:
-        ui.next_step("run again with --staging to hand them over")
-    return 0
-
-
-def report_trust(root: dict, keys: dict) -> None:
-    for doc, what in ((root, f"root {root['version']}"),
-                      (keys, f"index-keys {keys['version']}")):
-        ui.info(f"{what}: expires {doc['expires']}, in "
-                f"{trust.days_left(doc):.0f} days")
-
-
-def trust_next(root: dict, keys: dict) -> None:
-    """A next: line when the root or the list should be renewed soon."""
-    due = trust_admin.renewal_due(root, keys)
-    if due == "root":
-        ui.next_step("renew the root: gfrelease trust root new (gfrelease "
-                     "help root-ceremony)")
-    elif due == "index_keys":
-        ui.next_step("renew the index-keys list: gfrelease trust keys renew")
-
-
-def cmd_root_new(ctx) -> int:
-    path, nxt, root = trust_admin.new_root(ctx.product)
-    threshold = root["roles"]["root"]["threshold"]
-    ctx.result = {"written": str(path), "version": nxt["version"]}
-    ui.info(f"{path}: written; edit it by hand if anything else changes")
-    ui.next_step(f"{threshold} of root {root['version']}'s keys and as many "
-                 f"of its own sign it: gfrelease trust root sign {path} -s "
-                 "<root key> (`gfrelease trust root status` shows who has)")
-    return 0
-
-
-def cmd_root_sign(ctx) -> int:
-    key_id = trust_admin.sign_root(Path(ctx.args.file), ctx.args.secret)
-    ui.info(f"{ctx.args.file}: signed by {key_id}")
-    ctx.result = {"file": ctx.args.file, "signed_by": key_id}
-    try:
-        view = views.root_status(Path(ctx.args.file).parent,
-                                 ctx.product.slug)
-    except ReleaseError:
-        return 0
-    nxt = views.root_status_next(view)
-    if view["file"] == str(Path(ctx.args.file)) and nxt:
-        ui.next_step(nxt)
-    return 0
-
-
-def cmd_root_status(ctx) -> int:
-    view = views.root_status(ctx.product.root_dir, ctx.product.slug)
-    ctx.result = view
-    for line in views.render_root_status(view):
-        ui.info(line)
-    nxt = views.root_status_next(view)
-    if nxt:
-        ui.next_step(nxt)
-    return 0
-
-
-def cmd_root_verify(ctx) -> int:
-    product = ctx.product
-    root, keys = trust.load_trust(product.root_dir, product.index_keys_dir,
-                                  product.slug, first=ctx.args.first)
-    ctx.result = trust_admin.summary(root, keys)
-    report_trust(root, keys)
-    trust.check_unexpired(root, f"root {root['version']}")
-    trust.check_unexpired(keys, f"index-keys {keys['version']}")
-    trust_next(root, keys)
-    return 0
-
-
-def cmd_keys(ctx) -> int:
-    args = ctx.args
-    done = trust_admin.renew_index_keys(
-        ctx.product, args.secret,
-        secret_out=args.secret_out if args.action == "rotate" else None,
-        keep_old=getattr(args, "keep_old", False))
-    path, new_key, secret = done["path"], done["new_key"], done["secret"]
-    ctx.result = {"written": str(path), "expires": done["expires"],
-                  "new_key": new_key}
-    ui.info(f"{path}: written and signed, expires {done['expires']}")
-    if new_key is None:
-        ui.next_step(f"commit {path} and its {MINISIG}")
-        return 0
-    ui.info(f"new index key {minisig.key_id(new_key)}: {new_key}\n"
-            f"  its secret is {secret}, made without a password (minisign "
-            "-W):\n  the signing host uses it unattended. Keep it as a "
-            "secret, nowhere else.")
-    if args.keep_old:
-        ui.next_step("commit the list; then, in any order, install the new "
-                     "secret on the host as index.key, and later list only "
-                     "the new key (rotate again without --keep-old, or edit "
-                     "and sign)")
-    else:
-        ui.next_step("the host signs with a listed key only. Install the new "
-                     "secret on the host as index.key and commit the list "
-                     "together: until both are done the host refuses to sign "
-                     "(the old index stays valid until it expires)")
-    return 0
-
-
-def cmd_trust_update(ctx) -> int:
-    args, product = ctx.args, ctx.product
-    root, keys, problems = trust_admin.update_from_git(
-        product, Path(args.git_dir), Path(args.state_dir))
-    ctx.result = dict(trust_admin.summary(root, keys),
-                      problems=list(problems))
-    report_trust(root, keys)
-    for problem in problems:
-        ui.warn(problem)
-    trust_next(root, keys)
-    return host_mod.PARTIAL if problems else host_mod.DONE
-
-
-def cmd_host(ctx) -> int:
-    """promote, index and resign: the signing host's commands."""
-    args, product = ctx.args, ctx.product
-    command = args.key
-    dry = getattr(args, "dry_run", False)
-    if command != "promote":
-        product.check_host_keys(minisig.public_key(args.index_pub))
-
-    def path(value):
-        return Path(value) if value else None
-
-    host = host_mod.Host(
-        product, ctx.store(args.builds), Path(args.state_dir),
-        staging=ctx.store(args.staging), update=ctx.store(args.update),
-        git_dir=path(args.git_dir), index_key=path(args.index_key),
-        # Every listed index key: what a client accepts.
-        index_pub=product.index_keys,
-        cosign=args.cosign or "cosign", authenticode_ca=args.authenticode_ca)
-    if dry:
-        report = host.dry_run()
-        ctx.result = report
-        render_dry_run(report)
-        # Ran to its end and would refuse something: as an index run that
-        # refuses something ends.
-        return host_mod.PARTIAL if report["refused"] else host_mod.DONE
-    if command == "promote":
-        status = host.promote()
-    else:
-        status = host.index(force=command == "resign" or args.force)
-    ctx.result = dict(host.report, status={
-        host_mod.DONE: "done", host_mod.PARTIAL: "partial",
-        host_mod.FAILED: "failed"}[status])
-    return status
-
-
-def render_dry_run(report: dict) -> None:
-    ui.info("would list:")
-    for line in views.channel_lines(report["channels"]):
-        ui.info(line)
-    for key, version in sorted(report.get("betas", {}).items()):
-        ui.info(f"  beta of {key}: {version}")
-    ui.info(f"  releases {', '.join(report['releases']) or '-'}")
-    if report["added"] or report["removed"]:
-        ui.info(f"against the published index: added "
-                f"{', '.join(report['added']) or '-'}; removed "
-                f"{', '.join(report['removed']) or '-'}")
-    ui.info(f"changes: {', '.join(report['changes']) or 'none'}")
-    for refused in report["refused"]:
-        ui.warn(f"would refuse: {refused}")
-
-
-# --- shell completion --------------------------------------------------------
-
-def _commands(parser, path=()):
-    """(path, options) of every command of @p parser, deepest last."""
-    found = []
-    options = [s for a in parser._actions for s in a.option_strings
-               if a.help != argparse.SUPPRESS]
-    subs = [a for a in parser._actions
-            if isinstance(a, argparse._SubParsersAction)]
-    words = []
-    for action in subs:
-        for name, p in action.choices.items():
-            words.append(name)
-            found += _commands(p, (*path, name))
-    found.append((path, words + options))
-    return found
-
-
-def completion(parser, shell: str) -> str:
-    cases = []
-    for path, words in sorted(_commands(parser), key=lambda c: -len(c[0])):
-        key = " ".join(path)
-        pattern = f'"{key}"|"{key} "*' if key else '""'
-        cases.append(f'    {pattern}) opts="{" ".join(words)}" ;;')
-    script = "\n".join([
-        "_gfrelease() {",
-        '  local cur="${COMP_WORDS[COMP_CWORD]}" path="" w opts',
-        '  for w in "${COMP_WORDS[@]:1:COMP_CWORD-1}"; do',
-        '    case "$w" in -*) ;; *) path="${path:+$path }$w" ;; esac',
-        "  done",
-        '  case "$path" in',
-        *cases,
-        '    *) opts="" ;;',
-        "  esac",
-        '  COMPREPLY=($(compgen -W "$opts" -- "$cur"))',
-        "}",
-        "complete -o default -F _gfrelease gfrelease",
-    ])
-    if shell == "zsh":
-        script = "autoload -U +X bashcompinit && bashcompinit\n" + script
-    return script
