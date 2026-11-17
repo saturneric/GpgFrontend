@@ -81,6 +81,17 @@ ISSUER = "https://token.actions.githubusercontent.com"
 TRUST_KEYS = Path(__file__).resolve().parent / "fixtures" / "trust" / "keys"
 
 
+def run_gpg(home: Path, *args) -> str:
+    """What gpg prints, run in batch mode on @p home; a failure says what
+    gpg said."""
+    out = subprocess.run(["gpg", "--homedir", home, "--batch", *args],
+                         capture_output=True, text=True)
+    if out.returncode != 0:
+        raise AssertionError(f"gpg {' '.join(map(str, args))} failed "
+                             f"({out.returncode}): {out.stderr.strip()}")
+    return out.stdout
+
+
 def published(update: Store) -> dict:
     """The index in @p update as it stands, unverified: what a test looks
     at after the run that published it."""
@@ -1901,9 +1912,7 @@ class OpenPgpKeyLifecycleTest(unittest.TestCase):
         shutil.rmtree(self.tmp, ignore_errors=True)
 
     def gpg(self, *args):
-        return subprocess.run(["gpg", "--homedir", self.home, "--batch",
-                               *args], check=True, capture_output=True,
-                              text=True).stdout
+        return run_gpg(self.home, *args)
 
     def git(self, *args):
         return subprocess.run(["git", *args], cwd=self.repo, env=git_env(),
@@ -2153,9 +2162,7 @@ class StableTest(unittest.TestCase):
     # --- fixtures ------------------------------------------------------
 
     def gpg(self, *args):
-        return subprocess.run(["gpg", "--homedir", self.gnupg, "--batch",
-                               *args], check=True, capture_output=True,
-                              text=True).stdout
+        return run_gpg(self.gnupg, *args)
 
     def new_key(self, uid):
         self.gpg("--passphrase", "", "--quick-gen-key", uid, "ed25519",

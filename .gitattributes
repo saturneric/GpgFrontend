@@ -7,7 +7,8 @@ VERSION export-subst
 # CRLF would break every signature on it.
 release/root/** -text
 release/index-keys/** -text
-scripts/tests/fixtures/trust/** -text
+# The test fixtures are hashed and signed byte for byte as well.
+scripts/tests/fixtures/** -text
 
 # cmd.exe reads its scripts with CRLF line ends, wherever they were checked out.
 *.cmd text eol=crlf
