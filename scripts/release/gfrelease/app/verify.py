@@ -304,12 +304,10 @@ def _index_keys(product: Product, source, index: dict) -> list[str]:
     return list(keys["keys"].values())
 
 
-def _check_entry(product: Product, builds, entry: dict,
-                 listed_as: str | None, ref: str | None, fetch, keyring,
-                 deep: bool) -> dict:
-    """One entry of the index: a build (@p ref, the branch it must have
-    been built from) or a release (@p listed_as, its version). @p fetch
-    and @p keyring are verify()'s. Returns what was checked of it."""
+def _descriptor(product: Product, builds, entry: dict, want: str,
+                ref: str | None = None) -> dict:
+    """The descriptor @p entry of the index names: the bytes it hashes,
+    of this product, of version @p want (and built from @p ref)."""
     where = entry["descriptor"]
     raw = builds.read(check_relpath(where))
     if sha256_bytes(raw) != entry["sha256"]:
@@ -319,91 +317,130 @@ def _check_entry(product: Product, builds, entry: dict,
     descriptor.require(d, where, "version", "kind", "artifacts")
     if d.get("product") != product.slug:
         raise ReleaseError(f"{where}: another product's")
-    want = listed_as or entry["version"]
     if ref is not None and d.get("ref") != ref:
         raise ReleaseError(f"{where}: built from {d.get('ref')}, "
                            f"listed as a build of {ref}")
     if d["version"] != want:
         raise ReleaseError(f"{where}: is {d['version']}, listed as "
                            f"{want}")
-    scheme = d.get("signing", {}).get("scheme")
-    kind = d["kind"]
+    return d
+
+
+def _matches(d: dict, sums: dict) -> None:
+    for artifact in d["artifacts"]:
+        if sums.get(artifact["name"]) != artifact["sha256"]:
+            raise ReleaseError(f"{artifact['name']}: the descriptor's sha256 "
+                               "is not the manifest's")
+
+
+def check_release(product: Product, builds, version: str,
+                  entry: dict) -> dict:
+    """Release @p version as the index lists it (@p entry): its descriptor,
+    once it is the one the index names, a stable or imported release
+    signed by a maintainer, with a signature time recorded for every file
+    and every file's sha256 its manifest's. A stable release's manifest is
+    the maintainer's; an imported one has none, and each file rests on its
+    own signature (checked_artifact)."""
+    d = _descriptor(product, builds, entry, version)
+    where, kind = entry["descriptor"], d["kind"]
     if kind == layout.KIND_NIGHTLY:
-        if ref is None:
-            raise ReleaseError(f"{where}: a build, listed as a "
-                               "release")
-        descriptor.require(d, where, "build")
-        manifest = d["build"].get("sums", "")
-        sums = parse_manifest(builds.read(check_relpath(manifest)),
-                              manifest)
-    elif kind in (layout.KIND_STABLE, layout.KIND_IMPORTED):
-        if ref is not None:
-            raise ReleaseError(f"{where}: a release, listed as a "
-                               "build")
-        if scheme != layout.SCHEME_OPENPGP:
-            raise ReleaseError(f"{where}: a {kind} release is signed "
-                               "by a maintainer")
-        # A stable release's manifest is the maintainer's; an
-        # imported one has none, and each file is checked on its own
-        # signature (with --deep).
-        if d.get("sums"):
-            sums = parse_manifest(
-                builds.read(check_relpath(d["sums"])), d["sums"])
-        else:
-            sums = descriptor.hashes(d)
-        # When each file's maintainer signature was made, as the
-        # server admitted it: one per file, nothing else.
-        signatures = entry.get("signatures")
-        if not isinstance(signatures, dict) or set(signatures) != \
-                {a["name"] for a in d["artifacts"]}:
-            raise ReleaseError(f"{where}: listed without a signature "
-                               "time for every file")
-        for name, sig in signatures.items():
-            if not isinstance(sig, dict) or \
-                    not isinstance(sig.get("signer"), str):
-                raise ReleaseError(f"{name}: no signer recorded")
-            parse_iso(sig.get("created"))
-        # The maintainer's own signature on the manifest: what a
-        # person checks by hand. An imported release has none.
+        raise ReleaseError(f"{where}: a build, listed as a release")
+    if kind not in (layout.KIND_STABLE, layout.KIND_IMPORTED):
+        raise ReleaseError(f"{where}: unknown kind {kind!r}")
+    if d.get("signing", {}).get("scheme") != layout.SCHEME_OPENPGP:
+        raise ReleaseError(f"{where}: a {kind} release is signed "
+                           "by a maintainer")
+    if d.get("sums"):
+        sums = parse_manifest(builds.read(check_relpath(d["sums"])),
+                              d["sums"])
+    else:
+        sums = descriptor.hashes(d)
+    # When each file's maintainer signature was made, as the server
+    # admitted it: one per file, nothing else.
+    signatures = entry.get("signatures")
+    if not isinstance(signatures, dict) or set(signatures) != \
+            {a["name"] for a in d["artifacts"]}:
+        raise ReleaseError(f"{where}: listed without a signature "
+                           "time for every file")
+    for name, sig in signatures.items():
+        if not isinstance(sig, dict) or \
+                not isinstance(sig.get("signer"), str):
+            raise ReleaseError(f"{name}: no signer recorded")
+        parse_iso(sig.get("created"))
+    _matches(d, sums)
+    return d
+
+
+def checked_notes(entry: dict, fetch, keyring=None) -> Path | None:
+    """A release's notes, fetched (@p fetch, as verify()'s): their hash is
+    the one the index pins, and with @p keyring (verify()'s) their
+    maintainer signature verifies. None when the release has none."""
+    if "notes" not in entry:
+        return None
+    version = entry.get("version", "a release")
+    for field in ("notes", "notes_sha256", "notes_sig"):
+        _typed(entry.get(field), str, f"{version}'s {field}")
+    notes = fetch(entry["notes"], "notes.md")
+    if sha256_file(notes) != entry["notes_sha256"]:
+        raise ReleaseError(f"{entry['notes']}: not the index's notes")
+    if keyring is not None:
+        keyring().verify(notes, fetch(entry["notes_sig"], "notes.md" + SIG))
+    return notes
+
+
+def checked_artifact(d: dict, artifact: dict, entry: dict, fetch,
+                     keyring) -> Path:
+    """One of @p d's files, fetched: its sha256 is the descriptor's and,
+    for a release, its maintainer signature is the one the index records
+    (@p entry). The caller removes it."""
+    name = artifact["name"]
+    local = fetch(artifact["path"], name)
+    if sha256_file(local) != artifact["sha256"]:
+        raise ReleaseError(f"{name}: the download does not match its sha256")
+    if d["kind"] != layout.KIND_NIGHTLY:
+        signed = keyring().verify_signature(local,
+                                            fetch(artifact["sig"], name + SIG))
+        recorded = entry["signatures"][name]
+        if signed["primary"] != recorded["signer"] or \
+                signed["created"] != int(parse_iso(
+                    recorded["created"]).timestamp()):
+            raise ReleaseError(f"{name}: its signature is not the one the "
+                               "index records")
+    return local
+
+
+def _check_entry(product: Product, builds, entry: dict,
+                 listed_as: str | None, ref: str | None, fetch, keyring,
+                 deep: bool) -> dict:
+    """One entry of the index: a build (@p ref, the branch it must have
+    been built from) or a release (@p listed_as, its version). @p fetch
+    and @p keyring are verify()'s. Returns what was checked of it."""
+    if ref is None:
+        d = check_release(product, builds, listed_as, entry)
+        # The maintainer's own signature on the manifest: what a person
+        # checks by hand. An imported release has none.
         if deep and d.get("sums_sig"):
             local = fetch(d["sums"], SUMS)
             keyring().verify(local, fetch(d["sums_sig"], SUMS + SIG))
     else:
-        raise ReleaseError(f"{where}: unknown kind {kind!r}")
+        d = _descriptor(product, builds, entry, entry["version"], ref)
+        where, kind = entry["descriptor"], d["kind"]
+        if kind in (layout.KIND_STABLE, layout.KIND_IMPORTED):
+            raise ReleaseError(f"{where}: a release, listed as a build")
+        if kind != layout.KIND_NIGHTLY:
+            raise ReleaseError(f"{where}: unknown kind {kind!r}")
+        descriptor.require(d, where, "build")
+        manifest = d["build"].get("sums", "")
+        _matches(d, parse_manifest(builds.read(check_relpath(manifest)),
+                                   manifest))
     # A release's notes: the index pins their hash; the maintainer's
     # signature is checked with --deep.
-    if "notes" in entry:
-        for field in ("notes", "notes_sha256", "notes_sig"):
-            _typed(entry.get(field), str, f"{want}'s {field}")
-        notes = fetch(entry["notes"], "notes.md")
-        if sha256_file(notes) != entry["notes_sha256"]:
-            raise ReleaseError(f"{entry['notes']}: not the index's "
-                               "notes")
-        if deep:
-            keyring().verify(notes, fetch(entry["notes_sig"],
-                                          "notes.md" + SIG))
-    for artifact in d["artifacts"]:
-        name = artifact["name"]
-        if sums.get(name) != artifact["sha256"]:
-            raise ReleaseError(f"{name}: the descriptor's sha256 is "
-                               "not the manifest's")
-        if deep:
-            local = fetch(artifact["path"], name)
-            if sha256_file(local) != artifact["sha256"]:
-                raise ReleaseError(f"{name}: the download does not "
-                                   "match its sha256")
-            if kind != layout.KIND_NIGHTLY:
-                signed = keyring().verify_signature(
-                    local, fetch(artifact["sig"], name + SIG))
-                recorded = entry["signatures"][name]
-                if signed["primary"] != recorded["signer"] or \
-                        signed["created"] != int(parse_iso(
-                            recorded["created"]).timestamp()):
-                    raise ReleaseError(
-                        f"{name}: its signature is not the one the "
-                        "index records")
-            local.unlink()
-    return {"version": d["version"], "kind": kind,
+    checked_notes(entry | {"version": d["version"]}, fetch,
+                  keyring if deep else None)
+    if deep:
+        for artifact in d["artifacts"]:
+            checked_artifact(d, artifact, entry, fetch, keyring).unlink()
+    return {"version": d["version"], "kind": d["kind"],
             "artifacts": len(d["artifacts"])}
 
 
