@@ -406,3 +406,5 @@ place of gpg:  git config --global gpg.program gfpipe
 gfpipe does no key management; manage keys in GpgFrontend.
 ";
 
+#[cfg(test)]
+mod tests;
