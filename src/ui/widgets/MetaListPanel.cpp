@@ -28,7 +28,7 @@
 
 #include "ui/widgets/MetaListPanel.h"
 
-#include "ui/dialog/help/AboutStatusInfo.h"
+#include "shell/present/ProfileStatus.h"
 #include "ui/function/UIStyle.h"
 
 namespace GpgFrontend::UI {

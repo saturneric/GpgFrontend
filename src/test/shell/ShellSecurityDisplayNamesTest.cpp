@@ -28,17 +28,16 @@
 
 #include <gtest/gtest.h>
 
-#include "GpgFrontendTest.h"
-#include "ui/function/SecurityDisplayNames.h"
+#include "shell/present/SecurityDisplayNames.h"
 
 namespace GpgFrontend::Test {
 
-TEST(SecurityDisplayNamesTest, EverySecureLevelHasItsOwnName) {
+TEST(ShellSecurityDisplayNamesTest, EverySecureLevelHasItsOwnName) {
   // The Advanced tab and the About dialog both read these; when they were
   // written out separately the two drifted apart.
   QSet<QString> seen;
   for (int level = 0; level <= 3; ++level) {
-    const auto name = UI::SecureLevelDisplayName(level);
+    const auto name = SecureLevelDisplayName(level);
     EXPECT_FALSE(name.isEmpty()) << level;
     EXPECT_FALSE(seen.contains(name))
         << level << " duplicates " << name.toStdString();
@@ -46,21 +45,21 @@ TEST(SecurityDisplayNamesTest, EverySecureLevelHasItsOwnName) {
   }
 }
 
-TEST(SecurityDisplayNamesTest, AnUnrecognisedLevelIsReportedAsUnknown) {
-  const auto unknown = UI::SecureLevelDisplayName(4);
+TEST(ShellSecurityDisplayNamesTest, AnUnrecognisedLevelIsReportedAsUnknown) {
+  const auto unknown = SecureLevelDisplayName(4);
   EXPECT_FALSE(unknown.isEmpty());
   for (int level = 0; level <= 3; ++level) {
-    EXPECT_NE(UI::SecureLevelDisplayName(level), unknown);
+    EXPECT_NE(SecureLevelDisplayName(level), unknown);
   }
-  EXPECT_EQ(UI::SecureLevelDisplayName(-1), unknown);
-  EXPECT_EQ(UI::SecureLevelDisplayName(99), unknown);
+  EXPECT_EQ(SecureLevelDisplayName(-1), unknown);
+  EXPECT_EQ(SecureLevelDisplayName(99), unknown);
 }
 
-TEST(SecurityDisplayNamesTest, EveryKeyProtectionModeHasItsOwnName) {
+TEST(ShellSecurityDisplayNamesTest, EveryKeyProtectionModeHasItsOwnName) {
   const auto keychain =
-      UI::AppKeyProtectionDisplayName(AppKeyProtection::kKEYCHAIN);
-  const auto pin = UI::AppKeyProtectionDisplayName(AppKeyProtection::kPIN);
-  const auto none = UI::AppKeyProtectionDisplayName(AppKeyProtection::kNONE);
+      AppKeyProtectionDisplayName(AppKeyProtection::kKEYCHAIN);
+  const auto pin = AppKeyProtectionDisplayName(AppKeyProtection::kPIN);
+  const auto none = AppKeyProtectionDisplayName(AppKeyProtection::kNONE);
 
   EXPECT_FALSE(keychain.isEmpty());
   EXPECT_NE(keychain, pin);

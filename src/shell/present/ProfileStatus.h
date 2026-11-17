@@ -28,15 +28,128 @@
 
 #pragma once
 
+#include "GFShellExport.h"
 #include "core/profile/Profile.h"
 #include "core/profile/ProfileSecureKeyManager.h"
-#include "core/typedef/GFTypedef.h"
-#include "ui/widgets/MetaListPanel.h"
 
-namespace GpgFrontend::UI {
+namespace GpgFrontend {
 
 /**
- * @brief One reading on the About dialog's Status tab.
+ * @brief One row of the profile status, as both interfaces show it.
+ *
+ * Plain data: the desktop turns it into a MetaListRow, the phone into a QML
+ * map, and neither decides what is said.
+ */
+struct GF_SHELL_EXPORT StatusRow {
+  QString caption;        ///< the left column
+  QString value;          ///< the right column
+  QString detail;         ///< a sentence about the value, may be empty
+  bool emphasis = false;  ///< the profile's own name
+  bool dimmed = false;    ///< carries nothing: "None", "Disabled"
+  bool degraded = false;  ///< a fallback state rather than an intended one
+  bool path = false;      ///< one unbreakable token: a path, an id
+};
+
+/// A heading and the rows under it.
+struct GF_SHELL_EXPORT StatusSection {
+  QString title;
+  QList<StatusRow> rows;
+};
+
+/**
+ * @brief Everything the status reports, read from the running application.
+ *
+ * Kept apart from the reading so the wording can be asserted with made-up
+ * values: a test has no keychain, no GnuPG home that is too long, and no
+ * packaged profile open.
+ */
+struct GF_SHELL_EXPORT ProfileStatusFacts {
+  int secure_level = 0;
+  bool portable_mode = false;
+  bool show_running_mode = true;  ///< false on a phone, which has no choice
+
+  ProfileKind kind = ProfileKind::kINSTALLED_ROOT;
+  QString display_name;
+  bool transient = false;
+  QString profile_id;
+  bool storage_volatile = false;
+  bool storage_encrypted = false;
+  bool secure_area_resident = false;
+  bool rotating_keys = false;
+  int schema_version = 0;
+  QString package_path;  ///< the file a packaged session is open on
+  QString imported_from;
+  QString root;
+  QString workspace;
+  QString profiles_root;
+
+  AppKeyProtection protection = AppKeyProtection::kNONE;
+  bool allows_keychain = true;
+
+  bool secret_store_available = false;
+  QString secret_store_name;
+  QString secret_store_reason;
+
+  QStringList engines;
+  bool gnupg_supported = false;
+  bool gnupg_offline_mode = false;
+  QString pinentry_program_path;
+  QString gnupg_home_unusable_reason;  ///< empty while the home is usable
+};
+
+/**
+ * @brief The status, in the order somebody opening it wants it.
+ *
+ * Anything wrong first and by itself; then the readings that answer "what am I
+ * running and where are my keys"; then everything else, a section each.
+ */
+struct GF_SHELL_EXPORT ProfileStatusReport {
+  QList<StatusRow> attention;    ///< anything not as it should be
+  QList<StatusRow> glance;       ///< what the page is for
+  QList<StatusSection> details;  ///< true, but not what it is for
+};
+
+/**
+ * @brief Read the facts from the running application and profile.
+ *
+ * Never raises a keyring unlock prompt: the credential store is read from the
+ * registry rather than probed. Call it on the thread that owns qApp.
+ */
+auto GF_SHELL_EXPORT GatherProfileStatusFacts() -> ProfileStatusFacts;
+
+/**
+ * @brief Turn @p facts into the rows both interfaces show.
+ */
+auto GF_SHELL_EXPORT BuildProfileStatus(const ProfileStatusFacts& facts)
+    -> ProfileStatusReport;
+
+/**
+ * @brief The status as one list of sections, attention and glance first.
+ *
+ * Empty sections are left out, so a healthy profile has no "Needs Attention".
+ */
+auto GF_SHELL_EXPORT ProfileStatusSections(const ProfileStatusReport& report)
+    -> QList<StatusSection>;
+
+/**
+ * @brief The status as plain text, for the clipboard.
+ *
+ * "[Section]" headings, "Caption value" lines and each detail indented under
+ * its value, the same shape the desktop's lists copy as.
+ */
+auto GF_SHELL_EXPORT ProfileStatusText(const QList<StatusSection>& sections)
+    -> QString;
+
+/**
+ * @brief What to call the profile this session runs on.
+ *
+ * A root profile is called after its kind; any other by the name in its own
+ * marker, which travels with it.
+ */
+auto GF_SHELL_EXPORT CurrentProfileDisplayName() -> QString;
+
+/**
+ * @brief One reading on the profile status.
  *
  * A form row carries a single string, so a value that needs a sentence to be
  * honest used to be written as one: a value, an em dash, and the explanation
@@ -66,8 +179,8 @@ struct AboutStatusValue {
  * @param encrypted_at_rest whether what it does write is encrypted
  * @return value, detail and whether this is a fallback
  */
-auto GF_UI_EXPORT DescribeSessionStorage(bool is_volatile,
-                                         bool encrypted_at_rest)
+auto GF_SHELL_EXPORT DescribeSessionStorage(bool is_volatile,
+                                            bool encrypted_at_rest)
     -> AboutStatusValue;
 
 /**
@@ -83,10 +196,10 @@ auto GF_UI_EXPORT DescribeSessionStorage(bool is_volatile,
  * @param transient whether its storage is deleted when the window closes
  * @return one row for a root profile, two for a profile with a name
  */
-auto GF_UI_EXPORT BuildProfileIdentityRows(ProfileKind kind,
-                                           const QString& display_name,
-                                           bool transient)
-    -> QList<MetaListRow>;
+auto GF_SHELL_EXPORT BuildProfileIdentityRows(ProfileKind kind,
+                                              const QString& display_name,
+                                              bool transient)
+    -> QList<StatusRow>;
 
 /**
  * @brief Describe what protects the application key, and why it is that.
@@ -99,8 +212,8 @@ auto GF_UI_EXPORT BuildProfileIdentityRows(ProfileKind kind,
  * @param allows_keychain whether this profile may use the credential store
  * @return value and detail for the protection row
  */
-auto GF_UI_EXPORT DescribeAppKeyProtection(AppKeyProtection protection,
-                                           bool allows_keychain)
+auto GF_SHELL_EXPORT DescribeAppKeyProtection(AppKeyProtection protection,
+                                              bool allows_keychain)
     -> AboutStatusValue;
 
 /**
@@ -124,7 +237,7 @@ auto GF_UI_EXPORT DescribeAppKeyProtection(AppKeyProtection protection,
  * @param degraded whether the reading it explains is a fallback
  * @return true to render it under the value, false to leave it to a tooltip
  */
-auto GF_UI_EXPORT ShowsDetailInline(const QString& detail, bool degraded)
+auto GF_SHELL_EXPORT ShowsDetailInline(const QString& detail, bool degraded)
     -> bool;
 
-}  // namespace GpgFrontend::UI
+}  // namespace GpgFrontend

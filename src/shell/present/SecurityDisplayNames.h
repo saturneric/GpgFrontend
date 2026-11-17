@@ -26,38 +26,31 @@
  *
  */
 
-#include "ui/function/SecurityDisplayNames.h"
+#pragma once
 
-namespace GpgFrontend::UI {
+#include "GFShellExport.h"
+#include "core/profile/ProfileSecureKeyManager.h"
 
-auto SecureLevelDisplayName(int level) -> QString {
-  // Brief, plainly escalating names for the status readout. What each level
-  // actually does is spelled out on the Advanced settings page, where the
-  // level is chosen; here a one-word tier reads at a glance.
-  switch (level) {
-    case 0:
-      return QObject::tr("Standard");
-    case 1:
-      return QObject::tr("Enhanced");
-    case 2:
-      return QObject::tr("Strong");
-    case 3:
-      return QObject::tr("Maximum");
-    default:
-      return QObject::tr("Unknown");
-  }
-}
+namespace GpgFrontend {
 
-auto AppKeyProtectionDisplayName(AppKeyProtection protection) -> QString {
-  switch (protection) {
-    case AppKeyProtection::kKEYCHAIN:
-      return QObject::tr("System keychain");
-    case AppKeyProtection::kPIN:
-      return QObject::tr("PIN at startup");
-    case AppKeyProtection::kNONE:
-      break;
-  }
-  return QObject::tr("No extra protection");
-}
+/**
+ * @brief Human name of a memory-hardening secure level.
+ *
+ * Shared by the Advanced tab, the About dialog and the phone so they cannot
+ * drift apart, which is how their labels came to disagree in the first place.
+ *
+ * @param level the GFSecureLevel value, 0..3
+ * @return a translated, user-facing name
+ */
+auto GF_SHELL_EXPORT SecureLevelDisplayName(int level) -> QString;
 
-}  // namespace GpgFrontend::UI
+/**
+ * @brief Human name of an application key protection mode.
+ *
+ * @param protection resolved protection, as stored in GFAppKeyProtection
+ * @return a translated, user-facing name
+ */
+auto GF_SHELL_EXPORT AppKeyProtectionDisplayName(AppKeyProtection protection)
+    -> QString;
+
+}  // namespace GpgFrontend

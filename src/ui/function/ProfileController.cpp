@@ -340,29 +340,6 @@ auto ProfileKindDisplayName(ProfileKind kind) -> QString {
   }
 }
 
-auto CurrentProfileDisplayName() -> QString {
-  const auto& session = ProfileSession::Instance();
-
-  switch (session.Profile().Kind()) {
-    case ProfileKind::kINSTALLED_ROOT:
-      return QObject::tr("Default");
-    case ProfileKind::kPORTABLE_ROOT:
-      return QObject::tr("Portable");
-    case ProfileKind::kEPHEMERAL:
-      return QObject::tr("Temporary");
-    default:
-      break;
-  }
-
-  // Read from the profile's own marker rather than the registry: the marker
-  // travels with the profile and the session already holds it, while the
-  // registry is a machine-local index that a read here would also reconcile.
-  if (const auto& name = session.Marker().display_name; !name.isEmpty()) {
-    return name;
-  }
-  return session.Profile().DisplayName();
-}
-
 auto ProfileTargetLockRoot(const ProfileTarget& target) -> QString {
   if (target.IsPackage()) {
     return ProfileSessionRoot(CurrentProfilesRoot(), target.package_path);

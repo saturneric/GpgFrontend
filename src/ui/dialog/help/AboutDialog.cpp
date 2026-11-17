@@ -34,22 +34,12 @@
 #include <functional>
 
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/SystemSecretStore.h"
-#if GF_ENGINE_GNUPG
-#include "core/function/gpg/GpgContext.h"
-#endif
 #include "core/module/ModuleManager.h"
-#include "core/profile/ProfileLoader.h"
-#include "core/profile/ProfileMarker.h"
-#include "core/profile/ProfileSecureKeyManager.h"
-#include "core/profile/ProfileSession.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/RustUtils.h"
+#include "shell/present/ProfileStatus.h"
 #include "ui/UIModuleManager.h"
-#include "ui/dialog/help/AboutStatusInfo.h"
-#include "ui/function/ProfileController.h"
-#include "ui/function/SecurityDisplayNames.h"
 #include "ui/function/UIStyle.h"
 #include "ui/widgets/MetaListPanel.h"
 
@@ -387,268 +377,64 @@ TranslatorsTab::TranslatorsTab(QWidget* parent) : QWidget(parent) {
   setLayout(main_layout);
 }
 
-StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
-  const int secure_level = qApp->property("GFSecureLevel").toInt();
-  const bool portable_mode = qApp->property("GFPortableMode").toBool();
-  const bool gnupg_offline_mode = qApp->property("GFGnuPGOfflineMode").toBool();
-  const QString pinentry_program_path =
-      qApp->property("GFPinentryProgramPath").toString();
+namespace {
 
+auto StatusRowsToMetaList(const QList<StatusRow>& rows) -> QList<MetaListRow> {
+  QList<MetaListRow> out;
+  out.reserve(rows.size());
+  for (const auto& row : rows) {
+    out.append({.caption = row.caption,
+                .value = row.value,
+                .detail = row.detail,
+                .emphasis = row.emphasis,
+                .dimmed = row.dimmed,
+                .degraded = row.degraded,
+                .path = row.path});
+  }
+  return out;
+}
+
+}  // namespace
+
+StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   auto* content = new QWidget(this);
   auto* main_layout = new QVBoxLayout(content);
   main_layout->setContentsMargins(18, 18, 18, 18);
   main_layout->setSpacing(10);
 
-  // This tab used to print everything it knew, in the order it happened to
-  // learn it: how the key is protected, whether the install is portable, which
-  // pinentry GnuPG uses, three paths and a layout version, all at one weight.
-  // Every line was true and the page answered no question.
-  //
-  // It is now three things in order of what somebody opening it actually wants.
-  // Anything wrong, first and by itself. Then the four readings that answer
-  // "what am I running and where are my keys". Everything else is one click
-  // away -- still here, still copied by the button at the bottom, no longer in
-  // the way of the four rows that matter.
-  QList<MetaListRow> attention;  // anything not as it should be
-  QList<MetaListRow> glance;     // what the page is for
-  QList<QPair<QString, QList<MetaListRow>>> details;  // true, but not now
+  // In order of what somebody opening it wants: anything wrong, first and by
+  // itself; then the readings that answer "what am I running and where are my
+  // keys"; then everything else in one Details card. The rows and their
+  // wording are the shell's, so the phone's Status page says exactly the same.
+  const auto report = BuildProfileStatus(GatherProfileStatusFacts());
+  const auto sections = ProfileStatusSections(report);
 
-  const auto& session = ProfileSession::Instance();
-  const auto& profile = session.Profile();
-
-  // Read from the registry rather than probed -- opening About must never raise
-  // a keyring unlock prompt. Reported whether or not it is in use: when "System
-  // keychain" is greyed out in the settings, this is the only place that says
-  // why, and the loader's reason rides along untranslated and selectable so it
-  // can be pasted into a bug report exactly as it was produced.
-  auto* secret_store = GetSystemSecretStore();
-
-  // Nothing here reports the key databases. There is a settings page whose
-  // whole subject they are, and a second, shorter account of them on a tab the
-  // user reaches from a different menu is how the two come to disagree.
-  const auto protection = DescribeAppKeyProtection(
-      ProfileLoader::AppKeyProtectionFromApp(), profile.AllowsSystemKeychain());
-
-  // One row or two, decided by whether the profile has a name of its own: a
-  // root profile is named after its kind, and a type row under it printed that
-  // same word a second time.
-  glance.append(BuildProfileIdentityRows(
-      profile.Kind(), CurrentProfileDisplayName(), profile.IsTransient()));
-  glance.append({.caption = tr("Application Key Protection:"),
-                 .value = protection.value,
-                 .detail = protection.detail});
-  glance.append({.caption = tr("Secure Level:"),
-                 .value = SecureLevelDisplayName(secure_level)});
-
-  if (secret_store == nullptr) {
-    attention.append({.caption = tr("System Credential Store:"),
-                      .value = tr("Unavailable"),
-                      .detail = SystemSecretStoreReason(),
-                      .degraded = true});
-  }
-
-#if GF_ENGINE_GNUPG
-  // Only ever set when the home directory could not host the agent sockets, so
-  // the row says that outright and carries the measured length and the platform
-  // limit underneath.
-  if (const auto gnupg_home_detail = GpgContext::FirstUnusableHomeReason();
-      !gnupg_home_detail.isEmpty()) {
-    attention.append({.caption = tr("GnuPG Home:"),
-                      .value = tr("Unusable"),
-                      .detail = gnupg_home_detail,
-                      .degraded = true});
-  }
-#endif
-
-  QList<MetaListRow> application;
-  application.append(
-      {.caption = tr("Running Mode:"),
-       .value = portable_mode ? tr("Portable Mode") : tr("Installed Mode")});
-  if (secret_store != nullptr) {
-    application.append({.caption = tr("System Credential Store:"),
-                        .value = secret_store->Name(),
-                        .detail = SystemSecretStoreReason()});
-  }
-  details.append({tr("Application"), application});
-
-  QList<MetaListRow> profile_rows;
-
-  // The one value that identifies this profile in a bug report, which is what
-  // the footnote at the bottom of this tab invites. A uuid is an unbreakable
-  // token, so it gets the same treatment as a path.
-  profile_rows.append(
-      {.caption = tr("Profile ID:"), .value = profile.Id(), .path = true});
-
-  // Only for a transient session, because only there was there a choice to
-  // make. DescribeSessionStorage() carries the wording and decides which
-  // outcome counts as a fallback.
-  if (profile.IsTransient()) {
-    const auto& storage = session.Accessor();
-    const auto session_storage = DescribeSessionStorage(
-        storage.IsVolatile(), storage.IsEncryptedAtRest());
-
-    auto& into = session_storage.degraded ? attention : profile_rows;
-    into.append({.caption = tr("Session Storage:"),
-                 .value = session_storage.value,
-                 .detail = session_storage.detail,
-                 .degraded = session_storage.degraded});
-
-    // Stated separately from the row above, and deliberately narrow. The
-    // storage line describes where the *profile* went; this describes one thing
-    // inside it. Folding them together would suggest the keyring is held in
-    // memory too, and it is not -- GnuPG needs real files for that.
-    if (storage.IsAreaResident(ProfileArea::kSecure)) {
-      profile_rows.append(
-          {.caption = tr("Profile Key:"),
-           .value = tr("Held in memory only"),
-           .detail = tr(
-               "The key that protects this profile's own saved data is never "
-               "written here. Your OpenPGP keys are a separate thing and do "
-               "live in the session storage above, because GnuPG needs real "
-               "files for them.")});
-    }
-  }
-
-  // Asked only once the key set is attached: Keys() aborts before that, and
-  // this tab is reachable from a window that opened without one.
-  if (session.KeysLoaded() &&
-      session.Keys().Mode() == ProfileKeyMode::kROTATING) {
-    profile_rows.append(
-        {.caption = tr("Profile Key Rotation:"),
-         .value = tr("On a schedule"),
-         .detail = tr("New saved data uses the current period's key, and the "
-                      "keys that open what earlier periods wrote are kept "
-                      "alongside it.")});
-  }
-
-  const auto& marker = session.Marker();
-  if (marker.schema_version > 0) {
-    // "Layout" was this project's word for it and nobody else's. The number is
-    // a format version, and saying so is the difference between a reader
-    // knowing what it means and guessing.
-    profile_rows.append({.caption = tr("Profile Format Version:"),
-                         .value = QString::number(marker.schema_version)});
-  }
-
-  // The file this window is running out of. The status bar has always shown it
-  // and this tab never did, which left the one place that collects everything
-  // for a bug report unable to say which document was open.
-  if (const auto* packaged = dynamic_cast<const PackagedProfile*>(&profile);
-      packaged != nullptr && !packaged->PackagePath().isEmpty()) {
-    profile_rows.append(
-        {.caption = tr("Profile File:"),
-         .value = QDir::toNativeSeparators(packaged->PackagePath()),
-         .path = true});
-  }
-
-  // A different fact from the row above, and previously wearing its caption.
-  // This one is stamped by an *import*, which mints a fresh identity and never
-  // touches the file again; the row above is the file a session is open on.
-  if (!marker.package_id.isEmpty()) {
-    profile_rows.append({.caption = tr("Imported From:"),
-                         .value = marker.package_id,
-                         .path = true});
-  }
-  details.append({tr("Profile"), profile_rows});
-
-  // Every path together. Scattered among the readings they belong to, they were
-  // the rows a reader had to hunt for, and each one made the card it sat in
-  // twice as tall as the readings around it.
-  QList<MetaListRow> folders;
-  folders.append({.caption = tr("Profile Folder:"),
-                  .value = QDir::toNativeSeparators(profile.Root()),
-                  .path = true});
-
-  const auto workspace = ProfileSession::Instance().WorkspacePath();
-  if (workspace.isEmpty()) {
-    folders.append(
-        {.caption = tr("Workspace:"), .value = tr("None"), .dimmed = true});
-  } else {
-    folders.append({.caption = tr("Workspace:"),
-                    .value = QDir::toNativeSeparators(workspace),
-                    .path = true});
-  }
-
-  // Mirrored onto the application rather than asked of the profile: where this
-  // machine keeps its persisted profiles is a property of the installation, not
-  // of the one profile in front of us.
-  if (const auto profiles_root = qApp->property("GFProfilesRoot").toString();
-      !profiles_root.isEmpty()) {
-    folders.append({.caption = tr("Profiles Folder:"),
-                    .value = QDir::toNativeSeparators(profiles_root),
-                    .path = true});
-  }
-  details.append({tr("Folders"), folders});
-
-  // The engines, and the settings that belong to one of them: a pinentry path
-  // is not a property of GpgFrontend, it is how GnuPG asks for a passphrase.
-  QList<MetaListRow> engines;
-  for (const auto& engine : GetGSS().AllSupportedEngines()) {
-    engines.append({.caption = engine, .value = tr("Available")});
-  }
-
-  if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
-    engines.append({.caption = tr("GnuPG Offline Mode:"),
-                    .value = gnupg_offline_mode ? tr("Active") : tr("Disabled"),
-                    .dimmed = !gnupg_offline_mode});
-
-    // A configured path is a path, and gets the read-only field every other
-    // path on this tab gets rather than a label that wraps it at some arbitrary
-    // character. The default is a statement, not a path, so it stays a label.
-    engines.append(
-        {.caption = tr("Pinentry Program Path:"),
-         .value = pinentry_program_path.isEmpty()
-                      ? tr("Default Pinentry Program")
-                      : QDir::toNativeSeparators(pinentry_program_path),
-         .dimmed = pinentry_program_path.isEmpty(),
-         .path = !pinentry_program_path.isEmpty()});
-  }
-  details.append({tr("OpenPGP Engines"), engines});
-
-  // Built from the rows themselves rather than accumulated alongside them, so
-  // what is copied cannot drift from what is shown -- and so the rows folded
-  // away below are copied too. This tab tells the user its values "may help
-  // when reporting issues"; the button is what makes that actionable.
-  QList<MetaListRow> summary_rows;
-
-  const auto add_card = [&](QWidget* into_parent, QVBoxLayout* into,
-                            const QString& title,
+  const auto add_card = [&](const QString& title,
                             const QList<MetaListRow>& rows) {
     if (rows.isEmpty()) return;
-
-    auto* panel = new MetaListPanel(into_parent);
+    auto* panel = new MetaListPanel(content);
     panel->SetRows(rows);
-    into->addWidget(CreateCard(title, panel, into_parent));
-
-    summary_rows.append({.kind = MetaRowKind::kSection, .caption = title});
-    summary_rows.append(rows);
+    main_layout->addWidget(CreateCard(title, panel, content));
   };
 
-  add_card(content, main_layout, tr("Needs Attention"), attention);
-  add_card(content, main_layout, tr("At a Glance"), glance);
+  add_card(tr("Needs Attention"), StatusRowsToMetaList(report.attention));
+  add_card(tr("At a Glance"), StatusRowsToMetaList(report.glance));
 
   // One card with headings inside it, not four cards of two rows each: a card
   // costs a border, a title and twenty-six pixels of padding, and four of them
   // around eight readings is mostly padding.
-  QList<MetaListRow> more_rows;
-  for (const auto& section : details) {
-    if (section.second.isEmpty()) continue;
-    more_rows.append({.kind = MetaRowKind::kSection, .caption = section.first});
-    more_rows.append(section.second);
+  QList<MetaListRow> details;
+  for (const auto& section : report.details) {
+    if (section.rows.isEmpty()) continue;
+    details.append({.kind = MetaRowKind::kSection, .caption = section.title});
+    details.append(StatusRowsToMetaList(section.rows));
   }
-
-  auto* more = new MetaListPanel(content);
-  more->SetRows(more_rows);
-  summary_rows.append(more_rows);
-
-  main_layout->addWidget(CreateDisclosure(
-      tr("More details"), CreateCard(tr("Details"), more, content), content));
+  add_card(tr("Details"), details);
 
   main_layout->addStretch();
 
-  auto* copy_button =
-      CreateCopyButton(tr("Copy Status Information"),
-                       MetaListSummaryText(summary_rows), content);
+  auto* copy_button = CreateCopyButton(tr("Copy Status Information"),
+                                       ProfileStatusText(sections), content);
   main_layout->addWidget(copy_button, 0, Qt::AlignRight);
 
   // A footnote, not another paragraph of body text: it explains the tab rather

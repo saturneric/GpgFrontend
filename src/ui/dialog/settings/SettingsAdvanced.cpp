@@ -37,8 +37,8 @@
 #include "core/function/SystemSecretStore.h"
 #include "core/profile/ProfileLoader.h"
 #include "core/profile/ProfileSession.h"
+#include "shell/present/SecurityDisplayNames.h"
 #include "ui/dialog/AppKeyPinDialog.h"
-#include "ui/function/SecurityDisplayNames.h"
 
 namespace GpgFrontend::UI {
 

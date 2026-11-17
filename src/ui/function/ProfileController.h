@@ -30,6 +30,7 @@
 
 #include "core/profile/ProfilePackage.h"
 #include "core/profile/ProfileRegistry.h"
+#include "shell/present/ProfileStatus.h"  // CurrentProfileDisplayName()
 
 namespace GpgFrontend::UI {
 
@@ -142,17 +143,6 @@ auto GF_UI_EXPORT CurrentProfileRoots() -> ProfileRoots;
  * @return the registry, implicit entries included
  */
 auto GF_UI_EXPORT LoadProfiles() -> ProfileRegistryData;
-
-/**
- * @brief What to call the profile this window is using.
- *
- * The name the user gave it, falling back to the folder name, and to a plain
- * word for the two profiles nobody names — the default location and a portable
- * installation.
- *
- * @return a name fit to show in the window
- */
-auto GF_UI_EXPORT CurrentProfileDisplayName() -> QString;
 
 /**
  * @brief What to call a kind of profile in front of a user.
