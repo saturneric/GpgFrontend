@@ -7133,6 +7133,25 @@ mod key_tests {
         assert!(holds(&pk.details.users[0].signatures, &y));
     }
 
+    #[test]
+    fn a_key_sq_has_stored_merges_without_duplicates() {
+        // GnuPG makes the key, sq canonicalizes and re-exports it: merging
+        // that copy onto the stored one must add nothing and change nothing.
+        use crate::testutil::interop;
+        let (Some(gpg), Some(sq)) = (interop::Gnupg::new(), interop::Sq::new()) else {
+            return;
+        };
+        let stored = canonicalize_key_block_internal(&gpg.cert)
+            .expect("canonicalize")
+            .public;
+        let from_sq = sq.cert_store_round_trip(&gpg.cert, &gpg.fpr);
+
+        let merged = merge_key_block_internal(&stored, &from_sq).expect("merge");
+        assert_eq!(merged.public, stored);
+        let again = merge_key_block_internal(&merged.public, &gpg.cert).expect("merge");
+        assert_eq!(again.public, stored);
+    }
+
     // -- importing: valid data canonicalization must keep ---------------------
 
     fn creation(at: u32) -> Subpacket {

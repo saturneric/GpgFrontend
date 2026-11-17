@@ -2163,6 +2163,36 @@ pub mod interop {
                 .expect("run sq")
         }
 
+        /// `cert` as sq stores it: imported into a cert store of its own and
+        /// exported again by `fpr`, canonicalized the way sq does.
+        pub fn cert_store_round_trip(&self, cert: &str, fpr: &str) -> String {
+            let store = self.dir.path().join("certs");
+            let input = self.file("import.asc", cert.as_bytes());
+            let run = |args: &[&OsStr]| {
+                Command::new("sq")
+                    .args(["--batch", "--key-store=none"])
+                    .arg("--cert-store")
+                    .arg(&store)
+                    .args(args)
+                    .output()
+                    .expect("run sq")
+            };
+            check(
+                run(&[OsStr::new("cert"), OsStr::new("import"), input.as_os_str()]),
+                "sq cert import",
+            );
+            String::from_utf8(check(
+                run(&[
+                    OsStr::new("cert"),
+                    OsStr::new("export"),
+                    OsStr::new("--cert"),
+                    OsStr::new(fpr),
+                ]),
+                "sq cert export",
+            ))
+            .expect("armored")
+        }
+
         /// Encrypt `data` to the certificate `cert`; sq picks the container
         /// from the certificate's features. `signer` (secret key, armored, with
         /// `password`) also signs.
