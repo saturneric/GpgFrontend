@@ -1,0 +1,9 @@
+{
+ "expiry_skew_seconds": 86400,
+ "index_lifetime_seconds": 1209600,
+ "max_fetch_bytes": 8388608,
+ "max_index_lifetime_seconds": 5184000,
+ "max_notes_bytes": 262144,
+ "max_root_keys": 16,
+ "max_root_steps": 32
+}

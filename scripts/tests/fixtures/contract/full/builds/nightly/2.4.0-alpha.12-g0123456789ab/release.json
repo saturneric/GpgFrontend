@@ -1,0 +1,138 @@
+{
+ "artifacts": [
+  {
+   "arch": "x86_64",
+   "build_sha256": "8d619c27b001d6e6c5091b019646e4fb62eed0801cfa9b5adce807604a6cee95",
+   "flavor": "installed",
+   "kind": "appimage",
+   "name": "GpgFrontend-2.4.0-alpha.12-g0123456789ab-linux-x86_64.AppImage",
+   "os": "linux",
+   "path": "nightly/2.4.0-alpha.12-g0123456789ab/GpgFrontend-2.4.0-alpha.12-g0123456789ab-linux-x86_64.AppImage",
+   "sha256": "8d619c27b001d6e6c5091b019646e4fb62eed0801cfa9b5adce807604a6cee95",
+   "size": 62000,
+   "transform": "none"
+  },
+  {
+   "arch": "x86_64",
+   "build_sha256": "42af26b7300e97521ef8feb602df9608185f637951fecd94196d9582b2d5731e",
+   "flavor": "portable",
+   "kind": "appimage",
+   "name": "GpgFrontend-2.4.0-alpha.12-g0123456789ab-linux-x86_64-portable.AppImage",
+   "os": "linux",
+   "path": "nightly/2.4.0-alpha.12-g0123456789ab/GpgFrontend-2.4.0-alpha.12-g0123456789ab-linux-x86_64-portable.AppImage",
+   "sha256": "42af26b7300e97521ef8feb602df9608185f637951fecd94196d9582b2d5731e",
+   "size": 71000,
+   "transform": "none"
+  },
+  {
+   "arch": "aarch64",
+   "build_sha256": "dc9ebd471400aae9b3579e86f731029c80eee72b192008ff725aa4b5e7b11453",
+   "flavor": "installed",
+   "kind": "appimage",
+   "name": "GpgFrontend-2.4.0-alpha.12-g0123456789ab-linux-aarch64.AppImage",
+   "os": "linux",
+   "path": "nightly/2.4.0-alpha.12-g0123456789ab/GpgFrontend-2.4.0-alpha.12-g0123456789ab-linux-aarch64.AppImage",
+   "sha256": "dc9ebd471400aae9b3579e86f731029c80eee72b192008ff725aa4b5e7b11453",
+   "size": 63000,
+   "transform": "none"
+  },
+  {
+   "arch": "x86_64",
+   "build_sha256": "a85440b261e2647fd54b385f50b3c03344f4b735a2a698ea69e8013d6eed39ea",
+   "flavor": "installed",
+   "kind": "msi",
+   "name": "GpgFrontend-2.4.0-alpha.12-g0123456789ab-windows-x86_64.msi",
+   "os": "windows",
+   "path": "nightly/2.4.0-alpha.12-g0123456789ab/GpgFrontend-2.4.0-alpha.12-g0123456789ab-windows-x86_64.msi",
+   "sha256": "a85440b261e2647fd54b385f50b3c03344f4b735a2a698ea69e8013d6eed39ea",
+   "size": 59000,
+   "transform": "none"
+  },
+  {
+   "arch": "x86_64",
+   "build_sha256": "2a56318b881ac0981eae78ae8f0f4d1a1673db544a45a39af12d2f2a6e48695d",
+   "flavor": "portable",
+   "kind": "zip",
+   "name": "GpgFrontend-2.4.0-alpha.12-g0123456789ab-windows-x86_64-portable.zip",
+   "os": "windows",
+   "path": "nightly/2.4.0-alpha.12-g0123456789ab/GpgFrontend-2.4.0-alpha.12-g0123456789ab-windows-x86_64-portable.zip",
+   "sha256": "2a56318b881ac0981eae78ae8f0f4d1a1673db544a45a39af12d2f2a6e48695d",
+   "size": 68000,
+   "transform": "none"
+  },
+  {
+   "arch": "x86_64",
+   "build_sha256": "6a365421242eadff12ec539af13b0276a84e946323657875b2c0d3f3aedbfae8",
+   "flavor": "installed",
+   "kind": "dmg",
+   "min_os": {
+    "macos": "13.0"
+   },
+   "name": "GpgFrontend-2.4.0-alpha.12-g0123456789ab-macos-13-intel.dmg",
+   "os": "macos",
+   "path": "nightly/2.4.0-alpha.12-g0123456789ab/GpgFrontend-2.4.0-alpha.12-g0123456789ab-macos-13-intel.dmg",
+   "sha256": "6a365421242eadff12ec539af13b0276a84e946323657875b2c0d3f3aedbfae8",
+   "size": 59000,
+   "transform": "none"
+  },
+  {
+   "arch": "arm64",
+   "build_sha256": "e5f53e8b742e331ab39622c066436038812493574dedd4b3e75c7754c3b5b347",
+   "flavor": "installed",
+   "kind": "dmg",
+   "min_os": {
+    "macos": "14.0"
+   },
+   "name": "GpgFrontend-2.4.0-alpha.12-g0123456789ab-macos-14.dmg",
+   "os": "macos",
+   "path": "nightly/2.4.0-alpha.12-g0123456789ab/GpgFrontend-2.4.0-alpha.12-g0123456789ab-macos-14.dmg",
+   "sha256": "e5f53e8b742e331ab39622c066436038812493574dedd4b3e75c7754c3b5b347",
+   "size": 53000,
+   "transform": "none"
+  },
+  {
+   "arch": "arm64",
+   "build_sha256": "aca432834509d762c5222e0e6e48d0f9f4571c8474d611f82fe79b1dac05e4b4",
+   "flavor": "installed",
+   "kind": "dmg",
+   "min_os": {
+    "macos": "15.0"
+   },
+   "name": "GpgFrontend-2.4.0-alpha.12-g0123456789ab-macos-15.dmg",
+   "os": "macos",
+   "path": "nightly/2.4.0-alpha.12-g0123456789ab/GpgFrontend-2.4.0-alpha.12-g0123456789ab-macos-15.dmg",
+   "sha256": "aca432834509d762c5222e0e6e48d0f9f4571c8474d611f82fe79b1dac05e4b4",
+   "size": 53000,
+   "transform": "none"
+  },
+  {
+   "arch": "arm64-v8a",
+   "build_sha256": "c6c9ca07b6cd0fde065795bb85f557f66b6e9b1c6aa4dca83ca49ef0b6b79f02",
+   "flavor": "installed",
+   "kind": "apk",
+   "name": "GpgFrontend-2.4.0-alpha.12-g0123456789ab-android-arm64-v8a.apk",
+   "os": "android",
+   "path": "nightly/2.4.0-alpha.12-g0123456789ab/GpgFrontend-2.4.0-alpha.12-g0123456789ab-android-arm64-v8a.apk",
+   "sha256": "c6c9ca07b6cd0fde065795bb85f557f66b6e9b1c6aa4dca83ca49ef0b6b79f02",
+   "size": 62000,
+   "transform": "none"
+  }
+ ],
+ "build": {
+  "bundle": "nightly/2.4.0-alpha.12-g0123456789ab/build/SHA256SUMS.txt.sigstore.json",
+  "identity": "https://github.com/example/product/.github/workflows/build.yml@refs/heads/main",
+  "sums": "nightly/2.4.0-alpha.12-g0123456789ab/build/SHA256SUMS.txt"
+ },
+ "built_at": "2026-10-31T22:00:00Z",
+ "commit": "1111111111111111111111111111111111111111",
+ "kind": "nightly",
+ "product": "gpgfrontend",
+ "promoted_at": "2026-10-31T23:00:00Z",
+ "ref": "refs/heads/main",
+ "schema": 1,
+ "series": "2.4",
+ "signing": {
+  "scheme": "sigstore"
+ },
+ "version": "2.4.0-alpha.12+g0123456789ab"
+}

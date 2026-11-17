@@ -1,0 +1,150 @@
+{
+ "artifacts": [
+  {
+   "arch": "x86_64",
+   "build_sha256": "e3d751cafcd6f319e5a23ab32ae84084efd044210fd660292b3de326c364bb84",
+   "flavor": "installed",
+   "kind": "appimage",
+   "name": "GpgFrontend-2.1.9-linux-x86_64.AppImage",
+   "os": "linux",
+   "path": "releases/2.1.9/GpgFrontend-2.1.9-linux-x86_64.AppImage",
+   "sha256": "e3d751cafcd6f319e5a23ab32ae84084efd044210fd660292b3de326c364bb84",
+   "sig": "releases/2.1.9/GpgFrontend-2.1.9-linux-x86_64.AppImage.sig",
+   "size": 39000,
+   "transform": "none"
+  },
+  {
+   "arch": "x86_64",
+   "build_sha256": "64ecd5c785e8c9c538770644d3124205f8bdd7a0c0160ddc0515f37ce0bc8783",
+   "flavor": "portable",
+   "kind": "appimage",
+   "name": "GpgFrontend-2.1.9-linux-x86_64-portable.AppImage",
+   "os": "linux",
+   "path": "releases/2.1.9/GpgFrontend-2.1.9-linux-x86_64-portable.AppImage",
+   "sha256": "64ecd5c785e8c9c538770644d3124205f8bdd7a0c0160ddc0515f37ce0bc8783",
+   "sig": "releases/2.1.9/GpgFrontend-2.1.9-linux-x86_64-portable.AppImage.sig",
+   "size": 48000,
+   "transform": "none"
+  },
+  {
+   "arch": "aarch64",
+   "build_sha256": "826984d9b86e7e0b91f77fa2eb25ea0dff0214919115835aeced1b30b3fd1af7",
+   "flavor": "installed",
+   "kind": "appimage",
+   "name": "GpgFrontend-2.1.9-linux-aarch64.AppImage",
+   "os": "linux",
+   "path": "releases/2.1.9/GpgFrontend-2.1.9-linux-aarch64.AppImage",
+   "sha256": "826984d9b86e7e0b91f77fa2eb25ea0dff0214919115835aeced1b30b3fd1af7",
+   "sig": "releases/2.1.9/GpgFrontend-2.1.9-linux-aarch64.AppImage.sig",
+   "size": 40000,
+   "transform": "none"
+  },
+  {
+   "arch": "x86_64",
+   "build_sha256": "8c646e174d0601ea16e4cba9cf10eb3230677d46670d5647d0278d54162551ea",
+   "flavor": "installed",
+   "kind": "msi",
+   "name": "GpgFrontend-2.1.9-windows-x86_64.msi",
+   "os": "windows",
+   "path": "releases/2.1.9/GpgFrontend-2.1.9-windows-x86_64.msi",
+   "sha256": "8c646e174d0601ea16e4cba9cf10eb3230677d46670d5647d0278d54162551ea",
+   "sig": "releases/2.1.9/GpgFrontend-2.1.9-windows-x86_64.msi.sig",
+   "size": 36000,
+   "transform": "none"
+  },
+  {
+   "arch": "x86_64",
+   "build_sha256": "02c4169475495af4b13254d316d9640113c2fe8e61f3ae029d93807b24bf20df",
+   "flavor": "portable",
+   "kind": "zip",
+   "name": "GpgFrontend-2.1.9-windows-x86_64-portable.zip",
+   "os": "windows",
+   "path": "releases/2.1.9/GpgFrontend-2.1.9-windows-x86_64-portable.zip",
+   "sha256": "02c4169475495af4b13254d316d9640113c2fe8e61f3ae029d93807b24bf20df",
+   "sig": "releases/2.1.9/GpgFrontend-2.1.9-windows-x86_64-portable.zip.sig",
+   "size": 45000,
+   "transform": "none"
+  },
+  {
+   "arch": "x86_64",
+   "build_sha256": "d2b9df08b028e2fddadc4ab372f9e862e9f8c575243e8c6e0161c5f61fa47b9a",
+   "flavor": "installed",
+   "kind": "dmg",
+   "min_os": {
+    "macos": "13.0"
+   },
+   "name": "GpgFrontend-2.1.9-macos-13-intel.dmg",
+   "os": "macos",
+   "path": "releases/2.1.9/GpgFrontend-2.1.9-macos-13-intel.dmg",
+   "sha256": "d2b9df08b028e2fddadc4ab372f9e862e9f8c575243e8c6e0161c5f61fa47b9a",
+   "sig": "releases/2.1.9/GpgFrontend-2.1.9-macos-13-intel.dmg.sig",
+   "size": 36000,
+   "transform": "none"
+  },
+  {
+   "arch": "arm64",
+   "build_sha256": "2223cb6ac67945d6bc18f14734b6f3a107dd27ad1d5e6014ee60623708571982",
+   "flavor": "installed",
+   "kind": "dmg",
+   "min_os": {
+    "macos": "14.0"
+   },
+   "name": "GpgFrontend-2.1.9-macos-14.dmg",
+   "os": "macos",
+   "path": "releases/2.1.9/GpgFrontend-2.1.9-macos-14.dmg",
+   "sha256": "2223cb6ac67945d6bc18f14734b6f3a107dd27ad1d5e6014ee60623708571982",
+   "sig": "releases/2.1.9/GpgFrontend-2.1.9-macos-14.dmg.sig",
+   "size": 30000,
+   "transform": "none"
+  },
+  {
+   "arch": "arm64",
+   "build_sha256": "cc6659ad1bc8eef33b5c9af23a6f4148986bfdcc460ff966c79ab5b6d9b75953",
+   "flavor": "installed",
+   "kind": "dmg",
+   "min_os": {
+    "macos": "15.0"
+   },
+   "name": "GpgFrontend-2.1.9-macos-15.dmg",
+   "os": "macos",
+   "path": "releases/2.1.9/GpgFrontend-2.1.9-macos-15.dmg",
+   "sha256": "cc6659ad1bc8eef33b5c9af23a6f4148986bfdcc460ff966c79ab5b6d9b75953",
+   "sig": "releases/2.1.9/GpgFrontend-2.1.9-macos-15.dmg.sig",
+   "size": 30000,
+   "transform": "none"
+  },
+  {
+   "arch": "arm64-v8a",
+   "build_sha256": "f7b987e3812448b8bcdb005b78eb7a0c524ceb1098a0ee64cdd38da3be9b6dd3",
+   "flavor": "installed",
+   "kind": "apk",
+   "name": "GpgFrontend-2.1.9-android-arm64-v8a.apk",
+   "os": "android",
+   "path": "releases/2.1.9/GpgFrontend-2.1.9-android-arm64-v8a.apk",
+   "sha256": "f7b987e3812448b8bcdb005b78eb7a0c524ceb1098a0ee64cdd38da3be9b6dd3",
+   "sig": "releases/2.1.9/GpgFrontend-2.1.9-android-arm64-v8a.apk.sig",
+   "size": 39000,
+   "transform": "none"
+  }
+ ],
+ "build": {
+  "bundle": "releases/2.1.9/build/SHA256SUMS.txt.sigstore.json",
+  "identity": "https://github.com/example/product/.github/workflows/build.yml@refs/tags/v2.1.9",
+  "sums": "releases/2.1.9/build/SHA256SUMS.txt"
+ },
+ "built_at": "2026-10-29T00:00:00Z",
+ "commit": "2222222222222222222222222222222222222222",
+ "kind": "stable",
+ "product": "gpgfrontend",
+ "ref": "refs/tags/v2.1.9",
+ "released_at": "2026-10-30T00:00:00Z",
+ "schema": 1,
+ "series": "2.1",
+ "signing": {
+  "fingerprint": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+  "scheme": "openpgp"
+ },
+ "sums": "releases/2.1.9/SHA256SUMS.txt",
+ "sums_sig": "releases/2.1.9/SHA256SUMS.txt.sig",
+ "version": "2.1.9"
+}

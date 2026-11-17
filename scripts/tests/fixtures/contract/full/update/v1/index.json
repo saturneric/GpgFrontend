@@ -1,0 +1,195 @@
+{
+ "beta": {
+  "descriptor": "nightly/2.2.6-alpha.3-gabcdef012345/release.json",
+  "sha256": "d1eb25a39faf868af7c6852a3e4a0519a30d6f8c543eb58b844c52e2e917c60f",
+  "version": "2.2.6-alpha.3+gabcdef012345"
+ },
+ "channels": {
+  "beta": "2.2.6-alpha.3+gabcdef012345",
+  "nightly": "2.4.0-alpha.12+g0123456789ab",
+  "prerelease": "2.3.0-rc.1",
+  "stable": "2.2.5"
+ },
+ "expires": "2026-11-15T00:00:00Z",
+ "generated_at": "2026-11-01T00:00:00Z",
+ "index_keys_version": 2,
+ "nightly": {
+  "descriptor": "nightly/2.4.0-alpha.12-g0123456789ab/release.json",
+  "sha256": "4fea03acebb2b569bc3812fa988ca607336e84aed1ee6b92154198e5f1493364",
+  "version": "2.4.0-alpha.12+g0123456789ab"
+ },
+ "prerelease": {
+  "descriptor": "nightly/2.3.0-rc.1/release.json",
+  "sha256": "f8527447bc100c0a2f1db542ec97705be5cd322ee925e37b20952af592ba6a59",
+  "version": "2.3.0-rc.1"
+ },
+ "product": "gpgfrontend",
+ "releases": {
+  "2.1.9": {
+   "descriptor": "releases/2.1.9/release.json",
+   "sha256": "bfa8759e2c822694b820f27279c1faeb3a43db728d8806ad9e8d3a47bb52d37d",
+   "signatures": {
+    "GpgFrontend-2.1.9-android-arm64-v8a.apk": {
+     "created": "2026-10-30T00:00:00Z",
+     "signer": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "GpgFrontend-2.1.9-linux-aarch64.AppImage": {
+     "created": "2026-10-30T00:00:00Z",
+     "signer": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "GpgFrontend-2.1.9-linux-x86_64-portable.AppImage": {
+     "created": "2026-10-30T00:00:00Z",
+     "signer": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "GpgFrontend-2.1.9-linux-x86_64.AppImage": {
+     "created": "2026-10-30T00:00:00Z",
+     "signer": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "GpgFrontend-2.1.9-macos-13-intel.dmg": {
+     "created": "2026-10-30T00:00:00Z",
+     "signer": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "GpgFrontend-2.1.9-macos-14.dmg": {
+     "created": "2026-10-30T00:00:00Z",
+     "signer": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "GpgFrontend-2.1.9-macos-15.dmg": {
+     "created": "2026-10-30T00:00:00Z",
+     "signer": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "GpgFrontend-2.1.9-windows-x86_64-portable.zip": {
+     "created": "2026-10-30T00:00:00Z",
+     "signer": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "GpgFrontend-2.1.9-windows-x86_64.msi": {
+     "created": "2026-10-30T00:00:00Z",
+     "signer": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    }
+   }
+  },
+  "2.2.5": {
+   "descriptor": "releases/2.2.5/release.json",
+   "notes": "notes/2.2.5/223d82d3584a98a7f38144bf58ee8e6b2b99453f2655648834f59f94a186c893.md",
+   "notes_sha256": "223d82d3584a98a7f38144bf58ee8e6b2b99453f2655648834f59f94a186c893",
+   "notes_sig": "notes/2.2.5/223d82d3584a98a7f38144bf58ee8e6b2b99453f2655648834f59f94a186c893.md.sig",
+   "sha256": "ab93f072e37f38aafc8e107ae2023eaadb7a78c46a0a1ece0b90786fcbf51f49",
+   "signatures": {
+    "GpgFrontend-2.2.5-android-arm64-v8a.apk": {
+     "created": "2026-10-30T00:00:00Z",
+     "signer": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "GpgFrontend-2.2.5-linux-aarch64.AppImage": {
+     "created": "2026-10-30T00:00:00Z",
+     "signer": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "GpgFrontend-2.2.5-linux-x86_64-portable.AppImage": {
+     "created": "2026-10-30T00:00:00Z",
+     "signer": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "GpgFrontend-2.2.5-linux-x86_64.AppImage": {
+     "created": "2026-10-30T00:00:00Z",
+     "signer": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "GpgFrontend-2.2.5-macos-13-intel.dmg": {
+     "created": "2026-10-30T00:00:00Z",
+     "signer": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "GpgFrontend-2.2.5-macos-14.dmg": {
+     "created": "2026-10-30T00:00:00Z",
+     "signer": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "GpgFrontend-2.2.5-macos-15.dmg": {
+     "created": "2026-10-30T00:00:00Z",
+     "signer": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "GpgFrontend-2.2.5-windows-x86_64-portable.zip": {
+     "created": "2026-10-30T00:00:00Z",
+     "signer": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "GpgFrontend-2.2.5-windows-x86_64.msi": {
+     "created": "2026-10-30T00:00:00Z",
+     "signer": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    }
+   }
+  }
+ },
+ "root_version": 3,
+ "schema": 1,
+ "serial": 42,
+ "series": {
+  "2.1": {
+   "beta": null,
+   "eol": "2026-06-30",
+   "latest": "2.1.9",
+   "platforms": {
+    "android_api": 29,
+    "linux_glibc": "2.35",
+    "macos": "13.0",
+    "windows": "10.0.17763"
+   },
+   "prerelease": false,
+   "rc": null,
+   "status": "eol",
+   "successor": "2.2"
+  },
+  "2.2": {
+   "beta": {
+    "descriptor": "nightly/2.2.6-alpha.3-gabcdef012345/release.json",
+    "sha256": "d1eb25a39faf868af7c6852a3e4a0519a30d6f8c543eb58b844c52e2e917c60f",
+    "version": "2.2.6-alpha.3+gabcdef012345"
+   },
+   "eol": null,
+   "latest": "2.2.5",
+   "platforms": {
+    "android_api": 29,
+    "linux_glibc": "2.35",
+    "macos": "13.0",
+    "windows": "10.0.17763"
+   },
+   "prerelease": false,
+   "rc": null,
+   "status": "stable",
+   "successor": null
+  },
+  "2.3": {
+   "beta": null,
+   "eol": null,
+   "latest": null,
+   "platforms": {
+    "android_api": 29,
+    "linux_glibc": "2.35",
+    "macos": "13.0",
+    "windows": "10.0.17763"
+   },
+   "prerelease": true,
+   "rc": {
+    "descriptor": "nightly/2.3.0-rc.1/release.json",
+    "sha256": "f8527447bc100c0a2f1db542ec97705be5cd322ee925e37b20952af592ba6a59",
+    "version": "2.3.0-rc.1"
+   },
+   "status": "stable",
+   "successor": null
+  },
+  "2.4": {
+   "beta": null,
+   "eol": null,
+   "latest": null,
+   "platforms": {
+    "android_api": 29,
+    "linux_glibc": "2.35",
+    "macos": "13.0",
+    "windows": "10.0.17763"
+   },
+   "prerelease": false,
+   "rc": null,
+   "status": "mainline",
+   "successor": null
+  }
+ },
+ "withdrawn": [
+  {
+   "reason": "its installer did not start",
+   "version": "2.2.4"
+  }
+ ]
+}
