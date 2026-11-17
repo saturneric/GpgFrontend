@@ -22,6 +22,7 @@ import urllib.parse
 import _paths  # noqa: F401
 from gfrelease.adapters.github import GitHub
 from gfrelease.app import github_sync
+from gfrelease.domain import github_release as gh
 from test_gfrelease import StableTest
 
 REPO = "example/product"
@@ -38,6 +39,7 @@ class FakeGitHub:
         self.tags: dict[str, str] = {}  # tag -> commit
         self.latest = None  # a release's id
         self.writes: list[str] = []
+        self.make_latest: list = []  # what each update asked
         self.fail_upload_after = None  # uploads taken before one fails
         self.ids = itertools.count(1)
         fake = self
@@ -144,6 +146,7 @@ class FakeGitHub:
 
     def patch(self, path, body):
         self.writes.append(f"PATCH {path} {sorted(body)}")
+        self.make_latest.append(body.get("make_latest"))
         release = self._release(int(path.split("/")[-1]))
         for key in ("name", "body", "draft"):
             if key in body:
@@ -309,11 +312,61 @@ class GitHubSyncTest(StableTest):
                       report["problems"])
 
 
+class LatestTest(unittest.TestCase):
+    """What the sync asks of GitHub for a release that is not the stable
+    channel's (2.1.14 published after 2.2.5): never to make it the
+    latest."""
+
+    def setUp(self):
+        self.github = FakeGitHub()
+        self.addCleanup(self.github.close)
+        self.github.tags = {"v2.2.5": "a" * 40, "v2.1.14": "b" * 40}
+        client = self.github.client()
+        latest = client.create("v2.2.5", "v2.2.5", "notes")
+        client.update(latest, draft=False, make_latest="true")
+        self.latest = latest["id"]
+
+    def release(self, latest: bool) -> gh.Release:
+        return gh.Release(version="2.1.14", tag="v2.1.14", name="v2.1.14",
+                          commit="b" * 40, body="notes", latest=latest,
+                          assets=())
+
+    def carry_out(self, want):
+        client = self.github.client()
+        have = client.find(want.tag)
+        steps = gh.plan(want, have, client.latest_tag())
+        github_sync._carry_out(want, have, steps, client, {"artifacts": []},
+                               {}, None, None)
+        return steps
+
+    def test_an_older_series_release_is_published_not_as_the_latest(self):
+        steps = self.carry_out(self.release(False))
+        self.assertEqual([s.kind for s in steps], ["create", "publish"])
+        self.assertFalse(self.github.by_tag("v2.1.14")["draft"])
+        self.assertEqual(self.github.latest, self.latest)
+        # Said, not left out: GitHub makes a release it publishes the
+        # latest unless told otherwise.
+        self.assertEqual(self.github.make_latest[-1], "false")
+        # Its notes changed later: still not the latest.
+        self.github.by_tag("v2.1.14")["body"] = "old"
+        self.assertEqual([s.kind for s in self.carry_out(
+            self.release(False))], ["edit"])
+        self.assertEqual(self.github.make_latest[-1], "false")
+        self.assertEqual(self.github.latest, self.latest)
+
+    def test_the_stable_channels_release_is(self):
+        self.carry_out(self.release(True))
+        self.assertEqual(self.github.latest,
+                         self.github.by_tag("v2.1.14")["id"])
+
+
 def load_tests(loader, tests, pattern):
     """Only this file's tests: StableTest's own run in test_gfrelease."""
-    return unittest.TestSuite(
+    suite = unittest.TestSuite(
         GitHubSyncTest(name) for name in sorted(vars(GitHubSyncTest))
         if name.startswith("test_"))
+    suite.addTests(loader.loadTestsFromTestCase(LatestTest))
+    return suite
 
 
 if __name__ == "__main__":
