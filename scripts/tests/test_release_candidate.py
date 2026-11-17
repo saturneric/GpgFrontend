@@ -486,6 +486,25 @@ class LegsTest(TreeCase):
                     (b / name).write_text(text)
                 self.assertRejected(self.tree.stage, "expected exactly")
 
+    def test_every_leg_built_the_runs_version(self):
+        for leg, version in (("a", "2.2.0-alpha.3-gabc"),
+                             ("b", "2.2.0-alpha.4-gdef")):
+            self.tree.add_leg(leg, {f"GpgFrontend-{leg}": b"x"},
+                              info=build_info() | {
+                                  "version_filesafe": version})
+        with self.assertRaisesRegex(rc.CandidateError,
+                                    r"buildinfo-b: built as "
+                                    r"'2.2.0-alpha.4-gdef', not the run's"):
+            with contextlib.redirect_stdout(io.StringIO()):
+                rc.stage(self.tree.artifacts, self.tree.candidate,
+                         "2.2.0-alpha.3-gabc")
+        self.assertFalse(self.tree.candidate.exists())
+
+    def test_without_a_version_any_leg_stages(self):
+        self.tree.add_legs()
+        self.tree.stage()
+        self.assertTrue((self.tree.candidate / rc.MANIFEST).is_file())
+
     def test_incomplete_build_info(self):
         info = build_info()
         del info["build_id"]

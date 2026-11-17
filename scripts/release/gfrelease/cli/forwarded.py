@@ -80,10 +80,13 @@ def candidate_main(argv: list[str]) -> int:
     p = sub.add_parser("stage", help="write the release candidate")
     p.add_argument("--artifacts", required=True, type=Path)
     p.add_argument("--out", required=True, type=Path)
+    p.add_argument("--version", metavar="FILESAFE",
+                   help="the file-safe version every leg must have built "
+                   "(setup's artifact_version)")
 
     args = parser.parse_args(argv)
     try:
-        staged = candidate_mod.stage(args.artifacts, args.out)
+        staged = candidate_mod.stage(args.artifacts, args.out, args.version)
     except CandidateError as e:
         print(f"candidate: {e}", file=sys.stderr)
         return 1

@@ -42,7 +42,7 @@ published; the name is reserved so it cannot be, even by accident.
 
 Stdlib only: the provenance and release runners install nothing for this.
 
-usage: gfrelease candidate stage --artifacts DIR --out DIR
+usage: gfrelease candidate stage --artifacts DIR --out DIR [--version FILESAFE]
 """
 
 import json
@@ -132,17 +132,25 @@ def load_build_info(info_dir):
     return info
 
 
-def check_build_info(leg, info):
-    """A leg's build info names the build, so the leg really finished."""
+def check_build_info(leg, info, version=None):
+    """A leg's build info names the build, so the leg really finished; with
+    @p version, the file-safe version the run derived once for every job,
+    it built that version, and so names its files and the application
+    (an MSI's ProductVersion, an APK's versionName) alike."""
     missing = sorted({"project_version", "build_id", "host_os", "modules"}
                      - set(info))
     if missing:
         raise CandidateError(f"{BUILD_INFO_PREFIX}{leg}: missing {missing}")
+    if version is not None and info.get("version_filesafe") != version:
+        raise CandidateError(f"{BUILD_INFO_PREFIX}{leg}: built as "
+                             f"{info.get('version_filesafe')!r}, not the "
+                             f"run's {version}")
 
 
-def stage(artifacts_root, out):
+def stage(artifacts_root, out, version=None):
     """The candidate of @p artifacts_root written to @p out: how many legs,
-    and {name: sha256} of what it holds."""
+    and {name: sha256} of what it holds. With @p version, every leg must
+    have built it (check_build_info)."""
     # Everything is checked before anything is written: a refused input
     # leaves no half-built candidate behind.
     legs = collect_legs(artifacts_root)
@@ -150,7 +158,7 @@ def stage(artifacts_root, out):
     sources, owner = {}, {}
     for leg in sorted(legs):
         deliverable_dir, info_dir = legs[leg]
-        check_build_info(leg, load_build_info(info_dir))
+        check_build_info(leg, load_build_info(info_dir), version)
 
         files = regular_files(deliverable_dir)
         if not files:
