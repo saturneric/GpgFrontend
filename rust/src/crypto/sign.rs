@@ -40,10 +40,10 @@ use super::*;
 /// The three modes have different buffering requirements:
 /// - **Inline** — true streaming; the builder consumes the input reader directly
 ///   and can sign multiple keys in a single pass.
-/// - **ClearText** — the entire input is buffered to memory because rPGP
-///   requires `&str` for CRLF normalization. All keys are signed via `new_many`.
-/// - **Detached** — the entire input is buffered to compute the hash. All keys
-///   are signed and their signature packets are concatenated.
+/// - **ClearText** — streaming a line at a time; every key's hasher is fed the
+///   trimmed CRLF form of each line while its dash-escaped form is written.
+/// - **Detached** — true streaming; every key's hasher is fed in one pass and
+///   their signature packets are concatenated.
 pub fn sign_stream_internal<R, W>(
     channel: i32,
     name: &str,
@@ -187,174 +187,87 @@ where
         }
 
         // ---------------------------------------------------------
-        // MODE 1: CLEARTEXT SIGNATURE (Buffered)
+        // MODE 1: CLEARTEXT SIGNATURE (Streaming, a line at a time)
         // ---------------------------------------------------------
         GfrSignMode::ClearText => {
-            let mut data = Vec::new();
-            input_stream.read_to_end(&mut data).record_err_with(|| {
-                crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInvalidInput)
-            })?;
-            let text_str = std::str::from_utf8(&data).record_err(GfrStatus::ErrorInvalidInput)?;
-
             if parsed_keys.is_empty() {
                 return Err(GfrStatus::ErrorInvalidInput);
             }
+            let mut pending = prepare_signers(
+                &parsed_keys,
+                SignatureType::Text,
+                &mut rng,
+                &fetch_pwd_for_key,
+            )?;
+            let write_failed =
+                |_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal);
 
-            let keys_ref = &parsed_keys;
-            let record_sig_fn = &mut record_sig;
-            let fetch_pwd = &fetch_pwd_for_key;
+            // The armor header. All signatures are SHA-512; RFC 9580
+            // §6.2.2.3 wants the `Hash:` header only for a v4 signature.
+            let all_v6 = pending.iter().all(|p| {
+                let version = match p.key {
+                    SelectedKey::Primary(k) => k.version(),
+                    SelectedKey::Sub(k) => k.version(),
+                };
+                version == KeyVersion::V6
+            });
+            let mut output = std::io::BufWriter::new(&mut output_stream);
+            output
+                .write_all(if all_v6 {
+                    b"-----BEGIN PGP SIGNED MESSAGE-----\n\n" as &[u8]
+                } else {
+                    b"-----BEGIN PGP SIGNED MESSAGE-----\nHash: SHA512\n\n"
+                })
+                .map_err(write_failed)?;
 
-            let text_str = &trim_trailing_whitespace(text_str);
-            // rPGP's callback can only return a message; keep the first real
-            // status (a cancel, a wrong passphrase, an unusable key) for the
-            // caller instead of flattening it to ErrorInternal.
-            let mut failure: Option<GfrStatus> = None;
-            let failure_ref = &mut failure;
-            let msg = CleartextSignedMessage::new_many(
-                text_str,
-                |normalized_text| -> pgp::errors::Result<Vec<pgp::packet::Signature>> {
-                    let mut sigs = Vec::new();
-
-                    for (skey, target) in keys_ref.iter() {
-                        let sig_result =
-                            with_signing_key(skey, target.as_deref(), |selected_key| {
-                                let fpr = selected_key.fpr();
-                                let is_enc = selected_key.is_encrypted();
-                                let algo_str = algo_to_string_simple(selected_key.algorithm());
-                                let pwd = fetch_pwd(is_enc, &fpr)?;
-                                selected_key.check_passphrase(&pwd)?;
-
-                                let normalized_bytes = normalized_text.as_bytes();
-                                let cursor = Cursor::new(normalized_bytes);
-
-                                let signature = match selected_key {
-                                    SelectedKey::Primary(k) => {
-                                        let hashed_subpackets = vec![
-                                            Subpacket::regular(
-                                                SubpacketData::SignatureCreationTime(
-                                                    Timestamp::now(),
-                                                ),
-                                            )
-                                            .map_err(|_| GfrStatus::ErrorInternal)?,
-                                            Subpacket::regular(SubpacketData::IssuerFingerprint(
-                                                k.fingerprint(),
-                                            ))
-                                            .map_err(|_| GfrStatus::ErrorInternal)?,
-                                        ];
-                                        // Pin the cleartext signing hash to SHA-512 so the reported metadata is
-                                        // truthful and never a weak digest (RFC 9580 §9.5).
-                                        let mut config = sha512_signature_config(
-                                            &mut rng,
-                                            k,
-                                            SignatureType::Text,
-                                        )
-                                        .map_err(|_| GfrStatus::ErrorInternal)?;
-                                        config.hashed_subpackets = hashed_subpackets;
-                                        if k.version() <= KeyVersion::V4 {
-                                            config.unhashed_subpackets = vec![
-                                                Subpacket::regular(SubpacketData::IssuerKeyId(
-                                                    k.legacy_key_id(),
-                                                ))
-                                                .map_err(|_| GfrStatus::ErrorInternal)?,
-                                            ];
-                                        }
-                                        config.sign(k, &pwd, cursor).map_err(|e| {
-                                            // The passphrase was checked already
-                                            // (`check_passphrase`): this is not a
-                                            // passphrase problem, so it is not
-                                            // reported as one and nothing is evicted.
-                                            set_last_error(&format!(
-                                                "signing failed for key {}: {}",
-                                                fpr, e
-                                            ));
-                                            GfrStatus::ErrorInternal
-                                        })?
-                                    }
-                                    SelectedKey::Sub(k) => {
-                                        let hashed_subpackets = vec![
-                                            Subpacket::regular(
-                                                SubpacketData::SignatureCreationTime(
-                                                    Timestamp::now(),
-                                                ),
-                                            )
-                                            .map_err(|_| GfrStatus::ErrorInternal)?,
-                                            Subpacket::regular(SubpacketData::IssuerFingerprint(
-                                                k.fingerprint(),
-                                            ))
-                                            .map_err(|_| GfrStatus::ErrorInternal)?,
-                                        ];
-                                        // Pin the cleartext signing hash to SHA-512 so the reported metadata is
-                                        // truthful and never a weak digest (RFC 9580 §9.5).
-                                        let mut config = sha512_signature_config(
-                                            &mut rng,
-                                            k,
-                                            SignatureType::Text,
-                                        )
-                                        .map_err(|_| GfrStatus::ErrorInternal)?;
-                                        config.hashed_subpackets = hashed_subpackets;
-                                        if k.version() <= KeyVersion::V4 {
-                                            config.unhashed_subpackets = vec![
-                                                Subpacket::regular(SubpacketData::IssuerKeyId(
-                                                    k.legacy_key_id(),
-                                                ))
-                                                .map_err(|_| GfrStatus::ErrorInternal)?,
-                                            ];
-                                        }
-                                        config.sign(k, &pwd, cursor).map_err(|e| {
-                                            // The passphrase was checked already
-                                            // (`check_passphrase`): this is not a
-                                            // passphrase problem, so it is not
-                                            // reported as one and nothing is evicted.
-                                            set_last_error(&format!(
-                                                "signing failed for key {}: {}",
-                                                fpr, e
-                                            ));
-                                            GfrStatus::ErrorInternal
-                                        })?
-                                    }
-                                };
-
-                                record_sig_fn(fpr, algo_str);
-                                Ok(signature)
-                            });
-
-                        sigs.push(sig_result.map_err(|e| {
-                            failure_ref.get_or_insert(e);
-                            e.to_string()
-                        })?);
+            // The text, a line at a time: its signed form to every hasher,
+            // its dash-escaped form to the output.
+            let mut input = BufReader::new(input_stream);
+            let mut line = Vec::new();
+            loop {
+                let more = cleartext_line(&mut input, &mut line).map_err(|e| {
+                    if e.kind() == std::io::ErrorKind::InvalidData {
+                        set_last_error(&e.to_string());
                     }
-
-                    Ok(sigs)
-                },
-            )
-            .map_err(|_| failure.unwrap_or(GfrStatus::ErrorInternal))?;
-
-            // RFC 9580 §6.1: a CRC24 footer only when every signature is v4.
-            let v4_only = msg
-                .signatures()
-                .iter()
-                .all(|sig| sig.version() == pgp::packet::SignatureVersion::V4);
-            let armored = msg
-                .to_armored_string(armor_opts_for(v4_only))
-                .map_err(|_| GfrStatus::ErrorArmorFailed)?;
-            let all_v6 = msg
-                .signatures()
-                .iter()
-                .all(|sig| sig.version() == pgp::packet::SignatureVersion::V6);
-            let armored = dash_escape_from_lines(&armored);
-            let out = if all_v6 {
-                strip_cleartext_hash_headers(&armored)
-            } else {
-                armored
+                    crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInvalidInput)
+                })?;
+                if !more {
+                    break;
+                }
+                let text = std::str::from_utf8(&line).record_err(GfrStatus::ErrorInvalidInput)?;
+                let text = trim_trailing_whitespace(text);
+                let signed = crlf_line(&text);
+                for signer in &mut pending {
+                    signer
+                        .hasher
+                        .write_all(signed.as_bytes())
+                        .map_err(write_failed)?;
+                }
+                if text.starts_with('-') || text.starts_with("From ") {
+                    output.write_all(b"- ").map_err(write_failed)?;
+                }
+                output.write_all(text.as_bytes()).map_err(write_failed)?;
             }
-            .into_bytes();
+            output.write_all(b"\n").map_err(write_failed)?;
 
-            output_stream.write_all(&out).map_err(|_| {
-                crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal)
-            })?;
-            output_stream.flush().map_err(|_| {
-                crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal)
-            })?;
+            // The signatures, now that every hasher has seen the text.
+            let sigs = finish_signers(pending, &mut record_sig)?;
+            // RFC 9580 §6.1: a CRC24 footer only when every signature is v4.
+            let opts = armor_opts_for(
+                sigs.iter()
+                    .all(|sig| sig.signature.version() == pgp::packet::SignatureVersion::V4),
+            );
+            pgp::armor::write(
+                &sigs,
+                pgp::armor::BlockType::Signature,
+                &mut output,
+                opts.headers,
+                opts.include_checksum,
+            )
+            .map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorArmorFailed))?;
+            output.flush().map_err(write_failed)?;
+            drop(output);
+            output_stream.flush().map_err(write_failed)?;
 
             Ok(SignStreamResultInternal {
                 signatures: created_signatures,
@@ -362,81 +275,27 @@ where
         }
 
         // ---------------------------------------------------------
-        // MODE 2: DETACHED SIGNATURE (Buffered)
+        // MODE 2: DETACHED SIGNATURE (Streaming)
         // ---------------------------------------------------------
         GfrSignMode::Detached => {
             if parsed_keys.is_empty() {
                 return Err(GfrStatus::ErrorInvalidInput);
             }
 
-            // One signer reads the input as it streams by; several each need
-            // all of it, so it is held in memory for them.
-            let streamed = parsed_keys.len() == 1;
-            let mut data = Vec::new();
-            if !streamed {
-                input_stream.read_to_end(&mut data).record_err_with(|| {
-                    crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInvalidInput)
-                })?;
-            }
-
-            let mut all_sigs = Vec::new();
-            let mut at_least_one_signer = false;
-
-            for (skey, target) in &parsed_keys {
-                let res = with_signing_key(skey, target.as_deref(), |selected_key| {
-                    let fpr = selected_key.fpr();
-                    let is_enc = selected_key.is_encrypted();
-                    let algo_str = algo_to_string_simple(selected_key.algorithm());
-                    let pwd = fetch_pwd_for_key(is_enc, &fpr)?;
-                    selected_key.check_passphrase(&pwd)?;
-
-                    let source: &mut dyn Read = if streamed {
-                        &mut input_stream
-                    } else {
-                        &mut &*data
-                    };
-                    let sig_res = match selected_key {
-                        SelectedKey::Primary(k) => DetachedSignature::sign_binary_data(
-                            &mut rng,
-                            k,
-                            &pwd,
-                            HashAlgorithm::Sha512,
-                            source,
-                        ),
-                        SelectedKey::Sub(k) => DetachedSignature::sign_binary_data(
-                            &mut rng,
-                            k,
-                            &pwd,
-                            HashAlgorithm::Sha512,
-                            source,
-                        ),
-                    };
-
-                    match sig_res {
-                        Ok(sig) => {
-                            record_sig(fpr, algo_str);
-                            return Ok(sig);
-                        }
-                        Err(e) => {
-                            // The passphrase was checked already
-                            // (`check_passphrase`): not a passphrase problem.
-                            // A streamed input may also have been cancelled.
-                            set_last_error(&format!("signing failed for key {}: {}", fpr, e));
-                            Err(crate::cancel::status_or_canceled(
-                                channel,
-                                GfrStatus::ErrorInternal,
-                            ))
-                        }
-                    }
-                })?;
-
-                all_sigs.push(res);
-                at_least_one_signer = true;
-            }
-
-            if !at_least_one_signer {
-                return Err(GfrStatus::ErrorInvalidInput);
-            }
+            // Every signer's key is chosen, its passphrase asked for and its
+            // hasher made before the input is read, so one pass over the
+            // input feeds them all, however many there are.
+            let mut pending = prepare_signers(
+                &parsed_keys,
+                SignatureType::Binary,
+                &mut rng,
+                &fetch_pwd_for_key,
+            )?;
+            let mut hashers = HasherFanOut(pending.iter_mut().map(|p| &mut p.hasher).collect());
+            std::io::copy(&mut input_stream, &mut hashers).record_err_with(|| {
+                crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInvalidInput)
+            })?;
+            let all_sigs = finish_signers(pending, &mut record_sig)?;
 
             // One detached signature is "one or more Signature packets" (RFC
             // 9580 §10.4): armored, all of them go into a single block.
@@ -476,6 +335,164 @@ where
     }
 }
 
+/// A signature being made: the key chosen for it, and the hasher its data
+/// is fed to.
+struct PendingSignature<'a> {
+    key: SelectedKey<'a>,
+    hasher: pgp::packet::SignatureHasher,
+    pwd: Password,
+    fpr: String,
+    algo_str: String,
+}
+
+/// Writes what it is given to every hasher.
+struct HasherFanOut<'a>(Vec<&'a mut pgp::packet::SignatureHasher>);
+
+impl Write for HasherFanOut<'_> {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        for hasher in &mut self.0 {
+            hasher.write_all(buf)?;
+        }
+        Ok(buf.len())
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
+
+/// Choose each signer's key, ask for its passphrase and make its hasher, all
+/// before any data is read, so one pass over the data feeds every signer.
+fn prepare_signers<'a, R: rand::CryptoRng + rand::Rng>(
+    parsed_keys: &'a [ParsedSigner],
+    typ: SignatureType,
+    rng: &mut R,
+    fetch_pwd: &dyn Fn(bool, &str) -> Result<Password, GfrStatus>,
+) -> Result<Vec<PendingSignature<'a>>, GfrStatus> {
+    let mut pending = Vec::with_capacity(parsed_keys.len());
+    for (skey, target) in parsed_keys {
+        pending.push(with_signing_key(skey, target.as_deref(), |key| {
+            let fpr = key.fpr();
+            let algo_str = algo_to_string_simple(key.algorithm());
+            let pwd = fetch_pwd(key.is_encrypted(), &fpr)?;
+            key.check_passphrase(&pwd)?;
+            let hasher = match key {
+                SelectedKey::Primary(k) => signature_hasher(&mut *rng, k, typ),
+                SelectedKey::Sub(k) => signature_hasher(&mut *rng, k, typ),
+            }?;
+            Ok(PendingSignature {
+                key,
+                hasher,
+                pwd,
+                fpr,
+                algo_str,
+            })
+        })?);
+    }
+    Ok(pending)
+}
+
+/// Make the signatures whose hashers have seen all the data, recording each.
+fn finish_signers(
+    pending: Vec<PendingSignature<'_>>,
+    record_sig: &mut dyn FnMut(String, String),
+) -> Result<Vec<DetachedSignature>, GfrStatus> {
+    let mut sigs = Vec::with_capacity(pending.len());
+    for signer in pending {
+        let PendingSignature {
+            key,
+            hasher,
+            pwd,
+            fpr,
+            algo_str,
+        } = signer;
+        let signature = match key {
+            SelectedKey::Primary(k) => hasher.sign(k, &pwd),
+            SelectedKey::Sub(k) => hasher.sign(k, &pwd),
+        }
+        .map_err(|e| {
+            // The passphrase was checked already (`check_passphrase`): not a
+            // passphrase problem, so it is not reported as one.
+            set_last_error(&format!("signing failed for key {}: {}", fpr, e));
+            GfrStatus::ErrorInternal
+        })?;
+        record_sig(fpr, algo_str);
+        sigs.push(DetachedSignature::new(signature));
+    }
+    Ok(sigs)
+}
+
+/// A hasher for a SHA-512 signature of type `typ` by `key`, with the
+/// subpackets rPGP's own signers give one: issuer fingerprint and creation
+/// time hashed (in the order rPGP's detached and clear-text signers use), and
+/// for a v4 key its key ID unhashed.
+fn signature_hasher<R: rand::CryptoRng + rand::Rng>(
+    rng: R,
+    key: &impl SigningKey,
+    typ: SignatureType,
+) -> Result<pgp::packet::SignatureHasher, GfrStatus> {
+    let internal = |e: pgp::errors::Error| {
+        set_last_error(&format!("cannot prepare a signature: {e}"));
+        GfrStatus::ErrorInternal
+    };
+    let issuer = Subpacket::regular(SubpacketData::IssuerFingerprint(key.fingerprint()))
+        .map_err(internal)?;
+    let created = Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::now()))
+        .map_err(internal)?;
+    let mut config = sha512_signature_config(rng, key, typ).map_err(internal)?;
+    config.hashed_subpackets = if typ == SignatureType::Text {
+        vec![created, issuer]
+    } else {
+        vec![issuer, created]
+    };
+    if key.version() <= KeyVersion::V4 {
+        config.unhashed_subpackets = vec![
+            Subpacket::regular(SubpacketData::IssuerKeyId(key.legacy_key_id()))
+                .map_err(internal)?,
+        ];
+    }
+    config.into_hasher().map_err(internal)
+}
+
+/// The longest line of text a clear-text signature takes: it is held while
+/// it is trimmed and escaped. The verifier reads lines this long too.
+const MAX_CLEARTEXT_LINE: usize = 16 << 20;
+
+/// Read the next line of `input`, with its `\n`, into `line`, replacing what
+/// it held. False at the end of the input.
+fn cleartext_line<B: std::io::BufRead>(input: &mut B, line: &mut Vec<u8>) -> std::io::Result<bool> {
+    line.clear();
+    loop {
+        let available = input.fill_buf()?;
+        if available.is_empty() {
+            return Ok(!line.is_empty());
+        }
+        let newline = available.iter().position(|&b| b == b'\n');
+        let take = newline.map_or(available.len(), |at| at + 1);
+        line.extend_from_slice(&available[..take]);
+        input.consume(take);
+        if line.len() > MAX_CLEARTEXT_LINE {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "a line of the text is too long for a clear-text signature",
+            ));
+        }
+        if newline.is_some() {
+            return Ok(true);
+        }
+    }
+}
+
+/// `line` with its line ending as CRLF, the form a text signature hashes
+/// (RFC 9580 §5.2.1.2), as rPGP's `normalize_lines` makes it: a bare CR
+/// elsewhere is left alone.
+fn crlf_line(line: &str) -> std::borrow::Cow<'_, str> {
+    match line.strip_suffix('\n') {
+        Some(content) if !content.ends_with('\r') => format!("{content}\r\n").into(),
+        _ => line.into(),
+    }
+}
+
 /// A SHA-512 signature config for `key`. The hash is chosen before the config
 /// is built because a v6 salt is sized for it (RFC 9580 §5.2.3, Table 23):
 /// overriding `hash_alg` afterwards would keep the salt of the key's default
@@ -495,10 +512,12 @@ fn sha512_signature_config<R: rand::CryptoRng + rand::Rng>(
     }
 }
 
+#[cfg(test)]
 /// Drop the `Hash:` armor headers of a cleartext signed message. rPGP always
 /// writes them, but RFC 9580 §6.2.2.3 says they "SHOULD NOT be emitted
 /// unless ... the cleartext signed message contains a version 4 signature
-/// made using a SHA2-based digest" (for legacy verifiers).
+/// made using a SHA2-based digest" (for legacy verifiers). The stream signer
+/// writes the header itself; this is the reference its tests compare with.
 fn strip_cleartext_hash_headers(armored: &str) -> String {
     let mut lines = armored.split_inclusive('\n');
     let mut out = String::with_capacity(armored.len());
@@ -519,10 +538,13 @@ fn strip_cleartext_hash_headers(armored: &str) -> String {
     out
 }
 
+#[cfg(test)]
 /// Dash-escape the cleartext lines that start with "From " (RFC 9580 §7.2:
 /// "the line SHOULD be dash-escaped"), which rPGP leaves alone: a mail
 /// transport may rewrite them to ">From " and break the signature. The
-/// escape is removed before hashing, so the signed text is unchanged.
+/// escape is removed before hashing, so the signed text is unchanged. The
+/// stream signer escapes as it writes; this is the reference its tests
+/// compare with.
 fn dash_escape_from_lines(armored: &str) -> String {
     let mut out = String::with_capacity(armored.len());
     // 0: BEGIN line and headers, 1: cleartext body, 2: the signature block.
@@ -1203,6 +1225,246 @@ mod sign_tests {
             "a cancelled signing operation must abort"
         );
     }
+
+    #[test]
+    fn several_detached_signers_each_sign_the_whole_input() {
+        // One pass over a stream that cannot be rewound feeds every signer.
+        let signers = [&*keys::V4_SIGN, &*keys::V4_NISTP256, &*keys::V6_SIGN];
+        let blocks: Vec<&str> = signers.iter().map(|k| k.secret_armored.as_str()).collect();
+        let data = crate::testutil::seipd::bytes(3 * 1024 * 1024 + 17, 9);
+        let mut sig = Vec::new();
+        let res = sign_stream_internal(
+            0,
+            "",
+            crate::testutil::seipd::Payload::new(data.len() as u64, 9),
+            &mut sig,
+            &blocks,
+            None,
+            GfrSignMode::Detached,
+            false,
+        )
+        .expect("sign");
+        assert_eq!(res.signatures.len(), signers.len());
+        for (i, key) in signers.iter().enumerate() {
+            crate::testutil::cb::set_pubkey_answer(&key.public_armored);
+            let verified = crate::crypto::verify_internal(
+                &data,
+                &sig,
+                GfrSignMode::Detached,
+                Some(crate::testutil::cb::pubkey_fetch),
+                std::ptr::null_mut(),
+            )
+            .expect("verify");
+            assert_eq!(verified.signatures.len(), signers.len());
+            assert_eq!(
+                verified.signatures[i].status,
+                GfrSignatureStatus::Valid,
+                "signer {i}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_cancelled_read_stops_several_detached_signers() {
+        const CH: i32 = 0x0C_93;
+        crate::cancel::set_cancelled(CH, true);
+        let res = sign_internal(
+            CH,
+            "",
+            &vec![0u8; 1024 * 1024],
+            &[&keys::V4_SIGN.secret_armored, &keys::V6_SIGN.secret_armored],
+            None,
+            GfrSignMode::Detached,
+            true,
+        );
+        crate::cancel::set_cancelled(CH, false);
+        assert_eq!(res.err(), Some(GfrStatus::ErrorCanceled));
+    }
+
+    /// Several detached signers over a file past 1 GiB, in bounded memory:
+    /// the input is no longer held for them.
+    #[test]
+    #[ignore = "large-file tier: run with scripts/run_tests.sh --large-file-only"]
+    fn large_file_several_detached_signers_sign_in_bounded_memory() {
+        use crate::testutil::{memory::PeakRss, seipd};
+        const LEN: u64 = (1 << 30) + (1 << 20);
+        const SEED: u64 = 0x1A26_E002;
+        let dir = seipd::workdir();
+        let data_path = dir.path().join("data.bin");
+        std::io::copy(
+            &mut seipd::Payload::new(LEN, SEED),
+            &mut std::io::BufWriter::new(File::create(&data_path).unwrap()),
+        )
+        .unwrap();
+
+        let blocks = [
+            keys::V4_SIGN.secret_armored.as_str(),
+            keys::V6_SIGN.secret_armored.as_str(),
+        ];
+        let mut sig = Vec::new();
+        let peak = PeakRss::start();
+        sign_stream_internal(
+            0,
+            "",
+            File::open(&data_path).unwrap(),
+            &mut sig,
+            &blocks,
+            None,
+            GfrSignMode::Detached,
+            true,
+        )
+        .expect("sign the large file");
+        peak.assert_below(256 << 20, LEN);
+
+        for key in [&*keys::V4_SIGN, &*keys::V6_SIGN] {
+            crate::testutil::cb::set_pubkey_answer(&key.public_armored);
+            let res = crate::crypto::verify_detached_stream_internal(
+                0,
+                File::open(&data_path).unwrap(),
+                &sig,
+                Some(crate::testutil::cb::pubkey_fetch),
+                std::ptr::null_mut(),
+            )
+            .expect("verify");
+            assert!(res.is_verified);
+        }
+    }
+
+    /// The clear-text framing rPGP's own writer gave a message, with GF's
+    /// `From ` escaping and `Hash:` rule, around the signatures `signed`
+    /// carries: what the clear-text signer wrote before it streamed.
+    fn reference_framing(text: &str, signed: &str) -> String {
+        let (parsed, _) = CleartextSignedMessage::from_string(signed).expect("parse");
+        let sigs = parsed.signatures().to_vec();
+        let v4_only = sigs
+            .iter()
+            .all(|sig| sig.version() == pgp::packet::SignatureVersion::V4);
+        let all_v6 = sigs
+            .iter()
+            .all(|sig| sig.version() == pgp::packet::SignatureVersion::V6);
+        let msg = CleartextSignedMessage::new_many(&trim_trailing_whitespace(text), |_| Ok(sigs))
+            .expect("frame");
+        let armored = dash_escape_from_lines(
+            &msg.to_armored_string(armor_opts_for(v4_only))
+                .expect("armor"),
+        );
+        if all_v6 {
+            strip_cleartext_hash_headers(&armored)
+        } else {
+            armored
+        }
+    }
+
+    #[test]
+    fn the_streamed_cleartext_frames_text_as_the_buffered_writer_did() {
+        let texts = [
+            "",
+            "plain\n",
+            "no final line ending",
+            "crlf\r\nlines\r\n",
+            "- dash\n-----five\nFrom a mail line\nnot From here\n",
+            "trailing \t \nspaces  ",
+            "\n\n\n",
+            "a lone\rcarriage\n",
+            "ends with a carriage return\r",
+            "two carriage returns\r\r\n",
+            "unicode: \u{00e9}\u{4e2d}\u{1f600}\n",
+        ];
+        let signer_sets: [&[&keys::Fixture]; 3] = [
+            &[&keys::V4_SIGN],
+            &[&keys::V6_SIGN],
+            &[&keys::V4_SIGN, &keys::V6_SIGN],
+        ];
+        for text in texts {
+            for signers in signer_sets {
+                let blocks: Vec<&str> = signers.iter().map(|k| k.secret_armored.as_str()).collect();
+                let out = sign_internal(
+                    0,
+                    "",
+                    text.as_bytes(),
+                    &blocks,
+                    None,
+                    GfrSignMode::ClearText,
+                    true,
+                )
+                .expect("sign")
+                .data;
+                let out = String::from_utf8(out).expect("UTF-8");
+                assert_eq!(
+                    out,
+                    reference_framing(text, &out),
+                    "{text:?}, {} signers",
+                    signers.len()
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn a_line_past_the_cleartext_limit_is_refused() {
+        let mut text = vec![b'a'; MAX_CLEARTEXT_LINE + 1];
+        text.push(b'\n');
+        let res = sign_internal(
+            0,
+            "",
+            &text,
+            &[&keys::V4_SIGN.secret_armored],
+            None,
+            GfrSignMode::ClearText,
+            true,
+        );
+        assert_eq!(res.err(), Some(GfrStatus::ErrorInvalidInput));
+    }
+
+    /// A clear-text signature over a text past 1 GiB, made and verified in
+    /// bounded memory.
+    #[test]
+    #[ignore = "large-file tier: run with scripts/run_tests.sh --large-file-only"]
+    fn large_file_cleartext_signs_and_verifies_in_bounded_memory() {
+        use crate::testutil::{memory::PeakRss, seipd};
+        const LINES: u64 = 16 << 20;
+        let line = b"- a line of signed text, dash-escaped, trailing space \n";
+        let len = LINES * line.len() as u64;
+        let dir = seipd::workdir();
+        let text_path = dir.path().join("text.txt");
+        let signed_path = dir.path().join("text.txt.asc");
+        {
+            let mut text = std::io::BufWriter::new(File::create(&text_path).unwrap());
+            for _ in 0..LINES {
+                text.write_all(line).unwrap();
+            }
+        }
+
+        let peak = PeakRss::start();
+        sign_stream_internal(
+            0,
+            "",
+            File::open(&text_path).unwrap(),
+            std::io::BufWriter::new(File::create(&signed_path).unwrap()),
+            &[&keys::V4_SIGN.secret_armored, &keys::V6_SIGN.secret_armored],
+            None,
+            GfrSignMode::ClearText,
+            true,
+        )
+        .expect("sign the large text");
+        peak.assert_below(256 << 20, len);
+
+        for key in [&*keys::V4_SIGN, &*keys::V6_SIGN] {
+            crate::testutil::cb::set_pubkey_answer(&key.public_armored);
+            let peak = PeakRss::start();
+            let res = crate::crypto::verify_cleartext_stream_internal(
+                0,
+                File::open(&signed_path).unwrap(),
+                std::io::sink(),
+                Some(dir.path()),
+                Some(crate::testutil::cb::pubkey_fetch),
+                std::ptr::null_mut(),
+            )
+            .expect("verify the large text");
+            peak.assert_below(256 << 20, len);
+            assert!(res.is_verified);
+        }
+    }
 }
 
 #[cfg(test)]
@@ -1302,6 +1564,26 @@ mod sign_interop_tests {
         sign_internal(0, "", data, signers, None, mode, true)
             .expect("sign")
             .data
+    }
+
+    #[test]
+    fn sequoia_verifies_each_of_three_detached_signers_made_in_one_pass() {
+        // §10.4: every signer's packet in one object, each over the same
+        // data, which was read once for all three.
+        let Some(sq) = interop::Sq::new() else {
+            return;
+        };
+        let signers = [&*keys::V4_SIGN, &*keys::V4_NISTP256, &*keys::V6_SIGN];
+        let blocks: Vec<&str> = signers.iter().map(|k| k.secret_armored.as_str()).collect();
+        let sig = sign(&blocks, GfrSignMode::Detached, TEXT);
+        for key in signers {
+            let out = sq.verify(&key.public_armored, &sig, Some(TEXT));
+            assert!(
+                out.status.success(),
+                "{}",
+                String::from_utf8_lossy(&out.stderr)
+            );
+        }
     }
 
     #[test]
