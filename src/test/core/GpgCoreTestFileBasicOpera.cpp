@@ -39,6 +39,33 @@
 
 namespace GpgFrontend::Test {
 
+// A file that could not be opened reached gpgme as a NULL stream. Every file
+// operation must report it as a failure instead.
+TEST_F(GpgCoreTest, CoreFileOperationsOnAMissingFileFail) {
+  auto key = GpgKeyGetter::GetInstance().GetPubkeyPtr(
+      "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
+  ASSERT_TRUE(key != nullptr);
+
+  QTemporaryDir work_dir;
+  ASSERT_TRUE(work_dir.isValid());
+  const auto missing = work_dir.filePath("does-not-exist.txt");
+  const auto out = work_dir.filePath("out");
+  auto& op = GpgFileOpera::GetInstance();
+
+  EXPECT_EQ(CheckGpgError(std::get<0>(op.EncryptFileSync({key}, missing, true,
+                                                         out))),
+            GPG_ERR_ENOENT);
+  EXPECT_EQ(CheckGpgError(std::get<0>(op.DecryptFileSync(missing, out))),
+            GPG_ERR_ENOENT);
+  EXPECT_EQ(CheckGpgError(std::get<0>(
+                op.SignFileSync({key}, missing, true, out + ".sig"))),
+            GPG_ERR_ENOENT);
+  EXPECT_EQ(CheckGpgError(std::get<0>(op.VerifyFileSync(missing, {}))),
+            GPG_ERR_ENOENT);
+  EXPECT_EQ(CheckGpgError(std::get<0>(op.DecryptVerifyFileSync(missing, out))),
+            GPG_ERR_ENOENT);
+}
+
 TEST_F(GpgCoreTest, CoreFileEncryptDecrTest) {
   auto encrypt_key = GpgKeyGetter::GetInstance().GetPubkeyPtr(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");

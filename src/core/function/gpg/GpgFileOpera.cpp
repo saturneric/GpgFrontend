@@ -71,6 +71,14 @@ auto JoinArchiveExtraction(GpgError decrypt_err,
   return decrypt_err;
 }
 
+/// Why @p a or @p b could not be set up, or GPG_ERR_NO_ERROR. Checked before
+/// gpgme is called: a file that could not be opened is reported as that, not
+/// as gpgme refusing to be handed no data.
+auto DataError(const GpgData& a, const GpgData& b) -> GpgError {
+  if (a.Error() != GPG_ERR_NO_ERROR) return a.Error();
+  return b.Error();
+}
+
 void CreateArchiveHelper(const QString& in_path,
                          const QSharedPointer<GFDataExchanger>& ex) {
   auto w_ex = QWeakPointer<GFDataExchanger>(ex);
@@ -93,6 +101,12 @@ GpgFileOpera::GpgFileOpera(int channel)
 auto EncryptFileGpgDataImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
                             GpgData& data_in, bool ascii, GpgData& data_out,
                             const DataObjectPtr& data_object) -> GpgError {
+  if (const auto data_err = DataError(data_in, data_out);
+      data_err != GPG_ERR_NO_ERROR) {
+    data_object->Swap({GpgEncryptResult()});
+    return data_err;
+  }
+
   auto recipients = Convert2RawGpgMEKeyList(ctx_.GetChannel(), keys);
   auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
 
@@ -163,6 +177,12 @@ void GpgFileOpera::EncryptDirectory(const GpgAbstractKeyPtrList& keys,
 auto DecryptFileGpgDataImpl(GpgContext& ctx_, GpgData& data_in,
                             GpgData& data_out, const DataObjectPtr& data_object)
     -> GpgError {
+  if (const auto data_err = DataError(data_in, data_out);
+      data_err != GPG_ERR_NO_ERROR) {
+    data_object->Swap({GpgDecryptResult()});
+    return data_err;
+  }
+
   auto err =
       CheckGpgError(gpgme_op_decrypt(ctx_.DefaultContext(), data_in, data_out));
   data_object->Swap(
@@ -237,6 +257,12 @@ auto SignFileGpgDataImpl(GpgContext& ctx_, GpgBasicOperator& basic_opera_,
                          const DataObjectPtr& data_object) -> GpgError {
   GpgError err;
 
+  if (const auto data_err = DataError(data_in, data_out);
+      data_err != GPG_ERR_NO_ERROR) {
+    data_object->Swap({GpgSignResult()});
+    return data_err;
+  }
+
   // Set Singers of this opera
   basic_opera_.SetSigners(keys, ascii);
 
@@ -294,8 +320,17 @@ auto VerifyFileImpl(GpgContext& ctx_, const QString& data_path,
 
   GpgData data_in(data_path, true);
   GpgData data_out;
+  if (const auto data_err = DataError(data_in, data_out);
+      data_err != GPG_ERR_NO_ERROR) {
+    data_object->Swap({GpgVerifyResult()});
+    return data_err;
+  }
   if (!sign_path.isEmpty()) {
     GpgData sig_data(sign_path, true);
+    if (sig_data.Error() != GPG_ERR_NO_ERROR) {
+      data_object->Swap({GpgVerifyResult()});
+      return sig_data.Error();
+    }
     err = CheckGpgError(
         gpgme_op_verify(ctx_.DefaultContext(), sig_data, data_in, nullptr));
   } else {
@@ -339,6 +374,11 @@ auto EncryptSignFileGpgDataImpl(GpgContext& ctx_,
                                 GpgData& data_in, bool ascii, GpgData& data_out,
                                 const DataObjectPtr& data_object) -> GpgError {
   GpgError err;
+  if (const auto data_err = DataError(data_in, data_out);
+      data_err != GPG_ERR_NO_ERROR) {
+    data_object->Swap({GpgEncryptResult(), GpgSignResult()});
+    return data_err;
+  }
   auto recipients = Convert2RawGpgMEKeyList(ctx_.GetChannel(), keys);
 
   basic_opera_.SetSigners(signer_keys, ascii);
@@ -421,6 +461,12 @@ auto DecryptVerifyFileGpgDataImpl(GpgContext& ctx_, GpgData& data_in,
                                   GpgData& data_out,
                                   const DataObjectPtr& data_object)
     -> GpgError {
+  if (const auto data_err = DataError(data_in, data_out);
+      data_err != GPG_ERR_NO_ERROR) {
+    data_object->Swap({GpgDecryptResult(), GpgVerifyResult()});
+    return data_err;
+  }
+
   auto err = CheckGpgError(
       gpgme_op_decrypt_verify(ctx_.DefaultContext(), data_in, data_out));
 
