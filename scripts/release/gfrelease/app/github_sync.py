@@ -8,8 +8,7 @@ it uploads rests on that machine or on GitHub. Per release the index lists:
 
   check     as verify does it (check_release): the index's signature
             through the trust root, the descriptor by its hash, the
-            manifest; the notes by their hash and maintainer signature,
-            the manifest's signature too
+            manifest; the notes by their hash and maintainer signature
   tag       GitHub's tag v<version> points at the descriptor's commit;
             a tag is never made here
   plan      github_release.plan, from what GitHub has
@@ -34,8 +33,7 @@ from ..adapters.files import sha256_file
 from ..adapters.github import GitHub
 from ..domain import github_release as gh
 from ..domain.formats import check_relpath, parse_version
-from ..domain.layout import SIG, SUMS
-from ..domain.manifest import parse_manifest
+from ..domain.layout import SIG
 from ..errors import Problems, ReleaseError
 from . import verify
 from .product import Product
@@ -110,11 +108,9 @@ def _one(product, index, version, github, builds, builds_base, fetch,
     if notes is None:
         raise ReleaseError("listed without release notes")
     small = {}
-    for path in [a["sig"] for a in d["artifacts"]] + \
-            [d.get("sums"), d.get("sums_sig")]:
-        if path:
-            local = fetch(path, Path(path).name)
-            small[path] = (sha256_file(local), local.stat().st_size)
+    for a in d["artifacts"]:
+        local = fetch(a["sig"], Path(a["sig"]).name)
+        small[a["sig"]] = (sha256_file(local), local.stat().st_size)
     want = gh.desired(product.repository, builds_base, index, d, entry,
                       notes.read_text("utf-8"), small)
 
@@ -193,22 +189,10 @@ def _carry_out(want: gh.Release, release: dict | None, steps: list,
 def _checked(name: str, by_name: dict, d: dict, entry: dict, fetch,
              keyring) -> dict[str, Path]:
     """File @p name of the release and what goes with it, fetched and
-    checked: an installer and its signature (verify.checked_artifact), or
-    the manifest and its signature, which must list every file's sha256
-    as the descriptor does."""
+    checked: an installer and its signature (verify.checked_artifact)."""
     base = name[:-len(SIG)] if name.endswith(SIG) else name
     if base in by_name:
         local = verify.checked_artifact(d, by_name[base], entry, fetch,
                                         keyring)
         return {base: local, base + SIG: local.with_name(base + SIG)}
-    if base == SUMS and d.get("sums") and d.get("sums_sig"):
-        sums = fetch(d["sums"], SUMS)
-        sig = fetch(d["sums_sig"], SUMS + SIG)
-        keyring().verify(sums, sig)
-        listed = parse_manifest(sums.read_bytes(), d["sums"])
-        for a in d["artifacts"]:
-            if listed.get(a["name"]) != a["sha256"]:
-                raise ReleaseError(f"{a['name']}: the descriptor's sha256 "
-                                   "is not the manifest's")
-        return {SUMS: sums, SUMS + SIG: sig}
     raise ReleaseError(f"{name}: not a file of the release")

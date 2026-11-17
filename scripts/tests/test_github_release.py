@@ -76,8 +76,6 @@ def fixture():
         (CONTRACT / "builds/releases/2.2.5/release.json").read_text())
     notes = (CONTRACT / "builds" / entry["notes"]).read_text("utf-8")
     small = {a["sig"]: ("1" * 64, 147) for a in descriptor["artifacts"]}
-    small[descriptor["sums"]] = ("2" * 64, 900)
-    small[descriptor["sums_sig"]] = ("3" * 64, 147)
     return index, entry, descriptor, notes, small
 
 
@@ -107,7 +105,7 @@ class DesiredTest(unittest.TestCase):
                             "release.json").read_text())
             self.assertTrue(gh.mirrored(d))
 
-    def test_every_file_with_its_signature_and_the_signed_manifest(self):
+    def test_every_file_with_its_signature_and_nothing_else(self):
         index, entry, d, notes, small = fixture()
         r = want()
         self.assertEqual(r.tag, "v2.2.5")
@@ -117,14 +115,14 @@ class DesiredTest(unittest.TestCase):
         for a in d["artifacts"]:
             self.assertIn(a["name"], names)
             self.assertIn(a["name"] + ".sig", names)
-        self.assertEqual(names[-2:], ["SHA256SUMS.txt", "SHA256SUMS.txt.sig"])
-        self.assertEqual(len(names), 2 * len(d["artifacts"]) + 2)
+        self.assertNotIn("SHA256SUMS.txt", names)
+        self.assertEqual(len(names), 2 * len(d["artifacts"]))
         by_name = {a.name: a for a in r.assets}
         first = d["artifacts"][0]
         self.assertEqual(by_name[first["name"]],
                          gh.Asset(first["name"], first["path"],
                                   first["sha256"], first["size"]))
-        self.assertEqual(by_name["SHA256SUMS.txt"].sha256, "2" * 64)
+        self.assertEqual(by_name[first["name"] + ".sig"].sha256, "1" * 64)
 
     def test_the_body_is_the_notes_then_how_to_check_the_files(self):
         index, entry, d, notes, small = fixture()
