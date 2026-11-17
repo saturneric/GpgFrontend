@@ -2,14 +2,13 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Authenticode for the stable Windows packages.
 
-Signing happens on the maintainer's machine, with the certificate's key on a
-hardware token or, for a rehearsal, in a file. Which tool signs follows from
-where the token's software runs:
+Signing happens on the maintainer's Windows machine:
 
-  Signer          osslsigncode, with the key behind PKCS#11 or in a file
   SigntoolSigner  Windows' signtool, with the certificate in the user's
                   store named by its SHA-1 thumbprint, and its key wherever
                   the store says (a smart card the vendor's software drives)
+  Signer          osslsigncode with a certificate and key file: rehearsals
+                  and tests, on any system
 
 Verifying checks the signature and its chain, and that the signer is exactly
 the subject the trust root pins (host_policy.authenticode_subject, trust.py):
@@ -54,12 +53,11 @@ import tempfile
 import threading
 import time
 import zipfile
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
-from typing import Callable
 
 from ...errors import ReleaseError, ToolFailed
-from ..process import WINDOWS, run, run_with_secret
+from ..process import WINDOWS, run
 from . import msi, x509
 
 # Signing goes through the time-stamping services in turn: one being
@@ -68,8 +66,6 @@ from . import msi, x509
 ATTEMPTS = 6
 RETRY_DELAY = 10
 _TSA_FAILURE = re.compile(r"time-?stamp|curl|http", re.I)
-_LOGIN_FAILURE = re.compile(r"\bPIN\b|login|passphrase|password|bad decrypt",
-                            re.I)
 
 # signtool says a time-stamping service failed in words, or only as the
 # network error it met (0x80072EE7 and its neighbours, WinINet's). What the
@@ -131,48 +127,27 @@ def _timestamps(urls: str | list[str]) -> list[str]:
 
 @dataclass
 class Signer:
-    cert: str                    # certificate (chain) file, or PKCS#11 URI
-    key: str                     # key file, or PKCS#11 URI
-    pkcs11_module: str = ""      # the token's PKCS#11 module, if any
+    """osslsigncode with a certificate and key file: a rehearsal's or a
+    test's signer (the maintainer signs with signtool, SigntoolSigner)."""
+    cert: str                    # certificate (chain) file
+    key: str                     # key file, without a passphrase
     # RFC 3161 TSAs, tried in turn: the stage's one network call. A string
     # may list several, separated by commas.
     timestamp_url: str | list[str] = ""
     description: str = "GpgFrontend"
-    # The token's PIN (or the key file's passphrase), asked once: handed to
-    # each osslsigncode through a pipe, never on a command line or disk.
-    pin: str | None = field(default=None, repr=False)
-    # Asks for the PIN on the first signature (a dry run, or a stage past
-    # this step, never asks); an empty answer leaves it to the token.
-    ask_pin: Callable[[], str] | None = field(default=None, repr=False)
 
     @property
     def timestamps(self) -> list[str]:
         return _timestamps(self.timestamp_url)
 
     def _once(self, src: Path, dst: Path, ts: str | None) -> None:
-        cmd = ["osslsigncode", "sign", "-h", "sha256", "-n", self.description]
-        if self.pkcs11_module:
-            cmd += ["-pkcs11module", self.pkcs11_module,
-                    "-pkcs11cert", self.cert, "-key", self.key]
-        else:
-            cmd += ["-certs", self.cert, "-key", self.key]
+        cmd = ["osslsigncode", "sign", "-h", "sha256", "-n", self.description,
+               "-certs", self.cert, "-key", self.key]
         if ts:
             cmd += ["-ts", ts]
         if dst.exists():
             dst.unlink()
-        if self.ask_pin is not None:
-            ask, self.ask_pin = self.ask_pin, None
-            self.pin = ask() or None
-        if self.pin is None:
-            run(cmd + ["-in", src, "-out", dst])
-            return
-        if WINDOWS:
-            raise ReleaseError("osslsigncode takes a PIN through a pipe "
-                               "Windows cannot name; sign by the "
-                               "certificate's thumbprint there "
-                               "(authenticode_thumbprint)")
-        run_with_secret(cmd + ["-readpass", "{secret}", "-in", src,
-                               "-out", dst], self.pin.encode() + b"\n")
+        run(cmd + ["-in", src, "-out", dst])
 
     def sign(self, src: Path, dst: Path) -> None:
         urls = self.timestamps
@@ -185,8 +160,7 @@ class Signer:
                 return
             except ToolFailed as e:
                 if attempt == ATTEMPTS - 1 or \
-                        not _TSA_FAILURE.search(str(e)) or \
-                        _LOGIN_FAILURE.search(str(e)):
+                        not _TSA_FAILURE.search(str(e)):
                     raise
                 time.sleep(RETRY_DELAY)
 

@@ -450,21 +450,6 @@ class OsslsigncodeTest(unittest.TestCase):
             authenticode.RETRY_DELAY = old
         self.assertEqual(tried, ["http://a", "http://b", "http://a"])
 
-    def test_a_login_failure_is_never_tried_again(self):
-        # A wrong PIN tried six times could lock the token.
-        tried = []
-
-        def once(src, dst, ts):
-            tried.append(ts)
-            raise errors.ToolFailed("osslsigncode failed: PKCS11 login "
-                                    "failed, then no timestamp")
-
-        signer = authenticode.Signer("c", "k", timestamp_url="http://a")
-        signer._once = once
-        with self.assertRaisesRegex(errors.ReleaseError, "login"):
-            signer.sign(self.tmp / "in", self.tmp / "out")
-        self.assertEqual(tried, ["http://a"])
-
     def test_files_are_signed_where_they_are(self):
         signer = authenticode.Signer("c", "k")
         signer._once = lambda src, dst, ts: dst.write_bytes(
@@ -712,21 +697,6 @@ class PackageTest(unittest.TestCase):
                 {p: d for p, d in files.items() if p != "T/payload.txt"})
         (tree / "run.cmd").write_text("rem")
         refused("holds run.cmd")
-
-    @unittest.skipIf(os.name == "nt", "osslsigncode's PIN, where it signs")
-    def test_the_pin_reaches_osslsigncode_through_a_pipe(self):
-        locked = self.tmp / "locked.pem"
-        subprocess.run(["openssl", "pkey", "-in", self.certificate.key,
-                        "-aes256", "-passout", "pass:1234", "-out", locked],
-                       check=True, capture_output=True)
-        asked = []
-        signer = authenticode.Signer(str(self.cert), str(locked),
-                                     ask_pin=lambda: asked.append(1) or "1234")
-        src = build_zip(self.tmp, self.tmp / "portable.zip")
-        sign_package(src, self.tmp / "signed.zip", ZIP, signer,
-                                  RULES)
-        self.assertEqual(asked, [1])  # once, however many are signed
-        self.assertEqual(self.verify(self.tmp / "signed.zip", ZIP), 1)
 
     @unittest.skipUnless(os.name == "nt", "signtool, where it signs")
     def test_signtool_tells_a_dead_time_stamping_service(self):
