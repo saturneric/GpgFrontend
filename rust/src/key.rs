@@ -1050,8 +1050,9 @@ fn without_trust_packets(block: &str) -> std::borrow::Cow<'_, str> {
 
 /// `data` as armored key text. Armor is only a transport encoding (RFC 9580
 /// §6), and GnuPG's default `--export` writes binary packets: binary input is
-/// re-armored (a secret key block if its first key packet is secret), armored
-/// input is returned as is.
+/// re-armored, armored input is returned as is. Each key in a binary stream
+/// gets its own block, a secret key block when its primary is secret, so a
+/// stream mixing secret and public keys reads back as both.
 pub(crate) fn armored_key_input(data: &[u8]) -> Result<std::borrow::Cow<'_, str>, GfrStatus> {
     use pgp::packet::PacketParser;
     use std::borrow::Cow;
@@ -1061,36 +1062,50 @@ pub(crate) fn armored_key_input(data: &[u8]) -> Result<std::borrow::Cow<'_, str>
         }
     }
     let packets: Vec<Packet> = PacketParser::new(Cursor::new(data)).flatten().collect();
-    let secret = match packets.first() {
-        Some(Packet::SecretKey(_)) => true,
-        Some(Packet::PublicKey(_)) | Some(Packet::Signature(_)) => false,
-        _ => {
-            crate::err::set_last_error(
-                "input is neither an armored nor a binary OpenPGP key block",
-            );
-            return Err(GfrStatus::ErrorInvalidInput);
-        }
-    };
-    let mut bytes = Vec::new();
-    for packet in &packets {
-        packet.to_writer(&mut bytes).into_gfr()?;
+    if !matches!(
+        packets.first(),
+        Some(Packet::SecretKey(_) | Packet::PublicKey(_) | Packet::Signature(_))
+    ) {
+        crate::err::set_last_error("input is neither an armored nor a binary OpenPGP key block");
+        return Err(GfrStatus::ErrorInvalidInput);
     }
-    let typ = if secret {
-        BlockType::PrivateKey
-    } else {
-        BlockType::PublicKey
-    };
+
+    // One run per key: a primary key packet starts the next one.
+    let mut runs: Vec<(bool, Vec<u8>)> = Vec::new();
+    for packet in &packets {
+        let starts = match packet {
+            Packet::SecretKey(_) => Some(true),
+            Packet::PublicKey(_) => Some(false),
+            _ => None,
+        };
+        match (starts, runs.last_mut()) {
+            (Some(secret), _) => runs.push((secret, Vec::new())),
+            (None, None) => runs.push((false, Vec::new())),
+            (None, Some(_)) => {}
+        }
+        let (_, bytes) = runs.last_mut().expect("a run was just ensured");
+        packet.to_writer(bytes).into_gfr()?;
+    }
+
     let mut out = Vec::new();
-    armor::write(
-        &MergedRawKeys {
-            packet_bytes: bytes,
-        },
-        typ,
-        &mut out,
-        None,
-        false,
-    )
-    .into_gfr()?;
+    for (secret, bytes) in runs {
+        let typ = if secret {
+            BlockType::PrivateKey
+        } else {
+            BlockType::PublicKey
+        };
+        armor::write(
+            &MergedRawKeys {
+                packet_bytes: bytes,
+            },
+            typ,
+            &mut out,
+            None,
+            false,
+        )
+        .into_gfr()?;
+        out.push(b'\n');
+    }
     String::from_utf8(out)
         .map(Cow::Owned)
         .map_err(|_| GfrStatus::ErrorArmorFailed)
