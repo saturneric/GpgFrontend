@@ -78,10 +78,15 @@ impl Sink {
     fn decompression_cap(&self) -> u64 {
         match self {
             Sink::Memory { .. } => MAX_DECOMPRESSED_OUTPUT_BYTES,
-            Sink::Staged { ciphertext_len } => MAX_DECOMPRESSED_OUTPUT_BYTES
-                .max(ciphertext_len.saturating_mul(STAGED_DECOMPRESSION_RATIO)),
+            Sink::Staged { ciphertext_len } => staged_decompression_cap(*ciphertext_len),
         }
     }
+}
+
+/// How far the decompressed content of a staged message of `input_len` bytes
+/// may grow (see [`Sink::Staged`]).
+pub(super) fn staged_decompression_cap(input_len: u64) -> u64 {
+    MAX_DECOMPRESSED_OUTPUT_BYTES.max(input_len.saturating_mul(STAGED_DECOMPRESSION_RATIO))
 }
 
 /// The in-memory sink every buffer API uses.
@@ -834,24 +839,99 @@ where
             }
         })?;
 
-    // 6. Mount decompression pipeline
-    //
-    // Peel *every* compression layer, not just one: a doubly-compressed message
-    // is legitimate and would otherwise leave an inner compressed blob in the
-    // output. The layer count is capped so an unbounded chain cannot drive a
-    // denial-of-service, and the decompressed output is bounded by the size
-    // limiter in step 8 so a single high-ratio "compression bomb" cannot exhaust
-    // memory/disk (RFC 9580 §13.14).
-    //
-    // §13.7 lists a decompression failure inside an encrypted container among
-    // the malleability indicators: the integrity is suspect.
-    let (mut decrypted, was_compressed) = peel_compression(decrypted, |e| {
+    // 6. Read the content to its end into the output, and check the
+    //    signatures it carries. §13.7 lists a decompression failure inside an
+    //    encrypted container among the malleability indicators, as it does a
+    //    payload that ends early: either makes the integrity suspect.
+    let content = read_message_content(
+        channel,
+        decrypted,
+        output_stream,
+        sink.decompression_cap(),
+        fetch_pubkey_cb,
+        user_data,
+        ContentText {
+            output: "decrypted",
+            not_literal: "the decrypted content is not literal data (a nested encrypted message \
+                          is not supported)",
+        },
+        |e| {
+            payload_failure(&e)
+                .unwrap_or_else(|| {
+                    IntegrityFailure::Malformed(format!("decompression failed: {e}"))
+                })
+                .report()
+        },
+        |err| match io_payload_failure(&err) {
+            Some(kind) => kind.report(),
+            None => Err::<(), _>(err).into_gfr().unwrap_err(),
+        },
+    )?;
+
+    Ok(DecryptAndVerifyStreamResultInternal {
+        filename: content.filename,
+        sym_algo,
+        cipher_warning,
+        recipients,
+        is_verified: content.is_verified,
+        signatures: content.signatures,
+    })
+}
+
+/// What a message's content says once it has been read to its end.
+pub(super) struct MessageContent {
+    /// From the Literal Data packet (may be empty).
+    pub(super) filename: String,
+    pub(super) is_verified: bool,
+    pub(super) signatures: Vec<SignatureResultInternal>,
+}
+
+/// The words a failed read of a message's content is reported in.
+pub(super) struct ContentText {
+    /// What the output is, in "cannot write the {output} output".
+    pub(super) output: &'static str,
+    /// Why content that is not literal data is refused.
+    pub(super) not_literal: &'static str,
+}
+
+/// Read a parsed, decrypted or plain, message's content to its end into
+/// `output`, then check the signatures it carries. Shared by decryption and
+/// by inline-signature verification, so both read and attribute alike.
+///
+/// Every compression layer is peeled, not just one: a doubly-compressed
+/// message is legitimate and would otherwise leave an inner compressed blob in
+/// the output. The layer count is capped so an unbounded chain cannot drive a
+/// denial-of-service, and a decompressed body is read through a limiter of
+/// `decompression_cap` bytes so a single high-ratio "compression bomb" cannot
+/// exhaust memory or disk (RFC 9580 §13.14). A body that was not compressed is
+/// as long as the input, which bounds it already.
+///
+/// `output` sees content before its signatures are checked (they trail it), so
+/// the caller discards it unless this returns `Ok`. A cancel request becomes
+/// `ErrorCanceled` and a failed write `ErrorIo`; any other failure to peel a
+/// layer or read the body is the caller's to classify, through `on_peel_error`
+/// and `on_read_error`. Signatures are checked only when `fetch_pubkey_cb` is
+/// `Some`.
+#[allow(clippy::too_many_arguments)]
+pub(super) fn read_message_content<W>(
+    channel: i32,
+    message: Message<'_>,
+    output: W,
+    decompression_cap: u64,
+    fetch_pubkey_cb: Option<GfrPublicKeyFetchCb>,
+    user_data: *mut c_void,
+    text: ContentText,
+    on_peel_error: impl Fn(pgp::errors::Error) -> GfrStatus,
+    on_read_error: impl Fn(std::io::Error) -> GfrStatus,
+) -> Result<MessageContent, GfrStatus>
+where
+    W: Write,
+{
+    let (mut message, was_compressed) = peel_compression(message, |e| {
         if crate::cancel::is_cancelled(channel) {
             return GfrStatus::ErrorCanceled;
         }
-        payload_failure(&e)
-            .unwrap_or_else(|| IntegrityFailure::Malformed(format!("decompression failed: {e}")))
-            .report()
+        on_peel_error(e)
     })?;
 
     // RFC 9580 §10.3 allows an Encrypted Message to contain another one,
@@ -859,50 +939,28 @@ where
     // rPGP would read the inner packet's body as if it were data: once
     // compression is peeled the content must reach a Literal Data packet, or
     // the "plaintext" would be ciphertext.
-    if decrypted.literal_data_header().is_none() {
-        set_last_error(
-            "the decrypted content is not literal data (a nested encrypted message is not supported)",
-        );
+    let Some(header) = message.literal_data_header() else {
+        set_last_error(text.not_literal);
         return Err(GfrStatus::ErrorUnsupportedFeature);
-    }
+    };
+    // The file name, from the Literal Data packet wherever it sits (it is
+    // under the signature layer of a signed message).
+    let filename = String::from_utf8_lossy(header.file_name()).to_string();
 
-    // 7. Extract filename, from the Literal Data packet wherever it sits (it
-    //    is under the signature layer of a signed message).
-    let filename = decrypted
-        .literal_data_header()
-        .map(|header| String::from_utf8_lossy(header.file_name()).to_string())
-        .unwrap_or_default();
-
-    // 8. Stream Execution
-    //
-    // This is the bulk transfer and the main cancellation checkpoint: the
-    // `CancellableReader` deep in `decrypted` aborts the read once a cancel is
-    // requested for this channel. `into_gfr` cannot see the channel, so check
-    // the flag first and surface `ErrorCanceled`; otherwise fall through to the
-    // normal error mapping (which also records a detailed message).
-    //
-    // A message that was decompressed is streamed through a size limiter so a
-    // decompression bomb cannot exhaust memory/disk (RFC 9580 §13.14). Non-
-    // compressed payloads are copied unbounded (their size equals the ciphertext,
-    // which rPGP already bounds), so legitimate large files are unaffected.
-    //
-    // NOTE: with a `Sink::Memory` a v1/MDC payload is authenticated before any
-    // plaintext is released. With a `Sink::Staged` (v1 `Streaming`), and with
-    // SEIPD v2 (per-chunk AEAD) in either sink, plaintext reaches
-    // `output_stream` before the final check, so the caller discards it unless
-    // this function returns `Ok`.
-    //
-    // A failure here is classified by where it came from: a cancel request, the
-    // output (a full disk), a failed MDC/AEAD check, or anything else.
+    // The bulk transfer and the main cancellation checkpoint: the
+    // `CancellableReader` deep in `message` aborts the read once a cancel is
+    // requested for this channel. `into_gfr` cannot see the channel, so the
+    // flag is checked first. A failure is classified by where it came from: a
+    // cancel request, the output (a full disk), or the content itself.
     let mut output = TrackedWriter {
-        inner: output_stream,
+        inner: output,
         failed: false,
     };
     let copy_result = if was_compressed {
-        let mut limited = LimitedReader::new(&mut decrypted, sink.decompression_cap());
+        let mut limited = LimitedReader::new(&mut message, decompression_cap);
         std::io::copy(&mut limited, &mut output)
     } else {
-        std::io::copy(&mut decrypted, &mut output)
+        std::io::copy(&mut message, &mut output)
     }
     .and_then(|_| output.flush());
     if let Err(err) = copy_result {
@@ -910,44 +968,32 @@ where
             return Err(GfrStatus::ErrorCanceled);
         }
         if output.failed {
-            set_last_error(&format!("cannot write the decrypted output: {err}"));
+            set_last_error(&format!("cannot write the {} output: {err}", text.output));
             return Err(GfrStatus::ErrorIo);
         }
-        if let Some(kind) = io_payload_failure(&err) {
-            return Err(kind.report());
-        }
-        return Err(err).into_gfr();
+        return Err(on_read_error(err));
     }
 
-    // ==========================================
-    // OPTIONAL: VERIFICATION PHASE
-    // ==========================================
+    // Signatures trail the content, so they are known only now. Attribution
+    // is shared with the in-memory inline verifier in `verify.rs`:
+    // `signature_entries_from_message` builds one entry per signature packet
+    // (issuer fingerprint→key-id fallback, no fingerprint-only de-dup), and
+    // `attribute_entries` ties each `Valid` to the specific index that
+    // verifies under a *usable* key (primary not revoked §5.2.1.11 / subkey
+    // signing-capable and not revoked §5.2.1.12), then applies the §9.5
+    // weak-hash and §5.2.3.18 expiry gates.
     let mut signatures = Vec::new();
     let mut is_verified = false;
-
-    // We only process signatures if the message is actually signed AND the caller requested verification
-    if decrypted.is_signed() && fetch_pubkey_cb.is_some() {
-        // Attribute exactly like the standalone inline verifier in `verify.rs`,
-        // through the shared path — no divergent copy. `signature_entries_from_message`
-        // builds one entry per signature packet (issuer fingerprint→key-id
-        // fallback, no fingerprint-only de-dup), and `attribute_entries` ties each
-        // `Valid` to the specific index that verifies under a *usable* key (primary
-        // not revoked §5.2.1.11 / subkey signing-capable and not revoked §5.2.1.12),
-        // then applies the §9.5 weak-hash and §5.2.3.18 expiry gates. Previously this
-        // path carried its own builder (fingerprint-only de-dup, no key-id fallback),
-        // dropping distinct or legacy-key-id signatures the standalone verifier keeps.
-        signatures = signature_entries_from_message(&decrypted);
+    if message.is_signed() && fetch_pubkey_cb.is_some() {
+        signatures = signature_entries_from_message(&message);
         let certs = fetch_certs_for_signatures(&signatures, fetch_pubkey_cb, user_data);
         attribute_entries(&mut signatures, &certs, &mut is_verified, |i, cert, t| {
-            message_index_verdict(&decrypted, i, cert, t)
+            message_index_verdict(&message, i, cert, t)
         });
     }
 
-    Ok(DecryptAndVerifyStreamResultInternal {
+    Ok(MessageContent {
         filename,
-        sym_algo,
-        cipher_warning,
-        recipients,
         is_verified,
         signatures,
     })
@@ -1101,7 +1147,7 @@ pub fn decrypt_and_verify_stream_staged_internal<W>(
     channel: i32,
     input: File,
     ciphertext_len: u64,
-    mut output: W,
+    output: W,
     ascii_armor: bool,
     fetch_seckey_cb: Option<GfrSecretKeyFetchCb>,
     fetch_pwd_cb: Option<GfrPasswordFetchCb>,
@@ -1111,26 +1157,47 @@ pub fn decrypt_and_verify_stream_staged_internal<W>(
 where
     W: Write + Send + Sync,
 {
-    // No name, so it disappears on every exit path, including a crash.
-    let mut stage = tempfile::tempfile()
-        .map_err(|e| stage_error("cannot create a temporary file for decryption", e))?;
-    let result = decrypt_message_stream(
-        channel,
-        input,
-        plain_stage_writer(&mut stage),
-        ascii_armor,
-        fetch_seckey_cb,
-        fetch_pwd_cb,
-        fetch_pubkey_cb,
-        user_data,
-        // Safe: nothing reaches `output` unless this returns `Ok`.
-        Sink::Staged { ciphertext_len },
-    )?;
+    through_anonymous_stage(output, "decrypted", |stage| {
+        decrypt_message_stream(
+            channel,
+            input,
+            plain_stage_writer(stage),
+            ascii_armor,
+            fetch_seckey_cb,
+            fetch_pwd_cb,
+            fetch_pubkey_cb,
+            user_data,
+            // Safe: nothing reaches `output` unless this returns `Ok`.
+            Sink::Staged { ciphertext_len },
+        )
+    })
+}
+
+/// Run `write` into an anonymous temporary file, and copy what it wrote to
+/// `output` only once it has returned `Ok`, so `output` never sees a byte of
+/// a run that failed. The file has no name, so it disappears on every exit
+/// path, including a crash. It lives in the OS temporary directory (`TMPDIR`
+/// on Unix): a writer such as a pipe has no directory of its own.
+pub(super) fn through_anonymous_stage<W, T>(
+    mut output: W,
+    what: &str,
+    write: impl FnOnce(&mut File) -> Result<T, GfrStatus>,
+) -> Result<T, GfrStatus>
+where
+    W: Write,
+{
+    let mut stage = tempfile::tempfile().map_err(|e| {
+        stage_error(
+            &format!("cannot create a temporary file for the {what} output"),
+            e,
+        )
+    })?;
+    let result = write(&mut stage)?;
     stage
         .seek(SeekFrom::Start(0))
         .and_then(|_| std::io::copy(&mut stage, &mut output))
         .and_then(|_| output.flush())
-        .map_err(|e| stage_error("cannot write the decrypted output", e))?;
+        .map_err(|e| stage_error(&format!("cannot write the {what} output"), e))?;
     Ok(result)
 }
 
