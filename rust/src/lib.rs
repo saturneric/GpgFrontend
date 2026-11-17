@@ -74,6 +74,7 @@ mod user_id;
 mod utils;
 
 mod cache;
+mod keypack;
 mod tar;
 
 #[cfg(test)]

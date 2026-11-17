@@ -963,7 +963,7 @@ fn public_subkey_metadata(pk: &SignedPublicKey, sub: &SignedPublicSubKey) -> Ext
 }
 
 // Helper: Extract metadata from a public key
-fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
+pub(crate) fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
     let subs: Vec<ExtractedSubkey> = pk
         .public_subkeys
         .iter()
