@@ -143,6 +143,13 @@ void KeyImportDetailDialog::create_header_box() {
     summary = tr("%1 of %2 key(s) could not be imported.")
                   .arg(m_result_->not_imported)
                   .arg(m_result_->considered);
+  } else if (m_result_->check_limit_reached != 0) {
+    icon_path = ":/icons/warning.png";
+    title = tr("Import Completed with Issues");
+    summary = tr("%1 of %2 key(s) carried more signatures than are checked; "
+                 "those past the limit were not imported.")
+                  .arg(m_result_->check_limit_reached)
+                  .arg(m_result_->considered);
   } else if (imported_total != 0 || updated_total != 0) {
     icon_path = ":/icons/check.png";
     title = tr("Import Successful");
@@ -221,6 +228,8 @@ void KeyImportDetailDialog::create_general_info_box() {
       {tr("Private Keys Imported"), m_result_->secret_imported, kGreen},
       {tr("Private Keys Unchanged"), m_result_->secret_unchanged, kGray},
       {tr("New Revocations"), m_result_->new_revocations, kRed},
+      {tr("Signature Check Limit Reached"), m_result_->check_limit_reached,
+       kRed},
   };
 
   static const int kColumns = 4;

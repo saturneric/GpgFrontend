@@ -38,8 +38,9 @@
 namespace GpgFrontend {
 
 namespace {
-auto MergeGFKeyRpgpImpl(const QList<GFKey>& gf_keys, bool secret)
-    -> std::optional<GFKey> {
+auto MergeGFKeyRpgpImpl(const QList<GFKey>& gf_keys, bool secret,
+                        bool& check_limit_reached) -> std::optional<GFKey> {
+  check_limit_reached = false;
   if (gf_keys.empty()) {
     LOG_E() << "no gf key provided for merging";
     return std::nullopt;
@@ -86,10 +87,11 @@ auto MergeGFKeyRpgpImpl(const QList<GFKey>& gf_keys, bool secret)
         reinterpret_cast<const uint8_t*>(blocks_to_merge[i].Data()),
         blocks_to_merge[i].Size()};
 
-    auto err = Rust::gfr_crypto_merge_key_blocks(
-        base_buffer,      // base
-        incoming_buffer,  // incoming
-        &out_sec, &out_pub, nullptr);
+    bool reached = false;
+    auto err = Rust::gfr_crypto_merge_key_blocks(base_buffer,      // base
+                                                 incoming_buffer,  // incoming
+                                                 &out_sec, &out_pub, &reached);
+    check_limit_reached = check_limit_reached || reached;
 
     if (err != Rust::GfrStatus::Success) {
       LOG_E() << "Merge failed at index " << i
@@ -124,6 +126,48 @@ auto MergeGFKeyRpgpImpl(const QList<GFKey>& gf_keys, bool secret)
   }
 
   return final_gf_keys.front();
+}
+/**
+ * @brief @p gf_key as it may be stored for the first time: canonicalized as
+ * sq does on import, without the signatures, User IDs and subkeys its holder
+ * never made. @p check_limit_reached says whether it carried more
+ * self-claimed signatures than are checked.
+ */
+auto CanonicalizeGFKeyRpgpImpl(const GFKey& gf_key, bool& check_limit_reached)
+    -> std::optional<GFKey> {
+  check_limit_reached = false;
+  const auto& block = gf_key.blocks.secret_key.Empty()
+                          ? gf_key.blocks.public_key
+                          : gf_key.blocks.secret_key;
+  if (block.Empty()) return std::nullopt;
+
+  char* out_sec = nullptr;
+  char* out_pub = nullptr;
+  auto err = Rust::gfr_crypto_canonicalize_key_block(
+      {reinterpret_cast<const uint8_t*>(block.Data()), block.Size()}, &out_sec,
+      &out_pub, &check_limit_reached);
+  if (err != Rust::GfrStatus::Success) {
+    LOG_E() << "canonicalizing a key failed, code: " << static_cast<int>(err);
+    if (out_sec != nullptr) Rust::gfr_crypto_free_string(out_sec);
+    if (out_pub != nullptr) Rust::gfr_crypto_free_string(out_pub);
+    return std::nullopt;
+  }
+
+  GFBuffer canonical;
+  if (out_sec != nullptr) {
+    canonical = GFBuffer(out_sec);
+  } else if (out_pub != nullptr) {
+    canonical = GFBuffer(out_pub);
+  }
+  if (out_sec != nullptr) Rust::gfr_crypto_free_string(out_sec);
+  if (out_pub != nullptr) Rust::gfr_crypto_free_string(out_pub);
+
+  auto gf_keys = GetGFKeysFromKeyBlock(canonical);
+  if (gf_keys.empty()) {
+    LOG_E() << "failed to parse a canonicalized key block";
+    return std::nullopt;
+  }
+  return gf_keys.front();
 }
 
 // gpgme's import status bits, which the import report reads whichever engine
@@ -224,6 +268,7 @@ auto ImportKeyRpgpImpl(OpenPGPContext& ctx, const GFBuffer& in_buffer)
   for (const auto& pd_gf_key : pd_gf_keys) {
     std::optional<GFKey> final_gf_key;
     std::optional<GFKey> stored_gf_key;
+    bool check_limit_reached = false;
     // Read, merge and save as one unit: a concurrent import or edit of the
     // same key between the read and the save would otherwise be lost.
     const bool saved = key_db->RunExclusive([&]() -> bool {
@@ -241,9 +286,13 @@ auto ImportKeyRpgpImpl(OpenPGPContext& ctx, const GFBuffer& in_buffer)
         // stored key lacks come from the import.
         final_gf_key = MergeGFKeyRpgpImpl(
             {*db_gf_key, pd_gf_key},
-            pd_gf_key.metadata.has_secret || db_gf_key->metadata.has_secret);
+            pd_gf_key.metadata.has_secret || db_gf_key->metadata.has_secret,
+            check_limit_reached);
       } else {
-        final_gf_key = pd_gf_key;
+        // As sq does, a new key is canonicalized before it is stored: what
+        // its holder never signed is not kept, listed or exported.
+        final_gf_key =
+            CanonicalizeGFKeyRpgpImpl(pd_gf_key, check_limit_reached);
       }
 
       if (!final_gf_key) {
@@ -254,6 +303,13 @@ auto ImportKeyRpgpImpl(OpenPGPContext& ctx, const GFBuffer& in_buffer)
     });
 
     info->considered += 1;
+    if (check_limit_reached) {
+      // Reported even if the key was not saved: what was refused was refused.
+      info->check_limit_reached += 1;
+      LOG_W() << "key with fpr: " << pd_gf_key.metadata.fpr
+              << " carried more signatures than are checked; those past the "
+                 "limit were not stored";
+    }
     if (saved) {
       const auto status = CountImport(stored_gf_key, *final_gf_key, *info);
       info->imported_keys.push_back(

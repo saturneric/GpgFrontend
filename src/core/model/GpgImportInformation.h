@@ -68,6 +68,9 @@ class GF_CORE_EXPORT GpgImportInformation {
   int secret_read = 0;       ///<
   int secret_imported = 0;   ///<
   int secret_unchanged = 0;  ///<
+  /// Keys that carried more self-claimed signatures than the engine checks
+  /// (rPGP); the unchecked ones were not stored.
+  int check_limit_reached = 0;
   int not_imported = 0;      ///<
 
   GpgImportedKeyList imported_keys;  ///<
