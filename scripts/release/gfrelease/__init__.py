@@ -24,14 +24,15 @@ the rules after each layer.
 
   adapters/  one outside thing each: process (running a tool), files,
              clock, git, store (rclone), minisign, openpgp (gpg), cosign,
-             and windows/ (cab, msi, authenticode, msix, x509). Prints
+             github (its REST API), and windows/ (cab, msi, authenticode, msix, x509). Prints
              nothing.
 
   app/       what each role does, from the domain and the adapters:
              product (the product and the trust it is published under),
              trust and trust_admin (the trust root and index keys),
              candidate and stage (CI), promote and index (the signing
-             host), stable and imported (the maintainer), verify, views,
+             host), stable and imported (the maintainer), github_sync
+             (stable releases mirrored to GitHub), verify, views,
              doctor, check_order, checks (what more than one role checks)
              and hints (what fixes a problem). Returns what it did; runs
              tools only through the adapters, prints nothing, reads no
