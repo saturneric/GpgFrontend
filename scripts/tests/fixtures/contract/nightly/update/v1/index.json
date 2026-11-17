@@ -1,9 +1,6 @@
 {
- "beta": null,
  "channels": {
-  "beta": null,
   "nightly": "2.4.0-alpha.12+g0123456789ab",
-  "prerelease": null,
   "stable": null
  },
  "expires": "2026-11-15T00:00:00Z",
@@ -14,7 +11,6 @@
   "sha256": "4fea03acebb2b569bc3812fa988ca607336e84aed1ee6b92154198e5f1493364",
   "version": "2.4.0-alpha.12+g0123456789ab"
  },
- "prerelease": null,
  "product": "gpgfrontend",
  "releases": {},
  "root_version": 3,

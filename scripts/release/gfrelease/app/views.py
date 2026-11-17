@@ -25,7 +25,7 @@ from ..adapters.clock import utcnow
 from ..adapters.git import resolve_commit
 from ..adapters.process import run
 from ..adapters.store import NotFound
-from ..domain import layout, refs
+from ..domain import index_model, layout, refs
 from ..domain import policy as policy_mod
 from ..domain.formats import parse_iso, parse_version
 from ..domain.layout import DESCRIPTOR, STAGED
@@ -91,7 +91,7 @@ def show(product: Product, update) -> dict:
         "days_left": _days(index["expires"]),
         "root_version": index.get("root_version"),
         "index_keys_version": index.get("index_keys_version"),
-        "channels": index["channels"],
+        "channels": index_model.summary(index),
         "series": series,
         "releases": {v: {"notes": bool(e.get("notes"))}
                      for v, e in sorted(index["releases"].items(),
@@ -217,7 +217,7 @@ def status(product: Product, version: str, *, update, builds, staging=None,
             builds, layout.descriptor_of(layout.release_dir(version))))
         listed = UNKNOWN if index is None else \
             (YES if version in index["releases"] else NO)
-        on = [c for c, value in ((index or {}).get("channels") or {}).items()
+        on = [c for c, value in index_model.summary(index or {}).items()
               if value == version]
         fact("listed", listed, f"the {', '.join(on)} channel" if on else
              (index_problem or ""))
@@ -298,7 +298,7 @@ def overview(product: Product, *, update, builds=None, staging=None) -> dict:
     view = {"channels": None, "index_problem": None, "branches": {}}
     index, view["index_problem"] = _live_index(product, update)
     if index is not None:
-        view["channels"] = index["channels"]
+        view["channels"] = index_model.summary(index)
     if staging is not None and hasattr(staging, "files"):
         newest: dict[str, str] = {}
         for path in staging.files(layout.BRANCHES, include=f"*/*/{STAGED}"):
