@@ -1,7 +1,8 @@
 # Copyright (C) 2021-2026 Saturneric <eric@bktus.com>
 # SPDX-License-Identifier: GPL-3.0-or-later
 """The signing host's two steps, each a command: promote, and index
-(resign is index --force). promote is everything that brings something
+(resign is index --force), and what the host's container reads of them:
+the command line's, not the steps' own (app/promote.py, app/index.py). promote is everything that brings something
 from the staging store to the builds store, which only the host writes:
 the branch builds CI staged, and the releases and notes a maintainer
 handed over.
@@ -37,10 +38,10 @@ from pathlib import Path
 
 from ..adapters.files import locked
 from ..adapters.store import Store
+from ..app import index as index_mod
+from ..app import promote as promote_mod
+from ..app.product import Product
 from ..errors import ReleaseError
-from . import index as index_mod
-from . import promote as promote_mod
-from .product import Product
 
 DONE, FAILED, PARTIAL = 0, 1, 3
 
