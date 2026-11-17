@@ -107,8 +107,28 @@ class GF_CORE_EXPORT GpgKeyImportExporter
   void ExportAllKeys(const GpgAbstractKeyPtrList& keys, bool secret, bool ascii,
                      const GpgOperationCallback& cb) const;
 
+  /**
+   * @brief The key a revocation certificate revokes: its fingerprint, or its
+   * key ID when the certificate names only that; upper-cased, empty when
+   * @p rev_cert is not a single key revocation signature.
+   *
+   * Importing a revocation certificate revokes whatever key it names, so a
+   * caller that means one key checks this first. Read with
+   * `gpg --list-packets`.
+   */
+  [[nodiscard]] auto RevocationCertificateTarget(const GFBuffer& rev_cert) const
+      -> QString;
+
  private:
   GpgContext& ctx_;
 };
+
+/**
+ * @brief RevocationCertificateTarget()'s reading of `gpg --list-packets`
+ * output: the target of the one key revocation signature (class 0x20) it
+ * lists, or empty for anything else.
+ */
+auto GF_CORE_EXPORT RevocationTargetFromPacketList(const QString& packets)
+    -> QString;
 
 }  // namespace GpgFrontend

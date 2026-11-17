@@ -28,10 +28,74 @@
 
 #include "GpgCoreTest.h"
 #include "core/GpgConstants.h"
+#include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend::Test {
+
+// Key Details imported whatever key a chosen revocation certificate named.
+// The target is read first; only a single key revocation signature has one.
+TEST(RevocationTargetTest, ReadsTheOneKeyRevocationSignature) {
+  const QString rev =
+      ":signature packet: algo 22, keyid A11849836F435C61\n"
+      "\tversion 4, created 1794922902, md5len 0, sigclass 0x20\n"
+      "\tdigest algo 10, begin of digest f3 67\n"
+      "\thashed subpkt 33 len 21 (issuer fpr v4 "
+      "714d1ae12d40c76faeae5e7ca11849836f435c61)\n"
+      "\thashed subpkt 29 len 1 (revocation reason 0x00 ())\n"
+      "\tsubpkt 16 len 8 (issuer key ID A11849836F435C61)\n";
+  EXPECT_EQ(RevocationTargetFromPacketList(rev),
+            "714D1AE12D40C76FAEAE5E7CA11849836F435C61");
+
+  // Without the fingerprint subpacket, the key ID it was made by.
+  QString no_fpr = rev;
+  no_fpr.remove(QRegularExpression(".*issuer fpr.*\n"));
+  EXPECT_EQ(RevocationTargetFromPacketList(no_fpr), "A11849836F435C61");
+
+  // A certification, not a revocation.
+  QString certification = rev;
+  certification.replace("sigclass 0x20", "sigclass 0x13");
+  EXPECT_TRUE(RevocationTargetFromPacketList(certification).isEmpty());
+
+  // Anything beside the signature: a key, or a second signature.
+  EXPECT_TRUE(
+      RevocationTargetFromPacketList(":public key packet:\n" + rev).isEmpty());
+  EXPECT_TRUE(RevocationTargetFromPacketList(rev + rev).isEmpty());
+  EXPECT_TRUE(RevocationTargetFromPacketList({}).isEmpty());
+}
+
+TEST_F(GpgCoreTest, CoreRevocationTargetIsTheRevokedKey) {
+  // gpg's own revocation certificate of a throwaway key, made for this test.
+  const auto cert = GFBuffer(QString(
+      "-----BEGIN PGP PUBLIC KEY BLOCK-----\n"
+      "Comment: This is a revocation certificate\n"
+      "\n"
+      "iHgEIBYKACAWIQRxTRrhLUDHb66uXnyhGEmDb0NcYQUCavxZlgIdAAAKCRChGEmD\n"
+      "b0NcYfNnAP93Ogf/KrbYzIxvMS7zg3EJsnnx9+cOwYrAwkV65Z6G8AEAtdARArJw\n"
+      "itz2N1sNh+jdFh3QFoOW/kMZ3bheuPs8eQY=\n"
+      "=AXNd\n"
+      "-----END PGP PUBLIC KEY BLOCK-----\n"));
+  EXPECT_EQ(GpgKeyImportExporter::GetInstance().RevocationCertificateTarget(
+                cert),
+            "714D1AE12D40C76FAEAE5E7CA11849836F435C61");
+}
+
+TEST_F(GpgCoreTest, CoreRevocationTargetOfSomethingElseIsEmpty) {
+  auto& importer = GpgKeyImportExporter::GetInstance();
+  EXPECT_TRUE(importer.RevocationCertificateTarget({}).isEmpty());
+  EXPECT_TRUE(
+      importer.RevocationCertificateTarget(GFBuffer(QString("not a cert")))
+          .isEmpty());
+
+  // A public key block revokes nothing, though gpg reads it fine.
+  auto key = GpgKeyGetter::GetInstance().GetPubkeyPtr(
+      "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
+  ASSERT_TRUE(key != nullptr);
+  auto [err, block] = importer.ExportKey(key, false, true, false);
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  EXPECT_TRUE(importer.RevocationCertificateTarget(block).isEmpty());
+}
 
 TEST_F(GpgCoreTest, CoreExportSubkeyTestA) {
   auto [err, gf_buffer] = GpgKeyImportExporter::GetInstance().ExportSubkey(

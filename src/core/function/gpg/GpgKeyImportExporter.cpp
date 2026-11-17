@@ -28,6 +28,7 @@
 
 #include "GpgKeyImportExporter.h"
 
+#include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/model/GpgData.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/utils/AsyncUtils.h"
@@ -44,6 +45,54 @@ GpgKeyImportExporter::GpgKeyImportExporter(int channel)
  * @param inBuffer input byte array
  * @return Import information
  */
+auto RevocationTargetFromPacketList(const QString& packets) -> QString {
+  static const QRegularExpression kKeyId(
+      R"(^:signature packet: algo \d+, keyid ([0-9A-Fa-f]{16})\b)");
+  static const QRegularExpression kIssuerFpr(
+      R"(\(issuer fpr v\d+ ([0-9A-Fa-f]{40,64})\))");
+
+  int packet_count = 0;
+  bool key_revocation = false;
+  QString key_id;
+  QString issuer_fpr;
+  for (const auto& line : packets.split('\n')) {
+    if (line.startsWith(':')) {
+      ++packet_count;
+      const auto m = kKeyId.match(line);
+      if (m.hasMatch()) key_id = m.captured(1);
+      continue;
+    }
+    if (line.contains("sigclass 0x20")) key_revocation = true;
+    const auto m = kIssuerFpr.match(line);
+    if (m.hasMatch() && issuer_fpr.isEmpty()) issuer_fpr = m.captured(1);
+  }
+
+  // A certificate is that one signature: anything beside it (a key, a
+  // second signature) is not one, whatever it would do on import.
+  if (packet_count != 1 || !key_revocation || key_id.isEmpty()) return {};
+  return (issuer_fpr.isEmpty() ? key_id : issuer_fpr).toUpper();
+}
+
+auto GpgKeyImportExporter::RevocationCertificateTarget(
+    const GFBuffer& rev_cert) const -> QString {
+  if (rev_cert.Empty()) return {};
+
+  QTemporaryFile file;
+  if (!file.open()) return {};
+  const auto written = file.write(rev_cert.ConvertToQByteArray());
+  file.close();
+  if (written != static_cast<qint64>(rev_cert.Size())) return {};
+
+  auto [exit_code, out, err] =
+      GpgCommandExecutor::GetInstance(GetChannel())
+          .GpgExecuteSync({{},
+                           {"--batch", "--no-tty", "--list-packets",
+                            file.fileName()},
+                           {}});
+  if (exit_code != 0) return {};
+  return RevocationTargetFromPacketList(QString::fromUtf8(out));
+}
+
 auto GpgKeyImportExporter::ImportKey(const GFBuffer& in_buffer)
     -> QSharedPointer<GpgImportInformation> {
   if (in_buffer.Empty()) return {};
