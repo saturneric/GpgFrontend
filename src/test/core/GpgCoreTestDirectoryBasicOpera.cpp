@@ -32,6 +32,10 @@
 #include <QTemporaryDir>
 #include <cstring>
 
+#ifndef Q_OS_WINDOWS
+#include <unistd.h>
+#endif
+
 #include "core/function/gpg/GpgFileOpera.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/utils/GpgUtils.h"
@@ -111,6 +115,47 @@ TEST_F(GpgCoreTest, CoreDirectoryEncryptDecryptRoundTrip) {
     f.close();
   }
 }
+
+#ifndef Q_OS_WINDOWS
+// A file the archiver cannot read used to be left out of the archive while the
+// encryption still reported success, a backup quietly missing a file.
+TEST_F(GpgCoreTest, CoreEncryptDirectoryWithUnreadableFileFails) {
+  if (geteuid() == 0) {
+    GTEST_SKIP() << "root reads the file this test makes unreadable";
+  }
+
+  auto key = GpgKeyGetter::GetInstance().GetPubkeyPtr(
+      "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
+  ASSERT_TRUE(key != nullptr);
+
+  QTemporaryDir work_dir;
+  ASSERT_TRUE(work_dir.isValid());
+  const QString src_dir = work_dir.path() + "/src";
+  ASSERT_TRUE(QDir().mkpath(src_dir));
+  for (const auto* name : {"a.txt", "b.txt"}) {
+    QFile f(src_dir + "/" + name);
+    ASSERT_TRUE(f.open(QIODevice::WriteOnly));
+    f.write("content");
+  }
+  ASSERT_TRUE(QFile::setPermissions(src_dir + "/b.txt", {}));
+
+  bool done = false;
+  GpgError encrypt_err = GPG_ERR_GENERAL;
+  GpgFileOpera::GetInstance().EncryptDirectory(
+      {key}, src_dir, false, work_dir.path() + "/src.tar.gpg",
+      [&](GpgError err, const DataObjectPtr&) {
+        encrypt_err = err;
+        done = true;
+      });
+  WAIT_FOR_TRUE(done, 10000);
+
+  QFile::setPermissions(src_dir + "/b.txt",
+                        QFileDevice::ReadOwner | QFileDevice::WriteOwner);
+  ASSERT_TRUE(done);
+  EXPECT_NE(CheckGpgError(encrypt_err), GPG_ERR_NO_ERROR)
+      << "a folder with an unreadable file was reported as encrypted";
+}
+#endif
 
 // A hostile archive inside a perfectly valid gpg message: gpg succeeds, the
 // extractor refuses the escaping entry, and that refusal has to reach the

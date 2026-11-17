@@ -57,18 +57,19 @@ auto ExtractArchiveHelper(const QString& out_path,
 // gpg succeeding says nothing about the archive: the tar inside may be
 // malformed, an entry may have been refused, or a write may have failed half
 // way. Report that as a failure so the caller does not treat a partial tree as
-// a complete result.
-auto JoinArchiveExtraction(GpgError decrypt_err,
-                           const std::shared_future<GFError>& extract_future)
+// a complete result. The same holds when gpg reads the archive rather than
+// writes it: a file that could not be packed still ends in a clean EOF as far
+// as gpg can tell.
+auto JoinArchiveTask(GpgError gpg_err,
+                     const std::shared_future<GFError>& archive_future)
     -> GpgError {
-  const auto extract_err = extract_future.get();
-  if (CheckGpgError(decrypt_err) != GPG_ERR_NO_ERROR) return decrypt_err;
-  if (extract_err != 0) {
-    LOG_E() << "archive extraction failed after decryption, err:"
-            << extract_err;
+  const auto archive_err = archive_future.get();
+  if (CheckGpgError(gpg_err) != GPG_ERR_NO_ERROR) return gpg_err;
+  if (archive_err != 0) {
+    LOG_E() << "the archive half of the operation failed, err:" << archive_err;
     return GPG_ERR_INV_DATA;
   }
-  return decrypt_err;
+  return gpg_err;
 }
 
 /// Why @p a or @p b could not be set up, or GPG_ERR_NO_ERROR. Checked before
@@ -80,19 +81,64 @@ auto DataError(const GpgData& a, const GpgData& b) -> GpgError {
 }
 
 void CreateArchiveHelper(const QString& in_path,
-                         const QSharedPointer<GFDataExchanger>& ex) {
+                         const QSharedPointer<GFDataExchanger>& ex,
+                         std::function<void(GFError)> on_done) {
   auto w_ex = QWeakPointer<GFDataExchanger>(ex);
 
   ArchiveFileOperator::NewArchive2DataExchanger(
-      in_path, ex, [=](GFError err, const DataObjectPtr&) {
+      in_path, ex,
+      [w_ex, on_done = std::move(on_done)](GFError err, const DataObjectPtr&) {
         FLOG_D("new archive 2 data exchanger operation, err: %d", err);
         // `!= 0`, not `< 0`: GFError is unsigned. The signed form was always
         // false, so a failed archive never closed the pipe and left whoever was
         // reading it waiting for bytes that were not coming.
-        if (decltype(ex) p_ex = w_ex.lock(); err != 0 && p_ex != nullptr) {
-          ex->CloseWrite();
+        if (auto p_ex = w_ex.lock(); err != 0 && p_ex != nullptr) {
+          p_ex->CloseWrite();
         }
+        if (on_done) on_done(err);
       });
+}
+
+using ArchiveReadingOpera =
+    std::function<GpgError(GpgData&, const DataObjectPtr&)>;
+
+/// Encrypts an archive of @p in_path that is packed on a separate IO task
+/// while gpg reads it, the mirror image of DecryptArchive(); the archiver's
+/// status is joined into the result.
+void EncryptFromArchive(int channel, const QString& in_path,
+                        const GpgOperationCallback& cb,
+                        const ArchiveReadingOpera& opera,
+                        const QString& name) {
+  auto ex = CreateStandardGFDataExchanger();
+
+  auto archive_done = std::make_shared<std::promise<GFError>>();
+  std::shared_future<GFError> archive_future =
+      archive_done->get_future().share();
+
+  RunGpgOperaAsync(
+      channel,
+      [ex, archive_future,
+       opera](const DataObjectPtr& data_object) -> GpgError {
+        GpgError err;
+        {
+          GpgData data_in(ex);
+          err = opera(data_in, data_object);
+        }  // data_in destroyed -> CloseWrite, so an archiver gpg stopped
+           // reading early fails its next write instead of waiting forever
+        return JoinArchiveTask(err, archive_future);
+      },
+      // A task that never ran (an unsupported engine, cancelled while queued)
+      // never opened the pipe either. Closing it here is what keeps the
+      // archiver from filling it and then blocking the IO runner.
+      [ex, cb](GpgError err, const DataObjectPtr& data_object) {
+        ex->CloseWrite();
+        if (cb) cb(err, data_object);
+      },
+      name, "2.2.0");
+
+  CreateArchiveHelper(in_path, ex, [archive_done](GFError err) {
+    archive_done->set_value(err);
+  });
 }
 
 GpgFileOpera::GpgFileOpera(int channel)
@@ -164,20 +210,14 @@ void GpgFileOpera::EncryptDirectory(const GpgAbstractKeyPtrList& keys,
                                     const QString& in_path, bool ascii,
                                     const QString& out_path,
                                     const GpgOperationCallback& cb) {
-  auto ex = CreateStandardGFDataExchanger();
-
-  RunGpgOperaAsync(
-      GetChannel(),
-      [=](const DataObjectPtr& data_object) -> GpgError {
-        GpgData data_in(ex);
+  EncryptFromArchive(
+      GetChannel(), in_path, cb,
+      [=](GpgData& data_in, const DataObjectPtr& data_object) -> GpgError {
         GpgData data_out(out_path, false);
-
         return EncryptFileGpgDataImpl(ctx_, keys, data_in, ascii, data_out,
                                       data_object);
       },
-      cb, "gpgme_op_encrypt", "2.2.0");
-
-  CreateArchiveHelper(in_path, ex);
+      "gpgme_op_encrypt");
 }
 
 auto DecryptFileGpgDataImpl(GpgContext& ctx_, GpgData& data_in,
@@ -252,7 +292,7 @@ void GpgFileOpera::DecryptArchive(const QString& in_path,
           GpgData data_out(ex);
           err = DecryptFileGpgDataImpl(ctx_, data_in, data_out, data_object);
         }  // data_out destroyed -> CloseWrite, lets extractor reach EOF
-        return JoinArchiveExtraction(err, extract_future);
+        return JoinArchiveTask(err, extract_future);
       },
       cb, "gpgme_op_decrypt", "2.2.0");
 }
@@ -450,21 +490,15 @@ void GpgFileOpera::EncryptSignDirectory(
     const GpgAbstractKeyPtrList& keys, const GpgAbstractKeyPtrList& signer_keys,
     const QString& in_path, bool ascii, const QString& out_path,
     const GpgOperationCallback& cb) {
-  auto ex = CreateStandardGFDataExchanger();
-
-  RunGpgOperaAsync(
-      GetChannel(),
-      [=](const DataObjectPtr& data_object) -> GpgError {
-        GpgData data_in(ex);
+  EncryptFromArchive(
+      GetChannel(), in_path, cb,
+      [=](GpgData& data_in, const DataObjectPtr& data_object) -> GpgError {
         GpgData data_out(out_path, false);
-
         return EncryptSignFileGpgDataImpl(ctx_, basic_opera_, keys, signer_keys,
                                           data_in, ascii, data_out,
                                           data_object);
       },
-      cb, "gpgme_op_encrypt_sign", "2.2.0");
-
-  CreateArchiveHelper(in_path, ex);
+      "gpgme_op_encrypt_sign");
 }
 
 auto DecryptVerifyFileGpgDataImpl(GpgContext& ctx_, GpgData& data_in,
@@ -540,7 +574,7 @@ void GpgFileOpera::DecryptVerifyArchive(const QString& in_path,
           err = DecryptVerifyFileGpgDataImpl(ctx_, data_in, data_out,
                                              data_object);
         }  // data_out destroyed -> CloseWrite, lets extractor reach EOF
-        return JoinArchiveExtraction(err, extract_future);
+        return JoinArchiveTask(err, extract_future);
       },
       cb, "gpgme_op_decrypt_verify", "2.2.0");
 }
@@ -570,20 +604,14 @@ auto GpgFileOpera::EncryptFileSymmetricSync(const QString& in_path, bool ascii,
 void GpgFileOpera::EncryptDirectorySymmetric(const QString& in_path, bool ascii,
                                              const QString& out_path,
                                              const GpgOperationCallback& cb) {
-  auto ex = CreateStandardGFDataExchanger();
-
-  RunGpgOperaAsync(
-      GetChannel(),
-      [=](const DataObjectPtr& data_object) {
-        GpgData data_in(ex);
+  EncryptFromArchive(
+      GetChannel(), in_path, cb,
+      [=](GpgData& data_in, const DataObjectPtr& data_object) -> GpgError {
         GpgData data_out(out_path, false);
-
         return EncryptFileGpgDataImpl(ctx_, {}, data_in, ascii, data_out,
                                       data_object);
       },
-      cb, "gpgme_op_encrypt_symmetric", "2.2.0");
-
-  CreateArchiveHelper(in_path, ex);
+      "gpgme_op_encrypt_symmetric");
 }
 
 auto GpgFileOpera::EncryptDirectorySymmetricSync(const QString& in_path,
@@ -592,18 +620,29 @@ auto GpgFileOpera::EncryptDirectorySymmetricSync(const QString& in_path,
     -> std::tuple<GpgError, DataObjectPtr> {
   auto ex = CreateStandardGFDataExchanger();
 
-  CreateArchiveHelper(in_path, ex);
+  auto archive_done = std::make_shared<std::promise<GFError>>();
+  std::shared_future<GFError> archive_future =
+      archive_done->get_future().share();
+  CreateArchiveHelper(in_path, ex, [archive_done](GFError err) {
+    archive_done->set_value(err);
+  });
 
-  return RunGpgOperaSync(
+  auto result = RunGpgOperaSync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
-        GpgData data_in(ex);
-        GpgData data_out(out_path, false);
-
-        return EncryptFileGpgDataImpl(ctx_, {}, data_in, ascii, data_out,
-                                      data_object);
+        GpgError err;
+        {
+          GpgData data_in(ex);
+          GpgData data_out(out_path, false);
+          err = EncryptFileGpgDataImpl(ctx_, {}, data_in, ascii, data_out,
+                                       data_object);
+        }  // data_in destroyed -> CloseWrite
+        return JoinArchiveTask(err, archive_future);
       },
       "gpgme_op_encrypt_symmetric", "2.2.0");
+  // A task that never ran never opened the pipe; see EncryptFromArchive().
+  ex->CloseWrite();
+  return result;
 }
 
 }  // namespace GpgFrontend
