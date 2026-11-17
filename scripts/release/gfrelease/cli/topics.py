@@ -9,6 +9,7 @@ which span several commands and people, are written out here.
 
 from __future__ import annotations
 
+from .. import __doc__ as ARCHITECTURE
 from ..app import doctor, stable, trust, views
 from ..domain import layout
 from . import host, settings, ui
@@ -84,6 +85,8 @@ TOPICS = {
     "doctor": ("checking a machine before it does its part",
                doctor.__doc__),
     "exit-codes": ("what each exit status means", EXIT_CODES),
+    "architecture": ("how the tooling is built: its layers and modules",
+                     ARCHITECTURE),
 }
 
 
