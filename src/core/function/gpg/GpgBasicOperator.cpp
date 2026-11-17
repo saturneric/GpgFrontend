@@ -67,6 +67,12 @@ void SetSignersImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& signers,
 auto EncryptImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
                  const GFBuffer& in_buffer, bool ascii,
                  const DataObjectPtr& data_object) -> GpgError {
+  // Converting leaves disabled and missing keys out without a word, and the
+  // message would go out without them.
+  if (HasUnusableKey(ctx_.GetChannel(), keys)) {
+    data_object->Swap({GpgEncryptResult(), GFBuffer()});
+    return GPG_ERR_UNUSABLE_PUBKEY;
+  }
   auto recipients = Convert2RawGpgMEKeyList(ctx_.GetChannel(), keys);
 
   GpgData data_in(in_buffer);
@@ -301,6 +307,10 @@ auto EncryptSignImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
   if (keys.empty() || signers.empty()) return GPG_ERR_CANCELED;
 
   GpgError err;
+  if (HasUnusableKey(ctx_.GetChannel(), keys)) {
+    data_object->Swap({GpgEncryptResult(), GpgSignResult(), GFBuffer()});
+    return GPG_ERR_UNUSABLE_PUBKEY;
+  }
   auto recipients = Convert2RawGpgMEKeyList(ctx_.GetChannel(), keys);
 
   // Last entry data_in array has to be nullptr

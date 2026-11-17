@@ -38,6 +38,27 @@
 
 namespace GpgFrontend::Test {
 
+// Converting the recipient list left a missing or disabled key out without a
+// word, and the message went to the rest. It is refused instead.
+TEST_F(GpgCoreTest, CoreEncryptRefusesARecipientItWouldDrop) {
+  auto key = GpgKeyGetter::GetInstance().GetPubkeyPtr(
+      "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
+  ASSERT_TRUE(key != nullptr);
+  const GpgAbstractKeyPtrList with_missing = {key, nullptr};
+
+  EXPECT_FALSE(HasUnusableKey(kGpgFrontendDefaultChannel, {key}));
+  EXPECT_TRUE(HasUnusableKey(kGpgFrontendDefaultChannel, with_missing));
+
+  auto text = GFBuffer(QString("Hello GpgFrontend!"));
+  auto [err, data_object] =
+      GpgBasicOperator::GetInstance().EncryptSync(with_missing, text, true);
+  EXPECT_EQ(CheckGpgError(err), GPG_ERR_UNUSABLE_PUBKEY);
+
+  auto [err_1, data_object_1] = GpgBasicOperator::GetInstance().EncryptSignSync(
+      with_missing, {key}, text, true);
+  EXPECT_EQ(CheckGpgError(err_1), GPG_ERR_UNUSABLE_PUBKEY);
+}
+
 TEST_F(GpgCoreTest, CoreEncryptDecrTest) {
   auto encrypt_key = GpgKeyGetter::GetInstance().GetPubkeyPtr(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");

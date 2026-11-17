@@ -106,6 +106,12 @@ auto EncryptFileGpgDataImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
     data_object->Swap({GpgEncryptResult()});
     return data_err;
   }
+  // Converting leaves disabled and missing keys out without a word, and the
+  // file would be encrypted without them.
+  if (HasUnusableKey(ctx_.GetChannel(), keys)) {
+    data_object->Swap({GpgEncryptResult()});
+    return GPG_ERR_UNUSABLE_PUBKEY;
+  }
 
   auto recipients = Convert2RawGpgMEKeyList(ctx_.GetChannel(), keys);
   auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
@@ -378,6 +384,10 @@ auto EncryptSignFileGpgDataImpl(GpgContext& ctx_,
       data_err != GPG_ERR_NO_ERROR) {
     data_object->Swap({GpgEncryptResult(), GpgSignResult()});
     return data_err;
+  }
+  if (HasUnusableKey(ctx_.GetChannel(), keys)) {
+    data_object->Swap({GpgEncryptResult(), GpgSignResult()});
+    return GPG_ERR_UNUSABLE_PUBKEY;
   }
   auto recipients = Convert2RawGpgMEKeyList(ctx_.GetChannel(), keys);
 

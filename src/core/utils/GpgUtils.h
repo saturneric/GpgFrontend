@@ -179,6 +179,20 @@ auto GF_CORE_EXPORT ConvertKey2GpgKeyList(int channel,
     -> GpgKeyPtrList;
 
 /**
+ * @brief Whether any of @p keys, or of the members of a group among them, is
+ * missing or disabled.
+ *
+ * ConvertKey2GpgKeyList() leaves such keys out without a word, so encrypting
+ * to them used to go ahead without them while the result named only the keys
+ * that remained. A recipient list for which this is true is refused instead.
+ *
+ * @param channel OpenPGP context channel
+ * @param keys the keys as the caller asked for them
+ */
+auto GF_CORE_EXPORT HasUnusableKey(int channel,
+                                   const GpgAbstractKeyPtrList& keys) -> bool;
+
+/**
  * @brief
  *
  * @param keys
