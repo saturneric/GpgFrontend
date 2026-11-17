@@ -256,7 +256,7 @@ void KeyPairOperaTab::slot_export_short_private_key() {
   // export key, if ok was clicked
   if (ret != QMessageBox::Ok) return;
 
-  slot_export_key(true, true, false, "short_secret");
+  slot_export_key(true, true, true, "short_secret");
 }
 
 void KeyPairOperaTab::slot_export_private_key() {
