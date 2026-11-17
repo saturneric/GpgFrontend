@@ -165,6 +165,12 @@ class Keyring:
         """The pinned primary fingerprint that signed @p data, or an error."""
         return self.verify_signature(data, asc)["primary"]
 
+    def verify_beside(self, directory: Path, names: list[str]) -> None:
+        """Each file @p names in @p directory against the signature beside
+        it (layout.sig_of)."""
+        for name in names:
+            self.verify(directory / name, directory / layout.sig_of(name))
+
     def verify_signature(self, data: Path, asc: Path) -> dict:
         """The accepted signature on @p data: its pinned primary
         fingerprint ("primary") and when it was made ("created", Unix

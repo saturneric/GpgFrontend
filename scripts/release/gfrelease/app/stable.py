@@ -74,6 +74,7 @@ from ..domain.formats import (canonical_json, iso, load_json, parse_version,
 from ..domain.layout import BUNDLE, SIG, STAGED, SUMS
 from ..domain.manifest import render_manifest
 from ..errors import ReleaseError
+from . import checks
 from .candidate import verify_candidate
 from .product import Product
 from .stage import read_staged
@@ -228,7 +229,7 @@ class Stage:
         # upload still has to send, and is never signed over.
         local = self._sign_notes(data, digest, "notes-only", key)
         with openpgp.Keyring.of(self.product) as ring:
-            ring.verify(local, local.with_name(local.name + SIG))
+            ring.verify_beside(local.parent, [local.name])
         for suffix in (SIG, ""):  # the signature first, as _upload
             self.outbox.put_file(local.with_name(local.name + suffix),
                                  remote + suffix)
@@ -341,11 +342,8 @@ class Stage:
             authenticode.unchanged_apart_from(build / name,
                                               self.final_dir / name,
                                               info, signed[name])
-            authenticode.verify_package(
-                self.final_dir / name, info,
-                self.product.authenticode_subject, self.authenticode_ca,
-                rules, require_timestamp=self.product
-                .authenticode_timestamp_required)
+            checks.windows_signed(self.product, self.final_dir / name, info,
+                                  self.authenticode_ca)
             info["transform"] = "authenticode"
         for name, source in made.items():
             self._check_msix(name, source)
@@ -365,7 +363,7 @@ class Stage:
             if info["kind"] != "msi" or not _built(info) or target in files:
                 continue
             try:
-                described = self.product.classify(target, self.version)
+                self.product.classify(target, self.version)
             except ReleaseError:
                 continue  # an MSI of a flavour that has no MSIX
             if self.signer is None:
@@ -384,12 +382,9 @@ class Stage:
     def _check_msix(self, name: str, source: str) -> None:
         """The signed package @p name, checked as the signing host will:
         its signature, and that it holds @p source's files and no others."""
-        authenticode.verify_package(
-            self.final_dir / name, self.state["build"]["files"][name],
-            self.product.authenticode_subject, self.authenticode_ca,
-            authenticode.Rules.of(self.product),
-            require_timestamp=self.product.authenticode_timestamp_required)
-        msix.check_derived(self.final_dir / name, self.final_dir / source)
+        checks.msix_of(self.product, self.final_dir / name,
+                       self.state["build"]["files"][name],
+                       self.final_dir / source, self.authenticode_ca)
 
     def _sign(self, what: dict[Path, tuple[str, str | None]]) -> None:
         """Signs the files of @p what in one call, each a (package, path
@@ -441,11 +436,8 @@ class Stage:
         # Everything signed is checked against the pinned keys before it
         # leaves this machine.
         with openpgp.Keyring.of(self.product) as ring:
-            for name in [*sorted(files), SUMS]:
-                ring.verify(self.final_dir / name,
-                            self.final_dir / (name + SIG))
-            ring.verify(notes_dir / f"{digest}.md",
-                        notes_dir / layout.sig_of(f"{digest}.md"))
+            ring.verify_beside(self.final_dir, [*sorted(files), SUMS])
+            ring.verify_beside(notes_dir, [f"{digest}.md"])
 
     def _upload(self) -> None:
         self._need("staging")
@@ -543,9 +535,7 @@ class Stage:
                 files[name]["sha256"] = sha256_file(self.final_dir / name)
             self._sign_files(sorted(made))
             with openpgp.Keyring.of(self.product) as ring:
-                for name in [*sorted(made), SUMS]:
-                    ring.verify(self.final_dir / name,
-                                self.final_dir / (name + SIG))
+                ring.verify_beside(self.final_dir, [*sorted(made), SUMS])
             # On disk before anything is sent: a run stopped here sends
             # these files, it never makes others.
             self._save()

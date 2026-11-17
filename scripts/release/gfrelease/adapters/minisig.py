@@ -130,6 +130,16 @@ def verify_bytes(public_keys: list[str], data: bytes, sig: bytes,
         return verify(public_keys, file, sig_file)
 
 
+def read_signed(source, path: str,
+                public_keys: list[str]) -> tuple[bytes, str]:
+    """@p path read from @p source (a store, or HTTPS) with its signature
+    beside it, and verified: its bytes and the signature's trusted comment.
+    How the signing host reads back the index it published, and how anyone
+    who checks it reads it."""
+    data, sig = source.read(path), source.read(path + MINISIG)
+    return data, verify_bytes(public_keys, data, sig, path)
+
+
 def generate(secret: Path) -> str:
     """A new key pair, @p secret and @p secret.pub beside it, made without
     a password (-W), for a key used unattended; returns the public key."""

@@ -41,7 +41,8 @@ from ..adapters.clock import utcnow
 from ..adapters.files import atomic_write
 from ..domain import layout
 from ..domain import policy as policy_mod
-from ..domain.formats import canonical_json, iso, load_json, parse_iso, sha256_bytes
+from ..domain.formats import (canonical_json, iso, load_json, parse_iso,
+                              sha256_bytes)
 from ..domain.layout import MINISIG
 from ..domain.limits import EXPIRY_SKEW
 from ..errors import ReleaseError, ToolFailed
