@@ -485,7 +485,7 @@ gf_add_mingw_runtime_deploy(gf_deploy_runtime
   SEARCH_DIRS "{cm(self.mingw)}"
   DESTINATION "{cm(self.dest)}"
   SYSTEM_DIRS "{cm(self.system)}"
-  OBJDUMP "{shutil.which('objdump')}")
+  OBJDUMP "{cm(Path(shutil.which('objdump')))}")
 """)
         self.cmake("-S", self.src, "-B", self.build, "-G", "Ninja")
 

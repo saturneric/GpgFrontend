@@ -223,13 +223,14 @@ endforeach()
 
 # Windows' own directories. CMake consults them by itself on a Windows host;
 # naming them here as well is what lets them be excluded, and lets a test on
-# another host stand in its own.
+# another host stand in its own. A stand-in never replaces the host's real
+# ones: CMake resolves against those whatever the stand-in holds.
 if(NOT DEFINED GF_DEPLOY_SYSTEM_DIRS)
   set(GF_DEPLOY_SYSTEM_DIRS "")
-  if(DEFINED ENV{SystemRoot})
-    list(APPEND GF_DEPLOY_SYSTEM_DIRS
-      "$ENV{SystemRoot}/System32" "$ENV{SystemRoot}")
-  endif()
+endif()
+if(CMAKE_HOST_WIN32 AND DEFINED ENV{SystemRoot})
+  list(APPEND GF_DEPLOY_SYSTEM_DIRS
+    "$ENV{SystemRoot}/System32" "$ENV{SystemRoot}")
 endif()
 set(_system_dirs "")
 foreach(_d IN LISTS GF_DEPLOY_SYSTEM_DIRS)
