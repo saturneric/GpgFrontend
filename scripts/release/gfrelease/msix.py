@@ -38,9 +38,9 @@ from common import ROOT, WINDOWS, ReleaseError, parse_version, run
 RESOURCES = ROOT / "resource" / "msix"
 MANIFEST = "AppxManifest.xml"
 LOGOS = "make_logos.ps1"
-# What the logos are drawn from: the icon, in its largest form.
-ICON = ROOT / "resource" / "lfs" / "hicolor" / "512x512" / "apps" / \
-    "com.bktus.gpgfrontend.png"
+# What the logos are drawn from: the icon, in its largest form, the one PNG
+# of this folder (named by the application's id, which is the product's).
+ICONS = ROOT / "resource" / "lfs" / "hicolor" / "512x512" / "apps"
 # Where the MSI's files lie in the package: the folders Windows shows the
 # application in place of its own (the MSI installs under AppData).
 PAYLOAD = "VFS"
@@ -136,12 +136,21 @@ def manifest(resources: Path, version: str, subject: str) -> str:
     return text
 
 
+def icon() -> Path:
+    """The application's icon in its largest form."""
+    found = sorted(ICONS.glob("*.png"))
+    if len(found) != 1:
+        raise ReleaseError(f"{ICONS}: no single icon to draw the logos from "
+                           f"({len(found)} PNG files)")
+    return found[0]
+
+
 def _pack(tree: Path, files: dict[str, bytes], out: Path,
           resources: Path) -> None:
     """@p tree, holding a package's manifest, packed into @p out with the
     logos @p resources draws and @p files under VFS/."""
     run(["powershell", "-NoProfile", "-NonInteractive", "-ExecutionPolicy",
-         "Bypass", "-File", resources / LOGOS, "-Icon", ICON,
+         "Bypass", "-File", resources / LOGOS, "-Icon", icon(),
          "-Assets", tree / "Assets"],
         timeout=600)
     # The index of the logos, before anything else is in the tree: makepri
