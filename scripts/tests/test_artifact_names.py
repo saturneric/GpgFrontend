@@ -9,7 +9,6 @@ otherwise would fail the release, not a test.
 Run: python3 -m unittest discover -s scripts/tests
 """
 
-import json
 import os
 import re
 import subprocess
@@ -23,23 +22,24 @@ ROOT = _paths.ROOT
 HELPER = ROOT / "scripts" / "ci" / "artifact_name.sh"
 WORKFLOWS = ROOT / ".github" / "workflows"
 
-# Each producer of a published file, and the legs it names.
-LEGS = {
-    "scripts/ci/linux/package.sh": [
-        f"linux-{arch}{flavor}.AppImage" for arch in ("x86_64", "aarch64")
-        for flavor in ("", "-portable")],
-    ".github/workflows/build-windows.yml": [
-        "windows-x86_64.msi", "windows-x86_64-portable.zip"],
-    "scripts/ci/android/sign.sh": [
-        "android-arm64-v8a.apk", "android-x86_64.apk"],
-}
+# On release/2.1 one workflow makes every published file, Qt5's included;
+# the legs it names besides the disk images.
+BUILD = ".github/workflows/build.yml"
+LEGS = [
+    "linux-x86_64.AppImage", "linux-aarch64.AppImage",
+    "qt5-linux-x86_64.AppImage",
+    "windows-x86_64.msi", "windows-x86_64-portable.zip",
+    "qt5-windows-x86_64-portable.zip",
+]
 
 
 def macos_legs() -> list[str]:
-    """The disk images: one per macOS runner build.yml names, after it."""
+    """The disk images: one per macOS leg build.yml's matrix names."""
     text = (WORKFLOWS / "build.yml").read_text(encoding="utf-8")
-    runners = json.loads(re.search(r"macos_runners=(\[.*?\])", text).group(1))
-    return [f"{label}.dmg" for label in runners]
+    labels = re.findall(r'leg: "(macos-[^"]+)"', text)
+    if not labels:
+        raise AssertionError("build.yml names no macOS leg")
+    return [f"{label}.dmg" for label in labels]
 
 
 class ArtifactNamesTest(unittest.TestCase):
@@ -47,11 +47,31 @@ class ArtifactNamesTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.product = Product(PRODUCT_FILE, POLICY_FILE)
-        cls.legs = dict(LEGS)
-        cls.legs[".github/workflows/sign-apple.yml"] = macos_legs()
+        cls.legs = {BUILD: LEGS + macos_legs()}
+
+    def test_every_leg_is_named_by_the_workflow(self):
+        """Each leg above is one build.yml really names: the Qt6 AppImages
+        by the runner's architecture, everything else literally."""
+        text = (ROOT / BUILD).read_text(encoding="utf-8")
+        self.assertIn('artifact_name.sh "linux-${ARCH}.AppImage"', text)
+        for leg in LEGS:
+            if leg.startswith("linux-"):
+                continue
+            with self.subTest(leg=leg):
+                self.assertRegex(
+                    text, rf'artifact_name\.sh"? {re.escape(leg)}\b')
+
+    def test_qt5_files_are_their_own_flavour(self):
+        version = "2.1.14"
+        prefix = self.product.data["artifact_prefix"]
+        for leg in ("qt5-linux-x86_64.AppImage",
+                    "qt5-windows-x86_64-portable.zip"):
+            with self.subTest(leg=leg):
+                self.assertEqual(self.product.classify(
+                    f"{prefix}{version}-{leg}", version)["flavor"], "qt5")
 
     def test_every_leg_ci_makes_is_one_the_rules_describe(self):
-        version = "2.3.0-alpha.5-gabcdef012345"
+        version = "2.1.14-alpha.5-gabcdef012345"
         prefix = self.product.data["artifact_prefix"]
         for producer, legs in self.legs.items():
             for leg in legs:

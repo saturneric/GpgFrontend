@@ -611,17 +611,24 @@ class WorkflowTest(unittest.TestCase):
              if permissions(j).get("contents") == "write"], [])
 
     def test_provenance_signs_after_every_platform_check(self):
+        # release/2.1: the Qt6 legs (macOS signed in them) and the Qt5 legs.
         needs = re.search(r"^    needs: \[(.*)\]", self.jobs["provenance"], re.M)
         self.assertEqual({n.strip() for n in needs.group(1).split(",")},
-                         {"setup", "build-linux", "build-windows",
-                          "sign-macos", "macos-smoke", "sign-android"})
+                         {"setup", "build-qt6", "build-qt5"})
+
+    def test_a_legacy_series_publishes_its_release_tags_only(self):
+        # release/2.1 is legacy: setup turns every publish kind but a final
+        # into none, so a push to the branch is no beta.
+        mode = self.code("setup")
+        self.assertIn('if [ "$KIND" != "final" ]; then', mode)
+        self.assertIn('KIND="none"', mode)
+        self.assertRegex(mode, r"grep -vE '\^\(publish_kind\|publishes\)='")
 
     def test_publishing_jobs_gate_on_the_one_classification(self):
         # `gfrelease ci build-mode` decides once which refs publish (main's
         # nightlies, release/X.Y betas, vX.Y.Z releases). A job that matched
         # refs itself could sign a base tag or a prerelease tag.
-        for name in ("sign-android", "sign-macos", "macos-smoke",
-                     "provenance", "stage", "play-upload"):
+        for name in ("provenance", "stage"):
             job = self.jobs[name]
             with self.subTest(job=name):
                 self.assertRegex(
@@ -662,44 +669,14 @@ class WorkflowTest(unittest.TestCase):
 
 
     def test_signing_secrets_never_inherited(self):
-        # sign-apple.yml reads its secrets from its own environment. Handing
-        # it the caller's would put every repository secret within reach of
-        # the job that signs.
-        self.assertTrue(self.called)
+        # No job hands a called workflow every repository secret. On
+        # release/2.1 the macOS legs sign in their own job, from the
+        # `macos-signing` environment, and only macOS legs ask for it.
         self.assertNotRegex(self.text, r"(?m)^\s+secrets:\s*inherit")
-
-    def test_signing_callers_pass_only_their_target_secrets(self):
-        # A reusable workflow sees no repository secret it is not handed, so
-        # each caller names its target's credentials, and only those.
-        prefix = {"developer-id": ("DEVELOP", "ASC_"), "app-store": ("MAS_",)}
-        seen = set()
-        for path in (WORKFLOW, WORKFLOW.with_name("mas-sandbox.yml")):
-            for name, job in jobs(path.read_text(encoding="utf-8")).items():
-                if "uses: ./.github/workflows/sign-apple.yml" not in job:
-                    continue
-                target = re.search(r"(?m)^\s+target: (\S+)$", job).group(1)
-                block = re.search(r"(?m)^    secrets:\n((?:      .*\n)+)", job)
-                with self.subTest(job=name):
-                    self.assertTrue(block)
-                    passed = re.findall(r"(?m)^      (\w+):", block.group(1))
-                    self.assertTrue(passed)
-                    for secret in passed:
-                        self.assertTrue(secret.startswith(prefix[target]), secret)
-                seen.add(target)
-        self.assertEqual(seen, set(prefix))
-
-    def test_mas_signs_main_and_release_tags_as_build_mode_classifies(self):
-        # The App Store package is signed on a manual run too, so it gates
-        # on what the ref is (ref_kind), never on a pattern of its own: a
-        # tag such as v2.3 or v2.3.0.1 passed one.
-        mas = jobs(WORKFLOW.with_name("mas-sandbox.yml")
-                   .read_text(encoding="utf-8"))
-        gate = re.search(r"(?ms)^    if: (.*?)\n    \w", mas["sign-mas"]).group(1)
-        self.assertEqual(" ".join(gate.replace(">-", "").split()),
-                         "needs.build-mas.outputs.ref_kind == 'main' || "
-                         "needs.build-mas.outputs.ref_kind == 'release-tag'")
-        self.assertIn("ref_kind: ${{ steps.mode.outputs.ref_kind }}",
-                      mas["build-mas"])
+        self.assertIn("startsWith(matrix.runner, 'macos') && "
+                      "github.event_name != 'pull_request') && "
+                      "'macos-signing'", self.jobs["build-qt6"])
+        self.assertNotIn("macos-signing", self.jobs["build-qt5"])
 
     def test_every_checkout_drops_its_token_unless_it_needs_one(self):
         # No job pushes or tags: a git token left on disk is only something

@@ -166,10 +166,8 @@ class BuildModeTest(unittest.TestCase):
         manual = classify("workflow_dispatch", "refs/heads/release/2.3",
                           BUILD_MODE_INPUT="nightly")
         self.assertEqual(manual["android_package"], NIGHTLY_APP)
-        # And CMake gives the ids product.json names.
-        cmake = (ROOT / "src" / "mob" / "CMakeLists.txt").read_text("utf-8")
-        for package in (RELEASE_APP, NIGHTLY_APP):
-            self.assertIn(f'set(_gf_android_package_name "{package}")', cmake)
+        # main's CMake gives the ids product.json names; release/2.1 builds
+        # no Android application, so there is nothing to compare here.
 
     def test_the_ref_shapes_match_the_tooling(self):
         # What CI publishes and what the signing host takes are decided by

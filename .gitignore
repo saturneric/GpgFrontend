@@ -140,3 +140,5 @@ target_wrapper.*
 # Rust
 rust/target/
 rust/.qt/
+# Python
+__pycache__/
