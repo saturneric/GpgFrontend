@@ -82,8 +82,13 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
           bool is_fully_valid = (sign->summary & GPGME_SIGSUM_VALID) != 0;
           bool is_green = (sign->summary & GPGME_SIGSUM_GREEN) != 0;
           bool is_red = (sign->summary & GPGME_SIGSUM_RED) != 0;
+          // GnuPG's own verdict on the key: never valid, as with a TOFU
+          // binding marked bad. gpg calls such a signature a likely forgery.
+          const bool distrusted = sign->validity == GPGME_VALIDITY_NEVER;
 
-          if (is_fully_valid && is_green) {
+          if (distrusted) {
+            stream_ << tr("Signing Key Not to Be Trusted") << Qt::endl;
+          } else if (is_fully_valid && is_green) {
             stream_ << tr("Fully Valid") << Qt::endl;
           } else if (is_red) {
             stream_ << tr("Valid but with Issues") << Qt::endl;
@@ -93,6 +98,11 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
 
           // List specific warnings
           QStringList warnings;
+          if (distrusted) {
+            warnings.append(
+                tr("GnuPG marks the signing key as never valid: the signature "
+                   "may be a forgery"));
+          }
           if ((sign->summary & GPGME_SIGSUM_SIG_EXPIRED) != 0) {
             warnings.append(tr("Signature has expired"));
           }
@@ -116,7 +126,8 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
             }
           }
 
-          if (!is_fully_valid && warnings.isEmpty()) {
+          // Raising trust cannot help a key GnuPG itself rejected.
+          if (!is_fully_valid && !is_red && warnings.isEmpty()) {
             stream_ << "  - " << tr("Tips") << ": "
                     << tr("Adjust trust level to make it fully valid")
                     << Qt::endl;
@@ -129,7 +140,7 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
                     << tr("not present in keyring") << ")" << Qt::endl;
           }
 
-          setStatus(1);
+          setStatus(distrusted ? -1 : 1);
           break;
         }
         case GPG_ERR_NO_PUBKEY:
