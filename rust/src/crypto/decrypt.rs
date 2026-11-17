@@ -3518,11 +3518,7 @@ mod large_file_tests {
     const MEMORY_LIMIT: u64 = 256 * MIB;
 
     fn workdir() -> tempfile::TempDir {
-        match std::env::var_os("GF_LARGE_FILE_DIR") {
-            Some(dir) => tempfile::tempdir_in(dir),
-            None => tempfile::tempdir(),
-        }
-        .expect("large-file work dir")
+        seipd::workdir()
     }
 
     fn names(dir: &Path) -> Vec<String> {

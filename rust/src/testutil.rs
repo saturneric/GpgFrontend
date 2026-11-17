@@ -1556,6 +1556,16 @@ pub mod seipd {
         }
     }
 
+    /// A directory for large-file tests: `GF_LARGE_FILE_DIR` when set (the
+    /// OS temp dir may be RAM-backed or too small), else the OS temp dir.
+    pub fn workdir() -> tempfile::TempDir {
+        match std::env::var_os("GF_LARGE_FILE_DIR") {
+            Some(dir) => tempfile::tempdir_in(dir),
+            None => tempfile::tempdir(),
+        }
+        .expect("large-file work dir")
+    }
+
     /// `len` payload bytes in memory, for small tests.
     pub fn bytes(len: usize, seed: u64) -> Vec<u8> {
         let mut out = Vec::with_capacity(len);
@@ -2304,6 +2314,87 @@ pub mod interop {
 // ---------------------------------------------------------------------------
 // Memory measurement
 // ---------------------------------------------------------------------------
+
+pub mod verify_stream {
+    //! The stream verifiers must reach the verdicts the in-memory verifier
+    //! reaches, on every message the verify suites try.
+
+    use crate::crypto::{SignatureResultInternal, VerifyResultInternal};
+    use crate::types::{GfrSignMode, GfrStatus};
+
+    use super::cb;
+
+    type Summary = (String, String, u32, u32, String, String, GfrSignMode);
+
+    fn summary(sigs: &[SignatureResultInternal]) -> Vec<Summary> {
+        sigs.iter()
+            .map(|s| {
+                (
+                    s.fpr.clone(),
+                    format!("{:?}", s.status),
+                    s.created_at,
+                    s.expires_at,
+                    s.pub_algo.clone(),
+                    s.hash_algo.clone(),
+                    s.sig_type,
+                )
+            })
+            .collect()
+    }
+
+    /// Verify the self-contained inline-signed `message`
+    /// as a stream, with the public key the callback answers now, and assert
+    /// that the outcome, content and every signature's result equal what the
+    /// in-memory verifier gave (`expected`), or that both refuse it. Detached
+    /// mode is not a stream of this kind and is left alone.
+    pub fn agrees(
+        message: &[u8],
+        mode: GfrSignMode,
+        expected: &Result<VerifyResultInternal, GfrStatus>,
+    ) {
+        let mut content = Vec::new();
+        let streamed = match mode {
+            GfrSignMode::Inline => crate::crypto::verify_inline_stream_internal(
+                0,
+                std::io::Cursor::new(message),
+                message.len() as u64,
+                &mut content,
+                Some(cb::pubkey_fetch),
+                std::ptr::null_mut(),
+            ),
+            _ => return,
+        };
+        match (expected, &streamed) {
+            (Ok(memory), Ok(stream)) => {
+                assert_eq!(
+                    content, memory.data,
+                    "{mode:?}: the streamed content differs"
+                );
+                assert_eq!(
+                    stream.is_verified, memory.is_verified,
+                    "{mode:?}: the stream verdict differs"
+                );
+                assert_eq!(
+                    summary(&stream.signatures),
+                    summary(&memory.signatures),
+                    "{mode:?}: the streamed signature results differ"
+                );
+            }
+            // Both refuse it. The status may differ: the content is read
+            // through a different rPGP reader, which words a damaged message
+            // differently.
+            (Err(_), Err(_)) => {}
+            (memory, _) => panic!(
+                "{mode:?}: in memory {}, as a stream {}",
+                if memory.is_ok() { "verified" } else { "failed" },
+                match &streamed {
+                    Ok(_) => "verified".to_string(),
+                    Err(e) => format!("failed with {e:?}"),
+                }
+            ),
+        }
+    }
+}
 
 /// Peak resident memory of this process, for the large-file tier's
 /// bounded-memory assertions. Linux only: elsewhere [`PeakRss::start`] panics

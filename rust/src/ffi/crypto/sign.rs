@@ -335,8 +335,12 @@ pub extern "C" fn gfr_crypto_verify_data(
 /// Verify the signature(s) on a file.
 ///
 /// For detached mode `sig_file_path` must point to the signature file.
-/// For inline/clear-text modes `out_file_path` (may be null) receives the
-/// extracted plaintext. Public keys are fetched via `fetch_pubkey_cb`/`free_cb`.
+/// For inline mode `out_file_path` (may be null) receives the signed content,
+/// written only once the whole message has been read; with null it is read
+/// and discarded, never held in memory. The file is read as a stream, so it
+/// may be of any size. For clear-text mode `out_file_path` (may be null)
+/// receives the extracted plaintext. Public keys are fetched via
+/// `fetch_pubkey_cb`/`free_cb`.
 /// Free with `gfr_crypto_free_verify_result`.
 ///
 /// # Safety
@@ -415,9 +419,43 @@ pub extern "C" fn gfr_crypto_verify_file(
             }
 
             // ---------------------------------------------------------
-            // Inline / ClearText: Use non-stream fallback to extract payload
+            // Inline: read once as a stream, the content staged beside the
+            // output and kept only when the whole message has been read
             // ---------------------------------------------------------
-            GfrSignMode::Inline | GfrSignMode::ClearText => {
+            GfrSignMode::Inline => {
+                let in_file = crate::crypto::open_input_file(in_path_str)?;
+                let in_len = in_file.metadata().map(|m| m.len()).unwrap_or(0);
+                let stream_result = if out_path_str.is_empty() {
+                    crate::crypto::verify_inline_stream_internal(
+                        channel,
+                        in_file,
+                        in_len,
+                        std::io::sink(),
+                        Some(fetch_pubkey_cb),
+                        user_data,
+                    )?
+                } else {
+                    let mut stage = crate::crypto::stage_output_file(out_path_str)?;
+                    let result = crate::crypto::verify_inline_stream_internal(
+                        channel,
+                        in_file,
+                        in_len,
+                        stage.file_mut(),
+                        Some(fetch_pubkey_cb),
+                        user_data,
+                    )?;
+                    crate::crypto::commit_output(stage)?;
+                    result
+                };
+
+                is_verified = stream_result.is_verified;
+                c_signatures = stream_result.signatures;
+            }
+
+            // ---------------------------------------------------------
+            // ClearText: Use non-stream fallback to extract payload
+            // ---------------------------------------------------------
+            GfrSignMode::ClearText => {
                 let in_data =
                     std::fs::read(in_path_str).map_err(|_| GfrStatus::ErrorInvalidInput)?;
 
@@ -991,5 +1029,81 @@ mod ffi_sign_tests {
         let sig = unsafe { &*verified.meta.signatures };
         assert_eq!(sig.status, crate::types::GfrSignatureStatus::Valid);
         crate::ffi::mem::gfr_crypto_free_verify_result(&mut verified);
+    }
+
+    /// Verify the self-contained `message` in a file through the FFI, with the
+    /// content going to `out` (or nowhere when it is `None`).
+    fn verify_file_self_contained(
+        message: &[u8],
+        mode: GfrSignMode,
+        out: Option<&Path>,
+    ) -> (GfrStatus, GfrVerifyResultC) {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let in_path = dir.path().join("signed.gpg");
+        std::fs::write(&in_path, message).expect("write");
+        let in_c = CString::new(in_path.to_string_lossy().as_ref()).expect("no NUL");
+        let out_c = out.map(|p| CString::new(p.to_string_lossy().as_ref()).expect("no NUL"));
+        cb::set_pubkey_answer(&keys::V4_SIGN.public_armored);
+        let mut verify_out = MaybeUninit::<GfrVerifyResultC>::zeroed();
+        let status = gfr_crypto_verify_file(
+            0,
+            in_c.as_ptr(),
+            std::ptr::null(),
+            out_c.as_ref().map_or(std::ptr::null(), |c| c.as_ptr()),
+            cb::pubkey_fetch,
+            std::ptr::null_mut(),
+            mode,
+            verify_out.as_mut_ptr(),
+        );
+        (status, unsafe { verify_out.assume_init() })
+    }
+
+    #[test]
+    fn an_inline_signed_file_verifies_as_a_stream() {
+        let content = b"inline file content\n";
+        let message = crate::crypto::sign_internal(
+            0,
+            "",
+            content,
+            &[&keys::V4_SIGN.secret_armored],
+            None,
+            GfrSignMode::Inline,
+            false,
+        )
+        .expect("sign")
+        .data;
+        let dir = tempfile::tempdir().expect("tempdir");
+        let out_path = dir.path().join("content.txt");
+
+        let (status, mut verified) =
+            verify_file_self_contained(&message, GfrSignMode::Inline, Some(&out_path));
+        assert_eq!(status, GfrStatus::Success);
+        assert!(verified.meta.is_verified);
+        assert!(verified.data.is_null(), "the content goes to the file");
+        crate::ffi::mem::gfr_crypto_free_verify_result(&mut verified);
+        assert_eq!(std::fs::read(&out_path).expect("content"), content);
+        std::fs::remove_file(&out_path).expect("remove");
+
+        // Without an output the content is read and dropped, not returned.
+        let (status, mut verified) =
+            verify_file_self_contained(&message, GfrSignMode::Inline, None);
+        assert_eq!(status, GfrStatus::Success);
+        assert!(verified.meta.is_verified);
+        assert!(verified.data.is_null());
+        crate::ffi::mem::gfr_crypto_free_verify_result(&mut verified);
+
+        // A damaged message commits nothing.
+        let (status, mut verified) = verify_file_self_contained(
+            &message[..message.len() - 3],
+            GfrSignMode::Inline,
+            Some(&out_path),
+        );
+        assert_ne!(status, GfrStatus::Success);
+        crate::ffi::mem::gfr_crypto_free_verify_result(&mut verified);
+        assert_eq!(
+            std::fs::read_dir(dir.path()).expect("list").count(),
+            0,
+            "nothing committed, no stage left"
+        );
     }
 }

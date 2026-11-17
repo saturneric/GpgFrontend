@@ -318,13 +318,15 @@ fn verify(
     cert: &str,
 ) -> Result<crate::crypto::VerifyResultInternal, GfrStatus> {
     cb::set_pubkey_answer(cert);
-    crate::crypto::verify_internal(
+    let result = crate::crypto::verify_internal(
         data,
         sig,
         mode,
         Some(cb::pubkey_fetch),
         std::ptr::null_mut(),
-    )
+    );
+    crate::testutil::verify_stream::agrees(data, mode, &result);
+    result
 }
 
 fn statuses(

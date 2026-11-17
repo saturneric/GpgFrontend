@@ -593,48 +593,164 @@ pub fn choose_template_self_sig<'a>(self_sigs: &[&'a Signature]) -> Option<&'a S
 /// would not decode. A cleartext-signed body is left verbatim: its whitespace
 /// is signed content. Unchanged input is returned as is.
 pub fn strip_armor_whitespace(text: &str) -> std::borrow::Cow<'_, str> {
-    #[derive(PartialEq)]
-    enum State {
-        Outside,
-        Headers,
-        Body,
-        Cleartext,
-    }
-    let mut state = State::Outside;
+    let mut lines = ArmorWhitespace::default();
     let mut out = String::with_capacity(text.len());
     for line in text.split_inclusive('\n') {
-        let content = line.trim_end_matches(['\r', '\n']);
-        let ending = &line[content.len()..];
-        let trimmed = content.trim();
-        match state {
-            State::Cleartext if trimmed.starts_with("-----BEGIN PGP SIGNATURE-----") => {
-                state = State::Headers;
-                out.push_str(trimmed);
-            }
-            State::Cleartext => out.push_str(content),
-            State::Outside if trimmed.starts_with("-----BEGIN PGP SIGNED MESSAGE-----") => {
-                state = State::Cleartext;
-                out.push_str(trimmed);
-            }
-            State::Outside if trimmed.starts_with("-----BEGIN PGP ") => {
-                state = State::Headers;
-                out.push_str(trimmed);
-            }
-            State::Outside => out.push_str(content),
-            State::Headers if trimmed.is_empty() => state = State::Body,
-            State::Headers => out.push_str(trimmed),
-            State::Body if trimmed.starts_with("-----END PGP ") => {
-                state = State::Outside;
-                out.push_str(trimmed);
-            }
-            State::Body => out.extend(content.chars().filter(|c| *c != ' ' && *c != '\t')),
-        }
-        out.push_str(ending);
+        lines.push_line(line, &mut out);
     }
     if out == text {
         std::borrow::Cow::Borrowed(text)
     } else {
         std::borrow::Cow::Owned(out)
+    }
+}
+
+/// Where a line falls in armored text, for [`strip_armor_whitespace`].
+#[derive(PartialEq, Default)]
+enum ArmorState {
+    #[default]
+    Outside,
+    Headers,
+    Body,
+    Cleartext,
+}
+
+/// [`strip_armor_whitespace`] a line at a time, for text read as a stream.
+#[derive(Default)]
+struct ArmorWhitespace {
+    state: ArmorState,
+}
+
+impl ArmorWhitespace {
+    /// Append `line`, with its line ending, to `out` as normalized.
+    fn push_line(&mut self, line: &str, out: &mut String) {
+        let content = line.trim_end_matches(['\r', '\n']);
+        let ending = &line[content.len()..];
+        let trimmed = content.trim();
+        match self.state {
+            ArmorState::Cleartext if trimmed.starts_with("-----BEGIN PGP SIGNATURE-----") => {
+                self.state = ArmorState::Headers;
+                out.push_str(trimmed);
+            }
+            ArmorState::Cleartext => out.push_str(content),
+            ArmorState::Outside if trimmed.starts_with("-----BEGIN PGP SIGNED MESSAGE-----") => {
+                self.state = ArmorState::Cleartext;
+                out.push_str(trimmed);
+            }
+            ArmorState::Outside if trimmed.starts_with("-----BEGIN PGP ") => {
+                self.state = ArmorState::Headers;
+                out.push_str(trimmed);
+            }
+            ArmorState::Outside => out.push_str(content),
+            ArmorState::Headers if trimmed.is_empty() => self.state = ArmorState::Body,
+            ArmorState::Headers => out.push_str(trimmed),
+            ArmorState::Body if trimmed.starts_with("-----END PGP ") => {
+                self.state = ArmorState::Outside;
+                out.push_str(trimmed);
+            }
+            ArmorState::Body => out.extend(content.chars().filter(|c| *c != ' ' && *c != '\t')),
+        }
+        out.push_str(ending);
+    }
+}
+
+/// [`strip_armor_whitespace`] applied to armored text as it is read, so a
+/// message of any size is normalized in bounded memory. A line that is not
+/// UTF-8, or longer than any armor line, is passed on as it is: neither can
+/// be part of an armor block that whitespace keeps from decoding.
+pub struct ArmorWhitespaceReader<R> {
+    source: R,
+    lines: ArmorWhitespace,
+    line: Vec<u8>,
+    /// Inside a line too long to normalize, passed on until its end.
+    passing: bool,
+    out: Vec<u8>,
+    at: usize,
+}
+
+/// Longer than any armor line, which RFC 9580 §6.2 limits to 76 characters.
+const ARMOR_LINE_LIMIT: usize = 64 * 1024;
+
+impl<R: std::io::BufRead> ArmorWhitespaceReader<R> {
+    pub fn new(source: R) -> Self {
+        Self {
+            source,
+            lines: ArmorWhitespace::default(),
+            line: Vec::new(),
+            passing: false,
+            out: Vec::new(),
+            at: 0,
+        }
+    }
+
+    /// Fill `out` with the next normalized line, or a piece of a long one.
+    /// Leaves `out` empty at the end of the input.
+    fn refill(&mut self) -> std::io::Result<()> {
+        self.out.clear();
+        self.at = 0;
+        loop {
+            let available = self.source.fill_buf()?;
+            if available.is_empty() {
+                // The last line, without a line ending.
+                let line = std::mem::take(&mut self.line);
+                self.emit(line);
+                return Ok(());
+            }
+            let newline = available.iter().position(|&b| b == b'\n');
+            let take = newline.map_or(available.len(), |at| at + 1);
+            if self.passing {
+                self.out.extend_from_slice(&available[..take]);
+                self.passing = newline.is_none();
+                self.source.consume(take);
+                return Ok(());
+            }
+            self.line.extend_from_slice(&available[..take]);
+            self.source.consume(take);
+            if newline.is_some() {
+                let line = std::mem::take(&mut self.line);
+                self.emit(line);
+                return Ok(());
+            }
+            if self.line.len() > ARMOR_LINE_LIMIT {
+                self.out = std::mem::take(&mut self.line);
+                self.passing = true;
+                return Ok(());
+            }
+        }
+    }
+
+    fn emit(&mut self, line: Vec<u8>) {
+        match String::from_utf8(line) {
+            Ok(text) => {
+                let mut normalized = String::with_capacity(text.len());
+                self.lines.push_line(&text, &mut normalized);
+                self.out = normalized.into_bytes();
+            }
+            Err(raw) => self.out = raw.into_bytes(),
+        }
+    }
+}
+
+impl<R> std::fmt::Debug for ArmorWhitespaceReader<R> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("ArmorWhitespaceReader")
+    }
+}
+
+impl<R: std::io::BufRead> std::io::Read for ArmorWhitespaceReader<R> {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        if self.at == self.out.len() {
+            // Every line keeps its line ending, so only the end of the input
+            // leaves nothing.
+            self.refill()?;
+            if self.out.is_empty() {
+                return Ok(0);
+            }
+        }
+        let n = buf.len().min(self.out.len() - self.at);
+        buf[..n].copy_from_slice(&self.out[self.at..self.at + n]);
+        self.at += n;
+        Ok(n)
     }
 }
 
@@ -1973,5 +2089,62 @@ mod crc24_policy_tests {
         )
         .unwrap();
         armor_has_no_crc24(&v6);
+    }
+}
+
+#[cfg(test)]
+mod armor_whitespace_reader_tests {
+    use super::*;
+    use std::io::Read;
+
+    /// Read through the stream normalizer a few bytes at a time.
+    fn streamed(text: &[u8], buffer: usize) -> Vec<u8> {
+        let source = std::io::BufReader::with_capacity(buffer, text);
+        let mut reader = ArmorWhitespaceReader::new(source);
+        let mut out = Vec::new();
+        let mut chunk = [0u8; 5];
+        loop {
+            let n = reader.read(&mut chunk).unwrap();
+            if n == 0 {
+                break;
+            }
+            out.extend_from_slice(&chunk[..n]);
+        }
+        out
+    }
+
+    #[test]
+    fn the_stream_normalizes_as_the_whole_text_does() {
+        let samples = [
+            "-----BEGIN PGP MESSAGE-----\n  Comment: x  \n\n  owGb \t\r\n wM \n=abcd\n -----END PGP MESSAGE----- \ntail",
+            "text before\r\n-----BEGIN PGP SIGNED MESSAGE-----\nHash: SHA256\n\n  kept  \n\t- -dashed\n  -----BEGIN PGP SIGNATURE-----\n\n a b \n-----END PGP SIGNATURE-----\n",
+            "no armor at all, no line ending",
+            "",
+            "\n\n",
+        ];
+        for sample in samples {
+            for buffer in [1, 3, 64, 8192] {
+                assert_eq!(
+                    streamed(sample.as_bytes(), buffer),
+                    strip_armor_whitespace(sample).as_bytes(),
+                    "buffer {buffer}: {sample:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn binary_lines_and_long_lines_pass_as_they_are() {
+        let mut text = b"-----BEGIN PGP MESSAGE-----\n\n".to_vec();
+        text.extend_from_slice(b"\xff\xfe not utf-8 \n");
+        let long = vec![b'A'; ARMOR_LINE_LIMIT * 2 + 10];
+        text.extend_from_slice(&long);
+        text.extend_from_slice(b"\n a b \n");
+        let out = streamed(&text, 4096);
+        let mut want = b"-----BEGIN PGP MESSAGE-----\n\n".to_vec();
+        want.extend_from_slice(b"\xff\xfe not utf-8 \n");
+        want.extend_from_slice(&long);
+        want.extend_from_slice(b"\nab\n");
+        assert_eq!(out, want);
     }
 }

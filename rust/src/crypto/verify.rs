@@ -96,6 +96,130 @@ where
     })
 }
 
+/// Verify an inline-signed message read from `input`, writing its content to
+/// `output` as it streams by.
+///
+/// The message is read once, in bounded memory: rPGP hashes the content as it
+/// passes, and the signatures that trail it are checked at its end. `output`
+/// therefore sees the content before the verdict, and the caller discards it
+/// unless this returns `Ok` (a staged file, or
+/// [`verify_inline_stream_staged_internal`]). `input_len` sizes the guard
+/// against compression bombs, as it does for a staged decryption. Armored and
+/// binary input are told apart by the first byte that is not whitespace.
+///
+/// Attribution is that of [`verify_internal`]'s inline mode. Signatures are
+/// checked only when `fetch_pubkey_cb` is `Some`.
+pub fn verify_inline_stream_internal<R, W>(
+    channel: i32,
+    input: R,
+    input_len: u64,
+    output: W,
+    fetch_pubkey_cb: Option<GfrPublicKeyFetchCb>,
+    user_data: *mut std::ffi::c_void,
+) -> Result<VerifyStreamResultInternal, GfrStatus>
+where
+    R: Read + Send + Sync,
+    W: Write,
+{
+    let mut input = BufReader::new(crate::cancel::CancellableReader::new(channel, input));
+    let armored = starts_with_armor(&mut input)
+        .record_err_with(|| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorIo))?;
+    let parsed = if armored {
+        // RFC 9580 §6: whitespace inside the base64 is ignored.
+        let normalized = BufReader::new(crate::utils::ArmorWhitespaceReader::new(input));
+        Message::from_armor(normalized).map(|(msg, _)| msg)
+    } else {
+        Message::from_reader(input).map(|(msg, _)| msg)
+    };
+    let message = parsed.map_err(|e| {
+        if crate::cancel::is_cancelled(channel) {
+            return GfrStatus::ErrorCanceled;
+        }
+        Err::<(), _>(e).into_gfr().unwrap_err()
+    })?;
+    if matches!(message, Message::Encrypted { .. }) {
+        set_last_error("an encrypted message is not a signed message; decrypt it instead");
+        return Err(GfrStatus::ErrorUnsupportedFeature);
+    }
+
+    let content = super::decrypt::read_message_content(
+        channel,
+        message,
+        output,
+        super::decrypt::staged_decompression_cap(input_len),
+        fetch_pubkey_cb,
+        user_data,
+        super::decrypt::ContentText {
+            output: "verified",
+            // The signed content must reach a Literal Data packet: a signed
+            // (or bare) encrypted message would otherwise be read out as its
+            // ciphertext and presented as the signed data (RFC 9580 §10.3).
+            not_literal: "the message carries no literal data (an encrypted message is not \
+                          signed content)",
+        },
+        |e| Err::<(), _>(e).into_gfr().unwrap_err(),
+        |err| {
+            if err.raw_os_error().is_some() {
+                return Err::<(), _>(err).into_gfr().unwrap_err();
+            }
+            set_last_error(&format!(
+                "the signed message is truncated or malformed: {err}"
+            ));
+            GfrStatus::ErrorInvalidData
+        },
+    )?;
+
+    Ok(VerifyStreamResultInternal {
+        is_verified: content.is_verified,
+        signatures: content.signatures,
+    })
+}
+
+/// [`verify_inline_stream_internal`] into a writer that cannot take anything
+/// back, such as a pipe: the content is staged in an anonymous temporary file
+/// and reaches `output` only once the whole message has been read and its
+/// signatures checked, so a damaged message puts nothing into it.
+pub fn verify_inline_stream_staged_internal<R, W>(
+    channel: i32,
+    input: R,
+    input_len: u64,
+    output: W,
+    fetch_pubkey_cb: Option<GfrPublicKeyFetchCb>,
+    user_data: *mut std::ffi::c_void,
+) -> Result<VerifyStreamResultInternal, GfrStatus>
+where
+    R: Read + Send + Sync,
+    W: Write,
+{
+    super::decrypt::through_anonymous_stage(output, "verified", |stage| {
+        verify_inline_stream_internal(channel, input, input_len, stage, fetch_pubkey_cb, user_data)
+    })
+}
+
+/// Whether `input` starts, after any whitespace, with ASCII armor rather than
+/// a binary packet, whose first byte always has its top bit set (RFC 9580
+/// §4.2). The whitespace is consumed; nothing else is.
+fn starts_with_armor<R: std::io::BufRead>(input: &mut R) -> std::io::Result<bool> {
+    loop {
+        let available = input.fill_buf()?;
+        if available.is_empty() {
+            return Ok(false);
+        }
+        let len = available.len();
+        let first = available
+            .iter()
+            .position(|b| !b.is_ascii_whitespace())
+            .map(|at| (at, available[at]));
+        match first {
+            Some((at, byte)) => {
+                input.consume(at);
+                return Ok(byte == b'-');
+            }
+            None => input.consume(len),
+        }
+    }
+}
+
 /// Verify a signed in-memory buffer and return the extracted plaintext.
 ///
 /// `sig_data` is only inspected in `Detached` mode; pass `&[]` for inline and
@@ -307,13 +431,15 @@ mod verify_tests {
             // The message is self-contained; it belongs in `data`.
             _ => (sig, &[][..]),
         };
-        verify_internal(
+        let result = verify_internal(
             data,
             sig,
             mode,
             Some(cb::pubkey_fetch),
             std::ptr::null_mut(),
-        )
+        );
+        crate::testutil::verify_stream::agrees(data, mode, &result);
+        result
     }
 
     // -- the happy paths ----------------------------------------------------
@@ -573,6 +699,18 @@ mod verify_tests {
                 });
                 assert!(outcome.is_ok(), "panicked on {mode:?}");
             }
+            let streamed = std::panic::catch_unwind(|| {
+                let inline = verify_inline_stream_internal(
+                    0,
+                    Cursor::new(vector),
+                    vector.len() as u64,
+                    std::io::sink(),
+                    None,
+                    std::ptr::null_mut(),
+                );
+                inline.is_ok()
+            });
+            assert!(streamed.is_ok(), "a stream verifier panicked");
         }
     }
 
@@ -2059,5 +2197,175 @@ mod verify_tests {
         // third-party revocation lands. Run with:
         //   cargo test -- --ignored deferred_
         panic!("not implemented: third-party revocations are not honoured");
+    }
+}
+
+#[cfg(test)]
+mod inline_stream_tests {
+    //! The inline-signature stream verifier: content, staging, armor
+    //! whitespace and cancellation. Its verdicts are checked against the
+    //! in-memory verifier on every inline case of `verify_tests`.
+
+    use super::*;
+    use crate::testutil::{cb, keys};
+
+    const CONTENT: &[u8] = b"streamed content\nover two lines\n";
+
+    fn signed(armor: bool) -> Vec<u8> {
+        crate::crypto::sign_internal(
+            0,
+            "",
+            CONTENT,
+            &[&keys::V4_SIGN.secret_armored],
+            None,
+            GfrSignMode::Inline,
+            armor,
+        )
+        .expect("sign")
+        .data
+    }
+
+    fn staged(message: &[u8]) -> (Result<VerifyStreamResultInternal, GfrStatus>, Vec<u8>) {
+        cb::set_pubkey_answer(&keys::V4_SIGN.public_armored);
+        let mut out = Vec::new();
+        let res = verify_inline_stream_staged_internal(
+            0,
+            Cursor::new(message),
+            message.len() as u64,
+            &mut out,
+            Some(cb::pubkey_fetch),
+            std::ptr::null_mut(),
+        );
+        (res, out)
+    }
+
+    #[test]
+    fn binary_and_armored_messages_give_their_content() {
+        for armor in [false, true] {
+            let (res, out) = staged(&signed(armor));
+            let res = res.expect("verify");
+            assert!(res.is_verified, "armor {armor}");
+            assert_eq!(res.signatures.len(), 1);
+            assert_eq!(res.signatures[0].status, GfrSignatureStatus::Valid);
+            assert_eq!(out, CONTENT, "armor {armor}");
+        }
+    }
+
+    #[test]
+    fn indented_armor_and_leading_blank_lines_are_read() {
+        // RFC 9580 §6: whitespace inside the base64 is ignored.
+        let armored = String::from_utf8(signed(true)).unwrap();
+        let mut in_body = false;
+        let mut pasted = String::from("\n  \r\n");
+        for line in armored.lines() {
+            if in_body && !line.starts_with("-----") {
+                pasted.push_str(&format!("   {line} \t\r\n"));
+            } else {
+                pasted.push_str(line);
+                pasted.push_str("\r\n");
+            }
+            in_body |= line.is_empty();
+        }
+        let (res, out) = staged(pasted.as_bytes());
+        assert!(res.expect("verify").is_verified);
+        assert_eq!(out, CONTENT);
+    }
+
+    #[test]
+    fn a_truncated_message_puts_nothing_into_the_output() {
+        let message = signed(false);
+        for cut in [message.len() / 2, message.len() - 3] {
+            let (res, out) = staged(&message[..cut]);
+            assert!(res.is_err(), "cut at {cut}");
+            assert!(out.is_empty(), "cut at {cut}: {} bytes leaked", out.len());
+        }
+    }
+
+    #[test]
+    fn an_encrypted_message_is_refused() {
+        let encrypted = crate::crypto::encrypt_internal(
+            0,
+            "",
+            CONTENT,
+            &[&keys::V4_SIGN.public_armored],
+            false,
+        )
+        .unwrap()
+        .data;
+        let (res, out) = staged(&encrypted);
+        assert_eq!(res.err(), Some(GfrStatus::ErrorUnsupportedFeature));
+        assert!(out.is_empty());
+    }
+
+    #[test]
+    fn cancellation_aborts_an_inline_verify_stream() {
+        const CH: i32 = 0x0C_91;
+        let message = crate::crypto::sign_internal(
+            0,
+            "",
+            &vec![7u8; 1024 * 1024],
+            &[&keys::V4_SIGN.secret_armored],
+            None,
+            GfrSignMode::Inline,
+            false,
+        )
+        .unwrap()
+        .data;
+        cb::set_pubkey_answer(&keys::V4_SIGN.public_armored);
+        crate::cancel::set_cancelled(CH, true);
+        let mut out = Vec::new();
+        let res = verify_inline_stream_staged_internal(
+            CH,
+            Cursor::new(&message),
+            message.len() as u64,
+            &mut out,
+            Some(cb::pubkey_fetch),
+            std::ptr::null_mut(),
+        );
+        crate::cancel::set_cancelled(CH, false);
+        assert_eq!(res.err(), Some(GfrStatus::ErrorCanceled));
+        assert!(out.is_empty());
+    }
+
+    /// An inline-signed file past the old 1 GiB in-memory limit verifies in
+    /// bounded memory, its content written as it streams by.
+    #[test]
+    #[ignore = "large-file tier: run with scripts/run_tests.sh --large-file-only"]
+    fn large_file_inline_signed_message_verifies_in_bounded_memory() {
+        use crate::testutil::{memory::PeakRss, seipd};
+        const LEN: u64 = (1 << 30) + (1 << 20);
+        const SEED: u64 = 0x1A26_E001;
+        let dir = seipd::workdir();
+        let signed_path = dir.path().join("signed.gpg");
+        let out_path = dir.path().join("content.bin");
+
+        crate::crypto::sign_stream_internal(
+            0,
+            "",
+            seipd::Payload::new(LEN, SEED),
+            std::io::BufWriter::new(File::create(&signed_path).unwrap()),
+            &[&keys::V4_SIGN.secret_armored],
+            None,
+            GfrSignMode::Inline,
+            false,
+        )
+        .expect("sign the large file");
+
+        cb::set_pubkey_answer(&keys::V4_SIGN.public_armored);
+        let input = File::open(&signed_path).unwrap();
+        let input_len = input.metadata().unwrap().len();
+        let peak = PeakRss::start();
+        let res = verify_inline_stream_internal(
+            0,
+            input,
+            input_len,
+            std::io::BufWriter::new(File::create(&out_path).unwrap()),
+            Some(cb::pubkey_fetch),
+            std::ptr::null_mut(),
+        )
+        .expect("verify the large file");
+        peak.assert_below(256 << 20, input_len);
+        assert!(res.is_verified);
+        seipd::assert_file_is_payload(&out_path, LEN, SEED);
     }
 }
