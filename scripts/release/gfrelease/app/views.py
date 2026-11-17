@@ -21,15 +21,20 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from ..domain import layout
+from ..adapters.clock import utcnow
+from ..adapters.git import resolve_commit
+from ..adapters.process import run
+from ..adapters.store import NotFound
+from ..domain import layout, refs
+from ..domain import policy as policy_mod
+from ..domain.formats import parse_iso, parse_version
+from ..domain.layout import DESCRIPTOR, STAGED
+from ..errors import ReleaseError
 from . import stable as stable_mod
 from . import trust
 from . import verify as verify_mod
-from ..adapters.store import NotFound
+from .product import Product
 from .stage import read_staged
-from ..common import (DESCRIPTOR, STAGED, Product, ReleaseError, parse_iso,
-                    policy_mod, resolve_commit,
-                    parse_version, refs, run, utcnow)
 
 YES, NO, UNKNOWN = "yes", "no", "unknown"
 

@@ -47,20 +47,21 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from ..domain import layout
 from ..adapters import openpgp
-from ..cli import ui
-from ..common import (BUNDLE, DESCRIPTOR, SCHEMA, SIG, STAGED, SUMS, Problems,
-                    Product, ReleaseError, ToolFailed, canonical_json,
-                    check_git_version, check_candidate, check_relpath, iso,
-                    load_json,
-                    parse_version, refs, sha256_file, utcnow,
-                    verify_candidate)
-from .stage import read_staged
+from ..adapters.clock import utcnow
+from ..adapters.files import sha256_file
+from ..adapters.git import check_git_version
 from ..adapters.store import NotFound, Store
-
+from ..cli import ui
+from ..domain import layout, refs
+from ..domain.formats import (SCHEMA, canonical_json, check_relpath, iso,
+                              load_json, parse_version)
+from ..domain.layout import BUNDLE, DESCRIPTOR, SIG, STAGED, SUMS
+from ..errors import Problems, ReleaseError, ToolFailed
 from . import index as index_mod
-
+from .candidate import check_candidate, verify_candidate
+from .product import Product
+from .stage import read_staged
 
 
 class PromoteIncomplete(ReleaseError):

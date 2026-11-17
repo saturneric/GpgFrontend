@@ -28,8 +28,9 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 
+from ...errors import ReleaseError
+from ..process import WINDOWS, run
 from . import cab
-from ...common import WINDOWS, ReleaseError, run
 
 # MSI stores a NULL integer as this value, so a hash part can never be it.
 _NULL_INT = -0x80000000

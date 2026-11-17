@@ -23,26 +23,29 @@ from release/product.json, as a client would.
 from __future__ import annotations
 
 import contextlib
+import datetime as dt
 import http.client
 import shutil
 import ssl
-import datetime as dt
 import tempfile
 import urllib.error
 import urllib.request
 from pathlib import Path
 
-from ..domain import descriptor
-from ..domain import layout
-from ..adapters import minisig
-from ..adapters import openpgp
-from . import trust
+from ..adapters import minisig, openpgp
+from ..adapters.clock import utcnow
+from ..adapters.files import sha256_file
 from ..adapters.store import NotFound
-from ..common import (EXPIRY_SKEW, INDEX, MINISIG, SCHEMA, SIG,
-                    SMALL_OBJECT_LIMIT, SUMS, Product, ReleaseError,
-                    check_relpath, load_json, parse_iso, parse_manifest,
-                    parse_version, policy_mod, refs, sha256_bytes,
-                    sha256_file, utcnow)
+from ..domain import descriptor, layout, refs
+from ..domain import policy as policy_mod
+from ..domain.formats import (SCHEMA, check_relpath, load_json, parse_iso,
+                              parse_version, sha256_bytes)
+from ..domain.layout import INDEX, MINISIG, SIG, SUMS
+from ..domain.limits import EXPIRY_SKEW, SMALL_OBJECT_LIMIT
+from ..domain.manifest import parse_manifest
+from ..errors import ReleaseError
+from . import trust
+from .product import Product
 
 # The longest an index may be valid for, from when it was made: what the
 # update check allows (kMaxIndexLifetimeSeconds).

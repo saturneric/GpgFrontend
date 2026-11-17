@@ -35,10 +35,12 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from ..adapters.files import locked
+from ..adapters.store import Store
+from ..errors import ReleaseError
 from . import index as index_mod
 from . import promote as promote_mod
-from ..common import Product, ReleaseError, locked
-from ..adapters.store import Store
+from .product import Product
 
 DONE, FAILED, PARTIAL = 0, 1, 3
 

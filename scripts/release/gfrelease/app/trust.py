@@ -36,11 +36,15 @@ import itertools
 import json
 from pathlib import Path
 
-from ..domain import layout
 from ..adapters import minisig
-from ..common import (EXPIRY_SKEW, MINISIG, ReleaseError, ToolFailed,
-                    atomic_write, canonical_json, iso, load_json, parse_iso,
-                    policy_mod, sha256_bytes, utcnow)
+from ..adapters.clock import utcnow
+from ..adapters.files import atomic_write
+from ..domain import layout
+from ..domain import policy as policy_mod
+from ..domain.formats import canonical_json, iso, load_json, parse_iso, sha256_bytes
+from ..domain.layout import MINISIG
+from ..domain.limits import EXPIRY_SKEW
+from ..errors import ReleaseError, ToolFailed
 
 SCHEMA = 1
 ROOT_KIND, INDEX_KEYS_KIND = "root", "index-keys"  # a file's "type"

@@ -9,14 +9,9 @@ which span several commands and people, are written out here.
 
 from __future__ import annotations
 
-from ..app import doctor
-from ..app import host
+from ..app import doctor, host, stable, trust, views
 from ..domain import layout
-from . import settings
-from ..app import stable
-from ..app import trust
-from . import ui
-from ..app import views
+from . import settings, ui
 
 ROOT_CEREMONY = """\
 A new root: renewing one before it expires, or changing the root keys, the

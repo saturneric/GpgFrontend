@@ -16,7 +16,7 @@ import struct
 import zlib
 from dataclasses import dataclass
 
-from ...common import ReleaseError
+from ...errors import ReleaseError
 
 SIGNATURE = b"MSCF"
 BLOCK = 0x8000              # the uncompressed size of a CFDATA block

@@ -29,27 +29,31 @@ import sys
 import textwrap
 from pathlib import Path
 
-from ..adapters.windows import authenticode  # noqa: E402
-from ..app import doctor as doctor_mod  # noqa: E402
-from ..app import host as host_mod  # noqa: E402
-from ..app import imported as imported_mod  # noqa: E402
-from ..domain import layout  # noqa: E402
-from ..adapters import minisig  # noqa: E402
-from . import settings as settings_mod  # noqa: E402
-from ..app import stable as stable_mod  # noqa: E402
-from ..app import stage as stage_mod  # noqa: E402
-from . import topics  # noqa: E402
-from ..app import trust  # noqa: E402
-from . import ui  # noqa: E402
-from ..app import verify as verify_mod  # noqa: E402
-from ..app import candidate as candidate_mod  # noqa: E402
-from ..app import check_order as check_order_mod  # noqa: E402
-from ..adapters import git as gitversion_mod  # noqa: E402
-from ..app import views  # noqa: E402
-from ..common import (MINISIG, ROOT, WINDOWS, Product,  # noqa: E402
-                    ReleaseError, atomic_write, load_json, locked, parse_iso, policy_mod,
-                    refs, run, utcnow)
+from ..adapters import git as gitversion_mod
+from ..adapters import minisig, process
+from ..adapters.clock import utcnow
+from ..adapters.files import atomic_write, locked
+from ..adapters.process import WINDOWS, run
 from ..adapters.store import Store  # noqa: E402
+from ..adapters.windows import authenticode
+from ..app import candidate as candidate_mod
+from ..app import check_order as check_order_mod
+from ..app import doctor as doctor_mod
+from ..app import host as host_mod
+from ..app import imported as imported_mod
+from ..app import stable as stable_mod
+from ..app import stage as stage_mod
+from ..app import trust, views
+from ..app import verify as verify_mod
+from ..app.product import Product
+from ..domain import layout, refs
+from ..domain import policy as policy_mod
+from ..domain.formats import load_json, parse_iso
+from ..domain.layout import MINISIG
+from ..errors import ReleaseError
+from ..paths import ROOT
+from . import settings as settings_mod
+from . import topics, ui
 
 # What every option says, and what its value looks like.
 OPTIONS = {
@@ -559,6 +563,7 @@ def main(argv=None) -> int:
         return host_mod.FAILED
     args = build_parser(settings).parse_args(argv)
     ui.configure(json_out=args.json, quiet=args.quiet, verbose=args.verbose)
+    process.on_start = ui.tool_started
     settings.fill(args, sorted(n for n in OPT_NAMES if hasattr(args, n)))
     out = contextlib.ExitStack()
     try:

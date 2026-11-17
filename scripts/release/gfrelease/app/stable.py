@@ -60,18 +60,22 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from ..adapters.windows import authenticode
-from ..domain import layout
-from ..adapters.windows import msix
 from ..adapters import openpgp
-from ..cli import ui
-from ..common import (BUNDLE, SCHEMA, SIG, STAGED, SUMS, Product, ReleaseError,
-                    atomic_write, canonical_json, iso, load_json, notes_at,
-                    parse_version, refs, render_manifest, sha256_bytes,
-                    sha256_file, tagged_commit, utcnow, verify_candidate)
-from .stage import read_staged
+from ..adapters.clock import utcnow
+from ..adapters.files import atomic_write, sha256_file
+from ..adapters.git import notes_at, tagged_commit
 from ..adapters.store import Store
-
+from ..adapters.windows import authenticode, msix
+from ..cli import ui
+from ..domain import layout, refs
+from ..domain.formats import (SCHEMA, canonical_json, iso, load_json,
+                              parse_version, sha256_bytes)
+from ..domain.layout import BUNDLE, SIG, STAGED, SUMS
+from ..domain.manifest import render_manifest
+from ..errors import ReleaseError
+from .candidate import verify_candidate
+from .product import Product
+from .stage import read_staged
 
 STEPS = ("fetch", "verify", "authenticode", "pgp", "upload")
 
