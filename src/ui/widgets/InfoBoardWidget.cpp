@@ -219,7 +219,24 @@ void InfoBoardWidget::ResetOptionActionsMenu() {
     }
   }
 }
+void InfoBoardWidget::ResetWhenTextChanges(QTextDocument* document) {
+  QObject::disconnect(reset_on_edit_);
+  if (document == nullptr) return;
+
+  const auto reported = qHash(document->toPlainText());
+  QPointer<QTextDocument> watched = document;
+  reset_on_edit_ = connect(
+      document, &QTextDocument::contentsChanged, this,
+      [this, watched, reported]() {
+        if (watched.isNull() || qHash(watched->toPlainText()) == reported) {
+          return;
+        }
+        SlotReset();
+      });
+}
+
 void InfoBoardWidget::SlotReset() {
+  QObject::disconnect(reset_on_edit_);
   ui_->infoBoard->clear();
   ui_->infoBoard->setPlaceholderText(tr("Operation status will appear here."));
   ApplyStatusStyle(INFO_ERROR_NEUTRAL);

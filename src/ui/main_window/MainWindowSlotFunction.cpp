@@ -891,6 +891,13 @@ auto MainWindow::exec_operas_helper(
   slot_gpg_opera_buffer_show_helper(opera_results, page);
 
   slot_result_analyse_show_helper(opera_results);
+
+  // The report is on the document; it is withdrawn once the document is
+  // edited, or it would read as a verdict on the new text.
+  if (auto* text_page = qobject_cast<PlainTextEditorPage*>(page.data());
+      text_page != nullptr && text_page->GetTextPage() != nullptr) {
+    info_board_->ResetWhenTextChanges(text_page->GetTextPage()->document());
+  }
   return all_success;
 }
 

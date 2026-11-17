@@ -120,6 +120,15 @@ class InfoBoardWidget : public QWidget {
   [[nodiscard]] auto StatusTitle(GpgFrontend::UI::InfoBoardStatus status) const
       -> QString;
 
+  /**
+   * @brief Clear the board once the text of @p document changes.
+   *
+   * A verdict describes the text it was reached on. Left on the board after
+   * that text is edited, it reads as a verdict on the new one. Formatting
+   * alone does not count; the next reset forgets @p document.
+   */
+  void ResetWhenTextChanges(QTextDocument* document);
+
  public slots:
 
   /**
@@ -154,6 +163,7 @@ class InfoBoardWidget : public QWidget {
   QTextEdit* m_text_page_{
       nullptr};  ///< TextEdit associated to the notification
   QTabWidget* m_tab_widget_{nullptr};  ///<
+  QMetaObject::Connection reset_on_edit_;  ///< see ResetWhenTextChanges()
 
   /**
    * @brief
