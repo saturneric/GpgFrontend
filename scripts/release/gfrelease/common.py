@@ -6,22 +6,10 @@ Being taken apart: what has moved is handed on from where it is now."""
 
 from __future__ import annotations
 
-import contextlib
-import datetime as dt
-import os
 import re
-import subprocess
 from pathlib import Path
 
-# The maintainer's stage also runs on Windows, where the Authenticode token's
-# own software is; the signing host and CI are Linux.
-WINDOWS = os.name == "nt"
-if WINDOWS:
-    import msvcrt
-else:
-    import fcntl
-
-from .adapters import gitversion
+from .adapters import git as gitversion
 from .app import candidate as rc
 from .cli import ui
 from .domain import policy as policy_mod
@@ -33,134 +21,22 @@ from .domain.formats import (SCHEMA, canonical_json, check_relpath, iso,
 from .domain.limits import EXPIRY_SKEW, NOTES_LIMIT, SMALL_OBJECT_LIMIT
 from .errors import (Problems, ReleaseError, ToolFailed, ToolTimeout,
                      is_passing)
+from .adapters import process
+from .adapters.clock import utcnow
+from .adapters.files import atomic_write, locked, sha256_file
+from .adapters.git import (check_git_version, git_version, is_ancestor,
+                            notes_at, release_tags, resolve_commit, tag_time,
+                            tagged_commit)
+from .adapters.process import TOOL_TIMEOUT, WINDOWS, run, run_with_secret
+from .app.candidate import (candidate_error, check_candidate,
+                            verify_candidate)
+from .domain.layout import (BUNDLE, DESCRIPTOR, INDEX, MINISIG, SIG, STAGED,
+                             SUMS)
+from .domain.manifest import parse_manifest, render_manifest
 
-DESCRIPTOR = "release.json"
-SIG = ".sig"        # an OpenPGP detached signature, binary
-STAGED = "staged.json"
-SUMS = "SHA256SUMS.txt"
-BUNDLE = "SHA256SUMS.txt.sigstore.json"
-MINISIG = ".minisig"  # a minisign signature, beside what it signs
-INDEX = "v1/index.json"
-
-# The longest any one tool (rclone, git, gpg, minisign, cosign, cmake) may
-# run: a transfer that hangs ends as a failed step, and the next round tries
-# again, rather than holding the host's lock for ever.
-TOOL_TIMEOUT = 3600
-
-
-def candidate_error(where: str, error: Exception) -> ReleaseError:
-    """release_candidate's verdict on a candidate, as a ReleaseError; a
-    cosign that did not finish is no verdict (ToolTimeout)."""
-    if isinstance(error, rc.CandidateTimeout):
-        return ToolTimeout(f"{where}: {error}")
-    return ReleaseError(f"{where}: {error}")
-
-
-def verify_candidate(where: str, work: Path, staged: dict, identity: str,
-                     cosign: str) -> list[str]:
-    """The staged candidate in @p work (staged.json taken out), as CI
-    signed it for @p identity and the commit @p staged names; returns its
-    files, which must be the ones @p staged lists."""
-    try:
-        verified = rc.verify(work, identity, staged["commit"], cosign)
-    except (rc.CandidateError, rc.CandidateTimeout) as e:
-        raise candidate_error(where, e) from e
-    files = sorted(p.name for p in verified if p.name not in (SUMS, BUNDLE))
-    if files != sorted(staged["files"]):
-        raise ReleaseError(f"{where}: staged.json lists other files than the "
-                           "signed manifest")
-    return files
-
-
-def sha256_file(path: Path) -> str:
-    return rc.digest(Path(path))
-
-
-def atomic_write(path: Path, data: bytes | str) -> None:
-    """Replaces @p path whole or not at all: a crash leaves the old file or
-    the new one, never a truncated one."""
-    path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_name(path.name + ".new")
-    with open(tmp, "wb") as f:
-        f.write(data.encode("utf-8") if isinstance(data, str) else data)
-        f.flush()
-        os.fsync(f.fileno())
-    tmp.replace(path)
-
-
-def parse_manifest(data: bytes, what: str) -> dict[str, str]:
-    """{name: sha256} of a SHA256SUMS.txt, read as strictly as the
-    candidate's own (release_candidate.parse_manifest)."""
-    try:
-        return rc.parse_manifest(data)
-    except rc.CandidateError as e:
-        raise ReleaseError(f"{what}: {e}") from e
-
-
-def render_manifest(hashes: dict[str, str]) -> bytes:
-    """The SHA256SUMS.txt bytes for {name: sha256}."""
-    return rc.render_manifest(hashes).encode("ascii")
-
-
-def utcnow() -> dt.datetime:
-    override = os.environ.get("GFR_NOW")  # tests and rehearsals only
-    if override:
-        t = dt.datetime.fromisoformat(override)
-        # Without a zone it is UTC, never this machine's local time.
-        if t.tzinfo is None:
-            t = t.replace(tzinfo=dt.timezone.utc)
-        return t.astimezone(dt.timezone.utc)
-    return dt.datetime.now(dt.timezone.utc).replace(microsecond=0)
-
-
-def run(cmd, **kw) -> subprocess.CompletedProcess:
-    """A tool, run to its end: a failure, a missing tool or one that does
-    not finish (ToolTimeout) is a ReleaseError, never a traceback."""
-    kw.setdefault("check", True)
-    kw.setdefault("timeout", TOOL_TIMEOUT)
-    kw.setdefault("capture_output", True)
-    kw.setdefault("text", True)
-    if kw["text"]:
-        # What a tool prints can carry bytes from untrusted input (a user ID
-        # in a forged signature, a file name): never a UnicodeDecodeError.
-        kw.setdefault("encoding", "utf-8")
-        kw.setdefault("errors", "replace")
-    ui.tool_started(cmd)
-    try:
-        return subprocess.run([str(c) for c in cmd], **kw)
-    except subprocess.CalledProcessError as e:
-        # check=True: the caller needed the tool to work, not to judge.
-        detail = (e.stderr or e.stdout or "").strip()
-        raise ToolFailed(f"{Path(str(cmd[0])).name} failed: {detail}") from e
-    except subprocess.TimeoutExpired as e:
-        raise ToolTimeout(f"{Path(str(cmd[0])).name} did not finish within "
-                          f"{kw['timeout']} s") from e
-    except FileNotFoundError as e:
-        raise ToolFailed(f"{cmd[0]} is not installed") from e
-    except OSError as e:
-        raise ToolFailed(f"{cmd[0]} cannot be run: {e}") from e
-
-
-def run_with_secret(cmd: list, secret: bytes,
-                    **kw) -> subprocess.CompletedProcess:
-    """run() of @p cmd, where an item "{secret}" is the path of a pipe
-    holding @p secret: never on a command line or on disk, and a key given
-    as <(...) (read once) works. Not on Windows, which has no such path."""
-    if WINDOWS:
-        raise ReleaseError(f"{Path(str(cmd[0])).name} takes a secret through "
-                           "a pipe Windows cannot name")
-    r, w = os.pipe()
-    try:
-        os.write(w, secret)  # a key or a PIN: never fills the pipe
-        os.close(w)
-        w = -1
-        return run([f"/dev/fd/{r}" if c == "{secret}" else c for c in cmd],
-                   pass_fds=(r,), **kw)
-    finally:
-        os.close(r)
-        if w >= 0:
-            os.close(w)
+# The command line's --verbose: every tool run is told of (until the command
+# line sets this itself).
+process.on_start = ui.tool_started
 
 
 class Product:
@@ -305,180 +181,3 @@ class Product:
         raise ReleaseError(f"{name}: no artifact rule in release/product.json")
 
 
-@contextlib.contextmanager
-def locked(state_dir: Path, shared: bool = False):
-    """One run at a time per host: promote, index and resign all write the
-    same state directory, and the stores through it. A second run is
-    refused at once. With @p shared (a reader of the state directory: a dry
-    run copying it) it waits for the run in progress instead.
-
-    The lock is this host's only. The maintainer's `stable` and `import`
-    and CI's `stage` write the stores from other machines, each under paths
-    of its own (releases/<version>/, branches/, tags/).
-
-    Windows has no shared lock on a byte range through msvcrt: a reader
-    there is refused like a second writer, rather than made to wait."""
-    state_dir = Path(state_dir)
-    state_dir.mkdir(parents=True, exist_ok=True)
-    with open(state_dir / "lock", "a") as f:
-        try:
-            if WINDOWS:
-                # A range is locked from the file's position: always byte 0,
-                # which need not exist. Released when the file closes.
-                f.seek(0)
-                msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
-            else:
-                fcntl.flock(f, fcntl.LOCK_SH if shared
-                            else fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except (BlockingIOError, PermissionError):
-            raise ReleaseError(f"another run holds {state_dir / 'lock'}")
-        yield
-
-
-def git_version(git_dir: Path, commit: str, ref: str,
-                exclude: tuple[str, ...] = ()) -> str:
-    """Which version a commit is, asked of git through the one derivation the
-    build itself uses, never taken from what the build claims; with
-    @p exclude, as git called it before those tags were made."""
-    return run(gitversion.command(git_dir, ref=ref, rev=commit,
-                                  exclude=exclude),
-               timeout=gitversion.TIMEOUT).stdout.strip()
-
-
-# How many tags made after a build check_git_version() looks past.
-_LATER_TAGS = 4
-
-
-def check_git_version(git_dir: Path, commit: str, ref: str, branch: str,
-                      claimed: str, where: str) -> str:
-    """@p claimed, once git calls @p commit, built from @p ref, on @p branch
-    that: now, or before tags made after it was built. A build is named
-    when it is made; tagging its commit (or one before it) later renames it
-    in git's eyes, never what was built. Its own tag (a candidate's) is
-    never looked past. Anything else is refused with what git says it is."""
-    own = refs.tag_of(ref)
-    derived = git_version(git_dir, commit, branch)
-    found, excluded = derived, []
-    for _ in range(_LATER_TAGS):
-        if found == claimed:
-            return claimed
-        out = run(["git", "-C", git_dir, "describe", "--tags", "--abbrev=0",
-                   "--match=v[0-9]*.[0-9]*.[0-9]*",
-                   *(f"--exclude={t}" for t in excluded), commit],
-                  check=False)
-        tag = out.stdout.strip()
-        if out.returncode != 0 or not tag or tag == own:
-            break
-        excluded.append(tag)
-        found = git_version(git_dir, commit, branch, tuple(excluded))
-    raise ReleaseError(f"{where}: git says {commit[:12]} on {branch} is "
-                       f"{derived}, not {claimed}")
-
-
-def resolve_commit(git_dir: Path, rev: str) -> str | None:
-    """The commit @p rev names in @p git_dir, or None when it names
-    nothing. A repository that cannot be asked is a ToolFailed, never
-    "nothing": a missing tag unlists a release, while a release that could
-    not be checked keeps its listing for the round (index.build)."""
-    out = run(["git", "-C", git_dir, "rev-parse", "-q", "--verify",
-               f"{rev}^{{commit}}"], check=False)
-    commit = out.stdout.strip()
-    if out.returncode == 0 and refs.is_commit(commit):
-        return commit
-    if out.returncode == 1 and not commit:
-        return None
-    raise ToolFailed(f"{git_dir}: cannot resolve {rev}: "
-                     f"{(out.stderr or out.stdout).strip()}")
-
-
-def is_ancestor(git_dir: Path, commit: str, rev: str) -> bool:
-    """Whether @p commit is @p rev or reachable from it. A repository that
-    cannot be asked is a ToolFailed, never "no"."""
-    out = run(["git", "-C", git_dir, "merge-base", "--is-ancestor", commit,
-               rev], check=False)
-    if out.returncode in (0, 1):
-        return out.returncode == 0
-    raise ToolFailed(f"{git_dir}: cannot tell whether {commit[:12]} is on "
-                     f"{rev}: {(out.stderr or out.stdout).strip()}")
-
-
-def release_tags(git_dir: Path) -> list[str]:
-    """The versions of every release tag (vX.Y.Z) in @p git_dir."""
-    out = run(["git", "-C", git_dir, "tag", "--list", "v*"])
-    return [t[1:] for t in out.stdout.split() if refs.is_release_tag(t)]
-
-
-def check_candidate(git_dir: Path, ref: str, commit: str, version: str, *,
-                    unreleased: bool = True) -> None:
-    """A release candidate is its tag's build, of a commit on its series'
-    release branch, and comes before that series' first release: never
-    after it, never of a patch (refs.RC_TAG holds the shape). Without
-    @p unreleased, a series released since is no error: the index then
-    simply no longer lists the candidate (index._choose_rcs)."""
-    tag = refs.tag_of(ref)
-    if version != tag[1:]:
-        raise ReleaseError(f"{ref}: git says {commit[:12]} is {version}, "
-                           f"not {tag[1:]}")
-    if resolve_commit(git_dir, ref) != commit:
-        raise ReleaseError(f"{ref} does not point to {commit[:12]}")
-    series = refs.rc_series(ref)
-    branch = refs.HEADS + refs.release_branch(series)
-    if resolve_commit(git_dir, branch) is None or not is_ancestor(
-            git_dir, commit, branch):
-        raise ReleaseError(f"{ref}: {commit[:12]} is not on "
-                           f"{refs.release_branch(series)}")
-    if not unreleased:
-        return
-    released = [t for t in release_tags(git_dir)
-                if parse_version(t).series == series]
-    if released:
-        raise ReleaseError(f"{ref}: {series} has been released already "
-                           f"({max(released, key=parse_version)}); a "
-                           "candidate only comes before its first release")
-
-
-def tagged_commit(git_dir: Path, tag: str, expect: str | None = None,
-                  version: str | None = None) -> str:
-    """The commit @p tag names, checked: it is @p expect when given, and git
-    calls it @p version when given."""
-    commit = resolve_commit(git_dir, refs.TAGS + tag)
-    if commit is None:
-        raise ReleaseError(f"{git_dir} has no tag {tag}")
-    if expect is not None and commit != expect:
-        raise ReleaseError(f"{tag} is {commit}, not {expect}")
-    if version is not None and \
-            git_version(git_dir, commit, refs.TAGS + tag) != version:
-        raise ReleaseError(f"git does not call {commit} {version}")
-    return commit
-
-
-def tag_time(git_dir: Path, tag: str) -> int:
-    """When @p tag was made (Unix seconds): an annotated tag's tagger date,
-    or for a lightweight one its commit's committer date. A maintainer's
-    signature on a release's file is never older than the release's tag."""
-    # creatordate: the tagger date, or the commit's for a lightweight tag.
-    out = run(["git", "-C", git_dir, "for-each-ref",
-               "--format=%(creatordate:unix)", refs.TAGS + tag]).stdout.strip()
-    if not out.isdigit():
-        raise ReleaseError(f"{git_dir} has no tag {tag} with a date")
-    return int(out)
-
-
-def notes_at(git_dir: Path, ref: str, version: str) -> bytes | None:
-    """release/notes/<version>.md as @p ref has it, or None when it has none
-    (or an empty one, or there is no such ref). A repository that cannot be
-    read is an error: "no notes" would list a release without them, or
-    refuse one that has them."""
-    commit = resolve_commit(git_dir, ref)
-    if commit is None:
-        return None
-    path = f"release/notes/{version}.md"
-    if not run(["git", "-C", git_dir, "ls-tree", "--name-only", commit, "--",
-                path]).stdout.strip():
-        return None
-    notes = run(["git", "-C", git_dir, "show", f"{commit}:{path}"],
-                text=False).stdout
-    if len(notes) > NOTES_LIMIT:
-        raise ReleaseError(f"{ref}:{path}: larger than {NOTES_LIMIT} bytes, "
-                           "which no client reads")
-    return notes if notes.strip() else None

@@ -44,7 +44,7 @@ from . import ui  # noqa: E402
 from ..app import verify as verify_mod  # noqa: E402
 from ..app import candidate as candidate_mod  # noqa: E402
 from ..app import check_order as check_order_mod  # noqa: E402
-from ..adapters import gitversion as gitversion_mod  # noqa: E402
+from ..adapters import git as gitversion_mod  # noqa: E402
 from ..app import views  # noqa: E402
 from ..common import (MINISIG, ROOT, WINDOWS, Product,  # noqa: E402
                     ReleaseError, atomic_write, load_json, locked, parse_iso, policy_mod,

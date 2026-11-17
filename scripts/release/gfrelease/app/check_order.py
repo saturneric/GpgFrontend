@@ -36,7 +36,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from ..adapters import gitversion
+from ..adapters import git as gitversion
 from ..domain import policy as policy_mod
 from ..domain import refs, semver
 from ..paths import ROOT
