@@ -314,7 +314,7 @@ def check_candidate(git_dir: Path, ref: str, commit: str, version: str, *,
     release branch, and comes before that series' first release: never
     after it, never of a patch (refs.RC_TAG holds the shape). Without
     @p unreleased, a series released since is no error: the index then
-    simply no longer lists the candidate (index._choose_rcs)."""
+    simply no longer lists the candidate (index_model.choose_rcs)."""
     tag = refs.tag_of(ref)
     if version != tag[1:]:
         raise ReleaseError(f"{ref}: git says {commit[:12]} is {version}, "

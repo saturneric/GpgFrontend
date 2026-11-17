@@ -227,7 +227,7 @@ def _check_channels(index: dict) -> list[tuple[str, dict]]:
 
     def candidate(b: dict, key: str) -> tuple[str, dict]:
         """A release candidate is X.Y.0-rc.N of a series users are meant
-        to move to and that has no release yet (index._choose_rcs): built
+        to move to and that has no release yet (index_model.choose_rcs): built
         from its own tag."""
         v = parse_version(b["version"], f"series {key}")
         entry = series[key]
