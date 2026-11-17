@@ -1106,11 +1106,19 @@ auto FileTreeView::copy_path_to_directory(const QString& source_path,
   const auto target_path =
       QDir(target_dir).absoluteFilePath(source_info.fileName());
 
-  if (QFileInfo::exists(target_path)) {
+  if (QFileInfo::exists(target_path) || QFileInfo(target_path).isSymLink()) {
     QMessageBox::warning(
         this, tr("Copy Failed"),
         tr("A file or folder named \"%1\" already exists in the target folder.")
             .arg(source_info.fileName()));
+    return false;
+  }
+
+  // Checked before isDir() and isFile(), which follow links.
+  if (source_info.isSymLink()) {
+    QMessageBox::warning(this, tr("Copy Failed"),
+                         tr("\"%1\" is not a regular file or folder.")
+                             .arg(source_info.fileName()));
     return false;
   }
 
@@ -1138,10 +1146,22 @@ auto FileTreeView::copy_path_to_directory(const QString& source_path,
 }
 
 auto FileTreeView::copy_directory_recursive(const QString& source_dir,
-                                            const QString& target_dir) -> bool {
+                                            const QString& target_dir,
+                                            int depth) -> bool {
+  // Far beyond any real tree; what it stops is a folder that contains itself
+  // through some path not seen here.
+  constexpr int kMaxCopyDepth = 128;
+
   const QDir source(source_dir);
 
   if (!source.exists()) {
+    return false;
+  }
+
+  if (depth > kMaxCopyDepth) {
+    QMessageBox::warning(
+        this, tr("Copy Failed"),
+        tr("Unable to copy \"%1\".").arg(QFileInfo(source_dir).fileName()));
     return false;
   }
 
@@ -1169,8 +1189,15 @@ auto FileTreeView::copy_directory_recursive(const QString& source_dir,
     const auto target_path =
         QDir(target_dir).absoluteFilePath(entry.fileName());
 
+    // isDir() and isFile() follow links: a link to a folder would be copied
+    // as its contents, and a link to a parent folder would never end.
+    if (entry.isSymLink()) {
+      LOG_W() << "skip symbolic link:" << source_path;
+      continue;
+    }
+
     if (entry.isDir()) {
-      if (!copy_directory_recursive(source_path, target_path)) {
+      if (!copy_directory_recursive(source_path, target_path, depth + 1)) {
         return false;
       }
       continue;
