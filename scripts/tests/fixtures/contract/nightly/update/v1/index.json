@@ -1,0 +1,41 @@
+{
+ "beta": null,
+ "channels": {
+  "beta": null,
+  "nightly": "2.4.0-alpha.12+g0123456789ab",
+  "prerelease": null,
+  "stable": null
+ },
+ "expires": "2026-11-15T00:00:00Z",
+ "generated_at": "2026-11-01T00:00:00Z",
+ "index_keys_version": 2,
+ "nightly": {
+  "descriptor": "nightly/2.4.0-alpha.12-g0123456789ab/release.json",
+  "sha256": "4fea03acebb2b569bc3812fa988ca607336e84aed1ee6b92154198e5f1493364",
+  "version": "2.4.0-alpha.12+g0123456789ab"
+ },
+ "prerelease": null,
+ "product": "gpgfrontend",
+ "releases": {},
+ "root_version": 3,
+ "schema": 1,
+ "serial": 42,
+ "series": {
+  "2.4": {
+   "beta": null,
+   "eol": null,
+   "latest": null,
+   "platforms": {
+    "android_api": 29,
+    "linux_glibc": "2.35",
+    "macos": "13.0",
+    "windows": "10.0.17763"
+   },
+   "prerelease": false,
+   "rc": null,
+   "status": "mainline",
+   "successor": null
+  }
+ },
+ "withdrawn": []
+}
