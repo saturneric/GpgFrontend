@@ -105,9 +105,17 @@ done
 
 echo "== CI: a candidate of HEAD, signed for main, staged"
 commit="$(git -C "$top" rev-parse HEAD)"
-version="$("${gfr[@]}" ci version --repo "$top" --rev "$commit" --ref main)"
-filesafe="$("${gfr[@]}" ci version --repo "$top" --rev "$commit" --ref main \
-  --field filesafe)"
+derive() {
+  python3 -I - "$here" "$top" "$commit" "$1" <<'PY'
+import sys
+here, top, commit, field = sys.argv[1:]
+sys.path.insert(0, here)
+from gfrelease.adapters.git import derive
+print(derive(top, "main", commit, field))
+PY
+}
+version="$(derive version)"
+filesafe="$(derive filesafe)"
 for leg in linux-x86_64.AppImage windows-x86_64.msi windows-x86_64-portable.zip \
            macos-15.dmg android-arm64-v8a.apk; do
   head -c 4096 /dev/urandom > "$dir/candidate/${prefix}${filesafe}-${leg}"

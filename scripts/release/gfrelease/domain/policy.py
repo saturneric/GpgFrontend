@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """release/policy.toml: validate it, and keep SECURITY.md in step with it.
 
-  gfrelease policy check            validate the policy (and product.json)
-  gfrelease policy render-security  rewrite SECURITY.md's generated sections
-  gfrelease policy check-security   fail if SECURITY.md is out of date
-  gfrelease policy mainline         print the mainline series ("" for none)
+  gfrelease policy check            validate the policy and product.json,
+                                    and that SECURITY.md is up to date
+  gfrelease policy render-security  validate, then rewrite SECURITY.md's
+                                    generated sections
 
 The generated sections sit between `<!-- policy:<name>:begin -->` and
 `<!-- policy:<name>:end -->` markers; everything else in SECURITY.md is prose

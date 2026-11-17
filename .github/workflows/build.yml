@@ -161,10 +161,7 @@ jobs:
       # release/policy.toml is the one statement of which series exist and in
       # what state; SECURITY.md's table is generated from it.
       - name: Check Release Policy
-        run: |
-          set -euo pipefail
-          scripts/gfrelease policy check
-          scripts/gfrelease policy check-security
+        run: scripts/gfrelease policy check
 
       # The update trust: release/root/ walks from root 1 on the threshold
       # signatures, the newest index-keys list is G's, neither has expired.

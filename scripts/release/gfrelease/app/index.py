@@ -9,8 +9,8 @@ released a prerelease, and a stable or imported release is listed only once
 its maintainer signatures verified. Signed with an index key the trusted
 index-keys list names (trusted comment "product=<slug> serial=<n>") and
 published to the update store, after the root and list it names. A run
-whose index would say nothing new publishes nothing; `resign` publishes
-regardless, to push `expires` out (when, is the signing host's to say).
+whose index would say nothing new publishes nothing; `index --force`
+publishes regardless, to push `expires` out (when, is the signing host's to say).
 
 The serial only grows: it is one more than both the host's own record and the
 published index, so a client that has seen serial n never accepts an older

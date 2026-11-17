@@ -3,8 +3,6 @@
 """What git says: which version a commit is, asked the one way the build
 itself asks (cmake/GitVersion.cmake), and what the tags and the release
 notes of a repository are.
-
-  gfrelease ci version [--repo DIR] [--rev COMMIT] [--ref REF] [--field FIELD]
 """
 
 from __future__ import annotations

@@ -17,7 +17,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
-# The stable releases, mirrored to GitHub Releases (gfrelease help github).
+# The stable releases, mirrored to GitHub Releases (app/github_sync.py).
 #
 # A stable release reaches users through the signed update index, which the
 # signing host publishes once the maintainer has signed the release offline.
@@ -55,9 +55,9 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  # The first trust root, as the signing host pins it (GFR_ROOT_SHA256):
-  # every later root is taken only on its predecessor's signatures.
-  ROOT_SHA256: 974990b7123799de23ad47742117e5a1d30b8485ae8b88a22781a0d1863248b1
+  # The first trust root, as the signing host pins it: every later root is
+  # taken only on its predecessor's signatures.
+  GFR_ROOT_SHA256: 974990b7123799de23ad47742117e5a1d30b8485ae8b88a22781a0d1863248b1
 
 jobs:
   sync:
@@ -85,5 +85,4 @@ jobs:
           read -ra args <<< "${ONLY}"
           if [ "${DRY_RUN}" = "true" ]; then args+=(--dry-run); fi
           python3 -I scripts/release/gfrelease github sync \
-            --root-sha256 "${ROOT_SHA256}" \
             --repository "${GITHUB_REPOSITORY}" "${args[@]}"
