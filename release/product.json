@@ -21,6 +21,10 @@
     "aab"
   ],
   "artifact_prefix": "GpgFrontend-",
+  "android": {
+    "package": "com.bktus.gpgfrontend",
+    "nightly_package": "com.bktus.gpgfrontend.nightly"
+  },
   "authenticode": {
     "sign_inside": [".exe", ".dll"],
     "leave_unsigned": ["gnupg"]

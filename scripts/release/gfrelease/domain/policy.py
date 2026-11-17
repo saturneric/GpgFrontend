@@ -308,6 +308,18 @@ def check_product(product: dict) -> None:
         # One store holds the index and the trust it names: a second base
         # would serve clients what nothing here writes.
         errors.append("bases.update lists more than the one update store")
+    # The Android application ids: the release's, and the nightly's, an
+    # application of its own beside it (ci build-mode names the one a build
+    # is; src/mob/CMakeLists.txt gives it).
+    if "android" in product:
+        android = table(product["android"], "android")
+        for key in ("package", "nightly_package"):
+            if not re.fullmatch(r"[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+",
+                                str(android.get(key, ""))):
+                errors.append(f"android.{key} must be an application id")
+        unknown = set(android) - {"package", "nightly_package"}
+        if unknown:
+            errors.append(f"android: unknown {sorted(unknown)}")
     if "notes_link_hosts" in product:
         strings(product["notes_link_hosts"], "notes_link_hosts")
     # Which programs inside a Windows package are Authenticode-signed:

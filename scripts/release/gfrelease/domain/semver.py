@@ -27,13 +27,12 @@ _RE = re.compile(
 # are tagged; nightlies (main) and betas (release/X.Y) never are. A
 # prerelease tag (the historical v2.2.0-beta.1, a vX.Y.0-alpha.0 base tag,
 # the moving `nightly`) is not a release, and nothing publishes one.
-# scripts/ci/build_mode.sh spells the same shape in bash, and
-# scripts/tests/test_build_mode.py holds the two together.
+# refs.py and CI's build mode (build_mode.py) decide by it.
 RELEASE_TAG = re.compile(rf"v({_NUM})\.({_NUM})\.({_NUM})\Z")
 
 # A release candidate's tag: an early build of a new series, before its first
 # release, so only ever of X.Y.0. It is a prerelease (a beta, published as
-# one), never a release. build_mode.sh spells it in bash too.
+# one), never a release.
 RC_TAG = re.compile(rf"v({_NUM})\.({_NUM})\.0-rc\.({_NUM})\Z")
 
 

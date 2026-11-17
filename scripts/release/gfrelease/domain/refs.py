@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # Copyright (C) 2021-2026 Saturneric <eric@bktus.com>
 # SPDX-License-Identifier: GPL-3.0-or-later
 """The git refs the release model knows, spelled once.
@@ -12,10 +11,10 @@ Four kinds of ref publish builds, and each feeds one channel:
                            is (semver.RC_TAG)
   refs/tags/vX.Y.Z         a stable release (semver.RELEASE_TAG)
 
-Nothing else is ever staged, promoted, signed or listed. CI decides the same
-question in bash (scripts/ci/build_mode.sh, before any Python runs) and
-cmake/GitVersion.cmake derives versions from the same branch shape;
-scripts/tests/test_build_mode.py holds the spellings together.
+Nothing else is ever staged, promoted, signed or listed. CI decides which
+of its runs publish from these (build_mode.py, `gfrelease ci build-mode`),
+and cmake/GitVersion.cmake derives versions from the same branch shape;
+scripts/tests/test_build_mode.py holds the two spellings together.
 """
 
 from __future__ import annotations
