@@ -39,7 +39,6 @@ from ..adapters.windows import authenticode
 from ..app import candidate as candidate_mod
 from ..app import check_order as check_order_mod
 from ..app import doctor as doctor_mod
-from ..app import host as host_mod
 from ..app import imported as imported_mod
 from ..app import stable as stable_mod
 from ..app import stage as stage_mod
@@ -52,6 +51,7 @@ from ..domain.formats import load_json, parse_iso
 from ..domain.layout import MINISIG
 from ..errors import ReleaseError
 from ..paths import PRODUCT_FILE, ROOT
+from . import host as host_mod
 from . import settings as settings_mod
 from . import topics, ui
 

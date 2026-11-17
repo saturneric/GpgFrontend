@@ -43,7 +43,7 @@ from gfrelease.domain import manifest  # noqa: E402
 from gfrelease.domain import refs  # noqa: E402
 from gfrelease import errors  # noqa: E402
 from gfrelease import paths  # noqa: E402
-from gfrelease.app import host as host_mod  # noqa: E402
+from gfrelease.cli import host as host_mod  # noqa: E402
 from gfrelease.app import index as index_mod  # noqa: E402
 from gfrelease.domain import layout  # noqa: E402
 from gfrelease.adapters import minisig  # noqa: E402
