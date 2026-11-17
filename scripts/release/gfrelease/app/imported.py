@@ -25,77 +25,26 @@ pinned and are not imported.
 
 from __future__ import annotations
 
-import http.client
-import shutil
-import urllib.request
 from pathlib import Path
 
 from ..adapters import openpgp
 from ..adapters.clock import utcnow
 from ..adapters.files import atomic_write, sha256_file
 from ..adapters.git import tag_time, tagged_commit
+from ..adapters.github import GitHub
 from ..adapters.store import Store
 from ..domain import descriptor as descriptors
 from ..domain import layout, refs
 from ..domain.formats import (canonical_json, iso, load_json, parse_iso,
                               parse_version)
 from ..domain.layout import DESCRIPTOR, SIG
-from ..domain.limits import SMALL_OBJECT_LIMIT
 from ..errors import ReleaseError
 from .product import Product
-
-API = "https://api.github.com"
-USER_AGENT = "gfrelease-import/1"
-
-
-class GitHubSource:
-    """A product's releases on GitHub, read without a token."""
-
-    def __init__(self, repository: str):
-        self.repository = repository
-
-    def _open(self, url: str, accept: str):
-        req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT,
-                                                   "Accept": accept})
-        return urllib.request.urlopen(req, timeout=60)
-
-    def release(self, tag: str) -> dict:
-        url = f"{API}/repos/{self.repository}/releases/tags/{tag}"
-        try:
-            with self._open(url, "application/vnd.github+json") as r:
-                data = r.read(SMALL_OBJECT_LIMIT + 1)
-        except (OSError, http.client.HTTPException) as e:
-            raise ReleaseError(f"GitHub release {tag}: {e}") from e
-        release = load_json(data, f"GitHub release {tag}")
-        # Everything read of it below has the type it is read as.
-        assets = release.get("assets", [])
-        if not isinstance(assets, list) or not all(
-                isinstance(a, dict) and isinstance(a.get("name"), str) and
-                isinstance(a.get("browser_download_url"), str) and
-                isinstance(a.get("size"), int) for a in assets):
-            raise ReleaseError(f"GitHub release {tag}: not a list of assets")
-        return release
-
-    def download(self, url: str, dst: Path) -> None:
-        if not url.startswith("https://"):
-            raise ReleaseError(f"{dst.name}: not an https download: {url!r}")
-        part = dst.with_name(dst.name + ".part")
-        try:
-            with self._open(url, "application/octet-stream") as r, \
-                    open(part, "wb") as f:
-                shutil.copyfileobj(r, f, 1 << 20)
-        except (OSError, http.client.HTTPException) as e:
-            raise ReleaseError(f"{dst.name}: {e}") from e
-        part.replace(dst)
-
-    def page(self, tag: str) -> str:
-        return f"https://github.com/{self.repository}/releases/tag/{tag}"
-
 
 class Import:
     def __init__(self, product: Product, version: str, work: Path, *,
                  staging: Store | None, git_dir: Path,
-                 source: GitHubSource | None = None):
+                 source: GitHub | None = None):
         v = parse_version(version)
         if not v.is_release:
             raise ReleaseError(f"{version}: only final releases are imported")
@@ -111,7 +60,7 @@ class Import:
         # Where it is handed to the host; None only downloads and checks.
         self.outbox = staging.sub(layout.SIGNED) if staging else None
         self.git_dir = git_dir
-        self.source = source or GitHubSource(product.repository)
+        self.source = source or GitHub(product.repository)
         self.skipped: list[str] = []
 
     @property
