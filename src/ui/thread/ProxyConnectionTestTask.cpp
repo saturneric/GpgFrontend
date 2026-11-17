@@ -49,16 +49,17 @@ auto GpgFrontend::UI::ProxyConnectionTestTask::Run() -> int {
   auto* network_reply = network_manager_->get(request);
   auto* timer = new QTimer(this);
 
+  timer->setSingleShot(true);
   connect(network_reply, &QNetworkReply::finished, this,
-          [this, network_reply]() {
+          [this, network_reply, timer]() {
+            timer->stop();
             this->slot_process_network_reply(network_reply);
           });
 
-  connect(timer, &QTimer::timeout, this, [this, network_reply]() {
-    if (network_reply->isRunning()) {
-      network_reply->abort();
-      this->slot_process_network_reply(network_reply);
-    }
+  // abort() emits finished() itself, which processes the reply once; calling
+  // the slot here as well reported every timeout twice.
+  connect(timer, &QTimer::timeout, network_reply, [network_reply]() {
+    if (network_reply->isRunning()) network_reply->abort();
   });
 
   timer->start(timeout_);
@@ -67,6 +68,10 @@ auto GpgFrontend::UI::ProxyConnectionTestTask::Run() -> int {
 
 void GpgFrontend::UI::ProxyConnectionTestTask::slot_process_network_reply(
     QNetworkReply* reply) {
+  if (processed_) return;
+  processed_ = true;
+  reply->deleteLater();
+
   auto buffer = reply->readAll();
 
   if (reply->error() == QNetworkReply::NoError && !buffer.isEmpty()) {
