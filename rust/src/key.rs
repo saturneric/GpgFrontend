@@ -1890,6 +1890,72 @@ pub fn modify_key_password_internal(
     export_secret_key(secret_key)
 }
 
+/// Remove the passphrase from every component of a secret key, for a key
+/// package whose own protection then guards it.
+///
+/// The passphrase is asked for once and reused; a component that rejects it is
+/// asked for on its own. Nothing is written back: the caller gets the
+/// unprotected key and the key database keeps its protected copy.
+pub fn remove_key_password_internal(
+    channel: i32,
+    secret_key: &[u8],
+    fetch_pwd_cb: Option<GfrPasswordFetchCb>,
+) -> Result<Zeroizing<Vec<u8>>, GfrStatus> {
+    let mut secret_key = SignedSecretKey::from_bytes(secret_key).map_err(|e| {
+        log::error!("Failed to parse the binary secret key: {}", e);
+        GfrStatus::ErrorInvalidData
+    })?;
+    let primary_fpr = secret_key
+        .primary_key
+        .fingerprint()
+        .to_string()
+        .to_uppercase();
+
+    let any_encrypted = secret_key.primary_key.secret_params().is_encrypted()
+        || secret_key
+            .secret_subkeys
+            .iter()
+            .any(|s| s.key.secret_params().is_encrypted());
+    let old_pw = if any_encrypted {
+        Some(fetch_old_password(
+            channel,
+            &primary_fpr,
+            "Unlock Key to export it without a passphrase",
+            fetch_pwd_cb,
+        )?)
+    } else {
+        None
+    };
+
+    if secret_key.primary_key.secret_params().is_encrypted() {
+        let primary = &mut secret_key.primary_key;
+        remove_password_with_retry(
+            channel,
+            &primary_fpr,
+            "Unlock Primary Key to export it without a passphrase",
+            old_pw.as_ref(),
+            fetch_pwd_cb,
+            |pw| primary.remove_password(pw).is_ok(),
+        )?;
+    }
+    for subkey in secret_key.secret_subkeys.iter_mut() {
+        if subkey.key.secret_params().is_encrypted() {
+            let sub_fpr = subkey.key.fingerprint().to_string().to_uppercase();
+            let key = &mut subkey.key;
+            remove_password_with_retry(
+                channel,
+                &sub_fpr,
+                "Unlock Subkey to export it without a passphrase",
+                old_pw.as_ref(),
+                fetch_pwd_cb,
+                |pw| key.remove_password(pw).is_ok(),
+            )?;
+        }
+    }
+
+    Ok(Zeroizing::new(secret_key.to_bytes().into_gfr()?))
+}
+
 /// Convert an absolute expiration time into the OpenPGP duration-from-creation
 /// form used by the `KeyExpirationTime` subpacket.
 ///

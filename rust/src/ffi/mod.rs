@@ -36,6 +36,7 @@ pub mod crypto;
 pub mod inspect;
 pub mod key;
 pub mod keygen;
+pub mod keypack;
 pub mod mem;
 pub mod user_id;
 

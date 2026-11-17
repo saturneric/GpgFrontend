@@ -716,6 +716,73 @@ pub type GfrPasswordFetchCb = extern "C" fn(
     user_data: *mut c_void,
 ) -> i32;
 
+// ------------------------------------------------------------ key package v3
+
+/// How a key package v3 is protected.
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum GfrKeypackProtection {
+    /// A PIN, with the wrapped key in a separate key file.
+    PinFile = 0,
+    /// A random secret the user holds as text.
+    Plain = 1,
+}
+
+/// Reads key package bytes for the engine: fill `buf` with up to `len` bytes
+/// from `offset` on and return how many were read, `0` at the end of the
+/// file, or a negative value on an error. The host owns the file; the engine
+/// only asks for the ranges it needs.
+pub type GfrKeypackReadCb =
+    extern "C" fn(user_data: *mut c_void, offset: u64, buf: *mut u8, len: usize) -> i64;
+
+/// Length of a key package ID.
+pub const GFR_KEYPACK_ID_LEN: usize = 16;
+
+/// A key package header, decoded in place: nothing in it is freed.
+#[repr(C)]
+#[derive(Debug, Clone, Copy)]
+pub struct GfrKeypackHeaderC {
+    pub version: u32,
+    pub protection: GfrKeypackProtection,
+    /// True when a secret key in the package has no passphrase of its own.
+    pub secrets_unprotected: bool,
+    /// How many keys the package holds.
+    pub key_count: u32,
+    /// Unix seconds.
+    pub generated_at: u64,
+    pub package_id: [u8; GFR_KEYPACK_ID_LEN],
+}
+
+/// What `gfr_keypack_write` produced. Free with `gfr_keypack_free_write_result`.
+#[repr(C)]
+#[derive(Debug)]
+pub struct GfrKeypackWriteResultC {
+    pub header: GfrKeypackHeaderC,
+    /// The package file.
+    pub package: *mut u8,
+    pub package_len: usize,
+    /// The separate key file (PIN only), else null.
+    pub key_file: *mut u8,
+    pub key_file_len: usize,
+    /// The wrap secret as text for the user (plain only), else null.
+    pub plain_key: *mut c_char,
+}
+
+/// One key read from an opened key package. Free with `gfr_keypack_free_key`.
+#[repr(C)]
+#[derive(Debug)]
+pub struct GfrKeypackKeyC {
+    /// Primary fingerprint, upper-case hex.
+    pub fpr: *mut c_char,
+    /// The first user ID; may be empty.
+    pub user_id: *mut c_char,
+    pub has_secret: bool,
+    /// The binary secret key when the package carries it, else the binary
+    /// public certificate: ready for an import.
+    pub key_data: *mut u8,
+    pub key_data_len: usize,
+}
+
 #[cfg(test)]
 mod abi_tests {
     //! The types in this module are the ABI contract with the C++ core: every
