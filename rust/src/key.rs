@@ -2678,12 +2678,17 @@ const MAX_SIGNATURE_CHECKS: usize = 4096;
 //   over; sequoia merges the whole area.
 //
 // Deviation: stored secret key material always wins; an incoming secret
-// only fills a key that has none. Sequoia prefers the later copy's secret
-// in `merge_public_and_secret` and calls the choice undefined in general;
-// its cert store (`MergeCerts::merge_public`) ignores incoming secrets
-// altogether. Keeping the stored secret means re-importing an old backup or
-// an unprotected export never replaces the stored key or its passphrase
-// protection.
+// only fills a key that has none. A GnuPG stub (S2K 101 "GNU", mode 1001
+// gnu-dummy or 1002 divert-to-card) counts as no secret: a real incoming
+// secret fills it, and an incoming stub fills nothing. An incoming subkey
+// stub is stored as a public subkey; an incoming primary stub only to hold
+// a real subkey secret, and a key whose secrets are all stubs is stored
+// public-only. Stored stubs stay as they are. Sequoia prefers the later
+// copy's secret in `merge_public_and_secret` and calls the choice undefined
+// in general; its cert store (`MergeCerts::merge_public`) ignores incoming
+// secrets altogether. Keeping the stored secret means re-importing an old
+// backup or an unprotected export never replaces the stored key or its
+// passphrase protection.
 
 /// True if `sig` counts as a self-signature of `primary`, as sequoia counts
 /// one: it names `primary` as its issuer, or names no issuer at all.
@@ -3045,6 +3050,28 @@ fn issued_by_revoker(sig: &Signature, revokers: &[Vec<u8>]) -> bool {
     })
 }
 
+/// True if `params` is a GnuPG stub rather than secret key material: S2K
+/// specifier 101 with the "GNU" extension, mode 1 (gnu-dummy, 1001) or mode
+/// 2 (divert-to-card, 1002). Read from the S2K bytes, never from a failed
+/// decryption. A stub counts as no secret.
+pub(crate) fn is_gnu_stub(params: &SecretParams) -> bool {
+    use pgp::types::{S2kParams, StringToKey};
+    let SecretParams::Encrypted(enc) = params else {
+        return false;
+    };
+    let (S2kParams::Cfb { s2k, .. }
+    | S2kParams::MalleableCfb { s2k, .. }
+    | S2kParams::Aead { s2k, .. }) = enc.string_to_key_params()
+    else {
+        return false;
+    };
+    matches!(
+        s2k,
+        StringToKey::Private { typ: 101, unknown }
+            if unknown.get(1..4) == Some(&b"GNU"[..]) && matches!(unknown.get(4), Some(1 | 2))
+    )
+}
+
 /// A subkey of a certificate being merged, with or without its secret part.
 enum WorkSubkey {
     Public(SignedPublicSubKey),
@@ -3057,6 +3084,11 @@ impl WorkSubkey {
             WorkSubkey::Public(sub) => &sub.key,
             WorkSubkey::Secret(sub) => sub.key.public_key(),
         }
+    }
+
+    /// True if the real secret of this subkey is held (not a stub).
+    fn has_real_secret(&self) -> bool {
+        matches!(self, WorkSubkey::Secret(sub) if !is_gnu_stub(sub.key.secret_params()))
     }
 
     fn signatures_mut(&mut self) -> &mut Vec<Signature> {
@@ -3234,9 +3266,14 @@ impl WorkCert {
         };
         let primary = &self.primary;
         let existing = &mut self.subkeys[pos];
-        if let (WorkSubkey::Public(public), Some(key)) = (&mut *existing, incoming_secret) {
-            let signatures = std::mem::take(&mut public.signatures);
-            *existing = WorkSubkey::Secret(SignedSecretSubKey { key, signatures });
+        // A real incoming secret fills a subkey without one, or with only a
+        // stub; a stored real secret is never replaced, and a stub fills
+        // nothing.
+        if let Some(key) = incoming_secret.filter(|k| !is_gnu_stub(k.secret_params())) {
+            if !existing.has_real_secret() {
+                let signatures = std::mem::take(existing.signatures_mut());
+                *existing = WorkSubkey::Secret(SignedSecretSubKey { key, signatures });
+            }
         }
         let subkey = existing.public().clone();
         union_signatures(
@@ -3370,6 +3407,27 @@ impl WorkCert {
         stored: &StoredComponents,
         budget: &CheckBudget,
     ) -> Result<(), GfrStatus> {
+        // A subkey stub holds no secret: stored as a public subkey. A primary
+        // stub is kept only to hold a real subkey secret.
+        for sub in &mut self.subkeys {
+            if let WorkSubkey::Secret(secret) = sub {
+                if is_gnu_stub(secret.key.secret_params()) {
+                    *sub = WorkSubkey::Public(SignedPublicSubKey::new(
+                        secret.key.public_key().clone(),
+                        std::mem::take(&mut secret.signatures),
+                    ));
+                }
+            }
+        }
+        if self
+            .secret
+            .as_ref()
+            .is_some_and(|s| is_gnu_stub(s.secret_params()))
+            && !self.subkeys.iter().any(WorkSubkey::has_real_secret)
+        {
+            self.secret = None;
+        }
+
         let primary = self.primary.clone();
         let components = self.components();
         let pools: Vec<Vec<Signature>> = components
@@ -3645,8 +3703,19 @@ impl WorkCert {
             budget,
         };
 
-        if self.secret.is_none() {
-            self.secret = other.secret;
+        // The stored primary secret wins; a stub counts as none, so a real
+        // incoming secret fills it. An incoming stub only fills a primary
+        // without any secret, to hold the real subkey secrets it comes with.
+        let held = self
+            .secret
+            .as_ref()
+            .is_some_and(|s| !is_gnu_stub(s.secret_params()));
+        match other.secret {
+            Some(secret) if !held && !is_gnu_stub(secret.secret_params()) => {
+                self.secret = Some(secret)
+            }
+            Some(stub) if self.secret.is_none() => self.secret = Some(stub),
+            _ => {}
         }
 
         union_signatures(
@@ -7629,7 +7698,7 @@ mod key_tests {
         assert!(!holds(uids, &late[0]));
     }
 
-    // -- importing: the check budget, signatures nothing takes ---------------
+    // -- importing: the check budget, stubs, signatures nothing takes ---------
 
     /// `n` distinct copies of `sig`, differing only in the digest prefix, so
     /// none verifies and none is a duplicate of another.
@@ -7774,6 +7843,162 @@ mod key_tests {
         // A stored one stays.
         let out = merged_public(with_orphan, genuine);
         assert!(holds(&out.details.direct_signatures, &orphan));
+    }
+
+    /// One GnuPG key exported with every combination of real secrets and
+    /// GnuPG stubs (S2K 101 "GNU" mode 1001), as GnuPG itself writes them.
+    struct StubbedExports {
+        public: String,
+        full: String,
+        primary_stub: String,
+        subkey_stub: String,
+        all_stubs: String,
+    }
+
+    fn stubbed_exports() -> Option<StubbedExports> {
+        // rPGP rejects about one GnuPG-made secret key in a hundred with
+        // "Invalid checksum", a separate interop question; such a key is
+        // generated again rather than letting these tests flake.
+        for _ in 0..8 {
+            let gpg = crate::testutil::interop::Gnupg::new()?;
+            let export = |args: &[&str]| String::from_utf8(gpg.gpg(args).stdout).unwrap();
+            let full = export(&["--armor", "--export-secret-keys"]);
+            let primary_stub = export(&["--armor", "--export-secret-subkeys"]);
+            let Ok((sk, _)) = SignedSecretKey::from_string(&full) else {
+                continue;
+            };
+            let sub = sk.secret_subkeys[0]
+                .key
+                .fingerprint()
+                .to_string()
+                .to_uppercase();
+            assert!(
+                gpg.gpg(["--delete-secret-keys", &format!("{sub}!")])
+                    .status
+                    .success()
+            );
+            let exports = StubbedExports {
+                public: gpg.cert.clone(),
+                full,
+                primary_stub,
+                subkey_stub: export(&["--armor", "--export-secret-keys"]),
+                all_stubs: export(&["--armor", "--export-secret-subkeys"]),
+            };
+            let readable = [
+                &exports.primary_stub,
+                &exports.subkey_stub,
+                &exports.all_stubs,
+            ]
+            .iter()
+            .all(|block| SignedSecretKey::from_string(block).is_ok());
+            if readable {
+                return Some(exports);
+            }
+        }
+        panic!("no GnuPG key rPGP could read in 8 tries");
+    }
+
+    fn stub_params(params: &SecretParams) -> bool {
+        use pgp::types::{S2kParams, StringToKey};
+        let SecretParams::Encrypted(enc) = params else {
+            return false;
+        };
+        let (S2kParams::Cfb { s2k, .. }
+        | S2kParams::MalleableCfb { s2k, .. }
+        | S2kParams::Aead { s2k, .. }) = enc.string_to_key_params()
+        else {
+            return false;
+        };
+        matches!(s2k, StringToKey::Private { typ: 101, unknown } if unknown.get(1..4) == Some(&b"GNU"[..]))
+    }
+
+    fn secret_of(block: &str) -> SignedSecretKey {
+        SignedSecretKey::from_string(block).expect("a secret key").0
+    }
+
+    #[test]
+    fn a_stored_stub_is_filled_by_an_incoming_real_secret() {
+        let Some(x) = stubbed_exports() else { return };
+        assert!(stub_params(
+            secret_of(&x.primary_stub).primary_key.secret_params()
+        ));
+
+        let out = secret_of(
+            &merge_key_block_internal(&x.primary_stub, &x.full)
+                .unwrap()
+                .secret,
+        );
+        assert!(
+            !stub_params(out.primary_key.secret_params()),
+            "primary still a stub"
+        );
+
+        // A subkey stub stored before stubs counted as no secret.
+        let out = secret_of(
+            &merge_key_block_internal(&x.subkey_stub, &x.full)
+                .unwrap()
+                .secret,
+        );
+        assert!(
+            out.secret_subkeys
+                .iter()
+                .all(|s| !stub_params(s.key.secret_params()))
+        );
+        assert_eq!(
+            out.secret_subkeys.len(),
+            1,
+            "the subkey's real secret is in"
+        );
+    }
+
+    #[test]
+    fn a_subkey_stub_is_stored_as_a_public_subkey() {
+        let Some(x) = stubbed_exports() else { return };
+        for out in [
+            canonicalize_key_block_internal(&x.subkey_stub).unwrap(),
+            merge_key_block_internal(&x.public, &x.subkey_stub).unwrap(),
+        ] {
+            let sk = secret_of(&out.secret);
+            assert!(
+                sk.secret_subkeys.is_empty(),
+                "a stub stored as a secret subkey"
+            );
+            assert_eq!(sk.public_subkeys.len(), 1);
+            assert!(!stub_params(sk.primary_key.secret_params()));
+        }
+    }
+
+    #[test]
+    fn a_primary_stub_is_kept_only_with_a_real_subkey_secret() {
+        let Some(x) = stubbed_exports() else { return };
+        let kept = secret_of(
+            &canonicalize_key_block_internal(&x.primary_stub)
+                .unwrap()
+                .secret,
+        );
+        assert!(stub_params(kept.primary_key.secret_params()));
+        assert_eq!(kept.secret_subkeys.len(), 1);
+
+        for out in [
+            canonicalize_key_block_internal(&x.all_stubs).unwrap(),
+            merge_key_block_internal(&x.public, &x.all_stubs).unwrap(),
+        ] {
+            assert!(
+                out.secret.is_empty(),
+                "nothing but stubs stored as a secret key"
+            );
+            assert!(SignedPublicKey::from_string(&out.public).is_ok());
+        }
+    }
+
+    #[test]
+    fn a_stored_real_secret_is_unchanged_by_an_incoming_stub() {
+        let Some(x) = stubbed_exports() else { return };
+        let stored = canonicalize_key_block_internal(&x.full).unwrap().secret;
+        for stub in [&x.primary_stub, &x.subkey_stub, &x.all_stubs] {
+            let out = merge_key_block_internal(&stored, stub).unwrap();
+            assert_eq!(*out.secret, *stored);
+        }
     }
 
     // -- ECDH KDF parameters -------------------------------------------------
