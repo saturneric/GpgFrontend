@@ -1,0 +1,89 @@
+# Copyright (C) 2021-2026 Saturneric <eric@bktus.com>
+#
+# This file is part of GpgFrontend.
+#
+# GpgFrontend is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# GpgFrontend is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GpgFrontend. If not, see <https://www.gnu.org/licenses/>.
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# The stable releases, mirrored to GitHub Releases (gfrelease help github).
+#
+# A stable release reaches users through the signed update index, which the
+# signing host publishes once the maintainer has signed the release offline.
+# Every hour this reads that index from the public HTTPS bases, as the
+# application does, and makes each stable release's GitHub release what the
+# index says: the files and their maintainer signatures, the signed
+# manifest and the signed release notes. Every file is checked against the
+# index and its signature before it is uploaded, so nothing here rests on
+# this runner; the job's token only writes this repository's releases.
+#
+# By hand: run it with a version to mirror only that release, or as a dry
+# run to see the planned steps without writing anything.
+
+name: GitHub Release
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+    inputs:
+      versions:
+        description: "Only these releases (X.Y.Z, space-separated); empty: every stable one"
+        required: false
+        default: ""
+      dry_run:
+        description: "Check and plan only"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-release
+  cancel-in-progress: false
+
+env:
+  # The first trust root, as the signing host pins it (GFR_ROOT_SHA256):
+  # every later root is taken only on its predecessor's signatures.
+  ROOT_SHA256: 974990b7123799de23ad47742117e5a1d30b8485ae8b88a22781a0d1863248b1
+
+jobs:
+  sync:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: main
+          lfs: "false"
+          persist-credentials: false
+          sparse-checkout: |
+            scripts/release
+            release
+
+      - name: Mirror the stable releases
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ONLY: ${{ inputs.versions }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          read -ra args <<< "${ONLY}"
+          if [ "${DRY_RUN}" = "true" ]; then args+=(--dry-run); fi
+          python3 -I scripts/release/gfrelease github sync \
+            --root-sha256 "${ROOT_SHA256}" \
+            --repository "${GITHUB_REPOSITORY}" "${args[@]}"
