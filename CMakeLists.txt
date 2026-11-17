@@ -97,16 +97,14 @@ set_property(CACHE GPGFRONTEND_BUILD_FLAVOR PROPERTY STRINGS ${_gf_build_flavors
 set(GPGFRONTEND_XCODE_TEAM_ID "NONE" CACHE STRING "GpgFrontend Apple Team ID")
 set(GPGFRONTEND_XCODE_CODE_SIGN_IDENTITY "NONE" CACHE STRING "GpgFrontend Signing Certificate")
 
-# Options replaced by GPGFRONTEND_BUILD_MODE and GPGFRONTEND_BUILD_FLAVOR. An
-# old command line or build cache still configures: the value is carried over
-# once, with a warning, and the old cache entry is dropped.
+# Options replaced by GPGFRONTEND_BUILD_MODE and GPGFRONTEND_BUILD_FLAVOR.
+# GPGFRONTEND_BUILD_STABLE is gone: ignoring it would quietly build a release
+# command line as a nightly ("Testing", its own profile), so it stops the
+# configure and names what replaced it.
 if(DEFINED GPGFRONTEND_BUILD_STABLE)
-  message(DEPRECATION "GPGFRONTEND_BUILD_STABLE is replaced by "
-    "GPGFRONTEND_BUILD_MODE=release|nightly")
-  if(GPGFRONTEND_BUILD_STABLE)
-    set(GPGFRONTEND_BUILD_MODE "release" CACHE STRING "nightly | release" FORCE)
-  endif()
   unset(GPGFRONTEND_BUILD_STABLE CACHE)
+  message(FATAL_ERROR "GPGFRONTEND_BUILD_STABLE is gone: pass "
+    "-DGPGFRONTEND_BUILD_MODE=release (or nightly) instead")
 endif()
 
 macro(_gf_migrate_legacy_flavor_option legacy_option flavor)
