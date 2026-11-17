@@ -2867,13 +2867,13 @@ class StableTest(unittest.TestCase):
         self.assertIn("2.3.0", self.index()["releases"])
         shutil.rmtree(handed / "releases" / "2.3.1")
 
-        # Received already: nothing to do, and what is handed over for it
-        # afterwards takes its place only if it is admitted too.
+        # Received already: nothing to do, and anything else handed over
+        # for it afterwards is refused.
         self.assertEqual(self.receive(), [])
         descriptor.write_bytes(formats.canonical_json(
             dict(d, commit="0" * 40)))
         with self.assertRaisesRegex(promote_mod.ReceiveIncomplete,
-                                    "not received"):
+                                    "never replaced"):
             self.receive()
         self.assertEqual(self.builds.read(path), formats.canonical_json(d))
 
@@ -2893,129 +2893,24 @@ class StableTest(unittest.TestCase):
         self.assertEqual(self.builds.files("releases"), [])
         self.assertEqual([d["version"] for d in self.receive()], ["2.3.0"])
 
-    def without_msix(self):
-        """A release made where no package is packed, received and
-        listed: its descriptor."""
-        self.tag()
-        self.build()
-        with mock.patch.object(msix_mod, "available", lambda: False):
-            d = self.stage().run()
-            self.assert_refused(self.stage().add_msix, "only on Windows")
-        self.assertNotIn("msix", {a["kind"] for a in d["artifacts"]})
-        self.index()
-        return d
-
-    def test_a_release_handed_over_without_its_msix_gains_it(self):
-        before = self.without_msix()
-        published = self.tree()
-        # The host's housekeeping removes what it has received.
-        handed = self.tmp / "staging" / "signed" / "releases" / "2.3.0"
-        shutil.rmtree(handed)
-
-        # Only what is new is handed over.
-        after = self.stage(received=False).add_msix()
-        name = "GpgFrontend-2.3.0-windows-x86_64.msix"
-        self.assertEqual(
-            sorted(p.name for p in handed.iterdir()),
-            sorted([name, name + ".sig", layout.SUMS, layout.SUMS + ".sig",
-                    "release.json"]))
-        self.assertEqual([a for a in after["artifacts"] if a["name"] != name],
-                         before["artifacts"])
-        self.assertEqual(dict(after, artifacts=[]), dict(before, artifacts=[]))
-
-        # And only that is written: the package, and the manifest and the
-        # descriptor that list it.
-        self.assertEqual([len(d["artifacts"]) for d in self.receive()], [5])
+    def test_a_published_release_is_never_replaced(self):
+        self.admitted()
         path = "releases/2.3.0/release.json"
-        self.assertEqual(self.builds.read(path), formats.canonical_json(after))
-        tree = self.tree()
-        self.assertEqual(
-            {p for p in published if tree[p] != published[p]},
-            {path, f"releases/2.3.0/{layout.SUMS}",
-             f"releases/2.3.0/{layout.SUMS}.sig"})
-        self.assertEqual(set(tree) - set(published),
-                         {f"releases/2.3.0/{name}",
-                          f"releases/2.3.0/{name}.sig"})
-        entry = self.index()["releases"]["2.3.0"]
-        self.assertEqual(entry["sha256"],
-                         formats.sha256_bytes(formats.canonical_json(after)))
-        self.assertIn(name, entry["signatures"])
-        self.assertIn({"version": "2.3.0", "kind": "stable", "artifacts": 5},
-                      self.check()["checked"])
-
-        # Once more: nothing is made again, nothing received again.
-        self.assertEqual(self.stage(received=False).add_msix(), after)
-        self.assertEqual(self.receive(), [])
-
-    def test_a_published_release_changes_only_to_what_is_admitted(self):
-        before = self.without_msix()
-        earlier = {name: self.builds.read(f"releases/2.3.0/{name}")
-                   for name in (layout.SUMS, layout.SUMS + ".sig")}
-        time.sleep(1.1)  # a signature's time is in seconds
-        after = self.stage(received=False).add_msix()
-        handed = self.tmp / "staging" / "signed" / "releases" / "2.3.0"
-        path = "releases/2.3.0/release.json"
-        package = next(a for a in after["artifacts"] if a["kind"] == "msix")
-
-        def refused(why, descriptor=after):
-            (handed / "release.json").chmod(0o644)
-            (handed / "release.json").write_bytes(
-                formats.canonical_json(descriptor))
-            with self.assertRaisesRegex(promote_mod.ReceiveIncomplete, why):
-                self.receive()
-            self.assertEqual(self.builds.read(path),
-                             formats.canonical_json(before))
-            self.assertFalse(self.builds.exists(package["path"]))
-
-        files = after["artifacts"]
-        # A file the signed manifest lists, taken away or said to be
-        # another.
-        refused("differ from the signed manifest",
-                dict(after, artifacts=[a for a in files
-                                       if a["kind"] != "zip"]))
-        refused("differ from the signed manifest",
-                dict(after, artifacts=[dict(a, sha256="0" * 64)
-                                       if a["kind"] == "zip" else a
-                                       for a in files]))
-        # A file that is neither CI's nor an MSIX made from its MSI.
-        refused("not what CI built",
-                dict(after, artifacts=[dict(a, transform="none")
-                                       if a is package else a
-                                       for a in files]))
-        refused("not an MSIX made from",
-                dict(after, artifacts=[
-                    dict(a, **{"from": "GpgFrontend-2.3.0-windows-x86_64"
-                               "-portable.zip"})
-                    if a is package else a for a in files]))
-        # Other bytes than the ones signed.
-        target = handed / package["name"]
-        signed = target.read_bytes()
-        target.chmod(0o644)
-        target.write_bytes(signed + b"more")
-        refused("not received")
-        target.write_bytes(signed)
-
-        (handed / "release.json").write_bytes(formats.canonical_json(after))
-        self.assertEqual([d["version"] for d in self.receive()], ["2.3.0"])
-        self.assertEqual(self.builds.read(path), formats.canonical_json(after))
-        self.index()
-
-        # What it was before, handed over again: its manifest's signature
-        # is older than the one admitted since, and nothing comes back.
-        for name, data in earlier.items():
-            (handed / name).chmod(0o644)
-            (handed / name).write_bytes(data)
-        (handed / "release.json").write_bytes(formats.canonical_json(before))
-        with self.assertRaisesRegex(promote_mod.ReceiveIncomplete, "replay"):
+        before = self.builds.read(path)
+        handed = self.tmp / "staging" / "signed" / path
+        # Handed over again, something in it changed: refused, and what
+        # was published stays.
+        d = json.loads(before)
+        handed.chmod(0o644)
+        handed.write_bytes(formats.canonical_json(
+            dict(d, released_at="2030-01-01T00:00:00Z")))
+        with self.assertRaisesRegex(promote_mod.ReceiveIncomplete,
+                                    "never replaced"):
             self.receive()
-        self.assertEqual(self.builds.read(path), formats.canonical_json(after))
-
-    def test_an_msix_is_made_only_after_the_release_is_handed_over(self):
-        self.tag()
-        self.build()
-        stage = self.stage(received=False)
-        stage.run(until="pgp")
-        self.assert_refused(stage.add_msix, "not handed over yet")
+        self.assertEqual(self.builds.read(path), before)
+        # The same descriptor again: nothing to do.
+        handed.write_bytes(before)
+        self.assertEqual(self.receive(), [])
 
     def test_notes_handed_over_are_received_when_a_maintainer_signed_them(
             self):
