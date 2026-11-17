@@ -32,6 +32,7 @@ from pathlib import Path
 from .. import report
 from ..adapters import minisig, openpgp
 from ..adapters.clock import utcnow
+from ..adapters.cosign import verify_blob
 from ..adapters.files import atomic_write, locked, sha256_file
 from ..adapters.git import (check_git_version, notes_at, resolve_commit,
                             tag_time, tagged_commit)
@@ -43,9 +44,8 @@ from ..domain.formats import (SCHEMA, canonical_json, check_relpath, iso,
                               load_json, parse_iso, parse_version,
                               sha256_bytes)
 from ..domain.layout import BUNDLE, DESCRIPTOR, INDEX, MINISIG, SIG, SUMS
-from ..domain.manifest import parse_manifest
+from ..domain.manifest import CandidateError, CandidateTimeout, parse_manifest
 from ..errors import Problems, ReleaseError, ToolFailed, is_passing
-from . import candidate as rc
 from . import checks
 from .candidate import candidate_error, check_candidate
 from .product import Product
@@ -200,8 +200,8 @@ def _built(product: Product, builds: Store, d: dict, ref: str, path: str,
     builds.fetch_to(d["build"]["sums"], build / SUMS)
     builds.fetch_to(d["build"]["bundle"], build / BUNDLE)
     try:
-        rc.cosign_verify(build, product.identity(ref), d["commit"], cosign)
-    except (rc.CandidateError, rc.CandidateTimeout) as e:
+        verify_blob(build, product.identity(ref), d["commit"], cosign)
+    except (CandidateError, CandidateTimeout) as e:
         raise candidate_error(path, e) from e
     return parse_manifest((build / SUMS).read_bytes(), d["build"]["sums"])
 

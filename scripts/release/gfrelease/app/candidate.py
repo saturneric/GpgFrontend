@@ -45,19 +45,17 @@ Stdlib only: the provenance and release runners install nothing for this.
 usage: gfrelease candidate stage --artifacts DIR --out DIR
 """
 
-import argparse
 import json
 import shutil
-import subprocess
-import sys
 from pathlib import Path
 
 from ..adapters import git
+from ..adapters.cosign import verify_blob
 from ..adapters.files import sha256_file as digest
 from ..domain import policy, refs
 from ..domain.formats import parse_version
 from ..domain.manifest import (BUILD_INFO, BUNDLE, MANIFEST, RESERVED,
-                               SAFE_NAME, CandidateError)
+                               SAFE_NAME, CandidateError, CandidateTimeout)
 from ..domain.manifest import parse as parse_manifest
 from ..domain.manifest import render as render_manifest
 from ..errors import ReleaseError, ToolTimeout
@@ -69,15 +67,6 @@ def deliverable_prefix() -> str:
     """`<slug>-`: what a leg's deliverables artifact is called before the
     leg (release/product.json's slug)."""
     return policy.load_product()["slug"] + "-"
-
-
-ISSUER = "https://token.actions.githubusercontent.com"
-# cosign checks a bundle against a transparency log it may have to reach.
-COSIGN_TIMEOUT = 600
-
-
-class CandidateTimeout(Exception):
-    """cosign did not finish: nothing was decided about the candidate."""
 
 
 def regular_files(directory):
@@ -152,6 +141,8 @@ def check_build_info(leg, info):
 
 
 def stage(artifacts_root, out):
+    """The candidate of @p artifacts_root written to @p out: how many legs,
+    and {name: sha256} of what it holds."""
     # Everything is checked before anything is written: a refused input
     # leaves no half-built candidate behind.
     legs = collect_legs(artifacts_root)
@@ -187,54 +178,16 @@ def stage(artifacts_root, out):
     (out / MANIFEST).write_text(render_manifest(hashes),
                                 encoding="utf-8", newline="\n")
 
-    print(f"staged {len(sources)} deliverable(s) from {len(legs)} leg(s)")
-    for name in sorted(hashes):
-        print(f"  {hashes[name]}  {name}")
+    return {"legs": len(legs), "hashes": hashes}
 
 
 # -------------------------------------------------------------------- verify
 
 
-def cosign_verify(directory, identity, sha, cosign):
-    """The Sigstore identity: this workflow, this commit, GitHub's issuer."""
-    if not identity or not sha:
-        raise CandidateError("an exact identity and workflow sha are required")
-    for name in (MANIFEST, BUNDLE):
-        path = directory / name
-        if path.is_symlink() or not path.is_file():
-            raise CandidateError(f"missing {name}")
-
-    cmd = [
-        cosign, "verify-blob",
-        "--bundle", str(directory / BUNDLE),
-        "--certificate-identity", identity,
-        "--certificate-oidc-issuer", ISSUER,
-        "--certificate-github-workflow-sha", sha,
-        str(directory / MANIFEST),
-    ]
-    try:
-        # Captured: its "Verified OK" says nothing the exit status does
-        # not, and whoever reads this tool's stderr takes it for a
-        # problem. What it says when it refuses goes into the error.
-        out = subprocess.run(cmd, timeout=COSIGN_TIMEOUT,
-                             capture_output=True, encoding="utf-8",
-                             errors="replace")
-    except FileNotFoundError:
-        raise CandidateError(f"{cosign} is not installed")
-    except subprocess.TimeoutExpired:
-        raise CandidateTimeout(f"{cosign} did not finish within "
-                               f"{COSIGN_TIMEOUT} s")
-    if out.returncode != 0:
-        said = (out.stderr or out.stdout or "").strip().splitlines()
-        raise CandidateError(f"{BUNDLE} does not verify {MANIFEST} "
-                             f"as {identity} at {sha}"
-                             + (f" (cosign: {said[-1][:300]})" if said else ""))
-
-
 def verify(directory, identity, sha, cosign="cosign"):
     """Every check publication depends on. Returns the files to publish."""
     # 1. The signature, before a single byte of the manifest is trusted.
-    cosign_verify(directory, identity, sha, cosign)
+    verify_blob(directory, identity, sha, cosign)
 
     # 2. The manifest, strictly: anything sha256sum -c would read loosely is
     #    refused rather than interpreted.
@@ -260,24 +213,6 @@ def verify(directory, identity, sha, cosign="cosign"):
 
 
 # ---------------------------------------------------------------------- main
-
-
-def main(argv=None):
-    parser = argparse.ArgumentParser(prog="gfrelease candidate",
-                                     description=__doc__.splitlines()[0])
-    sub = parser.add_subparsers(dest="command", required=True)
-
-    p = sub.add_parser("stage", help="write the release candidate")
-    p.add_argument("--artifacts", required=True, type=Path)
-    p.add_argument("--out", required=True, type=Path)
-
-    args = parser.parse_args(argv)
-    try:
-        stage(args.artifacts, args.out)
-    except CandidateError as e:
-        print(f"release_candidate: {e}", file=sys.stderr)
-        return 1
-    return 0
 
 
 # ------------------------------------------------- the candidate, as admitted

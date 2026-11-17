@@ -9,9 +9,7 @@ notes of a repository are.
 
 from __future__ import annotations
 
-import argparse
 import subprocess
-import sys
 from pathlib import Path
 
 from ..domain import layout, refs
@@ -50,23 +48,11 @@ def derive(repo: Path, ref: str = "", rev: str = "",
                           timeout=TIMEOUT).stdout.strip()
 
 
-def main(argv: list[str]) -> int:
-    ap = argparse.ArgumentParser(prog="gfrelease ci version", description=__doc__,
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--repo", type=Path, default=ROOT)
-    ap.add_argument("--rev", default="")
-    ap.add_argument("--ref", default="")
-    ap.add_argument("--field", default="version")
-    args = ap.parse_args(argv)
-    try:
-        print(derive(args.repo, args.ref, args.rev, args.field))
-    except subprocess.CalledProcessError as e:
-        print(f"gitversion: {(e.stderr or '').strip()}", file=sys.stderr)
-        return 1
-    except (subprocess.TimeoutExpired, OSError) as e:
-        print(f"gitversion: {e}", file=sys.stderr)
-        return 1
-    return 0
+def current_branch(repo: Path) -> str:
+    """The branch @p repo has checked out, or "" (a detached HEAD)."""
+    out = run(["git", "-C", repo, "symbolic-ref", "--short", "-q", "HEAD"],
+              check=False)
+    return out.stdout.strip() if out.returncode == 0 else ""
 
 
 def git_version(git_dir: Path, commit: str, ref: str,

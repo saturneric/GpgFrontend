@@ -14,11 +14,9 @@ and left alone.
 
 from __future__ import annotations
 
-import argparse
 import datetime as dt
 import json
 import re
-import sys
 import textwrap
 import tomllib
 from pathlib import Path
@@ -512,47 +510,3 @@ def _replace(text: str, name: str, body: str) -> str:
 def render_security(text: str, policy: dict, root: dict) -> str:
     text = _replace(text, "versions", render_versions(policy))
     return _replace(text, "keys", render_keys(policy, root))
-
-
-def main(argv: list[str]) -> int:
-    ap = argparse.ArgumentParser(prog="gfrelease policy", description=__doc__,
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=["check", "render-security",
-                                        "check-security", "mainline"])
-    ap.add_argument("--policy", type=Path, default=POLICY)
-    ap.add_argument("--product", type=Path, default=PRODUCT)
-    ap.add_argument("--security", type=Path, default=SECURITY)
-    ap.add_argument("--root-dir", type=Path, default=TRUST_ROOT)
-    args = ap.parse_args(argv)
-
-    try:
-        policy = load_policy(args.policy)
-        if args.command == "mainline":
-            print(mainline(policy))
-            return 0
-        for warning in check_policy(policy):
-            print(f"warning: {warning}", file=sys.stderr)
-        product = load_product(args.product)
-        check_product(product)
-        if args.command == "check":
-            return 0
-
-        current = args.security.read_text(encoding="utf-8")
-        rendered = render_security(current, policy,
-                                   newest_root(args.root_dir))
-        if args.command == "render-security":
-            if rendered != current:
-                args.security.write_text(rendered, encoding="utf-8")
-            return 0
-        if rendered != current:
-            print(f"{args.security} is out of date; run "
-                  "scripts/gfrelease policy render-security", file=sys.stderr)
-            return 1
-        return 0
-    except PolicyError as e:
-        print(f"policy: {e}", file=sys.stderr)
-        return 1
-    except (OSError, ValueError) as e:
-        # A file that is missing, or not TOML or JSON at all.
-        print(f"policy: {e}", file=sys.stderr)
-        return 1
