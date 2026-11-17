@@ -22,10 +22,28 @@
 # Saturneric <eric@bktus.com> starting on May 12, 2021.
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
+#
+# Layout (release/2.1)
+# --------------------
+#   setup        checks the release tooling, decides the build mode once
+#   build-qt6    AppImage (x86_64, aarch64), DMG per macOS, MSI and portable ZIP
+#   build-qt5    AppImage (x86_64) and portable ZIP: 2.1 is the last series
+#                that builds with Qt5
+#   provenance   signs the release candidate after every leg has succeeded
+#   stage        hands it to the signing host (scripts/release/gfrelease)
+#
+# 2.1 is a legacy series (release/policy.toml): only its release tags are
+# published. A push to release/2.1 builds every leg as a check and publishes
+# nothing, so 2.1 has no beta channel.
+#
+# Every leg uploads exactly `gpgfrontend-<leg>`, the files it ships named by
+# scripts/ci/artifact_name.sh, and `buildinfo-<leg>`, the build-info.json its
+# build wrote. That pairing is all `gfrelease candidate stage` needs, and
+# release/product.json reads each file's platform, architecture and flavour
+# (qt5 included) back from its name.
 
-name: Build 2.1 (Qt6)
+name: Build
 
-# CI for the legacy 2.1.x series only. main (2.2.x) has its own workflows.
 on:
   push:
     branches:
@@ -54,44 +72,129 @@ on:
           - nightly
           - release
 
-# A newer push supersedes a running build of the same ref.
+# A newer push supersedes a running build of the same ref; each tag has a
+# lane of its own.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Least privilege by default. Nothing here publishes a release; the signing
+# host promotes what `stage` hands it.
+permissions:
+  contents: read
+
 env:
-  BUILD_TYPE: RelWithDebInfo
+  # The GnuPG for Windows bundle the Windows packages ship, fetched and
+  # verified against a pinned key by scripts/ci/windows/fetch_gnupg.sh.
   GNUPG_VERSION: "2.5.24"
 
 jobs:
-  build:
+  # Cheap checks of the release tooling before any runner compiles anything,
+  # and the build mode, decided once and handed to every build job.
+  setup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.mode.outputs.version }}
+      artifact_version: ${{ steps.mode.outputs.artifact_version }}
+      build_type: ${{ steps.mode.outputs.build_type }}
+      publish_kind: ${{ steps.mode.outputs.publish_kind }}
+      publishes: ${{ steps.mode.outputs.publishes }}
+    steps:
+      # The whole history and every tag: the version is derived from them
+      # (cmake/GitVersion.cmake), and a shallow clone has neither.
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          lfs: "false"
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check Workflow Steps Define What They Read
+        run: python3 scripts/check_workflow_steps.py
+
+      - name: Install Release Tools
+        run: |
+          set -euo pipefail
+          sudo apt-get update -q
+          sudo apt-get install -y -q minisign
+
+      - name: Check Release Policy
+        run: scripts/gfrelease policy check
+
+      - name: Check Update Trust
+        run: python3 scripts/release/gfrelease trust root verify
+
+      # A release tag must carry its reviewed notes, and the version must
+      # belong to the 2.1 series.
+      - name: Check Version Order
+        run: scripts/gfrelease ci check-order
+
+      # `gfrelease ci build-mode` would make a push to release/2.1 a beta;
+      # a legacy series has none, so anything but a release tag publishes
+      # nothing here.
+      - name: Resolve Build Mode
+        id: mode
+        env:
+          BUILD_MODE_INPUT: ${{ github.event.inputs.build_mode }}
+        run: |
+          set -euo pipefail
+          MODE_FILE="$RUNNER_TEMP/build-mode"
+          scripts/gfrelease ci build-mode > "$MODE_FILE"
+          grep -vE '^(publish_kind|publishes)=' "$MODE_FILE" >> "$GITHUB_OUTPUT"
+          KIND="$(sed -n 's/^publish_kind=//p' "$MODE_FILE")"
+          if [ "$KIND" != "final" ]; then
+            KIND="none"
+          fi
+          echo "publish_kind=$KIND" >> "$GITHUB_OUTPUT"
+          if [ "$KIND" = "final" ]; then
+            echo "publishes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "publishes=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "publish kind on release/2.1: $KIND"
+
+      - name: Note A Skipped Staging
+        if: >-
+          steps.mode.outputs.publishes == 'true' &&
+          vars.R2_STAGING_ENABLED != 'true'
+        run: |
+          echo "::warning::R2_STAGING_ENABLED is not 'true': this build is" \
+            "signed but not staged, and the signing host will not publish it"
+
+  # One leg's failure does not cancel the others (fail-fast: false): a
+  # cancelled leg hides whether it would have failed too. The release still
+  # needs every leg to succeed, which `needs:` in provenance enforces; there
+  # is no continue-on-error anywhere.
+  #
+  # No macOS 14 leg: GitHub retired that runner, and a DMG built on macOS 15
+  # bundles Homebrew libraries that need macOS 15.
+  build-qt6:
+    needs: setup
     strategy:
+      fail-fast: false
       matrix:
-        os:
-          [
-            "ubuntu-22.04",
-            "ubuntu-24.04-arm",
-            "macos-14",
-            "macos-15-intel",
-            "macos-15",
-            "macos-26-intel",
-            "macos-26",
-            "windows-2022",
-          ]
-    runs-on: ${{ matrix.os }}
-    continue-on-error: true
+        include:
+          - { runner: "ubuntu-22.04", leg: "linux-x86_64" }
+          - { runner: "ubuntu-24.04-arm", leg: "linux-aarch64" }
+          - { runner: "macos-15-intel", leg: "macos-15-intel", deploy_target: "15.0" }
+          - { runner: "macos-15", leg: "macos-15", deploy_target: "15.0" }
+          - { runner: "macos-26-intel", leg: "macos-26-intel", deploy_target: "26.0" }
+          - { runner: "macos-26", leg: "macos-26", deploy_target: "26.0" }
+          - { runner: "windows-2022", leg: "windows-x86_64" }
+    runs-on: ${{ matrix.runner }}
     env:
+      BUILD_TYPE: ${{ needs.setup.outputs.build_type }}
+      ARTIFACT_VERSION: ${{ needs.setup.outputs.artifact_version }}
       # Lets ccache cache every translation unit that force-includes the CMake
-      # PCH, and the .gch itself. Without these they were all uncacheable, so
-      # even a warm cache rebuilt core, ui and test in full. Only timestamp and
-      # __DATE__-style checks are relaxed; what is hashed into an object is
-      # unchanged.
+      # PCH, and the .gch itself. Only timestamp and __DATE__-style checks are
+      # relaxed; what is hashed into an object is unchanged.
       CCACHE_SLOPPINESS: pch_defines,time_macros,include_file_mtime,include_file_ctime
     # The Apple signing material lives in the `macos-signing` environment, not
     # in repository secrets. Only macOS pushes and tags ask for it: pull
     # requests never get signing credentials and build unsigned instead. The
     # environment's deployment branch rule has to allow release/2.1 and v2.1.*.
-    environment: ${{ (startsWith(matrix.os, 'macos') && github.event_name != 'pull_request') && 'macos-signing' || '' }}
+    environment: ${{ (startsWith(matrix.runner, 'macos') && github.event_name != 'pull_request') && 'macos-signing' || '' }}
     steps:
       - name: Set git to use LF(Windows) or CRLF(MacOS) line endings
         run: |
@@ -99,57 +202,28 @@ jobs:
           git config --global core.eol lf
         if: runner.os == 'Windows'  || runner.os == 'macOS'
 
+      # The whole history: CMake derives the version from the tags.
       - uses: actions/checkout@v6
         with:
           lfs: "false"
           submodules: recursive
+          fetch-depth: 0
 
-      - name: Setup Build Mode
+      - name: Setup Signing (macOS)
         shell: bash
         run: |
-          echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-          echo "OS_IDENTIFIER=${{ matrix.os }}" >> $GITHUB_ENV
-
-          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
-            BUILD_MODE="${{ github.event.inputs.build_mode }}"
-            if [[ "${BUILD_MODE}" == "release" ]]; then
-              BUILD_TYPE_EFFECTIVE="Release"
-            else
-              BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
-            fi
-
-          elif [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
-            BUILD_MODE="pr"
-            BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
-
-          elif [[ "${GITHUB_REF_NAME}" == release/* || "${GITHUB_REF_TYPE}" == "tag" ]]; then
-            BUILD_MODE="release"
-            BUILD_TYPE_EFFECTIVE="Release"
-
-          else
-            BUILD_MODE="nightly"
-            BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
-          fi
-
-          echo "BUILD_MODE=${BUILD_MODE}" >> $GITHUB_ENV
-          echo "BUILD_TYPE=${BUILD_TYPE_EFFECTIVE}" >> $GITHUB_ENV
-          echo "BUILD_TYPE_LOWER=$(echo ${BUILD_TYPE_EFFECTIVE} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-
-          echo "SANDBOX_CMAKE_FLAG=" >> $GITHUB_ENV
           echo "CODE_SIGNING_IDENTITY=${{secrets.DEVELOPER_ID_CODE_SIGN_IDENTITY}}" >> $GITHUB_ENV
           # Sign (and notarize) only when the signing environment handed us a
           # certificate; otherwise the macOS build is ad-hoc signed.
           echo "MACOS_SIGNING=${{ secrets.DEVELOP_ID_CERT != '' && '1' || '0' }}" >> $GITHUB_ENV
-
-          echo "Build mode: ${BUILD_MODE}"
-          echo "Build type: ${BUILD_TYPE_EFFECTIVE}"
+        if: runner.os == 'macOS'
 
       # Saved only from pushes, so no pull request can seed an object file
       # into what a release is built from.
       - name: ccache
         uses: hendrikmuhs/ccache-action@f09c25b45002a07be2955cbe52e8cee55643f89d # v1.2.24
         with:
-          key: 2.1-${{ github.job }}-${{ matrix.os }}-${{ env.BUILD_TYPE }}
+          key: 2.1-build-${{ matrix.leg }}-${{ env.BUILD_TYPE }}
           # ccache caps each of its 16 subdirectories at 1/16 of this, and a
           # compressed .gch runs past 100 MB, so a smaller limit evicted every
           # PCH result as it was stored.
@@ -283,7 +357,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{github.workspace}}/third_party/googletest
-          key: gtest-${{ matrix.os }}-v1.15.2
+          key: gtest-${{ matrix.runner }}-v1.15.2
         if: runner.os == 'Linux'
 
       - name: Build googletest (Linux)
@@ -306,22 +380,9 @@ jobs:
         if: runner.os == 'Linux'
 
       - name: Build GpgFrontend (macOS)
+        env:
+          DEPLOY_TARGET: ${{ matrix.deploy_target }}
         run: |
-          MACOS_MAJOR=$(sw_vers -productVersion | cut -d. -f1)
-          MACOS_MINOR=$(sw_vers -productVersion | cut -d. -f2)
-
-          if [[ "$MACOS_MAJOR" == "13" ]]; then
-            DEPLOY_TARGET="13.0"
-          elif [[ "$MACOS_MAJOR" == "14" ]]; then
-            DEPLOY_TARGET="14.0"
-          elif [[ "$MACOS_MAJOR" == "15" ]]; then
-            DEPLOY_TARGET="15.0"
-          elif [[ "$MACOS_MAJOR" == "26" ]]; then
-            DEPLOY_TARGET="26.0"
-          else
-            DEPLOY_TARGET="${MACOS_MAJOR}.${MACOS_MINOR}"
-          fi
-
           echo "Set MacOS Deployment Target: $DEPLOY_TARGET"
 
           cmake -B ${{github.workspace}}/build -G Xcode \
@@ -407,14 +468,9 @@ jobs:
             DMG_SIGN_ARGS=()
           fi
           ditto -c -k --keepParent ${{github.workspace}}/build/package/GpgFrontend.app ${{github.workspace}}/build/GpgFrontend.app.zip
-          hdiutil create ${{github.workspace}}/build/tmp.dmg -ov \
-            -volname "GpgFrontend" -fs HFS+ -srcfolder ${{github.workspace}}/build/package/
           mkdir ${{github.workspace}}/build/upload-artifact
-          create-dmg "${DMG_SIGN_ARGS[@]}" --volicon "${{github.workspace}}/resource/lfs/icns/GpgFrontend.icns" --volname GpgFrontend --app-drop-link 600 185 --window-size 800 400 ${{github.workspace}}/build/upload-artifact/GpgFrontend.dmg ${{github.workspace}}/build/package/GpgFrontend.app
-          mv ${{github.workspace}}/build/upload-artifact/GpgFrontend.dmg \
-            ${{github.workspace}}/build/upload-artifact/GpgFrontend-${{env.OS_IDENTIFIER}}-${{env.SHORT_SHA}}.dmg
-          mv ${{github.workspace}}/build/GpgFrontend.app.zip \
-            ${{github.workspace}}/build/GpgFrontend-${{env.OS_IDENTIFIER}}-${{env.SHORT_SHA}}.zip
+          DMG_NAME="$(scripts/ci/artifact_name.sh "${{ matrix.leg }}.dmg")"
+          create-dmg "${DMG_SIGN_ARGS[@]}" --volicon "${{github.workspace}}/resource/lfs/icns/GpgFrontend.icns" --volname GpgFrontend --app-drop-link 600 185 --window-size 800 400 "${{github.workspace}}/build/upload-artifact/$DMG_NAME" ${{github.workspace}}/build/package/GpgFrontend.app
         if: runner.os == 'macOS'
 
       - name: Notarize macOS Build (macOS)
@@ -430,7 +486,7 @@ jobs:
           KEY_PATH=$RUNNER_TEMP/asc_api_key.p8
           printf '%s\n' "$ASC_API_KEY_P8" > "$KEY_PATH"
           xcrun notarytool submit \
-            ${{github.workspace}}/build/GpgFrontend-${{env.OS_IDENTIFIER}}-${{env.SHORT_SHA}}.zip \
+            ${{github.workspace}}/build/GpgFrontend.app.zip \
             --key "$KEY_PATH" --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID"
           rm -f "$KEY_PATH"
         if: runner.os == 'macOS' && env.MACOS_SIGNING == '1'
@@ -466,7 +522,7 @@ jobs:
           export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:$(dirname "$BIN")/../lib:$LD_LIBRARY_PATH
           QT_QPA_PLATFORM=offscreen timeout 1200 "$BIN" --test 2>&1 | tee ${{github.workspace}}/build/unit-test.log || true
           {
-            echo "### Unit tests (${{ matrix.os }})"
+            echo "### Unit tests (${{ matrix.leg }})"
             echo '```'
             grep -E '^\[  (PASSED|FAILED)  \]' ${{github.workspace}}/build/unit-test.log || echo "no gtest summary found"
             echo '```'
@@ -494,13 +550,13 @@ jobs:
           ARCH=$(uname -m)
           if [[ "$ARCH" == "x86_64" ]]; then
             wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
-            mv linuxdeployqt-continuous-x86_64.AppImage linuxdeployqt-continuous.AppImage 
+            mv linuxdeployqt-continuous-x86_64.AppImage linuxdeployqt-continuous.AppImage
             EXTRA_ARGS=""
           elif [[ "$ARCH" == "aarch64" ]]; then
             wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-aarch64.AppImage
             mv linuxdeployqt-continuous-aarch64.AppImage linuxdeployqt-continuous.AppImage
             mkdir -p ${{github.workspace}}/build/artifacts/AppDir/usr/share/doc/libc6/
-            touch ${{github.workspace}}/build/artifacts/AppDir/usr/share/doc/libc6/copyright        
+            touch ${{github.workspace}}/build/artifacts/AppDir/usr/share/doc/libc6/copyright
             EXTRA_ARGS="-unsupported-allow-new-glibc"
           fi
 
@@ -513,6 +569,17 @@ jobs:
             -extra-plugins=iconengines,platforms,sqldrivers/libqsqlite.so \
             -appimage \
             -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/lib/modules
+          rm -f linuxdeployqt-continuous.AppImage
+
+          # One AppImage per leg, named as every published file is.
+          set -- Gpg_Frontend*.AppImage
+          if [ "$#" -ne 1 ] || [ ! -f "$1" ]; then
+            echo "expected exactly one AppImage, got: $*" >&2
+            exit 1
+          fi
+          mv "$1" "$(${{github.workspace}}/scripts/ci/artifact_name.sh "linux-${ARCH}.AppImage")"
+          rm -f ./*.zsync
+          ls -l
         if: runner.os == 'Linux'
 
       - name: Build GpgFrontend (Windows)
@@ -542,107 +609,16 @@ jobs:
 
       - name: Download GnuPG Binary Release (Windows)
         shell: msys2 {0}
-        run: |
-          export URL="https://ftp.bktus.com/GnuPG/${{env.GNUPG_VERSION}}"
-          export KEY_URL="https://bktus.com/pgp/saturneric-code-signing.asc"
-          export KEY_FPR="12F7E8858CF15BEC9975FF3C5CA3DA246843FD03"
-          export KEY_FILE="saturneric-code-signing.asc"
-          export FILE="gnupg.zip"
-          export CHECKSUM_FILE="SHA256SUMS.txt"
-          export SIGNATURE_FILE="gnupg.zip.sig"
-          export GNUPGHOME=$(mktemp -d)
-
-          cd $(cygpath -u "${{github.workspace}}")
-
-          mkdir -p build/downloads
-
-          curl -fL --retry 3 -o build/downloads/$FILE $URL/$FILE
-          curl -fL --retry 3 -o build/downloads/$CHECKSUM_FILE $URL/$CHECKSUM_FILE
-          curl -fL --retry 3 -o build/downloads/$KEY_FILE $KEY_URL
-          curl -fL --retry 3 -o build/downloads/$SIGNATURE_FILE $URL/$SIGNATURE_FILE
-
-          gpg --import build/downloads/$KEY_FILE
-
-          # Trust is pinned to this exact fingerprint, not to whatever the
-          # downloaded key file happens to contain.
-          if ! KEY_INFO=$(gpg --batch --with-colons --list-keys "$KEY_FPR"); then
-            echo "Imported key does not match fingerprint $KEY_FPR!" >&2
-            exit 1
-          fi
-
-          EXPIRES=$(echo "$KEY_INFO" | awk -F: '/^pub:/ {print $7; exit}')
-          if [ -n "$EXPIRES" ]; then
-            echo "Signing key expires: $(date -u -d "@$EXPIRES")"
-            if [ "$EXPIRES" -le "$(date +%s)" ]; then
-              echo "Signing key has expired!" >&2
-              exit 1
-            fi
-          else
-            echo "Signing key has no expiration date"
-          fi
-
-          # VALIDSIG carries the primary key fingerprint as its last field, so
-          # this also rejects a valid signature from any other imported key.
-          if ! gpg --status-fd 1 --verify build/downloads/$SIGNATURE_FILE \
-              build/downloads/$FILE | grep "VALIDSIG" | grep -q "$KEY_FPR"; then
-            echo "GnuPG signature verification failed!" >&2
-            exit 1
-          fi
-
-          CHECKSUM=$(grep "$FILE\$" build/downloads/$CHECKSUM_FILE | awk '{print $1}')
-          ACTUAL_CHECKSUM=$(sha256sum build/downloads/$FILE | awk '{print $1}')
-          echo "Expected Checksum: $CHECKSUM"
-          echo "Actual Checksum: $ACTUAL_CHECKSUM"
-          if [ "$CHECKSUM" != "$ACTUAL_CHECKSUM" ]; then
-            echo "Checksum verification failed!" >&2
-            exit 1
-          fi
-
-          mkdir -p build/artifacts/gnupg
-
-          # Extraction has to be byte-exact. A text-mode extractor rewrites every
-          # LF as CRLF, which shifts each PE image away from the offset its
-          # e_lfanew field points at: the staged binaries then carry no readable
-          # Authenticode signature and Windows refuses to load them, while the
-          # archive-level OpenPGP and SHA256 checks above still pass because the
-          # downloaded zip is intact. bsdtar has no text mode at all.
-          if command -v bsdtar >/dev/null 2>&1; then
-            bsdtar -xf build/downloads/$FILE -C build/artifacts/gnupg
-          else
-            unzip -o build/downloads/$FILE -d build/artifacts/gnupg/
-          fi
-
-          # Gate the staged payload rather than trusting the extractor: every
-          # image must still start with MZ and hold the PE signature exactly
-          # where e_lfanew points.
-          BROKEN=0
-          COUNT=0
-          while IFS= read -r pe; do
-            COUNT=$((COUNT + 1))
-            MZ=$(dd if="$pe" bs=1 count=2 2>/dev/null | od -An -tx1 | tr -d ' \n')
-            OFF=$(od -An -tu4 -j 60 -N 4 "$pe" | tr -d ' ')
-            SIG=$(dd if="$pe" bs=1 skip="$OFF" count=4 2>/dev/null | od -An -tx1 | tr -d ' \n')
-            if [ "$MZ" != "4d5a" ] || [ "$SIG" != "50450000" ]; then
-              echo "corrupt PE image: $pe (mz=$MZ e_lfanew=$OFF sig=$SIG)" >&2
-              BROKEN=$((BROKEN + 1))
-            fi
-          done < <(find build/artifacts/gnupg -type f \( -name '*.exe' -o -name '*.dll' \))
-
-          if [ "$BROKEN" -ne 0 ]; then
-            echo "$BROKEN of $COUNT staged GnuPG images are not loadable PE files!" >&2
-            type -a bsdtar unzip >&2 || true
-            env | grep -iE '^(UNZIP|UNZIPOPT|ZIPOPT|MSYS|CYGWIN)=' >&2 || true
-            exit 1
-          fi
-          echo "verified $COUNT staged GnuPG PE images"
-
-          ls -l build/artifacts/gnupg/
+        run: scripts/ci/windows/fetch_gnupg.sh
         if: runner.os == 'Windows'
 
-      - name: Package (Windows)
+      # The payload the MSI and the portable zip share. build-info.json moves
+      # beside it: CI hands it to the release tooling, it is never shipped.
+      - name: Stage Payload (Windows)
         shell: msys2 {0}
         run: |
           cd $(cygpath -u "${{github.workspace}}")
+          mv build/artifacts/build-info.json build/build-info.json
           cp PrivacyPolicy.md build/artifacts/
           cp README.md build/artifacts/
           cp SECURITY.md build/artifacts/
@@ -652,8 +628,6 @@ jobs:
           rm -rf build/artifacts/bin/*.a
           rm -rf build/artifacts/bin/modules/*.a
           mv build/artifacts/bin/modules build/artifacts/modules
-          touch build/artifacts/bin/ENV.ini
-          echo "PortableMode=true" >> build/artifacts/bin/ENV.ini
           cd build
           windeployqt6 --no-translations --force ./artifacts/bin/libgf_core.dll
           windeployqt6 --no-translations --force ./artifacts/bin/libgf_ui.dll
@@ -662,28 +636,432 @@ jobs:
           for module in ./artifacts/modules/*.dll; do
             windeployqt6 --no-translations --force "$module"
           done
-          mkdir upload-artifact
-          cd artifacts
-          zip -r ../upload-artifact/GpgFrontend-${{env.SHORT_SHA}}-${{matrix.os}}-x86_64.zip *
         if: runner.os == 'Windows'
 
-      - name: Upload Artifact (Linux)
+      # Built before ENV.ini is added: an installed GpgFrontend keeps its data
+      # in the user profile. Same product as every earlier MSI, so it upgrades
+      # an installed 2.1.13 in place (resource/wix/Package.wxs).
+      - name: Build MSI (Windows)
+        shell: pwsh
+        run: |
+          $ws = "${{ github.workspace }}"
+          $name = & bash "$ws/scripts/ci/artifact_name.sh" windows-x86_64.msi
+          if ($LASTEXITCODE -ne 0 -or -not $name) { throw "artifact_name.sh failed" }
+          & "$ws/scripts/ci/windows/build_msi.ps1" `
+            -PayloadDir "$ws/build/artifacts" `
+            -BuildInfo "$ws/build/build-info.json" `
+            -OutputPath "$ws/build/upload-artifact/$name"
+        if: runner.os == 'Windows'
+
+      - name: Package Portable (Windows)
+        shell: msys2 {0}
+        run: |
+          cd $(cygpath -u "${{github.workspace}}")
+          NAME="$(scripts/ci/artifact_name.sh windows-x86_64-portable.zip)"
+          echo "PortableMode=true" > build/artifacts/bin/ENV.ini
+          mkdir -p build/upload-artifact
+          cd build/artifacts
+          zip -r "../upload-artifact/$NAME" *
+          ls -l ../upload-artifact
+        if: runner.os == 'Windows'
+
+      - name: Upload Artifact
         uses: actions/upload-artifact@v7
         with:
-          name: gpgfrontend-2.1-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
-          path: ${{github.workspace}}/build/upload-artifact/Gpg_Frontend*.AppImage*
+          name: gpgfrontend-${{ matrix.leg }}
+          path: ${{ github.workspace }}/build/upload-artifact/*
+          if-no-files-found: error
+
+      - name: Upload Build Info
+        uses: actions/upload-artifact@v7
+        with:
+          name: buildinfo-${{ matrix.leg }}
+          path: ${{ github.workspace }}/build/${{ runner.os == 'Windows' && 'build-info.json' || 'artifacts/build-info.json' }}
+          if-no-files-found: error
+
+  # 2.1 is the last series that builds with Qt5: an AppImage and a portable
+  # zip, flavour "qt5" in release/product.json. Qt5 builds carry no modules.
+  build-qt5:
+    needs: setup
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { runner: "ubuntu-22.04", leg: "qt5-linux-x86_64" }
+          - { runner: "windows-2022", leg: "qt5-windows-x86_64" }
+    runs-on: ${{ matrix.runner }}
+    env:
+      BUILD_TYPE: ${{ needs.setup.outputs.build_type }}
+      ARTIFACT_VERSION: ${{ needs.setup.outputs.artifact_version }}
+      CCACHE_SLOPPINESS: pch_defines,time_macros,include_file_mtime,include_file_ctime
+    steps:
+      - name: Set git to use LF(Windows) or CRLF(MacOS) line endings
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+        if: runner.os == 'Windows'
+
+      # The whole history: CMake derives the version from the tags.
+      - uses: actions/checkout@v6
+        with:
+          lfs: "false"
+          submodules: recursive
+          fetch-depth: 0
+
+      # Saved only from pushes, so no pull request can seed an object file
+      # into what a release is built from.
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@f09c25b45002a07be2955cbe52e8cee55643f89d # v1.2.24
+        with:
+          key: 2.1-build-${{ matrix.leg }}-${{ env.BUILD_TYPE }}
+          max-size: 4G
+          save: ${{ github.event_name == 'push' }}
+
+      - name: Mark ccache Epoch
+        shell: bash
+        run: echo "CCACHE_EPOCH=$(date +%s)" >> "$GITHUB_ENV"
+
+      - name: Set up MinGW (Windows)
+        uses: msys2/setup-msys2@v2
+        with:
+          update: false
+          release: false
+          cache: true
+          install: >-
+            git
+            zip
+            unzip
+            msys2-devel
+            base-devel
+            msys2-runtime-devel
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-make
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-qt5
+            mingw-w64-x86_64-ninja
+            mingw-w64-x86_64-libarchive
+            mingw-w64-x86_64-gtest
+            mingw-w64-x86_64-autotools
+            mingw-w64-x86_64-angleproject
+            mingw-w64-x86_64-texinfo
+            mingw-w64-x86_64-libassuan
+            mingw-w64-x86_64-ccache
+            mingw-w64-x86_64-argon2
+        if: runner.os == 'Windows'
+
+      - name: Install Dependence (Linux)
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
+          sudo apt-get -y install gcc g++ ninja-build
+          sudo apt-get -y install libarchive-dev libssl-dev libargon2-dev
+          sudo apt-get -y install gpgsm libxcb-xinerama0 libxcb-icccm4-dev libcups2-dev libdrm-dev libegl1-mesa-dev
+          sudo apt-get -y install libfuse2 libgcrypt20-dev libnss3-dev libpci-dev libpulse-dev libudev-dev libxtst-dev
+          sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libxcb-image0 gyp
+          sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libxcb-* libxkbcommon-x11-0
         if: runner.os == 'Linux'
 
-      - name: Upload Artifact (macOS)
-        uses: actions/upload-artifact@v7
+      - name: Install Qt5
+        uses: jurplel/install-qt-action@v4
         with:
-          name: gpgfrontend-2.1-${{env.OS_IDENTIFIER}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
-          path: ${{github.workspace}}/build/upload-artifact/*
-        if: runner.os == 'macOS'
+          version: "5.15.2"
+          cache: "true"
+        if: runner.os == 'Linux'
 
-      - name: Upload Artifact (Windows)
+      - name: Build GpgME (Windows)
+        shell: msys2 {0}
+        run: |
+          cd $(cygpath -u "${{github.workspace}}")
+          cd third_party/gpgme
+          export CC="ccache gcc"
+          export CXX="ccache g++"
+          export CFLAGS="${CFLAGS} -Wno-int-conversion -Wno-incompatible-pointer-types"
+          ./autogen.sh
+          mkdir build && cd build
+          ../configure --enable-maintainer-mode \
+          --enable-static \
+          --disable-shared \
+          --enable-silent-rules \
+          --disable-dependency-tracking \
+          --enable-languages=cl \
+          --disable-gpgconf-test \
+          --disable-gpg-test \
+          --disable-gpgsm-test \
+          --disable-g13-test \
+          --enable-w32-glib
+          make -j4
+          make install
+        if: runner.os == 'Windows'
+
+      - name: Cache googletest (Linux)
+        uses: actions/cache@v4
+        with:
+          path: ${{github.workspace}}/third_party/googletest
+          key: gtest-${{ matrix.runner }}-v1.15.2
+        if: runner.os == 'Linux'
+
+      - name: Build googletest (Linux)
+        run: |
+          if [ ! -f "${{github.workspace}}/third_party/googletest/build/build.ninja" ]; then
+            rm -rf ${{github.workspace}}/third_party/googletest
+            git clone --depth 1 --branch v1.15.2 https://github.com/google/googletest.git ${{github.workspace}}/third_party/googletest
+            cd ${{github.workspace}}/third_party/googletest
+            mkdir build && cd build
+            cmake -G Ninja -DBUILD_SHARED_LIBS=ON \
+              -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+              -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+              ..
+            ninja
+          else
+            echo "Reusing cached googletest build"
+          fi
+          cd ${{github.workspace}}/third_party/googletest/build
+          sudo ninja install
+        if: runner.os == 'Linux'
+
+      - name: Build GpgFrontend (Windows)
+        shell: msys2 {0}
+        env:
+          # ccache takes MinGW's `c++.exe` for an unknown compiler and applies
+          # clang's PCH rule, so every PCH user missed on every run. It is gcc.
+          CCACHE_COMPILERTYPE: gcc
+        run: |
+          cd $(cygpath -u "${{github.workspace}}")
+          mkdir build && cd build
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DGPGFRONTEND_QT5_BUILD=ON \
+            -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON \
+            ..
+          cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 4
+          ccache -s -v
+          # Keep only what this build used, so the saved cache stays the
+          # working set instead of growing toward max-size run after run.
+          ccache --evict-older-than "$(( $(date +%s) - CCACHE_EPOCH + 60 ))s"
+          ccache -s
+        if: runner.os == 'Windows'
+
+      - name: Build GpgFrontend (Linux)
+        run: |
+          export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH
+          cmake -B ${{github.workspace}}/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DGPGFRONTEND_QT5_BUILD=ON \
+            -DGPGFRONTEND_BUILD_APP_IMAGE=ON \
+            -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
+          cmake --build ${{github.workspace}}/build --config ${{ env.BUILD_TYPE }} -- -v
+          ccache -s -v 2>/dev/null || ccache -s
+          # Keep only what this build used, so the saved cache stays the
+          # working set instead of growing toward max-size run after run.
+          ccache --evict-older-than "$(( $(date +%s) - CCACHE_EPOCH + 60 ))s"
+          ccache -s
+        if: runner.os == 'Linux'
+
+      - name: Run Unit Tests (Linux)
+        # The suite reports failures in its log but always exits 0, so the
+        # step surfaces the gtest summary instead of gating on the exit code.
+        run: |
+          sudo apt-get -y install gnupg
+          BIN=$(find ${{github.workspace}}/build/artifacts -type f -name gpgfrontend -perm -u+x | head -n 1)
+          if [ -z "$BIN" ]; then
+            echo "gpgfrontend binary not found" >&2
+            exit 1
+          fi
+          export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:$(dirname "$BIN")/../lib:$LD_LIBRARY_PATH
+          QT_QPA_PLATFORM=offscreen timeout 1200 "$BIN" --test 2>&1 | tee ${{github.workspace}}/build/unit-test.log || true
+          {
+            echo "### Unit tests (${{ matrix.leg }})"
+            echo '```'
+            grep -E '^\[  (PASSED|FAILED)  \]' ${{github.workspace}}/build/unit-test.log || echo "no gtest summary found"
+            echo '```'
+          } >> $GITHUB_STEP_SUMMARY
+        if: runner.os == 'Linux'
+
+      - name: Package App Image (Linux)
+        run: |
+          mkdir ${{github.workspace}}/build/upload-artifact
+          cd ${{github.workspace}}/build/upload-artifact
+          wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+          chmod u+x linuxdeployqt-continuous-x86_64.AppImage
+          export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH
+          ./linuxdeployqt-continuous-x86_64.AppImage \
+            ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop \
+            -no-translations \
+            -extra-plugins=iconengines,platforms \
+            -appimage \
+            -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/lib/modules
+          rm -f linuxdeployqt-continuous-x86_64.AppImage
+
+          # One AppImage per leg, named as every published file is.
+          set -- Gpg_Frontend*.AppImage
+          if [ "$#" -ne 1 ] || [ ! -f "$1" ]; then
+            echo "expected exactly one AppImage, got: $*" >&2
+            exit 1
+          fi
+          mv "$1" "$(${{github.workspace}}/scripts/ci/artifact_name.sh qt5-linux-x86_64.AppImage)"
+          rm -f ./*.zsync
+          ls -l
+        if: runner.os == 'Linux'
+
+      - name: Download GnuPG Binary Release (Windows)
+        shell: msys2 {0}
+        run: scripts/ci/windows/fetch_gnupg.sh
+        if: runner.os == 'Windows'
+
+      - name: Package Portable (Windows)
+        shell: msys2 {0}
+        run: |
+          cd $(cygpath -u "${{github.workspace}}")
+          NAME="$(scripts/ci/artifact_name.sh qt5-windows-x86_64-portable.zip)"
+          mv build/artifacts/build-info.json build/build-info.json
+          cp PrivacyPolicy.md build/artifacts/
+          cp README.md build/artifacts/
+          cp SECURITY.md build/artifacts/
+          cp TRANSLATORS build/artifacts/
+          cp COPYING build/artifacts/
+          cp gpgfrontend.ico build/artifacts/bin/
+          rm -rf build/artifacts/bin/*.a
+          echo "PortableMode=true" > build/artifacts/bin/ENV.ini
+          cd build
+          windeployqt-qt5 --no-translations --force ./artifacts/bin/libgf_core.dll
+          windeployqt-qt5 --no-translations --force ./artifacts/bin/libgf_ui.dll
+          windeployqt-qt5 --no-translations --force ./artifacts/bin/libgf_test.dll
+          windeployqt-qt5 --no-translations --force ./artifacts/bin/GpgFrontend.exe
+          mkdir -p upload-artifact
+          cd artifacts
+          zip -r "../upload-artifact/$NAME" *
+          ls -l ../upload-artifact
+        if: runner.os == 'Windows'
+
+      - name: Upload Artifact
         uses: actions/upload-artifact@v7
         with:
-          name: gpgfrontend-2.1-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
-          path: ${{github.workspace}}/build/upload-artifact/*
-        if: runner.os == 'Windows'
+          name: gpgfrontend-${{ matrix.leg }}
+          path: ${{ github.workspace }}/build/upload-artifact/*
+          if-no-files-found: error
+
+      - name: Upload Build Info
+        uses: actions/upload-artifact@v7
+        with:
+          name: buildinfo-${{ matrix.leg }}
+          path: ${{ github.workspace }}/build/${{ runner.os == 'Windows' && 'build-info.json' || 'artifacts/build-info.json' }}
+          if-no-files-found: error
+
+  # Collects every leg into one release candidate: SHA256SUMS.txt over the
+  # files, signed with this workflow's Sigstore identity. Needs every leg, Qt5
+  # included, so a release never goes out with one missing.
+  provenance:
+    needs: [setup, build-qt6, build-qt5]
+    runs-on: ubuntu-latest
+    if: needs.setup.outputs.publishes == 'true'
+    timeout-minutes: 30
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          lfs: "false"
+          persist-credentials: false
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          path: in/
+          pattern: gpgfrontend-*
+
+      - name: Download Build Info
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          path: in/
+          pattern: buildinfo-*
+
+      - name: Stage Release Candidate
+        env:
+          ARTIFACT_VERSION: ${{ needs.setup.outputs.artifact_version }}
+        run: |
+          set -euo pipefail
+          scripts/gfrelease candidate stage \
+            --artifacts in/ \
+            --out candidate/ \
+            --version "$ARTIFACT_VERSION"
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@d58896d6a1865668819e1d91763c7751a165e159 # v3.9.2
+
+      - name: Sign Manifest
+        run: |
+          set -euo pipefail
+          COSIGN_EXPERIMENTAL=1 cosign sign-blob \
+            --yes \
+            --bundle candidate/SHA256SUMS.txt.sigstore.json \
+            candidate/SHA256SUMS.txt
+
+      - name: Upload Release Candidate
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-candidate
+          path: candidate/*
+          if-no-files-found: error
+
+  # Hands the release candidate exactly as provenance signed it to the private
+  # staging bucket, and nothing else. A version tag waits there for the
+  # maintainer's offline stage (gfrelease stable), which signs it with their
+  # OpenPGP key and the Windows packages with their certificate, after
+  # verifying the Sigstore bundle against this workflow, ref and commit.
+  #
+  # Off until the repository variable R2_STAGING_ENABLED is "true"; the
+  # `r2-staging` environment holds R2_STAGING_ACCESS_KEY_ID,
+  # R2_STAGING_SECRET_ACCESS_KEY, R2_ENDPOINT and R2_STAGING_BUCKET, and its
+  # deployment rule has to allow v2.1.* tags.
+  stage:
+    needs: [setup, provenance]
+    if: >-
+      needs.setup.outputs.publishes == 'true' &&
+      vars.R2_STAGING_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    environment: r2-staging
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          lfs: "false"
+          persist-credentials: false
+
+      - name: Download Release Candidate
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: release-candidate
+          path: candidate/
+
+      - name: Install rclone
+        run: |
+          set -euo pipefail
+          sudo apt-get update -q
+          sudo apt-get install -y -q rclone
+
+      - name: Upload To Staging
+        env:
+          RCLONE_CONFIG: /dev/null
+          RCLONE_CONFIG_STAGING_TYPE: s3
+          RCLONE_CONFIG_STAGING_PROVIDER: Cloudflare
+          RCLONE_CONFIG_STAGING_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          RCLONE_CONFIG_STAGING_ACCESS_KEY_ID: ${{ secrets.R2_STAGING_ACCESS_KEY_ID }}
+          RCLONE_CONFIG_STAGING_SECRET_ACCESS_KEY: ${{ secrets.R2_STAGING_SECRET_ACCESS_KEY }}
+          RCLONE_CONFIG_STAGING_NO_CHECK_BUCKET: "true"
+          STAGING_BUCKET: ${{ secrets.R2_STAGING_BUCKET }}
+          VERSION: ${{ needs.setup.outputs.version }}
+          ARTIFACT_VERSION: ${{ needs.setup.outputs.artifact_version }}
+        run: |
+          set -euo pipefail
+          : "${RCLONE_CONFIG_STAGING_ENDPOINT:?the r2-staging environment has no R2_ENDPOINT secret}"
+          : "${STAGING_BUCKET:?the r2-staging environment has no R2_STAGING_BUCKET secret}"
+          python3 scripts/release/gfrelease stage \
+            --candidate candidate \
+            --staging "staging:${STAGING_BUCKET}" \
+            --ref "$GITHUB_REF" \
+            --commit "$GITHUB_SHA" \
+            --version "$VERSION" \
+            --filesafe "$ARTIFACT_VERSION" \
+            --built-at "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
