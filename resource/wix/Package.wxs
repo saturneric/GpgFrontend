@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Package.wxs: the per-user MSI of GpgFrontend 2.1, taken from main's resource/wix/Package.wxs.
+
+  The same product as every earlier GpgFrontend MSI, 2.1.13 included: the same UpgradeCode,
+  install folder ([AppDataFolder]\GpgFrontend), registry key and component GUIDs, so a 2.1.14
+  MSI upgrades an installed 2.1.13 in place and keeps its folder.
+
+  On release/2.1, unlike main:
+    - one identity only. Only release tags of 2.1 are published, so there is no nightly
+      ("GpgFrontend Testing") product to install beside it.
+    - no .gfp association: 2.1 cannot open a profile package. Upgrading from an MSI that
+      registered one removes those rows with the old product.
+
+  Built by scripts/ci/windows/build_msi.ps1, which passes the version, payload root, icon and
+  branding folder on the command line:
+
+      wix build -arch x64 -ext WixToolset.UI.wixext/5.0.2 -ext WixToolset.Util.wixext/5.0.2 `
+        -d PayloadDir=... -d ProductVersion=... -o GpgFrontend.msi Package.wxs
+
+  Extension versions must match the toolset major: an unpinned `wix extension add` grabs
+  the latest (7.x), which a WiX 5 host cannot load. -arch x64 is required.
+-->
+<?ifndef ProductVersion ?>
+<?define ProductVersion = "0.0.0" ?>
+<?endif?>
+
+<?ifndef PayloadDir ?>
+<?define PayloadDir = "GpgFrontend" ?>
+<?endif?>
+
+<?ifndef IconSource ?>
+<?define IconSource = "gpgfrontend.ico" ?>
+<?endif?>
+
+<!-- Folder holding banner.bmp / dialog.bmp / license.rtf: this folder, for a local build run from it. -->
+<?ifndef BrandingDir ?>
+<?define BrandingDir = "." ?>
+<?endif?>
+
+<?define ProductName = "GpgFrontend" ?>
+<?define UpgradeCode = "3c642b54-3921-43ce-b744-a2bf0b4fc309" ?>
+<?define GuidProductInformation = "{B5718CF9-F3A3-43B0-BE3A-DEF48CA19E0A}" ?>
+<?define GuidAppDir = "{6F8D11AA-3B0C-4695-8C6A-622C60768DA7}" ?>
+<?define Description = "A modern, cross-platform, open-source GUI for OpenPGP encryption, built on GnuPG." ?>
+
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+
+  <!-- ProductCode is not pinned: a fresh one per build, so MajorUpgrade works.
+       Scope="perUser": installs into the user's AppData, no elevation. -->
+  <Package
+    Name="$(ProductName)"
+    Manufacturer="Saturneric"
+    Version="$(ProductVersion)"
+    UpgradeCode="$(UpgradeCode)"
+    Language="1033"
+    Codepage="1252"
+    InstallerVersion="450"
+    Compressed="yes"
+    Scope="perUser">
+
+    <!-- RemoveExistingProducts runs early (afterInstallValidate), so an upgrade clears the
+         old install first and every write lands in a clean tree. -->
+    <MajorUpgrade
+      AllowDowngrades="no"
+      AllowSameVersionUpgrades="yes"
+      DowngradeErrorMessage="A newer version of [ProductName] is already installed."
+      MigrateFeatures="yes"
+      Schedule="afterInstallValidate" />
+
+    <!-- One cab for the whole package (the payload is larger than the 200 MB default, and a
+         file on a media boundary is a known source of extraction failures). MSZIP rather
+         than LZX: a stable release signs every program in the cab offline and packs it
+         again (scripts/release/gfrelease), which reads and writes MSZIP only. -->
+    <MediaTemplate EmbedCab="yes" CompressionLevel="mszip" MaximumUncompressedMediaSize="4096" />
+
+    <!-- Close anything still holding a file in the install tree, otherwise MSI aborts with
+         1310 on reinstall/upgrade: GpgFrontend.exe itself, and the GnuPG daemons under
+         gnupg\, which outlive the GUI with the old binaries mapped. -->
+    <util:CloseApplication Id="CloseGpgFrontend" Target="GpgFrontend.exe"
+                           CloseMessage="yes" TerminateProcess="0" RebootPrompt="no" />
+    <util:CloseApplication Id="CloseGpgAgent" Target="gpg-agent.exe"
+                           TerminateProcess="1" RebootPrompt="no" />
+    <util:CloseApplication Id="CloseKeyboxd" Target="keyboxd.exe"
+                           TerminateProcess="1" RebootPrompt="no" />
+    <util:CloseApplication Id="CloseDirmngr" Target="dirmngr.exe"
+                           TerminateProcess="1" RebootPrompt="no" />
+    <util:CloseApplication Id="CloseScdaemon" Target="scdaemon.exe"
+                           TerminateProcess="1" RebootPrompt="no" />
+
+    <Launch
+      Condition="Installed OR (VersionNT64 AND VersionNT &gt;= 601)"
+      Message="[ProductName] can only be installed on 64-bit Windows 7 or later." />
+
+    <Property Id="ARPCOMMENTS" Value="$(Description)" />
+    <Property Id="ARPCONTACT" Value="eric@bktus.com" />
+    <Property Id="ARPHELPLINK" Value="https://www.gpgfrontend.bktus.com/overview/glance" />
+    <Property Id="ARPURLINFOABOUT" Value="https://www.gpgfrontend.bktus.com/overview/contact" />
+    <Property Id="ARPURLUPDATEINFO" Value="https://gpgfrontend.bktus.com/overview/downloads" />
+    <Property Id="ARPPRODUCTICON" Value="gpgfrontend.exe" />
+
+    <Icon Id="gpgfrontend.exe" SourceFile="$(IconSource)" />
+
+    <!-- Re-read the install folder a previous version stored, unless one was passed on the
+         command line. -->
+    <Property Id="PREVIOUSINSTALLFOLDER">
+      <RegistrySearch Id="PreviousInstallFolder" Root="HKCU"
+                      Key="Software\Saturneric\$(ProductName)" Name="Path" Type="raw" />
+    </Property>
+    <SetDirectory Id="INSTALLFOLDER" Value="[PREVIOUSINSTALLFOLDER]"
+                  Condition="PREVIOUSINSTALLFOLDER AND NOT INSTALLFOLDER" />
+
+    <SetProperty Id="ARPINSTALLLOCATION" Value="[INSTALLFOLDER]" After="CostFinalize" Sequence="execute" />
+
+    <StandardDirectory Id="AppDataFolder">
+      <Directory Id="INSTALLFOLDER" Name="$(ProductName)" />
+    </StandardDirectory>
+
+    <!-- One component per file, tree preserved. The payload is the Windows build without
+         bin\ENV.ini: that file is what makes the zip portable, and an installed
+         GpgFrontend keeps its data in the user profile. -->
+    <ComponentGroup Id="AppFiles" Directory="INSTALLFOLDER">
+      <Files Include="$(PayloadDir)\**" />
+    </ComponentGroup>
+
+    <ComponentGroup Id="ProductInformation" Directory="INSTALLFOLDER">
+      <Component Id="ProductInformation" Guid="$(GuidProductInformation)">
+        <RegistryKey Root="HKMU" Key="Software\[Manufacturer]\[ProductName]">
+          <RegistryValue Name="Path" Type="string" Value="[INSTALLFOLDER]" />
+          <RegistryValue Name="Version" Type="string" Value="[ProductVersion]" KeyPath="yes" />
+        </RegistryKey>
+      </Component>
+    </ComponentGroup>
+
+    <!-- Creates the install folder (and removes it on uninstall) and owns the desktop
+         shortcut. Keypath is the directory itself; expect benign ICE38/ICE57 warnings. -->
+    <ComponentGroup Id="AppDirComponent">
+      <Component Id="APPDIR" Guid="$(GuidAppDir)" Directory="INSTALLFOLDER">
+        <CreateFolder />
+        <RemoveFolder Id="RemoveINSTALLFOLDER" On="uninstall" />
+        <Shortcut Id="GpgFrontend_1"
+                  Directory="DesktopFolder"
+                  Name="$(ProductName)"
+                  Description="$(Description)"
+                  Target="[INSTALLFOLDER]bin\GpgFrontend.exe"
+                  WorkingDirectory="PersonalFolder"
+                  Icon="gpgfrontend.exe"
+                  IconIndex="0"
+                  Show="normal" />
+      </Component>
+    </ComponentGroup>
+
+    <Feature Id="MainFeature"
+             Title="MainFeature"
+             Description="Description"
+             Display="expand"
+             Level="1"
+             ConfigurableDirectory="INSTALLFOLDER">
+      <ComponentGroupRef Id="AppFiles" />
+      <ComponentGroupRef Id="ProductInformation" />
+      <ComponentGroupRef Id="AppDirComponent" />
+    </Feature>
+
+    <!-- Welcome -> License -> Folder -> Ready. GpgFrontend and its payload are
+         GPL-3.0-or-later, so the installer states the terms before anything is written. -->
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+
+    <WixVariable Id="WixUIDialogBmp" Value="$(BrandingDir)\dialog.bmp" />
+    <WixVariable Id="WixUIBannerBmp" Value="$(BrandingDir)\banner.bmp" />
+    <WixVariable Id="WixUILicenseRtf" Value="$(BrandingDir)\license.rtf" />
+
+  </Package>
+</Wix>
