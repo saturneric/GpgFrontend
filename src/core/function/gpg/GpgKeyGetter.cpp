@@ -96,9 +96,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
   }
 
   auto FetchKey() -> GpgKeyPtrList {
-    if (keys_cache_.empty() || keys_search_cache_.empty()) {
-      FlushKeyCache();
-    }
+    if (CacheEmpty(true)) FlushKeyCache();
 
     auto keys_list = GpgKeyPtrList{};
     {
@@ -112,9 +110,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
   }
 
   auto FetchGpgKeyList() -> GpgAbstractKeyPtrList {
-    if (keys_search_cache_.empty()) {
-      FlushKeyCache();
-    }
+    if (CacheEmpty(false)) FlushKeyCache();
 
     auto keys_list = GpgAbstractKeyPtrList{};
     {
@@ -128,10 +124,19 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     return keys_list;
   }
 
+  /// Whether the cache still has to be filled, read under its lock.
+  auto CacheEmpty(bool either) -> bool {
+    std::lock_guard<std::mutex> lock(keys_cache_mutex_);
+    if (either) return keys_cache_.empty() || keys_search_cache_.empty();
+    return keys_search_cache_.empty();
+  }
+
   auto FlushKeyCache() -> bool {
-    // clear the keys cache
-    keys_cache_.clear();
-    keys_search_cache_.clear();
+    // Filled aside and swapped in whole under the lock: a reader on another
+    // thread sees the old key ring or the new one, never one half cleared or
+    // a container being written.
+    QContainer<GpgKeyPtr> keys_cache;
+    QMap<QString, GpgAbstractKeyPtr> keys_search_cache;
 
     // init
     GpgError err = gpgme_op_keylist_start(ctx_.DefaultContext(), nullptr, 0);
@@ -143,8 +148,6 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return false;
 
     {
-      // get the lock
-      std::lock_guard<std::mutex> lock(keys_cache_mutex_);
       gpgme_key_t key;
       while ((err = gpgme_op_keylist_next(ctx_.DefaultContext(), &key)) ==
              GPG_ERR_NO_ERROR) {
@@ -157,9 +160,9 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
           g_key = GetKeyPtr(g_key->ID(), false);
         }
 
-        keys_cache_.push_back(g_key);
-        keys_search_cache_.insert(g_key->ID(), g_key);
-        keys_search_cache_.insert(g_key->Fingerprint(), g_key);
+        keys_cache.push_back(g_key);
+        keys_search_cache.insert(g_key->ID(), g_key);
+        keys_search_cache.insert(g_key->Fingerprint(), g_key);
 
         for (const auto& s_key : g_key->SubKeys()) {
           if (s_key.ID() == g_key->ID()) continue;
@@ -168,13 +171,19 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
           if (s_key.IsADSK()) continue;
 
           // subkeys should be weaker than primary key
-          if (keys_search_cache_.contains(s_key.ID())) continue;
+          if (keys_search_cache.contains(s_key.ID())) continue;
 
           auto p_s_key = SecureCreateSharedObject<GpgSubKey>(s_key);
-          keys_search_cache_.insert(s_key.ID(), p_s_key);
-          keys_search_cache_.insert(s_key.Fingerprint(), p_s_key);
+          keys_search_cache.insert(s_key.ID(), p_s_key);
+          keys_search_cache.insert(s_key.Fingerprint(), p_s_key);
         }
       }
+    }
+
+    {
+      std::lock_guard<std::mutex> lock(keys_cache_mutex_);
+      keys_cache_.swap(keys_cache);
+      keys_search_cache_.swap(keys_search_cache);
     }
 
     // for debug
