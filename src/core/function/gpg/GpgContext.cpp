@@ -32,7 +32,9 @@
 #include <gpgme.h>
 
 #include <cassert>
+#include <map>
 #include <mutex>
+#include <thread>
 
 #include "core/function/CoreSignalStation.h"
 #include "core/function/basic/GpgFunctionObject.h"
@@ -181,6 +183,15 @@ class GpgContext::Impl {
       agent_.reset();
     }
 
+    {
+      std::lock_guard<std::mutex> lock(thread_ctx_lock_);
+      for (const auto &[id, ctxs] : thread_ctxs_) {
+        if (ctxs.armored != ctx_ref_) gpgme_release(ctxs.armored);
+        if (ctxs.binary != binary_ctx_ref_) gpgme_release(ctxs.binary);
+      }
+      thread_ctxs_.clear();
+    }
+
     if (ctx_ref_ != nullptr) {
       gpgme_release(ctx_ref_);
     }
@@ -190,23 +201,41 @@ class GpgContext::Impl {
     }
   }
 
+  // A gpgme context may be used by one thread at a time, and an operation's
+  // result is read from it after the call returns. A context shared by the
+  // task runners, the GUI and module threads let one thread's key listing run
+  // into another's lookup, and a result be read after another operation
+  // replaced it. So every thread gets contexts of its own, configured like
+  // the first ones; they live as long as this object.
   [[nodiscard]] auto BinaryContext() const -> gpgme_ctx_t {
-    return binary_ctx_ref_;
+    return thread_contexts().binary;
   }
 
-  [[nodiscard]] auto DefaultContext() const -> gpgme_ctx_t { return ctx_ref_; }
+  [[nodiscard]] auto DefaultContext() const -> gpgme_ctx_t {
+    return thread_contexts().armored;
+  }
 
   [[nodiscard]] auto Good() const -> bool { return good_; }
 
   auto SetPassphraseCb(const gpgme_ctx_t &ctx, gpgme_passphrase_cb_t cb)
       -> bool {
-    if (gpgme_get_pinentry_mode(ctx) != GPGME_PINENTRY_MODE_LOOPBACK) {
-      if (CheckGpgError(gpgme_set_pinentry_mode(
-              ctx, GPGME_PINENTRY_MODE_LOOPBACK)) != GPG_ERR_NO_ERROR) {
-        return false;
-      }
+    if (!apply_passphrase_cb(ctx, cb)) return false;
+
+    // Set on one of this object's contexts, it is meant for the operations of
+    // this key database, which run on whichever thread asks: every thread's
+    // contexts get it, and so do those made later.
+    std::lock_guard<std::mutex> lock(thread_ctx_lock_);
+    auto ours = ctx == ctx_ref_ || ctx == binary_ctx_ref_;
+    for (const auto &[id, ctxs] : thread_ctxs_) {
+      ours = ours || ctx == ctxs.armored || ctx == ctxs.binary;
     }
-    gpgme_set_passphrase_cb(ctx, cb, reinterpret_cast<void *>(parent_));
+    if (!ours) return true;
+
+    passphrase_cb_ = cb;
+    for (const auto &[id, ctxs] : thread_ctxs_) {
+      apply_passphrase_cb(ctxs.armored, cb);
+      apply_passphrase_cb(ctxs.binary, cb);
+    }
     return true;
   }
 
@@ -282,8 +311,84 @@ class GpgContext::Impl {
   gpgme_ctx_t cms_binary_ctx_ref_ = nullptr;  ///<
   bool good_ = true;
 
-  std::mutex ctx_ref_lock_;
-  std::mutex binary_ctx_ref_lock_;
+  /// The armored and unarmored contexts of each thread that asked for one,
+  /// the first thread's being ctx_ref_ and binary_ctx_ref_.
+  struct ThreadContexts {
+    gpgme_ctx_t armored = nullptr;
+    gpgme_ctx_t binary = nullptr;
+  };
+  mutable std::mutex thread_ctx_lock_;
+  mutable std::map<std::thread::id, ThreadContexts> thread_ctxs_;
+  /// Set by SetPassphraseCb() on one of this object's contexts; given to
+  /// every thread's contexts.
+  gpgme_passphrase_cb_t passphrase_cb_ = nullptr;
+
+  /**
+   * @brief Ask @p ctx for passphrases through @p cb (loopback pinentry).
+   */
+  auto apply_passphrase_cb(gpgme_ctx_t ctx, gpgme_passphrase_cb_t cb) -> bool {
+    if (gpgme_get_pinentry_mode(ctx) != GPGME_PINENTRY_MODE_LOOPBACK) {
+      if (CheckGpgError(gpgme_set_pinentry_mode(
+              ctx, GPGME_PINENTRY_MODE_LOOPBACK)) != GPG_ERR_NO_ERROR) {
+        return false;
+      }
+    }
+    gpgme_set_passphrase_cb(ctx, cb, reinterpret_cast<void *>(parent_));
+    return true;
+  }
+
+  /**
+   * @brief The calling thread's contexts, made on its first call.
+   *
+   * Falls back to the shared ones, with a warning, when a new context
+   * cannot be made; that is what every thread used before.
+   */
+  [[nodiscard]] auto thread_contexts() const -> ThreadContexts {
+    const auto id = std::this_thread::get_id();
+    std::lock_guard<std::mutex> lock(thread_ctx_lock_);
+    if (auto it = thread_ctxs_.find(id); it != thread_ctxs_.end()) {
+      return it->second;
+    }
+
+    // Before init() there is nothing to copy the configuration of; the shared
+    // contexts are what a caller got then too.
+    const auto shared = ThreadContexts{ctx_ref_, binary_ctx_ref_};
+    if (ctx_ref_ == nullptr || binary_ctx_ref_ == nullptr) return shared;
+
+    // The first thread keeps the contexts init() made.
+    if (thread_ctxs_.empty()) {
+      thread_ctxs_.emplace(id, shared);
+      return shared;
+    }
+
+    // Made as default_ctx_initialize() and binary_ctx_initialize() make
+    // theirs; the configuration is read, not changed, so the cast is safe.
+    auto *self = const_cast<Impl *>(this);
+    auto make = [&](int armor) -> gpgme_ctx_t {
+      gpgme_ctx_t ctx = nullptr;
+      if (CheckGpgError(gpgme_new(&ctx)) != GPG_ERR_NO_ERROR) return nullptr;
+      if (!self->common_ctx_initialize(ctx, args_)) {
+        gpgme_release(ctx);
+        return nullptr;
+      }
+      gpgme_set_armor(ctx, armor);
+      if (passphrase_cb_ != nullptr) {
+        self->apply_passphrase_cb(ctx, passphrase_cb_);
+      }
+      return ctx;
+    };
+
+    ThreadContexts own{make(1), make(0)};
+    if (own.armored == nullptr || own.binary == nullptr) {
+      LOG_W() << "could not make gpg contexts for a thread, channel:"
+              << parent_->GetChannel() << "; it shares the first ones";
+      if (own.armored != nullptr) gpgme_release(own.armored);
+      if (own.binary != nullptr) gpgme_release(own.binary);
+      return shared;
+    }
+    thread_ctxs_.emplace(id, own);
+    return own;
+  }
 
   QString db_name_;
   QString gpgconf_path_;
@@ -401,7 +506,9 @@ class GpgContext::Impl {
 
     // for unit test
     if (args_.test_mode) {
-      if (!SetPassphraseCb(ctx, TestPassphraseCb)) {
+      // Per context, without the lock thread_contexts() holds while it
+      // initializes a new thread's contexts.
+      if (!apply_passphrase_cb(ctx, TestPassphraseCb)) {
         FLOG_W("set passphrase cb failed, test");
         return false;
       }
