@@ -362,7 +362,9 @@ def main():
     if len(sys.argv) > 1:
         paths = [Path(argument) for argument in sys.argv[1:]]
     else:
-        paths = sorted(Path(".github/workflows").glob("*.yml"))
+        # GitHub's workflows, and the Gitea instance's (the same syntax).
+        paths = sorted(Path(".github/workflows").glob("*.yml")) + \
+            sorted(Path(".gitea/workflows").glob("*.yml"))
     if not paths:
         print("no workflows to check", file=sys.stderr)
         return 2
