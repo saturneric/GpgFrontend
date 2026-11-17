@@ -1141,6 +1141,7 @@ pub fn extract_metadata_many_internal(
 
     let mut order: Vec<String> = Vec::new();
     let mut certs: HashMap<String, WorkCert> = HashMap::new();
+    let budget = CheckBudget::new();
     let mut add = |cert: WorkCert| -> Result<(), GfrStatus> {
         let fpr = cert.fingerprint().to_string();
         let Some(existing) = certs.get_mut(&fpr) else {
@@ -1150,9 +1151,9 @@ pub fn extract_metadata_many_internal(
         };
         if existing.secret.is_none() && cert.secret.is_some() {
             let public_copy = std::mem::replace(existing, cert);
-            existing.absorb(public_copy, false)
+            existing.absorb(public_copy, false, &budget)
         } else {
-            existing.absorb(cert, false)
+            existing.absorb(cert, false, &budget)
         }
     };
 
@@ -2625,6 +2626,11 @@ const MAX_MERGED_SIGNATURES: usize = 256;
 /// out.
 const MAX_MERGED_REVOCATIONS: usize = 256;
 
+/// Most self-signatures rPGP cannot check (unsupported algorithm, hash or
+/// version) one component keeps, the stored ones counted first. They admit
+/// nothing: a component needs a self-signature that verifies.
+const MAX_UNVERIFIABLE_SELF_SIGNATURES: usize = 16;
+
 /// Most public-key verifications one merge or canonicalization performs.
 /// Revocations are checked first. A self-claimed signature the budget does
 /// not reach is not stored, and the import reports that the limit was
@@ -2652,10 +2658,13 @@ const MAX_SIGNATURE_CHECKS: usize = 4096;
 //   self-signature on them verifies, or if they are stored already.
 //   Sequoia stores them unbound.
 // * A self-signature rPGP cannot check (unsupported algorithm, hash or
-//   version) is not stored. Sequoia stores every one.
+//   version) admits no component, and is stored only on a component that
+//   is stored or admitted, at most MAX_UNVERIFIABLE_SELF_SIGNATURES per
+//   component, the stored ones counted first. Sequoia stores every one.
 // * Third-party signatures are capped per component (MAX_MERGED_SIGNATURES,
-//   MAX_MERGED_REVOCATIONS); sequoia has no cap. On a subkey no third-party
-//   signature is stored; sequoia stores every one.
+//   MAX_MERGED_REVOCATIONS); sequoia has no cap. On a subkey only a subkey
+//   revocation by a designated revoker (named in a verified
+//   self-signature) is stored; sequoia stores every one.
 // * At most MAX_SIGNATURE_CHECKS verifications are made, revocations first.
 //   A self-claimed signature (one naming this key, or naming no issuer) they
 //   do not reach is not stored, and the import reports that the limit was
@@ -2665,7 +2674,8 @@ const MAX_SIGNATURE_CHECKS: usize = 4096;
 //   takes (e.g. 0x02, 0x19, 0x40) is not stored; a stored one stays.
 //   Sequoia stores it as "bad".
 // * Of a duplicate's unhashed area only an issuer agreeing with one already
-//   named is taken over; sequoia merges the whole area.
+//   named, and an embedded primary key binding that verifies, are taken
+//   over; sequoia merges the whole area.
 //
 // Deviation: stored secret key material always wins; an incoming secret
 // only fills a key that has none. Sequoia prefers the later copy's secret
@@ -2817,10 +2827,22 @@ impl CheckBudget {
 
 /// How a merge caps the incoming signatures of a component (see
 /// [`MAX_MERGED_SIGNATURES`]): `verified` holds the normalized bytes of the
-/// incoming self-signatures canonicalization verified, which never count.
+/// incoming self-signatures canonicalization verified, which never count;
+/// `unverifiable` those it could not check, capped at
+/// [`MAX_UNVERIFIABLE_SELF_SIGNATURES`].
 struct CapPolicy<'a> {
     primary: &'a PublicKey,
     verified: &'a HashSet<Vec<u8>>,
+    unverifiable: &'a HashSet<Vec<u8>>,
+}
+
+/// The rest of what [`union_signatures`] needs for one component.
+struct UnionCtx<'a> {
+    cap: Option<&'a CapPolicy<'a>>,
+    /// For a subkey: its primary and the subkey, to check an embedded primary
+    /// key binding before taking it over.
+    subkey: Option<(&'a PublicKey, &'a PublicSubkey)>,
+    budget: &'a CheckBudget,
 }
 
 /// Give `kept` the issuer subpackets of `other`'s unhashed area it lacks, but
@@ -2861,23 +2883,64 @@ fn adopt_issuers(kept: &mut Signature, other: &Signature) {
     }
 }
 
+/// Give `kept`, a subkey binding (0x18) of `subkey` without an embedded
+/// primary key binding (0x19), the one in `other`'s unhashed area, if it
+/// verifies. One that does not, or cannot be checked, is not taken.
+fn adopt_backsig(
+    kept: &mut Signature,
+    other: &Signature,
+    primary: &PublicKey,
+    subkey: &PublicSubkey,
+    budget: &CheckBudget,
+) {
+    if kept.typ() != Some(SignatureType::SubkeyBinding) || kept.embedded_signature().is_some() {
+        return;
+    }
+    let Some(config) = other.config() else {
+        return;
+    };
+    for subpacket in &config.unhashed_subpackets {
+        let SubpacketData::EmbeddedSignature(back) = &subpacket.data else {
+            continue;
+        };
+        if back.typ() != Some(SignatureType::KeyBinding) {
+            continue;
+        }
+        let verdict = budget.check(subkey.public_params(), back, || {
+            back.verify_primary_key_binding(subkey, primary)
+        });
+        if verdict == Verdict::Good {
+            let _ = kept.unhashed_subpacket_push(subpacket.clone());
+            return;
+        }
+    }
+}
+
 /// Append the signatures of `src` that `dst` lacks, comparing them by
 /// [`normalized_sig_bytes`]; a duplicate only lends what [`adopt_issuers`]
-/// takes. With a cap, an incoming signature that is not a verified
-/// self-signature is left out once the component holds
+/// and [`adopt_backsig`] take. With a cap, an incoming signature that is not
+/// a verified self-signature is left out once the component holds
 /// [`MAX_MERGED_REVOCATIONS`] such revocations or [`MAX_MERGED_SIGNATURES`]
-/// other such signatures. Of the stored signatures only the third-party ones
-/// count; which signatures fit is decided in order, the stored ones first.
+/// other such signatures, and an uncheckable self-signature once it holds
+/// [`MAX_UNVERIFIABLE_SELF_SIGNATURES`]. Of the stored signatures only the
+/// uncheckable self-signatures and the third-party ones count; which
+/// signatures fit is decided in order, the stored ones first.
 fn union_signatures(
     dst: &mut Vec<Signature>,
     src: Vec<Signature>,
-    cap: Option<&CapPolicy<'_>>,
+    ctx: &UnionCtx<'_>,
 ) -> Result<(), GfrStatus> {
     let mut index: HashMap<Vec<u8>, usize> = HashMap::new();
-    let (mut revocations, mut others) = (0usize, 0usize);
+    let (mut revocations, mut others, mut uncheckable) = (0usize, 0usize, 0usize);
     for (i, sig) in dst.iter().enumerate() {
         index.entry(normalized_sig_bytes(sig)?).or_insert(i);
-        if let Some(cap) = cap {
+        if let Some(cap) = ctx.cap {
+            if is_self_sig_candidate(sig, cap.primary)
+                && !checkable(cap.primary.public_params(), sig)
+            {
+                uncheckable += 1;
+                continue;
+            }
             if names_primary_as_issuer(sig, cap.primary) {
                 continue;
             }
@@ -2889,16 +2952,24 @@ fn union_signatures(
         }
     }
 
+    let mut backsig_tried: HashSet<usize> = HashSet::new();
     let mut capped = 0usize;
     for sig in src {
         let key = normalized_sig_bytes(&sig)?;
         if let Some(&i) = index.get(&key) {
             adopt_issuers(&mut dst[i], &sig);
+            if let Some((primary, subkey)) = ctx.subkey {
+                if backsig_tried.insert(i) {
+                    adopt_backsig(&mut dst[i], &sig, primary, subkey, ctx.budget);
+                }
+            }
             continue;
         }
-        if let Some(cap) = cap {
+        if let Some(cap) = ctx.cap {
             if !cap.verified.contains(&key) {
-                let (count, limit) = if is_revocation(&sig) {
+                let (count, limit) = if cap.unverifiable.contains(&key) {
+                    (&mut uncheckable, MAX_UNVERIFIABLE_SELF_SIGNATURES)
+                } else if is_revocation(&sig) {
                     (&mut revocations, MAX_MERGED_REVOCATIONS)
                 } else {
                     (&mut others, MAX_MERGED_SIGNATURES)
@@ -2923,7 +2994,16 @@ fn union_signatures(
 /// first of them. Nothing else is dropped.
 fn fold_signatures(sigs: &mut Vec<Signature>) -> Result<(), GfrStatus> {
     let src = std::mem::take(sigs);
-    union_signatures(sigs, src, None)
+    let budget = CheckBudget::new();
+    union_signatures(
+        sigs,
+        src,
+        &UnionCtx {
+            cap: None,
+            subkey: None,
+            budget: &budget,
+        },
+    )
 }
 
 fn is_uid_certification(sig: &Signature) -> bool {
@@ -2936,6 +3016,33 @@ fn is_uid_certification(sig: &Signature) -> bool {
                 | SignatureType::CertPositive
         )
     )
+}
+
+/// The fingerprints named by the Revocation Key subpackets of `sig`'s hashed
+/// area (RFC 9580 §5.2.3.23).
+fn named_revokers(sig: &Signature) -> Vec<Vec<u8>> {
+    sig.config()
+        .map(|config| {
+            config
+                .hashed_subpackets()
+                .filter_map(|p| match &p.data {
+                    SubpacketData::RevocationKey(key) => Some(key.fingerprint.to_vec()),
+                    _ => None,
+                })
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+/// True if `sig` names one of `revokers` as its issuer.
+fn issued_by_revoker(sig: &Signature, revokers: &[Vec<u8>]) -> bool {
+    revokers.iter().any(|fpr| {
+        sig.issuer_fingerprint()
+            .iter()
+            .any(|f| f.as_bytes() == &fpr[..])
+            || key_id_of_fingerprint_bytes(fpr)
+                .is_some_and(|id| sig.issuer_key_id().iter().any(|k| *k.as_ref() == id[..]))
+    })
 }
 
 /// A subkey of a certificate being merged, with or without its secret part.
@@ -2971,6 +3078,8 @@ struct WorkCert {
     /// Normalized bytes of the self-signatures [`WorkCert::canonicalize`]
     /// verified.
     verified: HashSet<Vec<u8>>,
+    /// Normalized bytes of the self-signatures it could not check.
+    unverifiable: HashSet<Vec<u8>>,
 }
 
 /// The components a stored copy already holds. An incoming copy of one of
@@ -3000,7 +3109,7 @@ enum Fate {
     /// Verified elsewhere, or nowhere: placed by the re-filing step.
     Refiled,
     /// Stored on the component it arrived on, though not verified there:
-    /// an issuer-less signature taken as someone else's.
+    /// someone else's signature, or a self-signature rPGP cannot check.
     Unverified,
     Dropped,
 }
@@ -3018,6 +3127,7 @@ impl WorkCert {
             details,
             subkeys,
             verified: HashSet::new(),
+            unverifiable: HashSet::new(),
         };
         cert.collapse_repeated_components()?;
         Ok(cert)
@@ -3094,8 +3204,9 @@ impl WorkCert {
         }
 
         let subkeys = std::mem::take(&mut self.subkeys);
+        let budget = CheckBudget::new();
         for sub in subkeys {
-            self.absorb_subkey(sub, None)?;
+            self.absorb_subkey(sub, None, &budget)?;
         }
         Ok(())
     }
@@ -3106,6 +3217,7 @@ impl WorkCert {
         &mut self,
         sub: WorkSubkey,
         cap: Option<&CapPolicy<'_>>,
+        budget: &CheckBudget,
     ) -> Result<(), GfrStatus> {
         let fpr = sub.public().fingerprint();
         let Some(pos) = self
@@ -3120,12 +3232,22 @@ impl WorkCert {
             WorkSubkey::Public(sub) => (sub.signatures, None),
             WorkSubkey::Secret(sub) => (sub.signatures, Some(sub.key)),
         };
+        let primary = &self.primary;
         let existing = &mut self.subkeys[pos];
         if let (WorkSubkey::Public(public), Some(key)) = (&mut *existing, incoming_secret) {
             let signatures = std::mem::take(&mut public.signatures);
             *existing = WorkSubkey::Secret(SignedSecretSubKey { key, signatures });
         }
-        union_signatures(existing.signatures_mut(), incoming_sigs, cap)
+        let subkey = existing.public().clone();
+        union_signatures(
+            existing.signatures_mut(),
+            incoming_sigs,
+            &UnionCtx {
+                cap,
+                subkey: Some((primary, &subkey)),
+                budget,
+            },
+        )
     }
 
     /// True if a signature of `sig`'s type can belong to `component`.
@@ -3208,11 +3330,43 @@ impl WorkCert {
         }
     }
 
+    /// The designated revokers this certificate names in self-signatures on
+    /// the key or a User ID that verify. Only signatures carrying a
+    /// Revocation Key subpacket are checked.
+    fn designated_revokers(&self, budget: &CheckBudget) -> Vec<Vec<u8>> {
+        let mut revokers = Vec::new();
+        let key_sigs = self
+            .details
+            .direct_signatures
+            .iter()
+            .chain(&self.details.revocation_signatures)
+            .map(|sig| (Component::Key, sig));
+        let uid_sigs = self.details.users.iter().enumerate().flat_map(|(i, u)| {
+            u.signatures
+                .iter()
+                .map(move |sig| (Component::User(i), sig))
+        });
+        for (component, sig) in key_sigs.chain(uid_sigs) {
+            let named = named_revokers(sig);
+            if named.is_empty()
+                || !names_primary_as_issuer(sig, &self.primary)
+                || !Self::fits(sig, component)
+            {
+                continue;
+            }
+            if self.check_on(sig, component, budget) == Verdict::Good {
+                revokers.extend(named);
+            }
+        }
+        revokers
+    }
+
     /// Sequoia's `canonicalize`, made stricter, for a certificate that is
     /// not stored yet (see the notes above [`is_self_sig_candidate`]).
     /// `known_revokers` are the designated revokers the stored copy names.
     fn canonicalize(
         &mut self,
+        known_revokers: &[Vec<u8>],
         stored: &StoredComponents,
         budget: &CheckBudget,
     ) -> Result<(), GfrStatus> {
@@ -3239,6 +3393,9 @@ impl WorkCert {
             .iter()
             .map(|pool| vec![Fate::Unverified; pool.len()])
             .collect();
+        // Signatures rPGP cannot check at all (see [`Verdict::Unverifiable`]).
+        let mut uncheckable: Vec<Vec<bool>> =
+            pools.iter().map(|pool| vec![false; pool.len()]).collect();
         let mut refiled: Vec<(usize, Signature)> = Vec::new();
         let mut bound = vec![false; components.len()];
         let mut misplaced: Vec<(usize, usize)> = Vec::new();
@@ -3255,9 +3412,15 @@ impl WorkCert {
                     bound[c] |= Self::binds(sig, components[c]);
                 }
                 Verdict::Bad => misplaced.push((c, i)),
-                Verdict::Unverifiable | Verdict::Unchecked => {
-                    // rPGP cannot check it, or the check budget is spent:
-                    // not stored.
+                Verdict::Unverifiable => {
+                    // Stored on its component, if that component is stored
+                    // or admitted by a signature that verifies, and capped at
+                    // MAX_UNVERIFIABLE_SELF_SIGNATURES. It admits nothing.
+                    fates[c][i] = Fate::Unverified;
+                    uncheckable[c][i] = true;
+                }
+                Verdict::Unchecked => {
+                    // Past the check budget: not stored.
                     fates[c][i] = Fate::Dropped;
                 }
             }
@@ -3266,7 +3429,7 @@ impl WorkCert {
         for (c, i) in misplaced {
             let sig = &pools[c][i];
             let mut found = Vec::new();
-            let mut unchecked = false;
+            let (mut unknown, mut unchecked) = (false, false);
             for (d, &component) in components.iter().enumerate() {
                 if d == c && Self::fits(sig, components[c]) {
                     continue; // already checked there
@@ -3277,7 +3440,8 @@ impl WorkCert {
                 match self.check_on(sig, component, budget) {
                     Verdict::Good => found.push(d),
                     Verdict::Bad => {}
-                    Verdict::Unverifiable | Verdict::Unchecked => unchecked = true,
+                    Verdict::Unverifiable => unknown = true,
+                    Verdict::Unchecked => unchecked = true,
                 }
             }
             let fits_somewhere = components.iter().any(|&d| Self::fits(sig, d));
@@ -3288,9 +3452,12 @@ impl WorkCert {
                     refiled.push((d, sig.clone()));
                 }
             } else if unchecked || !fits_somewhere {
-                // Not checked everywhere it could belong, or a type no
-                // component takes: not stored.
+                // Not checked everywhere it could belong for want of budget,
+                // or a type no component takes: not stored.
                 fates[c][i] = Fate::Dropped;
+            } else if unknown {
+                fates[c][i] = Fate::Unverified;
+                uncheckable[c][i] = true;
             } else if is_issuerless(sig) && !matches!(components[c], Component::Subkey(_)) {
                 // Checked and failed as a self-signature, but it names no
                 // issuer: someone else's certification, as sequoia keeps it.
@@ -3301,15 +3468,36 @@ impl WorkCert {
             }
         }
 
+        // Designated revokers, from the stored copy and from this one's
+        // verified self-signatures.
+        let mut revokers = known_revokers.to_vec();
+        for (c, pool) in pools.iter().enumerate() {
+            if !matches!(components[c], Component::Key | Component::User(_)) {
+                continue;
+            }
+            for (i, sig) in pool.iter().enumerate() {
+                if fates[c][i] == Fate::Here {
+                    revokers.extend(named_revokers(sig));
+                }
+            }
+        }
+        for (d, sig) in &refiled {
+            if matches!(components[*d], Component::Key | Component::User(_)) {
+                revokers.extend(named_revokers(sig));
+            }
+        }
+
         for (c, pool) in pools.into_iter().enumerate() {
             let component = components[c];
             for (i, sig) in pool.into_iter().enumerate() {
                 if !is_self_sig_candidate(&sig, &primary) {
                     // Someone else's signature: kept unchecked, as there is
-                    // no key here to check it with, except on a subkey, where
-                    // only the key holder's binding or revocation means
-                    // anything.
-                    if !matches!(component, Component::Subkey(_)) {
+                    // no key here to check it with. On a subkey only a
+                    // designated revoker's revocation means anything.
+                    let keep = !matches!(component, Component::Subkey(_))
+                        || (sig.typ() == Some(SignatureType::SubkeyRevocation)
+                            && issued_by_revoker(&sig, &revokers));
+                    if keep {
                         self.push_signature(component, sig);
                     }
                     continue;
@@ -3319,7 +3507,12 @@ impl WorkCert {
                         self.verified.insert(normalized_sig_bytes(&sig)?);
                         self.push_signature(component, sig);
                     }
-                    Fate::Unverified => self.push_signature(component, sig),
+                    Fate::Unverified => {
+                        if uncheckable[c][i] {
+                            self.unverifiable.insert(normalized_sig_bytes(&sig)?);
+                        }
+                        self.push_signature(component, sig);
+                    }
                     Fate::Refiled | Fate::Dropped => {}
                 }
             }
@@ -3369,12 +3562,15 @@ impl WorkCert {
         }
 
         let verified = std::mem::take(&mut self.verified);
+        let unverifiable = std::mem::take(&mut self.unverifiable);
         let cap = CapPolicy {
             primary: &primary,
             verified: &verified,
+            unverifiable: &unverifiable,
         };
-        self.fold(Some(&cap))?;
+        self.fold(Some(&cap), budget)?;
         self.verified = verified;
+        self.unverifiable = unverifiable;
         Ok(())
     }
 
@@ -3399,11 +3595,23 @@ impl WorkCert {
     /// Fold every component's duplicate signatures; with `cap`, also cap
     /// the ones that are not verified self-signatures (see
     /// [`union_signatures`]).
-    fn fold(&mut self, cap: Option<&CapPolicy<'_>>) -> Result<(), GfrStatus> {
+    fn fold(&mut self, cap: Option<&CapPolicy<'_>>, budget: &CheckBudget) -> Result<(), GfrStatus> {
         for component in self.components() {
             let sigs = self.take_signatures(component);
             let mut kept = Vec::with_capacity(sigs.len());
-            union_signatures(&mut kept, sigs, cap)?;
+            let subkey = match component {
+                Component::Subkey(i) => Some(self.subkeys[i].public().clone()),
+                _ => None,
+            };
+            union_signatures(
+                &mut kept,
+                sigs,
+                &UnionCtx {
+                    cap,
+                    subkey: subkey.as_ref().map(|s| (&self.primary, s)),
+                    budget,
+                },
+            )?;
             for sig in kept {
                 self.push_signature(component, sig);
             }
@@ -3415,7 +3623,12 @@ impl WorkCert {
     /// of this one is dropped; with `cap`, `other`'s signatures that are not
     /// verified self-signatures are capped, which is right only once `other`
     /// is canonicalized.
-    fn absorb(&mut self, other: WorkCert, cap: bool) -> Result<(), GfrStatus> {
+    fn absorb(
+        &mut self,
+        other: WorkCert,
+        cap: bool,
+        budget: &CheckBudget,
+    ) -> Result<(), GfrStatus> {
         if self.fingerprint() != other.fingerprint() {
             return Err(GfrStatus::ErrorInvalidInput);
         }
@@ -3423,8 +3636,14 @@ impl WorkCert {
         let policy = CapPolicy {
             primary: &primary,
             verified: &other.verified,
+            unverifiable: &other.unverifiable,
         };
         let cap = cap.then_some(&policy);
+        let plain = UnionCtx {
+            cap,
+            subkey: None,
+            budget,
+        };
 
         if self.secret.is_none() {
             self.secret = other.secret;
@@ -3433,12 +3652,12 @@ impl WorkCert {
         union_signatures(
             &mut self.details.direct_signatures,
             other.details.direct_signatures,
-            cap,
+            &plain,
         )?;
         union_signatures(
             &mut self.details.revocation_signatures,
             other.details.revocation_signatures,
-            cap,
+            &plain,
         )?;
 
         for user in other.details.users {
@@ -3448,7 +3667,7 @@ impl WorkCert {
                 .iter_mut()
                 .find(|u| u.id.id() == user.id.id())
             {
-                Some(dst) => union_signatures(&mut dst.signatures, user.signatures, cap)?,
+                Some(dst) => union_signatures(&mut dst.signatures, user.signatures, &plain)?,
                 None => self.details.users.push(user),
             }
         }
@@ -3460,13 +3679,13 @@ impl WorkCert {
                 .iter_mut()
                 .find(|a| a.attr == attr.attr)
             {
-                Some(dst) => union_signatures(&mut dst.signatures, attr.signatures, cap)?,
+                Some(dst) => union_signatures(&mut dst.signatures, attr.signatures, &plain)?,
                 None => self.details.user_attributes.push(attr),
             }
         }
 
         for sub in other.subkeys {
-            self.absorb_subkey(sub, cap)?;
+            self.absorb_subkey(sub, cap, budget)?;
         }
         Ok(())
     }
@@ -3541,10 +3760,11 @@ pub fn merge_key_block_report(
         return Err(GfrStatus::ErrorInvalidInput);
     }
     let budget = CheckBudget::new();
+    let stored_revokers = base.designated_revokers(&budget);
     let stored = base.stored_components()?;
-    incoming.canonicalize(&stored, &budget)?;
-    base.fold(None)?;
-    base.absorb(incoming, true)?;
+    incoming.canonicalize(&stored_revokers, &stored, &budget)?;
+    base.fold(None, &budget)?;
+    base.absorb(incoming, true, &budget)?;
     Ok(ImportOutcome {
         keys: base.export()?,
         check_limit_reached: budget.reached(),
@@ -3566,7 +3786,7 @@ pub fn merge_key_block_internal(
 pub fn canonicalize_key_block_report(block: &str) -> Result<ImportOutcome, GfrStatus> {
     let mut cert = WorkCert::parse(block)?;
     let budget = CheckBudget::new();
-    cert.canonicalize(&StoredComponents::default(), &budget)?;
+    cert.canonicalize(&[], &StoredComponents::default(), &budget)?;
     Ok(ImportOutcome {
         keys: cert.export()?,
         check_limit_reached: budget.reached(),
@@ -6857,6 +7077,51 @@ mod key_tests {
         Subpacket::regular(SubpacketData::IssuerFingerprint(fpr)).unwrap()
     }
 
+    /// A direct key signature (0x1F) by `target` naming `revoker` as its
+    /// designated revoker (RFC 9580 §5.2.3.23).
+    fn designating(target: &keys::Fixture, revoker: &keys::Fixture, created: u32) -> Signature {
+        use pgp::types::{RevocationKey, RevocationKeyClass};
+        let primary = &target.secret.primary_key;
+        let revoker_key = &revoker.secret.primary_key;
+        let mut cfg =
+            SignatureConfig::from_key(rand::thread_rng(), primary, SignatureType::Key).unwrap();
+        cfg.hashed_subpackets = vec![
+            creation(created),
+            issued_by(primary.fingerprint()),
+            Subpacket::regular(SubpacketData::RevocationKey(RevocationKey::new(
+                RevocationKeyClass::Default,
+                revoker_key.algorithm(),
+                revoker_key.fingerprint().as_bytes(),
+            )))
+            .unwrap(),
+        ];
+        cfg.unhashed_subpackets.clear();
+        cfg.sign_key(primary, &Password::empty(), primary.public_key())
+            .unwrap()
+    }
+
+    /// A revocation (0x28) of `target`'s first subkey made by `revoker`, who
+    /// names itself as the issuer.
+    fn subkey_revocation_by(
+        revoker: &keys::Fixture,
+        target: &SignedPublicKey,
+        created: u32,
+    ) -> Signature {
+        let signing = &revoker.secret.primary_key;
+        let mut cfg =
+            SignatureConfig::from_key(rand::thread_rng(), signing, SignatureType::SubkeyRevocation)
+                .unwrap();
+        cfg.hashed_subpackets = vec![creation(created), issued_by(signing.fingerprint())];
+        cfg.unhashed_subpackets.clear();
+        cfg.sign_subkey_binding(
+            signing,
+            &target.primary_key,
+            &Password::empty(),
+            &target.public_subkeys[0].key,
+        )
+        .unwrap()
+    }
+
     /// A key revocation (0x20) by `target` itself.
     fn self_key_revocation(target: &keys::Fixture, created: u32) -> Signature {
         let primary = &target.secret.primary_key;
@@ -6867,6 +7132,40 @@ mod key_tests {
         cfg.unhashed_subpackets.clear();
         cfg.sign_key(primary, &Password::empty(), primary.public_key())
             .unwrap()
+    }
+
+    #[test]
+    fn a_designated_revokers_subkey_revocation_is_kept() {
+        // Someone else's signature on a subkey means nothing, except a
+        // revocation by a revoker the key holder designated.
+        let target = &keys::V4_SIGN;
+        let revoker = &keys::V4_PRIMARY_ONLY;
+        let stranger = &keys::V4_NISTP256;
+        let genuine = SignedPublicKey::from(target.secret.clone());
+        let created = genuine.primary_key.created_at().as_secs();
+        let designation = designating(target, revoker, created + 3);
+        let by_revoker = subkey_revocation_by(revoker, &genuine, created + 4);
+        let by_stranger = subkey_revocation_by(stranger, &genuine, created + 5);
+
+        let mut cert = genuine.clone();
+        cert.details.direct_signatures.push(designation.clone());
+        cert.public_subkeys[0]
+            .signatures
+            .extend([by_revoker.clone(), by_stranger.clone()]);
+        let out = canonical(cert);
+        assert!(holds(&out.public_subkeys[0].signatures, &by_revoker));
+        assert!(!holds(&out.public_subkeys[0].signatures, &by_stranger));
+
+        // The designation may be stored already, the revocation arrive later.
+        let mut stored = genuine.clone();
+        stored.details.direct_signatures.push(designation);
+        let mut incoming = genuine.clone();
+        incoming.public_subkeys[0]
+            .signatures
+            .extend([by_revoker.clone(), by_stranger.clone()]);
+        let out = merged_public(stored, incoming);
+        assert!(holds(&out.public_subkeys[0].signatures, &by_revoker));
+        assert!(!holds(&out.public_subkeys[0].signatures, &by_stranger));
     }
 
     #[test]
@@ -6914,6 +7213,145 @@ mod key_tests {
             .push(withdrawal.clone());
         let out = merged_public(stored, incoming);
         assert!(holds(&out.details.users[0].signatures, &withdrawal));
+    }
+
+    #[test]
+    fn a_merge_takes_over_a_verifying_embedded_back_signature() {
+        // Only a back-signature that verifies is taken over. GnuPG writes the primary key binding into the hashed area; other
+        // tools and key servers carry it in the unhashed one. A stored binding
+        // without it leaves a signing subkey unusable.
+        let target = &keys::V4_SIGN;
+        let primary = &target.secret.primary_key;
+        let genuine = SignedPublicKey::from(target.secret.clone());
+        let created = genuine.primary_key.created_at().as_secs();
+        let signing_sub = target
+            .secret
+            .secret_subkeys
+            .iter()
+            .find(|s| engine_can_verify_with(s.key.public_key().public_params()))
+            .expect("a subkey that can sign");
+        let sub_pub = signing_sub.key.public_key().clone();
+        let at = genuine
+            .public_subkeys
+            .iter()
+            .position(|s| s.key.fingerprint() == sub_pub.fingerprint())
+            .unwrap();
+
+        let mut cfg =
+            SignatureConfig::from_key(rand::thread_rng(), primary, SignatureType::SubkeyBinding)
+                .unwrap();
+        cfg.hashed_subpackets = vec![creation(created + 7), issued_by(primary.fingerprint())];
+        cfg.unhashed_subpackets.clear();
+        let bare_binding = cfg
+            .sign_subkey_binding(primary, primary.public_key(), &Password::empty(), &sub_pub)
+            .unwrap();
+        let back = |signer: &pgp::packet::SecretSubkey, signer_pub: &PublicSubkey| {
+            let mut cfg =
+                SignatureConfig::from_key(rand::thread_rng(), signer, SignatureType::KeyBinding)
+                    .unwrap();
+            cfg.hashed_subpackets =
+                vec![creation(created + 7), issued_by(signer_pub.fingerprint())];
+            cfg.unhashed_subpackets.clear();
+            cfg.sign_primary_key_binding(
+                signer,
+                signer_pub,
+                &Password::empty(),
+                primary.public_key(),
+            )
+            .unwrap()
+        };
+        let with_back = |backsig: Signature| {
+            let mut sig = bare_binding.clone();
+            sig.unhashed_subpacket_push(
+                Subpacket::regular(SubpacketData::EmbeddedSignature(Box::new(backsig))).unwrap(),
+            )
+            .unwrap();
+            let mut cert = genuine.clone();
+            cert.public_subkeys[at].signatures = vec![sig];
+            cert
+        };
+        let mut stored = genuine.clone();
+        stored.public_subkeys[at].signatures = vec![bare_binding.clone()];
+
+        // One made by another key does not verify, and is not taken.
+        let stranger = &keys::V4_PRIMARY_ONLY.secret.primary_key;
+        let mut cfg =
+            SignatureConfig::from_key(rand::thread_rng(), stranger, SignatureType::KeyBinding)
+                .unwrap();
+        cfg.hashed_subpackets = vec![creation(created + 7), issued_by(sub_pub.fingerprint())];
+        cfg.unhashed_subpackets.clear();
+        let forged = cfg
+            .sign_primary_key_binding(
+                stranger,
+                stranger.public_key(),
+                &Password::empty(),
+                primary.public_key(),
+            )
+            .unwrap();
+        let out = merged_public(stored.clone(), with_back(forged));
+        let binding = &out.public_subkeys[at].signatures[0];
+        assert!(
+            binding.embedded_signature().is_none(),
+            "a forged back-signature was taken"
+        );
+
+        // One that cannot be checked here (a hash rPGP does not implement) is
+        // not taken either: only a back-signature that verifies is.
+        let mut unknown = uncheckable(SignatureType::KeyBinding, sub_pub.fingerprint(), 7);
+        strip_unhashed(&mut unknown);
+        let out = merged_public(stored.clone(), with_back(unknown));
+        let binding = &out.public_subkeys[at].signatures[0];
+        assert!(
+            binding.embedded_signature().is_none(),
+            "an uncheckable back-signature was taken"
+        );
+
+        let genuine_back = back(&signing_sub.key, &sub_pub);
+        let out = merged_public(stored, with_back(genuine_back));
+        let bindings = &out.public_subkeys[at].signatures;
+        assert_eq!(bindings.len(), 1, "still one binding");
+        let embedded = bindings[0].embedded_signature().expect("taken over");
+        assert!(
+            embedded
+                .verify_primary_key_binding(&sub_pub, &genuine.primary_key)
+                .is_ok()
+        );
+    }
+
+    #[test]
+    fn a_self_signature_that_cannot_be_checked_is_kept() {
+        // A hash rPGP does not implement: not known to be bad, so not
+        // dropped. It is stored, and no check counts it as verified.
+        use pgp::crypto::{hash::HashAlgorithm, public_key::PublicKeyAlgorithm};
+        use pgp::types::{Mpi, SignatureBytes};
+        let target = &keys::V4_SIGN;
+        let genuine = SignedPublicKey::from(target.secret.clone());
+        let created = genuine.primary_key.created_at().as_secs();
+        let mut cfg = SignatureConfig::v4(
+            SignatureType::CertPositive,
+            PublicKeyAlgorithm::RSA,
+            HashAlgorithm::Other(120),
+        );
+        cfg.hashed_subpackets = vec![
+            creation(created + 9),
+            issued_by(genuine.primary_key.fingerprint()),
+        ];
+        let unknown = Signature::from_config(
+            cfg,
+            [0, 0],
+            SignatureBytes::Mpis(vec![Mpi::from_slice(&[1, 2, 3])]),
+        )
+        .unwrap();
+
+        let mut cert = genuine.clone();
+        cert.details.users[0].signatures.push(unknown.clone());
+        let out = canonical(cert);
+        assert!(holds(&out.details.users[0].signatures, &unknown));
+        assert!(
+            !verified_uid_self_sigs(&out.primary_key, &out.details.users[0])
+                .iter()
+                .any(|s| s.hash_alg() == Some(HashAlgorithm::Other(120)))
+        );
     }
 
     #[test]
@@ -7067,6 +7505,128 @@ mod key_tests {
                 .any(|s| s.key.fingerprint() == new_sub.key.fingerprint())
         );
         assert!(holds(&out.details.direct_signatures, &direct));
+    }
+
+    // -- importing: what an uncheckable self-signature may do -----------------
+
+    /// A signature of `typ` naming `issuer`, made with a hash rPGP does not
+    /// implement: it can never be checked here. `n` keeps them distinct.
+    fn uncheckable(typ: SignatureType, issuer: pgp::types::Fingerprint, n: u32) -> Signature {
+        use pgp::crypto::{hash::HashAlgorithm, public_key::PublicKeyAlgorithm};
+        use pgp::types::{Mpi, SignatureBytes};
+        let mut cfg = SignatureConfig::v4(typ, PublicKeyAlgorithm::RSA, HashAlgorithm::Other(120));
+        cfg.hashed_subpackets = vec![creation(1_700_000_000 + n), issued_by(issuer)];
+        Signature::from_config(
+            cfg,
+            [0, 0],
+            SignatureBytes::Mpis(vec![Mpi::from_slice(&[1, 2, 3])]),
+        )
+        .unwrap()
+    }
+
+    fn is_uncheckable(sig: &Signature) -> bool {
+        sig.hash_alg() == Some(pgp::crypto::hash::HashAlgorithm::Other(120))
+    }
+
+    #[test]
+    fn a_user_id_bound_only_by_an_uncheckable_signature_is_not_stored() {
+        let genuine = SignedPublicKey::from(keys::V4_SIGN.secret.clone());
+        let me = genuine.primary_key.fingerprint();
+        let forged = user_id(b"Mallory <mallory@example.org>");
+        let mut incoming = genuine.clone();
+        incoming.details.users.push(SignedUser::new(
+            forged.clone(),
+            vec![uncheckable(SignatureType::CertPositive, me, 1)],
+        ));
+
+        let as_new = canonical(incoming.clone());
+        assert!(
+            as_new.details.users.iter().all(|u| u.id != forged),
+            "stored as a new key"
+        );
+        let merged = merged_public(genuine, incoming);
+        assert!(
+            merged.details.users.iter().all(|u| u.id != forged),
+            "stored by a merge"
+        );
+    }
+
+    #[test]
+    fn a_subkey_bound_only_by_an_uncheckable_signature_is_not_stored() {
+        let genuine = SignedPublicKey::from(keys::V4_SIGN.secret.clone());
+        let me = genuine.primary_key.fingerprint();
+        let mut foreign =
+            SignedPublicKey::from(keys::V4_NISTP256.secret.clone()).public_subkeys[0].clone();
+        foreign.signatures = vec![uncheckable(SignatureType::SubkeyBinding, me, 2)];
+        let foreign_fpr = foreign.key.fingerprint();
+        let mut incoming = genuine.clone();
+        incoming.public_subkeys.push(foreign);
+
+        let as_new = canonical(incoming.clone());
+        assert!(
+            as_new
+                .public_subkeys
+                .iter()
+                .all(|s| s.key.fingerprint() != foreign_fpr),
+            "stored as a new key"
+        );
+        let merged = merged_public(genuine, incoming);
+        assert!(
+            merged
+                .public_subkeys
+                .iter()
+                .all(|s| s.key.fingerprint() != foreign_fpr),
+            "stored by a merge"
+        );
+    }
+
+    #[test]
+    fn an_uncheckable_signature_on_a_stored_user_id_is_kept() {
+        // The User ID is the holder's already: the incoming copy needs no
+        // certification of its own for its signatures to be merged in.
+        let genuine = SignedPublicKey::from(keys::V4_SIGN.secret.clone());
+        let me = genuine.primary_key.fingerprint();
+        let extra = uncheckable(SignatureType::CertPositive, me, 3);
+        let mut incoming = genuine.clone();
+        incoming.details.users[0].signatures = vec![extra.clone()];
+
+        let merged = merged_public(genuine, incoming);
+        assert!(holds(&merged.details.users[0].signatures, &extra));
+    }
+
+    #[test]
+    fn at_most_16_uncheckable_self_signatures_per_component() {
+        let genuine = SignedPublicKey::from(keys::V4_SIGN.secret.clone());
+        let me = genuine.primary_key.fingerprint();
+        let sigs = |from: u32, n: u32| -> Vec<Signature> {
+            (from..from + n)
+                .map(|i| uncheckable(SignatureType::CertPositive, me.clone(), 100 + i))
+                .collect()
+        };
+
+        let mut seventeen = genuine.clone();
+        seventeen.details.users[0].signatures.extend(sigs(0, 17));
+        let as_new = canonical(seventeen);
+        let kept = as_new.details.users[0]
+            .signatures
+            .iter()
+            .filter(|s| is_uncheckable(s));
+        assert_eq!(kept.count(), 16, "as a new key");
+
+        // Stored ones count first: a full component takes no more.
+        let mut stored = genuine.clone();
+        stored.details.users[0].signatures.extend(sigs(0, 16));
+        let mut incoming = genuine.clone();
+        let late = sigs(16, 1);
+        incoming.details.users[0].signatures.extend(late.clone());
+        let merged = merged_public(stored, incoming);
+        let uids = &merged.details.users[0].signatures;
+        assert_eq!(
+            uids.iter().filter(|s| is_uncheckable(s)).count(),
+            16,
+            "on merge"
+        );
+        assert!(!holds(uids, &late[0]));
     }
 
     // -- importing: the check budget, signatures nothing takes ---------------
