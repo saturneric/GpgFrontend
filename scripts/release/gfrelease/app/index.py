@@ -91,8 +91,7 @@ def _check_classified(product: Product, d: dict, path: str,
     picks its download by these fields."""
     for a in d["artifacts"]:
         if product.classify(a["name"], filesafe) != \
-                {k: a[k] for k in ("os", "arch", "kind", "flavor", "min_os")
-                 if k in a}:
+                descriptor.classified(a):
             raise ReleaseError(f"{path}: {a['name']} is not what the "
                                "artifact rules call it")
 

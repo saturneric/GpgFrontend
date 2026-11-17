@@ -37,8 +37,8 @@ import sys
 from pathlib import Path
 
 from ..adapters import git as gitversion
-from ..domain import policy as policy_mod
 from ..domain import layout, refs, semver
+from ..domain import policy as policy_mod
 from ..paths import ROOT
 
 

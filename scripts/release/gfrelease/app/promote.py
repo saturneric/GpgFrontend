@@ -53,9 +53,10 @@ from ..adapters.files import sha256_file
 from ..adapters.git import check_git_version
 from ..adapters.store import NotFound, Store
 from ..cli import ui
+from ..domain import descriptor as descriptors
 from ..domain import layout, refs
-from ..domain.formats import (SCHEMA, canonical_json, check_relpath, iso,
-                              load_json, parse_version)
+from ..domain.formats import (canonical_json, check_relpath, iso, load_json,
+                              parse_version)
 from ..domain.layout import BUNDLE, DESCRIPTOR, SIG, STAGED, SUMS
 from ..errors import Problems, ReleaseError, ToolFailed
 from . import index as index_mod
@@ -196,18 +197,13 @@ def promote_one(product: Product, staging: Store, builds: Store,
         shutil.copy2(work / SUMS, build / SUMS)
         shutil.copy2(work / BUNDLE, build / BUNDLE)
 
-        descriptor = {
-            "schema": SCHEMA, "product": product.slug,
-            "kind": layout.KIND_NIGHTLY,
-            "version": derived, "series": parse_version(derived).series,
-            "ref": ref, "commit": commit, "built_at": staged["built_at"],
-            "promoted_at": iso(utcnow()),
-            "signing": {"scheme": layout.SCHEME_SIGSTORE},
-            "build": {"sums": layout.build_sums(dest),
-                      "bundle": layout.build_bundle(dest),
-                      "identity": identity},
-            "artifacts": artifacts,
-        }
+        descriptor = descriptors.make(
+            layout.KIND_NIGHTLY, product.slug, derived, ref, commit,
+            {"scheme": layout.SCHEME_SIGSTORE}, artifacts,
+            built_at=staged["built_at"], promoted_at=iso(utcnow()),
+            build={"sums": layout.build_sums(dest),
+                   "bundle": layout.build_bundle(dest),
+                   "identity": identity})
 
         for entry in artifacts:
             builds.put_file(work / entry["name"], entry["path"])
