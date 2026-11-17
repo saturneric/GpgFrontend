@@ -148,8 +148,12 @@ void MainWindow::slot_open_settings_dialog() {
     restore_settings();
 
     if (restart_mode_ != kNonRestartCode) {
-      auto ok = edit_->MaybeSaveAnyTab();
-      if (ok) emit SignalRestartApplication(restart_mode_);
+      // Taken and disarmed here: `finished` fires on Cancel too, so a restart
+      // left armed after a declined save prompt went off the next time
+      // Settings was closed, whatever the user did there.
+      const auto mode = restart_mode_;
+      restart_mode_ = kNonRestartCode;
+      if (edit_->MaybeSaveAnyTab()) emit SignalRestartApplication(mode);
     }
   });
 }
