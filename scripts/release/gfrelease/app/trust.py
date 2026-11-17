@@ -44,15 +44,12 @@ from ..domain import policy as policy_mod
 from ..domain.formats import (canonical_json, iso, load_json, parse_iso,
                               sha256_bytes)
 from ..domain.layout import MINISIG
-from ..domain.limits import EXPIRY_SKEW
+from ..domain.limits import EXPIRY_SKEW, MAX_ROLE_KEYS, MAX_ROOT_STEPS
 from ..errors import ReleaseError, ToolFailed
 
 SCHEMA = 1
 ROOT_KIND, INDEX_KEYS_KIND = "root", "index-keys"  # a file's "type"
-MAX_STEPS = 32  # roots taken from one source in one go
-# The most keys a role may name: a client fetches a signature for each root
-# key before it checks anything (RootTrust.h's kMaxRootKeys).
-MAX_ROLE_KEYS = 16
+MAX_STEPS = MAX_ROOT_STEPS
 ROOT_LIFETIME = dt.timedelta(days=2 * 365)
 INDEX_KEYS_LIFETIME = dt.timedelta(days=365)
 

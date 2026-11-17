@@ -22,7 +22,6 @@ and what sits in it is not the host's word until the signature says so.
 
 from __future__ import annotations
 
-import datetime as dt
 import json
 import os
 import shutil
@@ -216,13 +215,6 @@ def release_notes(git_dir: Path, version: str) -> bytes | None:
     return None
 
 
-def _notes_fields(version: str, notes: bytes) -> dict:
-    digest = sha256_bytes(notes)
-    notes_path = layout.notes_path(version, digest)
-    return {"notes": notes_path, "notes_sha256": digest,
-            "notes_sig": notes_path + SIG}
-
-
 RECORD_SCHEMA = 4
 
 
@@ -253,10 +245,6 @@ def _read_record(path: Path) -> dict | None:
     return load_json(path.read_text(), str(path))
 
 
-def _iso_of(created: int) -> str:
-    return iso(dt.datetime.fromtimestamp(created, dt.timezone.utc))
-
-
 def _check_signature_times(signatures: dict, stale: dict | None,
                            tag: str, tagged_at: int) -> None:
     """The maintainer signatures a release rests on: none older than its
@@ -268,21 +256,13 @@ def _check_signature_times(signatures: dict, stale: dict | None,
     for name, sig in signatures.items():
         if sig["created"] < tagged_at:
             raise ReleaseError(
-                f"{name}: signed at {_iso_of(sig['created'])}, before its tag "
-                f"{tag} ({_iso_of(tagged_at)})")
+                f"{name}: signed at {index_model.iso_of(sig['created'])}, before its tag "
+                f"{tag} ({index_model.iso_of(tagged_at)})")
         if name in before and sig["created"] < before[name]["created"]:
             raise ReleaseError(
-                f"{name}: signed at {_iso_of(sig['created'])}, older than the "
-                f"signature admitted before ({_iso_of(before[name]['created'])}"
+                f"{name}: signed at {index_model.iso_of(sig['created'])}, older than the "
+                f"signature admitted before ({index_model.iso_of(before[name]['created'])}"
                 "): a replay is never admitted")
-
-
-def _signature_fields(signatures: dict) -> dict:
-    """The index entry's record of when each file's maintainer signature
-    was made, and by whom (the manifest's is not a file a client gets)."""
-    return {"signatures": {
-        name: {"signer": sig["signer"], "created": _iso_of(sig["created"])}
-        for name, sig in sorted(signatures.items()) if name != SUMS}}
 
 
 def _append_history(path: Path, line: dict) -> None:
@@ -360,7 +340,7 @@ def _admit_release(product: Product, builds: Store, path: str, raw: bytes,
         except ReleaseError:
             previous_notes = None
     notes = release_notes(git_dir, version)
-    wanted = _notes_fields(version, notes) if notes is not None else None
+    wanted = index_model.notes_fields(version, notes) if notes is not None else None
     chosen = previous_notes
     kept = None
     if wanted is not None and wanted != previous_notes:
@@ -390,8 +370,8 @@ def _admit_release(product: Product, builds: Store, path: str, raw: bytes,
     if notes_required and chosen is None:
         raise ReleaseError(f"{tag}: no release notes to publish with it")
 
-    entry = {"descriptor": path, "sha256": base["sha256"]} | \
-        (chosen or {}) | _signature_fields(signatures)
+    entry = index_model.release_entry(path, base["sha256"], chosen,
+                                      signatures)
     new_record = dict(base, schema=RECORD_SCHEMA, kind=kind, notes=chosen,
                       signatures=signatures)
     if dry or new_record == record:
@@ -692,8 +672,7 @@ def _admitted_builds(product: Product, builds: Store, tmp: Path, *,
             continue
         if parse_version(d["version"]) in withdrawn:
             continue
-        listed = {"version": d["version"], "descriptor": path,
-                  "sha256": sha256_bytes(raw)}
+        listed = index_model.build_entry(d["version"], path, raw)
         # main's builds are the nightly channel; a release/X.Y branch's
         # are the beta of that series (which one is chosen once the
         # releases are known). admit_nightly admits no other ref.
@@ -914,8 +893,7 @@ def _sign_and_publish(product: Product, content: dict, update: Store, *,
         raise ReleaseError(f"{update}: v1/history/ holds every serial up to "
                            f"{serial - 1}, far beyond the published one; "
                            "something else writes there")
-    index = dict(content, serial=serial, generated_at=iso(now),
-                 expires=iso(now + index_model.LIFETIME))
+    index = index_model.dated(content, serial, now)
 
     with tempfile.TemporaryDirectory(prefix="gfr-sign-") as tmp:
         local = Path(tmp) / "index.json"
