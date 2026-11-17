@@ -41,18 +41,14 @@ def atomic_write(path: Path, data: bytes | str) -> None:
 
 
 @contextlib.contextmanager
-def locked(state_dir: Path, shared: bool = False):
-    """One run at a time per host: promote, index and resign all write the
+def locked(state_dir: Path):
+    """One run at a time per host: promote and index both write the
     same state directory, and the stores through it. A second run is
-    refused at once. With @p shared (a reader of the state directory: a dry
-    run copying it) it waits for the run in progress instead.
+    refused at once.
 
-    The lock is this host's only. The maintainer's `stable` and `import`
+    The lock is this host's only. The maintainer's `stable`
     and CI's `stage` write the stores from other machines, each under paths
-    of its own (releases/<version>/, branches/, tags/).
-
-    Windows has no shared lock on a byte range through msvcrt: a reader
-    there is refused like a second writer, rather than made to wait."""
+    of its own (releases/<version>/, branches/, tags/)."""
     state_dir = Path(state_dir)
     state_dir.mkdir(parents=True, exist_ok=True)
     lock = state_dir / layout.STATE_LOCK
@@ -64,8 +60,7 @@ def locked(state_dir: Path, shared: bool = False):
                 f.seek(0)
                 msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
             else:
-                fcntl.flock(f, fcntl.LOCK_SH if shared
-                            else fcntl.LOCK_EX | fcntl.LOCK_NB)
+                fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except (BlockingIOError, PermissionError):
             raise ReleaseError(f"another run holds {lock}")
         yield

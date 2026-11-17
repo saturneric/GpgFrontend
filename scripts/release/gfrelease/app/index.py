@@ -32,7 +32,7 @@ from .. import report
 from ..adapters import minisig, openpgp
 from ..adapters.clock import utcnow
 from ..adapters.cosign import verify_blob
-from ..adapters.files import atomic_write, locked, sha256_file
+from ..adapters.files import atomic_write, sha256_file
 from ..adapters.git import (check_git_version, notes_at, resolve_commit,
                             tag_time, tagged_commit)
 from ..adapters.store import Store, StoreUnavailable
@@ -765,48 +765,6 @@ def read_serial(state_dir: Path) -> int:
         return int(path.read_text())
     except ValueError as e:
         raise ReleaseError(f"{path}: not a serial") from e
-
-
-def dry_run(product: Product, builds: Store, update: Store, *,
-            state_dir: Path, git_dir: Path | None = None,
-            index_pub: list[str], cosign: str = "cosign",
-            authenticode_ca: str | None = None) -> dict:
-    """Everything an index run decides, and nothing it writes: admission
-    runs against a copy of the state directory, nothing is signed or
-    uploaded. Returns what would be listed, what was refused, and
-    how it differs from the published index."""
-    refused = Problems()
-    listed = trusted_published(product, update, index_pub)
-    with tempfile.TemporaryDirectory(prefix="gfr-dry-") as tmp:
-        state = Path(tmp) / "state"
-        if Path(state_dir).is_dir():
-            # Copied while no run is writing it: a record half replaced
-            # would read as a release never admitted.
-            with locked(state_dir, shared=True):
-                shutil.copytree(state_dir, state)
-        # Admission runs as for real, against the copy; nothing is written.
-        content = build(product, builds, git_dir=git_dir,
-                        state_dir=state, cosign=cosign,
-                        authenticode_ca=authenticode_ca, refused=refused,
-                        previous=listed, dry=True)
-    previous = listed or {}
-    before = {k: v for k, v in previous.items() if k not in index_model.VOLATILE}
-    return {
-        "channels": index_model.summary(content),
-        "releases": sorted(content["releases"], key=parse_version),
-        "nightly": (content["nightly"] or {}).get("version"),
-        "beta": index_model.summary(content)["beta"],
-        "betas": {key: entry["beta"]["version"]
-                  for key, entry in content["series"].items()
-                  if entry["beta"]},
-        "refused": list(refused),
-        "changes": sorted(k for k in set(before) | set(content)
-                          if before.get(k) != content.get(k)),
-        "added": sorted(set(content["releases"]) -
-                        set(before.get("releases", {}))),
-        "removed": sorted(set(before.get("releases", {})) -
-                          set(content["releases"])),
-    }
 
 
 def publish(product: Product, builds: Store, update: Store, *,
