@@ -1,11 +1,11 @@
 # Copyright (C) 2021-2026 Saturneric <eric@bktus.com>
 # SPDX-License-Identifier: GPL-3.0-or-later
 """The signing host's two steps, each a command: promote, and index
-(resign is index --force), and what the host's container reads of them:
-the command line's, not the steps' own (app/promote.py, app/index.py). promote is everything that brings something
+(resign is index --force). promote is everything that brings something
 from the staging store to the builds store, which only the host writes:
 the branch builds CI staged, and the releases and notes a maintainer
-handed over.
+handed over. The steps are app/promote.py's and app/index.py's; what
+they say to the host is this module's.
 
 Which step runs when, in what order, how often, and what is done about
 the stores besides (pruning, mirroring) is for whoever runs the host: the
