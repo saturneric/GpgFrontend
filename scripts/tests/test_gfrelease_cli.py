@@ -26,6 +26,7 @@ from unittest import mock
 ROOT = Path(__file__).resolve().parents[2]
 
 import _paths  # noqa: E402,F401
+from gfrelease import report  # noqa: E402
 from gfrelease.cli import settings as settings_mod  # noqa: E402
 from gfrelease.cli import topics  # noqa: E402
 from gfrelease.cli import ui  # noqa: E402
@@ -250,6 +251,23 @@ class CliTest(unittest.TestCase):
         status, _, err = self.run_cli("-v", "trust", "root", "status")
         self.assertEqual(status, 0, err)
         self.assertRegex(err, r"(?m)^\+ git -C ")
+
+    def test_what_a_role_reports_is_shown_as_the_command_line_shows_it(self):
+        # The roles report through gfrelease.report, never printing
+        # themselves; once the command line is configured, a warning is a
+        # "warning:" line on stderr and progress a line on stdout.
+        ui.configure()
+        self.addCleanup(ui.configure)
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            report.warn("two lines\nof it")
+            report.info("progress")
+        self.assertEqual(err.getvalue(), "warning: two lines\n  of it\n")
+        self.assertEqual(out.getvalue(), "progress\n")
+        ui.configure(quiet=True)
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            report.warn("not shown")
+        self.assertNotIn("not shown", out.getvalue() + err.getvalue())
 
     def test_json_is_one_document(self):
         status, out, _ = self.run_cli("--json", "trust", "root", "verify")

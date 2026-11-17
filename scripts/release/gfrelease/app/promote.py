@@ -47,12 +47,12 @@ import shutil
 import tempfile
 from pathlib import Path
 
+from .. import report
 from ..adapters import openpgp
 from ..adapters.clock import utcnow
 from ..adapters.files import sha256_file
 from ..adapters.git import check_git_version
 from ..adapters.store import NotFound, Store
-from ..cli import ui
 from ..domain import descriptor as descriptors
 from ..domain import layout, refs
 from ..domain.formats import (canonical_json, check_relpath, iso, load_json,
@@ -226,7 +226,7 @@ def promote(product: Product, staging: Store, builds: Store, *,
             # pushed at vX.Y.Z): the stable release, which only the offline
             # stage publishes. Not a nightly, and not a failure either.
             if parse_version(staged["version"]).is_final:
-                ui.warn(f"{prefix}: {staged['version']} is a final "
+                report.warn(f"{prefix}: {staged['version']} is a final "
                         "version, published as the stable release, never as "
                         "a nightly")
                 continue

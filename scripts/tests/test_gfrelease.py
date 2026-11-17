@@ -1516,10 +1516,9 @@ class ChainTest(unittest.TestCase):
         self.git("checkout", "-q", "-b", "release/2.2", "v2.2.4")
         _, version = self.build(ref="refs/heads/release/2.2")
         self.assertEqual(version, "2.2.4")
-        err = io.StringIO()
-        with contextlib.redirect_stderr(err):
+        with self.assertLogs("gfrelease", "WARNING") as said:
             self.assertEqual(self.promote(), [])
-        self.assertIn("final version", err.getvalue())
+        self.assertIn("final version", "\n".join(said.output))
         self.assertFalse(self.builds.exists(f"nightly/2.2.4/{layout.DESCRIPTOR}"))
 
     def test_a_withdrawn_nightly_is_never_named(self):
