@@ -13,7 +13,6 @@ import json
 import os
 import shutil
 import subprocess
-import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -21,13 +20,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent.parent
 RELEASE = ROOT / "scripts" / "release"
 TRUST_FIXTURE = ROOT / "scripts" / "tests" / "fixtures" / "trust" / "root"
-sys.path.insert(0, str(RELEASE))
 
-import check_order  # noqa: E402
-import gitversion  # noqa: E402
-import policy  # noqa: E402
-import refs  # noqa: E402
-import semver  # noqa: E402
+import _paths  # noqa: E402,F401
+from gfrelease.app import check_order  # noqa: E402
+from gfrelease.adapters import gitversion  # noqa: E402
+from gfrelease.domain import policy  # noqa: E402
+from gfrelease.domain import refs  # noqa: E402
+from gfrelease.domain import semver  # noqa: E402
 
 GIT = shutil.which("git")
 CMAKE = shutil.which("cmake")
@@ -340,7 +339,7 @@ class SecurityRenderTest(unittest.TestCase):
         rendered = policy.render_security(current, policy.load_policy(),
                                           policy.newest_root())
         self.assertEqual(current, rendered,
-                         "run scripts/release/policy.py render-security")
+                         "run scripts/gfrelease policy render-security")
 
     def test_table_follows_the_policy(self):
         table = policy.render_versions(POLICY)

@@ -77,7 +77,7 @@ $others"
 printf '%s\n' "$dirty" | grep -q -E '^.. release/policy\.toml$' ||
   die "edit release/policy.toml first: ${series} stable, ${next} mainline"
 
-policy=(python3 "${here}/policy.py" --policy "${top}/release/policy.toml"
+policy=(python3 -I "${here}/gfrelease" policy --policy "${top}/release/policy.toml"
   --product "${top}/release/product.json" --security "${top}/SECURITY.md"
   --root-dir "${top}/release/root")
 "${policy[@]}" check

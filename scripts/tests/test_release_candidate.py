@@ -21,18 +21,16 @@ import os
 import random
 import re
 import shutil
-import sys
 import tempfile
 import textwrap
 import unittest
 from pathlib import Path
 
 SCRIPTS = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(SCRIPTS))
 
-sys.path.insert(0, str(SCRIPTS / "tests"))
 
-import release_candidate as rc  # noqa: E402
+import _paths  # noqa: E402,F401
+from gfrelease.app import candidate as rc  # noqa: E402
 from trustutil import stand_in, symlink  # noqa: E402
 
 WORKFLOW = SCRIPTS.parent / ".github" / "workflows" / "build.yml"

@@ -14,16 +14,15 @@ import json
 import os
 import shutil
 import subprocess
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 SCRIPT = ROOT / "cmake" / "GitVersion.cmake"
-sys.path.insert(0, str(ROOT / "scripts" / "release"))
 
-import semver  # noqa: E402
+import _paths  # noqa: E402,F401
+from gfrelease.domain import semver  # noqa: E402
 
 CMAKE = shutil.which("cmake")
 GIT = shutil.which("git")

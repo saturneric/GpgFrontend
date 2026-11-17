@@ -30,7 +30,7 @@
 #
 # Trunk model: main is the next minor release, release/X.Y receives fixes
 # for one series, and versions come from tags (cmake/GitVersion.cmake). Four
-# channels, each fed by one kind of ref (scripts/release/refs.py):
+# channels, each fed by one kind of ref (scripts/release/gfrelease/domain/refs.py):
 #   - a release tag vX.Y.Z  -> release build                 publish: final
 #   - a push to main        -> nightly build                 publish: nightly-main
 #   - a push to release/X.Y -> beta build of that series     publish: beta
@@ -59,7 +59,7 @@ set -euo pipefail
 
 : "${GITHUB_EVENT_NAME:?}" "${GITHUB_REF:?}"
 
-# The ref shapes, spelled as scripts/release/refs.py and semver.RELEASE_TAG
+# The ref shapes, spelled as scripts/release/gfrelease/domain/refs.py and semver.RELEASE_TAG
 # spell them (scripts/tests/test_build_mode.py holds them together): no
 # leading zeros, nothing after the last number.
 num='(0|[1-9][0-9]*)'

@@ -66,8 +66,10 @@ python3 -I - "$here/gfrelease" "$top/release/product.json" "$dir" "$base" \
 import json, sys
 from pathlib import Path
 gfr, src, d, base, repo, workflow = sys.argv[1:]
-sys.path.insert(0, gfr)
-import layout, minisig, trust
+sys.path.insert(0, str(Path(gfr).parent))
+from gfrelease.adapters import minisig
+from gfrelease.app import trust
+from gfrelease.domain import layout
 p = json.load(open(src))
 p["bases"] = {"update": [f"{base}/update/"], "builds": [f"{base}/builds/"]}
 json.dump(p, open(f"{d}/product.json", "w"), indent=2)
@@ -103,8 +105,8 @@ done
 
 echo "== CI: a candidate of HEAD, signed for main, staged"
 commit="$(git -C "$top" rev-parse HEAD)"
-version="$(python3 "$here/gitversion.py" --repo "$top" --rev "$commit" --ref main)"
-filesafe="$(python3 "$here/gitversion.py" --repo "$top" --rev "$commit" --ref main \
+version="$("${gfr[@]}" ci version --repo "$top" --rev "$commit" --ref main)"
+filesafe="$("${gfr[@]}" ci version --repo "$top" --rev "$commit" --ref main \
   --field filesafe)"
 for leg in linux-x86_64.AppImage windows-x86_64.msi windows-x86_64-portable.zip \
            macos-15.dmg android-arm64-v8a.apk; do

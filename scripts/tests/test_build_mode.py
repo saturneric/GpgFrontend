@@ -13,15 +13,14 @@ import functools
 import os
 import shutil
 import subprocess
-import sys
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
-sys.path.insert(0, str(ROOT / "scripts" / "release"))
 
-import refs  # noqa: E402
-import semver  # noqa: E402
+import _paths  # noqa: E402,F401
+from gfrelease.domain import refs  # noqa: E402
+from gfrelease.domain import semver  # noqa: E402
 
 SCRIPT = ROOT / "scripts" / "ci" / "build_mode.sh"
 
@@ -166,7 +165,7 @@ class BuildModeTest(unittest.TestCase):
                          "com.bktus.gpgfrontend.nightly")
 
     def test_the_ref_shapes_match_the_tooling(self):
-        # The shell patterns and scripts/release/refs.py must agree, or CI
+        # The shell patterns and scripts/release/gfrelease/domain/refs.py must agree, or CI
         # stages a build the release server then refuses (or skips one it
         # would take).
         for tag in ("v2.3.0", "v10.0.1", "v0.0.0", "v2.3.0-beta.1",

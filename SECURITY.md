@@ -10,7 +10,7 @@ inconvenience this may cause. The situation may improve in the future. Hence,
 it's recommended to always use the latest version of the application.
 
 The table below is generated from `release/policy.toml`; edit that file and
-run `scripts/release/policy.py render-security`, never the table itself.
+run `scripts/gfrelease policy render-security`, never the table itself.
 
 <!-- policy:versions:begin -->
 | Version | Status                                  | Supported | Until      |

@@ -8,7 +8,7 @@
 #   scripts/release/notes.sh X.Y.Z [--force]
 #
 # Writes release/notes/<version>.md. Edit that file and land it in a PR
-# before tagging: the tagged tree must carry it (scripts/release/check_order.py
+# before tagging: the tagged tree must carry it (`gfrelease ci check-order`
 # fails a tag build without it), and it is what gets published and signed.
 # Needs git-cliff (https://git-cliff.org); configured by cliff.toml.
 set -euo pipefail
@@ -45,7 +45,7 @@ fi
 previous="$(python3 - "$top" "$version" "$here" <<'PY'
 import subprocess, sys
 sys.path.insert(0, sys.argv[3])
-import semver
+from gfrelease.domain import semver
 top, version = sys.argv[1], semver.parse(sys.argv[2])
 tags = subprocess.run(["git", "tag", "--merged", "HEAD", "--list", "v*"],
                       cwd=top, check=True, capture_output=True,

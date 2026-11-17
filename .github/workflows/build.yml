@@ -180,8 +180,8 @@ jobs:
       - name: Check Release Policy
         run: |
           set -euo pipefail
-          python3 scripts/release/policy.py check
-          python3 scripts/release/policy.py check-security
+          scripts/gfrelease policy check
+          scripts/gfrelease policy check-security
 
       # The update trust: release/root/ walks from root 1 on the threshold
       # signatures, the newest index-keys list is G's, neither has expired.
@@ -192,7 +192,7 @@ jobs:
       # must carry its reviewed notes. Fails main when the base tag of the
       # last cut was not pushed (scripts/release/cut.sh).
       - name: Check Version Order
-        run: python3 scripts/release/check_order.py
+        run: scripts/gfrelease ci check-order
 
       - name: Resolve Build Mode
         id: mode
@@ -619,7 +619,7 @@ jobs:
       - name: Stage Release Candidate
         run: |
           set -euo pipefail
-          python3 ./scripts/release_candidate.py stage \
+          scripts/gfrelease candidate stage \
             --artifacts in/ \
             --out candidate/
 
