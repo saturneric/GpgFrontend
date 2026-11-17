@@ -1,13 +1,13 @@
 # Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""What every gfrelease role shares: errors, hashing, configuration, the lock."""
+"""What every gfrelease role shares: errors, hashing, configuration, the lock.
+
+Being taken apart: what has moved is handed on from where it is now."""
 
 from __future__ import annotations
 
 import contextlib
 import datetime as dt
-import hashlib
-import json
 import os
 import re
 import subprocess
@@ -27,8 +27,13 @@ from .cli import ui
 from .domain import policy as policy_mod
 from .domain import refs, semver
 from .paths import RELEASE_DIR, ROOT  # noqa: F401  (others take them here)
+from .domain.formats import (SCHEMA, canonical_json, check_relpath, iso,
+                              load_json, parse_iso, parse_version,
+                              sha256_bytes)
+from .domain.limits import EXPIRY_SKEW, NOTES_LIMIT, SMALL_OBJECT_LIMIT
+from .errors import (Problems, ReleaseError, ToolFailed, ToolTimeout,
+                     is_passing)
 
-SCHEMA = 1
 DESCRIPTOR = "release.json"
 SIG = ".sig"        # an OpenPGP detached signature, binary
 STAGED = "staged.json"
@@ -41,64 +46,6 @@ INDEX = "v1/index.json"
 # run: a transfer that hangs ends as a failed step, and the next round tries
 # again, rather than holding the host's lock for ever.
 TOOL_TIMEOUT = 3600
-# The most a descriptor, an index, a manifest, a signature or release notes
-# may weigh. They are read into memory whole, and come from buckets and
-# mirrors others can write to.
-SMALL_OBJECT_LIMIT = 8 << 20
-# Release notes: what the update check reads of them at most
-# (UpdateChecker::kMaxNotesBytes); longer ones it would drop.
-NOTES_LIMIT = 256 << 10
-# How far a clock may be off before something has expired: the update
-# check allows as much (kExpirySkewSeconds).
-EXPIRY_SKEW = dt.timedelta(days=1)
-
-# What a path inside a descriptor or the index may look like: relative to the
-# product root, no scheme, no "..", no empty or dot segments, nothing a URL
-# join or a filesystem could read as escaping it.
-_SEGMENT = re.compile(r"[A-Za-z0-9][A-Za-z0-9._+-]*")
-
-
-class ReleaseError(Exception):
-    pass
-
-
-class ToolFailed(ReleaseError):
-    """A tool could not do its job (git, cmake, rclone, gpg importing keys,
-    minisign signing): nothing was decided about what it worked on, and the
-    next run may well succeed. Unlike a verification that ran and said no,
-    which is a ReleaseError."""
-
-    passing = True  # is_passing
-
-
-class ToolTimeout(ToolFailed):
-    """A tool did not finish within its time limit."""
-
-
-class Problems(list):
-    """What a run could not do, one line each, and whether trying again may
-    help: a problem is passing when it came from a store that did not
-    answer or a tool that did not finish, lasting when the thing itself was
-    refused (a forged candidate, a bad signature), which the next run would
-    only refuse again."""
-
-    passing = False
-
-    def note(self, where: str, error: Exception) -> None:
-        text = str(error)
-        # Most errors name their place already: never twice.
-        head, sep, rest = text.partition(": ")
-        if sep and (head == where or where.endswith("/" + head)):
-            text = rest
-        self.append(f"{where}: {text}")
-        if is_passing(error):
-            self.passing = True
-
-
-def is_passing(error: Exception) -> bool:
-    """Not a judgement of what was asked about, only a failure to ask:
-    worth trying again as it is (ToolFailed, store.StoreUnavailable)."""
-    return getattr(error, "passing", False)
 
 
 def candidate_error(where: str, error: Exception) -> ReleaseError:
@@ -125,45 +72,8 @@ def verify_candidate(where: str, work: Path, staged: dict, identity: str,
     return files
 
 
-def check_relpath(path: str) -> str:
-    # fullmatch: "$" would also match before a trailing newline, and let
-    # "a/b\n/c" through.
-    if not isinstance(path, str) or \
-            any(not _SEGMENT.fullmatch(p) for p in path.split("/")):
-        raise ReleaseError(f"not a product-relative path: {path!r}")
-    return path
-
-
 def sha256_file(path: Path) -> str:
     return rc.digest(Path(path))
-
-
-def sha256_bytes(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()
-
-
-def load_json(data: bytes | str, what: str) -> dict:
-    """A JSON object read from a store or the state directory; anything else
-    is a ReleaseError naming @p what, never a traceback."""
-    if not isinstance(data, (bytes, str)):
-        raise ReleaseError(f"{what}: missing")
-    if len(data) > SMALL_OBJECT_LIMIT:
-        raise ReleaseError(f"{what}: larger than {SMALL_OBJECT_LIMIT} bytes")
-    try:
-        value = json.loads(data, object_pairs_hook=policy_mod.unique_keys)
-    except (ValueError, UnicodeDecodeError, RecursionError) as e:
-        raise ReleaseError(f"{what}: not JSON ({e})") from e
-    if not isinstance(value, dict):
-        raise ReleaseError(f"{what}: not a JSON object")
-    return value
-
-
-def parse_version(text, what: str = "") -> semver.Version:
-    """semver.parse, failing as a ReleaseError."""
-    try:
-        return semver.parse(text if isinstance(text, str) else "")
-    except ValueError as e:
-        raise ReleaseError(f"{what + ': ' if what else ''}{e}") from e
 
 
 def atomic_write(path: Path, data: bytes | str) -> None:
@@ -193,12 +103,6 @@ def render_manifest(hashes: dict[str, str]) -> bytes:
     return rc.render_manifest(hashes).encode("ascii")
 
 
-def canonical_json(value) -> bytes:
-    """One byte form per value: what is hashed and signed is reproducible."""
-    return (json.dumps(value, indent=1, sort_keys=True, ensure_ascii=False)
-            + "\n").encode("utf-8")
-
-
 def utcnow() -> dt.datetime:
     override = os.environ.get("GFR_NOW")  # tests and rehearsals only
     if override:
@@ -208,26 +112,6 @@ def utcnow() -> dt.datetime:
             t = t.replace(tzinfo=dt.timezone.utc)
         return t.astimezone(dt.timezone.utc)
     return dt.datetime.now(dt.timezone.utc).replace(microsecond=0)
-
-
-def iso(t: dt.datetime) -> str:
-    return t.strftime("%Y-%m-%dT%H:%M:%SZ")
-
-
-_UTC_TIME = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:"
-                       r"[0-9]{2}Z", re.ASCII)
-
-
-def parse_iso(text: str) -> dt.datetime:
-    """A time as iso() writes it, every field zero-padded: strptime alone
-    would take 2028-1-5T1:2:3Z too, which the update check refuses."""
-    try:
-        if not _UTC_TIME.fullmatch(text):
-            raise ValueError("not YYYY-MM-DDTHH:MM:SSZ")
-        return dt.datetime.strptime(text, "%Y-%m-%dT%H:%M:%SZ").replace(
-            tzinfo=dt.timezone.utc)
-    except (TypeError, ValueError) as e:
-        raise ReleaseError(f"not a UTC time: {text!r}") from e
 
 
 def run(cmd, **kw) -> subprocess.CompletedProcess:
