@@ -42,7 +42,12 @@ auto GpgKeyManager::SignKey(const GpgKeyPtr& key,
                             const GpgAbstractKeyPtrList& keys,
                             const QString& uid,
                             const std::unique_ptr<QDateTime>& expires) -> bool {
-  GpgBasicOperator::GetInstance(GetChannel()).SetSigners(keys, true);
+  // A certifier that cannot be used must stop the certification: with no
+  // signer set, gpg certifies with its default key instead.
+  if (GpgBasicOperator::GetInstance(GetChannel()).SetSigners(keys, true) !=
+      GPG_ERR_NO_ERROR) {
+    return false;
+  }
 
   unsigned int flags = 0;
   unsigned int expires_time_t = 0;

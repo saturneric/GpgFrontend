@@ -43,25 +43,49 @@ namespace GpgFrontend {
 GpgBasicOperator::GpgBasicOperator(int channel)
     : SingletonFunctionObject<GpgBasicOperator>(channel) {}
 
-void SetSignersImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& signers,
-                    bool ascii) {
+auto SetSignersImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& signers,
+                    bool ascii) -> GpgError {
   auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
 
   gpgme_signers_clear(ctx);
 
+  // gpgme signs with gpg's default key when the signer list is empty, so a
+  // signer quietly left out here becomes a signature by someone else that is
+  // still reported as a success. Every requested key has to make it in.
+  for (const auto& signer : signers) {
+    if (signer == nullptr) return GPG_ERR_NO_SECKEY;
+  }
   auto keys = ConvertKey2GpgKeyList(ctx_.GetChannel(), signers);
-  for (const auto& key : keys) {
-    LOG_D() << "signer's key fpr: " << key->Fingerprint();
-    if (key->IsHasSignCap()) {
-      auto error = gpgme_signers_add(ctx, static_cast<gpgme_key_t>(*key));
-      CheckGpgError(error);
+
+  QSet<QString> converted;
+  for (const auto& key : keys) converted.insert(key->ID());
+  for (const auto& signer : signers) {
+    // a disabled key is dropped by the conversion above
+    if (signer->KeyType() == GpgAbstractKeyType::kGPG_KEY &&
+        !converted.contains(signer->ID())) {
+      LOG_W() << "signer cannot be used:" << signer->ID();
+      gpgme_signers_clear(ctx);
+      return GPG_ERR_NO_SECKEY;
     }
   }
 
-  auto count = gpgme_signers_count(ctx_.DefaultContext());
-  if (static_cast<unsigned int>(signers.size()) != count) {
-    FLOG_D("not all signers added");
+  for (const auto& key : keys) {
+    LOG_D() << "signer's key fpr: " << key->Fingerprint();
+    if (!key->IsHasSignCap()) {
+      LOG_W() << "signer has no usable signing key:" << key->Fingerprint();
+      gpgme_signers_clear(ctx);
+      return GPG_ERR_NO_SECKEY;
+    }
+    auto error =
+        CheckGpgError(gpgme_signers_add(ctx, static_cast<gpgme_key_t>(*key)));
+    if (error != GPG_ERR_NO_ERROR) {
+      gpgme_signers_clear(ctx);
+      return error;
+    }
   }
+
+  if (gpgme_signers_count(ctx) == 0) return GPG_ERR_NO_SECKEY;
+  return GPG_ERR_NO_ERROR;
 }
 
 auto EncryptImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
@@ -223,7 +247,11 @@ auto SignImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& signers,
   GpgError err;
 
   // Set Singers of this opera
-  SetSignersImpl(ctx_, signers, ascii);
+  err = SetSignersImpl(ctx_, signers, ascii);
+  if (err != GPG_ERR_NO_ERROR) {
+    data_object->Swap({GpgSignResult(), GFBuffer()});
+    return err;
+  }
 
   GpgData data_in(in_buffer);
   GpgData data_out;
@@ -316,7 +344,11 @@ auto EncryptSignImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
   // Last entry data_in array has to be nullptr
   recipients.push_back(nullptr);
 
-  SetSignersImpl(ctx_, signers, ascii);
+  err = SetSignersImpl(ctx_, signers, ascii);
+  if (err != GPG_ERR_NO_ERROR) {
+    data_object->Swap({GpgEncryptResult(), GpgSignResult(), GFBuffer()});
+    return err;
+  }
 
   GpgData data_in(in_buffer);
   GpgData data_out;
@@ -359,9 +391,9 @@ auto GpgBasicOperator::EncryptSignSync(const GpgAbstractKeyPtrList& keys,
       "gpgme_op_encrypt_sign", "2.2.0");
 }
 
-void GpgBasicOperator::SetSigners(const GpgAbstractKeyPtrList& signers,
-                                  bool ascii) {
-  SetSignersImpl(ctx_, signers, ascii);
+auto GpgBasicOperator::SetSigners(const GpgAbstractKeyPtrList& signers,
+                                  bool ascii) -> GpgError {
+  return SetSignersImpl(ctx_, signers, ascii);
 }
 
 auto GpgBasicOperator::GetSigners(bool ascii) -> KeyArgsList {

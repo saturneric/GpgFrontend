@@ -310,7 +310,11 @@ auto SignFileGpgDataImpl(GpgContext& ctx_, GpgBasicOperator& basic_opera_,
   }
 
   // Set Singers of this opera
-  basic_opera_.SetSigners(keys, ascii);
+  err = basic_opera_.SetSigners(keys, ascii);
+  if (err != GPG_ERR_NO_ERROR) {
+    data_object->Swap({GpgSignResult()});
+    return err;
+  }
 
   auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
   err = CheckGpgError(
@@ -431,7 +435,11 @@ auto EncryptSignFileGpgDataImpl(GpgContext& ctx_,
   }
   auto recipients = Convert2RawGpgMEKeyList(ctx_.GetChannel(), keys);
 
-  basic_opera_.SetSigners(signer_keys, ascii);
+  err = basic_opera_.SetSigners(signer_keys, ascii);
+  if (err != GPG_ERR_NO_ERROR) {
+    data_object->Swap({GpgEncryptResult(), GpgSignResult()});
+    return err;
+  }
 
   auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
   err = CheckGpgError(gpgme_op_encrypt_sign(

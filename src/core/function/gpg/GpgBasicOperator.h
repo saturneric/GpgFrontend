@@ -219,9 +219,15 @@ class GF_CORE_EXPORT GpgBasicOperator
    * @brief  Set the private key for signatures, this operation is a global
    * operation.
    *
+   * Every requested key must be usable for signing: gpgme signs with gpg's
+   * default key when it is handed none, so a dropped signer would otherwise
+   * become a signature by someone else.
+   *
    * @param keys
+   * @return GPG_ERR_NO_ERROR, or why a requested signer cannot be used
    */
-  void SetSigners(const GpgAbstractKeyPtrList& signers, bool ascii);
+  [[nodiscard]] auto SetSigners(const GpgAbstractKeyPtrList& signers,
+                                bool ascii) -> GpgError;
 
   /**
    * @brief Get a global signature private keys that has been set.

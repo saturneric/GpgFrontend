@@ -38,6 +38,30 @@
 
 namespace GpgFrontend::Test {
 
+// gpgme signs with gpg's default key when no requested signer can be used, so
+// an unusable signer used to produce a signature by some other key in the key
+// ring, reported as a success. It is refused instead.
+TEST_F(GpgCoreTest, CoreSignRefusesASignerItWouldDrop) {
+  auto key = GpgKeyGetter::GetInstance().GetPubkeyPtr(
+      "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
+  ASSERT_TRUE(key != nullptr);
+  const GpgAbstractKeyPtrList missing = {nullptr};
+  const auto text = GFBuffer(QString("signed by whom?"));
+
+  auto [err, data_object] = GpgBasicOperator::GetInstance().SignSync(
+      missing, text, GPGME_SIG_MODE_NORMAL, true);
+  EXPECT_EQ(CheckGpgError(err), GPG_ERR_NO_SECKEY);
+
+  auto [err_1, data_object_1] = GpgBasicOperator::GetInstance().EncryptSignSync(
+      {key}, missing, text, true);
+  EXPECT_EQ(CheckGpgError(err_1), GPG_ERR_NO_SECKEY);
+
+  EXPECT_EQ(CheckGpgError(GpgBasicOperator::GetInstance().SetSigners(
+                missing, true)),
+            GPG_ERR_NO_SECKEY);
+  EXPECT_TRUE(GpgBasicOperator::GetInstance().GetSigners(true).empty());
+}
+
 // Converting the recipient list left a missing or disabled key out without a
 // word, and the message went to the rest. It is refused instead.
 TEST_F(GpgCoreTest, CoreEncryptRefusesARecipientItWouldDrop) {
