@@ -31,9 +31,11 @@ from pathlib import Path
 from urllib.parse import unquote
 from xml.sax.saxutils import quoteattr
 
-from . import authenticode
-from . import msi
-from ...common import ROOT, WINDOWS, ReleaseError, parse_version, run
+from ...domain.formats import parse_version
+from ...errors import ReleaseError
+from ...paths import ROOT
+from ..process import WINDOWS, run
+from . import authenticode, msi
 
 RESOURCES = ROOT / "resource" / "msix"
 MANIFEST = "AppxManifest.xml"

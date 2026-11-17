@@ -13,11 +13,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ..domain import layout
-from ..common import (BUNDLE, SCHEMA, STAGED, SUMS, Product, ReleaseError,
-                    canonical_json, load_json, parse_manifest, parse_version,
-                    refs)
 from ..adapters.store import Store
+from ..domain import layout, refs
+from ..domain.formats import SCHEMA, canonical_json, load_json, parse_version
+from ..domain.layout import BUNDLE, STAGED, SUMS
+from ..domain.manifest import parse_manifest
+from ..errors import ReleaseError
+from .product import Product
 
 
 def staging_prefix(ref: str, filesafe: str) -> str:

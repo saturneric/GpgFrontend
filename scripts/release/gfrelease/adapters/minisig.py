@@ -22,7 +22,9 @@ import base64
 import tempfile
 from pathlib import Path
 
-from ..common import MINISIG, ReleaseError, run, run_with_secret
+from ..domain.layout import MINISIG
+from ..errors import ReleaseError
+from .process import run, run_with_secret
 
 
 def _id(raw: bytes) -> str:

@@ -23,11 +23,13 @@ import json
 import shutil
 from pathlib import Path
 
-from ..adapters.windows import authenticode
 from ..adapters import minisig
-from . import trust
+from ..adapters.git import release_tags
+from ..adapters.process import WINDOWS, run
+from ..adapters.windows import authenticode
 from ..cli import ui
-from ..common import WINDOWS, ReleaseError, release_tags, run
+from ..errors import ReleaseError
+from . import trust
 
 ROLES = ("maintainer", "ci", "host")
 # What each role runs: cmake derives a commit's version (GitVersion.cmake),

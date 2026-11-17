@@ -55,11 +55,12 @@ import threading
 import time
 import zipfile
 from dataclasses import dataclass, field
-from typing import Callable
 from pathlib import Path, PurePosixPath
+from typing import Callable
 
+from ...errors import ReleaseError, ToolFailed
+from ..process import WINDOWS, run, run_with_secret
 from . import msi
-from ...common import WINDOWS, ReleaseError, ToolFailed, run, run_with_secret
 
 # Signing goes through the time-stamping services in turn: one being
 # slow or rate-limited costs a retry, not the release. Only that is

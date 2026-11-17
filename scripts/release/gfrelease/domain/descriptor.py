@@ -6,7 +6,8 @@ checks a published index (verify.py)."""
 
 from __future__ import annotations
 
-from ..common import ReleaseError, refs
+from ..errors import ReleaseError
+from . import refs
 
 _STRINGS = ("product", "kind", "version", "ref", "commit", "sums", "sums_sig",
             "promoted_at", "built_at")

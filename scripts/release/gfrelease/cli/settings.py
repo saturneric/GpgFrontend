@@ -33,7 +33,8 @@ import os
 import tomllib
 from pathlib import Path
 
-from ..common import ROOT, ReleaseError
+from ..errors import ReleaseError
+from ..paths import ROOT
 
 GROUPS = {
     "stores": ("staging", "builds", "update"),

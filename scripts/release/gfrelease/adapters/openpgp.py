@@ -19,7 +19,8 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from ..common import ReleaseError, run
+from ..errors import ReleaseError
+from .process import run
 
 
 def sign(file: Path, fingerprint: str, gnupghome: str | None = None) -> Path:

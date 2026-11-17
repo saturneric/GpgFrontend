@@ -16,9 +16,11 @@ import re
 import tempfile
 from pathlib import Path
 
-from ..common import (SMALL_OBJECT_LIMIT, ReleaseError, ToolTimeout,
-                    check_relpath, run, sha256_file)
-
+from ..domain.formats import check_relpath
+from ..domain.limits import SMALL_OBJECT_LIMIT
+from ..errors import ReleaseError, ToolTimeout
+from .files import sha256_file
+from .process import run
 
 # rclone's exit status for "directory not found" / "file not found": the only
 # answers that mean an object is absent. Anything else (a 403, a network

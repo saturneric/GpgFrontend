@@ -29,25 +29,25 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from ..adapters.windows import authenticode
-from ..domain import descriptor
-from ..adapters import minisig
-from ..adapters.windows import msix
-from ..adapters import openpgp
-from ..domain import layout
-from ..cli import ui
-from ..common import (BUNDLE, DESCRIPTOR, INDEX, MINISIG, SCHEMA, SIG, SUMS,
-                    Problems, Product, ReleaseError, ToolFailed,
-                    atomic_write, candidate_error, check_candidate,
-                    check_git_version, is_passing, canonical_json,
-                    check_relpath, iso, load_json, locked,
-                    notes_at, parse_iso, parse_manifest, parse_version, refs,
-                    resolve_commit, sha256_bytes, sha256_file, tag_time,
-                    tagged_commit, utcnow)
+from ..adapters import minisig, openpgp
+from ..adapters.clock import utcnow
+from ..adapters.files import atomic_write, locked, sha256_file
+from ..adapters.git import (check_git_version, notes_at, resolve_commit,
+                            tag_time, tagged_commit)
 from ..adapters.store import Store, StoreUnavailable
-
-from ..domain import policy as policy_mod  # noqa: E402  (scripts/release/, via common)
-from . import candidate as rc  # noqa: E402  (scripts/, on the path via common)
+from ..adapters.windows import authenticode, msix
+from ..cli import ui
+from ..domain import descriptor, layout, refs
+from ..domain import policy as policy_mod
+from ..domain.formats import (SCHEMA, canonical_json, check_relpath, iso,
+                              load_json, parse_iso, parse_version,
+                              sha256_bytes)
+from ..domain.layout import BUNDLE, DESCRIPTOR, INDEX, MINISIG, SIG, SUMS
+from ..domain.manifest import parse_manifest
+from ..errors import Problems, ReleaseError, ToolFailed, is_passing
+from . import candidate as rc
+from .candidate import candidate_error, check_candidate
+from .product import Product
 
 LIFETIME = dt.timedelta(days=policy_mod.INDEX_LIFETIME_DAYS)
 VOLATILE = ("serial", "generated_at", "expires")

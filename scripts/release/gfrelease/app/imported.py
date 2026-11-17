@@ -30,13 +30,18 @@ import shutil
 import urllib.request
 from pathlib import Path
 
-from ..domain import layout
 from ..adapters import openpgp
-from ..common import (DESCRIPTOR, SCHEMA, SIG, SMALL_OBJECT_LIMIT, Product,
-                    ReleaseError, atomic_write, canonical_json, iso,
-                    load_json, parse_iso, parse_version, refs, sha256_file,
-                    tag_time, tagged_commit, utcnow)
+from ..adapters.clock import utcnow
+from ..adapters.files import atomic_write, sha256_file
+from ..adapters.git import tag_time, tagged_commit
 from ..adapters.store import Store
+from ..domain import layout, refs
+from ..domain.formats import (SCHEMA, canonical_json, iso, load_json,
+                              parse_iso, parse_version)
+from ..domain.layout import DESCRIPTOR, SIG
+from ..domain.limits import SMALL_OBJECT_LIMIT
+from ..errors import ReleaseError
+from .product import Product
 
 API = "https://api.github.com"
 USER_AGENT = "gfrelease-import/1"
