@@ -328,9 +328,13 @@ void KeyPairOperaTab::slot_gen_revoke_cert() {
 }
 
 void KeyPairOperaTab::slot_modify_password() {
+  // The window stays open while gpg's pinentry waits, and can be closed; the
+  // answer must not land on a deleted tab.
+  QPointer<KeyPairOperaTab> self = this;
   GpgKeyOpera::GetInstance(current_gpg_context_channel_)
-      .ModifyPassword(m_key_, [this](GpgError err, const DataObjectPtr&) {
-        CommonUtils::RaiseMessageBox(this, err);
+      .ModifyPassword(m_key_, [self](GpgError err, const DataObjectPtr&) {
+        if (self.isNull()) return;
+        CommonUtils::RaiseMessageBox(self, err);
       });
 }
 
