@@ -1558,3 +1558,5 @@ fn fail<T>(status: GfrStatus, msg: &str) -> Result<T, GfrStatus> {
     Err(status)
 }
 
+#[cfg(test)]
+mod tests;
