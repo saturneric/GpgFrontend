@@ -109,65 +109,17 @@ jobs:
         env:
           QT_ARCH: ${{ matrix.qt_arch }}
           GPGFRONTEND_BUILD_MODE: ${{ inputs.gpgfrontend_build_mode }}
-        run: |
-          set -euo pipefail
-          export JAVA_HOME="$JAVA_HOME_17_X64" PATH="$JAVA_HOME_17_X64/bin:$PATH"
-          ndk="$ANDROID_HOME/ndk/$GF_ANDROID_NDK"
-          qt="$RUNNER_TEMP/Qt/$GF_ANDROID_QT"
-          "$qt/$QT_ARCH/bin/qt-cmake" -S . -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DGPGFRONTEND_BUILD_FLAVOR=android \
-            -DGPGFRONTEND_BUILD_MODE="$GPGFRONTEND_BUILD_MODE" \
-            -DANDROID_SDK_ROOT="$ANDROID_HOME" -DANDROID_NDK_ROOT="$ndk" \
-            -DQT_HOST_PATH="$qt/gcc_64"
-          cmake --build build --parallel
-          cmake --build build --target apk
-          cmake --build build --target aab
-
-      - name: Check The Libraries
-        run: |
-          set -euo pipefail
-          bin="$ANDROID_HOME/ndk/$GF_ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin"
-          NM="$bin/llvm-nm" READELF="$bin/llvm-readelf" \
-            scripts/check_no_gpgme.sh build
+        run: scripts/ci/android/build.sh
 
       # What signing cannot change, checked here where the build tree and the
-      # scripts are: the package, its API level, and every native library 16
-      # KB aligned (apksigner signs without moving entries).
-      - name: Check The APK
+      # scripts are: no GnuPG engine, the package's id, its API level, every
+      # native library 16 KB aligned, and a bundle holding its manifest and
+      # libraries and no signature yet (scripts/ci/android/check.sh).
+      - name: Check The Packages
         env:
           ANDROID_PACKAGE: ${{ inputs.android_package }}
-        run: |
-          set -euo pipefail
-          bt="$ANDROID_HOME/build-tools/36.0.0"
-          apk="build/artifacts/GpgFrontend-${{ matrix.abi }}-unsigned.apk"
-          "$bt/aapt2" dump badging "$apk" | grep -E "^package|targetSdkVersion"
-          # The id CI uploads to Play under is the one the build gave it.
-          "$bt/aapt2" dump packagename "$apk" | grep -qx "$ANDROID_PACKAGE" || {
-            echo "::error::the APK is not $ANDROID_PACKAGE" >&2; exit 1; }
-          READELF="$ANDROID_HOME/ndk/$GF_ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf" \
-            ZIPALIGN="$bt/zipalign" \
-            scripts/android/check-elf-alignment.sh "$apk"
-          mkdir -p build/unsigned
-          cp "$apk" build/unsigned/unsigned.apk
-
-      # A bundle is not installed as it is: Play (or bundletool) cuts APKs
-      # from it, and aligns them then. What it must hold is its manifest and
-      # this ABI's libraries, and no signature yet.
-      - name: Check The AAB
-        env:
           ABI: ${{ matrix.abi }}
-        run: |
-          set -euo pipefail
-          aab="build/artifacts/GpgFrontend-${ABI}-unsigned.aab"
-          entries="$(unzip -Z1 "$aab")"
-          grep -qx "base/manifest/AndroidManifest.xml" <<< "$entries"
-          grep -q "^base/lib/${ABI}/.*\.so$" <<< "$entries"
-          if grep -q "^META-INF/" <<< "$entries"; then
-            echo "::error::$aab is already signed" >&2
-            exit 1
-          fi
-          cp "$aab" build/unsigned/unsigned.aab
+        run: scripts/ci/android/check.sh "$ABI"
 
       - name: Upload Unsigned Artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

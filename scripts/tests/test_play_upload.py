@@ -285,6 +285,25 @@ class PublishTest(unittest.TestCase):
 # ---------------------------------------------------------------- workflow
 
 
+def with_scripts(text: str) -> str:
+    """@p text and every script of scripts/ci/ it runs, and those they run
+    beside them ("$here/<name>.sh"): what a job does, wherever it is
+    written."""
+    seen, out = set(), [text]
+    todo = re.findall(r"scripts/ci/[\w/.-]+\.sh", text)
+    while todo:
+        path = todo.pop()
+        if path in seen:
+            continue
+        seen.add(path)
+        body = (SCRIPTS.parent / path).read_text(encoding="utf-8")
+        out.append(body)
+        folder = path.rsplit("/", 1)[0]
+        todo += [f"{folder}/{name}" for name in
+                 re.findall(r'"\$here/([\w.-]+\.sh)"', body)]
+    return "\n".join(out)
+
+
 def jobs(text):
     body = text[text.index("\njobs:\n"):]
     parts = re.split(r"^  ([A-Za-z0-9_-]+):\s*$", body, flags=re.M)
@@ -296,7 +315,7 @@ class WorkflowTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         job = jobs(WORKFLOW.read_text(encoding="utf-8"))["play-upload"]
-        cls.job = re.sub(r"^\s*#.*\n", "", job, flags=re.M)
+        cls.job = re.sub(r"^\s*#.*\n", "", with_scripts(job), flags=re.M)
 
     def condition(self):
         match = re.search(r"(?m)^    if: >-\n((?:      .*\n)+)", self.job) or \
@@ -362,8 +381,8 @@ class WorkflowTest(unittest.TestCase):
                       "gpgfrontend_build_mode }}", build)
         self.assertIn("android_package: ${{ needs.setup.outputs."
                       "android_package }}", build)
-        called = WORKFLOW.with_name("build-android.yml").read_text(
-            encoding="utf-8")
+        called = with_scripts(WORKFLOW.with_name("build-android.yml")
+                              .read_text(encoding="utf-8"))
         self.assertIn('-DGPGFRONTEND_BUILD_MODE="$GPGFRONTEND_BUILD_MODE"',
                       called)
         self.assertIn('aapt2" dump packagename "$apk" | grep -qx '

@@ -326,8 +326,9 @@ jobs:
   # Signs the APK and the AAB with the release key. Every APK is signed by the
   # same key, so a newer build installs over an older one on a phone. The APK
   # takes apksigner (Android 11+ wants its v2+ schemes); the AAB takes
-  # jarsigner, the only signer for a bundle. Like sign-macos: no checkout, no
-  # build, and nothing read from the artifact but the two packages.
+  # jarsigner, the only signer for a bundle. Like sign-macos: of the
+  # repository only its signing scripts (scripts/ci/android), no build, and
+  # nothing read from the artifact but the two packages.
   sign-android:
     needs: [setup, build-android]
     # Two independent gates on which refs may ever request the signing key: this
@@ -350,33 +351,22 @@ jobs:
     # vX.Y.0-rc.N publishes: the rule cannot say so, the `if:` does).
     environment: android-signing
     steps:
-      # Runs before anything else, and only tests for emptiness; no value is
-      # printed, and an unset secret arrives as the empty string.
+      # The signing scripts only; nothing of the build, as sign-macos.
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          lfs: "false"
+          persist-credentials: false
+          sparse-checkout: scripts/ci/android
+
+      # Only tests for emptiness; no value is printed, and an unset secret
+      # arrives as the empty string.
       - name: Preflight Check Signing Credentials
         env:
           ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: |
-          set -euo pipefail
-          missing=""
-          [ -n "${ANDROID_KEYSTORE:-}" ] || missing="$missing ANDROID_KEYSTORE"
-          [ -n "${ANDROID_KEYSTORE_PASSWORD:-}" ] || missing="$missing ANDROID_KEYSTORE_PASSWORD"
-          [ -n "${ANDROID_KEY_ALIAS:-}" ] || missing="$missing ANDROID_KEY_ALIAS"
-          [ -n "${ANDROID_KEY_PASSWORD:-}" ] || missing="$missing ANDROID_KEY_PASSWORD"
-
-          if [ -n "$missing" ]; then
-            echo "The 'android-signing' environment is missing:" >&2
-            for name in $missing; do echo "  - $name" >&2; done
-            echo >&2
-            echo "Set them under Settings > Environments > android-signing." >&2
-            echo "ANDROID_KEYSTORE is the keystore file (PKCS#12 or JKS), base64" >&2
-            echo "encoded on one line (base64 -w0 release.p12). Keep that file:" >&2
-            echo "an installed app only takes updates signed by the same key." >&2
-            exit 1
-          fi
-          echo "all four signing credentials are present"
+        run: scripts/ci/android/preflight.sh android-signing
 
       - name: Install Build Tools
         run: |
@@ -391,9 +381,7 @@ jobs:
           path: ${{ runner.temp }}/unsigned
 
       # The names come from GitHub context and the matrix, never from the
-      # artifact, as in sign-macos. One step, so the keystore is written once.
-      # jarsigner without -strict: a self-signed release certificate is
-      # normal on Android, and -strict fails on its chain warning.
+      # artifact, as in sign-macos (scripts/ci/android/sign.sh).
       - name: Sign And Verify The APK And AAB
         env:
           ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
@@ -402,46 +390,7 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           ARCH: ${{ matrix.arch }}
           ARTIFACT_VERSION: ${{ needs.setup.outputs.artifact_version }}
-        run: |
-          set -euo pipefail
-          export JAVA_HOME="$JAVA_HOME_17_X64" PATH="$JAVA_HOME_17_X64/bin:$PATH"
-          bt="$ANDROID_HOME/build-tools/36.0.0"
-          ks="$RUNNER_TEMP/release.keystore"
-          trap 'rm -f "$ks"' EXIT
-          printf '%s' "$ANDROID_KEYSTORE" | base64 -d > "$ks"
-          out="$RUNNER_TEMP/upload-artifact"
-          mkdir -p "$out"
-          apk="$out/GpgFrontend-${ARTIFACT_VERSION}-android-${ARCH}.apk"
-          "$bt/apksigner" sign --ks "$ks" --ks-key-alias "$ANDROID_KEY_ALIAS" \
-            --ks-pass env:ANDROID_KEYSTORE_PASSWORD \
-            --key-pass env:ANDROID_KEY_PASSWORD \
-            --out "$apk" "$RUNNER_TEMP/unsigned/unsigned.apk"
-          rm -f "$apk.idsig"
-          "$bt/apksigner" verify --verbose --print-certs "$apk" |
-            grep -E "^Verified using|^Signer #1 certificate (DN|SHA-256)"
-
-          # The bundle is not a release download: it goes up apart, below.
-          bundle_out="$RUNNER_TEMP/upload-bundle"
-          mkdir -p "$bundle_out"
-          aab="$bundle_out/GpgFrontend-${ARTIFACT_VERSION}-android-${ARCH}.aab"
-          jarsigner -keystore "$ks" \
-            -storepass:env ANDROID_KEYSTORE_PASSWORD \
-            -keypass:env ANDROID_KEY_PASSWORD \
-            -digestalg SHA-256 \
-            -signedjar "$aab" "$RUNNER_TEMP/unsigned/unsigned.aab" \
-            "$ANDROID_KEY_ALIAS"
-          jarsigner -verify "$aab" | grep -x "jar verified."
-
-          # Both packages by the one key, compared in apksigner's notation.
-          apk_cert="$("$bt/apksigner" verify --print-certs "$apk" |
-            sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
-          aab_cert="$(keytool -printcert -jarfile "$aab" |
-            sed -n 's/^[[:space:]]*SHA256: //p' | tr -d ':' | tr 'A-F' 'a-f')"
-          echo "AAB signer certificate SHA-256: $aab_cert"
-          if [ -z "$apk_cert" ] || [ "$apk_cert" != "$aab_cert" ]; then
-            echo "::error::the APK and the AAB were not signed by the same key" >&2
-            exit 1
-          fi
+        run: scripts/ci/android/sign.sh "$ARCH" "$RUNNER_TEMP/unsigned"
 
       # The release takes the APK alone.
       - name: Upload Signed APK
@@ -776,6 +725,15 @@ jobs:
     # `release/[0-9]*.[0-9]*` and tags matching `v[0-9]*.[0-9]*.[0-9]*`.
     environment: google-play
     steps:
+      # The upload scripts only; nothing of the build.
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          lfs: "false"
+          sparse-checkout: |
+            scripts/android
+            scripts/ci/android
+          persist-credentials: false
+
       - name: Preflight Check Play Credentials
         env:
           PLAY_UPLOAD_KEYSTORE: ${{ secrets.PLAY_UPLOAD_KEYSTORE }}
@@ -783,33 +741,7 @@ jobs:
           PLAY_UPLOAD_KEY_ALIAS: ${{ secrets.PLAY_UPLOAD_KEY_ALIAS }}
           PLAY_UPLOAD_KEY_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEY_PASSWORD }}
           PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
-        run: |
-          set -euo pipefail
-          missing=""
-          [ -n "${PLAY_UPLOAD_KEYSTORE:-}" ] || missing="$missing PLAY_UPLOAD_KEYSTORE"
-          [ -n "${PLAY_UPLOAD_KEYSTORE_PASSWORD:-}" ] || missing="$missing PLAY_UPLOAD_KEYSTORE_PASSWORD"
-          [ -n "${PLAY_UPLOAD_KEY_ALIAS:-}" ] || missing="$missing PLAY_UPLOAD_KEY_ALIAS"
-          [ -n "${PLAY_UPLOAD_KEY_PASSWORD:-}" ] || missing="$missing PLAY_UPLOAD_KEY_PASSWORD"
-          [ -n "${PLAY_SERVICE_ACCOUNT_JSON:-}" ] || missing="$missing PLAY_SERVICE_ACCOUNT_JSON"
-
-          if [ -n "$missing" ]; then
-            echo "The 'google-play' environment is missing:" >&2
-            for name in $missing; do echo "  - $name" >&2; done
-            echo >&2
-            echo "Set them under Settings > Environments > google-play." >&2
-            echo "PLAY_UPLOAD_KEYSTORE is the upload keystore (PKCS#12 or JKS)," >&2
-            echo "base64 encoded on one line. PLAY_SERVICE_ACCOUNT_JSON is the" >&2
-            echo "service account's JSON key file, as Google Cloud gives it." >&2
-            exit 1
-          fi
-          echo "all five Play credentials are present"
-
-      # The upload script only; nothing of the build.
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
-        with:
-          lfs: "false"
-          sparse-checkout: scripts/android
-          persist-credentials: false
+        run: scripts/ci/android/preflight.sh google-play
 
       - name: Download Unsigned Bundle
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
@@ -817,57 +749,18 @@ jobs:
           name: unsigned-android-arm64-v8a
           path: ${{ runner.temp }}/unsigned
 
-      - name: Sign The Bundle With The Upload Key
+      # The ref was already checked by the job's `if:`. Signed with the upload
+      # key, named by what the run publishes, and skipped when Play holds a
+      # versionCode as great (scripts/ci/android/play.sh).
+      - name: Upload To The Internal Track
         env:
           PLAY_UPLOAD_KEYSTORE: ${{ secrets.PLAY_UPLOAD_KEYSTORE }}
           PLAY_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEYSTORE_PASSWORD }}
           PLAY_UPLOAD_KEY_ALIAS: ${{ secrets.PLAY_UPLOAD_KEY_ALIAS }}
           PLAY_UPLOAD_KEY_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEY_PASSWORD }}
-          ARTIFACT_VERSION: ${{ needs.setup.outputs.artifact_version }}
-        run: |
-          set -euo pipefail
-          export JAVA_HOME="$JAVA_HOME_17_X64" PATH="$JAVA_HOME_17_X64/bin:$PATH"
-          ks="$RUNNER_TEMP/upload.keystore"
-          trap 'rm -f "$ks"' EXIT
-          printf '%s' "$PLAY_UPLOAD_KEYSTORE" | base64 -d > "$ks"
-          aab="$RUNNER_TEMP/play/GpgFrontend-${ARTIFACT_VERSION}-android-arm64-v8a.aab"
-          mkdir -p "$(dirname "$aab")"
-          jarsigner -keystore "$ks" \
-            -storepass:env PLAY_UPLOAD_KEYSTORE_PASSWORD \
-            -keypass:env PLAY_UPLOAD_KEY_PASSWORD \
-            -digestalg SHA-256 \
-            -signedjar "$aab" "$RUNNER_TEMP/unsigned/unsigned.aab" \
-            "$PLAY_UPLOAD_KEY_ALIAS"
-          jarsigner -verify "$aab" | grep -x "jar verified."
-          keytool -printcert -jarfile "$aab" | grep -E "^[[:space:]]*SHA256:"
-
-      # The ref was already checked by the job's `if:`: a release tag, a
-      # release/X.Y branch or main. A fix or beta of an older series may find
-      # the app holding a newer release, and is skipped then (--only-if-newer).
-      # The versionCode is the build number cmake/GitVersion.cmake
-      # derived; Play must not already hold one as great, or no phone updates.
-      - name: Upload To The Internal Track
-        env:
           PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           ARTIFACT_VERSION: ${{ needs.setup.outputs.artifact_version }}
           BUILD_NUMBER: ${{ needs.setup.outputs.build_number }}
           ANDROID_PACKAGE: ${{ needs.setup.outputs.android_package }}
           PUBLISH_KIND: ${{ needs.setup.outputs.publish_kind }}
-        run: |
-          set -euo pipefail
-          case "$PUBLISH_KIND" in
-            final | rc) name="$GITHUB_REF_NAME" ;;
-            beta) name="beta-${ARTIFACT_VERSION}" ;;
-            nightly-main) name="nightly-${ARTIFACT_VERSION}" ;;
-            *)
-              echo "::error::no Play release for publish kind $PUBLISH_KIND" >&2
-              exit 1
-              ;;
-          esac
-          python3 -I scripts/android/play_upload.py \
-            --package "$ANDROID_PACKAGE" \
-            --bundle "$RUNNER_TEMP/play/GpgFrontend-${ARTIFACT_VERSION}-android-arm64-v8a.aab" \
-            --track internal \
-            --release-name "$name" \
-            --version-code "$BUILD_NUMBER" \
-            --only-if-newer
+        run: scripts/ci/android/play.sh "$RUNNER_TEMP/unsigned"
