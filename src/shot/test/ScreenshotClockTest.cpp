@@ -152,15 +152,15 @@ class ScreenshotClockTest : public ::testing::Test {
     return repo.GetKey(fpr);
   }
 
-  auto verify_status(const QString& fixture) const -> gpgme_error_t {
+  auto verify_status(const QString& fixture) const -> GFErrorCode {
     auto [err, data] = MessageCryptoOperation::GetInstance(channel_).VerifySync(
         GFBuffer(ReadFile(ResourcePath("fixtures/" + fixture))), GFBuffer());
     EXPECT_TRUE((data->Check<GpgVerifyResult, GFBuffer>()));
     const auto signatures =
         ExtractParams<GpgVerifyResult>(data, 0).GetSignature();
     EXPECT_EQ(signatures.size(), 1);
-    return signatures.isEmpty() ? GPG_ERR_GENERAL
-                                : gpg_err_code(signatures.front().GetStatus());
+    return signatures.isEmpty() ? GFErrorCode::kGENERAL
+                                : signatures.front().GetStatus().code;
   }
 
   QString home_;
@@ -213,11 +213,11 @@ TEST_F(ScreenshotClockTest, VerifyFollowsThePinnedClock) {
   // Signed by Dave on 2025-03-01; his key expires on 2025-06-01.
   set_clock("2026-01-15T10:00:00Z");
   key(Fpr("Dave"));
-  EXPECT_EQ(verify_status("clock-probe-dave.asc"), GPG_ERR_KEY_EXPIRED);
+  EXPECT_EQ(verify_status("clock-probe-dave.asc"), GFErrorCode::kKEY_EXPIRED);
 
   set_clock("2025-04-15T10:00:00Z");
   key(Fpr("Dave"));
-  EXPECT_EQ(verify_status("clock-probe-dave.asc"), GPG_ERR_NO_ERROR);
+  EXPECT_EQ(verify_status("clock-probe-dave.asc"), GFErrorCode::kOK);
 }
 
 TEST_F(ScreenshotClockTest, DecryptVerifyFixtureIsReadableAtTheDefaultClock) {
@@ -226,8 +226,7 @@ TEST_F(ScreenshotClockTest, DecryptVerifyFixtureIsReadableAtTheDefaultClock) {
   auto [err, data] =
       MessageCryptoOperation::GetInstance(channel_).DecryptVerifySync(
           GFBuffer(ReadFile(ResourcePath("fixtures/decrypt-verify.asc"))));
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR)
-      << DescribeGpgErrCode(err).second.toStdString();
+  ASSERT_TRUE(err.Ok()) << DescribeGFError(err).second.toStdString();
   ASSERT_TRUE((data->Check<GpgDecryptResult, GpgVerifyResult, GFBuffer>()));
 
   const auto plain = ExtractParams<GFBuffer>(data, 2).ConvertToQByteArray();
@@ -237,9 +236,8 @@ TEST_F(ScreenshotClockTest, DecryptVerifyFixtureIsReadableAtTheDefaultClock) {
       ExtractParams<GpgVerifyResult>(data, 1).GetSignature();
   ASSERT_EQ(signatures.size(), 1);
   EXPECT_EQ(signatures.front().GetFingerprint(), Fpr("Bob"));
-  EXPECT_EQ(gpg_err_code(signatures.front().GetStatus()), GPG_ERR_NO_ERROR)
-      << DescribeGpgErrCode(signatures.front().GetStatus())
-             .second.toStdString();
+  EXPECT_TRUE(signatures.front().GetStatus().Ok())
+      << DescribeGFError(signatures.front().GetStatus()).second.toStdString();
 }
 
 }  // namespace GpgFrontend::Test
