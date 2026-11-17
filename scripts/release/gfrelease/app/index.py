@@ -534,7 +534,7 @@ def admit_imported(product: Product, builds: Store, path: str, raw: bytes, *,
                    git_dir: Path, state_dir: Path, tmp: Path,
                    dry: bool = False, listed: bool = False
                    ) -> tuple[dict, dict]:
-    """A release from before this pipeline (gfrelease import): listed when
+    """A release from before this pipeline (imported once, by hand): listed when
     every file verifies against its own maintainer signature, made when it
     was released, and its tag is the commit git calls that version.
 
