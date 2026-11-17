@@ -28,6 +28,10 @@ class CandidateError(Exception):
     pass
 
 
+class CandidateTimeout(Exception):
+    """cosign did not finish: nothing was decided about the candidate."""
+
+
 def render(hashes):
     """SHA256SUMS.txt text for {name: sha256}, in `sha256sum -c` format."""
     return "".join(f"{hashes[name]}  {name}\n" for name in sorted(hashes))

@@ -21,6 +21,7 @@ import os
 import random
 import re
 import shutil
+import subprocess
 import tempfile
 import textwrap
 import unittest
@@ -30,7 +31,9 @@ SCRIPTS = Path(__file__).resolve().parent.parent
 
 
 import _paths  # noqa: E402,F401
+from gfrelease.adapters import cosign as cosign_mod  # noqa: E402
 from gfrelease.app import candidate as rc  # noqa: E402
+from gfrelease.cli import forwarded  # noqa: E402
 from trustutil import stand_in, symlink  # noqa: E402
 
 WORKFLOW = SCRIPTS.parent / ".github" / "workflows" / "build.yml"
@@ -126,7 +129,7 @@ class Tree:
         with contextlib.redirect_stdout(io.StringIO()):
             rc.stage(self.artifacts, self.candidate)
 
-    def sign(self, identity=IDENTITY, issuer=rc.ISSUER, sha=SHA):
+    def sign(self, identity=IDENTITY, issuer=cosign_mod.ISSUER, sha=SHA):
         import subprocess
         subprocess.run(
             [str(self.cosign), "sign-blob",
@@ -191,7 +194,8 @@ class ChainTest(TreeCase):
         # The host verifies through gfrelease, which calls verify().
         with self.assertRaises(SystemExit), \
                 contextlib.redirect_stderr(io.StringIO()):
-            rc.main(["verify", "--dir", str(self.tree.candidate)])
+            forwarded.candidate_main(["verify", "--dir",
+                                      str(self.tree.candidate)])
 
 
 # ---------------------------------------------------------------- identity
@@ -247,18 +251,18 @@ class IdentityTest(TreeCase):
 
     def test_identity_is_exact_never_a_pattern(self):
         seen = []
-        real_run = rc.subprocess.run
+        real_run = subprocess.run
 
         def spy(cmd, *a, **kw):
             seen.append(cmd)
             return real_run(cmd, *a, **kw)
 
         self.tree.signed_candidate()
-        rc.subprocess.run = spy
+        subprocess.run = spy
         try:
             self.tree.verify()
         finally:
-            rc.subprocess.run = real_run
+            subprocess.run = real_run
 
         (cmd,) = seen
         self.assertIn("--certificate-identity", cmd)

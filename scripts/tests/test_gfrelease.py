@@ -35,7 +35,7 @@ from gfrelease.adapters import clock  # noqa: E402
 from gfrelease.adapters import files as files_mod  # noqa: E402
 from gfrelease.adapters import git as git_mod  # noqa: E402
 from gfrelease.adapters import process as process_mod  # noqa: E402
-from gfrelease.app import candidate as candidate_mod  # noqa: E402
+from gfrelease.adapters import cosign as cosign_mod  # noqa: E402
 from gfrelease.app import product as product_mod  # noqa: E402
 from gfrelease.domain import formats  # noqa: E402
 from gfrelease.domain import limits  # noqa: E402
@@ -717,12 +717,12 @@ class ChainTest(unittest.TestCase):
         self.build()
         hung = stand_in(self.tmp, "hung-cosign",
                         "import time\ntime.sleep(30)\n")
-        saved = candidate_mod.COSIGN_TIMEOUT
-        candidate_mod.COSIGN_TIMEOUT = 1
+        saved = cosign_mod.COSIGN_TIMEOUT
+        cosign_mod.COSIGN_TIMEOUT = 1
         try:
             status, _, err = self.round(self.host(cosign=str(hung)))
         finally:
-            candidate_mod.COSIGN_TIMEOUT = saved
+            cosign_mod.COSIGN_TIMEOUT = saved
         # Nothing was decided about the candidate: the next round asks
         # again, rather than counting it refused until something changes.
         self.assertEqual(status, host_mod.FAILED, err)
