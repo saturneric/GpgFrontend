@@ -53,7 +53,19 @@ these (test_what_the_signing_host_reads_is_held).
 
 from __future__ import annotations
 
-from ..common import BUNDLE, DESCRIPTOR, SUMS, parse_version
+from .formats import parse_version
+from .manifest import BUNDLE
+from .manifest import MANIFEST as SUMS
+
+# The files every role names.
+DESCRIPTOR = "release.json"
+SIG = ".sig"        # an OpenPGP detached signature, binary
+STAGED = "staged.json"
+MINISIG = ".minisig"  # a minisign signature, beside what it signs
+INDEX = "v1/index.json"
+
+# The signing host's state directory.
+STATE_LOCK = "lock"  # held by every command of the host (files.locked)
 
 BRANCHES = "branches"
 TAGS = "tags"

@@ -46,28 +46,21 @@ usage: gfrelease candidate stage --artifacts DIR --out DIR
 """
 
 import argparse
-import hashlib
 import json
-import re
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
-from ..domain import policy
-
-MANIFEST = "SHA256SUMS.txt"
-BUNDLE = "SHA256SUMS.txt.sigstore.json"
-BUILD_INFO = "build-info.json"
-
-# Provenance names. A deliverable may never take one: it would shadow, or be
-# shadowed by, the file that describes it.
-RESERVED = frozenset({MANIFEST, BUNDLE, BUILD_INFO})
-
-# \Z, not $: "$" also matches before a trailing newline, which a file name
-# may end in.
-SAFE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+-]*\Z")
-MANIFEST_LINE = re.compile(r"^([0-9a-f]{64})  (\S+)\Z")
+from ..adapters import git
+from ..adapters.files import sha256_file as digest
+from ..domain import policy, refs
+from ..domain.formats import parse_version
+from ..domain.manifest import (BUILD_INFO, BUNDLE, MANIFEST, RESERVED,
+                               SAFE_NAME, CandidateError)
+from ..domain.manifest import parse as parse_manifest
+from ..domain.manifest import render as render_manifest
+from ..errors import ReleaseError, ToolTimeout
 
 BUILD_INFO_PREFIX = "buildinfo-"
 
@@ -77,6 +70,7 @@ def deliverable_prefix() -> str:
     leg (release/product.json's slug)."""
     return policy.load_product()["slug"] + "-"
 
+
 ISSUER = "https://token.actions.githubusercontent.com"
 # cosign checks a bundle against a transparency log it may have to reach.
 COSIGN_TIMEOUT = 600
@@ -84,18 +78,6 @@ COSIGN_TIMEOUT = 600
 
 class CandidateTimeout(Exception):
     """cosign did not finish: nothing was decided about the candidate."""
-
-
-class CandidateError(Exception):
-    pass
-
-
-def digest(path):
-    h = hashlib.sha256()
-    with path.open("rb") as f:
-        for chunk in iter(lambda: f.read(1 << 20), b""):
-            h.update(chunk)
-    return h.hexdigest()
 
 
 def regular_files(directory):
@@ -167,11 +149,6 @@ def check_build_info(leg, info):
                      - set(info))
     if missing:
         raise CandidateError(f"{BUILD_INFO_PREFIX}{leg}: missing {missing}")
-
-
-def render_manifest(hashes):
-    """SHA256SUMS.txt text for {name: sha256}, in `sha256sum -c` format."""
-    return "".join(f"{hashes[name]}  {name}\n" for name in sorted(hashes))
 
 
 def stage(artifacts_root, out):
@@ -254,33 +231,6 @@ def cosign_verify(directory, identity, sha, cosign):
                              + (f" (cosign: {said[-1][:300]})" if said else ""))
 
 
-def parse_manifest(data):
-    """{name: sha256} from the signed bytes, strictly."""
-    try:
-        text = data.decode("ascii")
-    except UnicodeDecodeError:
-        raise CandidateError(f"{MANIFEST}: not ASCII")
-    if "\r" in text:
-        raise CandidateError(f"{MANIFEST}: carriage return")
-    if not text.endswith("\n"):
-        raise CandidateError(f"{MANIFEST}: no trailing newline")
-
-    entries = {}
-    for number, line in enumerate(text[:-1].split("\n"), 1):
-        match = MANIFEST_LINE.match(line)
-        if not match:
-            raise CandidateError(f"{MANIFEST}:{number}: malformed line")
-        sha, name = match.groups()
-        if not SAFE_NAME.match(name):
-            raise CandidateError(f"{MANIFEST}:{number}: unsafe name {name!r}")
-        if name in RESERVED:
-            raise CandidateError(f"{MANIFEST}:{number}: lists {name!r}")
-        if name in entries:
-            raise CandidateError(f"{MANIFEST}:{number}: duplicate {name!r}")
-        entries[name] = sha
-    return entries
-
-
 def verify(directory, identity, sha, cosign="cosign"):
     """Every check publication depends on. Returns the files to publish."""
     # 1. The signature, before a single byte of the manifest is trusted.
@@ -328,3 +278,60 @@ def main(argv=None):
         print(f"release_candidate: {e}", file=sys.stderr)
         return 1
     return 0
+
+
+# ------------------------------------------------- the candidate, as admitted
+
+
+def candidate_error(where: str, error: Exception) -> ReleaseError:
+    """This module's verdict on a candidate, as a ReleaseError; a cosign
+    that did not finish is no verdict (ToolTimeout)."""
+    if isinstance(error, CandidateTimeout):
+        return ToolTimeout(f"{where}: {error}")
+    return ReleaseError(f"{where}: {error}")
+
+
+def verify_candidate(where: str, work: Path, staged: dict, identity: str,
+                     cosign: str) -> list[str]:
+    """The staged candidate in @p work (staged.json taken out), as CI
+    signed it for @p identity and the commit @p staged names; returns its
+    files, which must be the ones @p staged lists."""
+    try:
+        verified = verify(work, identity, staged["commit"], cosign)
+    except (CandidateError, CandidateTimeout) as e:
+        raise candidate_error(where, e) from e
+    files = sorted(p.name for p in verified
+                   if p.name not in (MANIFEST, BUNDLE))
+    if files != sorted(staged["files"]):
+        raise ReleaseError(f"{where}: staged.json lists other files than the "
+                           "signed manifest")
+    return files
+
+
+def check_candidate(git_dir: Path, ref: str, commit: str, version: str, *,
+                    unreleased: bool = True) -> None:
+    """A release candidate is its tag's build, of a commit on its series'
+    release branch, and comes before that series' first release: never
+    after it, never of a patch (refs.RC_TAG holds the shape). Without
+    @p unreleased, a series released since is no error: the index then
+    simply no longer lists the candidate (index._choose_rcs)."""
+    tag = refs.tag_of(ref)
+    if version != tag[1:]:
+        raise ReleaseError(f"{ref}: git says {commit[:12]} is {version}, "
+                           f"not {tag[1:]}")
+    if git.resolve_commit(git_dir, ref) != commit:
+        raise ReleaseError(f"{ref} does not point to {commit[:12]}")
+    series = refs.rc_series(ref)
+    branch = refs.HEADS + refs.release_branch(series)
+    if git.resolve_commit(git_dir, branch) is None or not git.is_ancestor(
+            git_dir, commit, branch):
+        raise ReleaseError(f"{ref}: {commit[:12]} is not on "
+                           f"{refs.release_branch(series)}")
+    if not unreleased:
+        return
+    released = [t for t in git.release_tags(git_dir)
+                if parse_version(t).series == series]
+    if released:
+        raise ReleaseError(f"{ref}: {series} has been released already "
+                           f"({max(released, key=parse_version)}); a "
+                           "candidate only comes before its first release")

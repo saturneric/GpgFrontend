@@ -23,7 +23,7 @@ TRUST_FIXTURE = ROOT / "scripts" / "tests" / "fixtures" / "trust" / "root"
 
 import _paths  # noqa: E402,F401
 from gfrelease.app import check_order  # noqa: E402
-from gfrelease.adapters import gitversion  # noqa: E402
+from gfrelease.adapters import git as gitversion  # noqa: E402
 from gfrelease.domain import policy  # noqa: E402
 from gfrelease.domain import refs  # noqa: E402
 from gfrelease.domain import semver  # noqa: E402
