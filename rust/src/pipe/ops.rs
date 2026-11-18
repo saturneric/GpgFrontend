@@ -2525,12 +2525,15 @@ fn list(
         let shown = path.display().to_string();
         out.push_str(&format!("{shown}\n{}\n", "-".repeat(shown.chars().count())));
     }
+    // Both are in writing order: one walk along the keys finds each one's.
+    let mut keys = components.chunk_by(|a, b| a.same_key(b));
     for primary in &chosen {
         let entry = pack.entry(primary).map_err(|_| damaged())?;
-        let subs: Vec<_> = components
-            .iter()
-            .filter(|c| c.subkey() && c.same_key(primary))
-            .collect();
+        let subs: Vec<_> = keys
+            .by_ref()
+            .find(|key| key[0].same_key(primary))
+            .map(|key| key.iter().filter(|c| c.subkey()).collect())
+            .unwrap_or_default();
         let own = primary.has_secret;
         let primary_shape = shape_of(&entry, primary, &entry.fpr_hex());
         let sub_fpr = |sub: &Component| {
