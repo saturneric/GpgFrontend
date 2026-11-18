@@ -1418,6 +1418,90 @@ impl OpenPackage {
     }
 }
 
+impl OpenPackage {
+    /// Every key a query names, read as gpg reads a key name: a fingerprint
+    /// or a key ID, long or short (8 hex digits), with an optional `0x` and a
+    /// trailing `!`; `=` an exact user ID; `<addr>` an exact address; `@` part
+    /// of an address; `*` part of a user ID; `Name <addr>` its address; else
+    /// part of a user ID, ignoring case. A keygrip (`&`) or a card serial
+    /// (`#`) names nothing here. A key appears once, in package order.
+    pub fn find_all(&self, query: &str) -> Result<Vec<Found>, GfrStatus> {
+        let q = query.trim();
+        let (body, bang) = match q.strip_suffix('!') {
+            Some(rest) => (rest, true),
+            None => (q, false),
+        };
+        let digits: String = body
+            .strip_prefix("0x")
+            .or_else(|| body.strip_prefix("0X"))
+            .unwrap_or(body)
+            .chars()
+            .filter(|c| *c != ' ')
+            .collect();
+        let is_hex = !digits.is_empty() && digits.chars().all(|c| c.is_ascii_hexdigit());
+        if is_hex && matches!(digits.len(), 16 | 40 | 64) {
+            return Ok(self.find(q)?.into_iter().collect());
+        }
+        if is_hex && digits.len() == 8 {
+            let short = hex::decode(&digits).unwrap_or_default();
+            let mut found = Vec::new();
+            for component in self.components() {
+                let entry = self.entry(&component)?;
+                let id = if component.subkey() {
+                    match entry.subkeys.get(usize::from(component.index) - 1) {
+                        Some(sub) => sub.key_id.clone(),
+                        None => continue,
+                    }
+                } else {
+                    entry.key_id.clone()
+                };
+                if id.ends_with(&short) {
+                    let exact = (bang || component.subkey()).then(|| entry.component_fpr_hex(&id));
+                    found.push(Found {
+                        entry,
+                        component,
+                        exact,
+                    });
+                }
+            }
+            return Ok(found);
+        }
+        if q.is_empty() || q.starts_with('&') || q.starts_with('#') {
+            return Ok(Vec::new());
+        }
+
+        let lower = q.to_lowercase();
+        let matches = |uid: &str| -> bool {
+            if let Some(exact) = q.strip_prefix('=') {
+                uid == exact
+            } else if let Some(addr) = q.strip_prefix('<') {
+                let addr = addr.strip_suffix('>').unwrap_or(addr).to_lowercase();
+                email_of(uid).is_some_and(|m| m == addr)
+            } else if let Some(part) = lower.strip_prefix('@') {
+                email_of(uid).is_some_and(|m| m.contains(part))
+            } else if let Some(part) = lower.strip_prefix('*') {
+                uid.to_lowercase().contains(part)
+            } else if let Some(addr) = email_of(q) {
+                email_of(uid).is_some_and(|m| m == addr)
+            } else {
+                uid.to_lowercase().contains(&lower)
+            }
+        };
+        let mut found = Vec::new();
+        for component in self.primaries() {
+            let entry = self.entry(&component)?;
+            if entry.user_ids.iter().any(|u| matches(u)) {
+                found.push(Found {
+                    entry,
+                    component,
+                    exact: None,
+                });
+            }
+        }
+        Ok(found)
+    }
+}
+
 /// The lower-case address in `Name <addr>`, or `s` itself when it is one.
 fn email_of(s: &str) -> Option<String> {
     let candidate = match (s.rfind('<'), s.rfind('>')) {
