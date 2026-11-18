@@ -599,11 +599,15 @@ pub mod keys {
     }
 
     fn fixture_from(secret: SignedSecretKey) -> Fixture {
+        // Armored as the engine armors keys: a v4 key with the CRC24 footer,
+        // without which GnuPG 2.4 refuses about one key in eighty (those
+        // whose armor ends without base64 padding).
+        let opts = crate::utils::key_armor_opts(secret.primary_key.version());
         let secret_armored = secret
-            .to_armored_string(crate::utils::armor_opts())
+            .to_armored_string(opts.clone())
             .expect("fixture secret key must armor");
         let public_armored = SignedPublicKey::from(secret.clone())
-            .to_armored_string(crate::utils::armor_opts())
+            .to_armored_string(opts)
             .expect("fixture public key must armor");
         let primary_fpr = secret.primary_key.fingerprint().to_string().to_uppercase();
 
@@ -1397,8 +1401,8 @@ pub mod assert {
     use crate::crypto::SignatureResultInternal;
     use crate::types::{GfrSignatureStatus, GfrStatus};
 
-    /// RFC 9580 §6.1: v6 material MUST NOT carry a CRC24 footer, and this
-    /// engine never emits one at all (see [`crate::utils::armor_opts`]).
+    /// RFC 9580 §6.1: v6 material MUST NOT carry a CRC24 footer; v4-only
+    /// material carries one for GnuPG (see [`crate::utils::armor_opts_for`]).
     pub fn armor_has_crc24(armored: &str) {
         assert!(
             armored
@@ -2600,10 +2604,14 @@ mod selftest {
     }
 
     #[test]
-    fn fixture_armor_roundtrips_and_has_no_crc24() {
+    fn fixture_armor_roundtrips_and_has_the_engines_crc24() {
         assert::roundtrips_through_armor(&keys::V4_SIGN.secret_armored);
         assert::roundtrips_through_armor(&keys::V6_SIGN.secret_armored);
-        assert::armor_has_no_crc24(&keys::V4_SIGN.secret_armored);
+        // As the engine armors keys (`key_armor_opts`): v4 with the footer
+        // GnuPG needs, v6 never.
+        assert::armor_has_crc24(&keys::V4_SIGN.secret_armored);
+        assert::armor_has_crc24(&keys::V4_SIGN.public_armored);
+        assert::armor_has_no_crc24(&keys::V6_SIGN.secret_armored);
         assert::armor_has_no_crc24(&keys::V6_SIGN.public_armored);
     }
 
