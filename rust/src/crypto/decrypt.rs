@@ -295,30 +295,33 @@ fn pkesk_session_key(
             if c_key_block.is_null() {
                 continue;
             }
-            let skey = unsafe { CStr::from_ptr(c_key_block) }
+            // Usually one key. For a hidden recipient (a key ID of zeros) the
+            // host may hand over several in one block: each is tried, as gpg
+            // tries every secret key it has.
+            let skeys: Vec<SignedSecretKey> = unsafe { CStr::from_ptr(c_key_block) }
                 .to_str()
                 .ok()
-                .and_then(|key_str| SignedSecretKey::from_string(key_str).ok())
-                .map(|(key, _)| key);
+                .and_then(|key_str| SignedSecretKey::from_string_many(key_str).ok())
+                .map(|(keys, _)| keys.filter_map(Result::ok).collect())
+                .unwrap_or_default();
             unsafe { gfc_secure_free_cstr(c_key_block as *mut c_char) };
-            let Some(skey) = skey else {
-                continue;
-            };
-            let fpr = skey.primary_key.fingerprint().to_string();
-            if tried.contains(&fpr) {
-                continue;
-            }
-            tried.push(fpr);
-
-            match pkesk_session_key_with(channel, esks, &skey, &rec.key_id, fetch_pwd_cb) {
-                Ok(session_key) => {
-                    let accepted = crate::crypto::encrypt::accepted_ciphers(
-                        &pgp::composed::SignedPublicKey::from(skey.clone()),
-                    );
-                    return Ok((session_key, rec.key_id.clone(), accepted));
+            for skey in skeys {
+                let fpr = skey.primary_key.fingerprint().to_string();
+                if tried.contains(&fpr) {
+                    continue;
                 }
-                Err(GfrStatus::ErrorCanceled) => return Err(GfrStatus::ErrorCanceled),
-                Err(status) => failure = Some(more_telling_failure(failure, status)),
+                tried.push(fpr);
+
+                match pkesk_session_key_with(channel, esks, &skey, &rec.key_id, fetch_pwd_cb) {
+                    Ok(session_key) => {
+                        let accepted = crate::crypto::encrypt::accepted_ciphers(
+                            &pgp::composed::SignedPublicKey::from(skey.clone()),
+                        );
+                        return Ok((session_key, rec.key_id.clone(), accepted));
+                    }
+                    Err(GfrStatus::ErrorCanceled) => return Err(GfrStatus::ErrorCanceled),
+                    Err(status) => failure = Some(more_telling_failure(failure, status)),
+                }
             }
         }
     }
@@ -1171,6 +1174,35 @@ where
             Sink::Staged { ciphertext_len },
         )
     })
+}
+
+/// [`decrypt_and_verify_stream_staged_internal`] for an output that is
+/// already a stage of the caller's, a file it deletes unless this returns
+/// `Ok`: the plaintext goes there directly, not through a second stage.
+#[allow(clippy::too_many_arguments)]
+pub fn decrypt_and_verify_stream_into_stage_internal(
+    channel: i32,
+    input: File,
+    ciphertext_len: u64,
+    stage: &mut File,
+    ascii_armor: bool,
+    fetch_seckey_cb: Option<GfrSecretKeyFetchCb>,
+    fetch_pwd_cb: Option<GfrPasswordFetchCb>,
+    fetch_pubkey_cb: Option<GfrPublicKeyFetchCb>,
+    user_data: *mut c_void,
+) -> Result<DecryptAndVerifyStreamResultInternal, GfrStatus> {
+    decrypt_message_stream(
+        channel,
+        input,
+        plain_stage_writer(stage),
+        ascii_armor,
+        fetch_seckey_cb,
+        fetch_pwd_cb,
+        fetch_pubkey_cb,
+        user_data,
+        // Safe: the caller's stage is deleted unless this returns `Ok`.
+        Sink::Staged { ciphertext_len },
+    )
 }
 
 /// Run `write` into an anonymous temporary file, and copy what it wrote to

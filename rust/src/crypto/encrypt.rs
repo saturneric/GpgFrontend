@@ -692,8 +692,66 @@ pub fn encrypt_and_sign_stream_internal<R, W>(
     channel: i32,
     name: &str,
     input_stream: R,
+    output_stream: W,
+    public_key_blocks: &[&str],
+    secret_key_blocks: &[&str],
+    fetch_cb: Option<GfrPasswordFetchCb>,
+    ascii_armor: bool,
+) -> Result<EncryptAndSignStreamResultInternal, GfrStatus>
+where
+    R: Read + Send + Sync,
+    W: Write + Send + Sync,
+{
+    encrypt_and_sign_stream_hiding_internal(
+        channel,
+        name,
+        input_stream,
+        output_stream,
+        public_key_blocks,
+        &[],
+        secret_key_blocks,
+        fetch_cb,
+        ascii_armor,
+    )
+}
+
+/// The container [`encrypt_and_sign_stream_internal`] writes for these
+/// recipients, chosen the same way, as gpg's `BEGIN_ENCRYPTION` fields: the
+/// MDC method (2 for a v1 SEIPD, 0 for AEAD), the cipher's id, and the AEAD
+/// mode's id (0 for none). `None` when no recipient is usable.
+pub fn planned_container(public_key_blocks: &[&str]) -> Option<(u8, u8, u8)> {
+    let now = unix_now();
+    let caps: Vec<RecipientCaps> = public_key_blocks
+        .iter()
+        .filter_map(|block| {
+            let (target, armored) = parse_signer_block(block);
+            let (cert, _) = SignedPublicKey::from_string(armored).ok()?;
+            let target = validate_recipient(&cert, target.as_deref(), now).ok()?;
+            Some(RecipientCaps::of(&cert, &target))
+        })
+        .collect();
+    if caps.is_empty() {
+        return None;
+    }
+    let container = select_container(&caps).ok();
+    Some(match container? {
+        Container::SeipdV1(sym) => (2, u8::from(sym), 0),
+        Container::SeipdV2(sym, aead) => (0, u8::from(sym), u8::from(aead)),
+    })
+}
+
+/// [`encrypt_and_sign_stream_internal`], where a recipient whose entry in
+/// `hidden` is true is not named in the message: its session-key packet
+/// carries a wildcard key ID (RFC 9580 §5.1), as gpg's `--hidden-recipient`
+/// writes it. A missing entry is false.
+#[allow(clippy::too_many_arguments)]
+pub fn encrypt_and_sign_stream_hiding_internal<R, W>(
+    channel: i32,
+    name: &str,
+    input_stream: R,
     mut output_stream: W,
     public_key_blocks: &[&str],
+    hidden: &[bool],
     secret_key_blocks: &[&str],
     fetch_cb: Option<GfrPasswordFetchCb>,
     ascii_armor: bool,
@@ -712,7 +770,8 @@ where
     let mut invalid_recipients = Vec::new();
     let mut targets = Vec::new();
 
-    for block in public_key_blocks {
+    let mut target_hidden = Vec::new();
+    for (index, block) in public_key_blocks.iter().enumerate() {
         // A caller may pin a specific encryption subkey by prefixing the armored
         // block with `<fpr>!` (the same mechanism the signing path uses). Strip
         // it off before parsing the certificate.
@@ -720,7 +779,10 @@ where
 
         match SignedPublicKey::from_string(armored) {
             Ok((cert, _)) => match validate_recipient(&cert, target.as_deref(), now) {
-                Ok(target) => targets.push((cert, target)),
+                Ok(target) => {
+                    targets.push((cert, target));
+                    target_hidden.push(hidden.get(index).copied().unwrap_or(false));
+                }
                 Err(reason) => invalid_recipients.push(InvalidRecipientInternal {
                     fpr: cert.primary_key.fingerprint().to_string(),
                     reason,
@@ -844,22 +906,31 @@ where
     macro_rules! encrypt_to_targets_and_write {
         ($enc_builder:ident, $pkesk_version:literal, $v4_only:expr) => {{
             let pkesk_version = $pkesk_version;
-            for (cert, target) in &targets {
+            for (position, (cert, target)) in targets.iter().enumerate() {
+                let anonymous = target_hidden.get(position).copied().unwrap_or(false);
                 // Record the component actually used so callers can show the
                 // real recipient key ID and algorithm.
                 let (added, key_id, pub_algo) = match target {
                     EncryptionTarget::Sub(i) => {
                         let subkey = &cert.public_subkeys[*i];
                         (
-                            $enc_builder.encrypt_to_key(&mut rng, subkey).map(|_| ()),
+                            if anonymous {
+                                $enc_builder.encrypt_to_key_anonymous(&mut rng, subkey)
+                            } else {
+                                $enc_builder.encrypt_to_key(&mut rng, subkey)
+                            }
+                            .map(|_| ()),
                             subkey.key.legacy_key_id().to_string(),
                             algo_to_string_simple(subkey.key.algorithm()),
                         )
                     }
                     EncryptionTarget::Primary => (
-                        $enc_builder
-                            .encrypt_to_key(&mut rng, &cert.primary_key)
-                            .map(|_| ()),
+                        if anonymous {
+                            $enc_builder.encrypt_to_key_anonymous(&mut rng, &cert.primary_key)
+                        } else {
+                            $enc_builder.encrypt_to_key(&mut rng, &cert.primary_key)
+                        }
+                        .map(|_| ()),
                         cert.primary_key.legacy_key_id().to_string(),
                         algo_to_string_simple(cert.primary_key.algorithm()),
                     ),
