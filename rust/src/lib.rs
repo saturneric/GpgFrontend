@@ -75,6 +75,7 @@ mod utils;
 
 mod cache;
 mod keypack;
+/// cbindgen:ignore
 mod pipe;
 mod tar;
 
