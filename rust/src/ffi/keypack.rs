@@ -277,7 +277,7 @@ pub extern "C" fn gfr_keypack_open(
         };
 
         let pack = sealed.unlock(unlock)?;
-        let primaries = pack.primaries();
+        let primaries = pack.primaries()?;
         if primaries.len() != pack.header.key_count as usize {
             set_last_error("the key package index is damaged");
             return Err(GfrStatus::ErrorDataCorrupted);

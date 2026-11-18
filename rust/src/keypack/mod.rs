@@ -30,17 +30,24 @@
 //!
 //! ```text
 //! "GFKPK3\n" | u32 BE header_len | header (CBOR)
-//! nonce (24) | XChaCha20-Poly1305(data_key, search tree)
+//! page*: nonce (24) | XChaCha20-Poly1305(data_key, index_page_nodes nodes)
 //! part*: nonce (24) | XChaCha20-Poly1305(data_key, metadata or secret key)
 //! ```
 //!
 //! The header is plaintext CBOR (RFC 8949) so a reader knows how to unlock the
-//! package, how many keys it holds and how large the index is. It is the
-//! index's associated data, so changing it breaks the index. It names no key.
+//! package, how many keys it holds and how large the index is. It is part of
+//! every index page's associated data, so changing it breaks the index. It
+//! names no key.
 //!
 //! The index is a balanced binary search tree of fixed-size [`NODE_LEN`] nodes
 //! in Eytzinger order (the root first, the children of node `i` at `2i+1` and
-//! `2i+2`), read as it is once decrypted. A node maps one binary identifier to
+//! `2i+2`), read as it is once decrypted. It is sealed in pages of
+//! `index_page_nodes` nodes (the last page may be shorter), each bound to its
+//! number, so a reader decrypts only the pages a lookup walks through: the
+//! first page holds the top levels of the tree, and a lookup in an index of
+//! `n` nodes reads about `log2(n) - log2(index_page_nodes)` pages more. Many
+//! readers of one package then share its bytes through the page cache and
+//! each holds only a few decrypted pages. A node maps one binary identifier to
 //! its key: the fingerprint and key ID of the primary key and of every subkey,
 //! and the SHA-256 of every e-mail address in a user ID. A lookup walks the
 //! tree in `O(log n)` comparisons. A node points at its key's two parts, and
@@ -89,6 +96,7 @@
 //! cipher or key derivation, a field or bit changing meaning, a part sealed
 //! differently. Writers write zero into reserved bytes; readers ignore them.
 
+use std::cell::RefCell;
 use std::cmp::Ordering;
 
 use chacha20poly1305::aead::{Aead, KeyInit, Payload};
@@ -168,6 +176,13 @@ const MAX_HEADER_BYTES: usize = 4 * 1024;
 const MAX_KEY_FILE_BYTES: usize = 4 * 1024;
 const MAX_NODES: usize = 1 << 20;
 const MAX_NODE_LEN: usize = 1024;
+/// Nodes per sealed index page this writer writes: 4 KiB of 64-byte nodes,
+/// the top six levels of the tree in the first page.
+const PAGE_NODES: u32 = 64;
+const MAX_PAGE_NODES: u32 = 4096;
+/// Decrypted index pages a reader keeps, the first page among them: enough
+/// for the pages one lookup reads twice, and a bound on what a reader holds.
+const CACHED_PAGES: usize = 8;
 const MAX_PART_BYTES: usize = 64 * 1024 * 1024;
 const KEY_LEN: usize = 32;
 const NONCE_LEN: usize = 24;
@@ -204,6 +219,8 @@ pub struct Header {
     /// fields to the nodes, which a reader skips. Absent means [`NODE_LEN`].
     #[serde(default = "default_node_len")]
     pub node_len: u32,
+    /// Nodes per sealed index page, a power of two.
+    pub index_page_nodes: u32,
     /// True when any secret key component in the package has no passphrase of
     /// its own, so the package's protection is all that guards it.
     pub secrets_unprotected: bool,
@@ -545,23 +562,42 @@ fn fill_tree(sorted: &[NodeInput], tree: &mut [u8], node_len: usize, at: usize, 
     fill_tree(sorted, tree, node_len, 2 * at + 1, next);
 }
 
+/// The [`NODE_LEN`] bytes of one node this reader knows.
+type Node = [u8; NODE_LEN];
+
 /// The first node whose key equals (`kind`, `id`), by a lower-bound descent
-/// of the Eytzinger tree of `node_len`-byte nodes; the [`NODE_LEN`] bytes of
-/// it this reader knows.
-fn tree_find<'t>(tree: &'t [u8], node_len: usize, kind: u8, id: &[u8]) -> Option<&'t [u8]> {
-    let n = tree.len() / node_len;
-    let node = |at: usize| &tree[(at - 1) * node_len..(at - 1) * node_len + NODE_LEN];
+/// of an Eytzinger tree of `n` nodes; `node(i)` gives the node at 0-based
+/// position `i`.
+fn descend<E>(
+    n: usize,
+    mut node: impl FnMut(usize) -> Result<Node, E>,
+    kind: u8,
+    id: &[u8],
+) -> Result<Option<Node>, E> {
     let mut at = 1usize;
     while at <= n {
-        let less = node_key(node(at)).cmp(&(kind, id)) == Ordering::Less;
+        let less = node_key(&node(at - 1)?).cmp(&(kind, id)) == Ordering::Less;
         at = 2 * at + usize::from(less);
     }
     // Undo the right turns taken after the last left turn: what remains is
     // the lower bound, or 0 when every node is less.
     at >>= at.trailing_ones() + 1;
-    (at != 0)
-        .then(|| node(at))
-        .filter(|found| node_key(found) == (kind, id))
+    if at == 0 {
+        return Ok(None);
+    }
+    let found = node(at - 1)?;
+    Ok((node_key(&found) == (kind, id)).then_some(found))
+}
+
+/// [`descend`] through a whole tree of `node_len`-byte nodes in memory.
+#[cfg(test)]
+fn tree_find(tree: &[u8], node_len: usize, kind: u8, id: &[u8]) -> Option<Node> {
+    let node = |i: usize| -> Result<Node, std::convert::Infallible> {
+        Ok(tree[i * node_len..i * node_len + NODE_LEN]
+            .try_into()
+            .unwrap())
+    };
+    descend(tree.len() / node_len, node, kind, id).unwrap_or_else(|e| match e {})
 }
 
 /// The SHA-256 an e-mail address is indexed by.
@@ -605,16 +641,17 @@ pub fn write_package(
     request: ProtectionRequest,
     generated_at: u64,
 ) -> Result<WrittenPackage, GfrStatus> {
-    write_package_with(keys, request, generated_at, NODE_LEN)
+    write_package_with(keys, request, generated_at, NODE_LEN, PAGE_NODES)
 }
 
 /// [`write_package`] with nodes of `node_len` bytes, as a newer writer that
-/// appended node fields would write them.
+/// appended node fields would write them, sealed `page_nodes` to a page.
 fn write_package_with(
     keys: &[&[u8]],
     request: ProtectionRequest,
     generated_at: u64,
     node_len: usize,
+    page_nodes: u32,
 ) -> Result<WrittenPackage, GfrStatus> {
     if keys.is_empty() {
         return fail(
@@ -755,6 +792,7 @@ fn write_package_with(
         key_count,
         node_count,
         node_len: node_len as u32,
+        index_page_nodes: page_nodes,
         secrets_unprotected,
         protection,
     };
@@ -769,10 +807,14 @@ fn write_package_with(
     let mut package = MAGIC.to_vec();
     package.extend((header_bytes.len() as u32).to_be_bytes());
     package.extend(&header_bytes);
-    let nonce = random_bytes::<NONCE_LEN>();
-    let sealed = seal(&data_key, &nonce, &index, &package)?;
-    package.extend(nonce);
-    package.extend(sealed);
+    let prefix_len = package.len();
+    for (number, page) in index.chunks(page_nodes as usize * node_len).enumerate() {
+        let nonce = random_bytes::<NONCE_LEN>();
+        let aad = page_aad(&package[..prefix_len], number as u32);
+        let sealed = seal(&data_key, &nonce, page, &aad)?;
+        package.extend(nonce);
+        package.extend(sealed);
+    }
     package.extend(parts);
 
     Ok(WrittenPackage {
@@ -1100,7 +1142,8 @@ impl SealedPackage {
         &self.header
     }
 
-    /// Unlock the package and read its index.
+    /// Unlock the package and read the first page of its index; the other
+    /// pages are read as lookups reach them.
     pub fn unlock(self, unlock: Unlock<'_>) -> Result<OpenPackage, GfrStatus> {
         let data_key = unwrap_data_key(&self.header, unlock)?;
 
@@ -1111,28 +1154,52 @@ impl SealedPackage {
                 "the key package index is damaged",
             );
         }
-        let at = self.prefix.len() as u64;
-        let sealed_len = NONCE_LEN + node_count * self.header.node_len as usize + TAG_LEN;
-        let sealed = self.source.read_at(at, sealed_len)?;
-        let (nonce, sealed) = sealed.split_at(NONCE_LEN);
-        let tree = open(&data_key, nonce, sealed, &self.prefix).map_err(|_| changed())?;
+        let page_nodes = self.header.index_page_nodes as usize;
+        let node_len = self.header.node_len as usize;
+        let pages = node_count.div_ceil(page_nodes);
+        let index_at = self.prefix.len() as u64;
+        let sealed_page = NONCE_LEN + page_nodes * node_len + TAG_LEN;
+        let index_len = node_count * node_len + pages * (NONCE_LEN + TAG_LEN);
 
-        Ok(OpenPackage {
+        let pack = OpenPackage {
             header: self.header,
-            tree,
             data_key,
             source: self.source,
-            parts_at: at + sealed_len as u64,
-        })
+            index_aad: self.prefix,
+            index_at,
+            sealed_page,
+            pages: RefCell::new(Vec::new()),
+            #[cfg(test)]
+            page_reads: std::cell::Cell::new(0),
+            parts_at: index_at + index_len as u64,
+        };
+        // The first page proves the key opens this index, and every lookup
+        // starts in it.
+        if pages > 0 {
+            pack.with_page(0, |_| ())?;
+        }
+        Ok(pack)
     }
 }
 
-/// An opened package: its index is in memory, its keys are read on demand.
+/// An opened package: its index and its keys are read on demand, and only a
+/// few decrypted index pages are kept.
 pub struct OpenPackage {
     pub header: Header,
-    tree: Zeroizing<Vec<u8>>,
     data_key: Zeroizing<[u8; KEY_LEN]>,
     source: Source,
+    /// Magic, length and header: the start of every page's associated data.
+    index_aad: Vec<u8>,
+    /// Where the first index page starts.
+    index_at: u64,
+    /// The sealed length of a full index page.
+    sealed_page: usize,
+    /// Decrypted index pages, by number, the first page first and the rest
+    /// oldest first; at most [`CACHED_PAGES`].
+    pages: RefCell<Vec<(usize, Zeroizing<Vec<u8>>)>>,
+    /// Index pages decrypted so far.
+    #[cfg(test)]
+    page_reads: std::cell::Cell<usize>,
     /// Where the first part starts.
     parts_at: u64,
 }
@@ -1193,6 +1260,8 @@ fn split_header(bytes: &[u8]) -> Result<(Header, usize), GfrStatus> {
     if header.package_id.len() != PACKAGE_ID_LEN
         || (header.node_len as usize) < NODE_LEN
         || header.node_len as usize > MAX_NODE_LEN
+        || !header.index_page_nodes.is_power_of_two()
+        || header.index_page_nodes > MAX_PAGE_NODES
     {
         return fail(
             GfrStatus::ErrorDataCorrupted,
@@ -1270,11 +1339,76 @@ impl OpenPackage {
         self.header.node_len as usize
     }
 
-    /// Every node, as far as this reader knows its fields.
-    fn nodes(&self) -> impl Iterator<Item = &[u8]> {
-        self.tree
-            .chunks_exact(self.node_len())
-            .map(|n| &n[..NODE_LEN])
+    fn page_nodes(&self) -> usize {
+        self.header.index_page_nodes as usize
+    }
+
+    fn page_count(&self) -> usize {
+        (self.header.node_count as usize).div_ceil(self.page_nodes())
+    }
+
+    /// Read and decrypt index page `number`.
+    fn read_page(&self, number: usize) -> Result<Zeroizing<Vec<u8>>, GfrStatus> {
+        let node_count = self.header.node_count as usize;
+        let nodes = self
+            .page_nodes()
+            .min(node_count - number * self.page_nodes());
+        let len = NONCE_LEN + nodes * self.node_len() + TAG_LEN;
+        let at = self.index_at + (number * self.sealed_page) as u64;
+        let sealed = self.source.read_at(at, len)?;
+        let (nonce, sealed) = sealed.split_at(NONCE_LEN);
+        let aad = page_aad(&self.index_aad, number as u32);
+        #[cfg(test)]
+        self.page_reads.set(self.page_reads.get() + 1);
+        open(&self.data_key, nonce, sealed, &aad).map_err(|_| changed())
+    }
+
+    /// Run `f` on decrypted index page `number`, reading it first unless it
+    /// is kept. The first page is always kept; of the others, the oldest
+    /// makes room.
+    fn with_page<T>(&self, number: usize, f: impl FnOnce(&[u8]) -> T) -> Result<T, GfrStatus> {
+        if let Some((_, page)) = self.pages.borrow().iter().find(|(n, _)| *n == number) {
+            return Ok(f(page));
+        }
+        let page = self.read_page(number)?;
+        let out = f(&page);
+        let mut pages = self.pages.borrow_mut();
+        if pages.len() >= CACHED_PAGES {
+            let oldest = pages.iter().position(|(n, _)| *n != 0).unwrap_or(0);
+            pages.remove(oldest);
+        }
+        pages.push((number, page));
+        Ok(out)
+    }
+
+    /// The node at 0-based position `i` of the tree.
+    fn node(&self, i: usize) -> Result<Node, GfrStatus> {
+        let (number, within) = (i / self.page_nodes(), i % self.page_nodes());
+        let at = within * self.node_len();
+        self.with_page(number, |page| page[at..at + NODE_LEN].try_into().unwrap())
+    }
+
+    /// The first node for (`kind`, `id`): one walk down the tree.
+    fn find_node(&self, kind: u8, id: &[u8]) -> Result<Option<Node>, GfrStatus> {
+        descend(self.header.node_count as usize, |i| self.node(i), kind, id)
+    }
+
+    /// Every node, as far as this reader knows its fields, one page at a
+    /// time; a scan neither keeps the pages nor pushes out the kept ones.
+    fn for_each_node(&self, mut f: impl FnMut(&[u8])) -> Result<(), GfrStatus> {
+        let node_len = self.node_len();
+        let mut each = |page: &[u8]| page.chunks_exact(node_len).for_each(|n| f(&n[..NODE_LEN]));
+        for number in 0..self.page_count() {
+            let pages = self.pages.borrow();
+            match pages.iter().find(|(n, _)| *n == number) {
+                Some((_, page)) => each(page),
+                None => {
+                    drop(pages);
+                    each(&self.read_page(number)?);
+                }
+            }
+        }
+        Ok(())
     }
 
     /// Read and decrypt one part of the key whose metadata is at `key`.
@@ -1316,31 +1450,64 @@ impl OpenPackage {
 
     /// Every component the index lists, in the order the keys were written
     /// and each key's primary first, then its subkeys in order. Reads no part.
-    pub fn components(&self) -> Vec<Component> {
-        let mut all: Vec<Component> = self
-            .nodes()
-            .filter(|n| n[0] == KIND_FPR)
-            .map(Component::decode)
-            .collect();
-        all.sort_by_key(|c| (c.parts.meta_at, c.index));
-        all
+    pub fn components(&self) -> Result<Vec<Component>, GfrStatus> {
+        self.fpr_components(|_| true)
     }
 
     /// The primary component of every key, in writing order. Reads no part.
-    pub fn primaries(&self) -> Vec<Component> {
-        let mut primaries: Vec<Component> = self
-            .components()
-            .into_iter()
-            .filter(|c| !c.subkey())
-            .collect();
+    pub fn primaries(&self) -> Result<Vec<Component>, GfrStatus> {
+        let mut primaries = self.fpr_components(|c| !c.subkey())?;
         primaries.dedup_by_key(|c| c.parts.meta_at);
-        primaries
+        Ok(primaries)
+    }
+
+    /// Every component of the key `entry`, which `of` is a component of, in
+    /// order: one walk down the index for each, by its fingerprint. Scans the
+    /// index only if a fingerprint leads to another key (two keys sharing a
+    /// subkey).
+    pub fn key_components(
+        &self,
+        entry: &KeyEntry,
+        of: &Component,
+    ) -> Result<Vec<Component>, GfrStatus> {
+        let fprs =
+            std::iter::once(&entry.fingerprint).chain(entry.subkeys.iter().map(|s| &s.fingerprint));
+        let mut all = Vec::with_capacity(1 + entry.subkeys.len());
+        for fpr in fprs {
+            match self
+                .find_node(KIND_FPR, fpr)?
+                .map(|n| Component::decode(&n))
+            {
+                Some(c) if c.same_key(of) => all.push(c),
+                _ => return self.fpr_components(|c| c.same_key(of)),
+            }
+        }
+        all.sort_by_key(|c| c.index);
+        Ok(all)
+    }
+
+    /// The components of the fingerprint nodes `keep` keeps, in writing order.
+    fn fpr_components(
+        &self,
+        keep: impl Fn(&Component) -> bool,
+    ) -> Result<Vec<Component>, GfrStatus> {
+        let mut all = Vec::new();
+        self.for_each_node(|n| {
+            if n[0] == KIND_FPR {
+                let c = Component::decode(n);
+                if keep(&c) {
+                    all.push(c);
+                }
+            }
+        })?;
+        all.sort_by_key(|c| (c.parts.meta_at, c.index));
+        Ok(all)
     }
 
     /// Every key, in the order they were written.
     #[cfg(test)]
     pub fn keys(&self) -> Result<Vec<KeyEntry>, GfrStatus> {
-        let primaries = self.primaries();
+        let primaries = self.primaries()?;
         if primaries.len() != self.header.key_count as usize {
             return Err(changed());
         }
@@ -1370,10 +1537,10 @@ impl OpenPackage {
             _ => None,
         };
         if let (Some(kind), Ok(id)) = (kind, hex::decode(&digits)) {
-            let Some(node) = tree_find(&self.tree, self.node_len(), kind, &id) else {
+            let Some(node) = self.find_node(kind, &id)? else {
                 return Ok(None);
             };
-            let component = Component::decode(node);
+            let component = Component::decode(&node);
             let entry = self.entry(&component)?;
             let exact = (bang || component.subkey()).then(|| entry.component_fpr_hex(&id));
             return Ok(Some(Found {
@@ -1384,10 +1551,8 @@ impl OpenPackage {
         }
 
         if let Some(email) = email_of(q) {
-            if let Some(node) =
-                tree_find(&self.tree, self.node_len(), KIND_EMAIL, &email_id(&email))
-            {
-                let component = Component::decode(node);
+            if let Some(node) = self.find_node(KIND_EMAIL, &email_id(&email))? {
+                let component = Component::decode(&node);
                 return Ok(Some(Found {
                     entry: self.entry(&component)?,
                     component,
@@ -1400,7 +1565,7 @@ impl OpenPackage {
         if needle.is_empty() {
             return Ok(None);
         }
-        for component in self.primaries() {
+        for component in self.primaries()? {
             let entry = self.entry(&component)?;
             if entry
                 .user_ids
@@ -1445,7 +1610,7 @@ impl OpenPackage {
         if is_hex && digits.len() == 8 {
             let short = hex::decode(&digits).unwrap_or_default();
             let mut found = Vec::new();
-            for component in self.components() {
+            for component in self.components()? {
                 let entry = self.entry(&component)?;
                 let id = if component.subkey() {
                     match entry.subkeys.get(usize::from(component.index) - 1) {
@@ -1488,7 +1653,7 @@ impl OpenPackage {
             }
         };
         let mut found = Vec::new();
-        for component in self.primaries() {
+        for component in self.primaries()? {
             let entry = self.entry(&component)?;
             if entry.user_ids.iter().any(|u| matches(u)) {
                 found.push(Found {
@@ -1568,6 +1733,15 @@ fn wrap_aad(package_id: &[u8], kind: &str) -> Vec<u8> {
     aad.extend(package_id);
     aad.push(0);
     aad.extend(kind.as_bytes());
+    aad
+}
+
+/// Index page `number`'s associated data: the package's magic, header length
+/// and header, then the page number, so a page is read only at its place in
+/// its own package.
+fn page_aad(prefix: &[u8], number: u32) -> Vec<u8> {
+    let mut aad = prefix.to_vec();
+    aad.extend(number.to_be_bytes());
     aad
 }
 

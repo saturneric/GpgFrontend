@@ -735,14 +735,16 @@ fn keys_named(pack: &OpenPackage, query: &str) -> Result<Vec<Found>, PipeError> 
 
 /// The components of `found` that could do what `cap` asks: the one the
 /// query pinned, or every one of the key with the capability.
-fn candidates(pack: &OpenPackage, found: &Found, cap: u8) -> Vec<Component> {
+fn candidates(pack: &OpenPackage, found: &Found, cap: u8) -> Result<Vec<Component>, PipeError> {
     if found.exact.is_some() {
-        return vec![found.component];
+        return Ok(vec![found.component]);
     }
-    pack.components()
+    Ok(pack
+        .key_components(&found.entry, &found.component)
+        .map_err(|_| damaged())?
         .into_iter()
-        .filter(|c| c.same_key(&found.component) && c.can(cap))
-        .collect()
+        .filter(|c| c.can(cap))
+        .collect())
 }
 
 fn usable(c: &Component) -> bool {
@@ -771,9 +773,14 @@ fn pick(
     if named.is_empty() {
         return Ok(Err(Refusal::Missing));
     }
-    let (mut good, bad): (Vec<Found>, Vec<Found>) = named
-        .into_iter()
-        .partition(|f| candidates(pack, f, cap).iter().any(usable));
+    let (mut good, mut bad) = (Vec::new(), Vec::new());
+    for f in named {
+        if candidates(pack, &f, cap)?.iter().any(usable) {
+            good.push(f);
+        } else {
+            bad.push(f);
+        }
+    }
     Ok(match good.len() {
         0 => Err(Refusal::Unusable(bad)),
         1 => Ok(good.remove(0)),
@@ -785,6 +792,7 @@ fn pick(
 fn only_secret_key(pack: &OpenPackage) -> Result<Option<KeyEntry>, PipeError> {
     let secret: Vec<_> = pack
         .primaries()
+        .map_err(|_| damaged())?
         .into_iter()
         .filter(|c| c.has_secret)
         .collect();
@@ -855,7 +863,7 @@ fn signers(
         .into_iter()
         .map(|found| {
             let entry = &found.entry;
-            let ready: Vec<_> = candidates(pack, &found, CAP_SIGN)
+            let ready: Vec<_> = candidates(pack, &found, CAP_SIGN)?
                 .into_iter()
                 .filter(usable)
                 .collect();
@@ -1045,7 +1053,7 @@ extern "C" fn fetch_secret(id: *const c_char, user_data: *mut c_void) -> *mut c_
         // SAFETY: as in `lookup`.
         let pack = unsafe { &*(user_data as *const OpenPackage) };
         let mut primaries: Vec<Component> = Vec::new();
-        for c in pack.components() {
+        for c in pack.components().unwrap_or_default() {
             if c.has_secret
                 && c.can(CAP_ENCRYPT)
                 && usable(&c)
@@ -2379,7 +2387,7 @@ fn selected(
     secret_only: bool,
     pack: &OpenPackage,
 ) -> Result<Vec<Component>, PipeError> {
-    let mut chosen = pack.primaries();
+    let mut chosen = pack.primaries().map_err(|_| damaged())?;
     if secret_only {
         chosen.retain(|c| c.has_secret);
     }
@@ -2500,7 +2508,7 @@ fn list(
         status.push(format!("ERROR keylist.getkey {code}"));
         return Err(PipeError::error(""));
     }
-    let components = pack.components();
+    let components = pack.components().map_err(|_| damaged())?;
     let (key_word, sub_word) = if secret_only {
         ("sec", "ssb")
     } else {

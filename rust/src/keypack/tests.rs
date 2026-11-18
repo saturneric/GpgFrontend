@@ -259,7 +259,7 @@ fn parts_cannot_be_swapped() {
     let written = write(&keys, ProtectionRequest::Plain).unwrap();
     let pack = open_plain(&written);
     let parts_at = pack.parts_at as usize;
-    let second = pack.primaries()[1].parts.meta_at as usize;
+    let second = pack.primaries().unwrap()[1].parts.meta_at as usize;
     let mut bytes = written.package[..parts_at].to_vec();
     bytes.extend(&written.package[parts_at + second..]);
     bytes.extend(&written.package[parts_at..parts_at + second]);
@@ -370,14 +370,15 @@ fn wider_nodes_from_a_newer_writer_read() {
     // are; this reader steps over the part it does not know.
     let keys = signer_and_peer();
     let refs: Vec<&[u8]> = keys.iter().map(Vec::as_slice).collect();
-    let written = write_package_with(&refs, ProtectionRequest::Plain, NOW, NODE_LEN + 32).unwrap();
+    let written =
+        write_package_with(&refs, ProtectionRequest::Plain, NOW, NODE_LEN + 32, 4).unwrap();
     assert_eq!(written.header.node_len as usize, NODE_LEN + 32);
     let pack = open_plain(&written);
 
     let found = pack.find("v4@example.test").unwrap().expect("found");
     assert!(pack.secret_key(&found.entry).unwrap().is_some());
     assert!(pack.find(V4_SIGN.sign_subkey_fpr()).unwrap().is_some());
-    assert_eq!(pack.primaries().len(), 2);
+    assert_eq!(pack.primaries().unwrap().len(), 2);
     assert_eq!(pack.keys().unwrap().len(), 2);
 }
 
@@ -404,6 +405,132 @@ fn nodes_narrower_than_this_reader_knows_are_damage() {
         read_header(&with_header(&written.package, &header)).err(),
         Some(GfrStatus::ErrorDataCorrupted)
     );
+}
+
+/// [`signer_and_peer`] (14 nodes) sealed `page_nodes` nodes to an index page.
+fn write_paged(page_nodes: u32) -> WrittenPackage {
+    let keys = signer_and_peer();
+    let refs: Vec<&[u8]> = keys.iter().map(Vec::as_slice).collect();
+    write_package_with(&refs, ProtectionRequest::Plain, NOW, NODE_LEN, page_nodes).unwrap()
+}
+
+#[test]
+fn every_page_size_reads_the_same_index() {
+    for page_nodes in [1, 2, 4, 8, 16, 64] {
+        let written = write_paged(page_nodes);
+        assert_eq!(written.header.node_count, 14);
+        assert_eq!(written.header.index_page_nodes, page_nodes);
+        let pack = open_plain(&written);
+        assert_eq!(pack.page_count(), 14usize.div_ceil(page_nodes as usize));
+        assert_eq!(pack.keys().unwrap().len(), 2, "page_nodes={page_nodes}");
+        for id in [
+            V4_SIGN.primary_fpr.as_str(),
+            &V4_SIGN.primary_fpr[24..],
+            V4_SIGN.enc_subkey_fpr(),
+            V6_SIGN.primary_fpr.as_str(),
+            "v6@example.test",
+        ] {
+            assert!(
+                pack.find(id).unwrap().is_some(),
+                "page_nodes={page_nodes} {id}"
+            );
+        }
+        assert!(pack.find("nobody@example.test").unwrap().is_none());
+    }
+}
+
+#[test]
+fn a_lookup_decrypts_only_the_pages_on_its_path() {
+    // One node a page: a walk down a tree of 14 nodes (4 levels) reads the
+    // first page when the package is unlocked and at most 3 more.
+    let pack = open_plain(&write_paged(1));
+    assert_eq!(pack.page_reads.get(), 1, "unlocking reads the first page");
+    let found = pack
+        .find_node(KIND_FPR, &fpr_bytes(&V6_SIGN.primary_fpr))
+        .unwrap();
+    assert!(found.is_some());
+    assert!(
+        pack.page_reads.get() <= 4,
+        "{} pages",
+        pack.page_reads.get()
+    );
+}
+
+#[test]
+fn a_reader_keeps_few_pages_and_always_the_first() {
+    let pack = open_plain(&write_paged(1));
+    pack.components().unwrap();
+    assert_eq!(pack.pages.borrow().len(), 1, "a scan keeps no page");
+
+    for i in 0..pack.header.node_count as usize {
+        pack.node(i).unwrap();
+        let pages = pack.pages.borrow();
+        assert!(pages.len() <= CACHED_PAGES);
+        assert_eq!(pages[0].0, 0, "the first page stays");
+    }
+    assert_eq!(pack.pages.borrow().len(), CACHED_PAGES);
+}
+
+#[test]
+fn index_pages_cannot_be_changed_dropped_or_swapped() {
+    let written = write_paged(2);
+    let secret = written.secret.as_ref().unwrap();
+    let pack = open_plain(&written);
+    assert_eq!(pack.page_count(), 7, "seven full pages");
+    let span = |number: usize| {
+        let at = pack.index_at as usize + number * pack.sealed_page;
+        at..at + pack.sealed_page
+    };
+    let scan = |bytes: &[u8]| {
+        open_package(bytes, Unlock::Secret(secret)).and_then(|p| p.components().map(|_| ()))
+    };
+    assert!(scan(&written.package).is_ok());
+
+    let mut flipped = written.package.clone();
+    flipped[span(6).end - 1] ^= 1;
+    assert_eq!(scan(&flipped).err(), Some(GfrStatus::ErrorDataCorrupted));
+
+    let mut swapped = written.package.clone();
+    swapped[span(1)].copy_from_slice(&written.package[span(2)]);
+    swapped[span(2)].copy_from_slice(&written.package[span(1)]);
+    assert_eq!(scan(&swapped).err(), Some(GfrStatus::ErrorDataCorrupted));
+
+    let mut dropped = written.package[..span(3).start].to_vec();
+    dropped.extend(&written.package[span(3).end..]);
+    assert_eq!(scan(&dropped).err(), Some(GfrStatus::ErrorDataCorrupted));
+}
+
+#[test]
+fn a_key_s_components_are_found_without_a_scan() {
+    let pack = open_plain(&write_paged(1));
+    let all = pack.components().unwrap();
+    for primary in pack.primaries().unwrap() {
+        let entry = pack.entry(&primary).unwrap();
+        let before = pack.page_reads.get();
+        let found = pack.key_components(&entry, &primary).unwrap();
+        assert!(pack.page_reads.get() - before < pack.page_count());
+        let scanned: Vec<_> = all
+            .iter()
+            .filter(|c| c.same_key(&primary))
+            .copied()
+            .collect();
+        assert_eq!(found, scanned);
+        assert_eq!(found.len(), 3);
+    }
+}
+
+#[test]
+fn an_index_page_size_that_is_no_power_of_two_is_damage() {
+    let written = write_plain();
+    for bad in [0, 3, 96, MAX_PAGE_NODES * 2] {
+        let mut header = written.header.clone();
+        header.index_page_nodes = bad;
+        assert_eq!(
+            read_header(&with_header(&written.package, &header)).err(),
+            Some(GfrStatus::ErrorDataCorrupted),
+            "index_page_nodes={bad}"
+        );
+    }
 }
 
 #[test]
@@ -459,7 +586,7 @@ fn the_index_answers_without_reading_a_block() {
     let pack = open_package(index_only, Unlock::Secret(written.secret.as_ref().unwrap()))
         .expect("the index alone opens");
 
-    let primaries = pack.primaries();
+    let primaries = pack.primaries().unwrap();
     assert_eq!(primaries.len(), 2);
     assert!(primaries[0].has_secret && !primaries[1].has_secret);
     assert!(!primaries[0].protected);
@@ -472,6 +599,7 @@ fn the_index_answers_without_reading_a_block() {
 
     let v4: Vec<_> = pack
         .components()
+        .unwrap()
         .into_iter()
         .filter(|c| c.same_key(&primaries[0]))
         .collect();
@@ -495,6 +623,7 @@ fn a_locked_component_is_marked_in_the_index() {
     let pack = open_plain(&written);
     assert!(
         pack.components()
+            .unwrap()
             .iter()
             .all(|c| c.protected && c.has_secret)
     );
@@ -551,7 +680,7 @@ fn the_tree_is_balanced_and_finds_every_node() {
         for (i, id) in ids.iter().enumerate() {
             let node =
                 tree_find(&tree, NODE_LEN, KIND_FPR, id).unwrap_or_else(|| panic!("n={n} i={i}"));
-            assert_eq!(Component::decode(node).parts.meta_at, i as u32);
+            assert_eq!(Component::decode(&node).parts.meta_at, i as u32);
         }
         assert!(tree_find(&tree, NODE_LEN, KIND_FPR, &[0u8; 20]).is_none());
         assert!(tree_find(&tree, NODE_LEN, KIND_KEY_ID, &ids[0]).is_none());
@@ -569,7 +698,7 @@ fn a_shared_e_mail_address_finds_the_first_key() {
         .collect();
     let tree = build_tree(nodes, NODE_LEN);
     let node = tree_find(&tree, NODE_LEN, KIND_EMAIL, &email_id("same@example.test")).unwrap();
-    assert_eq!(Component::decode(node).parts.meta_at, 0);
+    assert_eq!(Component::decode(&node).parts.meta_at, 0);
 }
 
 #[test]
