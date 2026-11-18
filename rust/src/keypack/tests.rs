@@ -688,6 +688,80 @@ fn the_tree_is_balanced_and_finds_every_node() {
 }
 
 #[test]
+fn a_walk_in_order_visits_every_node_sorted() {
+    for n in [1usize, 2, 3, 7, 8, 100, 255] {
+        let nodes: Vec<NodeInput> = (0..n)
+            .map(|i| NodeInput {
+                kind: KIND_FPR,
+                id: Sha256::digest((i as u64).to_be_bytes())[..20].to_vec(),
+                component: at_key(i as u32),
+            })
+            .collect();
+        let tree = build_tree(nodes, NODE_LEN);
+        let node = |i: usize| -> Result<Node, std::convert::Infallible> {
+            Ok(tree[i * NODE_LEN..(i + 1) * NODE_LEN].try_into().unwrap())
+        };
+        let mut at = lower_bound(n, node, 0, &[]).unwrap();
+        let mut seen = Vec::new();
+        while at != 0 {
+            seen.push(node_key(&node(at - 1).unwrap()).1.to_vec());
+            at = next_in_order(at, n);
+        }
+        assert_eq!(seen.len(), n, "n={n}");
+        assert!(seen.windows(2).all(|w| w[0] < w[1]), "n={n}");
+    }
+}
+
+#[test]
+fn an_address_names_every_key_that_has_it_in_package_order() {
+    use crate::testutil::keys::{cfg, generate};
+    use crate::types::{GfrKeyAlgo, GfrOpenPGPKeyVersion};
+
+    let key = |uid: &str| {
+        let v4 = GfrOpenPGPKeyVersion::V4;
+        let secret = generate(uid, &cfg(GfrKeyAlgo::ED25519, true, false, v4), &[]);
+        SignedPublicKey::from(secret).to_bytes().unwrap()
+    };
+    let keys = [
+        key("Ann <shared@example.test>"),
+        binary(&V4_SIGN.public_armored),
+        key("Bob <Shared@Example.test>"),
+    ];
+    let refs: Vec<&[u8]> = keys.iter().map(Vec::as_slice).collect();
+    let written = write_package_with(&refs, ProtectionRequest::Plain, NOW, NODE_LEN, 1).unwrap();
+    let pack = open_plain(&written);
+
+    for query in [
+        "shared@example.test",
+        "<SHARED@example.test>",
+        "Someone <shared@example.test>",
+    ] {
+        let names: Vec<String> = pack
+            .find_all(query)
+            .unwrap()
+            .iter()
+            .map(|f| f.entry.primary_user_id().to_string())
+            .collect();
+        assert_eq!(
+            names,
+            ["Ann <shared@example.test>", "Bob <Shared@Example.test>"],
+            "{query}"
+        );
+    }
+    assert!(pack.find_all("nobody@example.test").unwrap().is_empty());
+    assert!(pack.find_all("<shared>").unwrap().is_empty());
+    assert_eq!(
+        pack.find_all("@shared@").unwrap().len(),
+        2,
+        "part of an address"
+    );
+    assert_eq!(
+        pack.find_all("=Bob <Shared@Example.test>").unwrap().len(),
+        1
+    );
+}
+
+#[test]
 fn a_shared_e_mail_address_finds_the_first_key() {
     let nodes: Vec<NodeInput> = (0..5u32)
         .map(|i| NodeInput {

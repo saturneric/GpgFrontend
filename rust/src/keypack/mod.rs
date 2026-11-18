@@ -575,19 +575,46 @@ fn descend<E>(
     kind: u8,
     id: &[u8],
 ) -> Result<Option<Node>, E> {
+    let at = lower_bound(n, &mut node, kind, id)?;
+    if at == 0 {
+        return Ok(None);
+    }
+    let found = node(at - 1)?;
+    Ok((node_key(&found) == (kind, id)).then_some(found))
+}
+
+/// The 1-based position of the first node not less than (`kind`, `id`) in
+/// an Eytzinger tree of `n` nodes, or 0 when every node is less.
+fn lower_bound<E>(
+    n: usize,
+    mut node: impl FnMut(usize) -> Result<Node, E>,
+    kind: u8,
+    id: &[u8],
+) -> Result<usize, E> {
     let mut at = 1usize;
     while at <= n {
         let less = node_key(&node(at - 1)?).cmp(&(kind, id)) == Ordering::Less;
         at = 2 * at + usize::from(less);
     }
     // Undo the right turns taken after the last left turn: what remains is
-    // the lower bound, or 0 when every node is less.
-    at >>= at.trailing_ones() + 1;
-    if at == 0 {
-        return Ok(None);
+    // the lower bound.
+    Ok(at >> (at.trailing_ones() + 1))
+}
+
+/// The 1-based position after `at` in sorted order in an Eytzinger tree of
+/// `n` nodes, or 0 after the last.
+fn next_in_order(mut at: usize, n: usize) -> usize {
+    if 2 * at < n {
+        // The leftmost node of the right subtree.
+        at = 2 * at + 1;
+        while 2 * at <= n {
+            at *= 2;
+        }
+        return at;
     }
-    let found = node(at - 1)?;
-    Ok((node_key(&found) == (kind, id)).then_some(found))
+    // Up past every right turn, then once more: the first ancestor this
+    // node lies left of.
+    at >> (at.trailing_ones() + 1)
 }
 
 /// [`descend`] through a whole tree of `node_len`-byte nodes in memory.
@@ -1417,6 +1444,23 @@ impl OpenPackage {
         self.with_page(number, |page| page[at..at + NODE_LEN].try_into().unwrap())
     }
 
+    /// Every node for (`kind`, `id`), in sorted order, so in writing order of
+    /// their keys: one walk down the tree, then along it while they match.
+    fn find_nodes(&self, kind: u8, id: &[u8]) -> Result<Vec<Node>, GfrStatus> {
+        let n = self.header.node_count as usize;
+        let mut at = lower_bound(n, |i| self.node(i), kind, id)?;
+        let mut found = Vec::new();
+        while at != 0 {
+            let node = self.node(at - 1)?;
+            if node_key(&node) != (kind, id) {
+                break;
+            }
+            found.push(node);
+            at = next_in_order(at, n);
+        }
+        Ok(found)
+    }
+
     /// The first node for (`kind`, `id`): one walk down the tree.
     fn find_node(&self, kind: u8, id: &[u8]) -> Result<Option<Node>, GfrStatus> {
         descend(self.header.node_count as usize, |i| self.node(i), kind, id)
@@ -1664,19 +1708,40 @@ impl OpenPackage {
             return Ok(Vec::new());
         }
 
+        // An address, alone, in `<>` or in `Name <addr>`: the keys whose user
+        // IDs have it are the e-mail nodes of its digest.
+        let address = match q.strip_prefix('<') {
+            Some(addr) => Some(addr.strip_suffix('>').unwrap_or(addr).to_lowercase()),
+            None if !q.starts_with(['=', '@', '*']) => email_of(q),
+            None => None,
+        };
+        if let Some(address) = address {
+            let mut found: Vec<Found> = Vec::new();
+            for node in self.find_nodes(KIND_EMAIL, &email_id(&address))? {
+                let component = Component::decode(&node);
+                if found
+                    .last()
+                    .is_some_and(|f| f.component.same_key(&component))
+                {
+                    continue;
+                }
+                found.push(Found {
+                    entry: self.entry(&component)?,
+                    component,
+                    exact: None,
+                });
+            }
+            return Ok(found);
+        }
+
         let lower = q.to_lowercase();
         let matches = |uid: &str| -> bool {
             if let Some(exact) = q.strip_prefix('=') {
                 uid == exact
-            } else if let Some(addr) = q.strip_prefix('<') {
-                let addr = addr.strip_suffix('>').unwrap_or(addr).to_lowercase();
-                email_of(uid).is_some_and(|m| m == addr)
             } else if let Some(part) = lower.strip_prefix('@') {
                 email_of(uid).is_some_and(|m| m.contains(part))
             } else if let Some(part) = lower.strip_prefix('*') {
                 uid.to_lowercase().contains(part)
-            } else if let Some(addr) = email_of(q) {
-                email_of(uid).is_some_and(|m| m == addr)
             } else {
                 uid.to_lowercase().contains(&lower)
             }
