@@ -41,7 +41,11 @@ zeroize = { version = "1.8.2", features = ["derive"] }
 libc = "0.2.186"
 
 [target.'cfg(windows)'.dependencies]
-windows-sys = { "version" = "0.61.2", features = ["Win32_System_Memory"] }
+windows-sys = { "version" = "0.61.2", features = [
+  "Win32_Foundation",
+  "Win32_Security",
+  "Win32_System_Memory",
+] }
 
 [build-dependencies]
 cbindgen = "0.29.2"

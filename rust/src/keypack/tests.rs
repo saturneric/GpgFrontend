@@ -727,6 +727,53 @@ fn a_file_is_read_in_place() {
 }
 
 #[test]
+fn a_file_is_mapped_and_reads_as_a_reader_does() {
+    let written = write_paged(4);
+    let secret = written.secret.as_ref().unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("default.gfpack");
+    std::fs::write(&path, &written.package).unwrap();
+
+    let mapped = SealedPackage::from_file(std::fs::File::open(&path).unwrap()).unwrap();
+    assert!(matches!(mapped.source, Source::Mapped(_)));
+    let mapped = mapped.unlock(Unlock::Secret(secret)).unwrap();
+    let read = SealedPackage::from_reader(Box::new(std::fs::File::open(&path).unwrap()))
+        .unwrap()
+        .unlock(Unlock::Secret(secret))
+        .unwrap();
+    assert!(matches!(read.source, Source::Reader(_)));
+
+    assert_eq!(mapped.components().unwrap(), read.components().unwrap());
+    for query in ["v4@example.test", V6_SIGN.primary_fpr.as_str(), "Fixture"] {
+        let (a, b) = (
+            mapped.find(query).unwrap().unwrap(),
+            read.find(query).unwrap().unwrap(),
+        );
+        assert_eq!(a.component, b.component);
+        assert_eq!(a.entry.public_key, b.entry.public_key);
+        assert_eq!(
+            mapped.secret_key(&a.entry).unwrap(),
+            read.secret_key(&b.entry).unwrap()
+        );
+    }
+
+    // A package cut short is refused where a read would pass its end.
+    std::fs::write(&path, &written.package[..written.package.len() - 1]).unwrap();
+    let cut = SealedPackage::from_file(std::fs::File::open(&path).unwrap())
+        .unwrap()
+        .unlock(Unlock::Secret(secret))
+        .unwrap();
+    assert_eq!(cut.keys().err(), Some(GfrStatus::ErrorDataCorrupted));
+}
+
+#[cfg(unix)]
+#[test]
+fn what_is_no_regular_file_is_read_as_it_comes() {
+    let sealed = SealedPackage::from_file(std::fs::File::open("/dev/null").unwrap());
+    assert_eq!(sealed.err(), Some(GfrStatus::ErrorInvalidData));
+}
+
+#[test]
 fn unprotected_secrets_are_flagged() {
     let written = write_plain();
     assert!(written.header.secrets_unprotected);

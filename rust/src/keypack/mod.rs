@@ -96,6 +96,7 @@
 //! cipher or key derivation, a field or bit changing meaning, a part sealed
 //! differently. Writers write zero into reserved bytes; readers ignore them.
 
+use std::borrow::Cow;
 use std::cell::RefCell;
 use std::cmp::Ordering;
 
@@ -1071,15 +1072,32 @@ impl ReadAt for std::fs::File {
     }
 }
 
-/// The reads a package needs, on any [`ReadAt`].
-struct Source(Box<dyn ReadAt>);
+/// Where the reads a package needs go: a map of its file, or any [`ReadAt`].
+enum Source {
+    /// Read in place, from pages every reader of the file shares.
+    Mapped(map::Mapped),
+    /// Read into a buffer of its own.
+    Reader(Box<dyn ReadAt>),
+}
 
 impl Source {
-    fn read_at(&self, at: u64, len: usize) -> Result<Vec<u8>, GfrStatus> {
+    /// The `len` bytes at `at`: borrowed from a map, else read.
+    fn read_at(&self, at: u64, len: usize) -> Result<Cow<'_, [u8]>, GfrStatus> {
+        let reader = match self {
+            Source::Mapped(mapped) => {
+                let bytes = mapped.bytes();
+                return usize::try_from(at)
+                    .ok()
+                    .and_then(|at| bytes.get(at..at.checked_add(len)?))
+                    .map(Cow::Borrowed)
+                    .ok_or_else(truncated);
+            }
+            Source::Reader(reader) => reader,
+        };
         let mut buf = vec![0u8; len];
         let mut done = 0;
         while done < len {
-            match self.0.read_at(&mut buf[done..], at + done as u64) {
+            match reader.read_at(&mut buf[done..], at + done as u64) {
                 Ok(0) => return Err(truncated()),
                 Ok(n) => done += n,
                 Err(e) if e.kind() == std::io::ErrorKind::Interrupted => {}
@@ -1089,7 +1107,7 @@ impl Source {
                 }
             }
         }
-        Ok(buf)
+        Ok(Cow::Owned(buf))
     }
 }
 
@@ -1108,28 +1126,39 @@ impl SealedPackage {
         Self::from_reader(Box::new(bytes))
     }
 
-    /// Read the header of a package file; the rest is read when needed.
+    /// Read the header of a package file; the rest is read when needed. A
+    /// regular file is mapped and read in place; anything else, or a file
+    /// the system will not map, is read as it comes.
     pub fn from_file(file: std::fs::File) -> Result<Self, GfrStatus> {
-        Self::from_reader(Box::new(file))
+        match map::Mapped::new(&file) {
+            Ok(Some(mapped)) => Self::from_source(Source::Mapped(mapped)),
+            _ => Self::from_reader(Box::new(file)),
+        }
     }
 
     /// Read the header through `reader`; the rest is read when needed.
     pub fn from_reader(reader: Box<dyn ReadAt>) -> Result<Self, GfrStatus> {
-        let source = Source(reader);
+        Self::from_source(Source::Reader(reader))
+    }
+
+    fn from_source(source: Source) -> Result<Self, GfrStatus> {
         let fixed = MAGIC.len() + 4;
-        let mut prefix = source.read_at(0, fixed).map_err(|status| {
-            if status == GfrStatus::ErrorDataCorrupted {
-                set_last_error("the file is not a key package");
-                GfrStatus::ErrorInvalidData
-            } else {
-                status
-            }
-        })?;
+        let mut prefix = source
+            .read_at(0, fixed)
+            .map(Cow::into_owned)
+            .map_err(|status| {
+                if status == GfrStatus::ErrorDataCorrupted {
+                    set_last_error("the file is not a key package");
+                    GfrStatus::ErrorInvalidData
+                } else {
+                    status
+                }
+            })?;
         if !is_package(&prefix) {
             return fail(GfrStatus::ErrorInvalidData, "the file is not a key package");
         }
         let len = header_len(&prefix)?;
-        prefix.extend(source.read_at(fixed as u64, len)?);
+        prefix.extend_from_slice(&source.read_at(fixed as u64, len)?);
         let (header, _) = split_header(&prefix)?;
         Ok(SealedPackage {
             header,
@@ -1815,6 +1844,8 @@ fn fail<T>(status: GfrStatus, msg: &str) -> Result<T, GfrStatus> {
     set_last_error(msg);
     Err(status)
 }
+
+mod map;
 
 #[cfg(test)]
 mod tests;
