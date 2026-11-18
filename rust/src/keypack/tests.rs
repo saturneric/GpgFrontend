@@ -738,3 +738,56 @@ fn an_unprotected_key_needs_no_passphrase() {
         fpr_bytes(&V4_SIGN.primary_fpr).as_slice()
     );
 }
+
+/// The packages `scripts/bench_gfpipe.sh` measures gfpipe with: for each
+/// count in `GF_BENCH_KEYS` (default `10,1000,10000`), `<count>/default.gfpack`
+/// and its `default.gfkey` under `GF_BENCH_DIR`. Key 0 carries its secret and
+/// signs; the rest are public, each with a signing and an encryption subkey
+/// and the user ID `Bench User <i> <user<i>@bench.test>`.
+#[test]
+#[ignore = "bench fixture: run by scripts/bench_gfpipe.sh"]
+fn deferred_write_bench_packages() {
+    use crate::testutil::keys::{cfg, generate};
+    use crate::types::{GfrKeyAlgo, GfrOpenPGPKeyVersion};
+
+    let dir = std::path::PathBuf::from(std::env::var("GF_BENCH_DIR").expect("GF_BENCH_DIR"));
+    let counts: Vec<usize> = std::env::var("GF_BENCH_KEYS")
+        .unwrap_or_else(|_| "10,1000,10000".into())
+        .split(',')
+        .map(|n| n.trim().parse().expect("GF_BENCH_KEYS is a list of counts"))
+        .collect();
+    let max = counts.iter().copied().max().unwrap_or(0);
+
+    let v4 = GfrOpenPGPKeyVersion::V4;
+    let keys: Vec<Vec<u8>> = (0..max)
+        .map(|i| {
+            let secret = generate(
+                &format!("Bench User {i} <user{i}@bench.test>"),
+                &cfg(GfrKeyAlgo::ED25519, true, false, v4),
+                &[
+                    cfg(GfrKeyAlgo::ED25519, true, false, v4),
+                    cfg(GfrKeyAlgo::ED25519, false, true, v4),
+                ],
+            );
+            if i == 0 {
+                secret.to_bytes().unwrap()
+            } else {
+                SignedPublicKey::from(secret).to_bytes().unwrap()
+            }
+        })
+        .collect();
+
+    for count in counts {
+        let written = write(&keys[..count], ProtectionRequest::Plain).unwrap();
+        let out = dir.join(count.to_string());
+        std::fs::create_dir_all(&out).unwrap();
+        std::fs::write(out.join("default.gfpack"), &written.package).unwrap();
+        let secret = written.secret.as_ref().unwrap();
+        std::fs::write(out.join("default.gfkey"), plain_key_text(secret).as_bytes()).unwrap();
+        println!(
+            "{count} keys: {} nodes, {} bytes",
+            written.header.node_count,
+            written.package.len()
+        );
+    }
+}
