@@ -33,6 +33,13 @@ on:
       - "**.md"
 env:
   BUILD_TYPE: RelWithDebInfo
+  # Every target compiles with a precompiled header, and ccache refuses those
+  # unless told the PCH may carry __DATE__/__TIME__ and its own defines.
+  # Without this, most compiles were uncacheable and rebuilt on every run.
+  CCACHE_SLOPPINESS: pch_defines,time_macros
+  # Incremental artifacts only grow the cargo caches below; CI never reuses
+  # them for the crate it rebuilds.
+  CARGO_INCREMENTAL: "0"
 
 jobs:
   build:
@@ -80,12 +87,31 @@ jobs:
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
-          key: ${{ github.job }}-${{ matrix.os }}
+          key: ${{ github.job }}
+          # Holds the RelWithDebInfo and the ASan objects; 500 MB evicted.
+          max-size: 2G
 
       - name: Install Rust
+        id: rust
         uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
+
+      # The crates cargo builds: rust/target for clippy and the Rust tests,
+      # build/cargo for the library Corrosion links. Only our own crate is
+      # rebuilt on a restore; the dependencies are reused.
+      - name: Cache Cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            rust/target/
+            build/cargo/
+          key: ${{ runner.os }}-cargo-${{ github.job }}-${{ steps.rust.outputs.cachekey }}-${{ hashFiles('rust/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-${{ github.job }}-${{ steps.rust.outputs.cachekey }}-
 
       # Errors only: clippy's deny-by-default lints are real faults (a loop
       # that never loops, a comparison that is always true). Its warnings are
@@ -95,18 +121,6 @@ jobs:
 
       - name: Install sq
         uses: ./.gitea/actions/install-sq
-
-      - name: Cache Cargo
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
 
       - name: Cache googletest
         id: cache-googletest
@@ -268,9 +282,25 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: ${{ github.job }}
+          max-size: 1G
 
       - name: Install Rust
+        id: rust
         uses: dtolnay/rust-toolchain@stable
+
+      # The crates Corrosion builds into build/cargo. Only our own crate is
+      # rebuilt on a restore; the dependencies are reused.
+      - name: Cache Cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            build/cargo/
+          key: ${{ runner.os }}-cargo-${{ github.job }}-${{ steps.rust.outputs.cachekey }}-${{ hashFiles('rust/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-${{ github.job }}-${{ steps.rust.outputs.cachekey }}-
 
       - name: Install sq
         uses: ./.gitea/actions/install-sq
@@ -300,8 +330,10 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
         run: |
-          timeout 900 scripts/run_tests.sh --no-build --unit-only -p auto \
-            --require-modules \
+          # The Rust suite is the build job's: cargo builds it the same way
+          # whatever CMAKE_BUILD_TYPE is, so running it here only repeats it.
+          timeout 900 scripts/run_tests.sh --no-build --unit-only --no-rust \
+            -p auto --require-modules \
             --build-dir ${{github.workspace}}/build
 
   # The rPGP-only core the Android app is built on, built for the host: the
@@ -335,9 +367,25 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: ${{ github.job }}
+          max-size: 1G
 
       - name: Install Rust
+        id: rust
         uses: dtolnay/rust-toolchain@stable
+
+      # The crates Corrosion builds into build-android/cargo. Only our own
+      # crate is rebuilt on a restore; the dependencies are reused.
+      - name: Cache Cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            build-android/cargo/
+          key: ${{ runner.os }}-cargo-${{ github.job }}-${{ steps.rust.outputs.cachekey }}-${{ hashFiles('rust/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-${{ github.job }}-${{ steps.rust.outputs.cachekey }}-
 
       # MobileScaleTest makes its thousand keys with sq, and fails without it.
       - name: Install sq
