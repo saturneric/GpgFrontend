@@ -39,19 +39,28 @@
 //! from there it runs as it is. An option or the environment names another
 //! package or key, and wins over what lies beside gfpipe. The host is a few
 //! lines of C++ with no dependencies.
+//!
+//! What it says follows gpg: its lines on standard error, its status lines,
+//! and its exit codes (0 good, 1 a signature that is not good, 2 any other
+//! error).
 
 mod args;
 mod ops;
+mod say;
 
+use std::cell::OnceCell;
 use std::collections::HashMap;
+use std::ffi::OsString;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
+use std::sync::{Arc, Mutex};
 
 use zeroize::Zeroizing;
 
 use crate::keypack::{self, OpenPackage, Protection, Unlock};
 
 pub use args::Command;
+use say::code;
 
 /// The environment variable naming the package, by path, or by name beside
 /// gfpipe.
@@ -86,7 +95,11 @@ pub(crate) fn engine_detail() -> String {
 }
 
 /// What the host provides.
+#[derive(Default)]
 pub struct Host {
+    /// The name gfpipe was started by (`argv[0]`): its messages start with
+    /// it, so a gfpipe installed as `gpg` speaks as gpg. Empty means gfpipe.
+    pub program: String,
     /// The folder gfpipe is in, where its package and key lie. None when the
     /// platform cannot say.
     pub program_dir: Option<PathBuf>,
@@ -104,64 +117,261 @@ pub struct Io {
 }
 
 /// A failure, with the exit code it ends the process with.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PipeError {
     pub code: i32,
+    /// The last line on standard error; none when it was said already.
     pub message: String,
+    /// The operation and gpg-error code of gpg's `FAILURE` status line.
+    pub failure: Option<(&'static str, u32)>,
 }
 
 impl PipeError {
-    /// A usage or setup problem (gpg's code for errors).
-    pub fn usage(message: impl Into<String>) -> Self {
+    /// Anything that went wrong but a signature (gpg's exit code 2).
+    pub fn error(message: impl Into<String>) -> Self {
         Self {
             code: 2,
             message: message.into(),
+            failure: None,
         }
     }
 
-    /// The operation ran and failed, e.g. a bad signature.
-    pub fn failed(message: impl Into<String>) -> Self {
+    /// A signature that is not good (gpg's exit code 1).
+    pub fn bad_signature(message: impl Into<String>) -> Self {
         Self {
             code: 1,
             message: message.into(),
+            failure: None,
         }
+    }
+
+    /// With gpg's `FAILURE <operation> <code>` status line.
+    pub fn failure(mut self, operation: &'static str, code: u32) -> Self {
+        self.failure = Some((operation, code));
+        self
     }
 }
 
-/// Lines for `--status-fd`, written once the operation is over.
+/// A writer more than one part of a run writes to: the data and the status
+/// lines on one stream keep the order they were written in.
+#[derive(Clone)]
+struct Shared(Arc<Mutex<Box<dyn Write + Send + Sync>>>);
+
+impl Shared {
+    fn new(inner: Box<dyn Write + Send + Sync>) -> Self {
+        Self(Arc::new(Mutex::new(inner)))
+    }
+}
+
+impl Write for Shared {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        self.0
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .write(buf)
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        self.0
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .flush()
+    }
+}
+
+/// gpg's status lines (`--status-fd`, `--status-file`), written as they
+/// happen.
 #[derive(Default)]
 pub struct Status {
-    lines: Vec<String>,
+    sinks: Vec<Box<dyn Write + Send + Sync>>,
+    /// gpg writes one FAILURE line per run.
+    failed: bool,
 }
 
 impl Status {
     pub fn push(&mut self, line: impl AsRef<str>) {
-        self.lines.push(format!("[GNUPG:] {}", line.as_ref()));
+        let text = format!("[GNUPG:] {}\n", line.as_ref());
+        for sink in &mut self.sinks {
+            let _ = sink.write_all(text.as_bytes());
+            let _ = sink.flush();
+        }
+    }
+
+    /// gpg's `FAILURE` line, once per run.
+    pub fn failure(&mut self, operation: &str, code: u32) {
+        if !self.failed {
+            self.failed = true;
+            self.push(format!("FAILURE {operation} {code}"));
+        }
     }
 }
 
 /// Run gfpipe with `argv` (without the program name). Returns the exit code.
-pub fn run(argv: &[String], host: &Host, io: &mut Io) -> i32 {
+pub fn run(argv: &[OsString], host: &Host, io: &mut Io) -> i32 {
+    say::set_program(&host.program);
+
+    // Data, messages and status lines on one stream stay in order.
+    let out = Shared::new(std::mem::replace(&mut io.stdout, Box::new(std::io::sink())));
+    let err = Shared::new(std::mem::replace(&mut io.stderr, Box::new(std::io::sink())));
+    io.stdout = Box::new(out.clone());
+    io.stderr = Box::new(err.clone());
+
     let parsed = match args::parse(argv) {
         Ok(parsed) => parsed,
         Err(e) => {
-            let _ = writeln!(io.stderr, "gfpipe: {e}");
+            say::line(&mut *io.stderr, &e);
+            let (fd, file) = args::early_status(argv);
+            if let Ok(mut status) = open_status(fd, file.as_deref(), &out, &err) {
+                // gpg's parser refuses options; the commands it read it
+                // refuses after.
+                let operation = match e {
+                    args::ParseError::ConflictingCommands
+                    | args::ParseError::Conflict(_)
+                    | args::ParseError::NoOperation => "gpg-exit",
+                    _ => "option-parser",
+                };
+                status.failure(operation, code::exit());
+            }
+            return 2;
+        }
+    };
+    for note in &parsed.notes {
+        say::line(&mut *io.stderr, note);
+    }
+
+    let mut status = match open_status(parsed.status_fd, parsed.status_file.as_deref(), &out, &err)
+    {
+        Ok(status) => status,
+        Err(e) => {
+            say::line(&mut *io.stderr, e.message);
             return 2;
         }
     };
 
-    let mut status = Status::default();
-    let result = dispatch(&parsed, host, io, &mut status);
-
-    flush_status(parsed.status_fd, parsed.status_file.as_deref(), &status, io);
-    let _ = io.stdout.flush();
+    let mut result = dispatch(&parsed, host, io, &mut status);
+    if let Err(e) = io.stdout.flush() {
+        if result.is_ok() {
+            result = Err(PipeError::error(format!(
+                "[stdout]: write error: {}",
+                say::io_reason(&e)
+            ))
+            .failure("write", code::system(&e)));
+        }
+    }
 
     match result {
         Ok(()) => 0,
         Err(e) => {
-            let _ = writeln!(io.stderr, "gfpipe: {}", e.message);
+            if let Some((operation, code)) = e.failure {
+                status.failure(operation, code);
+            }
+            if !e.message.is_empty() {
+                say::line(&mut *io.stderr, &e.message);
+            }
+            status.failure("gpg-exit", code::exit());
+            let _ = io.stderr.flush();
             e.code
         }
+    }
+}
+
+/// Where the status lines go, opened before anything runs: a status file
+/// that cannot be written fails the run before it starts.
+fn open_status(
+    fd: Option<i32>,
+    file: Option<&std::ffi::OsStr>,
+    out: &Shared,
+    err: &Shared,
+) -> Result<Status, PipeError> {
+    let mut status = Status::default();
+    if let Some(file) = file {
+        let f = std::fs::File::create(file).map_err(|e| {
+            PipeError::error(format!(
+                "can't create {}: {}",
+                say::quote(file),
+                say::io_reason(&e)
+            ))
+        })?;
+        status.sinks.push(Box::new(f));
+    }
+    match fd {
+        None => {}
+        Some(1) => status.sinks.push(Box::new(out.clone())),
+        Some(2) => status.sinks.push(Box::new(err.clone())),
+        Some(fd) => status.sinks.push(fd_writer(fd)?),
+    }
+    Ok(status)
+}
+
+#[cfg(unix)]
+fn fd_writer(fd: i32) -> Result<Box<dyn Write + Send + Sync>, PipeError> {
+    struct Fd(i32);
+    impl Write for Fd {
+        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+            // SAFETY: writes from a valid slice to a descriptor the caller
+            // named and owns; it is never closed here.
+            let n = unsafe { libc::write(self.0, buf.as_ptr().cast(), buf.len()) };
+            if n < 0 {
+                Err(std::io::Error::last_os_error())
+            } else {
+                Ok(n as usize)
+            }
+        }
+        fn flush(&mut self) -> std::io::Result<()> {
+            Ok(())
+        }
+    }
+    // SAFETY: fcntl only asks whether the descriptor is open.
+    if unsafe { libc::fcntl(fd, libc::F_GETFD) } < 0 {
+        return Err(PipeError::error(format!(
+            "can't write status to descriptor {fd}: {}",
+            say::io_reason(&std::io::Error::last_os_error())
+        )));
+    }
+    Ok(Box::new(Fd(fd)))
+}
+
+#[cfg(not(unix))]
+fn fd_writer(fd: i32) -> Result<Box<dyn Write + Send + Sync>, PipeError> {
+    Err(PipeError::error(format!(
+        "status descriptor {fd} is not available here; use 1, 2 or --status-file"
+    )))
+}
+
+/// The key package, opened the first time an operation needs it: a message
+/// encrypted with a passphrase only, or a listing of who a message is for,
+/// needs none.
+pub struct Package<'a> {
+    parsed: &'a args::Args,
+    host: &'a Host,
+    opened: OnceCell<Result<(PathBuf, OpenPackage), PipeError>>,
+}
+
+impl<'a> Package<'a> {
+    fn new(parsed: &'a args::Args, host: &'a Host) -> Self {
+        Self {
+            parsed,
+            host,
+            opened: OnceCell::new(),
+        }
+    }
+
+    /// The package, or why there is none.
+    pub fn get(&self) -> Result<(&Path, &OpenPackage), PipeError> {
+        let opened = self.opened.get_or_init(|| {
+            let path = package_path(self.parsed, self.host)?;
+            let pack = open(self.parsed, &path, self.host)?;
+            Ok((path, pack))
+        });
+        match opened {
+            Ok((path, pack)) => Ok((path.as_path(), pack)),
+            Err(e) => Err(e.clone()),
+        }
+    }
+
+    /// The package when there is one.
+    pub fn try_get(&self) -> Option<&OpenPackage> {
+        self.get().ok().map(|(_, pack)| pack)
     }
 }
 
@@ -171,7 +381,9 @@ fn dispatch(
     io: &mut Io,
     status: &mut Status,
 ) -> Result<(), PipeError> {
-    let command = parsed.command.ok_or(PipeError::usage("nothing to do"))?;
+    let command = parsed
+        .command
+        .ok_or_else(|| PipeError::error("nothing to do"))?;
     match command {
         Command::Help => {
             let _ = io.stdout.write_all(HELP.as_bytes());
@@ -181,12 +393,15 @@ fn dispatch(
             let _ = io.stdout.write_all(version_text(&host.version).as_bytes());
             Ok(())
         }
-        // A passphrase is all symmetric encryption needs.
-        Command::Symmetric => ops::run_without_package(command, parsed, io, status),
         _ => {
-            let path = package_path(parsed, host)?;
-            let pack = open(parsed, &path, host)?;
-            ops::run(command, parsed, &path, &pack, io, status)
+            if command == Command::Default {
+                say::line(
+                    &mut *io.stderr,
+                    "WARNING: no command supplied.  Trying to guess what you mean ...",
+                );
+            }
+            let package = Package::new(parsed, host);
+            ops::run(command, parsed, &package, io, status)
         }
     }
 }
@@ -212,16 +427,17 @@ pub fn version_text(version: &str) -> String {
 /// [`DEFAULT_PACKAGE`]. A value that is not a path is a name, of a package
 /// beside gfpipe.
 pub fn package_path(parsed: &args::Args, host: &Host) -> Result<PathBuf, PipeError> {
-    let named = parsed
+    let named: Option<OsString> = parsed
         .keypack
         .clone()
-        .or_else(|| host.env.get(ENV_KEYPACK).cloned())
+        .or_else(|| host.env.get(ENV_KEYPACK).map(OsString::from))
         .filter(|s| !s.is_empty());
     let explicit = named.is_some();
-    let named = named.unwrap_or_else(|| DEFAULT_PACKAGE.to_string());
+    let named = named.unwrap_or_else(|| DEFAULT_PACKAGE.into());
 
-    let looks_like_path = named.contains('/')
-        || named.contains(std::path::MAIN_SEPARATOR)
+    let text = named.to_string_lossy();
+    let looks_like_path = text.contains('/')
+        || text.contains(std::path::MAIN_SEPARATOR)
         || Path::new(&named)
             .extension()
             .is_some_and(|e| e == PACKAGE_EXTENSION);
@@ -229,9 +445,9 @@ pub fn package_path(parsed: &args::Args, host: &Host) -> Result<PathBuf, PipeErr
         return Ok(PathBuf::from(named));
     }
 
-    let file = format!("{named}.{PACKAGE_EXTENSION}");
+    let file = format!("{text}.{PACKAGE_EXTENSION}");
     let Some(dir) = host.program_dir.as_ref() else {
-        return Err(PipeError::usage(format!(
+        return Err(PipeError::error(format!(
             "cannot tell where gfpipe is, so {file} cannot be found beside it; name the \
              package with --keypack PATH"
         )));
@@ -240,7 +456,7 @@ pub fn package_path(parsed: &args::Args, host: &Host) -> Result<PathBuf, PipeErr
     if path.is_file() {
         return Ok(path);
     }
-    Err(PipeError::usage(if explicit {
+    Err(PipeError::error(if explicit {
         format!("no key package {}", path.display())
     } else {
         format!(
@@ -255,18 +471,19 @@ fn open(parsed: &args::Args, path: &Path, host: &Host) -> Result<OpenPackage, Pi
     // Read in place: the header now, then the index and only the blocks an
     // operation asks for.
     let file = std::fs::File::open(path).map_err(|e| {
-        PipeError::usage(format!(
-            "cannot read the key package {}: {e}. Export one for gfpipe from GpgFrontend.",
-            path.display()
+        PipeError::error(format!(
+            "cannot read the key package {}: {}. Export one for gfpipe from GpgFrontend.",
+            path.display(),
+            say::io_reason(&e)
         ))
     })?;
     let sealed = keypack::SealedPackage::from_file(file)
-        .map_err(|_| PipeError::usage(format!("{}: {}", path.display(), engine_detail())))?;
+        .map_err(|_| PipeError::error(format!("{}: {}", path.display(), engine_detail())))?;
     let header = sealed.header();
 
     let secret: Zeroizing<Vec<u8>> = match &header.protection {
         Protection::PinFile => {
-            return Err(PipeError::usage(format!(
+            return Err(PipeError::error(format!(
                 "{} is protected by a PIN, which gfpipe cannot ask for. Export it with gfpipe \
                  from GpgFrontend, which protects it with a plain key.",
                 path.display()
@@ -278,9 +495,9 @@ fn open(parsed: &args::Args, path: &Path, host: &Host) -> Result<OpenPackage, Pi
     sealed.unlock(Unlock::Secret(&secret)).map_err(|status| {
         let detail = engine_detail();
         if status == crate::types::GfrStatus::ErrorWrongPassword {
-            PipeError::usage(format!("the key does not open {}", path.display()))
+            PipeError::error(format!("the key does not open {}", path.display()))
         } else {
-            PipeError::usage(format!("{}: {detail}", path.display()))
+            PipeError::error(format!("{}: {detail}", path.display()))
         }
     })
 }
@@ -296,7 +513,13 @@ fn plain_key(
     let read = |file: &Path, what: &str| -> Result<Zeroizing<String>, PipeError> {
         std::fs::read_to_string(file)
             .map(Zeroizing::new)
-            .map_err(|e| PipeError::usage(format!("cannot read {what} ({}): {e}", file.display())))
+            .map_err(|e| {
+                PipeError::error(format!(
+                    "cannot read {what} ({}): {}",
+                    file.display(),
+                    say::io_reason(&e)
+                ))
+            })
     };
     let beside = package.with_extension(KEY_FILE_EXTENSION);
     let (text, from) = if let Some(file) = &parsed.key_file {
@@ -314,7 +537,7 @@ fn plain_key(
     } else if beside.is_file() {
         (read(&beside, "the key file")?, beside.display().to_string())
     } else {
-        return Err(PipeError::usage(format!(
+        return Err(PipeError::error(format!(
             "{} opens with its key, which is not beside it ({}). Give it with --key-file, \
              {ENV_KEY} or {ENV_KEY_FILE}.",
             package.display(),
@@ -322,47 +545,7 @@ fn plain_key(
         )));
     };
     keypack::parse_plain_key(&text)
-        .map_err(|_| PipeError::usage(format!("the key in {from} is not a key package key")))
-}
-
-fn flush_status(fd: Option<i32>, file: Option<&str>, status: &Status, io: &mut Io) {
-    if status.lines.is_empty() {
-        return;
-    }
-    let mut text = status.lines.join("\n");
-    text.push('\n');
-    if let Some(file) = file {
-        if let Err(e) = std::fs::write(file, text.as_bytes()) {
-            let _ = writeln!(io.stderr, "gfpipe: cannot write the status to {file}: {e}");
-        }
-    }
-    let Some(fd) = fd else { return };
-    match fd {
-        1 => {
-            let _ = io.stdout.write_all(text.as_bytes());
-        }
-        2 => {
-            let _ = io.stderr.write_all(text.as_bytes());
-        }
-        _ => write_fd(fd, text.as_bytes()),
-    }
-}
-
-#[cfg(unix)]
-fn write_fd(fd: i32, mut bytes: &[u8]) {
-    while !bytes.is_empty() {
-        // SAFETY: writes from a valid slice to a descriptor the caller named.
-        let n = unsafe { libc::write(fd, bytes.as_ptr().cast(), bytes.len()) };
-        if n <= 0 {
-            return;
-        }
-        bytes = &bytes[n as usize..];
-    }
-}
-
-#[cfg(not(unix))]
-fn write_fd(_fd: i32, _bytes: &[u8]) {
-    // Only the standard streams are offered as status descriptors here.
+        .map_err(|_| PipeError::error(format!("the key in {from} is not a key package key")))
 }
 
 const HELP: &str = "\

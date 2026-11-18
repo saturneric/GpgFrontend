@@ -109,6 +109,7 @@ impl Fixture {
 
     fn run_with(&self, argv: &[&str], stdin: &[u8], env: HashMap<String, String>) -> Outcome {
         let host = Host {
+            program: String::new(),
             program_dir: Some(self.dir.path().to_path_buf()),
             version: "2.3.0".into(),
             env,
@@ -131,7 +132,7 @@ fn run_on(host: &Host, argv: &[&str], stdin: &[u8]) -> Outcome {
         stdout: Box::new(stdout.clone()),
         stderr: Box::new(stderr.clone()),
     };
-    let argv: Vec<String> = argv.iter().map(|s| s.to_string()).collect();
+    let argv: Vec<std::ffi::OsString> = argv.iter().map(std::ffi::OsString::from).collect();
     let code = run(&argv, host, &mut io);
     Outcome {
         code,
@@ -250,9 +251,21 @@ fn a_signer_outside_the_package_is_unknown() {
     let only_v4 = Fixture::with(&[bin(&V4_SIGN.public_armored)], "default");
     let sig = only_v4.file("sig.asc", &signed.stdout.bytes());
     let out = only_v4.run(&["--status-fd=1", "--verify", &sig, "-"], PAYLOAD);
-    assert_eq!(out.code, 1);
+    // As with gpg: a signature that cannot be checked is an error (2), not
+    // a bad signature (1).
+    assert_eq!(out.code, 2);
     assert!(out.stdout.text().contains("ERRSIG"));
     assert!(out.stdout.text().contains("NO_PUBKEY"));
+    assert!(
+        out.stdout
+            .text()
+            .ends_with("[GNUPG:] FAILURE gpg-exit 33554433\n")
+    );
+    assert!(
+        out.stderr
+            .text()
+            .contains("gfpipe: Can't check signature: No public key")
+    );
 }
 
 #[test]
@@ -307,9 +320,15 @@ fn encrypted_and_signed_data_round_trips_through_a_pipe() {
 #[test]
 fn only_keys_in_the_package_are_recipients() {
     let f = Fixture::new();
-    let out = f.run(&["encrypt", "-r", "nobody@example.test"], b"x");
+    let out = f.run(&["--status-fd=1", "-e", "-r", "nobody@example.test"], b"x");
     assert_eq!(out.code, 2);
-    assert!(out.stderr.text().contains("no such key in the package"));
+    let err = out.stderr.text();
+    assert!(err.contains("gfpipe: nobody@example.test: skipped: No public key"));
+    assert!(err.contains("gfpipe: [stdin]: encryption failed: No public key"));
+    let status = out.stdout.text();
+    assert!(status.contains("[GNUPG:] INV_RECP 1 nobody@example.test\n"));
+    assert!(status.contains("[GNUPG:] FAILURE encrypt 9\n"));
+    assert!(!status.contains("BEGIN_ENCRYPTION"));
 }
 
 #[test]
@@ -317,20 +336,35 @@ fn a_message_for_a_key_without_its_secret_cannot_be_decrypted() {
     let f = Fixture::new();
     let sealed = f.run(&["encrypt", "-r", &V6_SIGN.primary_fpr], b"x");
     assert_eq!(sealed.code, 0, "{}", sealed.stderr.text());
-    let opened = f.run(&["decrypt"], &sealed.stdout.bytes());
-    assert_eq!(opened.code, 1);
-    assert!(opened.stdout.bytes().is_empty());
+    let opened = f.run(&["decrypt", "--status-fd=1"], &sealed.stdout.bytes());
+    assert_eq!(opened.code, 2);
+    let status = opened.stdout.text();
+    assert!(status.contains("[GNUPG:] NO_SECKEY "));
+    assert!(status.contains("[GNUPG:] DECRYPTION_FAILED\n"));
+    assert!(!status.contains("PLAINTEXT"));
+    assert!(
+        opened
+            .stderr
+            .text()
+            .contains("gfpipe: decryption failed: No secret key")
+    );
 }
 
 #[test]
 fn a_key_without_its_secret_cannot_sign() {
     let f = Fixture::new();
-    let out = f.run(&["-bsau", &V6_SIGN.primary_fpr], PAYLOAD);
+    let out = f.run(&["--status-fd=1", "-bsau", &V6_SIGN.primary_fpr], PAYLOAD);
     assert_eq!(out.code, 2);
+    let err = out.stderr.text();
+    assert!(err.contains(&format!(
+        "gfpipe: skipped \"{}\": No secret key",
+        V6_SIGN.primary_fpr
+    )));
+    assert!(err.contains("gfpipe: signing failed: No secret key"));
     assert!(
-        out.stderr
+        out.stdout
             .text()
-            .contains("has no secret key in the package")
+            .contains(&format!("[GNUPG:] INV_SGNR 9 {}", V6_SIGN.primary_fpr))
     );
 }
 
@@ -398,6 +432,7 @@ fn a_pin_package_is_refused_with_a_way_out() {
     .unwrap();
     std::fs::write(dir.path().join("default.gfpack"), &written.package).unwrap();
     let host = Host {
+        program: String::new(),
         program_dir: Some(dir.path().to_path_buf()),
         version: "2.3.0".into(),
         env: HashMap::new(),
@@ -413,16 +448,21 @@ fn the_package_lists_its_keys() {
     let out = f.run(&["keys"], b"");
     assert_eq!(out.code, 0);
     let text = out.stdout.text();
-    // As gpg -k: every key as "pub"; -K lists the secret ones as "sec".
-    assert!(text.contains(&format!("pub  {}", V4_SIGN.primary_fpr)));
-    assert!(text.contains(&format!("pub  {}", V6_SIGN.primary_fpr)));
-    assert!(
-        f.run(&["-K"], b"")
-            .stdout
-            .text()
-            .contains(&format!("sec  {}", V4_SIGN.primary_fpr))
-    );
-    assert!(text.contains("exported 2023-11-14"));
+    // As gpg -k: the package, a rule as long as its path, then every key as
+    // "pub", its fingerprint below it, its user IDs with their validity.
+    let mut lines = text.lines();
+    let path = lines.next().unwrap();
+    assert!(path.ends_with("default.gfpack"));
+    assert_eq!(lines.next().unwrap(), "-".repeat(path.chars().count()));
+    assert!(text.contains(&format!("\n      {}\n", V4_SIGN.primary_fpr)));
+    assert!(text.contains(&format!("\n      {}\n", V6_SIGN.primary_fpr)));
+    assert!(text.contains("\npub   ed25519 "), "{text}");
+    assert!(text.contains("uid           [ultimate] V4 Fixture <v4@example.test>"));
+    assert!(text.contains("uid           [  full  ] "));
+    // -K lists the secret ones as "sec".
+    let secret = f.run(&["-K"], b"").stdout.text();
+    assert!(secret.contains("\nsec   "));
+    assert!(secret.contains(&format!("\n      {}\n", V4_SIGN.primary_fpr)));
 
     let secret_only = f.run(&["-K"], b"").stdout.text();
     assert!(!secret_only.contains(&V6_SIGN.primary_fpr));
@@ -432,6 +472,7 @@ fn the_package_lists_its_keys() {
 fn help_and_version_need_no_package() {
     let dir = tempfile::tempdir().unwrap();
     let host = Host {
+        program: String::new(),
         program_dir: Some(dir.path().to_path_buf()),
         version: "2.3.0".into(),
         env: HashMap::new(),
@@ -614,8 +655,9 @@ fn a_wrong_or_missing_passphrase_fails_without_asking_again() {
         &["--status-fd=2", "--passphrase-file", &pw, "-bsa"],
         PAYLOAD,
     );
-    assert_eq!(out.code, 1, "{}", out.stderr.text());
+    assert_eq!(out.code, 2, "{}", out.stderr.text());
     assert!(out.stderr.text().contains("[GNUPG:] BAD_PASSPHRASE"));
+    assert!(out.stderr.text().contains("signing failed: Bad passphrase"));
 
     let out = f.run(&["-bsa"], PAYLOAD);
     assert_eq!(out.code, 2);
@@ -665,9 +707,21 @@ fn clearsigning_a_file_writes_it_next_to_it_and_replaces_only_with_yes() {
     );
     assert_eq!(f.run(&["--verify", &asc], b"").code, 0);
 
-    let again = f.run(&["--clearsign", &changes], b"");
+    let again = f.run(&["--status-fd=1", "--clearsign", &changes], b"");
     assert_eq!(again.code, 2);
-    assert!(again.stderr.text().contains("--yes"));
+    // gpg --batch's words and code: EEXIST from gpg.
+    assert!(
+        again
+            .stderr
+            .text()
+            .contains("gfpipe: signing failed: File exists")
+    );
+    assert!(
+        again
+            .stdout
+            .text()
+            .contains("[GNUPG:] FAILURE sign 33587235\n")
+    );
     assert_eq!(f.run(&["--yes", "--clearsign", &changes], b"").code, 0);
 }
 
@@ -696,7 +750,12 @@ fn files_get_gpg_names_and_a_detached_signature_finds_its_data() {
     let lone = f.file("lone.sig", &std::fs::read(format!("{doc}.sig")).unwrap());
     let out = f.run(&["--verify", &lone], b"");
     assert_eq!(out.code, 2);
-    assert!(out.stderr.text().contains("detached signature"));
+    assert!(out.stderr.text().contains("gfpipe: no signed data"));
+    assert!(
+        out.stderr
+            .text()
+            .contains("gfpipe: can't hash datafile: No data")
+    );
 }
 
 #[test]
@@ -707,6 +766,7 @@ fn passphrase_encryption_round_trips_and_needs_no_key_package() {
     let pw = f.file("pw", b"backup secret\n");
     let empty = tempfile::tempdir().unwrap();
     let host = Host {
+        program: String::new(),
         program_dir: Some(empty.path().to_path_buf()),
         version: "2.3.0".into(),
         env: HashMap::new(),
@@ -727,7 +787,7 @@ fn passphrase_encryption_round_trips_and_needs_no_key_package() {
     assert_eq!(out.stdout.bytes(), b"rows");
 
     let out = f.run(&["-d", "--batch", &sealed], b"");
-    assert_eq!(out.code, 1);
+    assert_eq!(out.code, 2);
     assert!(out.stderr.text().contains("encrypted with a passphrase"));
 
     let out = run_on(&host, &["-c", "--yes", &backup], b"");
@@ -773,9 +833,10 @@ fn encrypting_to_oneself_needs_no_recipient() {
     let opened = f.run(&["-d"], &out.stdout.bytes());
     assert_eq!(opened.stdout.bytes(), b"note to self");
 
-    let out = f.run(&["-e"], b"x");
+    let out = f.run(&["--status-fd=1", "-e"], b"x");
     assert_eq!(out.code, 2);
-    assert!(out.stderr.text().contains("recipient"));
+    assert!(out.stderr.text().contains("gfpipe: no valid addressees"));
+    assert!(out.stdout.text().contains("[GNUPG:] NO_RECP 0\n"));
 }
 
 #[test]
@@ -817,7 +878,16 @@ fn public_keys_are_exported_and_secret_keys_never() {
         assert_eq!(out.code, 2);
         assert!(out.stderr.text().contains("no key management"));
     }
-    assert_eq!(f.run(&["--export", "nobody@example.test"], b"").code, 2);
+    // As gpg: naming nothing exports nothing, which is no error.
+    let none = f.run(&["--status-fd=2", "--export", "nobody@example.test"], b"");
+    assert_eq!(none.code, 0);
+    assert!(none.stdout.bytes().is_empty());
+    assert!(
+        none.stderr
+            .text()
+            .contains("gfpipe: WARNING: nothing exported")
+    );
+    assert!(none.stderr.text().contains("[GNUPG:] EXPORT_RES 0 0 0"));
 }
 
 #[test]
@@ -864,9 +934,26 @@ fn the_colon_listing_follows_gpg() {
         .run(&["--fingerprint", &V6_SIGN.primary_fpr], b"")
         .stdout
         .text();
-    assert!(text.contains(&V6_SIGN.primary_fpr));
-    assert!(!text.contains(&V4_SIGN.primary_fpr));
-    assert_eq!(f.run(&["-k", "nobody@example.test"], b"").code, 2);
+    // In gpg's groups of four.
+    let grouped = |fpr: &str| super::say::grouped_fingerprint(fpr);
+    assert!(text.contains(&grouped(&V6_SIGN.primary_fpr)), "{text}");
+    assert!(!text.contains(&grouped(&V4_SIGN.primary_fpr)));
+    let none = f.run(&["--status-fd=1", "-k", "nobody@example.test"], b"");
+    assert_eq!(none.code, 2);
+    assert!(
+        none.stderr
+            .text()
+            .contains("gfpipe: error reading key: No public key")
+    );
+    assert!(
+        none.stdout
+            .text()
+            .contains("[GNUPG:] ERROR keylist.getkey 9\n")
+    );
+    // Patterns that name nothing are passed over while others name keys.
+    let some = f.run(&["-k", "nobody@example.test", &V6_SIGN.primary_fpr], b"");
+    assert_eq!(some.code, 0);
+    assert!(some.stdout.text().contains(&V6_SIGN.primary_fpr));
 }
 
 #[test]
@@ -1017,6 +1104,112 @@ mod gpg_interop {
         assert_eq!(out.stdout.bytes(), b"shared");
     }
 
+    /// The status lines of a run, without those gfpipe does not write
+    /// (SIG_ID needs a hash of the signature gpg alone computes) and with the
+    /// trust a key in the package has.
+    fn status_of(text: &str) -> Vec<String> {
+        text.lines()
+            .filter_map(|l| l.strip_prefix("[GNUPG:] "))
+            .filter(|l| !l.starts_with("SIG_ID ") && !l.starts_with("KEY_CONSIDERED "))
+            .map(|l| {
+                if l.starts_with("TRUST_") {
+                    "TRUST".to_string()
+                } else {
+                    l.split(' ').next().unwrap_or_default().to_string()
+                        + l.strip_prefix("FAILURE").unwrap_or("")
+                }
+            })
+            .collect()
+    }
+
+    #[test]
+    fn gfpipe_fails_as_gpg_fails() {
+        let Some(gpg) = Gnupg::new() else { return };
+        let f = Fixture::with(&[bin(&gpg.cert)], "default");
+        let garbage = f.file("garbage.gpg", b"\x85\x01\x0cnot a packet");
+        let text = f.file("text.txt", b"just text\n");
+        let empty = f.file("empty.gpg", b"");
+        let data = f.file("data.txt", b"signed\n");
+        let lone = f.file("lone.sig", b"");
+        gpg_ok(
+            &gpg.gpg(["--passphrase", "", "-u", &gpg.fpr, "-b", "-o", &lone, &data]),
+            "gpg -b",
+        );
+        let lone_copy = f.file("elsewhere.sig", &std::fs::read(&lone).unwrap());
+        let signed = f.dir.path().join("data.txt.gpg");
+        gpg_ok(
+            &gpg.gpg([
+                "--passphrase",
+                "",
+                "-u",
+                &gpg.fpr,
+                "-s",
+                "-o",
+                signed.to_str().unwrap(),
+                &data,
+            ]),
+            "gpg -s",
+        );
+        let signed = signed.to_str().unwrap();
+        let sym = f.dir.path().join("sym.gpg");
+        gpg_ok(
+            &gpg.gpg([
+                "--passphrase",
+                "pw",
+                "-c",
+                "-o",
+                sym.to_str().unwrap(),
+                &data,
+            ]),
+            "gpg -c",
+        );
+        let sym = sym.to_str().unwrap();
+
+        let cases: Vec<Vec<&str>> = vec![
+            vec!["-d", &garbage],
+            vec!["-d", &text],
+            vec!["-d", &empty],
+            vec!["--verify", &garbage],
+            vec!["--verify", &empty],
+            vec!["--verify", &lone_copy],
+            vec!["--verify", &lone],
+            vec!["--verify", signed],
+            vec!["-d", signed],
+            vec!["-e", "-r", "nobody@example.test", &data],
+            vec!["-k", "nobody@example.test"],
+            vec!["--export", "nobody@example.test"],
+            vec!["--frobnicate"],
+            vec!["-u"],
+            vec!["-s", "--verify", &data],
+            vec!["-c", "--passphrase", "", &data],
+            vec!["-d", "--passphrase", "pw", sym],
+            vec!["-d", "--passphrase", "wrong", sym],
+        ];
+        for case in cases {
+            let mut theirs_args = vec!["--status-fd=1", "--no-auto-key-locate"];
+            theirs_args.extend(case.iter().copied());
+            let theirs = gpg.gpg(&theirs_args);
+            let mut ours_args = vec!["--status-fd=1", "--no-auto-key-locate"];
+            ours_args.extend(case.iter().copied());
+            let ours = f.run(&ours_args, b"");
+            let gpg_text = String::from_utf8_lossy(&theirs.stdout).into_owned();
+            // Data on standard output is not compared, only its status lines.
+            let ours_text = ours.stdout.text();
+            assert_eq!(
+                ours.code,
+                theirs.status.code().unwrap_or(-1),
+                "{case:?}\ngpg: {}\ngfpipe: {}",
+                String::from_utf8_lossy(&theirs.stderr),
+                ours.stderr.text()
+            );
+            assert_eq!(
+                status_of(&ours_text),
+                status_of(&gpg_text),
+                "{case:?}\ngpg:\n{gpg_text}\ngfpipe:\n{ours_text}"
+            );
+        }
+    }
+
     #[test]
     fn the_colon_listing_of_a_gpg_key_matches_gpg() {
         let Some((f, gpg)) = setup() else { return };
@@ -1036,6 +1229,15 @@ mod gpg_interop {
                 for i in [2, 3, 4, 5, 6, 11, 16] {
                     assert_eq!(a[i], b[i], "{kind} field {}", i + 1);
                 }
+            }
+        }
+        // The user ID's hash and the time of its self-signature.
+        let a = colon_lines(&ours, "uid");
+        let b = colon_lines(&theirs, "uid");
+        assert_eq!(a.len(), b.len());
+        for (a, b) in a.iter().zip(&b) {
+            for i in [5, 7, 9] {
+                assert_eq!(a[i], b[i], "uid field {}", i + 1);
             }
         }
         let fprs = |t: &str| -> Vec<String> {
@@ -1065,6 +1267,7 @@ fn beside(dir: &Path, keys: &[Vec<u8>], name: &str) {
 
 fn host_in(dir: &Path, env: HashMap<String, String>) -> Host {
     Host {
+        program: String::new(),
         program_dir: Some(dir.to_path_buf()),
         version: String::new(),
         env,
@@ -1297,4 +1500,623 @@ fn a_pasted_detached_signature_still_finds_its_data() {
     let out = f.run(&["--status-fd=1", "--verify", &sig], b"");
     assert_eq!(out.code, 0, "{}", out.stderr.text());
     assert!(git_accepts_verification(&out.stdout.text()));
+}
+
+// ------------------------------------------------------ gpg's own behaviour
+
+mod as_gpg {
+    //! What gpg does with odd command lines, odd data and failures, and
+    //! gfpipe the same: its words, its status lines, its exit codes.
+
+    use super::*;
+    use crate::testutil::keys::V4_PRIMARY_ONLY;
+
+    /// Run as a gfpipe installed under the name `gpg`.
+    fn as_gpg(f: &Fixture, argv: &[&str], stdin: &[u8]) -> Outcome {
+        let host = Host {
+            program: "/usr/local/bin/gpg".into(),
+            program_dir: Some(f.dir.path().to_path_buf()),
+            version: "2.3.0".into(),
+            env: f.env(),
+        };
+        run_on(&host, argv, stdin)
+    }
+
+    fn statuses(text: &str) -> Vec<&str> {
+        text.lines()
+            .filter_map(|l| l.strip_prefix("[GNUPG:] "))
+            .collect()
+    }
+
+    fn sealed_to_v4(f: &Fixture, data: &[u8]) -> Vec<u8> {
+        let out = f.run(&["-ea", "-r", &V4_SIGN.primary_fpr], data);
+        assert_eq!(out.code, 0, "{}", out.stderr.text());
+        out.stdout.bytes()
+    }
+
+    /// The files in the fixture's folder, to tell that nothing was left.
+    fn files(f: &Fixture) -> Vec<String> {
+        let mut names: Vec<String> = std::fs::read_dir(f.dir.path())
+            .unwrap()
+            .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
+            .collect();
+        names.sort();
+        names
+    }
+
+    #[test]
+    fn messages_carry_the_name_gfpipe_was_started_by() {
+        let f = Fixture::new();
+        let out = as_gpg(&f, &["--frobnicate"], b"");
+        assert_eq!(out.code, 2);
+        assert_eq!(out.stderr.text(), "gpg: invalid option \"--frobnicate\"\n");
+        let out = f.run(&["--de"], b"");
+        assert_eq!(out.stderr.text(), "gfpipe: option \"--de\" is ambiguous\n");
+    }
+
+    #[test]
+    fn in_gpgs_form_options_after_a_file_are_files() {
+        let f = Fixture::new();
+        let doc = f.file("doc.txt", b"doc");
+        let out = f.run(&["-b", &doc, "--armor"], b"");
+        assert_eq!(out.code, 2);
+        let err = out.stderr.text();
+        assert!(err.contains("gfpipe: Note: '--armor' is not considered an option"));
+        assert!(err.contains("usage: gfpipe [options] --detach-sign [filename]"));
+        assert!(!Path::new(&format!("{doc}.sig")).exists());
+    }
+
+    #[test]
+    fn more_files_than_an_operation_takes_are_refused() {
+        let f = Fixture::new();
+        let a = f.file("a.txt", b"a");
+        let b = f.file("b.txt", b"b");
+        let out = f.run(&["-e", "-r", &V4_SIGN.primary_fpr, &a, &b], b"");
+        assert_eq!(out.code, 2);
+        assert_eq!(
+            out.stderr.text(),
+            "usage: gfpipe [options] --encrypt [filename]\n"
+        );
+        assert!(!Path::new(&format!("{a}.gpg")).exists());
+        let out = f.run(&["-d", &a, &b], b"");
+        assert!(out.stderr.text().contains("--decrypt [filename]"));
+        let out = f.run(&["--verify", &a, &b, &a], b"");
+        assert_eq!(out.code, 2);
+    }
+
+    #[test]
+    fn standard_input_is_read_once() {
+        let f = Fixture::new();
+        let out = f.run(&["--verify", "-", "-"], PAYLOAD);
+        assert_eq!(out.code, 2);
+        assert!(
+            out.stderr
+                .text()
+                .contains("standard input can be read only once")
+        );
+
+        // rpm 4.14 and later: -o - is standard output, not a second input.
+        let out = f.run(&["-sbo", "-", "--", "-"], PAYLOAD);
+        assert_eq!(out.code, 0, "{}", out.stderr.text());
+        assert!(!out.stdout.bytes().is_empty());
+    }
+
+    #[test]
+    fn the_output_is_never_one_of_the_inputs() {
+        let f = Fixture::new();
+        let doc = f.file("doc.txt", b"precious");
+        let out = f.run(
+            &["-c", "--passphrase", "pw", "--yes", "-o", &doc, &doc],
+            b"",
+        );
+        assert_eq!(out.code, 2);
+        assert!(out.stderr.text().contains("is also an input"));
+        assert_eq!(std::fs::read(&doc).unwrap(), b"precious");
+    }
+
+    #[test]
+    fn a_failed_run_leaves_the_file_it_would_replace_and_nothing_else() {
+        let f = Fixture::new();
+        let target = f.file("out.txt", b"old");
+        let garbage = f.file("garbage.gpg", b"\x85\x01\x0cnot a real packet at all");
+        let before = files(&f);
+        let out = f.run(&["-d", "--yes", "-o", &target, &garbage], b"");
+        assert_eq!(out.code, 2);
+        assert_eq!(std::fs::read(&target).unwrap(), b"old");
+        assert_eq!(files(&f), before, "a stage was left behind");
+
+        // A new file appears only once the run succeeded.
+        let fresh = f.dir.path().join("fresh.txt");
+        let sealed = f.file("m.asc", &sealed_to_v4(&f, b"plain"));
+        let out = f.run(&["-d", "-o", fresh.to_str().unwrap(), &sealed], b"");
+        assert_eq!(out.code, 0, "{}", out.stderr.text());
+        assert_eq!(std::fs::read(&fresh).unwrap(), b"plain");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_device_is_written_as_it_is_and_needs_no_yes() {
+        let f = Fixture::new();
+        let out = f.run(&["-ba", "-o", "/dev/null"], PAYLOAD);
+        assert_eq!(out.code, 0, "{}", out.stderr.text());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_new_file_gets_the_mode_gpgs_would_and_a_replaced_one_keeps_its_own() {
+        use std::os::unix::fs::PermissionsExt;
+        let f = Fixture::new();
+        let doc = f.file("doc.txt", b"doc");
+        let sig = format!("{doc}.sig");
+        assert_eq!(f.run(&["-b", &doc], b"").code, 0);
+        let mode = std::fs::metadata(&sig).unwrap().permissions().mode() & 0o777;
+        // 0666 less the umask: never the 0600 of a temporary file.
+        assert_ne!(mode, 0o600, "{mode:o}");
+        std::fs::set_permissions(&sig, std::fs::Permissions::from_mode(0o640)).unwrap();
+        assert_eq!(f.run(&["--yes", "-b", &doc], b"").code, 0);
+        let mode = std::fs::metadata(&sig).unwrap().permissions().mode() & 0o777;
+        assert_eq!(mode, 0o640);
+    }
+
+    #[test]
+    fn text_before_the_armor_is_skipped_as_gpg_skips_it() {
+        let f = Fixture::new();
+        let mut mail = b"Hi,\r\n\r\nhere it is:\r\n\r\n".to_vec();
+        mail.extend(sealed_to_v4(&f, b"inside a mail"));
+        let out = f.run(&["-d"], &mail);
+        assert_eq!(out.code, 0, "{}", out.stderr.text());
+        assert_eq!(out.stdout.bytes(), b"inside a mail");
+
+        let signed = f.run(&["--clearsign"], b"signed in a mail\n");
+        let mut mail = b"Forwarded:\n\n".to_vec();
+        mail.extend(signed.stdout.bytes());
+        let out = f.run(&["--verify"], &mail);
+        assert_eq!(out.code, 0, "{}", out.stderr.text());
+    }
+
+    #[test]
+    fn data_that_is_not_openpgp_is_said_to_be_so() {
+        let f = Fixture::new();
+        let quoted = b"see -----BEGIN PGP SIGNED MESSAGE----- in this text\n";
+        for (input, nodata) in [
+            (&quoted[..], vec!["NODATA 1", "NODATA 2"]),
+            (b"", vec!["NODATA 2"]),
+        ] {
+            let out = f.run(&["--status-fd=1", "-d"], input);
+            assert_eq!(out.code, 2);
+            let text = out.stdout.text();
+            let lines = statuses(&text);
+            assert_eq!(
+                lines,
+                [nodata.as_slice(), &["FAILURE decrypt 4294967295"]].concat()
+            );
+            assert!(
+                out.stderr
+                    .text()
+                    .ends_with("gfpipe: decrypt_message failed: Unknown system error\n")
+            );
+        }
+        let out = f.run(&["-d"], quoted);
+        assert!(
+            out.stderr
+                .text()
+                .starts_with("gfpipe: no valid OpenPGP data found.\n")
+        );
+    }
+
+    #[test]
+    fn one_recipient_that_cannot_receive_fails_the_whole_message() {
+        let f = Fixture::with(
+            &[
+                bin(&V4_NISTP256.public_armored),
+                bin(&V4_PRIMARY_ONLY.public_armored),
+            ],
+            "default",
+        );
+        let doc = f.file("doc.txt", b"for both");
+        let out = f.run(
+            &[
+                "--status-fd=1",
+                "-e",
+                "-r",
+                &V4_NISTP256.primary_fpr,
+                "-r",
+                &V4_PRIMARY_ONLY.primary_fpr,
+                &doc,
+            ],
+            b"",
+        );
+        assert_eq!(out.code, 2);
+        let text = out.stdout.text();
+        assert!(text.contains(&format!("KEY_CONSIDERED {} 3", V4_PRIMARY_ONLY.primary_fpr)));
+        assert!(text.contains(&format!("INV_RECP 0 {}", V4_PRIMARY_ONLY.primary_fpr)));
+        assert!(text.contains("FAILURE encrypt 53"));
+        assert!(
+            out.stderr
+                .text()
+                .contains(&format!("{doc}: encryption failed: Unusable public key"))
+        );
+        assert!(!Path::new(&format!("{doc}.gpg")).exists());
+        // gpg writes one FAILURE line per run.
+        assert_eq!(text.matches("FAILURE").count(), 1);
+    }
+
+    #[test]
+    fn a_name_two_usable_keys_answer_to_is_ambiguous() {
+        let f = Fixture::with(
+            &[
+                bin(&V4_SIGN.public_armored),
+                bin(&V4_NISTP256.public_armored),
+            ],
+            "default",
+        );
+        let out = f.run(&["--status-fd=1", "-e", "-r", "*fixture"], b"x");
+        assert_eq!(out.code, 2);
+        assert!(out.stdout.text().contains("INV_RECP 2 *fixture"));
+        assert!(
+            out.stderr
+                .text()
+                .contains("*fixture: skipped: Ambiguous name")
+        );
+        // A name only one usable key answers to is that key.
+        let f = Fixture::with(
+            &[
+                bin(&V4_NISTP256.public_armored),
+                bin(&V4_PRIMARY_ONLY.public_armored),
+            ],
+            "default",
+        );
+        let out = f.run(&["-e", "-r", "@example.test"], b"x");
+        assert_eq!(out.code, 0, "{}", out.stderr.text());
+    }
+
+    #[test]
+    fn keys_are_named_as_gpg_names_them() {
+        let f = Fixture::new();
+        let key_id = &V4_SIGN.primary_fpr[V4_SIGN.primary_fpr.len() - 16..];
+        for name in [
+            &V4_SIGN.primary_fpr[V4_SIGN.primary_fpr.len() - 8..],
+            &format!("0x{key_id}"),
+            "=V4 Fixture <v4@example.test>",
+            "<v4@example.test>",
+            "@v4@exam",
+            "*V4 FIX",
+            "Someone Else <v4@example.test>",
+        ] {
+            let out = f.run(&["-k", "--with-colons", name], b"");
+            assert_eq!(out.code, 0, "{name}: {}", out.stderr.text());
+            assert!(out.stdout.text().contains(&V4_SIGN.primary_fpr), "{name}");
+            assert!(!out.stdout.text().contains(&V6_SIGN.primary_fpr), "{name}");
+        }
+        for name in ["=V4 Fixture", "<v4@example>", "&ABCDEF", "#123"] {
+            assert_eq!(f.run(&["-k", name], b"").code, 2, "{name}");
+        }
+    }
+
+    #[test]
+    fn status_lines_and_data_on_one_stream_keep_their_order() {
+        let f = Fixture::new();
+        let sealed = sealed_to_v4(&f, b"PAYLOAD-BYTES\n");
+        let out = f.run(&["--status-fd=1", "-d"], &sealed);
+        assert_eq!(out.code, 0, "{}", out.stderr.text());
+        let text = out.stdout.text();
+        let begin = text.find("[GNUPG:] BEGIN_DECRYPTION").unwrap();
+        let data = text.find("PAYLOAD-BYTES").unwrap();
+        let okay = text.find("[GNUPG:] DECRYPTION_OKAY").unwrap();
+        assert!(begin < data && data < okay, "{text}");
+        let lines = statuses(&text);
+        assert!(
+            lines.iter().any(|l| l.starts_with("DECRYPTION_KEY ")),
+            "{text}"
+        );
+        assert!(lines.iter().any(|l| l.starts_with("DECRYPTION_INFO ")));
+        assert!(lines.iter().any(|l| l.starts_with("PLAINTEXT ")));
+        assert_eq!(*lines.last().unwrap(), "END_DECRYPTION");
+    }
+
+    #[test]
+    fn pass_learns_who_a_file_is_for_without_decrypting_it() {
+        // pass's reencrypt_path, through a gfpipe installed as gpg.
+        let f = Fixture::new();
+        let sealed = f.file("site.gpg", &sealed_to_v4(&f, b"hunter2"));
+        let out = as_gpg(
+            &f,
+            &[
+                "-v",
+                "--no-secmem-warning",
+                "--no-permission-warning",
+                "--decrypt",
+                "--list-only",
+                "--keyid-format",
+                "long",
+                &sealed,
+            ],
+            b"",
+        );
+        assert_eq!(out.code, 0, "{}", out.stderr.text());
+        assert!(out.stdout.bytes().is_empty());
+        let ids: Vec<&str> = out
+            .stderr
+            .text()
+            .lines()
+            .filter_map(|l| l.strip_prefix("gpg: public key is "))
+            .map(str::to_string)
+            .collect::<Vec<_>>()
+            .leak()
+            .iter()
+            .map(String::as_str)
+            .collect();
+        assert_eq!(ids.len(), 1);
+        assert_eq!(ids[0].len(), 16);
+        assert!(
+            ids[0]
+                .chars()
+                .all(|c| c.is_ascii_hexdigit() && !c.is_ascii_lowercase())
+        );
+    }
+
+    #[test]
+    fn a_passphrase_message_opens_without_a_key_package() {
+        let f = Fixture::new();
+        let sealed = f.run(&["-c", "--passphrase", "pw"], b"no keys needed");
+        assert_eq!(sealed.code, 0);
+        let empty = tempfile::tempdir().unwrap();
+        let host = host_in(empty.path(), HashMap::new());
+        let out = run_on(&host, &["-d", "--passphrase", "pw"], &sealed.stdout.bytes());
+        assert_eq!(out.code, 0, "{}", out.stderr.text());
+        assert_eq!(out.stdout.bytes(), b"no keys needed");
+
+        let out = run_on(
+            &host,
+            &["-d", "--passphrase", "wrong"],
+            &sealed.stdout.bytes(),
+        );
+        assert_eq!(out.code, 2);
+        assert!(
+            out.stderr
+                .text()
+                .contains("decryption failed: Bad session key")
+        );
+    }
+
+    #[test]
+    fn an_empty_passphrase_is_refused_as_gpg_refuses_it() {
+        let f = Fixture::new();
+        let out = f.run(&["--status-fd=2", "-c", "--passphrase", ""], b"empty");
+        assert_eq!(out.code, 2);
+        let err = out.stderr.text();
+        assert!(err.contains("[GNUPG:] NEED_PASSPHRASE_SYM 9 3 "));
+        assert!(err.contains("[GNUPG:] MISSING_PASSPHRASE\n"));
+        assert!(err.contains("gfpipe: error creating passphrase: Invalid passphrase\n"));
+        assert!(err.contains("[GNUPG:] FAILURE symencrypt 33554463\n"));
+        assert!(
+            err.ends_with("gfpipe: symmetric encryption of '[stdin]' failed: Invalid passphrase\n")
+        );
+        assert!(out.stdout.bytes().is_empty());
+
+        let sealed = f.run(&["-c", "--passphrase", "pw"], b"x");
+        let out = f.run(
+            &["--status-fd=2", "-d", "--passphrase", ""],
+            &sealed.stdout.bytes(),
+        );
+        assert_eq!(out.code, 2);
+        let err = out.stderr.text();
+        assert!(err.contains("[GNUPG:] MISSING_PASSPHRASE\n"));
+        assert!(err.contains("gfpipe: AES256.CFB encrypted data\n"));
+        assert!(err.contains("gfpipe: encrypted with 1 passphrase\n"));
+        assert!(err.contains("decryption failed: Bad session key"));
+    }
+
+    #[test]
+    fn begin_encryption_names_the_container_written() {
+        let f = Fixture::new();
+        let begin = |fpr: &str| {
+            let out = f.run(&["--status-fd=2", "-e", "-r", fpr], b"x");
+            assert_eq!(out.code, 0, "{}", out.stderr.text());
+            let text = out.stderr.text();
+            text.lines()
+                .find_map(|l| l.strip_prefix("[GNUPG:] BEGIN_ENCRYPTION "))
+                .unwrap()
+                .to_string()
+        };
+        // A v4 key: a v1 SEIPD (MDC, method 2) and no AEAD mode.
+        let v4 = begin(&V4_SIGN.primary_fpr);
+        assert!(v4.starts_with("2 ") && v4.split(' ').count() == 2, "{v4}");
+        // A v6 key: a v2 SEIPD (AEAD) and its mode.
+        let v6 = begin(&V6_SIGN.primary_fpr);
+        assert!(v6.starts_with("0 ") && v6.split(' ').count() == 3, "{v6}");
+    }
+
+    #[test]
+    fn a_hidden_recipient_is_tried_with_every_secret_key() {
+        let f = Fixture::with(
+            &[
+                bin(&V4_SIGN.secret_armored),
+                bin(&V4_NISTP256.secret_armored),
+            ],
+            "default",
+        );
+        for fpr in [&V4_SIGN.primary_fpr, &V4_NISTP256.primary_fpr] {
+            let sealed = f.run(&["-e", "-R", fpr], b"hidden");
+            assert_eq!(sealed.code, 0, "{}", sealed.stderr.text());
+            let out = f.run(&["-d"], &sealed.stdout.bytes());
+            assert_eq!(out.code, 0, "{fpr}: {}", out.stderr.text());
+            assert_eq!(out.stdout.bytes(), b"hidden");
+        }
+    }
+
+    #[test]
+    fn the_colon_listing_carries_the_user_ids_time_and_hash() {
+        let f = Fixture::new();
+        let text = f
+            .run(&["-k", "--with-colons", &V4_SIGN.primary_fpr], b"")
+            .stdout
+            .text();
+        let uid = colon_lines(&text, "uid").remove(0);
+        assert_eq!(uid[9], "V4 Fixture <v4@example.test>");
+        assert!(uid[5].parse::<u64>().is_ok(), "{uid:?}");
+        let hash = pgp::crypto::hash::HashAlgorithm::Ripemd160
+            .digest(uid[9].as_bytes())
+            .unwrap();
+        assert_eq!(uid[7], hex::encode_upper(hash));
+        assert!(text.starts_with("tru::1:"));
+    }
+
+    #[test]
+    fn hidden_recipients_are_not_named_and_still_decrypt() {
+        let f = Fixture::new();
+        for hide in [
+            vec!["-R", V4_SIGN.primary_fpr.as_str()],
+            vec!["--throw-keyids", "-r", V4_SIGN.primary_fpr.as_str()],
+        ] {
+            let mut argv = vec!["-e"];
+            argv.extend(hide.iter().copied());
+            let sealed = f.run(&argv, b"for nobody known");
+            assert_eq!(sealed.code, 0, "{}", sealed.stderr.text());
+            let named = crate::crypto::sniff_recipients(&sealed.stdout.bytes());
+            assert!(
+                named.iter().all(|r| r.key_id.chars().all(|c| c == '0')),
+                "{hide:?}"
+            );
+            let out = f.run(&["-d"], &sealed.stdout.bytes());
+            assert_eq!(out.code, 0, "{}", out.stderr.text());
+            assert_eq!(out.stdout.bytes(), b"for nobody known");
+        }
+    }
+
+    #[test]
+    fn verify_with_an_output_writes_the_signed_content() {
+        let f = Fixture::new();
+        let signed = f.file(
+            "note.asc",
+            &f.run(&["--clearsign"], b"the text\n").stdout.bytes(),
+        );
+        let content = f.dir.path().join("note.txt");
+        let out = f.run(&["--verify", "-o", content.to_str().unwrap(), &signed], b"");
+        assert_eq!(out.code, 0, "{}", out.stderr.text());
+        assert_eq!(std::fs::read(&content).unwrap(), b"the text\n");
+    }
+
+    #[test]
+    fn the_signature_report_reads_as_gpgs() {
+        let f = Fixture::new();
+        let sig = f.file("sig.asc", &f.run(&["-ba"], PAYLOAD).stdout.bytes());
+        let out = f.run(&["--verify", &sig, "-"], PAYLOAD);
+        assert_eq!(out.code, 0, "{}", out.stderr.text());
+        let err = out.stderr.text();
+        let lines: Vec<&str> = err.lines().collect();
+        assert!(lines[0].starts_with("gfpipe: Signature made "), "{err}");
+        assert!(
+            lines[1].starts_with("gfpipe:                using "),
+            "{err}"
+        );
+        assert_eq!(
+            lines[2],
+            "gfpipe: Good signature from \"V4 Fixture <v4@example.test>\" [ultimate]"
+        );
+
+        // A changed text: BAD, exit 1, and no line of gfpipe's own after it.
+        let out = f.run(&["--verify", &sig, "-"], b"changed");
+        assert_eq!(out.code, 1);
+        assert!(
+            out.stderr.text().trim_end().ends_with(
+                "gfpipe: BAD signature from \"V4 Fixture <v4@example.test>\" [ultimate]"
+            )
+        );
+    }
+
+    #[test]
+    fn the_default_key_signs_only_when_no_key_is_named() {
+        let f = Fixture::with(
+            &[
+                bin(&V4_SIGN.secret_armored),
+                bin(&V4_NISTP256.secret_armored),
+            ],
+            "default",
+        );
+        let out = f.run(
+            &[
+                "--status-fd=1",
+                "--default-key",
+                &V4_NISTP256.primary_fpr,
+                "-u",
+                &V4_SIGN.primary_fpr,
+                "-bsa",
+            ],
+            PAYLOAD,
+        );
+        assert_eq!(out.code, 0, "{}", out.stderr.text());
+        assert_eq!(out.stdout.text().matches("SIG_CREATED").count(), 1);
+        let out = f.run(
+            &["--default-key", &V4_NISTP256.primary_fpr, "-bsa"],
+            PAYLOAD,
+        );
+        assert_eq!(out.code, 0, "{}", out.stderr.text());
+    }
+
+    #[test]
+    fn without_a_command_gfpipe_guesses_as_gpg_does() {
+        let f = Fixture::new();
+        let sealed = f.file("letter.txt.gpg", &sealed_to_v4(&f, b"dear"));
+        let out = f.run(&[&sealed], b"");
+        assert_eq!(out.code, 0, "{}", out.stderr.text());
+        assert!(out.stderr.text().starts_with(
+            "gfpipe: WARNING: no command supplied.  Trying to guess what you mean ...\n"
+        ));
+        let letter = sealed.trim_end_matches(".gpg");
+        assert_eq!(std::fs::read(letter).unwrap(), b"dear");
+        // Not again without --yes.
+        let again = f.run(&[&sealed], b"");
+        assert_eq!(again.code, 2);
+        assert!(again.stderr.text().contains("File exists"));
+
+        // A detached signature finds its data.
+        let doc = f.file("doc.txt", b"doc");
+        assert_eq!(f.run(&["-b", &doc], b"").code, 0);
+        assert_eq!(f.run(&[&format!("{doc}.sig")], b"").code, 0);
+
+        // Keys are shown, not imported.
+        let keys = f.file("keys.asc", V6_SIGN.public_armored.as_bytes());
+        let out = f.run(&[&keys], b"");
+        assert_eq!(out.code, 0, "{}", out.stderr.text());
+        let text = out.stdout.text();
+        assert!(text.starts_with("pub   "), "{text}");
+        assert!(text.contains(&format!("      {}\n", V6_SIGN.primary_fpr)));
+        assert!(text.contains("uid           V6 Fixture <v6@example.test>\n"));
+
+        // Anything else is no OpenPGP data.
+        let text = f.file("plain.txt", b"just text");
+        let out = f.run(&["--status-fd=1", &text], b"");
+        assert_eq!(out.code, 2);
+        assert!(out.stdout.text().contains("[GNUPG:] FAILURE - 4294967295"));
+    }
+
+    #[test]
+    fn a_write_that_fails_fails_the_run() {
+        struct Full;
+        impl Write for Full {
+            fn write(&mut self, _: &[u8]) -> std::io::Result<usize> {
+                Err(std::io::Error::from_raw_os_error(28))
+            }
+            fn flush(&mut self) -> std::io::Result<()> {
+                Err(std::io::Error::from_raw_os_error(28))
+            }
+        }
+        let f = Fixture::new();
+        let stderr = Shared::default();
+        let mut io = Io {
+            stdin: Box::new(std::io::empty()),
+            stdout: Box::new(Full),
+            stderr: Box::new(stderr.clone()),
+        };
+        let host = Host {
+            program: String::new(),
+            program_dir: Some(f.dir.path().to_path_buf()),
+            version: "2.3.0".into(),
+            env: f.env(),
+        };
+        let argv: Vec<std::ffi::OsString> = vec!["-k".into()];
+        assert_eq!(run(&argv, &host, &mut io), 2);
+        assert!(stderr.text().contains("[stdout]: write error: "));
+    }
 }

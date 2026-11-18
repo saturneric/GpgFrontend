@@ -30,6 +30,12 @@
 //! git, pass, build tools and scripts use. Anything else is refused, never
 //! ignored: key management with a pointer to GpgFrontend, other keyrings with
 //! a pointer to the key package.
+//!
+//! In gpg's form the parsing is gpg's: a long option may be shortened to any
+//! unique prefix, and the first file ends the options. After one of gfpipe's
+//! own subcommands, options may come anywhere.
+
+use std::ffi::{OsStr, OsString};
 
 /// What kind of signature `sign` makes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -55,6 +61,8 @@ pub enum Command {
     },
     /// The public certificates of keys in the package.
     Export,
+    /// No command, only files: gpg guesses from what the data is.
+    Default,
     Version,
     Help,
 }
@@ -64,9 +72,17 @@ pub enum Command {
 pub enum Passphrase {
     Text(String),
     /// The first line of a file.
-    File(String),
+    File(OsString),
     /// The first line read from a file descriptor; 0 is standard input.
     Fd(i32),
+}
+
+/// A key to encrypt to.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Recipient {
+    pub name: String,
+    /// `--hidden-recipient`: the message does not say who it is for.
+    pub hidden: bool,
 }
 
 /// A parsed command line.
@@ -74,26 +90,49 @@ pub enum Passphrase {
 pub struct Args {
     pub command: Option<Command>,
     pub local_users: Vec<String>,
-    pub recipients: Vec<String>,
+    /// `--default-key`: the signing key when no `-u` names one.
+    pub default_key: Option<String>,
+    pub recipients: Vec<Recipient>,
     /// `--default-recipient`, used when no recipient is named.
     pub default_recipient: Option<String>,
     /// `--default-recipient-self`: the package's own secret key.
     pub default_recipient_self: bool,
+    /// `--throw-keyids`: every recipient is hidden.
+    pub throw_keyids: bool,
     pub armor: bool,
-    pub output: Option<String>,
+    pub output: Option<OsString>,
     /// `--yes`: an existing output file may be replaced.
     pub yes: bool,
     pub status_fd: Option<i32>,
-    pub status_file: Option<String>,
+    pub status_file: Option<OsString>,
     /// `--with-colons`: the machine-readable listing.
     pub with_colons: bool,
+    /// `--fingerprint`: the listing groups fingerprints as gpg does.
+    pub fingerprint: bool,
+    /// `--list-only`: name the recipients of a message, decrypt nothing.
+    pub list_only: bool,
+    /// `-q`: no informational lines on standard error.
+    pub quiet: bool,
+    pub verbose: bool,
     pub passphrase: Option<Passphrase>,
-    pub keypack: Option<String>,
+    pub keypack: Option<OsString>,
     /// `--key-file`: the file holding a plain package's key.
-    pub key_file: Option<String>,
+    pub key_file: Option<OsString>,
+    /// Notes for standard error about how the line was read.
+    pub notes: Vec<String>,
     /// File arguments, in order; `-` is standard input. Key patterns for a
     /// listing or an export.
-    pub inputs: Vec<String>,
+    pub inputs: Vec<OsString>,
+}
+
+impl Args {
+    /// The file arguments as text, for key patterns.
+    pub fn patterns(&self) -> Vec<String> {
+        self.inputs
+            .iter()
+            .map(|p| p.to_string_lossy().into_owned())
+            .collect()
+    }
 }
 
 /// Why a command line was refused.
@@ -105,10 +144,17 @@ pub enum ParseError {
     OtherKeyring(String),
     /// Anything else gfpipe does not know.
     Unsupported(String),
+    /// A shortened option that more than one option starts with.
+    Ambiguous(String),
     /// An option that needs a value was last.
     MissingValue(String),
-    /// Two operations at once, or none.
+    /// A value an option cannot take.
+    InvalidValue(String),
+    /// No operation at all.
     NoOperation,
+    /// Two operations at once.
+    ConflictingCommands,
+    /// Operations gfpipe does not do together, with why.
     Conflict(String),
 }
 
@@ -125,163 +171,272 @@ impl std::fmt::Display for ParseError {
                 "{opt}: gfpipe takes keys only from its key package; name another package \
                  with --keypack or GFPIPE_KEYPACK"
             ),
-            ParseError::Unsupported(opt) => write!(f, "{opt}: unsupported option"),
-            ParseError::MissingValue(opt) => write!(f, "{opt} needs a value"),
+            ParseError::Unsupported(opt) => write!(f, "invalid option \"{opt}\""),
+            ParseError::Ambiguous(opt) => write!(f, "option \"{opt}\" is ambiguous"),
+            ParseError::MissingValue(opt) => write!(f, "missing argument for option \"{opt}\""),
+            ParseError::InvalidValue(opt) => write!(f, "invalid argument for option \"{opt}\""),
             ParseError::NoOperation => {
                 write!(f, "nothing to do; try 'gfpipe help'")
             }
+            ParseError::ConflictingCommands => write!(f, "conflicting commands"),
             ParseError::Conflict(what) => write!(f, "{what} cannot be combined"),
         }
     }
 }
 
-/// gpg commands that change keys or the trust database, or hand out secrets.
-const KEY_MANAGEMENT: &[&str] = &[
-    "--import",
-    "--export-secret-keys",
-    "--export-secret-subkeys",
-    "--export-ssh-key",
-    "--gen-key",
-    "--generate-key",
-    "--full-gen-key",
-    "--full-generate-key",
-    "--quick-gen-key",
-    "--quick-generate-key",
-    "--quick-add-key",
-    "--quick-add-uid",
-    "--quick-revoke-key",
-    "--quick-revoke-uid",
-    "--quick-set-expire",
-    "--quick-set-primary-uid",
-    "--quick-sign-key",
-    "--quick-lsign-key",
-    "--edit-key",
-    "--sign-key",
-    "--lsign-key",
-    "--delete-key",
-    "--delete-keys",
-    "--delete-secret-key",
-    "--delete-secret-keys",
-    "--delete-secret-and-public-key",
-    "--delete-secret-and-public-keys",
-    "--passwd",
-    "--change-passphrase",
-    "--gen-revoke",
-    "--generate-revocation",
-    "--recv-keys",
-    "--receive-keys",
-    "--send-keys",
-    "--refresh-keys",
-    "--search-keys",
-    "--fetch-keys",
-    "--locate-keys",
-    "--locate-external-keys",
-    "--update-trustdb",
-    "--check-trustdb",
-    "--import-ownertrust",
-    "--export-ownertrust",
-    "--card-edit",
-    "--edit-card",
-    "--card-status",
+/// What an option is to the parser.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Kind {
+    /// Handled by name, without a value.
+    Flag,
+    /// Handled by name, with a value.
+    Value,
+    /// Accepted and changes nothing for gfpipe.
+    NoOp,
+    /// Accepted with a value gfpipe does not need.
+    NoOpValue,
+    /// A gpg command that changes keys or hands out secrets.
+    KeyManagement,
+    /// Names another place to take keys from.
+    OtherKeyring,
+}
+
+/// Every long option gfpipe knows, by name. A shortened option resolves to
+/// the one entry it starts, never to a no-op: a typo is refused, not lost.
+const OPTIONS: &[(&str, Kind)] = &[
+    // Commands.
+    ("--sign", Kind::Flag),
+    ("--detach-sign", Kind::Flag),
+    ("--clearsign", Kind::Flag),
+    ("--clear-sign", Kind::Flag),
+    ("--encrypt", Kind::Flag),
+    ("--symmetric", Kind::Flag),
+    ("--decrypt", Kind::Flag),
+    ("--verify", Kind::Flag),
+    ("--list-keys", Kind::Flag),
+    ("--list-public-keys", Kind::Flag),
+    ("--fingerprint", Kind::Flag),
+    ("--list-secret-keys", Kind::Flag),
+    ("--export", Kind::Flag),
+    ("--version", Kind::Flag),
+    ("--help", Kind::Flag),
+    // Flags.
+    ("--armor", Kind::Flag),
+    ("--armour", Kind::Flag),
+    ("--no-armor", Kind::Flag),
+    ("--no-armour", Kind::Flag),
+    ("--yes", Kind::Flag),
+    ("--no", Kind::Flag),
+    ("--with-colons", Kind::Flag),
+    ("--default-recipient-self", Kind::Flag),
+    ("--throw-keyids", Kind::Flag),
+    ("--no-throw-keyids", Kind::Flag),
+    ("--list-only", Kind::Flag),
+    ("--quiet", Kind::Flag),
+    ("--verbose", Kind::Flag),
+    ("--no-verbose", Kind::Flag),
+    // Options with a value.
+    ("--local-user", Kind::Value),
+    ("--default-key", Kind::Value),
+    ("--recipient", Kind::Value),
+    ("--hidden-recipient", Kind::Value),
+    ("--encrypt-to", Kind::Value),
+    ("--hidden-encrypt-to", Kind::Value),
+    ("--default-recipient", Kind::Value),
+    ("--output", Kind::Value),
+    ("--keypack", Kind::Value),
+    ("--key-file", Kind::Value),
+    ("--passphrase", Kind::Value),
+    ("--passphrase-file", Kind::Value),
+    ("--passphrase-fd", Kind::Value),
+    ("--status-fd", Kind::Value),
+    ("--status-file", Kind::Value),
+    // Accepted: the package's keys are trusted, nothing is fetched, nothing
+    // is prompted for, and the engine chooses algorithms by the recipients'
+    // preferences.
+    ("--batch", Kind::NoOp),
+    ("--no-batch", Kind::NoOp),
+    ("--no-tty", Kind::NoOp),
+    ("--no-greeting", Kind::NoOp),
+    ("--no-permission-warning", Kind::NoOp),
+    ("--no-secmem-warning", Kind::NoOp),
+    ("--with-fingerprint", Kind::NoOp),
+    ("--with-subkey-fingerprint", Kind::NoOp),
+    ("--with-subkey-fingerprints", Kind::NoOp),
+    ("--with-keygrip", Kind::NoOp),
+    ("--fixed-list-mode", Kind::NoOp),
+    ("--no-encrypt-to", Kind::NoOp),
+    ("--no-default-recipient", Kind::NoOp),
+    ("--always-trust", Kind::NoOp),
+    ("--no-auto-key-locate", Kind::NoOp),
+    ("--no-auto-key-retrieve", Kind::NoOp),
+    ("--auto-key-retrieve", Kind::NoOp),
+    ("--disable-dirmngr", Kind::NoOp),
+    ("--use-agent", Kind::NoOp),
+    ("--no-use-agent", Kind::NoOp),
+    ("--lock-never", Kind::NoOp),
+    ("--lock-once", Kind::NoOp),
+    ("--lock-multiple", Kind::NoOp),
+    ("--exit-on-status-write-error", Kind::NoOp),
+    ("--utf8-strings", Kind::NoOp),
+    ("--no-utf8-strings", Kind::NoOp),
+    ("--textmode", Kind::NoOp),
+    ("--no-textmode", Kind::NoOp),
+    ("--emit-version", Kind::NoOp),
+    ("--no-emit-version", Kind::NoOp),
+    ("--no-comments", Kind::NoOp),
+    ("--no-mdc-warning", Kind::NoOp),
+    ("--ignore-time-conflict", Kind::NoOp),
+    ("--ignore-valid-from", Kind::NoOp),
+    ("--ignore-mdc-error", Kind::NoOp),
+    ("--allow-weak-digest-algos", Kind::NoOp),
+    ("--no-symkey-cache", Kind::NoOp),
+    ("--force-mdc", Kind::NoOp),
+    ("--no-force-mdc", Kind::NoOp),
+    ("--keyid-format", Kind::NoOpValue),
+    ("--pinentry-mode", Kind::NoOpValue),
+    ("--trust-model", Kind::NoOpValue),
+    ("--compress-algo", Kind::NoOpValue),
+    ("--compress-level", Kind::NoOpValue),
+    ("--bzip2-compress-level", Kind::NoOpValue),
+    ("--cipher-algo", Kind::NoOpValue),
+    ("--digest-algo", Kind::NoOpValue),
+    ("--cert-digest-algo", Kind::NoOpValue),
+    ("--s2k-mode", Kind::NoOpValue),
+    ("--s2k-count", Kind::NoOpValue),
+    ("--s2k-cipher-algo", Kind::NoOpValue),
+    ("--s2k-digest-algo", Kind::NoOpValue),
+    ("--personal-cipher-preferences", Kind::NoOpValue),
+    ("--personal-digest-preferences", Kind::NoOpValue),
+    ("--personal-compress-preferences", Kind::NoOpValue),
+    ("--comment", Kind::NoOpValue),
+    ("--set-filename", Kind::NoOpValue),
+    ("--display-charset", Kind::NoOpValue),
+    ("--charset", Kind::NoOpValue),
+    ("--logger-fd", Kind::NoOpValue),
+    ("--logger-file", Kind::NoOpValue),
+    ("--log-file", Kind::NoOpValue),
+    ("--keyserver", Kind::NoOpValue),
+    ("--keyserver-options", Kind::NoOpValue),
+    ("--auto-key-locate", Kind::NoOpValue),
+    ("--passphrase-repeat", Kind::NoOpValue),
+    ("--list-options", Kind::NoOpValue),
+    ("--verify-options", Kind::NoOpValue),
+    ("--export-options", Kind::NoOpValue),
+    ("--compliance", Kind::NoOpValue),
+    ("--max-output", Kind::NoOpValue),
+    ("--agent-program", Kind::NoOpValue),
+    ("--dirmngr-program", Kind::NoOpValue),
+    // Refused: key management, and secrets leaving the package.
+    ("--import", Kind::KeyManagement),
+    ("--export-secret-keys", Kind::KeyManagement),
+    ("--export-secret-subkeys", Kind::KeyManagement),
+    ("--export-ssh-key", Kind::KeyManagement),
+    ("--gen-key", Kind::KeyManagement),
+    ("--generate-key", Kind::KeyManagement),
+    ("--full-gen-key", Kind::KeyManagement),
+    ("--full-generate-key", Kind::KeyManagement),
+    ("--quick-gen-key", Kind::KeyManagement),
+    ("--quick-generate-key", Kind::KeyManagement),
+    ("--quick-add-key", Kind::KeyManagement),
+    ("--quick-add-uid", Kind::KeyManagement),
+    ("--quick-revoke-key", Kind::KeyManagement),
+    ("--quick-revoke-uid", Kind::KeyManagement),
+    ("--quick-set-expire", Kind::KeyManagement),
+    ("--quick-set-primary-uid", Kind::KeyManagement),
+    ("--quick-sign-key", Kind::KeyManagement),
+    ("--quick-lsign-key", Kind::KeyManagement),
+    ("--edit-key", Kind::KeyManagement),
+    ("--sign-key", Kind::KeyManagement),
+    ("--lsign-key", Kind::KeyManagement),
+    ("--delete-key", Kind::KeyManagement),
+    ("--delete-keys", Kind::KeyManagement),
+    ("--delete-secret-key", Kind::KeyManagement),
+    ("--delete-secret-keys", Kind::KeyManagement),
+    ("--delete-secret-and-public-key", Kind::KeyManagement),
+    ("--delete-secret-and-public-keys", Kind::KeyManagement),
+    ("--passwd", Kind::KeyManagement),
+    ("--change-passphrase", Kind::KeyManagement),
+    ("--gen-revoke", Kind::KeyManagement),
+    ("--generate-revocation", Kind::KeyManagement),
+    ("--recv-keys", Kind::KeyManagement),
+    ("--receive-keys", Kind::KeyManagement),
+    ("--send-keys", Kind::KeyManagement),
+    ("--refresh-keys", Kind::KeyManagement),
+    ("--search-keys", Kind::KeyManagement),
+    ("--fetch-keys", Kind::KeyManagement),
+    ("--locate-keys", Kind::KeyManagement),
+    ("--locate-external-keys", Kind::KeyManagement),
+    ("--update-trustdb", Kind::KeyManagement),
+    ("--check-trustdb", Kind::KeyManagement),
+    ("--import-ownertrust", Kind::KeyManagement),
+    ("--export-ownertrust", Kind::KeyManagement),
+    ("--card-edit", Kind::KeyManagement),
+    ("--edit-card", Kind::KeyManagement),
+    ("--card-status", Kind::KeyManagement),
+    // Refused: keys from elsewhere.
+    ("--homedir", Kind::OtherKeyring),
+    ("--keyring", Kind::OtherKeyring),
+    ("--secret-keyring", Kind::OtherKeyring),
+    ("--primary-keyring", Kind::OtherKeyring),
+    ("--no-default-keyring", Kind::OtherKeyring),
+    ("--options", Kind::OtherKeyring),
 ];
 
-/// gpg options that choose where keys come from.
-const OTHER_KEYRING: &[&str] = &[
-    "--homedir",
-    "--keyring",
-    "--secret-keyring",
-    "--primary-keyring",
-    "--no-default-keyring",
-    "--options",
-];
+/// gfpipe's own spellings, matched only in full.
+const ALIASES: &[(&str, &str)] = &[("--detach", "--detach-sign"), ("--clear", "--clearsign")];
 
-/// gpg options that change nothing for gfpipe and are accepted as such: the
-/// package's keys are trusted, nothing is fetched, nothing is prompted for,
-/// and the engine chooses algorithms by the recipients' preferences.
-const NO_OPS: &[&str] = &[
-    "--batch",
-    "--no-batch",
-    "--no-tty",
-    "--quiet",
-    "--verbose",
-    "--no-verbose",
-    "--no-greeting",
-    "--no-permission-warning",
-    "--no-secmem-warning",
-    "--with-fingerprint",
-    "--with-subkey-fingerprint",
-    "--with-subkey-fingerprints",
-    "--with-keygrip",
-    "--fixed-list-mode",
-    "--no-encrypt-to",
-    "--no-default-recipient",
-    "--always-trust",
-    "--no-auto-key-locate",
-    "--no-auto-key-retrieve",
-    "--auto-key-retrieve",
-    "--disable-dirmngr",
-    "--use-agent",
-    "--no-use-agent",
-    "--lock-never",
-    "--lock-once",
-    "--lock-multiple",
-    "--exit-on-status-write-error",
-    "--utf8-strings",
-    "--no-utf8-strings",
-    "--textmode",
-    "--no-textmode",
-    "--emit-version",
-    "--no-emit-version",
-    "--no-comments",
-    "--throw-keyids",
-    "--no-throw-keyids",
-    "--no-mdc-warning",
-    "--ignore-time-conflict",
-    "--ignore-valid-from",
-    "--ignore-mdc-error",
-    "--allow-weak-digest-algos",
-    "--no-symkey-cache",
-    "--force-mdc",
-    "--no-force-mdc",
-];
+/// The option `name` (with its dashes) stands for, exactly or as a unique
+/// prefix; spellings of one option count once. A prefix that only an
+/// option without effect starts is refused: a typo would be lost.
+fn resolve_name(name: &str) -> Result<(&'static str, Kind), ParseError> {
+    if let Some((_, full)) = ALIASES.iter().find(|(alias, _)| *alias == name) {
+        return resolve_name(full);
+    }
+    if let Some(&(full, kind)) = OPTIONS.iter().find(|(n, _)| *n == name) {
+        return Ok((full, kind));
+    }
+    let mut matches: Vec<(&'static str, Kind)> = OPTIONS
+        .iter()
+        .filter(|(n, _)| n.len() > 2 && name.len() > 2 && n.starts_with(name))
+        .copied()
+        .collect();
+    // "--armo" names both spellings of one option.
+    matches.sort_by_key(|(n, _)| canonical(n));
+    matches.dedup_by_key(|(n, _)| canonical(n));
+    match matches.as_slice() {
+        [] | [(_, Kind::NoOp | Kind::NoOpValue)] => Err(ParseError::Unsupported(name.to_string())),
+        [one] => Ok(*one),
+        _ => Err(ParseError::Ambiguous(name.to_string())),
+    }
+}
 
-/// gpg options that take a value gfpipe does not need.
-const NO_OP_WITH_VALUE: &[&str] = &[
-    "--keyid-format",
-    "--pinentry-mode",
-    "--trust-model",
-    "--compress-algo",
-    "--compress-level",
-    "--bzip2-compress-level",
-    "--cipher-algo",
-    "--digest-algo",
-    "--cert-digest-algo",
-    "--s2k-mode",
-    "--s2k-count",
-    "--s2k-cipher-algo",
-    "--s2k-digest-algo",
-    "--personal-cipher-preferences",
-    "--personal-digest-preferences",
-    "--personal-compress-preferences",
-    "--comment",
-    "--set-filename",
-    "--display-charset",
-    "--charset",
-    "--logger-fd",
-    "--logger-file",
-    "--log-file",
-    "--keyserver",
-    "--keyserver-options",
-    "--auto-key-locate",
-    "--passphrase-repeat",
-    "--list-options",
-    "--verify-options",
-    "--export-options",
-    "--compliance",
-    "--max-output",
-    "--agent-program",
-    "--dirmngr-program",
-];
+/// One name per option that has several spellings.
+fn canonical(name: &str) -> &str {
+    match name {
+        "--armour" => "--armor",
+        "--no-armour" => "--no-armor",
+        "--clear-sign" => "--clearsign",
+        "--list-public-keys" => "--list-keys",
+        other => other,
+    }
+}
+
+/// gfpipe's own subcommands, which may come first.
+fn subcommand(word: &OsStr, flags: &mut Flags) -> bool {
+    match word.to_str() {
+        Some("sign") => flags.sign = true,
+        Some("verify") => flags.verify = true,
+        Some("encrypt") => flags.encrypt = true,
+        Some("decrypt") => flags.decrypt = true,
+        Some("keys") => flags.list = true,
+        Some("export") => flags.export = true,
+        Some("version") => flags.version = true,
+        Some("help") => flags.help = true,
+        _ => return false,
+    }
+    true
+}
 
 #[derive(Default)]
 struct Flags {
@@ -299,71 +454,97 @@ struct Flags {
     help: bool,
 }
 
+fn descriptor(name: &str, v: &OsStr) -> Result<i32, ParseError> {
+    v.to_str()
+        .and_then(|v| v.parse::<i32>().ok())
+        .filter(|fd| *fd >= 0)
+        .ok_or_else(|| ParseError::InvalidValue(name.to_string()))
+}
+
+fn text(v: OsString) -> String {
+    v.to_string_lossy().into_owned()
+}
+
+/// Where the status lines go, as far as the options before a refused one
+/// say: gpg reports a command line it refuses there.
+pub fn early_status(argv: &[OsString]) -> (Option<i32>, Option<OsString>) {
+    let (mut fd, mut file) = (None, None);
+    let mut rest = argv.iter();
+    while let Some(arg) = rest.next() {
+        let Some(word) = arg.to_str() else { break };
+        if word == "--" || !word.starts_with('-') || word == "-" {
+            break;
+        }
+        let (name, inline) = match word.split_once('=') {
+            Some((n, v)) => (n, Some(OsString::from(v))),
+            None => (word, None),
+        };
+        let mut value = || inline.clone().or_else(|| rest.next().cloned());
+        match resolve_name(name) {
+            Ok(("--status-fd", _)) => {
+                fd = value().and_then(|v| descriptor("--status-fd", &v).ok());
+            }
+            Ok(("--status-file", _)) => file = value(),
+            Ok((_, Kind::Value | Kind::NoOpValue)) => {
+                value();
+            }
+            Ok(_) => {}
+            Err(_) => break,
+        }
+    }
+    (fd, file)
+}
+
 /// Parse `argv` without the program name.
-pub fn parse(argv: &[String]) -> Result<Args, ParseError> {
+pub fn parse(argv: &[OsString]) -> Result<Args, ParseError> {
     let mut args = Args::default();
     let mut flags = Flags::default();
     let mut rest = argv.iter().peekable();
 
-    // A subcommand may come first.
-    if let Some(first) = rest.peek() {
-        let consumed = match first.as_str() {
-            "sign" => {
-                flags.sign = true;
-                true
-            }
-            "verify" => {
-                flags.verify = true;
-                true
-            }
-            "encrypt" => {
-                flags.encrypt = true;
-                true
-            }
-            "decrypt" => {
-                flags.decrypt = true;
-                true
-            }
-            "keys" => {
-                flags.list = true;
-                true
-            }
-            "export" => {
-                flags.export = true;
-                true
-            }
-            "version" => {
-                flags.version = true;
-                true
-            }
-            "help" => {
-                flags.help = true;
-                true
-            }
-            _ => false,
-        };
-        if consumed {
-            rest.next();
-        }
+    // One of gfpipe's subcommands may come first; after it, options may come
+    // anywhere. In gpg's form the first file ends the options, as with gpg.
+    let own_form = rest.peek().is_some_and(|w| subcommand(w, &mut flags));
+    if own_form {
+        rest.next();
     }
 
     let mut only_files = false;
+    // In gpg's form a file ended the options, rather than "--".
+    let mut ended_by_file = false;
     while let Some(arg) = rest.next() {
-        if only_files || arg == "-" || !arg.starts_with('-') {
+        let Some(word) = arg.to_str() else {
+            // Not text, so not an option: a file name.
             args.inputs.push(arg.clone());
+            if !own_form && !only_files {
+                only_files = true;
+                ended_by_file = true;
+            }
+            continue;
+        };
+        if only_files || word == "-" || !word.starts_with('-') {
+            if ended_by_file && word.starts_with('-') && word != "-" {
+                args.notes
+                    .push(format!("Note: '{word}' is not considered an option"));
+            }
+            args.inputs.push(arg.clone());
+            if !own_form && !only_files {
+                only_files = true;
+                ended_by_file = true;
+            }
             continue;
         }
-        if arg == "--" {
+        if word == "--" {
             only_files = true;
             continue;
         }
 
-        if let Some(long) = arg.strip_prefix("--") {
-            let (name, inline) = match long.split_once('=') {
-                Some((n, v)) => (format!("--{n}"), Some(v.to_string())),
-                None => (arg.clone(), None),
+        if let Some(long) = word.strip_prefix("--") {
+            let (given, inline) = match long.split_once('=') {
+                Some((n, v)) => (format!("--{n}"), Some(OsString::from(v))),
+                None => (word.to_string(), None),
             };
-            let mut value = |name: &str| -> Result<String, ParseError> {
+            let (name, kind) = resolve_name(&given)?;
+            let mut value = || -> Result<OsString, ParseError> {
                 match &inline {
                     Some(v) => Ok(v.clone()),
                     None => rest
@@ -372,19 +553,29 @@ pub fn parse(argv: &[String]) -> Result<Args, ParseError> {
                         .ok_or_else(|| ParseError::MissingValue(name.to_string())),
                 }
             };
-            let fd = |name: &str, v: String| -> Result<i32, ParseError> {
-                v.parse()
-                    .map_err(|_| ParseError::Unsupported(format!("{name}={v}")))
-            };
-            match name.as_str() {
+            match kind {
+                Kind::KeyManagement => return Err(ParseError::KeyManagement(name.to_string())),
+                Kind::OtherKeyring => return Err(ParseError::OtherKeyring(name.to_string())),
+                Kind::NoOp => continue,
+                Kind::NoOpValue => {
+                    value()?;
+                    continue;
+                }
+                Kind::Flag | Kind::Value => {}
+            }
+            match name {
                 "--sign" => flags.sign = true,
-                "--detach-sign" | "--detach" => flags.detach = true,
-                "--clearsign" | "--clear-sign" | "--clear" => flags.clear = true,
+                "--detach-sign" => flags.detach = true,
+                "--clearsign" | "--clear-sign" => flags.clear = true,
                 "--encrypt" => flags.encrypt = true,
                 "--symmetric" => flags.symmetric = true,
                 "--decrypt" => flags.decrypt = true,
                 "--verify" => flags.verify = true,
-                "--list-keys" | "--list-public-keys" | "--fingerprint" => flags.list = true,
+                "--list-keys" | "--list-public-keys" => flags.list = true,
+                "--fingerprint" => {
+                    flags.list = true;
+                    args.fingerprint = true;
+                }
                 "--list-secret-keys" => flags.list_secret = true,
                 "--export" => flags.export = true,
                 "--version" => flags.version = true,
@@ -394,52 +585,54 @@ pub fn parse(argv: &[String]) -> Result<Args, ParseError> {
                 "--yes" => args.yes = true,
                 "--no" => args.yes = false,
                 "--with-colons" => args.with_colons = true,
-                "--local-user" | "--default-key" => args.local_users.push(value(&name)?),
-                "--recipient" | "--hidden-recipient" | "--encrypt-to" | "--hidden-encrypt-to" => {
-                    args.recipients.push(value(&name)?)
-                }
-                "--default-recipient" => args.default_recipient = Some(value(&name)?),
                 "--default-recipient-self" => args.default_recipient_self = true,
-                "--output" => args.output = Some(value(&name)?),
-                "--keypack" => args.keypack = Some(value(&name)?),
-                "--key-file" => args.key_file = Some(value(&name)?),
-                "--passphrase" => args.passphrase = Some(Passphrase::Text(value(&name)?)),
-                "--passphrase-file" => args.passphrase = Some(Passphrase::File(value(&name)?)),
+                "--throw-keyids" => args.throw_keyids = true,
+                "--no-throw-keyids" => args.throw_keyids = false,
+                "--list-only" => args.list_only = true,
+                "--quiet" => args.quiet = true,
+                "--verbose" => args.verbose = true,
+                "--no-verbose" => args.verbose = false,
+                "--local-user" => args.local_users.push(text(value()?)),
+                "--default-key" => args.default_key = Some(text(value()?)),
+                "--recipient" | "--encrypt-to" => args.recipients.push(Recipient {
+                    name: text(value()?),
+                    hidden: false,
+                }),
+                "--hidden-recipient" | "--hidden-encrypt-to" => args.recipients.push(Recipient {
+                    name: text(value()?),
+                    hidden: true,
+                }),
+                "--default-recipient" => args.default_recipient = Some(text(value()?)),
+                "--output" => args.output = Some(value()?),
+                "--keypack" => args.keypack = Some(value()?),
+                "--key-file" => args.key_file = Some(value()?),
+                "--passphrase" => args.passphrase = Some(Passphrase::Text(text(value()?))),
+                "--passphrase-file" => args.passphrase = Some(Passphrase::File(value()?)),
                 "--passphrase-fd" => {
-                    let v = value(&name)?;
-                    args.passphrase = Some(Passphrase::Fd(fd(&name, v)?));
+                    let v = value()?;
+                    args.passphrase = Some(Passphrase::Fd(descriptor(name, &v)?));
                 }
                 "--status-fd" => {
-                    let v = value(&name)?;
-                    args.status_fd = Some(fd(&name, v)?);
+                    let v = value()?;
+                    args.status_fd = Some(descriptor(name, &v)?);
                 }
-                "--status-file" => args.status_file = Some(value(&name)?),
-                n if NO_OPS.contains(&n) => {}
-                n if NO_OP_WITH_VALUE.contains(&n) => {
-                    value(n)?;
-                }
-                n if KEY_MANAGEMENT.contains(&n) => {
-                    return Err(ParseError::KeyManagement(n.to_string()));
-                }
-                n if OTHER_KEYRING.contains(&n) => {
-                    return Err(ParseError::OtherKeyring(n.to_string()));
-                }
-                _ => return Err(ParseError::Unsupported(name)),
+                "--status-file" => args.status_file = Some(value()?),
+                _ => return Err(ParseError::Unsupported(given)),
             }
             continue;
         }
 
         // A cluster of short options, as gpg takes them: "-bsau KEY".
-        let cluster: Vec<char> = arg[1..].chars().collect();
+        let cluster: Vec<char> = word[1..].chars().collect();
         let mut i = 0;
         while i < cluster.len() {
             let c = cluster[i];
             i += 1;
-            let mut value = || -> Result<String, ParseError> {
+            let mut value = || -> Result<OsString, ParseError> {
                 if i < cluster.len() {
                     let v: String = cluster[i..].iter().collect();
                     i = cluster.len();
-                    Ok(v)
+                    Ok(OsString::from(v))
                 } else {
                     rest.next()
                         .cloned()
@@ -456,23 +649,32 @@ pub fn parse(argv: &[String]) -> Result<Args, ParseError> {
                 'K' => flags.list_secret = true,
                 'h' => flags.help = true,
                 'a' => args.armor = true,
-                'q' | 'v' | 't' => {}
+                'q' => args.quiet = true,
+                'v' => args.verbose = true,
+                't' => {}
                 'z' => {
                     value()?;
                 }
-                'u' => args.local_users.push(value()?),
-                'r' | 'R' => args.recipients.push(value()?),
+                'u' => args.local_users.push(text(value()?)),
+                'r' => args.recipients.push(Recipient {
+                    name: text(value()?),
+                    hidden: false,
+                }),
+                'R' => args.recipients.push(Recipient {
+                    name: text(value()?),
+                    hidden: true,
+                }),
                 'o' => args.output = Some(value()?),
                 _ => return Err(ParseError::Unsupported(format!("-{c}"))),
             }
         }
     }
 
-    args.command = Some(resolve(&flags)?);
+    args.command = Some(resolve(&flags, !args.inputs.is_empty())?);
     Ok(args)
 }
 
-fn resolve(f: &Flags) -> Result<Command, ParseError> {
+fn resolve(f: &Flags, has_files: bool) -> Result<Command, ParseError> {
     if f.help {
         return Ok(Command::Help);
     }
@@ -484,14 +686,15 @@ fn resolve(f: &Flags) -> Result<Command, ParseError> {
         f.verify,
         f.decrypt,
         f.encrypt || f.symmetric || signing,
-        f.list || f.list_secret,
+        f.list,
+        f.list_secret,
         f.export,
     ]
     .iter()
     .filter(|&&x| x)
     .count();
     if chosen > 1 {
-        return Err(ParseError::Conflict("these operations".into()));
+        return Err(ParseError::ConflictingCommands);
     }
     if f.verify {
         return Ok(Command::Verify);
@@ -537,6 +740,9 @@ fn resolve(f: &Flags) -> Result<Command, ParseError> {
     if f.sign {
         return Ok(Command::Sign(SignKind::Inline));
     }
+    if has_files {
+        return Ok(Command::Default);
+    }
     Err(ParseError::NoOperation)
 }
 
@@ -545,7 +751,11 @@ mod tests {
     use super::*;
 
     fn p(args: &[&str]) -> Result<Args, ParseError> {
-        parse(&args.iter().map(|s| s.to_string()).collect::<Vec<_>>())
+        parse(&args.iter().map(OsString::from).collect::<Vec<_>>())
+    }
+
+    fn names(recipients: &[Recipient]) -> Vec<&str> {
+        recipients.iter().map(|r| r.name.as_str()).collect()
     }
 
     #[test]
@@ -594,8 +804,8 @@ mod tests {
         ])
         .unwrap();
         assert_eq!(a.command, Some(Command::Encrypt { sign: true }));
-        assert_eq!(a.recipients, ["a", "b"]);
-        assert_eq!(a.output.as_deref(), Some("out"));
+        assert_eq!(names(&a.recipients), ["a", "b"]);
+        assert_eq!(a.output.as_deref(), Some(OsStr::new("out")));
         assert_eq!(a.inputs, ["in"]);
         assert_eq!(p(&["decrypt"]).unwrap().command, Some(Command::Decrypt));
         assert_eq!(
@@ -608,14 +818,14 @@ mod tests {
         );
         assert_eq!(
             p(&["--keypack", "work", "-s"]).unwrap().keypack.as_deref(),
-            Some("work")
+            Some(OsStr::new("work"))
         );
         assert_eq!(
             p(&["--key-file", "k.gfkey", "-s"])
                 .unwrap()
                 .key_file
                 .as_deref(),
-            Some("k.gfkey")
+            Some(OsStr::new("k.gfkey"))
         );
     }
 
@@ -638,6 +848,15 @@ mod tests {
                 .to_string()
                 .contains("no key management")
         );
+        // Shortened, it is still refused by its full name.
+        assert_eq!(
+            p(&["--gen-k"]).err(),
+            Some(ParseError::KeyManagement("--gen-key".into()))
+        );
+        assert_eq!(
+            p(&["--impo"]).err(),
+            Some(ParseError::Ambiguous("--impo".into()))
+        );
     }
 
     #[test]
@@ -647,6 +866,10 @@ mod tests {
             Some(ParseError::Unsupported("--frobnicate".into()))
         );
         assert_eq!(
+            ParseError::Unsupported("--frobnicate".into()).to_string(),
+            "invalid option \"--frobnicate\""
+        );
+        assert_eq!(
             p(&["-sx"]).err(),
             Some(ParseError::Unsupported("-x".into()))
         );
@@ -654,12 +877,57 @@ mod tests {
             p(&["-s", "-u"]).err(),
             Some(ParseError::MissingValue("-u".into()))
         );
+        assert_eq!(
+            ParseError::MissingValue("-u".into()).to_string(),
+            "missing argument for option \"-u\""
+        );
         assert_eq!(p(&[]).err(), Some(ParseError::NoOperation));
-        assert!(matches!(
-            p(&["-s", "--verify"]),
-            Err(ParseError::Conflict(_))
-        ));
+        assert_eq!(
+            p(&["-s", "--verify"]).err(),
+            Some(ParseError::ConflictingCommands)
+        );
+        assert_eq!(
+            p(&["-k", "-K"]).err(),
+            Some(ParseError::ConflictingCommands)
+        );
         assert!(matches!(p(&["-e", "-b"]), Err(ParseError::Conflict(_))));
+    }
+
+    #[test]
+    fn long_options_may_be_shortened_as_with_gpg() {
+        assert_eq!(p(&["--decr"]).unwrap().command, Some(Command::Decrypt));
+        assert!(p(&["--arm", "--detach-s"]).unwrap().armor);
+        // Both spellings of --armor are one option.
+        assert!(p(&["--armo", "-s"]).unwrap().armor);
+        assert_eq!(p(&["--recip", "k", "-e"]).unwrap().recipients[0].name, "k");
+        assert_eq!(
+            p(&["--verif", "x"]).err(),
+            Some(ParseError::Ambiguous("--verif".into()))
+        );
+        assert_eq!(
+            ParseError::Ambiguous("--de".into()).to_string(),
+            "option \"--de\" is ambiguous"
+        );
+        // Never to an option that is accepted and does nothing: a typo would
+        // be lost.
+        assert_eq!(
+            p(&["--bat", "-s"]).err(),
+            Some(ParseError::Unsupported("--bat".into()))
+        );
+    }
+
+    #[test]
+    fn in_gpg_form_the_first_file_ends_the_options() {
+        let a = p(&["-s", "file", "--armor"]).unwrap();
+        assert!(!a.armor);
+        assert_eq!(a.inputs, ["file", "--armor"]);
+        assert_eq!(a.notes, ["Note: '--armor' is not considered an option"]);
+
+        // After a subcommand, options come anywhere.
+        let a = p(&["keys", "alice", "--with-colons"]).unwrap();
+        assert!(a.with_colons);
+        assert_eq!(a.inputs, ["alice"]);
+        assert!(a.notes.is_empty());
     }
 
     #[test]
@@ -682,8 +950,9 @@ mod tests {
         let a = p(&["-sukey"]).unwrap();
         assert_eq!(a.local_users, ["key"]);
         let a = p(&["-e", "-rbob", "--", "-file"]).unwrap();
-        assert_eq!(a.recipients, ["bob"]);
+        assert_eq!(names(&a.recipients), ["bob"]);
         assert_eq!(a.inputs, ["-file"]);
+        assert!(a.notes.is_empty());
     }
 
     #[test]
@@ -725,8 +994,13 @@ mod tests {
         .unwrap();
         assert_eq!(a.command, Some(Command::Sign(SignKind::Detached)));
         assert!(!a.armor);
-        assert_eq!(a.output.as_deref(), Some("x.sig"));
+        assert_eq!(a.output.as_deref(), Some(OsStr::new("x.sig")));
         assert_eq!(a.inputs, ["x.rpm"]);
+
+        // rpm 4.14 and later sign standard input to standard output.
+        let a = p(&["-u", "K", "-sbo", "-", "--", "-"]).unwrap();
+        assert_eq!(a.output.as_deref(), Some(OsStr::new("-")));
+        assert_eq!(a.inputs, ["-"]);
 
         // pass
         let a = p(&[
@@ -743,10 +1017,25 @@ mod tests {
         .unwrap();
         assert_eq!(a.command, Some(Command::Encrypt { sign: false }));
         assert!(a.yes);
+        assert!(a.quiet);
         let a = p(&["--list-keys", "--with-colons", "K"]).unwrap();
         assert_eq!(a.command, Some(Command::ListKeys { secret: false }));
         assert!(a.with_colons);
         assert_eq!(a.inputs, ["K"]);
+        // pass init and mv: who a file is for.
+        let a = p(&[
+            "-v",
+            "--no-secmem-warning",
+            "--no-permission-warning",
+            "--decrypt",
+            "--list-only",
+            "--keyid-format",
+            "long",
+            "f.gpg",
+        ])
+        .unwrap();
+        assert_eq!(a.command, Some(Command::Decrypt));
+        assert!(a.list_only && a.verbose);
     }
 
     #[test]
@@ -763,10 +1052,18 @@ mod tests {
             p(&["-c", "--passphrase-fd", "3"]).unwrap().passphrase,
             Some(Passphrase::Fd(3))
         );
-        assert!(matches!(
-            p(&["-c", "--passphrase-fd", "x"]),
-            Err(ParseError::Unsupported(_))
-        ));
+        for bad in ["x", "-1", "-7", ""] {
+            assert_eq!(
+                p(&["-c", "--passphrase-fd", bad]).err(),
+                Some(ParseError::InvalidValue("--passphrase-fd".into())),
+                "{bad}"
+            );
+            assert_eq!(
+                p(&["-s", "--status-fd", bad]).err(),
+                Some(ParseError::InvalidValue("--status-fd".into())),
+                "{bad}"
+            );
+        }
     }
 
     #[test]
@@ -779,12 +1076,20 @@ mod tests {
             Some(Command::Export)
         );
         assert_eq!(p(&["export"]).unwrap().command, Some(Command::Export));
-        assert_eq!(
-            p(&["--fingerprint"]).unwrap().command,
-            Some(Command::ListKeys { secret: false })
-        );
+        let a = p(&["--fingerprint"]).unwrap();
+        assert_eq!(a.command, Some(Command::ListKeys { secret: false }));
+        assert!(a.fingerprint);
         let a = p(&["-e", "-R", "a", "--encrypt-to", "b", "--hidden-recipient=c"]).unwrap();
-        assert_eq!(a.recipients, ["a", "b", "c"]);
+        assert_eq!(names(&a.recipients), ["a", "b", "c"]);
+        assert_eq!(
+            a.recipients.iter().map(|r| r.hidden).collect::<Vec<_>>(),
+            [true, false, true]
+        );
+        assert!(
+            p(&["-e", "-r", "a", "--throw-keyids"])
+                .unwrap()
+                .throw_keyids
+        );
         let a = p(&["-e", "--default-recipient", "d", "--default-recipient-self"]).unwrap();
         assert_eq!(a.default_recipient.as_deref(), Some("d"));
         assert!(a.default_recipient_self);
@@ -794,8 +1099,22 @@ mod tests {
                 .unwrap()
                 .status_file
                 .as_deref(),
-            Some("s")
+            Some(OsStr::new("s"))
         );
+    }
+
+    #[test]
+    fn the_default_key_is_used_only_without_local_users() {
+        let a = p(&["--default-key", "D", "-u", "U", "-s"]).unwrap();
+        assert_eq!(a.local_users, ["U"]);
+        assert_eq!(a.default_key.as_deref(), Some("D"));
+    }
+
+    #[test]
+    fn files_alone_ask_for_gpgs_default_action() {
+        let a = p(&["message.gpg"]).unwrap();
+        assert_eq!(a.command, Some(Command::Default));
+        assert_eq!(p(&["-q"]).err(), Some(ParseError::NoOperation));
     }
 
     #[test]
@@ -825,13 +1144,30 @@ mod tests {
 
     #[test]
     fn every_listed_harmless_option_is_accepted() {
-        for opt in NO_OPS {
-            assert!(p(&[opt, "-s"]).is_ok(), "{opt}");
-        }
-        for opt in NO_OP_WITH_VALUE {
-            assert!(p(&[opt, "v", "-s"]).is_ok(), "{opt}");
+        for (opt, kind) in OPTIONS {
+            match kind {
+                Kind::NoOp => assert!(p(&[opt, "-s"]).is_ok(), "{opt}"),
+                Kind::NoOpValue => assert!(p(&[opt, "v", "-s"]).is_ok(), "{opt}"),
+                _ => {}
+            }
         }
         assert!(p(&["-t", "-z", "9", "-s"]).is_ok());
         assert!(p(&["-z9", "-s"]).is_ok());
+    }
+
+    #[test]
+    fn every_full_option_name_resolves_to_itself() {
+        for (opt, _) in OPTIONS {
+            assert_eq!(resolve_name(opt).unwrap().0, *opt);
+        }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn file_names_that_are_not_text_are_kept_as_they_are() {
+        use std::os::unix::ffi::OsStringExt;
+        let name = OsString::from_vec(b"caf\xe9.txt".to_vec());
+        let a = parse(&[OsString::from("-s"), name.clone()]).unwrap();
+        assert_eq!(a.inputs, [name]);
     }
 }
