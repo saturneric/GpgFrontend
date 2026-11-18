@@ -3968,7 +3968,10 @@ mod esk_and_integrity_tests {
 
     #[test]
     fn a_mixed_message_neither_mechanism_opens_reports_one_uniform_error() {
-        let msg = seipd::mixed_message(&keys::V4_SIGN, "message password", PAYLOAD, false);
+        // A v6 SKESK, whose AEAD tag refuses every wrong password. A v4 one
+        // cannot: about one wrong password in a hundred decrypts to a valid
+        // algorithm and key length, and the message then fails as corrupted.
+        let msg = seipd::mixed_message(&keys::V6_SIGN, "message password", PAYLOAD, true);
         let err = failure(
             decrypt(&msg, Some(&keys::V4_NISTP256.secret_armored), cb::pwd_wrong),
             "nothing opens it",
