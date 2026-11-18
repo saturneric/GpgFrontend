@@ -38,6 +38,9 @@
 #include <QStandardPaths>
 #include <QTemporaryDir>
 #include <array>
+#ifndef _WIN32
+#include <unistd.h>
+#endif
 
 #include "MobileCryptoTest.h"
 #include "core/function/GlobalSettingStation.h"
@@ -2067,6 +2070,11 @@ TEST(CopyLimitedTest, ACopyThatFailsLeavesTheFileThereAsItWas) {
 }
 
 TEST_F(FileWorkspaceTest, ASaveThatFailsLeavesWhatWasThereAndNothingEmpty) {
+  // The copy is made to fail by taking away read permission, which root
+  // ignores.
+#ifndef _WIN32
+  if (::geteuid() == 0) GTEST_SKIP() << "root reads a file whatever its mode";
+#endif
   const auto a = Add("first", "a.txt");
   Do([&](auto* f) { f->encrypt({a}, {fred_}); });
   Finish();

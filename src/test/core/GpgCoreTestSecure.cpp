@@ -78,16 +78,16 @@ TEST(SecureMemoryAllocatorTest, FreeNullPointer) {
 }
 
 TEST(SecureMemoryAllocatorTest, DoubleFreeShouldWarn) {
-  const auto secure_level = qApp->property("GFSecureLevel").toInt();
-  // do not test for normal free()
-  if (secure_level < 1) return;
-
-  void* ptr = SMAMalloc(64);
+  // The secure tier, because it is tracked at every level. The normal tier is
+  // not: boot allocates at level 0 before the profile sets the level, and from
+  // then on a block the normal tier does not know is handed to plain free(),
+  // so a double free there is caught only if the C library happens to notice.
+  void* ptr = SMASecMalloc(64);
   ASSERT_NE(ptr, nullptr);
-  SMAFree(ptr);
+  SMASecFree(ptr);
 
 #ifdef DEBUG
-  EXPECT_DEATH({ SMAFree(ptr); }, "");
+  EXPECT_DEATH({ SMASecFree(ptr); }, "");
 #else
   // Second free: implementation should warn but not crash
   SMASecFree(ptr);
