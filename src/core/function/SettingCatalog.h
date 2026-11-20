@@ -529,7 +529,9 @@ inline constexpr BoolSetting kProhibitUpdateCheck{
      .group = kNETWORK,
      .title = QT_TRANSLATE_NOOP("GpgFrontend::SettingItem",
                                 "Never check for updates")},
-    false};
+    // On until the user chose otherwise: the setup wizard asks, and the update
+    // module reads a key that was never stored the same way.
+    true};
 
 inline constexpr BoolSetting kProxyEnable{
     {.key = "proxy/enable",

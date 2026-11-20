@@ -1044,6 +1044,18 @@ TEST(SettingCatalogTest, DefaultsAgreeWithTheConstantsTheyMirror) {
             static_cast<int>(GFLogLevel::kCRITICAL));
 }
 
+TEST(SettingCatalogTest, NoUpdateCheckUntilThePersonChose) {
+  // The update module reads a key that was never stored as "prohibited"; the
+  // catalog says the same, so nothing that walks it can show or apply the
+  // opposite before the setup wizard has asked.
+  EXPECT_TRUE(SettingItems::kProhibitUpdateCheck.Default());
+
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  QSettings settings(dir.path() + "/config.ini", QSettings::IniFormat);
+  EXPECT_TRUE(SettingItems::kProhibitUpdateCheck.Read(settings));
+}
+
 TEST(SettingCatalogTest, ReadingGivesTheTypeAndTheOneDefault) {
   QTemporaryDir dir;
   ASSERT_TRUE(dir.isValid());
