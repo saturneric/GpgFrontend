@@ -118,7 +118,7 @@ Environment Setup Guide](https://gpgfrontend.bktus.com/appendix/setup-dev-env).
 
 ## Project's Logo
 
-<img width="256" height="256" src="https://image.cdn.bktus.com/i/2024/02/24/f3f2f26a-96b4-65eb-960f-7ac3397a0a40.webp" alt="Logo"/>
+<img width="256" height="256" src="https://img.bktus.com/hdCIHD6j.webp" alt="Logo"/>
 
 ## Mission and Origins
 
