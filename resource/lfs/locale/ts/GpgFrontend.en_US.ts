@@ -4613,8 +4613,8 @@ GpgFrontend will now try to import key(s).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="483"/>
-        <source>Check for updates on startup</source>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="484"/>
+        <source>Check for updates automatically, once a day</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

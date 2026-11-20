@@ -5105,9 +5105,9 @@ GpgFrontend va maintenant essayer d&apos;importer la ou les clés.</translation>
         <translation>Ne plus afficher cet assistant de configuration</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="483"/>
-        <source>Check for updates on startup</source>
-        <translation>Rechercher les mises à jour au démarrage</translation>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="484"/>
+        <source>Check for updates automatically, once a day</source>
+        <translation>Vérifier automatiquement les mises à jour, une fois par jour</translation>
     </message>
 </context>
 <context>

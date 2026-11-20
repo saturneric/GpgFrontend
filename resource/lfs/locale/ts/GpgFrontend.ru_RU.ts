@@ -5120,9 +5120,9 @@ GpgFrontend попытается импортировать ключ(и).</trans
         <translation>Больше не показывать мастер настройки</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="483"/>
-        <source>Check for updates on startup</source>
-        <translation>Проверять обновления при запуске</translation>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="484"/>
+        <source>Check for updates automatically, once a day</source>
+        <translation>Автоматически проверять обновления раз в день</translation>
     </message>
 </context>
 <context>

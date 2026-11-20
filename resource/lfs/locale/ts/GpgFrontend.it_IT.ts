@@ -5107,9 +5107,9 @@ GpgFrontend proverà ora a importare le chiavi.</translation>
         <translation>Non mostrare più questa procedura guidata di configurazione</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="483"/>
-        <source>Check for updates on startup</source>
-        <translation>Controlla gli aggiornamenti all&apos;avvio</translation>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="484"/>
+        <source>Check for updates automatically, once a day</source>
+        <translation>Verifica automaticamente la presenza di aggiornamenti, una volta al giorno</translation>
     </message>
 </context>
 <context>

@@ -5090,9 +5090,9 @@ GpgFrontend 现在将尝试导入密钥。</translation>
         <translation>不再显示本设置向导</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="483"/>
-        <source>Check for updates on startup</source>
-        <translation>启动时检查更新</translation>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="484"/>
+        <source>Check for updates automatically, once a day</source>
+        <translation>每天自动检查一次更新</translation>
     </message>
 </context>
 <context>

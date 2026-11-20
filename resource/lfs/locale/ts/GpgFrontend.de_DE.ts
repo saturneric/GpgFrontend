@@ -5105,9 +5105,9 @@ GpgFrontend versucht jetzt, Schlüssel zu importieren.</translation>
         <translation>Diesen Einrichtungsassistenten nicht mehr anzeigen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="483"/>
-        <source>Check for updates on startup</source>
-        <translation>Beim Start nach Updates suchen</translation>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="484"/>
+        <source>Check for updates automatically, once a day</source>
+        <translation>Automatisch einmal täglich nach Updates suchen</translation>
     </message>
 </context>
 <context>

@@ -5090,9 +5090,9 @@ GpgFrontend 現在會嘗試匯入金鑰。</translation>
         <translation>不再顯示此設定精靈</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="483"/>
-        <source>Check for updates on startup</source>
-        <translation>啟動時檢查更新</translation>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="484"/>
+        <source>Check for updates automatically, once a day</source>
+        <translation>每天自動檢查更新一次</translation>
     </message>
 </context>
 <context>

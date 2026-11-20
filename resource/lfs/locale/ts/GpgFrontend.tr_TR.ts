@@ -4981,9 +4981,9 @@ Devam etmek istiyor musunuz?</translation>
         <translation>Bir hata bildirmek veya teknik bir sorunu izlemek istiyorsanız GitHub sorunlarını kullanın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="483"/>
-        <source>Check for updates on startup</source>
-        <translation>Başlangıçta güncellemeleri kontrol et</translation>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="484"/>
+        <source>Check for updates automatically, once a day</source>
+        <translation>Güncellemeleri günde bir kez otomatik olarak kontrol et</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="485"/>

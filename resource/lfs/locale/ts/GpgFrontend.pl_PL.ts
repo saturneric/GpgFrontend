@@ -5044,9 +5044,9 @@ GpgFrontend spróbuje teraz zaimportować klucz(e).</translation>
         <translation>Nie pokazuj ponownie tego kreatora konfiguracji</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="483"/>
-        <source>Check for updates on startup</source>
-        <translation>Sprawdzaj aktualizacje przy uruchomieniu</translation>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="484"/>
+        <source>Check for updates automatically, once a day</source>
+        <translation>Automatycznie sprawdzaj aktualizacje raz dziennie</translation>
     </message>
 </context>
 <context>

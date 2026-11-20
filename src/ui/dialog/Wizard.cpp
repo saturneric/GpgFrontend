@@ -480,7 +480,8 @@ ConclusionPage::ConclusionPage(QWidget* parent) : WizardPage(parent) {
         tr("Use GitHub issues if you want to report a bug or track a technical "
            "problem."));
 
-    check_updates_checkbox_->setText(tr("Check for updates on startup"));
+    check_updates_checkbox_->setText(
+        tr("Check for updates automatically, once a day"));
     dont_show_wizard_checkbox_->setText(
         tr("Don't show this setup wizard again"));
   });
